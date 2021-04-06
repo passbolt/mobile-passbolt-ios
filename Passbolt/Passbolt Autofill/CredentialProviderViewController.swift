@@ -23,5 +23,5 @@
 
 import AuthenticationServices
 
-class CredentialProviderViewController: ASCredentialProviderViewController {
+internal class CredentialProviderViewController: ASCredentialProviderViewController {
 }
