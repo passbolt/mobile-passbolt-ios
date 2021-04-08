@@ -1,0 +1,14 @@
+stages:
+  - test
+
+unit_tests:
+  stage: test
+  script:
+    - make test
+  only:
+    - master
+    - develop
+    - merge_request
+    - feature/*
+  tags:
+    - ios

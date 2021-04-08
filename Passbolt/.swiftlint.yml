@@ -173,7 +173,7 @@ indentation_width:
   
 line_length:
   warning: 120
-  ignores comments: true
+  ignores_comments: true
 
 trailing_whitespace:
   ignores_empty_lines: true
