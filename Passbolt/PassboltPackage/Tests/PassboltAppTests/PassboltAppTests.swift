@@ -21,8 +21,10 @@
 // @since         v1.0
 //
 
+@testable import PassboltApp
 import XCTest
+
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
-class PassboltTests: XCTestCase {
+final class PassboltAppTests: XCTestCase {
 }

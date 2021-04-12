@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "699CD6E7-0F53-4549-867D-3182A42A92D9",
+      "name" : "Default",
+      "options" : {
+        "environmentVariableEntries" : [
+          {
+            "key" : "NO_LINT",
+            "value" : "1"
+          }
+        ]
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltAppTests",
+        "name" : "PassboltAppTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltExtensionTests",
+        "name" : "PassboltExtensionTests"
+      }
+    }
+  ],
+  "version" : 1
+}

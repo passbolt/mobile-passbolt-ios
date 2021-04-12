@@ -198,3 +198,6 @@ type_contents_order:
      - SwiftLintFramework.TypeContent.viewLifeCycleMethod
      - SwiftLintFramework.TypeContent.ibAction
      - SwiftLintFramework.TypeContent.otherMethod
+
+excluded:
+  - "*/Package.swift"

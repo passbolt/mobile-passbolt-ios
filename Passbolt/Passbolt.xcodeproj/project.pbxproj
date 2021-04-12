@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,7 +15,8 @@
 		DD38F96926174BB700A6C627 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DD38F96726174BB700A6C627 /* MainInterface.storyboard */; };
 		DD38F96E26174BB700A6C627 /* Passbolt Autofill.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DD38F97626174D5600A6C627 /* AuthenticationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD38F96226174BB700A6C627 /* AuthenticationServices.framework */; };
-		DDE6BFF1261F40640014861E /* PassboltTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE6BFF0261F40640014861E /* PassboltTests.swift */; };
+		DD3F9EBC26244C020027D016 /* PassboltApp in Frameworks */ = {isa = PBXBuildFile; productRef = DD3F9EBB26244C020027D016 /* PassboltApp */; };
+		DD59A9C82625A37500736D43 /* PassboltExtension in Frameworks */ = {isa = PBXBuildFile; productRef = DD59A9C72625A37500736D43 /* PassboltExtension */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,13 +26,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = DD38F95F26174BB700A6C627;
 			remoteInfo = "Passbolt Autofill";
-		};
-		DDE6BFF3261F40640014861E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DD38F936261746C400A6C627 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DD38F93D261746C400A6C627;
-			remoteInfo = Passbolt;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -62,9 +56,8 @@
 		DD38F96A26174BB700A6C627 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DD38F96B26174BB700A6C627 /* Passbolt_Autofill.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Passbolt_Autofill.entitlements; sourceTree = "<group>"; };
 		DD38F97526174D5600A6C627 /* Passbolt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Passbolt.entitlements; sourceTree = "<group>"; };
-		DDE6BFEE261F40640014861E /* PassboltTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PassboltTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		DDE6BFF0261F40640014861E /* PassboltTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassboltTests.swift; sourceTree = "<group>"; };
-		DDE6BFF2261F40640014861E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DD3F9EB726244A330027D016 /* PassboltPackage */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PassboltPackage; sourceTree = "<group>"; };
+		DD87927E262983CF006ECC0A /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD3F9EBC26244C020027D016 /* PassboltApp in Frameworks */,
 				DD38F97626174D5600A6C627 /* AuthenticationServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -80,14 +74,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD59A9C82625A37500736D43 /* PassboltExtension in Frameworks */,
 				DD38F96326174BB700A6C627 /* AuthenticationServices.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		DDE6BFEB261F40640014861E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,9 +85,10 @@
 		DD38F935261746C400A6C627 = {
 			isa = PBXGroup;
 			children = (
+				DD87927E262983CF006ECC0A /* TestPlan.xctestplan */,
+				DD3F9EB726244A330027D016 /* PassboltPackage */,
 				DD38F940261746C400A6C627 /* Passbolt */,
 				DD38F96426174BB700A6C627 /* Passbolt Autofill */,
-				DDE6BFEF261F40640014861E /* PassboltTests */,
 				DD38F96126174BB700A6C627 /* Frameworks */,
 				DD38F93F261746C400A6C627 /* Products */,
 			);
@@ -110,7 +99,6 @@
 			children = (
 				DD38F93E261746C400A6C627 /* Passbolt.app */,
 				DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */,
-				DDE6BFEE261F40640014861E /* PassboltTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -146,15 +134,6 @@
 			path = "Passbolt Autofill";
 			sourceTree = "<group>";
 		};
-		DDE6BFEF261F40640014861E /* PassboltTests */ = {
-			isa = PBXGroup;
-			children = (
-				DDE6BFF0261F40640014861E /* PassboltTests.swift */,
-				DDE6BFF2261F40640014861E /* Info.plist */,
-			);
-			path = PassboltTests;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -174,6 +153,9 @@
 				DD38F96D26174BB700A6C627 /* PBXTargetDependency */,
 			);
 			name = Passbolt;
+			packageProductDependencies = (
+				DD3F9EBB26244C020027D016 /* PassboltApp */,
+			);
 			productName = Passbolt;
 			productReference = DD38F93E261746C400A6C627 /* Passbolt.app */;
 			productType = "com.apple.product-type.application";
@@ -192,27 +174,12 @@
 			dependencies = (
 			);
 			name = "Passbolt Autofill";
+			packageProductDependencies = (
+				DD59A9C72625A37500736D43 /* PassboltExtension */,
+			);
 			productName = "Passbolt Autofill";
 			productReference = DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */;
 			productType = "com.apple.product-type.app-extension";
-		};
-		DDE6BFED261F40640014861E /* PassboltTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = DDE6BFF7261F40640014861E /* Build configuration list for PBXNativeTarget "PassboltTests" */;
-			buildPhases = (
-				DDE6BFEA261F40640014861E /* Sources */,
-				DDE6BFEB261F40640014861E /* Frameworks */,
-				DDE6BFEC261F40640014861E /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				DDE6BFF4261F40640014861E /* PBXTargetDependency */,
-			);
-			name = PassboltTests;
-			productName = PassboltTests;
-			productReference = DDE6BFEE261F40640014861E /* PassboltTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -228,10 +195,6 @@
 					};
 					DD38F95F26174BB700A6C627 = {
 						CreatedOnToolsVersion = 12.4;
-					};
-					DDE6BFED261F40640014861E = {
-						CreatedOnToolsVersion = 12.4;
-						TestTargetID = DD38F93D261746C400A6C627;
 					};
 				};
 			};
@@ -250,7 +213,6 @@
 			targets = (
 				DD38F93D261746C400A6C627 /* Passbolt */,
 				DD38F95F26174BB700A6C627 /* Passbolt Autofill */,
-				DDE6BFED261F40640014861E /* PassboltTests */,
 			);
 		};
 /* End PBXProject section */
@@ -269,13 +231,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD38F96926174BB700A6C627 /* MainInterface.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		DDE6BFEC261F40640014861E /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,7 +271,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "if [ -n $NO_LINT ]; then\n  echo \"NO LINT\"\nelif which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -338,14 +293,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DDE6BFEA261F40640014861E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				DDE6BFF1261F40640014861E /* PassboltTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -353,11 +300,6 @@
 			isa = PBXTargetDependency;
 			target = DD38F95F26174BB700A6C627 /* Passbolt Autofill */;
 			targetProxy = DD38F96C26174BB700A6C627 /* PBXContainerItemProxy */;
-		};
-		DDE6BFF4261F40640014861E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DD38F93D261746C400A6C627 /* Passbolt */;
-			targetProxy = DDE6BFF3261F40640014861E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -424,7 +366,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -479,7 +421,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -496,7 +438,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Passbolt/Passbolt.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Passbolt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -504,6 +447,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -516,7 +460,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Passbolt/Passbolt.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Passbolt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -524,6 +469,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -533,18 +479,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Passbolt Autofill/Passbolt_Autofill.entitlements";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "Passbolt Autofill/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.passbolt.mobile.ios.Passbolt-Autofill";
+				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.autofill;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -552,56 +500,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Passbolt Autofill/Passbolt_Autofill.entitlements";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "Passbolt Autofill/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.passbolt.mobile.ios.Passbolt-Autofill";
+				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.autofill;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		DDE6BFF5261F40640014861E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = PassboltTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.PassboltTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Passbolt.app/Passbolt";
-			};
-			name = Debug;
-		};
-		DDE6BFF6261F40640014861E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = PassboltTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.PassboltTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Passbolt.app/Passbolt";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -635,16 +547,18 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DDE6BFF7261F40640014861E /* Build configuration list for PBXNativeTarget "PassboltTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				DDE6BFF5261F40640014861E /* Debug */,
-				DDE6BFF6261F40640014861E /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DD3F9EBB26244C020027D016 /* PassboltApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PassboltApp;
+		};
+		DD59A9C72625A37500736D43 /* PassboltExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PassboltExtension;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DD38F936261746C400A6C627 /* Project object */;
 }

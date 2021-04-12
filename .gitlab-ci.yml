@@ -1,14 +1,23 @@
 stages:
+  - static_analysis
   - test
+
+lint:
+  stage: static_analysis
+  script:
+    make lint
+  only:
+    - branches
+    - merge_request
+  tags:
+    - ios
 
 unit_tests:
   stage: test
   script:
     - make test
   only:
-    - master
-    - develop
+    - branches
     - merge_request
-    - feature/*
   tags:
     - ios
