@@ -21,33 +21,17 @@
 // @since         v1.0
 //
 
+import Commons
 import UIKit
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+open class PlainView: UIView {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
+  public required init() {
+    super.init(frame: .zero)
   }
   
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
+  @available(*, unavailable)
+  public required init?(coder: NSCoder) {
+    unreachable("\(Self.self).\(#function) should not be used")
   }
 }
-

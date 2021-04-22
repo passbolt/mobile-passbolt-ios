@@ -19,35 +19,8 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import UIKit
+import UICommons
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-  
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
-  }
-  
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
-  }
-}
-
+#warning("TODO: [PAS-27]")
+internal final class SplashScreenView: PlainView {}

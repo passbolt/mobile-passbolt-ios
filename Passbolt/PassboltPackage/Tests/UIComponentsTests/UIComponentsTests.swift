@@ -21,33 +21,9 @@
 // @since         v1.0
 //
 
-import UIKit
+@testable import UIComponents
+import XCTest
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-  
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
-  }
-  
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
-  }
-}
-
+// swiftlint:disable explicit_acl
+// swiftlint:disable explicit_top_level_acl
+final class UIComponentsTests: XCTestCase {}

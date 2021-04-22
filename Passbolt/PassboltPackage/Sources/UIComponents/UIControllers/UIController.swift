@@ -21,33 +21,26 @@
 // @since         v1.0
 //
 
-import UIKit
+import Features
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+public protocol UIController {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
-  }
+  associatedtype Context
   
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
-  }
+  static func instance(
+    in context: Context,
+    with features: FeatureFactory
+  ) -> Self
 }
 
+extension UIController where Context == Void {
+  
+  public static func instance(
+    with features: FeatureFactory
+  ) -> Self {
+    instance(
+      in: Context(),
+      with: features
+    )
+  }
+}

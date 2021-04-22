@@ -19,35 +19,37 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
 import UIKit
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+public protocol AnyUIComponent: UIViewController {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
-  }
+  var lazyView: UIView { get }
   
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
-  }
+  func setup()
+  func setupView()
+  func activate()
+  func deactivate()
 }
 
+public protocol UIComponent: AnyUIComponent {
+  
+  associatedtype View: UIView
+  associatedtype Controller: UIController
+  
+  static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self
+  
+  var contentView: View { get }
+}
+
+public extension UIComponent {
+  
+  var lazyView: UIView { contentView }
+  
+  func setup() {}
+  func activate() {}
+  func deactivate() {}
+}

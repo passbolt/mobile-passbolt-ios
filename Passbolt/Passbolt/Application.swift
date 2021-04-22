@@ -21,33 +21,32 @@
 // @since         v1.0
 //
 
-import UIKit
+import Features
+import PassboltApp
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+internal struct Application {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
+  internal let ui: UI
+  private let features: FeatureFactory
+  
+  internal init(
+    environment: RootEnvironment
   ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
+    let features: FeatureFactory = .init(environment: environment)
+    self.ui = UI(features: features)
+    self.features = features
   }
+}
+
+extension Application {
   
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
+  internal func initialize() -> Bool {
+    features.initialization.initialize()
   }
+}
+
+extension Application {
   
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
-  }
+  internal static let shared: Application = .init(environment: RootEnvironment())
 }
 

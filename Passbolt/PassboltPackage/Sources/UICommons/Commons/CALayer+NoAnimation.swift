@@ -21,4 +21,15 @@
 // @since         v1.0
 //
 
-public struct PassboltPackage {}
+import UIKit
+
+extension CALayer {
+  
+  internal static func performWithoutAnimation(_ action: () -> Void) {
+    CATransaction.begin()
+    CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+    action()
+    CATransaction.commit()
+  }
+}
+

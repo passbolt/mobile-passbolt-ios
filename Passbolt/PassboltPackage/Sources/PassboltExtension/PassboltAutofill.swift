@@ -20,5 +20,3 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
-
-public struct PassboltAutoFill {}

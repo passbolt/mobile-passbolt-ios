@@ -21,33 +21,49 @@
 // @since         v1.0
 //
 
+import Commons
 import UIKit
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+open class StackView: UIStackView {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
+  public required init() {
+    super.init(frame: .zero)
   }
   
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
+  @available(*, unavailable)
+  public required init(coder: NSCoder) {
+    unreachable("\(Self.self).\(#function) should not be used")
   }
 }
 
+extension StackView {
+  
+  public func appendSpace(of size: CGFloat) {
+    let space: PlainView = .init()
+    switch axis {
+    case .horizontal:
+      space.heightAnchor.constraint(equalToConstant: size).isActive = true
+      
+    case .vertical:
+      space.widthAnchor.constraint(equalToConstant: size).isActive = true
+    @unknown default:
+      fatalError("Unexpected state")
+    }
+    addArrangedSubview(space)
+  }
+  
+  public func appendFiller(minSize: CGFloat = 0) {
+    let filler: PlainView = .init()
+    switch axis {
+    case .horizontal:
+      filler.heightAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
+      
+    case .vertical:
+      filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
+      
+    @unknown default:
+      fatalError("Unexpected state")
+    }
+    addArrangedSubview(filler)
+  }
+}

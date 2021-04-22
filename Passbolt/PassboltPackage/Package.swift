@@ -15,12 +15,20 @@ let package = Package(
       targets: ["AccountSetup"]
     ),
     .library(
-      name: "CommonUI",
-      targets: ["CommonUI"]
+      name: "Commons",
+      targets: ["Commons"]
     ),
     .library(
       name: "Crypto",
       targets: ["Crypto"]
+    ),
+    .library(
+      name: "Diagnostics",
+      targets: ["Diagnostics"]
+    ),
+    .library(
+      name: "Features",
+      targets: ["Features"]
     ),
     .library(
       name: "Networking",
@@ -59,16 +67,32 @@ let package = Package(
       targets: ["Storage"]
     ),
     .library(
+      name: "UICommons",
+      targets: ["UICommons"]
+    ),
+    .library(
+      name: "UIComponents",
+      targets: ["UIComponents"]
+    ),
+    .library(
       name: "User",
       targets: ["User"]
     )
   ],
   dependencies: [
+    .package(
+      name: "Aegithalos",
+      url: "https://github.com/miquido/aegithalos.git",
+      .upToNextMajor(from: "2.0.0")
+    )
   ],
   targets: [
     .target(
       name: "Accounts",
       dependencies: [
+        "Commons",
+        "Diagnostics",
+        "Features",
         "Settings",
         "Storage"
       ]
@@ -77,20 +101,49 @@ let package = Package(
       name: "AccountSetup",
       dependencies: [
         "Accounts",
+        "Commons",
+        "Diagnostics",
+        "Features",
         "NetworkClient",
         "Safety"
       ]
     ),
-    .target(name: "CommonUI"),
+    .target(name: "Commons"),
     .target(
       name: "Crypto",
-      dependencies: [] // TODO: Add opengpg as dependency
+      dependencies: [
+        "Commons"
+      ] // TODO: Add opengpg as dependency
     ),
-    .target(name: "Networking"),
+    .target(
+      name: "Diagnostics",
+      dependencies: [
+        "Commons",
+        "Storage"
+      ] // TODO: Add opengpg as dependency
+    ),
+    .target(
+      name: "Features",
+      dependencies: [
+        "Commons",
+        "Crypto",
+        "Networking",
+        "Storage"
+      ]
+    ),
+    .target(
+      name: "Networking",
+      dependencies: [
+        "Commons"
+      ]
+    ),
     .target(
       name: "NetworkClient",
       dependencies: [
         "Accounts",
+        "Commons",
+        "Diagnostics",
+        "Features",
         "Networking"
       ]
     ),
@@ -99,7 +152,11 @@ let package = Package(
       dependencies: [
         "Accounts",
         "AccountSetup",
-        "CommonUI",
+        "Commons",
+        "UICommons",
+        "UIComponents",
+        "Diagnostics",
+        "Features",
         "SignIn",
         "Resources",
         "User"
@@ -107,11 +164,22 @@ let package = Package(
     ),
     .testTarget(
       name: "PassboltAppTests",
-      dependencies: ["PassboltApp"]
+      dependencies: [
+        "PassboltApp"
+      ]
     ),
     .target(
       name: "PassboltExtension",
-      dependencies: []
+      dependencies: [
+        "Accounts",
+        "Commons",
+        "UICommons",
+        "UIComponents",
+        "Diagnostics",
+        "Features",
+        "SignIn",
+        "Resources"
+      ]
     ),
     .testTarget(
       name: "PassboltExtensionTests",
@@ -121,6 +189,9 @@ let package = Package(
       name: "Resources",
       dependencies: [
         "Accounts",
+        "Commons",
+        "Diagnostics",
+        "Features",
         "NetworkClient",
         "Safety",
         "Settings",
@@ -131,30 +202,68 @@ let package = Package(
       name: "Safety",
       dependencies: [
         "Accounts",
+        "Commons",
         "Crypto",
+        "Diagnostics",
+        "Features",
         "Settings"
       ]
     ),
     .target(
       name: "Settings",
-      dependencies: ["Storage"]
+      dependencies: [
+        "Commons",
+        "Diagnostics",
+        "Features",
+        "Storage"
+      ]
     ),
     .target(
       name: "SignIn",
       dependencies: [
         "Accounts",
+        "Commons",
+        "Diagnostics",
+        "Features",
         "Safety",
         "NetworkClient"
       ]
     ),
     .target(
       name: "Storage",
-      dependencies: [] // TODO: Add database as dependency
+      dependencies: [
+        "Commons"
+      ] // TODO: Add database as dependency
+    ),
+    .target(
+      name: "UICommons",
+      dependencies: [
+        "Commons",
+        .product(name: "AegithalosCocoa", package: "Aegithalos")
+      ]
+    ),
+    .target(
+      name: "UIComponents",
+      dependencies: [
+        "Commons",
+        "Features",
+        "UICommons",
+        .product(name: "AegithalosCocoa", package: "Aegithalos")
+      ]
+    ),
+    .testTarget(
+      name: "UIComponentsTests",
+      dependencies: [
+        "UIComponents"
+      ]
     ),
     .target(
       name: "User",
       dependencies: [
         "Accounts",
+        "Commons",
+        "Diagnostics",
+        "Features",
         "NetworkClient",
         "Safety",
         "Settings",

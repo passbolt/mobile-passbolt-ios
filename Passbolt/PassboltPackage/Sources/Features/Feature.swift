@@ -21,33 +21,31 @@
 // @since         v1.0
 //
 
-import UIKit
+public protocol Feature {
+  
+  associatedtype Environment
+  
+  static func load(
+    in environment: Environment,
+    using features: FeatureFactory
+  ) -> Self
+  
+  static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment
+  
+  func unload() -> Bool
+}
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+extension Feature {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
-  ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
-  }
-  
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
+  public func unload() -> Bool {
+    assertionFailure("Unloading is not supported by \(Self.self)")
+    return false
   }
 }
 
+extension Feature {
+  
+  internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
+}

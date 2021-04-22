@@ -1,28 +1,41 @@
 # **PassboltPackage**
 
-## PassboltApp
+Packages belong to one of four types:
+- main - target for application or application extension entrypoint, contains all code and dependencies associated with that particular entrypoint
+- module - group domain specific code and logical pieces of application functionalities, can have dependencies to other module, environment and essential packages
+- environment - low level wrappers for side effects and external features, cannot depend on other environment packages, can depend only on essential and external packages
+- essential - utilities and common functions extending language or providing fundamental functionalities required widely, cannot depend on other packages except external packages
+
+## PassboltApp [main]
  App entrypoint, main application UI and feature integration
-## PassboltExtension 
+## PassboltExtension [main]
 Autofill extension entrypoint, UI and feature integration
-## Accounts
+## Accounts [module]
 Local account management (ability to add account from setup, and set current from login), access to current account (session)
-## AccountSetup 
+## AccountSetup [module]
 Account setup (transfer of keys)
-## Crypto
+## Commons [essential]
+Common functions and language extensions.
+## Crypto [environment]
 Cryptography primitives and low level operations
-## Networking
+## Diagnostics [module]
+Application diagnostics and logs
+## Features [essential]
+Base for building features
+## Networking [environment]
 Low level network access
-## NetworkClient 
+## NetworkClient [module]
 Network client with endpoint implementation
-## Resources 
+## Resources [module]
 Resource management - list, add, remove, view, edit
-## Safety 
+## Safety  [module]
 High level cryptography operations in context of accounts
-## Settings
+## Settings [module]
 Application settings, feature flags 
-## SignIn 
+## SignIn [module]
 Account (existing) sign in 
-## Storage
+## Storage [environment]
 Database and secure store
-## User
+## User [module]
 Current account access (details, settings)
+

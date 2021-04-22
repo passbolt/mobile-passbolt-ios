@@ -30,7 +30,7 @@ internal class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    true
+    Application.shared.initialize()
   }
   
   internal func application(
@@ -44,4 +44,3 @@ internal class AppDelegate: UIResponder, UIApplicationDelegate {
     )
   }
 }
-

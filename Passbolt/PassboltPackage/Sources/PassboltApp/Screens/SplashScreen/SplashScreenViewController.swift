@@ -19,35 +19,38 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import UIKit
+import UIComponents
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+internal final class SplashScreenViewController: PlainViewController, UIComponent {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
+  internal typealias View = SplashScreenView
+  internal typealias Controller = SplashScreenController
+  
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
+    )
+  }
+  
+  internal private(set) lazy var contentView: SplashScreenView = .init()
+  private let controller: SplashScreenController
+  private let components: UIComponentFactory
+  
+  internal init(
+    using controller: SplashScreenController,
+    with components: UIComponentFactory
   ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
+    self.controller = controller
+    self.components = components
+    super.init()
   }
   
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
+  internal func setupView() {
+    #warning("TODO: [PAS-27]")
   }
 }
-

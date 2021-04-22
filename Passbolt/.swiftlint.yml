@@ -39,12 +39,12 @@ only_rules:
   - explicit_enum_raw_value
   - explicit_top_level_acl
   - explicit_type_interface
-  - extension_access_modifier
   - fallthrough
   - fatal_error_message
   - file_length
   - file_name_no_space
-  - file_types_order
+  # In swiftlint 0.43.1 does not implement it properly, disabling until fixed
+  # - file_types_order
   - first_where 
   - force_cast
   - force_try
@@ -113,11 +113,11 @@ only_rules:
   - switch_case_on_newline
   - todo
   - toggle_bool
-  - trailing_closure
   - trailing_comma
   - trailing_semicolon
   - trailing_whitespace
-  - type_contents_order
+  # In swiftlint 0.43.1 does not implement it properly, disabling until fixed
+  # - type_contents_order
   - type_name
   - unavailable_function
   - unneeded_break_in_switch
@@ -150,13 +150,14 @@ cyclomatic_complexity:
   
 file_length:
   warning: 500
-  
-file_types_order:
-  order:
-     - SwiftLintFramework.FileType.supportingType
-     - SwiftLintFramework.FileType.mainType
-     - SwiftLintFramework.FileType.extension
-     - SwiftLintFramework.FileType.previewProvider
+
+# In swiftlint 0.43.1 does not implement it properly, disabling until fixed
+# file_types_order:
+#   order:
+#      - SwiftLintFramework.FileType.supportingType
+#      - SwiftLintFramework.FileType.mainType
+#      - SwiftLintFramework.FileType.extension
+#      - SwiftLintFramework.FileType.previewProvider
      
 function_body_length:
   warning: 100
@@ -180,24 +181,29 @@ trailing_whitespace:
   
 type_name:
   min_length: 3
+  excluded:
+    - UI
      
-type_contents_order:
-  order:
-     - SwiftLintFramework.TypeContent.typeAlias
-     - SwiftLintFramework.TypeContent.associatedType
-     - SwiftLintFramework.TypeContent.subtype
-     - SwiftLintFramework.TypeContent.case
-     - SwiftLintFramework.TypeContent.typeProperty
-     - SwiftLintFramework.TypeContent.typeMethod
-     - SwiftLintFramework.TypeContent.instanceProperty
-     - SwiftLintFramework.TypeContent.ibInspectable
-     - SwiftLintFramework.TypeContent.ibOutlet
-     - SwiftLintFramework.TypeContent.initializer
-     - SwiftLintFramework.TypeContent.deinitializer
-     - SwiftLintFramework.TypeContent.subscript
-     - SwiftLintFramework.TypeContent.viewLifeCycleMethod
-     - SwiftLintFramework.TypeContent.ibAction
-     - SwiftLintFramework.TypeContent.otherMethod
+# In swiftlint 0.43.1 does not implement it properly, disabling until fixed
+# type_contents_order:
+#   order:
+#      - SwiftLintFramework.TypeContent.typeAlias
+#      - SwiftLintFramework.TypeContent.associatedType
+#      - SwiftLintFramework.TypeContent.subtype
+#      - SwiftLintFramework.TypeContent.case
+#      - SwiftLintFramework.TypeContent.typeProperty
+#      - SwiftLintFramework.TypeContent.typeMethod
+#      - SwiftLintFramework.TypeContent.ibInspectable
+#      - SwiftLintFramework.TypeContent.ibOutlet
+#      - SwiftLintFramework.TypeContent.instanceProperty
+#      - SwiftLintFramework.TypeContent.initializer
+#      - SwiftLintFramework.TypeContent.deinitializer
+#      - SwiftLintFramework.TypeContent.subscript
+#      - SwiftLintFramework.TypeContent.viewLifeCycleMethod
+#      - SwiftLintFramework.TypeContent.ibAction
+#      - SwiftLintFramework.TypeContent.otherMethod
 
 excluded:
+  - .build
+  - DerivedData/
   - "*/Package.swift"

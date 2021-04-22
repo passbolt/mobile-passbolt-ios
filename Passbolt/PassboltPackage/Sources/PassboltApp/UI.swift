@@ -21,33 +21,68 @@
 // @since         v1.0
 //
 
-import UIKit
+import UIComponents
 
-internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+public final class UI {
   
-  internal func scene(
-    _ scene: UIScene,
-    willConnectTo session: UISceneSession,
-    options connectionOptions: UIScene.ConnectionOptions
+  private var windows: Dictionary<String, Window> = .init()
+  private let features: FeatureFactory
+  
+  public init(
+    features: FeatureFactory
   ) {
-    Application.shared.ui
-      .prepare(
-        scene,
-        in: session,
-        with: connectionOptions
-      )
-  }
-  
-  internal func sceneDidDisconnect(_ scene: UIScene) {
-    Application.shared.ui.close(scene)
-  }
-  
-  internal func sceneDidBecomeActive(_ scene: UIScene) {
-    Application.shared.ui.resume(scene)
-  }
-  
-  internal func sceneWillResignActive(_ scene: UIScene) {
-    Application.shared.ui.suspend(scene)
+    self.features = features
   }
 }
 
+extension UI {
+  
+  public func prepare(
+    _ scene: UIScene,
+    in session: UISceneSession,
+    with options: UIScene.ConnectionOptions
+  ) {
+    switch scene {
+    case let windowScene as UIWindowScene:
+      let window: Window = prepareWindow(
+        for: windowScene,
+        in: session,
+        with: options
+      )
+      if windows.isEmpty {
+        window.isActive = true
+      } else { /* */ }
+      windows[windowScene.session.persistentIdentifier] = window
+      
+    case _:
+      unreachable("Unsupported scene type")
+    }
+  }
+  
+  public func resume(_ scene: UIScene) {
+    windows[scene.session.persistentIdentifier]?.isActive = true
+  }
+  
+  public func suspend(_ scene: UIScene) {
+    windows[scene.session.persistentIdentifier]?.isActive = false
+  }
+  
+  public func close(_ scene: UIScene) {
+    windows[scene.session.persistentIdentifier]?.isActive = false
+    windows[scene.session.persistentIdentifier] = nil
+  }
+}
+
+extension UI {
+  
+  private func prepareWindow(
+    for scene: UIWindowScene,
+    in session: UISceneSession,
+    with options: UIScene.ConnectionOptions
+  ) -> Window {
+    Window(
+      in: scene,
+      using: features
+    )
+  }
+}

@@ -21,4 +21,41 @@
 // @since         v1.0
 //
 
-import UIKit
+import UIComponents
+
+internal final class Window {
+  
+  private let window: UIWindow
+  private let controller: WindowController
+  private let components: UIComponentFactory
+  
+  internal init(
+    in scene: UIWindowScene,
+    using features: FeatureFactory
+  ) {
+    self.window = UIWindow(windowScene: scene)
+    self.controller = WindowController.instance(with: features)
+    self.components = UIComponentFactory(features: features)
+    self.window.rootViewController = components
+      .instance(
+        of: SplashScreenViewController.self,
+        in: SplashScreenController.Context()
+      )
+  }
+}
+
+extension Window {
+  
+  internal var isActive: Bool {
+    get { window.isKeyWindow }
+    set {
+      switch newValue {
+      case true:
+        window.makeKeyAndVisible()
+        
+      case false:
+        window.resignKey()
+      }
+    }
+  }
+}
