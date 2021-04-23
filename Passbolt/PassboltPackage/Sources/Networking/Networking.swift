@@ -20,3 +20,80 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import Combine
+import struct Foundation.Data
+import struct Foundation.URLError
+import class Foundation.URLSession
+import class Foundation.URLResponse
+import struct Foundation.URLRequest
+
+public struct Networking {
+  
+  public var execute: (
+    _ request: HTTPRequest
+  ) -> AnyPublisher<HTTPResponse, HTTPRequestError>
+}
+
+extension Networking {
+  
+  public func make(
+    _ request: HTTPRequest
+  ) -> AnyPublisher<HTTPResponse, HTTPRequestError> {
+    execute(request)
+  }
+}
+
+extension Networking {
+ 
+  private static let urlSession: URLSession = .init(configuration: .ephemeral)
+  
+  public static func foundation() -> Self {
+    Self(
+      execute: { request in
+        guard
+          let urlRequest = request.urlRequest
+        else {
+          return Fail<HTTPResponse, HTTPRequestError>(
+            error: .invalidRequest(request)
+          )
+          .eraseToAnyPublisher()
+        }
+        return urlSession
+          .dataTaskPublisher(for: urlRequest)
+          .mapError(mapURLErrors)
+          .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPRequestError> in
+            if let httpResponse: HTTPResponse = HTTPResponse(from: response, with: data) {
+              return Just(httpResponse)
+                .setFailureType(to: HTTPRequestError.self)
+                .eraseToAnyPublisher()
+            } else {
+              return Fail<HTTPResponse, HTTPRequestError>(
+                error: .invalidResponse
+              )
+              .eraseToAnyPublisher()
+            }
+          }
+          .eraseToAnyPublisher()
+      }
+    )
+  }
+}
+
+private func mapURLErrors(
+  _ error: URLError
+) -> HTTPRequestError {
+  switch error.code {
+  case .cancelled:
+    return .canceled
+    
+  case .notConnectedToInternet, .cannotFindHost:
+    return .cannotConnect
+    
+  case .timedOut:
+    return .timeout
+    
+  case _: // fill more errors if needed
+    return .other(error)
+  }
+}
