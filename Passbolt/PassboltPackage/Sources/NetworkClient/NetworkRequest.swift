@@ -21,45 +21,62 @@
 // @since         v1.0
 //
 
-import Features
+import Aegithalos
+import Combine
+import Commons
 import Networking
 
-#warning("TODO: session management: [PAS-69]")
-public struct NetworkClient {
+public struct NetworkRequest<Variable, Response> {
   
-  // add requests interfaces here i.e.
-  // public var resources: NetworkRequest<ResourcesRequestVariable, ResourcesResponse>
+  public var execute: (Variable) -> AnyPublisher<Response, TheError>
 }
 
-extension NetworkClient: Feature {
+extension NetworkRequest {
   
-  public typealias Environment = Networking
-  
-  public static func load(
-    in environment: (Networking),
-    using features: FeatureFactory
-  ) -> NetworkClient {
-    // provide implementations of requests
-    return Self(
-    )
-  }
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.networking
-  }
-  
-  public func unload() -> Bool {
-    true // perform cleanup if needed
+  internal init(
+    template: NetworkRequestTemplate<Variable>,
+    responseDecoder: NetworkResponseDecoding<Response>,
+    using networking: Networking,
+    with sessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
+  ) {
+    self.execute = { requestVariable in
+      sessionVariablePublisher
+        .prefix(1)
+        .map { sessionVariable -> HTTPRequest in
+          template
+            .prepareRequest(
+              with: sessionVariable,
+              and: requestVariable
+            )
+        }
+        .map { request -> AnyPublisher<Response, TheError> in
+          networking
+            .make(request)
+            .mapError(TheError.httpError)
+            .map(withResultAsPublisher(responseDecoder.decode))
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
   }
 }
 
-extension NetworkClient {
+extension NetworkRequest {
   
+  public func make(
+    using variable: Variable
+  ) -> AnyPublisher<Response, TheError> {
+    execute(variable)
+  }
+}
+
+extension NetworkRequest {
+
   internal static func forTesting() -> Self {
-    // provide unimplemented placeholders for tests
     Self(
+      execute: unreachable("Please use mock or verify your tests")
     )
   }
 }

@@ -183,6 +183,7 @@ type_name:
   min_length: 3
   excluded:
     - UI
+    - ID
      
 # In swiftlint 0.43.1 does not implement it properly, disabling until fixed
 # type_contents_order:

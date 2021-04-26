@@ -21,37 +21,23 @@
 // @since         v1.0
 //
 
-import Features
-import PassboltApp
+import Commons
 
-internal struct Application {
+extension TheError {
   
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    self.ui = UI(features: features)
-    self.features = features
-  }
-}
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.initialization.initialize()
-  }
-}
-
-extension Application {
-  
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      networking: .foundation(),
-      placeholder: ()
+  public static func testError(
+    underlyingError: Error? = nil,
+    extensions: Dictionary<Extension, Any> = [:]
+  ) -> Self {
+    Self(
+      identifier: .testError,
+      underlyingError: underlyingError,
+      extensions: extensions
     )
-  )
+  }
 }
 
+extension TheError.ID {
+  
+  public static var testError: Self { "testError" }
+}

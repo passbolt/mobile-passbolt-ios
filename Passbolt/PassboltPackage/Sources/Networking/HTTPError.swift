@@ -21,37 +21,12 @@
 // @since         v1.0
 //
 
-import Features
-import PassboltApp
-
-internal struct Application {
+public enum HTTPError: Error {
   
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    self.ui = UI(features: features)
-    self.features = features
-  }
+  case invalidRequest(HTTPRequest)
+  case invalidResponse
+  case timeout
+  case cannotConnect
+  case canceled
+  case other(Error)
 }
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.initialization.initialize()
-  }
-}
-
-extension Application {
-  
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      networking: .foundation(),
-      placeholder: ()
-    )
-  )
-}
-

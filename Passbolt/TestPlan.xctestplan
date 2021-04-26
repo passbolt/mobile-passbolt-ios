@@ -14,7 +14,8 @@
     }
   ],
   "defaultOptions" : {
-
+    "testExecutionOrdering" : "random",
+    "testTimeoutsEnabled" : true
   },
   "testTargets" : [
     {
@@ -31,6 +32,20 @@
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltExtensionTests",
         "name" : "PassboltExtensionTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "NetworkClientTests",
+        "name" : "NetworkClientTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "UIComponentsTests",
+        "name" : "UIComponentsTests"
       }
     }
   ],

@@ -21,37 +21,34 @@
 // @since         v1.0
 //
 
-import Features
-import PassboltApp
+import Combine
 
-internal struct Application {
+extension Result {
   
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    self.ui = UI(features: features)
-    self.features = features
+  public var asPublisher: AnyPublisher<Success, Failure> {
+    switch self {
+    case let .success(success):
+      return Just(success)
+        .setFailureType(to: Failure.self)
+        .eraseToAnyPublisher()
+      
+    case let .failure(error):
+      return Fail<Success, Failure>(error: error)
+        .eraseToAnyPublisher()
+    }
   }
 }
 
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.initialization.initialize()
+public func withResultAsPublisher<Success, Failure: Error>(
+  _ function: @escaping () -> Result<Success, Failure>
+) -> () -> AnyPublisher<Success, Failure> {
+  { function().asPublisher }
+}
+
+public func withResultAsPublisher<A1, Success, Failure: Error>(
+  _ function: @escaping (A1) -> Result<Success, Failure>
+) -> (A1) -> AnyPublisher<Success, Failure> {
+  { a1 in
+    function(a1).asPublisher
   }
 }
-
-extension Application {
-  
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      networking: .foundation(),
-      placeholder: ()
-    )
-  )
-}
-

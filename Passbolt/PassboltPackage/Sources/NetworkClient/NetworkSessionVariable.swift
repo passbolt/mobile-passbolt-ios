@@ -21,12 +21,5 @@
 // @since         v1.0
 //
 
-public enum HTTPRequestError: Error {
-  
-  case invalidRequest(HTTPRequest)
-  case invalidResponse
-  case timeout
-  case cannotConnect
-  case canceled
-  case other(Error)
-}
+#warning("TODO: session management: [PAS-69]")
+internal struct NetworkSessionVariable {}

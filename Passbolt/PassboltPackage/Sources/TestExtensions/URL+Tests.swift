@@ -21,37 +21,13 @@
 // @since         v1.0
 //
 
-import Features
-import PassboltApp
+import struct Foundation.URL
 
-internal struct Application {
+extension URL {
   
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    self.ui = UI(features: features)
-    self.features = features
+  public static var testURL: Self {
+    // swiftlint:disable force_unwrapping
+    URL(string: "https://test.com")!
+    // swiftlint:enable force_unwrapping
   }
 }
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.initialization.initialize()
-  }
-}
-
-extension Application {
-  
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      networking: .foundation(),
-      placeholder: ()
-    )
-  )
-}
-

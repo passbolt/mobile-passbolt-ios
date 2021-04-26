@@ -22,6 +22,7 @@
 //
 
 import Combine
+import Commons
 import struct Foundation.Data
 import struct Foundation.URLError
 import class Foundation.URLSession
@@ -32,14 +33,14 @@ public struct Networking {
   
   public var execute: (
     _ request: HTTPRequest
-  ) -> AnyPublisher<HTTPResponse, HTTPRequestError>
+  ) -> AnyPublisher<HTTPResponse, HTTPError>
 }
 
 extension Networking {
   
   public func make(
     _ request: HTTPRequest
-  ) -> AnyPublisher<HTTPResponse, HTTPRequestError> {
+  ) -> AnyPublisher<HTTPResponse, HTTPError> {
     execute(request)
   }
 }
@@ -54,21 +55,40 @@ extension Networking {
         guard
           let urlRequest = request.urlRequest
         else {
-          return Fail<HTTPResponse, HTTPRequestError>(
+          return Fail<HTTPResponse, HTTPError>(
             error: .invalidRequest(request)
           )
           .eraseToAnyPublisher()
         }
+        
+        func mapURLErrors(
+          _ error: URLError
+        ) -> HTTPError {
+          switch error.code {
+          case .cancelled:
+            return .canceled
+            
+          case .notConnectedToInternet, .cannotFindHost:
+            return .cannotConnect
+            
+          case .timedOut:
+            return .timeout
+            
+          case _: // fill more errors if needed
+            return .other(error)
+          }
+        }
+        
         return urlSession
           .dataTaskPublisher(for: urlRequest)
           .mapError(mapURLErrors)
-          .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPRequestError> in
+          .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPError> in
             if let httpResponse: HTTPResponse = HTTPResponse(from: response, with: data) {
               return Just(httpResponse)
-                .setFailureType(to: HTTPRequestError.self)
+                .setFailureType(to: HTTPError.self)
                 .eraseToAnyPublisher()
             } else {
-              return Fail<HTTPResponse, HTTPRequestError>(
+              return Fail<HTTPResponse, HTTPError>(
                 error: .invalidResponse
               )
               .eraseToAnyPublisher()
@@ -80,20 +100,11 @@ extension Networking {
   }
 }
 
-private func mapURLErrors(
-  _ error: URLError
-) -> HTTPRequestError {
-  switch error.code {
-  case .cancelled:
-    return .canceled
-    
-  case .notConnectedToInternet, .cannotFindHost:
-    return .cannotConnect
-    
-  case .timedOut:
-    return .timeout
-    
-  case _: // fill more errors if needed
-    return .other(error)
+extension Networking {
+  
+  internal static func forTesting() -> Self {
+    Self(
+      execute: unreachable("Please use mock or verify your tests")
+      )
   }
 }

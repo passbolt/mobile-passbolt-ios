@@ -135,7 +135,8 @@ let package = Package(
     .target(
       name: "Networking",
       dependencies: [
-        "Commons"
+        "Commons",
+        .product(name: "Aegithalos", package: "Aegithalos")
       ]
     ),
     .target(
@@ -146,6 +147,13 @@ let package = Package(
         "Diagnostics",
         "Features",
         "Networking"
+      ]
+    ),
+    .testTarget(
+      name: "NetworkClientTests",
+      dependencies: [
+        "NetworkClient",
+        "TestExtensions"
       ]
     ),
     .target(
@@ -236,7 +244,12 @@ let package = Package(
         "Commons"
       ] // TODO: Add database as dependency
     ),
-    .target(name: "TestExtensions"),
+    .target(
+      name: "TestExtensions",
+      dependencies: [
+        "Commons"
+      ]
+    ),
     .target(
       name: "UICommons",
       dependencies: [

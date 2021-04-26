@@ -1,3 +1,12 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
 // agreement with Passbolt SA.
 //
 // This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
@@ -14,6 +23,24 @@
 
 import XCTest
 
+public func XCTAssertSuccess<T, E>(
+  _ result: Result<T, E>,
+  _ file: StaticString = #filePath,
+  _ line: UInt = #line
+) where E: Error {
+  switch result {
+  case .success:
+    break // success
+    
+  case let .failure(error):
+    XCTFail(
+      "Unexpected failure with error: \(error)",
+      file: file,
+      line: line
+    )
+  }
+}
+
 public func XCTAssertSuccessEqual<T, E>(
   _ lhs: Result<T, E>,
   _ rhs: T,
@@ -22,10 +49,19 @@ public func XCTAssertSuccessEqual<T, E>(
 ) where T: Equatable, E: Error {
   switch lhs {
   case let .success(value):
-    XCTAssertEqual(value, rhs)
+    XCTAssertEqual(
+      value,
+      rhs,
+      file: file,
+      line: line
+    )
     
   case let .failure(error):
-    XCTFail("Unexpected failure with value: \(rhs), got error: \(error)", file: file, line: line)
+    XCTFail(
+      "Unexpected failure with error: \(error)",
+      file: file,
+      line: line
+    )
   }
 }
 
@@ -37,10 +73,37 @@ public func XCTAssertSuccessNotEqual<T, E>(
 ) where T: Equatable, E: Error {
   switch lhs {
   case let .success(value):
-    XCTAssertNotEqual(value, rhs)
+    XCTAssertNotEqual(
+      value,
+      rhs,
+      file: file,
+      line: line
+    )
     
   case let .failure(error):
-    XCTFail("Unexpected failure with value: \(rhs), got error: \(error)", file: file, line: line)
+    XCTFail(
+      "Unexpected failure with error: \(error)",
+      file: file,
+      line: line
+    )
+  }
+}
+
+public func XCTAssertFailure<T, E>(
+  _ result: Result<T, E>,
+  _ file: StaticString = #filePath,
+  _ line: UInt = #line
+) where E: Error {
+  switch result {
+  case let .success(value):
+    XCTFail(
+      "Unexpected success with value: \(value)",
+      file: file,
+      line: line
+    )
+    
+  case .failure:
+    break // success
   }
 }
 
@@ -52,10 +115,19 @@ public func XCTAssertFailureEqual<T, E>(
 ) where E: Equatable & Error {
   switch lhs {
   case let .success(value):
-    XCTFail("Unexpected success with value: \(rhs), got value: \(value)", file: file, line: line)
+    XCTFail(
+      "Unexpected success with value: \(value)",
+      file: file,
+      line: line
+    )
     
   case let .failure(error):
-    XCTAssertEqual(error, rhs)
+    XCTAssertEqual(
+      error,
+      rhs,
+      file: file,
+      line: line
+    )
   }
 }
 
@@ -67,9 +139,18 @@ public func XCTAssertFailureNotEqual<T, E>(
 ) where E: Equatable & Error {
   switch lhs {
   case let .success(value):
-    XCTFail("Unexpected success with value: \(rhs), got value: \(value)", file: file, line: line)
+    XCTFail(
+      "Unexpected success with value: \(value)",
+      file: file,
+      line: line
+    )
     
   case let .failure(error):
-    XCTAssertNotEqual(error, rhs)
+    XCTAssertNotEqual(
+      error,
+      rhs,
+      file: file,
+      line: line
+    )
   }
 }

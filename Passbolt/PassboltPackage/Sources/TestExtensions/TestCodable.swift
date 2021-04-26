@@ -21,37 +21,48 @@
 // @since         v1.0
 //
 
-import Features
-import PassboltApp
+import struct Foundation.Data
+import class Foundation.JSONEncoder
 
-internal struct Application {
+public struct TestCodable: Codable, Equatable {
   
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    self.ui = UI(features: features)
-    self.features = features
-  }
-}
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.initialization.initialize()
-  }
-}
-
-extension Application {
-  
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      networking: .foundation(),
-      placeholder: ()
-    )
+  public static let sample: Self = Self(
+    string: "answer",
+    int: 42,
+    array: [
+      Self(
+        string: "",
+        int: 0,
+        array: []
+      )
+    ]
   )
+  public static let sampleJSONString: String = """
+  {
+    "string": "answer",
+    "int": 42,
+    "array": [
+      {
+        "string": "",
+        "int": 0,
+        "array": []
+      }
+    ]
+  }
+  """
+  public static let sampleJSONData: Data
+    = sampleJSONString
+    // swiftlint:disable force_unwrapping
+    .data(using: .utf8)!
+  // swiftlint:enable force_unwrapping
+  
+  public var string: String = ""
+  public var int: Int = 0
+  public var array: Array<TestCodable> = []
+  
+  public var jsonData: Data {
+    // swiftlint:disable force_try
+    try! JSONEncoder().encode(self)
+    // swiftlint:enable force_try
+  }
 }
-

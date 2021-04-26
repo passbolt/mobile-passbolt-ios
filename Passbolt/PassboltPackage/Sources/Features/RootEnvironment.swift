@@ -21,5 +21,9 @@
 // @since         v1.0
 //
 
-#warning("TODO: add environment elements when able")
-public typealias RootEnvironment = ()
+import Networking
+
+public typealias RootEnvironment = (
+  networking: Networking,
+  placeholder: () // to remove after adding next element
+)
