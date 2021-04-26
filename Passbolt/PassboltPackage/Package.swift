@@ -20,7 +20,9 @@ let package = Package(
     ),
     .library(
       name: "Crypto",
-      targets: ["Crypto"]
+      targets: [
+        "Crypto"
+      ]
     ),
     .library(
       name: "Diagnostics",
@@ -105,15 +107,14 @@ let package = Package(
         "Diagnostics",
         "Features",
         "NetworkClient",
-        "Safety"
       ]
     ),
     .target(name: "Commons"),
     .target(
       name: "Crypto",
       dependencies: [
-        "Commons"
-      ] // TODO: Add opengpg as dependency
+        "Commons",
+      ]
     ),
     .target(
       name: "Diagnostics",
@@ -235,6 +236,7 @@ let package = Package(
         "Commons"
       ] // TODO: Add database as dependency
     ),
+    .target(name: "TestExtensions"),
     .target(
       name: "UICommons",
       dependencies: [
@@ -269,6 +271,6 @@ let package = Package(
         "Settings",
         "Storage"
       ]
-    )
+    ),
   ]
 )
