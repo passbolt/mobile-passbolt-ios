@@ -47,10 +47,12 @@ extension Application {
 
 extension Application {
   
+  #warning("TODO: add shared user defaults identifier when able")
   internal static let shared: Application = .init(
     environment: RootEnvironment(
       networking: .foundation(),
-      placeholder: ()
+      preferences: .userDefaults(),
+      keychain: .keychain()
     )
   )
 }

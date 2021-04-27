@@ -21,11 +21,28 @@
 // @since         v1.0
 //
 
-import Networking
-import Storage
+import Commons
+import struct Foundation.OSStatus
 
-public typealias RootEnvironment = (
-  networking: Networking,
-  preferences: Preferences,
-  keychain: Keychain
-)
+extension TheError {
+  
+  internal static func keychain(
+    _ status: OSStatus
+  ) -> Self {
+    Self(
+      identifier: .keychain,
+      underlyingError: nil,
+      extensions: [.osStatus: status]
+    )
+  }
+}
+
+extension TheError.ID {
+  
+  public static var keychain: Self { "keychain" }
+}
+
+extension TheError.Extension {
+  
+  public static var osStatus: Self { "osStatus" }
+}

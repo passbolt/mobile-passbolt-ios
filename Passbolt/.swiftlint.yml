@@ -142,7 +142,7 @@ only_rules:
   - yoda_condition
 
 closure_body_length:
-  warning: 20
+  warning: 50
   
 cyclomatic_complexity:
   warning: 10
