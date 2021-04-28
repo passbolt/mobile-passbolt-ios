@@ -19,8 +19,24 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UICommons
+import AegithalosCocoa
 
-#warning("TODO: [PAS-27]")
-internal final class SplashScreenView: View {}
+extension Mutation where Subject: TextButton {
+  
+  public static func primaryStyle() -> Self {
+    .combined(
+      .backgroundColor(dynamic: .primaryBlue),
+      .pressedBackgroundColor(dynamic: .primaryBluePressed),
+      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
+      .cornerRadius(4),
+      .clipsToBounds(true),
+      .heightAnchor(.equalTo, 56),
+      .textColor(dynamic: .primaryTextAlternative),
+      .font(.inter(ofSize: 14, weight: .medium)),
+      .textAlignment(.center),
+      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
+    )
+  }
+}

@@ -19,8 +19,44 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UICommons
+import UIKit
 
-#warning("TODO: [PAS-27]")
-internal final class SplashScreenView: View {}
+public final class NavigationBar: UINavigationBar {
+  
+  public lazy var dynamicBackgroundColor: DynamicColor
+  = .default(self.backgroundColor) {
+    didSet {
+      self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicTintColor: DynamicColor
+  = .default(self.tintColor) {
+    didSet {
+      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicBarTintColor: DynamicColor
+  = .default(self.barTintColor) {
+    didSet {
+      self.barTintColor = dynamicBarTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  
+  override public func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard traitCollection != previousTraitCollection
+    else { return }
+    updateColors()
+  }
+  
+  private func updateColors() {
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.barTintColor = dynamicBarTintColor(in: interfaceStyle)
+  }
+}

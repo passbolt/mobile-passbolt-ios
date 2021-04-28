@@ -24,7 +24,26 @@
 import Commons
 import UIKit
 
-open class PlainView: UIView {
+open class Label: UILabel {
+  
+  public lazy var dynamicBackgroundColor: DynamicColor
+  = .default(self.backgroundColor) {
+    didSet {
+      self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicTintColor: DynamicColor
+  = .default(self.tintColor) {
+    didSet {
+      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicTextColor: DynamicColor
+  = .default(self.textColor) {
+    didSet {
+      self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
   
   public required init() {
     super.init(frame: .zero)
@@ -33,5 +52,21 @@ open class PlainView: UIView {
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  override public func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard traitCollection != previousTraitCollection
+    else { return }
+    updateColors()
+  }
+  
+  private func updateColors() {
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.textColor = dynamicTextColor(in: interfaceStyle)
   }
 }

@@ -24,7 +24,7 @@
 import Commons
 import UIKit
 
-open class ScrolledStackView: UIScrollView {
+open class TextField: UITextField {
   
   public lazy var dynamicBackgroundColor: DynamicColor
   = .default(self.backgroundColor) {
@@ -38,87 +38,20 @@ open class ScrolledStackView: UIScrollView {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  private let stackView: StackView = .init()
+  public lazy var dynamicTextColor: DynamicColor
+  = .default(self.textColor) {
+    didSet {
+      self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
   
   public required init() {
     super.init(frame: .zero)
-    setup()
   }
   
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
-  }
-  
-  public var axis: NSLayoutConstraint.Axis {
-    get { stackView.axis }
-    set {
-      precondition(
-        stackView.arrangedSubviews.isEmpty,
-        "Axis change in non empty \(Self.self) is not supported"
-      )
-      stackView.axis = newValue
-    }
-  }
-  
-  public var spacing: CGFloat {
-    get { stackView.spacing }
-    set { stackView.spacing = newValue }
-  }
-  
-  override public var contentInset: UIEdgeInsets {
-    get { stackView.layoutMargins }
-    set { stackView.layoutMargins = newValue }
-  }
-  
-  public var isLayoutMarginsRelativeArrangement: Bool {
-    get { stackView.isLayoutMarginsRelativeArrangement }
-    set { stackView.isLayoutMarginsRelativeArrangement = newValue }
-  }
-  
-  public func append(_ view: UIView) {
-    stackView.addArrangedSubview(view)
-  }
-  
-  public func insert(_ view: UIView, at index: Int) {
-    stackView.insertArrangedSubview(view, at: index)
-  }
-  
-  public func appendSpace(of size: CGFloat) {
-    stackView.appendSpace(of: size)
-  }
-  
-  public func appendFiller(minSize: CGFloat = 0) {
-    stackView.appendFiller(minSize: minSize)
-  }
-  
-  public func removeAllArrangedSubviews() {
-    stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-  }
-  
-  private func setup() {
-    showsVerticalScrollIndicator = false
-    showsHorizontalScrollIndicator = false
-    insetsLayoutMarginsFromSafeArea = true
-    
-    stackView.axis = .vertical
-    stackView.alignment = .fill
-    stackView.distribution = .fill
-    stackView.translatesAutoresizingMaskIntoConstraints = false
-    NSLayoutConstraint.activate([
-      stackView.topAnchor.constraint(equalTo: topAnchor),
-      stackView.leftAnchor.constraint(equalTo: leftAnchor),
-      stackView.rightAnchor.constraint(equalTo: rightAnchor),
-      stackView.bottomAnchor.constraint(equalTo: bottomAnchor),
-      stackView.widthAnchor.constraint(equalTo: widthAnchor),
-      {
-        let constraint: NSLayoutConstraint = stackView.heightAnchor
-          .constraint(equalTo: safeAreaLayoutGuide.heightAnchor)
-        constraint.priority = .defaultLow
-        return constraint
-      }()
-    ])
   }
   
   override public func traitCollectionDidChange(
@@ -131,8 +64,9 @@ open class ScrolledStackView: UIScrollView {
   }
   
   private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    let interfaceStyle: UIUserInterfaceStyle  = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.textColor = dynamicTextColor(in: interfaceStyle)
   }
 }

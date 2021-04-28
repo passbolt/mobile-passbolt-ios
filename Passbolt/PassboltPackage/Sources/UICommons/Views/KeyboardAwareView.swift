@@ -24,7 +24,7 @@
 import Commons
 import UIKit
 
-open class KeyboardAwareView: PlainView {
+open class KeyboardAwareView: View {
   
   open class var backgroundTapEditingEndHandlerEnabled: Bool { true }
   
@@ -33,10 +33,10 @@ open class KeyboardAwareView: PlainView {
     addLayoutGuide(guide)
     keyboardSafeAreaLayoutGuideTopAnchor = guide.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor)
     keyboardSafeAreaLayoutGuideTopAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideLeftAnchor = guide.leftAnchor.constraint(equalTo: safeAreaLayoutGuide.leftAnchor)
-    keyboardSafeAreaLayoutGuideLeftAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideRightAnchor = guide.rightAnchor.constraint(equalTo: safeAreaLayoutGuide.rightAnchor)
-    keyboardSafeAreaLayoutGuideRightAnchor.isActive = true
+    keyboardSafeAreaLayoutGuideLeadingAnchor = guide.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor)
+    keyboardSafeAreaLayoutGuideLeadingAnchor.isActive = true
+    keyboardSafeAreaLayoutGuideTrailingAnchor = guide.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor)
+    keyboardSafeAreaLayoutGuideTrailingAnchor.isActive = true
     keyboardSafeAreaLayoutGuideBottomAnchor = guide.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor)
     keyboardSafeAreaLayoutGuideBottomAnchor.isActive = true
     return guide
@@ -44,9 +44,9 @@ open class KeyboardAwareView: PlainView {
   
   private lazy var keyboardSafeAreaLayoutGuideTopAnchor: NSLayoutConstraint
     = .init()
-  private lazy var keyboardSafeAreaLayoutGuideLeftAnchor: NSLayoutConstraint
+  private lazy var keyboardSafeAreaLayoutGuideLeadingAnchor: NSLayoutConstraint
     = .init()
-  private lazy var keyboardSafeAreaLayoutGuideRightAnchor: NSLayoutConstraint
+  private lazy var keyboardSafeAreaLayoutGuideTrailingAnchor: NSLayoutConstraint
     = .init()
   private lazy var keyboardSafeAreaLayoutGuideBottomAnchor: NSLayoutConstraint
     = .init()

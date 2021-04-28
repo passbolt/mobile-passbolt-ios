@@ -21,10 +21,35 @@
 // @since         v1.0
 //
 
+import AegithalosCocoa
 import Commons
-import UIKit
 
-open class PlainButton: UIControl {
+public class Button: UIControl {
+  
+  public lazy var dynamicBackgroundColor: DynamicColor
+  = .default(self.backgroundColor) {
+    didSet {
+      self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicPressedBackgroundColor: DynamicColor
+  = .default(self.pressedBackgroundColor) {
+    didSet {
+      self.pressedBackgroundColor = dynamicPressedBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicDisabledBackgroundColor: DynamicColor
+  = .default(self.disabledBackgroundColor) {
+    didSet {
+      self.disabledBackgroundColor = dynamicDisabledBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var dynamicTintColor: DynamicColor
+  = .default(self.tintColor) {
+    didSet {
+      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
   
   public var pressedBackgroundColor: UIColor? {
     get { pressLayer.backgroundColor.map(UIColor.init(cgColor:)) }
@@ -54,7 +79,7 @@ open class PlainButton: UIControl {
     }
   }
   
-  override open var isEnabled: Bool {
+  override public var isEnabled: Bool {
     didSet {
       guard isEnabled != oldValue else { return }
       switch isEnabled {
@@ -147,9 +172,26 @@ open class PlainButton: UIControl {
     isPressed = false
   }
   
-  override open func layoutSubviews() {
+  override public func layoutSubviews() {
     super.layoutSubviews()
     pressLayer.frame = bounds
     disableLayer.frame = bounds
+  }
+  
+  override public func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard traitCollection != previousTraitCollection
+    else { return }
+    updateColors()
+  }
+  
+  internal func updateColors() {
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
+    self.pressedBackgroundColor = dynamicPressedBackgroundColor(in: interfaceStyle)
+    self.disabledBackgroundColor = dynamicDisabledBackgroundColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor(in: interfaceStyle)
   }
 }

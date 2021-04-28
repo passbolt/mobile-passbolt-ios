@@ -24,7 +24,7 @@
 import Commons
 import UIKit
 
-open class StackView: UIStackView {
+open class TextView: UITextView {
   
   public lazy var dynamicBackgroundColor: DynamicColor
   = .default(self.backgroundColor) {
@@ -38,46 +38,20 @@ open class StackView: UIStackView {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
+  public lazy var dynamicTextColor: DynamicColor
+  = .default(self.textColor) {
+    didSet {
+      self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
   
   public required init() {
-    super.init(frame: .zero)
+    super.init(frame: .zero, textContainer: nil)
   }
   
   @available(*, unavailable)
-  public required init(coder: NSCoder) {
+  public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
-  }
-}
-
-extension StackView {
-  
-  public func appendSpace(of size: CGFloat) {
-    let space: View = .init()
-    switch axis {
-    case .horizontal:
-      space.heightAnchor.constraint(equalToConstant: size).isActive = true
-      
-    case .vertical:
-      space.widthAnchor.constraint(equalToConstant: size).isActive = true
-    @unknown default:
-      fatalError("Unexpected state")
-    }
-    addArrangedSubview(space)
-  }
-  
-  public func appendFiller(minSize: CGFloat = 0) {
-    let filler: View = .init()
-    switch axis {
-    case .horizontal:
-      filler.heightAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
-      
-    case .vertical:
-      filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
-      
-    @unknown default:
-      fatalError("Unexpected state")
-    }
-    addArrangedSubview(filler)
   }
   
   override public func traitCollectionDidChange(
@@ -90,8 +64,9 @@ extension StackView {
   }
   
   private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    let interfaceStyle: UIUserInterfaceStyle  = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.textColor = dynamicTextColor(in: interfaceStyle)
   }
 }

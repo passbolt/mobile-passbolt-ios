@@ -264,6 +264,15 @@ let package = Package(
       dependencies: [
         "Commons",
         .product(name: "AegithalosCocoa", package: "Aegithalos")
+      ],
+      resources: [
+        .process("Fonts/Inter-Black.ttf"),
+        .process("Fonts/Inter-Bold.ttf"),
+        .process("Fonts/Inter-ExtraLight.ttf"),
+        .process("Fonts/Inter-Light.ttf"),
+        .process("Fonts/Inter-Medium.ttf"),
+        .process("Fonts/Inter-Regular.ttf"),
+        .process("Fonts/Inter-SemiBold.ttf"),
       ]
     ),
     .target(

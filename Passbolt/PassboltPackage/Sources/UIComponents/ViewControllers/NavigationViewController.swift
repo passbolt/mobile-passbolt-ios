@@ -27,7 +27,7 @@ import UIKit
 open class NavigationViewController: UINavigationController {
   
   public init() {
-    super.init(nibName: nil, bundle: nil)
+    super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
     isModalInPresentation = true
     (self as? AnyUIComponent)?.setup()
   }

@@ -19,8 +19,22 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UICommons
+import class UIKit.UIImage
+import enum UIKit.UIUserInterfaceStyle
 
-#warning("TODO: [PAS-27]")
-internal final class SplashScreenView: View {}
+public struct DynamicImage {
+  
+  private var image: (UIUserInterfaceStyle) -> UIImage
+  
+  public func callAsFunction(
+    in interfaceStyle: UIUserInterfaceStyle
+  ) -> UIImage {
+    image(interfaceStyle)
+  }
+  
+  public static func `default`(_ image: UIImage?) -> Self {
+    Self { _ in image ?? .init() }
+  }
+}

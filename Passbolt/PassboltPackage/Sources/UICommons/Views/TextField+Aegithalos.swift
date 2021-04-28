@@ -19,8 +19,21 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UICommons
+import AegithalosCocoa
 
-#warning("TODO: [PAS-27]")
-internal final class SplashScreenView: View {}
+extension Mutation where Subject: TextField {
+  
+  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
+    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  }
+  
+  public static func tintColor(dynamic color: DynamicColor) -> Self {
+    .custom { (subject: Subject) in subject.dynamicTintColor = color }
+  }
+  
+  public static func textColor(dynamic color: DynamicColor) -> Self {
+    .custom { (subject: Subject) in subject.dynamicTextColor = color }
+  }
+}

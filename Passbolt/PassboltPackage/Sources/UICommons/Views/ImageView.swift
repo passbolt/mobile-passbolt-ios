@@ -21,10 +21,9 @@
 // @since         v1.0
 //
 
-import Commons
-import UIKit
+import AegithalosCocoa
 
-open class StackView: UIStackView {
+public class ImageView: UIImageView {
   
   public lazy var dynamicBackgroundColor: DynamicColor
   = .default(self.backgroundColor) {
@@ -38,46 +37,34 @@ open class StackView: UIStackView {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  public required init() {
-    super.init(frame: .zero)
-  }
-  
-  @available(*, unavailable)
-  public required init(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
-  }
-}
-
-extension StackView {
-  
-  public func appendSpace(of size: CGFloat) {
-    let space: View = .init()
-    switch axis {
-    case .horizontal:
-      space.heightAnchor.constraint(equalToConstant: size).isActive = true
-      
-    case .vertical:
-      space.widthAnchor.constraint(equalToConstant: size).isActive = true
-    @unknown default:
-      fatalError("Unexpected state")
+  public lazy var dynamicImage: DynamicImage
+  = .default(self.image) {
+    didSet {
+      self.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
-    addArrangedSubview(space)
   }
   
-  public func appendFiller(minSize: CGFloat = 0) {
-    let filler: View = .init()
-    switch axis {
-    case .horizontal:
-      filler.heightAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
-      
-    case .vertical:
-      filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
-      
-    @unknown default:
-      fatalError("Unexpected state")
+  private var scaleConstraint: NSLayoutConstraint? {
+    didSet {
+      oldValue?.isActive = false
+      scaleConstraint?.isActive = true
     }
-    addArrangedSubview(filler)
+  }
+  
+  override public var image: UIImage? {
+    get { super.image }
+    set {
+      super.image = newValue
+      updateImageScaleIfNeeded()
+    }
+  }
+  
+  override public var contentMode: UIView.ContentMode {
+    get { super.contentMode }
+    set {
+      super.contentMode = newValue
+      updateImageScaleIfNeeded()
+    }
   }
   
   override public func traitCollectionDidChange(
@@ -87,11 +74,34 @@ extension StackView {
     guard traitCollection != previousTraitCollection
     else { return }
     updateColors()
+    updateImages()
   }
   
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+  }
+  
+  private func updateImages() {
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    self.image = dynamicImage(in: interfaceStyle)
+  }
+  
+  private func updateImageScaleIfNeeded() {
+    if
+      let image = super.image,
+      contentMode == .scaleAspectFit
+    {
+      let width = image.size.width
+      let height = image.size.height
+      scaleConstraint = widthAnchor
+        .constraint(
+          equalTo: heightAnchor,
+          multiplier: width / height
+        )
+    } else {
+      scaleConstraint = nil
+    }
   }
 }
