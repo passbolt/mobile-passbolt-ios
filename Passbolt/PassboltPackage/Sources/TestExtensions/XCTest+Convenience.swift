@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import XCTest
 
 public func XCTAssertSuccess<T, E>(

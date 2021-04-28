@@ -47,6 +47,13 @@
         "identifier" : "UIComponentsTests",
         "name" : "UIComponentsTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "CryptoTests",
+        "name" : "CryptoTests"
+      }
     }
   ],
   "version" : 1

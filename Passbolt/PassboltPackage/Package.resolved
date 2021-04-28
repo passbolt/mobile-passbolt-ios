@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Aegithalos",
+        "repositoryURL": "https://github.com/miquido/aegithalos.git",
+        "state": {
+          "branch": null,
+          "revision": "c8f1936fd08b123b03e11da4c9531f2a3cc13bee",
+          "version": "2.0.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

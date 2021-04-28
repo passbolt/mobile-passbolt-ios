@@ -21,7 +21,8 @@ let package = Package(
     .library(
       name: "Crypto",
       targets: [
-        "Crypto"
+        "Crypto",
+        "gopenPGP"
       ]
     ),
     .library(
@@ -114,6 +115,14 @@ let package = Package(
       name: "Crypto",
       dependencies: [
         "Commons",
+        "gopenPGP"
+      ]
+    ),
+    .testTarget(
+      name: "CryptoTests",
+      dependencies: [
+        "Crypto",
+        "TestExtensions"
       ]
     ),
     .target(
@@ -285,5 +294,9 @@ let package = Package(
         "Storage"
       ]
     ),
+    .binaryTarget(
+      name: "gopenPGP",
+      path: "Vendor/Gopenpgp.xcframework"
+    )
   ]
 )

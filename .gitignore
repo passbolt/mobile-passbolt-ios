@@ -34,6 +34,7 @@ Packages
 .build/
 xcuserdata
 DerivedData/
+.swiftpm/
 
 ### Xcode ###
 # Xcode
