@@ -22,8 +22,10 @@
 
 import UIComponents
 
-#warning("TODO: [PAS-27]")
-internal struct SplashScreenController {}
+internal struct SplashScreenController {
+  
+  internal var navigationDestinationPublisher: () -> AnyPublisher<Void ,Never>
+}
 
 extension SplashScreenController: UIController {
   
@@ -33,6 +35,11 @@ extension SplashScreenController: UIController {
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    Self()
+    Self(
+      navigationDestinationPublisher: {
+        Just(Void())
+          .eraseToAnyPublisher()
+      }
+    )
   }
 }

@@ -2,19 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Inter Thin</string>
-		<string>Inter Regular</string>
-		<string>Inter Medium</string>
-		<string>Inter ExtraLight</string>
-		<string>Inter Light</string>
-		<string>Inter SemiBold</string>
-		<string>Inter Bold</string>
-		<string>Inter-Black</string>
-	</array>
-	<key>NSFaceIDUsageDescription</key>
-	<string>TODO</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -33,6 +20,19 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>TODO</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Inter Thin</string>
+		<string>Inter Regular</string>
+		<string>Inter Medium</string>
+		<string>Inter ExtraLight</string>
+		<string>Inter Light</string>
+		<string>Inter SemiBold</string>
+		<string>Inter Bold</string>
+		<string>Inter-Black</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -52,13 +52,8 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string>SplashBackgroundColor</string>
-		<key>UIImageName</key>
-		<string>SplashScreen</string>
-	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>Launch Screen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

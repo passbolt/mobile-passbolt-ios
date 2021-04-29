@@ -22,5 +22,19 @@
 
 import UICommons
 
-#warning("TODO: [PAS-27]")
-internal final class SplashScreenView: View {}
+internal final class SplashScreenView: View {
+  private let imageView: ImageView = .init()
+  
+  required init() {
+    super.init()
+    
+    mut(imageView) {
+      .combined(
+        .image(named: "AppLogo"),
+        .subview(of: self),
+        .centerXAnchor(.equalTo, centerXAnchor),
+        .centerYAnchor(.equalTo, centerYAnchor)
+      )
+    }
+  }
+}

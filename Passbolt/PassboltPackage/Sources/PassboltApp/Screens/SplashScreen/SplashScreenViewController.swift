@@ -51,6 +51,8 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   }
   
   internal func setupView() {
-    #warning("TODO: [PAS-27]")
+    mut(contentView) {
+      .backgroundColor(dynamic: .background)
+    }
   }
 }
