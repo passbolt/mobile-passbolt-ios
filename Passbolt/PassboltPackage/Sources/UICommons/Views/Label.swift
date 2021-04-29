@@ -47,11 +47,16 @@ open class Label: UILabel {
   
   public required init() {
     super.init(frame: .zero)
+    setup()
   }
   
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  open func setup() {
+    // prepared to override instead of overriding init
   }
   
   override public func traitCollectionDidChange(

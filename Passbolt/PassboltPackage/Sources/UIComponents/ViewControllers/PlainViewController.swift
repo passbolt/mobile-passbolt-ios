@@ -28,6 +28,7 @@ open class PlainViewController: UIViewController {
   
   public init() {
     super.init(nibName: nil, bundle: nil)
+    navigationItem.backButtonTitle = ""
     isModalInPresentation = true
     (self as? AnyUIComponent)?.setup()
   }

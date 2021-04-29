@@ -19,12 +19,12 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import Commons
-import UIKit
+import AegithalosCocoa
 
-open class View: UIView {
+open class CollectionReusableView: UICollectionReusableView {
+  
+  public static var reuseIdentifier: String { String(describing: self) }
   
   public lazy var dynamicBackgroundColor: DynamicColor
   = .default(self.backgroundColor) {
@@ -33,27 +33,29 @@ open class View: UIView {
     }
   }
   public lazy var dynamicTintColor: DynamicColor
-    = .default(self.tintColor) {
+  = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
   
-  public required init() {
+  override public convenience init(frame: CGRect) {
+    self.init()
+  }
+  
+  required public init() {
     super.init(frame: .zero)
     setup()
   }
   
   @available(*, unavailable)
-  public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
-  }
+  required public init?(coder: NSCoder) { fatalError() }
   
   open func setup() {
     // prepared to override instead of overriding init
   }
   
-  override public func traitCollectionDidChange(
+  override open func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
     super.traitCollectionDidChange(previousTraitCollection)
@@ -68,3 +70,6 @@ open class View: UIView {
     self.tintColor = dynamicTintColor(in: interfaceStyle)
   }
 }
+
+public typealias CollectionViewHeader = CollectionReusableView
+public typealias CollectionViewFooter = CollectionReusableView

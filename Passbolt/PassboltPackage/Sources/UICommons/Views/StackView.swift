@@ -41,15 +41,17 @@ open class StackView: UIStackView {
   
   public required init() {
     super.init(frame: .zero)
+    setup()
   }
   
   @available(*, unavailable)
   public required init(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-}
-
-extension StackView {
+  
+  open func setup() {
+    // prepared to override instead of overriding init
+  }
   
   public func appendSpace(of size: CGFloat) {
     let space: View = .init()

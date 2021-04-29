@@ -50,7 +50,6 @@ public class Button: UIControl {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
   public var pressedBackgroundColor: UIColor? {
     get { pressLayer.backgroundColor.map(UIColor.init(cgColor:)) }
     set { pressLayer.backgroundColor = newValue?.cgColor }
@@ -59,6 +58,10 @@ public class Button: UIControl {
     get { disableLayer.backgroundColor.map(UIColor.init(cgColor:)) }
     set { disableLayer.backgroundColor = newValue?.cgColor }
   }
+  internal var tapPublisher: AnyPublisher<Void, Never> {
+    tapSubject.eraseToAnyPublisher()
+  }
+  private let tapSubject = PassthroughSubject<Void, Never>()
   private let pressLayer: CALayer = .init()
   private let disableLayer: CALayer = .init()
   
@@ -154,6 +157,7 @@ public class Button: UIControl {
   
   @objc private func touchUpInside() {
     isPressed = false
+    tapSubject.send()
   }
   
   @objc private func touchDragEnter() {

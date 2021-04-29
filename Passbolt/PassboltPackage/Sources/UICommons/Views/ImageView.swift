@@ -22,6 +22,7 @@
 //
 
 import AegithalosCocoa
+import Commons
 
 public class ImageView: UIImageView {
   
@@ -42,6 +43,19 @@ public class ImageView: UIImageView {
     didSet {
       self.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
+  }
+  
+  public init() {
+    super.init(frame: .zero)
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  open func setup() {
+    // prepared to override instead of overriding init
   }
   
   private var scaleConstraint: NSLayoutConstraint? {

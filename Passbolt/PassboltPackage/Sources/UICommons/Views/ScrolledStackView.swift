@@ -43,12 +43,17 @@ open class ScrolledStackView: UIScrollView {
   
   public required init() {
     super.init(frame: .zero)
+    contentSetup()
     setup()
   }
   
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  open func setup() {
+    // prepared to override instead of overriding init
   }
   
   public var axis: NSLayoutConstraint.Axis {
@@ -97,7 +102,7 @@ open class ScrolledStackView: UIScrollView {
     stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
   }
   
-  private func setup() {
+  private func contentSetup() {
     showsVerticalScrollIndicator = false
     showsHorizontalScrollIndicator = false
     insetsLayoutMarginsFromSafeArea = true

@@ -233,6 +233,19 @@ public struct DynamicColor {
     }
   }
   
+  /// Default/Light: #000000, alpha 0.4 Dark: #000000, alpha 0.4
+  public static var overlayBackground: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0x000000).withAlphaComponent(0.4)
+        
+      case .light, _:
+        return UIColor(0x000000).withAlphaComponent(0.4)
+      }
+    }
+  }
+  
   /// Default/Light: #DDDDDD Dark: #DDDDDD
   public static var divider: Self {
     Self { userInterfaceStyle in
