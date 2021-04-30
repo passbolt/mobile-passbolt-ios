@@ -376,9 +376,10 @@ private func deleteKeychainKeyQuery(
   return .success(query as CFDictionary)
 }
 
+#if DEBUG
 extension Keychain {
   
-  internal static var forTesting: Self {
+  public static var forTesting: Self {
     Self(
       verifyBiometricsPermission: placeholder("You have to provide mocks for methods used in test"),
       load: placeholder("You have to provide mocks for methods used in test"),
@@ -387,3 +388,4 @@ extension Keychain {
     )
   }
 }
+#endif

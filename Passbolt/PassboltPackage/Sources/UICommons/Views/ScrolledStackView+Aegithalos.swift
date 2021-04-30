@@ -32,4 +32,24 @@ extension Mutation where Subject: ScrolledStackView {
   public static func tintColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTintColor = color }
   }
+  
+  public static func axis(_ axis: NSLayoutConstraint.Axis) -> Self {
+    .custom { (subject: Subject) in subject.axis = axis }
+  }
+  
+  public static func append(_ view: UIView) -> Self {
+    .custom { (subject: Subject) in subject.append(view) }
+  }
+  
+  public static func appendSpace(of size: CGFloat) -> Self {
+    .custom { (subject: Subject) in subject.appendSpace(of: size) }
+  }
+  
+  public static func appendFiller(minSize: CGFloat) -> Self {
+    .custom { (subject: Subject) in subject.appendFiller(minSize: minSize) }
+  }
+  
+  public static func isLayoutMarginsRelativeArrangement(_ value: Bool) -> Self {
+    .custom { (subject: Subject) in subject.isLayoutMarginsRelativeArrangement = value }
+  }
 }

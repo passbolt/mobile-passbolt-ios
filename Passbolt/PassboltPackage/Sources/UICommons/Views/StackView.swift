@@ -57,10 +57,10 @@ open class StackView: UIStackView {
     let space: View = .init()
     switch axis {
     case .horizontal:
-      space.heightAnchor.constraint(equalToConstant: size).isActive = true
+      space.widthAnchor.constraint(equalToConstant: size).isActive = true
       
     case .vertical:
-      space.widthAnchor.constraint(equalToConstant: size).isActive = true
+      space.heightAnchor.constraint(equalToConstant: size).isActive = true
     @unknown default:
       fatalError("Unexpected state")
     }
@@ -71,10 +71,10 @@ open class StackView: UIStackView {
     let filler: View = .init()
     switch axis {
     case .horizontal:
-      filler.heightAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
+      filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
       
     case .vertical:
-      filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
+      filler.heightAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
       
     @unknown default:
       fatalError("Unexpected state")

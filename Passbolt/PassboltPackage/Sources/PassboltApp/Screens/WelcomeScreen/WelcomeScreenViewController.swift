@@ -22,13 +22,13 @@
 
 import UIComponents
 
-internal final class SplashScreenViewController: PlainViewController, UIComponent {
+internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
   
-  internal typealias View = SplashScreenView
-  internal typealias Controller = SplashScreenController
+  internal typealias View = WelcomeScreenView
+  internal typealias Controller = WelcomeScreenController
   
-  internal static func instance(
-    using controller: Controller,
+  static func instance(
+    using controller: WelcomeScreenController,
     with components: UIComponentFactory
   ) -> Self {
     Self(
@@ -37,13 +37,14 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     )
   }
   
-  internal private(set) lazy var contentView: SplashScreenView = .init()
+  internal private(set) lazy var contentView: WelcomeScreenView = .init()
   internal let components: UIComponentFactory
-  private let controller: SplashScreenController
+  
+  private let controller: WelcomeScreenController
   private var cancellables: Array<AnyCancellable> = .init()
   
   internal init(
-    using controller: SplashScreenController,
+    using controller: Controller,
     with components: UIComponentFactory
   ) {
     self.controller = controller
@@ -60,21 +61,31 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   }
   
   private func setupSubscriptions() {
-    controller
-      .navigationDestinationPublisher()
-      .delay(for: 0.3, scheduler: RunLoop.main)
-      .receive(on: RunLoop.main)
-      .sink { [weak self] destination in
-        self?.navigate(to: destination)
+    contentView.tapAccountPublisher
+      .sink { [weak self] in
+        #warning("TODO: PAS-33")
       }
       .store(in: &cancellables)
-  }
-  
-  #warning("TODO: navigate to proper destination based on accounts info")
-  private func navigate(to destination: Void) {
-    let navigationController = components
-      .instance(of: WelcomeNavigationViewController.self)
     
-    view.window?.rootViewController = navigationController
+    contentView.tapNoAccountPublisher
+      .sink { [weak self] in
+        self?.controller.presentNoAccountAlert()
+      }
+      .store(in: &cancellables)
+    
+    controller.noAccountAlertPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] presented in
+        guard let self = self else { return }
+        if presented {
+          self.present(
+            WelcomeScreenNoAccountAlertViewController.self,
+            in: self.controller.dismissNoAccountAlert
+          )
+        } else {
+          self.controller.dismissNoAccountAlert()
+        }
+      }
+      .store(in: &cancellables)
   }
 }

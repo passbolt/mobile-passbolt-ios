@@ -58,7 +58,7 @@ public class Button: UIControl {
     get { disableLayer.backgroundColor.map(UIColor.init(cgColor:)) }
     set { disableLayer.backgroundColor = newValue?.cgColor }
   }
-  internal var tapPublisher: AnyPublisher<Void, Never> {
+  public var tapPublisher: AnyPublisher<Void, Never> {
     tapSubject.eraseToAnyPublisher()
   }
   private let tapSubject = PassthroughSubject<Void, Never>()

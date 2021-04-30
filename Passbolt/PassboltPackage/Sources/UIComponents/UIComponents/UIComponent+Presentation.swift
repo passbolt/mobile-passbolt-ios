@@ -20,33 +20,38 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+import UIKit
 
-import AegithalosCocoa
-
-extension Mutation where Subject: TextButton {
+public extension UIComponent {
   
-  public static func primaryStyle() -> Self {
-    .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
+  func present<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context
+  ) where Component: UIComponent {
+    var presentedLeaf: UIViewController = self
+    while let next = presentedLeaf.presentedViewController {
+      presentedLeaf = next
+    }
+    
+    presentedLeaf.present(
+      components
+        .instance(
+          of: Component.self,
+          in: context
+        ),
+      animated: true,
+      completion: nil
     )
   }
   
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
-    )
+  func dismiss<Component>(_ type: Component.Type) where Component: UIComponent {
+    var presentedLeaf: UIViewController = self
+    while let next = presentedLeaf.presentedViewController {
+      if next is Component {
+        return presentedLeaf.dismiss(animated: true)
+      } else {
+        presentedLeaf = next
+      }
+    }
   }
 }

@@ -100,11 +100,13 @@ extension Networking {
   }
 }
 
+#if DEBUG
 extension Networking {
-  
-  internal static func forTesting() -> Self {
+ 
+  public static func forTesting() -> Self {
     Self(
       execute: unreachable("Please use mock or verify your tests")
       )
   }
 }
+#endif

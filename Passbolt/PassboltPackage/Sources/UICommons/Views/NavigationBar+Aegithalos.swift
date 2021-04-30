@@ -32,4 +32,12 @@ extension Mutation where Subject: NavigationBar {
   public static func tintColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTintColor = color }
   }
+  
+  public static func barTintColor(dynamic color: DynamicColor) -> Self {
+    .custom { (subject: Subject) in subject.dynamicBarTintColor = color }
+  }
+  
+  public static func isHidden(_ isHidden: Bool) -> Self {
+    .custom { (subject: Subject) in subject.isHidden = isHidden }
+  }
 }

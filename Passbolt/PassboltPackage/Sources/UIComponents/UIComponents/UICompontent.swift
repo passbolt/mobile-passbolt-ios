@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import Commons
 import UIKit
 
 public protocol AnyUIComponent: UIViewController {
@@ -43,13 +44,30 @@ public protocol UIComponent: AnyUIComponent {
   ) -> Self
   
   var contentView: View { get }
+  var components: UIComponentFactory { get }
 }
 
-public extension UIComponent {
+extension UIComponent {
   
-  var lazyView: UIView { contentView }
+  public var lazyView: UIView { contentView }
   
-  func setup() {}
-  func activate() {}
-  func deactivate() {}
+  public func setup() {}
+  public func activate() {}
+  public func deactivate() {}
+}
+
+public final class NavigationView: UIView {}
+
+extension UIComponent where Self: UINavigationController {
+  
+  public var contentView: NavigationView {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  public func setupView() {}
+}
+
+extension UIComponent where Self: UIAlertController {
+  
+  public func setupView() {}
 }

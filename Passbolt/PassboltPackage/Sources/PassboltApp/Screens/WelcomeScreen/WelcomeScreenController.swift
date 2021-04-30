@@ -19,34 +19,30 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import AegithalosCocoa
+import UIComponents
 
-extension Mutation where Subject: TextButton {
+internal struct WelcomeScreenController: UIController {
   
-  public static func primaryStyle() -> Self {
-    .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
-    )
-  }
+  internal var presentNoAccountAlert: () -> Void
+  internal var noAccountAlertPresentationPublisher: () -> AnyPublisher<Bool, Never>
+  internal var dismissNoAccountAlert: () -> Void
+}
+
+extension WelcomeScreenController {
   
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
+  internal typealias Context = Void
+  
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory
+  ) -> Self {
+    let noAccountAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
+    
+    return Self(
+      presentNoAccountAlert: { noAccountAlertPresentationSubject.send(true) },
+      noAccountAlertPresentationPublisher: noAccountAlertPresentationSubject.eraseToAnyPublisher,
+      dismissNoAccountAlert: { noAccountAlertPresentationSubject.send(false) }
     )
   }
 }

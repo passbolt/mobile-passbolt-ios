@@ -27,7 +27,7 @@ import UIKit
 // UIAlertController does not support subclassing, in order to make a proper component from it
 // we avoid overriding its initializer (which does break the things) and instead use existing one
 // and add controller right after initialization (this is reason for imclitly unwrapped optional there).
-open class AlertViewController<Controller: UIController, Context>: UIAlertController {
+open class AlertViewController<Controller: UIController>: UIAlertController {
   
   public static func instance(
     using controller: Controller,
@@ -39,12 +39,17 @@ open class AlertViewController<Controller: UIController, Context>: UIAlertContro
       preferredStyle: .alert
     )
     instance.controller = controller
+    instance._components = components
     (instance as? AnyUIComponent)?.setup()
     return instance
   }
+  public var components: UIComponentFactory { _components }
   
   // swiftlint:disable:next implicitly_unwrapped_optional
-  internal private(set) var controller: Controller! = nil
+  private var _components: UIComponentFactory!
+  
+  // swiftlint:disable:next implicitly_unwrapped_optional
+  public private(set) var controller: Controller! = nil
   
   override open var preferredStatusBarStyle: UIStatusBarStyle {
     (presentingViewController?.childForStatusBarStyle

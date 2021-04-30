@@ -183,7 +183,8 @@ let package = Package(
     .testTarget(
       name: "PassboltAppTests",
       dependencies: [
-        "PassboltApp"
+        "PassboltApp",
+        "TestExtensions"
       ]
     ),
     .target(
@@ -256,7 +257,8 @@ let package = Package(
     .target(
       name: "TestExtensions",
       dependencies: [
-        "Commons"
+        "Commons",
+        "UIComponents"
       ]
     ),
     .target(

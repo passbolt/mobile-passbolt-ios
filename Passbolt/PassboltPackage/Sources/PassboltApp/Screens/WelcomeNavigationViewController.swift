@@ -19,34 +19,45 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import AegithalosCocoa
+import UICommons
+import UIComponents
 
-extension Mutation where Subject: TextButton {
+internal final class WelcomeNavigationViewController: NavigationViewController, UIComponent {
   
-  public static func primaryStyle() -> Self {
-    .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
+  typealias Controller = WelcomeNavigationController
+  
+  internal static func instance(
+    using controller: WelcomeNavigationController,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
     )
   }
   
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
-    )
+  internal let components: UIComponentFactory
+  private let controller: WelcomeNavigationController
+  
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+  
+  internal func setup() {
+    let welcomeScreen = components.instance(of: WelcomeScreenViewController.self)
+    setViewControllers([welcomeScreen], animated: false)
+    
+    mut(navigationBarView) {
+      .combined(
+        .primaryNavigationStyle(),
+        .isHidden(true)
+      )
+    }
   }
 }

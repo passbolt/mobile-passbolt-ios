@@ -21,32 +21,15 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-
-extension Mutation where Subject: TextButton {
-  
-  public static func primaryStyle() -> Self {
-    .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
-    )
-  }
-  
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
-    )
-  }
-}
+"generic.ok" = "OK";
+"generic.done" = "Done";
+"generic.remove" = "Remove";
+"generic.retry" = "Retry";
+"generic.delete" = "Delete";
+"generic.got.it" = "Got it";
+"welcome.title" = "Welcome!";
+"welcome.description" = "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device.";
+"welcome.connect.to.account" = "Connect to an existing account";
+"welcome.no.account" = "I don’t have an account";
+"welcome.no.account.alert.title" = "How to create an account?";
+"welcome.no.account.alert.text" = "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension.";

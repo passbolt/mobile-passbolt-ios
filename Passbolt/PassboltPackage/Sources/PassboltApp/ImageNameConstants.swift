@@ -23,30 +23,8 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: TextButton {
+extension ImageNameConstant {
   
-  public static func primaryStyle() -> Self {
-    .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
-    )
-  }
-  
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
-    )
-  }
+  internal static let appLogo: Self = "AppLogo"
+  internal static let welcomeAccounts: Self = "WelcomeAccounts"
 }

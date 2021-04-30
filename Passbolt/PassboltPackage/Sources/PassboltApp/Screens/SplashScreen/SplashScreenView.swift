@@ -30,7 +30,7 @@ internal final class SplashScreenView: View {
     
     mut(imageView) {
       .combined(
-        .image(named: "AppLogo"),
+        .image(named: .appLogo),
         .subview(of: self),
         .centerXAnchor(.equalTo, centerXAnchor),
         .centerYAnchor(.equalTo, centerYAnchor)

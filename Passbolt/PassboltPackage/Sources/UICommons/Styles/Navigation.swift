@@ -23,30 +23,18 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: TextButton {
-  
-  public static func primaryStyle() -> Self {
+extension Mutation where Subject: NavigationBar {
+  public static func primaryNavigationStyle() -> Self {
+
     .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
-    )
-  }
-  
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
+      .backgroundColor(dynamic: .background),
+      .barTintColor(dynamic: .background),
+      .tintColor(dynamic: .iconAlternative),
+      .translucent(false),
+      .shadowImage(nil),
+      .custom { (subject: Subject) in
+        subject.setBackgroundImage(nil, for: .any, barMetrics: .default)
+      }
     )
   }
 }

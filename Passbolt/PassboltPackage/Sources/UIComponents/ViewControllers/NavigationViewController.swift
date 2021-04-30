@@ -49,6 +49,14 @@ open class NavigationViewController: UINavigationController {
     unreachable("\(Self.self).\(#function) should not be used")
   }
   
+  public var navigationBarView: NavigationBar {
+    guard let navigationBar = navigationBar as? NavigationBar else {
+      unreachable("Invalid navigation bar type, expected: \(NavigationBar.self), received: \(type(of: navigationBar))")
+    }
+    
+    return navigationBar
+  }
+  
   override open func loadView() {
     super.loadView()
     view.backgroundColor = .white

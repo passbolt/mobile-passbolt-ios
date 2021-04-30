@@ -100,12 +100,14 @@ extension Preferences {
   }
 }
 
+#if DEBUG
 extension Preferences {
   
-  internal static var forTesting: Self {
+  public static var forTesting: Self {
     Self(
       load: unreachable("Please use mock or verify your tests"),
       save: unreachable("Please use mock or verify your tests")
     )
   }
 }
+#endif

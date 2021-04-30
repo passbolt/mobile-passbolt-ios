@@ -19,34 +19,37 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import AegithalosCocoa
+import UIComponents
 
-extension Mutation where Subject: TextButton {
-  
-  public static func primaryStyle() -> Self {
-    .combined(
-      .backgroundColor(dynamic: .primaryBlue),
-      .pressedBackgroundColor(dynamic: .primaryBluePressed),
-      .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
-      .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
-      .textColor(dynamic: .primaryTextAlternative),
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textAlignment(.center),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
-    )
+internal final class WelcomeScreenNoAccountAlertViewController: AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent {
+
+  func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "welcome.no.account.alert.title"),
+        .message(localized: "welcome.no.account.alert.text"),
+        .action(localized: .gotIt, handler: controller.dismiss)
+      )
+    }
   }
+}
+
+internal struct WelcomeScreenNoAccountAlertController {
   
-  public static func linkStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .backgroundColor(.clear),
-      .textAlignment(.center),
-      .textColor(dynamic: .primaryText),
-      .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
+  internal var dismiss: () -> Void
+}
+
+extension WelcomeScreenNoAccountAlertController: UIController {
+  
+  internal typealias Context = () -> Void
+  
+  internal static func instance(
+    in context: @escaping Context,
+    with features: FeatureFactory
+  ) -> Self {
+    Self(
+      dismiss: context
     )
   }
 }

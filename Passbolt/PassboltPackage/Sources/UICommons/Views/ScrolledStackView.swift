@@ -38,7 +38,7 @@ open class ScrolledStackView: UIScrollView {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+ 
   private let stackView: StackView = .init()
   
   public required init() {
@@ -111,6 +111,9 @@ open class ScrolledStackView: UIScrollView {
     stackView.alignment = .fill
     stackView.distribution = .fill
     stackView.translatesAutoresizingMaskIntoConstraints = false
+    
+    addSubview(stackView)
+    
     NSLayoutConstraint.activate([
       stackView.topAnchor.constraint(equalTo: topAnchor),
       stackView.leftAnchor.constraint(equalTo: leftAnchor),
