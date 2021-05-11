@@ -38,12 +38,18 @@ public final class ProgressView: View {
   private var progressWidthConstraint: NSLayoutConstraint?
   
   override public func setup() {
+    mut(self) {
+      .combined(
+        .backgroundColor(dynamic: .divider),
+        .cornerRadius(4, masksToBounds: true),
+        .heightAnchor(.equalTo, constant: 8)
+      )
+    }
     mut(progressBar) {
       .combined(
         .backgroundColor(dynamic: dynamicTintColor),
-        .cornerRadius(4, masksToBounds: true),
         .subview(of: self),
-        .heightAnchor(.equalTo, constant: 8),
+        .cornerRadius(4, masksToBounds: true),
         .topAnchor(.equalTo, topAnchor),
         .bottomAnchor(.equalTo, bottomAnchor),
         .leadingAnchor(.equalTo, leadingAnchor),

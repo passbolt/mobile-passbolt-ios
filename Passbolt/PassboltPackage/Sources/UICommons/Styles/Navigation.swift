@@ -31,7 +31,7 @@ extension Mutation where Subject: NavigationBar {
       .barTintColor(dynamic: .background),
       .tintColor(dynamic: .iconAlternative),
       .translucent(false),
-      .shadowImage(nil),
+      .shadowImage(UIImage()),
       .backgroundImage(nil),
       .custom { (subject: Subject) in
         subject.backIndicatorImage = UIImage(named: ImageNameConstant.arrowLeft.rawValue)

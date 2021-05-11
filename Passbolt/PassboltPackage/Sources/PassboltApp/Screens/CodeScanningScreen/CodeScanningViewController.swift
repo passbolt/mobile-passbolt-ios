@@ -79,7 +79,13 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         .titleView(progressView),
         .rightBarButtonItem(
           Mutation<UIBarButtonItem>
-            .placeholderStyle()
+            .combined(
+              .style(.done),
+              .image(named: .help, from: .uiCommons),
+              .action { [weak self] in
+                self?.controller.presentHelp()
+              }
+            )
             .instantiate()
         )
       )
@@ -98,37 +104,42 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         self?.progressView.update(progress: progress, animated: true)
       }
       .store(in: &cancellables)
+    
     controller
       .exitConfirmationPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        self?.setExitConfirmation(presented: presented)
-      }
-      .store(in: &cancellables)
-  }
-  
-  private func setExitConfirmation(presented: Bool) {
-    var presentedLeaf: UIViewController = self
-    while let next: UIViewController = presentedLeaf.presentedViewController {
-      if next is CodeScanningExitConfirmationViewController, !presented {
-        return presentedLeaf.dismiss(animated: true)
-      } else {
-        presentedLeaf = next
-      }
-    }
-    if presented {
-      presentedLeaf.present(
-        components
-          .instance(
-            of: CodeScanningExitConfirmationViewController.self,
+        if presented {
+          self?.present(
+            CodeScanningExitConfirmationViewController.self,
             in: CodeScanningExitConfirmationController.Context(
-              cancel: controller.dismissExitConfirmation,
+              cancel: { [weak self] in
+                self?.controller.dismissExitConfirmation()
+              },
               exit: { [weak self] in self?.navigationController?.popViewController(animated: true) }
             )
-          ),
-        animated: true,
-        completion: nil
-      )
-    } else { /* */ }
+          )
+        } else {
+          self?.dismiss(CodeScanningExitConfirmationViewController.self)
+        }
+      }
+      .store(in: &cancellables)
+    
+    controller
+      .helpPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] presented in
+        if presented {
+          self?.present(
+            CodeScanningHelpViewController.self,
+            in: { [weak self] in
+              self?.controller.dismissExitConfirmation()
+            }
+          )
+        } else {
+          self?.dismiss(CodeScanningExitConfirmationViewController.self)
+        }
+      }
+      .store(in: &cancellables)
   }
 }

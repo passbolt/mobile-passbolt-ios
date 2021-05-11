@@ -25,6 +25,7 @@ import AegithalosCocoa
 
 extension ImageNameConstant {
   
-  internal static var arrowLeft: Self { "ArrowLeft" }
-  internal static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
+  public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
+  public static var arrowLeft: Self { "ArrowLeft" }
+  public static var help: Self { "Help" }
 }

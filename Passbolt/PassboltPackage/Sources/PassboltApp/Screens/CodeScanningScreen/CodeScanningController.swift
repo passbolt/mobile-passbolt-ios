@@ -29,6 +29,9 @@ internal struct CodeScanningController {
   internal var presentExitConfirmation: () -> Void
   internal var dismissExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
+  internal var presentHelp: () -> Void
+  internal var dismissHelp: () -> Void
+  internal var helpPresentationPublisher: () -> AnyPublisher<Bool, Never>
 }
 
 extension CodeScanningController: UIController {
@@ -49,6 +52,7 @@ extension CodeScanningController: UIController {
   ) -> Self {
     let state: CurrentValueSubject<State, Never> = .init(State())
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
+    let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     #warning("TODO: [PAS-39] Use code reader (camera) component")
     return Self(
       progressPublisher: state
@@ -63,7 +67,10 @@ extension CodeScanningController: UIController {
       },
       presentExitConfirmation: { exitConfirmationPresentationSubject.send(true) },
       dismissExitConfirmation: { exitConfirmationPresentationSubject.send(false) },
-      exitConfirmationPresentationPublisher: exitConfirmationPresentationSubject.eraseToAnyPublisher
+      exitConfirmationPresentationPublisher: exitConfirmationPresentationSubject.eraseToAnyPublisher,
+      presentHelp: { helpPresentationSubject.send(true) },
+      dismissHelp: { helpPresentationSubject.send(false) },
+      helpPresentationPublisher: helpPresentationSubject.eraseToAnyPublisher
     )
   }
 }

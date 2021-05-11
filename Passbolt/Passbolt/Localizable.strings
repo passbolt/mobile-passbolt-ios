@@ -37,3 +37,6 @@
 
 "code.scanning.exit.confirmation.title" = "Are you sure?";
 "code.scanning.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
+
+"code.scanning.help.title" = "Scanning QR codes";
+"code.scanning.help.message" = "You will see a sequence of QR codes. We will scan these codes until the progress bar is full. then you will be able to login!";

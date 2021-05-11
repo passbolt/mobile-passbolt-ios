@@ -46,7 +46,7 @@ final class CodeScanningScreenTests: XCTestCase {
     super.tearDown()
   }
   
-  func test_exitConfirmationIsPresented_whenCallingPresent() {
+  func test_exitConfirmation_isPresented_whenCallingPresent() {
     let controller: CodeScanningController = .instance(with: features)
     var result: Bool!
     
@@ -62,7 +62,7 @@ final class CodeScanningScreenTests: XCTestCase {
     XCTAssertTrue(result)
   }
   
-  func test_exitConfirmationIsNotPresented_whenCallingDismiss() {
+  func test_exitConfirmation_isNotPresented_whenCallingDismiss() {
     let controller: CodeScanningController = .instance(with: features)
     var result: Bool!
     
@@ -78,7 +78,39 @@ final class CodeScanningScreenTests: XCTestCase {
     XCTAssertFalse(result)
   }
   
-  func test_initialProgress_isNotEmptyOrFull() {
+  func test_help_isPresented_whenCallingPresent() {
+    let controller: CodeScanningController = .instance(with: features)
+    var result: Bool!
+    
+    controller.helpPresentationPublisher()
+      .receive(on: ImmediateScheduler.shared)
+      .sink { presented in
+        result = presented
+      }
+      .store(in: &cancellables)
+    
+    controller.presentHelp()
+    
+    XCTAssertTrue(result)
+  }
+  
+  func test_help_isNotPresented_whenCallingDismiss() {
+    let controller: CodeScanningController = .instance(with: features)
+    var result: Bool!
+    
+    controller.helpPresentationPublisher()
+      .receive(on: ImmediateScheduler.shared)
+      .sink { presented in
+        result = presented
+      }
+      .store(in: &cancellables)
+    
+    controller.dismissHelp()
+    
+    XCTAssertFalse(result)
+  }
+  
+  func test_initialProgress_isNotEmptyAndNotFull() {
     let controller: CodeScanningController = .instance(with: features)
     var result: Double!
     

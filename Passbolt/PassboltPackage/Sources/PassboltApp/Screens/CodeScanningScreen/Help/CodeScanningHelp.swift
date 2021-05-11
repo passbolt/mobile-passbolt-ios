@@ -22,23 +22,34 @@
 
 import UIComponents
 
-internal struct CodeScanningExitConfirmationController {
+internal final class CodeScanningHelpViewController: AlertViewController<CodeScanningHelpController>, UIComponent {
   
-  internal var cancel: () -> Void
-  internal var exit: () -> Void
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "code.scanning.help.title"),
+        .message(localized: "code.scanning.help.message"),
+        .action(localized: .gotIt, style: .cancel, handler: controller.close)
+      )
+    }
+  }
 }
 
-extension CodeScanningExitConfirmationController: UIController {
+internal struct CodeScanningHelpController {
   
-  internal typealias Context = (cancel: () -> Void, exit: () -> Void)
+  internal var close: () -> Void
+}
+
+extension CodeScanningHelpController: UIController {
+  
+  internal typealias Context = () -> Void
   
   internal static func instance(
-    in context: Context,
+    in context: @escaping Context,
     with features: FeatureFactory
   ) -> Self {
     Self(
-      cancel: context.cancel,
-      exit: context.exit
+      close: context
     )
   }
 }
