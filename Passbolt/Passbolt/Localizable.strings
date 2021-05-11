@@ -21,8 +21,9 @@
 // @since         v1.0
 //
 
-"generic.ok" = "OK";
 "generic.done" = "Done";
+"generic.yes" = "Yes";
+"generic.cancel" = "Cancel";
 "generic.remove" = "Remove";
 "generic.retry" = "Retry";
 "generic.delete" = "Delete";
@@ -33,3 +34,6 @@
 "welcome.no.account" = "I don’t have an account";
 "welcome.no.account.alert.title" = "How to create an account?";
 "welcome.no.account.alert.text" = "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension.";
+
+"code.scanning.exit.confirmation.title" = "Are you sure?";
+"code.scanning.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";

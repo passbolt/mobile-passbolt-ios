@@ -5,7 +5,7 @@ public final class LoaderOverlayView: View {
   private let activityIndicator: UIActivityIndicatorView = .init(style: .medium)
   private let label: Label = .init()
   
-  required init() {
+  public required init() {
     super.init()
     dynamicBackgroundColor = .overlayBackground
     let containerView: View = Mutation
@@ -13,8 +13,8 @@ public final class LoaderOverlayView: View {
         .backgroundColor(dynamic: .divider),
         .cornerRadius(8, masksToBounds: true),
         .subview(of: self),
-        .widthAnchor(.equalTo, 96),
-        .heightAnchor(.equalTo, 96),
+        .widthAnchor(.equalTo, constant: 96),
+        .heightAnchor(.equalTo, constant: 96),
         .centerYAnchor(.equalTo, centerYAnchor, constant: 8),
         .centerXAnchor(.equalTo, centerXAnchor)
       )

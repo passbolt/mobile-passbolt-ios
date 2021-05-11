@@ -152,8 +152,10 @@ extension PGP {
       verifyPassphrase: { key, passphrase in
         defer { Gopenpgp.HelperFreeOSMemory() }
         
-        guard let cryptoKey: CryptoKey = Gopenpgp.CryptoKey(fromArmored: key),
-              let passphraseData: Data = passphrase.data(using: .utf8) else {
+        guard
+          let cryptoKey: CryptoKey = Gopenpgp.CryptoKey(fromArmored: key),
+          let passphraseData: Data = passphrase.data(using: .utf8)
+        else {
           return .failure(.invalidPassphraseError())
         }
         

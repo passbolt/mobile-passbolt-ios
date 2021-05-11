@@ -20,16 +20,18 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
-import UIComponents
+import UICommons
 
-internal struct WelcomeNavigationController: UIController {
+internal final class CodeScanningView: View {
   
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Void,
-    with features: FeatureFactory
-  ) -> WelcomeNavigationController {
-    Self()
+  internal func set(embeded view: UIView) {
+    subviews.forEach { $0.removeFromSuperview() }
+    mut(self) {
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .subview(view),
+        .edges(equalTo: view, usingSafeArea: false)
+      )
+    }
   }
 }

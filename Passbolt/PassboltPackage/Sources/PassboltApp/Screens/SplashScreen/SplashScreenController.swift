@@ -24,7 +24,7 @@ import UIComponents
 
 internal struct SplashScreenController {
   
-  internal var navigationDestinationPublisher: () -> AnyPublisher<Void ,Never>
+  internal var navigationDestinationPublisher: () -> AnyPublisher<Void, Never>
 }
 
 extension SplashScreenController: UIController {

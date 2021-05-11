@@ -26,9 +26,10 @@ import AegithalosCocoa
 extension LocalizationKeyConstant {
   
   internal static let done: Self = "generic.done"
+  internal static let yes: Self = "generic.yes"
+  internal static let cancel: Self = "generic.cancel"
   internal static let remove: Self = "generic.remove"
   internal static let retry: Self = "generic.retry"
   internal static let delete: Self = "generic.delete"
-  internal static let cancel: Self = "generic.cancel"
   internal static let gotIt: Self = "generic.got.it"
 }

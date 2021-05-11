@@ -43,7 +43,7 @@ public final class FeatureFactory {
 extension FeatureFactory {
   
   public func instance<F>(
-    of feature: F.Type
+    of feature: F.Type = F.self
   ) -> F
   where F: Feature {
     featuresAccessLock.lock()

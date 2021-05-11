@@ -19,6 +19,7 @@ import XCTest
 
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
+// swiftlint:disable implicitly_unwrapped_optional
 final class PGPTests: XCTestCase {
   var pgp: PGP!
   
@@ -41,7 +42,7 @@ final class PGPTests: XCTestCase {
     )
     
     XCTAssertSuccessNotEqual(output, input)
-  }  
+  }
 
   func test_encryption_WithIncorrectPassphraseSigning_fails() {
     let input: String = ""
@@ -191,7 +192,7 @@ final class PGPTests: XCTestCase {
   func test_verifyMessage_withCorrectlySignedInputAndEnabledTimeCheck_succeeds() {
     let input: String = signedMessage
     // A certain point in time when the key is valid
-    let verifyTime: Int64 = 1619588275
+    let verifyTime: Int64 = 1_619_588_275
  
     let output: Result<String, TheError> = pgp.verifyMessage(input, publicKey, verifyTime)
     

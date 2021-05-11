@@ -94,7 +94,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
   }
   
   @available(*, unavailable)
-  required public init?(coder: NSCoder) {
+  public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
   
@@ -168,7 +168,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
   }
   
   private func setupDataSource() -> UICollectionViewDiffableDataSource<Section, Item> {
-    let dataSource = UICollectionViewDiffableDataSource<Section, Item>(
+    let dataSource: UICollectionViewDiffableDataSource<Section, Item> = .init(
       collectionView: self,
       cellProvider: { [weak self] _, indexPath, item in
         guard let self = self else { return nil }
@@ -179,7 +179,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
         )
       }
     )
-    dataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+    dataSource.supplementaryViewProvider = { [weak self] _, kind, indexPath in
       guard let self = self else { return nil }
       switch kind {
       case UICollectionView.elementKindSectionHeader:
@@ -187,6 +187,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
         
       case UICollectionView.elementKindSectionFooter:
         return self.setupFooter(for: self.section(at: indexPath), at: indexPath)
+        
       case _:
         return nil
       }
@@ -199,11 +200,11 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
     performDropWith coordinator: UICollectionViewDropCoordinator
   ) {
     let destinationIndexPath: IndexPath
-    if let indexPath = coordinator.destinationIndexPath {
+    if let indexPath: IndexPath = coordinator.destinationIndexPath {
       destinationIndexPath = indexPath
     } else {
-      let section = collectionView.numberOfSections - 1
-      let row = collectionView.numberOfItems(inSection: section)
+      let section: Int = collectionView.numberOfSections - 1
+      let row: Int = collectionView.numberOfItems(inSection: section)
       destinationIndexPath = IndexPath(row: row, section: section)
     }
     reorderItems(
@@ -217,7 +218,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
     _ collectionView: UICollectionView,
     canHandle session: UIDropSession
   ) -> Bool {
-    return self.dragInteractionEnabled
+    dragInteractionEnabled
   }
   
   public func collectionView(
@@ -240,10 +241,10 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
     destinationIndexPath: IndexPath,
     collectionView: UICollectionView
   ) {
-    let items = coordinator.items
+    let items: Array<UICollectionViewDropItem> = coordinator.items
     if
-      let item = items.first,
-      let sourceIndexPath = item.sourceIndexPath
+      let item: UICollectionViewDropItem = items.first,
+      let sourceIndexPath: IndexPath = item.sourceIndexPath
     {
       move(
         from: section(at: sourceIndexPath),
@@ -261,8 +262,8 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
     itemsForBeginning session: UIDragSession,
     at indexPath: IndexPath
   ) -> [UIDragItem] {
-    let itemProvider = NSItemProvider(object: "\(indexPath)" as NSItemProviderWriting)
-    let dragItem = UIDragItem(itemProvider: itemProvider)
+    let itemProvider: NSItemProvider = .init(object: "\(indexPath)" as NSItemProviderWriting)
+    let dragItem: UIDragItem = .init(itemProvider: itemProvider)
     dragItem.localObject = _dataSource.itemIdentifier(for: indexPath)
     return [dragItem]
   }
@@ -273,8 +274,8 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
     at indexPath: IndexPath,
     point: CGPoint
   ) -> [UIDragItem] {
-    let itemProvider = NSItemProvider(object: "\(indexPath)" as NSString)
-    let dragItem = UIDragItem(itemProvider: itemProvider)
+    let itemProvider: NSItemProvider = .init(object: "\(indexPath)" as NSString)
+    let dragItem: UIDragItem = .init(itemProvider: itemProvider)
     dragItem.localObject = _dataSource.itemIdentifier(for: indexPath)
     return [dragItem]
   }

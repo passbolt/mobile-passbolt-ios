@@ -25,7 +25,7 @@ import UIComponents
 
 internal final class WelcomeNavigationViewController: NavigationViewController, UIComponent {
   
-  typealias Controller = WelcomeNavigationController
+  internal typealias Controller = WelcomeNavigationController
   
   internal static func instance(
     using controller: WelcomeNavigationController,
@@ -50,7 +50,7 @@ internal final class WelcomeNavigationViewController: NavigationViewController, 
   }
   
   internal func setup() {
-    let welcomeScreen = components.instance(of: WelcomeScreenViewController.self)
+    let welcomeScreen: WelcomeScreenViewController = components.instance()
     setViewControllers([welcomeScreen], animated: false)
     
     mut(navigationBarView) {

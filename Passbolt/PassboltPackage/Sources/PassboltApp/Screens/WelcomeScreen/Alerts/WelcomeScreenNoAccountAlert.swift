@@ -24,7 +24,7 @@ import UIComponents
 
 internal final class WelcomeScreenNoAccountAlertViewController: AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent {
 
-  func setup() {
+  internal func setup() {
     mut(self) {
       .combined(
         .title(localized: "welcome.no.account.alert.title"),

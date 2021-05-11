@@ -274,7 +274,7 @@ let package = Package(
         .process("Fonts/Inter-Light.ttf"),
         .process("Fonts/Inter-Medium.ttf"),
         .process("Fonts/Inter-Regular.ttf"),
-        .process("Fonts/Inter-SemiBold.ttf"),
+        .process("Fonts/Inter-SemiBold.ttf")
       ]
     ),
     .target(

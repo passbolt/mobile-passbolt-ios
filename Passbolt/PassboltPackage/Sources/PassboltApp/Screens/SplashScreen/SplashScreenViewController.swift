@@ -72,8 +72,8 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   
   #warning("TODO: navigate to proper destination based on accounts info")
   private func navigate(to destination: Void) {
-    let navigationController = components
-      .instance(of: WelcomeNavigationViewController.self)
+    let navigationController: WelcomeNavigationViewController = components
+      .instance()
     
     view.window?.rootViewController = navigationController
   }

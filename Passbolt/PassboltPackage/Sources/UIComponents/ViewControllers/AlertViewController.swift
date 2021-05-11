@@ -43,6 +43,7 @@ open class AlertViewController<Controller: UIController>: UIAlertController {
     (instance as? AnyUIComponent)?.setup()
     return instance
   }
+  
   public var components: UIComponentFactory { _components }
   
   // swiftlint:disable:next implicitly_unwrapped_optional

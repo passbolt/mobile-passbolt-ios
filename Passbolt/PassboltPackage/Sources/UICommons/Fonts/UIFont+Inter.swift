@@ -26,7 +26,6 @@ import UIKit
 
 extension UIFont {
   
-  // swiftlint:disable force_unwrapping
   public static func inter(
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
@@ -90,5 +89,4 @@ extension UIFont {
       weight: weight
     )
   }
-  // swiftlint:enable force_unwrapping
 }

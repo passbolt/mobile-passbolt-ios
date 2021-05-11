@@ -29,7 +29,7 @@ public extension UIComponent {
     in context: Component.Controller.Context
   ) where Component: UIComponent {
     var presentedLeaf: UIViewController = self
-    while let next = presentedLeaf.presentedViewController {
+    while let next: UIViewController = presentedLeaf.presentedViewController {
       presentedLeaf = next
     }
     
@@ -46,7 +46,7 @@ public extension UIComponent {
   
   func dismiss<Component>(_ type: Component.Type) where Component: UIComponent {
     var presentedLeaf: UIViewController = self
-    while let next = presentedLeaf.presentedViewController {
+    while let next: UIViewController = presentedLeaf.presentedViewController {
       if next is Component {
         return presentedLeaf.dismiss(animated: true)
       } else {

@@ -50,11 +50,11 @@ public class ImageView: UIImageView {
   }
   
   @available(*, unavailable)
-  required init?(coder: NSCoder) {
+  public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
   
-  open func setup() {
+  public func setup() {
     // prepared to override instead of overriding init
   }
   
@@ -104,11 +104,11 @@ public class ImageView: UIImageView {
   
   private func updateImageScaleIfNeeded() {
     if
-      let image = super.image,
+      let image: UIImage = super.image,
       contentMode == .scaleAspectFit
     {
-      let width = image.size.width
-      let height = image.size.height
+      let width: CGFloat = image.size.width
+      let height: CGFloat = image.size.height
       scaleConstraint = widthAnchor
         .constraint(
           equalTo: heightAnchor,

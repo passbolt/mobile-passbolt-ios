@@ -61,7 +61,7 @@ public class Button: UIControl {
   public var tapPublisher: AnyPublisher<Void, Never> {
     tapSubject.eraseToAnyPublisher()
   }
-  private let tapSubject = PassthroughSubject<Void, Never>()
+  private let tapSubject: PassthroughSubject<Void, Never> = .init()
   private let pressLayer: CALayer = .init()
   private let disableLayer: CALayer = .init()
   

@@ -64,7 +64,7 @@ open class TextField: UITextField {
   }
   
   private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle  = traitCollection.userInterfaceStyle
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)

@@ -21,6 +21,7 @@
 // @since         v1.0
 
 import AegithalosCocoa
+import Commons
 
 open class CollectionReusableView: UICollectionReusableView {
   
@@ -43,13 +44,15 @@ open class CollectionReusableView: UICollectionReusableView {
     self.init()
   }
   
-  required public init() {
+  public required init() {
     super.init(frame: .zero)
     setup()
   }
   
   @available(*, unavailable)
-  required public init?(coder: NSCoder) { fatalError() }
+  public required init?(coder: NSCoder) {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
   
   open func setup() {
     // prepared to override instead of overriding init

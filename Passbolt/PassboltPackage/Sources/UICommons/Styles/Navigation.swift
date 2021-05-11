@@ -24,16 +24,18 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: NavigationBar {
+  
   public static func primaryNavigationStyle() -> Self {
-
     .combined(
       .backgroundColor(dynamic: .background),
       .barTintColor(dynamic: .background),
       .tintColor(dynamic: .iconAlternative),
       .translucent(false),
       .shadowImage(nil),
+      .backgroundImage(nil),
       .custom { (subject: Subject) in
-        subject.setBackgroundImage(nil, for: .any, barMetrics: .default)
+        subject.backIndicatorImage = UIImage(named: ImageNameConstant.arrowLeft.rawValue)
+        subject.backIndicatorTransitionMaskImage = UIImage(named: ImageNameConstant.arrowLeft.rawValue)
       }
     )
   }

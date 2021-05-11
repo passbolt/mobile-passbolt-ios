@@ -27,7 +27,7 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
   internal typealias View = WelcomeScreenView
   internal typealias Controller = WelcomeScreenController
   
-  static func instance(
+  internal static func instance(
     using controller: WelcomeScreenController,
     with components: UIComponentFactory
   ) -> Self {

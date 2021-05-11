@@ -22,14 +22,23 @@
 
 import UIComponents
 
-internal struct WelcomeNavigationController: UIController {
+internal struct CodeScanningExitConfirmationController {
   
-  internal typealias Context = Void
+  internal var cancel: () -> Void
+  internal var exit: () -> Void
+}
+
+extension CodeScanningExitConfirmationController: UIController {
+  
+  internal typealias Context = (cancel: () -> Void, exit: () -> Void)
   
   internal static func instance(
-    in context: Void,
+    in context: Context,
     with features: FeatureFactory
-  ) -> WelcomeNavigationController {
-    Self()
+  ) -> Self {
+    Self(
+      cancel: context.cancel,
+      exit: context.exit
+    )
   }
 }

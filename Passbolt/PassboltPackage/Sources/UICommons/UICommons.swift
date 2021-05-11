@@ -22,3 +22,8 @@
 //
 
 @_exported import AegithalosCocoa
+
+extension Bundle {
+  
+  public static var uiCommons: Bundle { Bundle.module }
+}

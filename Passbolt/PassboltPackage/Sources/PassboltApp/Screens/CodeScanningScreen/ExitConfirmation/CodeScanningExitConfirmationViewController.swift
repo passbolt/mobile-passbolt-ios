@@ -19,17 +19,20 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
 import UIComponents
 
-internal struct WelcomeNavigationController: UIController {
-  
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Void,
-    with features: FeatureFactory
-  ) -> WelcomeNavigationController {
-    Self()
+internal final class CodeScanningExitConfirmationViewController: AlertViewController<CodeScanningExitConfirmationController>, UIComponent {
+
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "code.scanning.exit.confirmation.title"),
+        .message(localized: "code.scanning.exit.confirmation.message"),
+        .action(localized: .cancel, style: .cancel, handler: controller.cancel),
+        .action(localized: .yes, style: .destructive, handler: controller.exit)
+      )
+    }
   }
 }

@@ -25,7 +25,7 @@ import UICommons
 internal final class SplashScreenView: View {
   private let imageView: ImageView = .init()
   
-  required init() {
+  internal required init() {
     super.init()
     
     mut(imageView) {

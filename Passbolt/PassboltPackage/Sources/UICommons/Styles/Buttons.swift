@@ -31,7 +31,7 @@ extension Mutation where Subject: TextButton {
       .pressedBackgroundColor(dynamic: .primaryBluePressed),
       .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
       .cornerRadius(4, masksToBounds: true),
-      .heightAnchor(.equalTo, 56),
+      .heightAnchor(.equalTo, constant: 56),
       .textColor(dynamic: .primaryTextAlternative),
       .font(.inter(ofSize: 14, weight: .medium)),
       .textAlignment(.center),
@@ -46,7 +46,25 @@ extension Mutation where Subject: TextButton {
       .textAlignment(.center),
       .textColor(dynamic: .primaryText),
       .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
-      .heightAnchor(.equalTo, 56)
+      .heightAnchor(.equalTo, constant: 56)
+    )
+  }
+}
+
+extension Mutation where Subject: UIBarButtonItem {
+  
+  public static func backStyle() -> Self {
+    .combined(
+      .style(.done),
+      .image(named: .arrowLeft, from: .uiCommons)
+    )
+  }
+  
+  public static func placeholderStyle() -> Self {
+    .combined(
+      .style(.plain),
+      .image(named: .navigationBarPlaceholder, from: .uiCommons),
+      .tintColor(.clear)
     )
   }
 }

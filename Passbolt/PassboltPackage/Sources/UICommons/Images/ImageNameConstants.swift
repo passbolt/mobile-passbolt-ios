@@ -19,17 +19,12 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UIComponents
+import AegithalosCocoa
 
-internal struct WelcomeNavigationController: UIController {
+extension ImageNameConstant {
   
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Void,
-    with features: FeatureFactory
-  ) -> WelcomeNavigationController {
-    Self()
-  }
+  internal static var arrowLeft: Self { "ArrowLeft" }
+  internal static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
 }
