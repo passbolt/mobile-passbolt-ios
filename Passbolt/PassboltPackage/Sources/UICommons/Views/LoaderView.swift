@@ -20,14 +20,13 @@ public final class LoaderOverlayView: View {
       )
       .instantiate()
     
-    #warning("TODO: localizable strings")
     Mutation<Label>
       .combined(
         .font(.inter(ofSize: 12, weight: .medium)),
         .textAlignment(.center),
         .numberOfLines(1),
         .textColor(dynamic: .primaryText),
-        .text("Loading..."),
+        .text(localized: "generic.loading"),
         .subview(of: containerView),
         .leadingAnchor(.equalTo, containerView.leadingAnchor, constant: 8),
         .trailingAnchor(.equalTo, containerView.trailingAnchor, constant: -8),

@@ -25,6 +25,7 @@
 "generic.yes" = "Yes";
 "generic.cancel" = "Cancel";
 "generic.remove" = "Remove";
+"generic.loading" = "Loading...";
 "generic.retry" = "Retry";
 "generic.delete" = "Delete";
 "generic.got.it" = "Got it";

@@ -93,7 +93,10 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
   }
   
   private func setupCodeReaderView() {
-    #warning("TODO: [PAS-39] Use code reader (camera) component")
+    let codeReader: CodeReaderViewController = components.instance()
+    addChild(codeReader)
+    contentView.set(embeded: codeReader.view)
+    codeReader.didMove(toParent: self)
   }
   
   private func setupSubscriptions() {

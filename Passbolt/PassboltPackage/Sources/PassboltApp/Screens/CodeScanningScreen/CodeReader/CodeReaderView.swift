@@ -19,18 +19,32 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import AegithalosCocoa
+import AVFoundation
+import Commons
+import UICommons
 
-extension LocalizationKeyConstant {
+internal final class CodeReaderView: View {
   
-  internal static let done: Self = "generic.done"
-  internal static let yes: Self = "generic.yes"
-  internal static let cancel: Self = "generic.cancel"
-  internal static let remove: Self = "generic.remove"
-  internal static let loading: Self = "generic.loading"
-  internal static let retry: Self = "generic.retry"
-  internal static let delete: Self = "generic.delete"
-  internal static let gotIt: Self = "generic.got.it"
+  private let cameraPreview: AVCaptureVideoPreviewLayer
+  
+  internal init(session captureSession: AVCaptureSession) {
+    self.cameraPreview = .init(session: captureSession)
+    super.init()
+  }
+  
+  @available(*, unavailable)
+  internal required init() {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  override internal func setup() {
+    cameraPreview.videoGravity = .resizeAspectFill
+    layer.addSublayer(cameraPreview)
+  }
+  
+  override internal func layoutSubviews() {
+    super.layoutSubviews()
+    cameraPreview.frame = self.bounds
+  }
 }

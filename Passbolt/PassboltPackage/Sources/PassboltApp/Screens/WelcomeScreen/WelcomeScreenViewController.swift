@@ -83,7 +83,7 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
             in: self.controller.dismissNoAccountAlert
           )
         } else {
-          self.controller.dismissNoAccountAlert()
+          self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
         }
       }
       .store(in: &cancellables)
