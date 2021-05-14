@@ -47,15 +47,14 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     output.setMetadataObjectsDelegate(self, queue: captureMetadataQueue)
     return output
   }()
-  private lazy var cameraSession: AVCaptureSession = {
+  private lazy var cameraSession: AVCaptureSession? = {
     let session: AVCaptureSession = .init()
     guard
       let device: AVCaptureDevice = .default(for: .video),
       let input: AVCaptureDeviceInput = try? .init(device: device),
       session.canAddInput(input),
       session.canAddOutput(metadataOutput)
-    else { unreachable("Cannot create capture device/input - device without camera?") }
-    #warning("TODO: verify if we should expect it always to be valid")
+    else { return nil }
     session.addInput(input)
     session.addOutput(metadataOutput)
     
@@ -88,10 +87,10 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
       .receive(on: RunLoop.main)
       .sink { [weak self] processing in
         if processing {
-          self?.cameraSession.stopRunning()
+          self?.cameraSession?.stopRunning()
           self?.present(overlay: LoaderOverlayView())
         } else {
-          self?.cameraSession.startRunning()
+          self?.cameraSession?.startRunning()
           self?.dismissOverlay()
         }
       }
@@ -99,7 +98,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
 
   internal func deactivate() {
     payloadProcessingStateCancellable = nil
-    cameraSession.stopRunning()
+    cameraSession?.stopRunning()
   }
 }
 

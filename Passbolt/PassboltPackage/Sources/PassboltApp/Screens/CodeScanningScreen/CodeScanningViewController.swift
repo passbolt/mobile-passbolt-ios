@@ -70,6 +70,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
           Mutation<UIBarButtonItem>
             .combined(
               .backStyle(),
+              .accessibilityIdentifier("button.exit"),
               .action { [weak self] in
                 self?.controller.presentExitConfirmation()
               }
@@ -82,6 +83,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
             .combined(
               .style(.done),
               .image(named: .help, from: .uiCommons),
+              .accessibilityIdentifier("button.help"),
               .action { [weak self] in
                 self?.controller.presentHelp()
               }

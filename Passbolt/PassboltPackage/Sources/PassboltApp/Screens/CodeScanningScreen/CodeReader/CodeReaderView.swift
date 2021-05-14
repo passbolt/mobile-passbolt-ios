@@ -26,10 +26,10 @@ import UICommons
 
 internal final class CodeReaderView: View {
   
-  private let cameraPreview: AVCaptureVideoPreviewLayer
+  private let cameraPreview: AVCaptureVideoPreviewLayer?
   
-  internal init(session captureSession: AVCaptureSession) {
-    self.cameraPreview = .init(session: captureSession)
+  internal init(session captureSession: AVCaptureSession?) {
+    self.cameraPreview = captureSession.map(AVCaptureVideoPreviewLayer.init(session:))
     super.init()
   }
   
@@ -39,12 +39,33 @@ internal final class CodeReaderView: View {
   }
   
   override internal func setup() {
-    cameraPreview.videoGravity = .resizeAspectFill
-    layer.addSublayer(cameraPreview)
+    if let cameraPreview: AVCaptureVideoPreviewLayer = cameraPreview {
+      cameraPreview.videoGravity = .resizeAspectFill
+      layer.addSublayer(cameraPreview)
+    } else {
+      mut(self) {
+        .combined(
+          .backgroundColor(dynamic: .background)
+        )
+      }
+      Mutation<Label>
+        .combined(
+          .text(localized: "code.scanning.camera.unavailable"),
+          .textColor(dynamic: .primaryText),
+          .font(.inter(ofSize: 16, weight: .bold)),
+          .textAlignment(.center),
+          .subview(of: self),
+          .centerYAnchor(.equalTo, centerYAnchor),
+          .centerXAnchor(.equalTo, centerXAnchor),
+          .leadingAnchor(.greaterThanOrEqualTo, leadingAnchor),
+          .trailingAnchor(.greaterThanOrEqualTo, trailingAnchor)
+        )
+        .instantiate()
+    }
   }
   
   override internal func layoutSubviews() {
     super.layoutSubviews()
-    cameraPreview.frame = self.bounds
+    cameraPreview?.frame = self.bounds
   }
 }

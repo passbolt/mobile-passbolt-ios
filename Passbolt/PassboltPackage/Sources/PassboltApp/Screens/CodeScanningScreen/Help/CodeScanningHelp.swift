@@ -29,7 +29,12 @@ internal final class CodeScanningHelpViewController: AlertViewController<CodeSca
       .combined(
         .title(localized: "code.scanning.help.title"),
         .message(localized: "code.scanning.help.message"),
-        .action(localized: .gotIt, style: .cancel, handler: controller.close)
+        .action(
+          localized: .gotIt,
+          style: .cancel,
+          accessibilityIdentifier: "button.close",
+          handler: controller.close
+        )
       )
     }
   }

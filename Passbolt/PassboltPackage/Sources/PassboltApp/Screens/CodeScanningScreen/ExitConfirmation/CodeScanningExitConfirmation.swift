@@ -29,8 +29,18 @@ internal final class CodeScanningExitConfirmationViewController: AlertViewContro
       .combined(
         .title(localized: "code.scanning.exit.confirmation.title"),
         .message(localized: "code.scanning.exit.confirmation.message"),
-        .action(localized: .cancel, style: .cancel, handler: controller.cancel),
-        .action(localized: .yes, style: .destructive, handler: controller.exit)
+        .action(
+          localized: .cancel,
+          style: .cancel,
+          accessibilityIdentifier: "button.confirmation.cancel",
+          handler: controller.cancel
+        ),
+        .action(
+          localized: .yes,
+          style: .destructive,
+          accessibilityIdentifier: "button.confirmation.exit",
+          handler: controller.exit
+        )
       )
     }
   }
