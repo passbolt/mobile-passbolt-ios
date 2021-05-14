@@ -21,25 +21,19 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import UIKit
 
-extension Mutation where Subject: View {
-  
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
-  }
-  
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
-  
-  public static func aspectRatio(_ ratio: CGFloat) -> Self {
-    .custom { (subject: Subject) in
-      subject.heightAnchor.constraint(
-        equalTo: subject.widthAnchor,
-        multiplier: ratio,
-        constant: 0
-      ).isActive = true
+extension NSMutableAttributedString {
+  public func apply(
+    attributes: [NSAttributedString.Key: Any],
+    to substring: String
+  ) {
+    let nsRange: NSRange = mutableString.range(of: substring, options: .literal)
+    
+    if nsRange.location != NSNotFound {
+      addAttributes(attributes, range: nsRange)
+    } else {
+      /* */
     }
   }
 }

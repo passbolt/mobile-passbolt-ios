@@ -21,7 +21,9 @@
 // @since         v1.0
 //
 
+import Combine
 import Features
+import Foundation
 import PassboltApp
 
 internal struct Application {
@@ -33,6 +35,7 @@ internal struct Application {
     environment: RootEnvironment
   ) {
     let features: FeatureFactory = .init(environment: environment)
+    
     self.ui = UI(features: features)
     self.features = features
   }
@@ -52,7 +55,9 @@ extension Application {
     environment: RootEnvironment(
       networking: .foundation(),
       preferences: .userDefaults(),
-      keychain: .keychain()
+      keychain: .keychain(),
+      camera: .live(),
+      urlOpener: .live()
     )
   )
 }

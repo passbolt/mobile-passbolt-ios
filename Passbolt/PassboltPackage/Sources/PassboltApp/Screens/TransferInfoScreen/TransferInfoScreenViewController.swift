@@ -19,16 +19,18 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
+import OSIntegration
 import UIComponents
 
-internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
+internal final class TransferInfoScreenViewController: PlainViewController, UIComponent {
   
-  internal typealias View = WelcomeScreenView
-  internal typealias Controller = WelcomeScreenController
+  internal typealias View = TransferInfoScreenView
+  internal typealias Controller = TransferInfoScreenController
   
   internal static func instance(
-    using controller: WelcomeScreenController,
+    using controller: TransferInfoScreenController,
     with components: UIComponentFactory
   ) -> Self {
     Self(
@@ -37,10 +39,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     )
   }
   
-  internal private(set) lazy var contentView: WelcomeScreenView = .init()
+  internal private(set) lazy var contentView: TransferInfoScreenView = .init()
   internal let components: UIComponentFactory
   
-  private let controller: WelcomeScreenController
+  private let controller: TransferInfoScreenController
   private var cancellables: Array<AnyCancellable> = .init()
   
   internal init(
@@ -53,47 +55,45 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
   }
   
   internal func setupView() {
-    mut(contentView) {
-      .backgroundColor(dynamic: .background)
+    mut(self) {
+      .title(localized: "transfer.account.title")
     }
-    
+        
     setupSubscriptions()
   }
   
   private func setupSubscriptions() {
-    contentView.tapAccountPublisher
-      .sink { [weak self] in
-        self?.controller.pushTransferInfo()
+    contentView.tapButtonPublisher
+      .compactMap { [weak self] in
+        self?.controller.requestOrNavigatePublisher()
       }
-      .store(in: &cancellables)
-    
-    contentView.tapNoAccountPublisher
-      .sink { [weak self] in
-        self?.controller.presentNoAccountAlert()
-      }
-      .store(in: &cancellables)
-    
-    controller.noAccountAlertPresentationPublisher()
+      .switchToLatest()
       .receive(on: RunLoop.main)
-      .sink { [weak self] presented in
+      .sink { [weak self] granted in
         guard let self = self else { return }
-        if presented {
-          self.present(
-            WelcomeScreenNoAccountAlertViewController.self,
-            in: self.controller.dismissNoAccountAlert
-          )
+        
+        if granted {
+          let viewController: CodeScanningViewController = self.components.instance()
+          self.navigationController?.pushViewController(viewController, animated: true)
         } else {
-          self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
+          self.controller.presentNoCameraPermissionAlert()
         }
       }
       .store(in: &cancellables)
     
-    controller.pushTransferInfoPublisher()
+    controller.presentNoCameraPermissionAlertPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
+      .sink { [weak self] presented in
         guard let self = self else { return }
-        let viewController: TransferInfoScreenViewController = self.components.instance()
-        self.navigationController?.pushViewController(viewController, animated: true)
+        
+        if presented {
+          self.present(
+            TransferInfoCameraRequiredAlertViewController.self,
+            in: ()
+          )
+        } else {
+          self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
+        }
       }
       .store(in: &cancellables)
   }

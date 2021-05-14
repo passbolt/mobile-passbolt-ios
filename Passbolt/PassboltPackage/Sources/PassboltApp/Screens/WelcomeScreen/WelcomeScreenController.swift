@@ -22,14 +22,16 @@
 
 import UIComponents
 
-internal struct WelcomeScreenController: UIController {
+internal struct WelcomeScreenController {
   
   internal var presentNoAccountAlert: () -> Void
   internal var noAccountAlertPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var dismissNoAccountAlert: () -> Void
+  internal var pushTransferInfoPublisher: () -> AnyPublisher<Void, Never>
+  internal var pushTransferInfo: () -> Void
 }
 
-extension WelcomeScreenController {
+extension WelcomeScreenController: UIController {
   
   internal typealias Context = Void
   
@@ -38,11 +40,14 @@ extension WelcomeScreenController {
     with features: FeatureFactory
   ) -> Self {
     let noAccountAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
+    let pushPublisher: PassthroughSubject<Void, Never> = .init()
     
     return Self(
       presentNoAccountAlert: { noAccountAlertPresentationSubject.send(true) },
       noAccountAlertPresentationPublisher: noAccountAlertPresentationSubject.eraseToAnyPublisher,
-      dismissNoAccountAlert: { noAccountAlertPresentationSubject.send(false) }
+      dismissNoAccountAlert: { noAccountAlertPresentationSubject.send(false) },
+      pushTransferInfoPublisher: { pushPublisher.eraseToAnyPublisher() },
+      pushTransferInfo: { pushPublisher.send(()) }
     )
   }
 }

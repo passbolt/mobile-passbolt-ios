@@ -22,10 +22,13 @@
 //
 
 import Networking
+import OSIntegration
 import Storage
 
 public typealias RootEnvironment = (
   networking: Networking,
   preferences: Preferences,
-  keychain: Keychain
+  keychain: Keychain,
+  camera: Camera,
+  urlOpener: ExternalURLOpener
 )

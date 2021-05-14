@@ -21,25 +21,50 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import UIComponents
 
-extension Mutation where Subject: View {
+// swiftlint:disable:next colon
+internal final class TransferInfoCameraRequiredAlertViewController:
+  AlertViewController<TransferInfoCameraRequiredAlertController>, UIComponent {
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
-  }
-  
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
-  
-  public static func aspectRatio(_ ratio: CGFloat) -> Self {
-    .custom { (subject: Subject) in
-      subject.heightAnchor.constraint(
-        equalTo: subject.widthAnchor,
-        multiplier: ratio,
-        constant: 0
-      ).isActive = true
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "transfer.account.camera.access.alert.title"),
+        .message(localized: "transfer.account.camera.access.alert.text"),
+        .action(
+          localized: .cancel,
+          accessibilityIdentifier: "alert.button.cancel",
+          handler: {} 
+        ),
+        .action(
+          localized: .settings,
+          accessibilityIdentifier: "alert.button.dismiss",
+          handler: controller.showSettings
+        )
+      )
     }
+  }
+}
+
+internal struct TransferInfoCameraRequiredAlertController {
+  
+  internal var showSettings: () -> Void
+}
+
+extension TransferInfoCameraRequiredAlertController: UIController {
+  
+  internal typealias Context = Void
+  
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory
+  ) -> Self {
+    let linkOpener: LinkOpener = features.instance()
+    var cancellable: AnyCancellable?
+    
+    return Self(
+      showSettings: { cancellable = linkOpener.openAppSettings().sink { _ in }}
+    )
   }
 }

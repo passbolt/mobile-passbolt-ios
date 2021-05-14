@@ -21,25 +21,32 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import OSIntegration
+import UIComponents
 
-extension Mutation where Subject: View {
+internal struct TransferInfoScreenController {
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
-  }
+  internal typealias Context = Void
   
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
+  internal var presentNoCameraPermissionAlert: () -> Void
+  internal var dismissNoCameraPermissionAlert: () -> Void
+  internal var requestOrNavigatePublisher: () -> AnyPublisher<Bool, Never>
+  internal var presentNoCameraPermissionAlertPublisher: () -> AnyPublisher<Bool, Never>
+}
+
+extension TransferInfoScreenController: UIController {
   
-  public static func aspectRatio(_ ratio: CGFloat) -> Self {
-    .custom { (subject: Subject) in
-      subject.heightAnchor.constraint(
-        equalTo: subject.widthAnchor,
-        multiplier: ratio,
-        constant: 0
-      ).isActive = true
-    }
+  internal static func instance(
+    in context: Void,
+    with features: FeatureFactory
+  ) -> TransferInfoScreenController {
+    let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
+    
+    return Self(
+      presentNoCameraPermissionAlert: { presentNoCameraPermissionAlertSubject.send(true) },
+      dismissNoCameraPermissionAlert: { presentNoCameraPermissionAlertSubject.send(false) },
+      requestOrNavigatePublisher: { features.instance(of: AppPermissions.self).ensureCameraPermission() },
+      presentNoCameraPermissionAlertPublisher: { presentNoCameraPermissionAlertSubject.eraseToAnyPublisher() }
+    )
   }
 }

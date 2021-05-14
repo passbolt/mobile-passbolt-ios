@@ -35,6 +35,7 @@ final class WelcomeScreenTests: XCTestCase {
   private var cancellables: Array<AnyCancellable>!
   
   override func setUp() {
+    super.setUp()
     factory = .init(environment: testEnvironment())
     cancellables = .init()
   }
@@ -42,6 +43,7 @@ final class WelcomeScreenTests: XCTestCase {
   override func tearDown() {
     factory = nil
     cancellables = nil
+    super.tearDown()
   }
   
   func test_noAccountAlertAppears_whenTapped_Succeeds() {
@@ -74,5 +76,21 @@ final class WelcomeScreenTests: XCTestCase {
     controller.dismissNoAccountAlert()
     
     XCTAssertFalse(result)
+  }
+  
+  func test_navigateToNextScreen_whenTriggered_Succeeds() {
+    let controller: WelcomeScreenController = .instance(with: factory)
+    var result: Void?
+    
+    controller.pushTransferInfoPublisher()
+      .receive(on: ImmediateScheduler.shared)
+      .sink {
+        result = ()
+      }
+      .store(in: &cancellables)
+    
+    controller.pushTransferInfo()
+    
+    XCTAssertNotNil(result)
   }
 }

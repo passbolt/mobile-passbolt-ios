@@ -41,6 +41,10 @@ extension Mutation where Subject: ScrolledStackView {
     .custom { (subject: Subject) in subject.append(view) }
   }
   
+  public static func append(views: Array<UIView>) -> Self {
+    .custom { (subject: Subject) in subject.append(views: views) }
+  }
+  
   public static func appendSpace(of size: CGFloat) -> Self {
     .custom { (subject: Subject) in subject.appendSpace(of: size) }
   }

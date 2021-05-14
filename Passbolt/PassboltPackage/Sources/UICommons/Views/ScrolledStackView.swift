@@ -86,6 +86,10 @@ open class ScrolledStackView: UIScrollView {
     stackView.addArrangedSubview(view)
   }
   
+  public func append(views: Array<UIView>) {
+    views.forEach(stackView.addArrangedSubview)
+  }
+  
   public func insert(_ view: UIView, at index: Int) {
     stackView.insertArrangedSubview(view, at: index)
   }

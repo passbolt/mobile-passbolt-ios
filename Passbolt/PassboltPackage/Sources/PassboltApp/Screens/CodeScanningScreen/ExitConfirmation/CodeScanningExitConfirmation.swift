@@ -22,7 +22,9 @@
 
 import UIComponents
 
-internal final class CodeScanningExitConfirmationViewController: AlertViewController<CodeScanningExitConfirmationController>, UIComponent {
+// swiftlint:disable:next colon
+internal final class CodeScanningExitConfirmationViewController:
+  AlertViewController<CodeScanningExitConfirmationController>, UIComponent {
   
   internal func setup() {
     mut(self) {
@@ -32,13 +34,13 @@ internal final class CodeScanningExitConfirmationViewController: AlertViewContro
         .action(
           localized: .cancel,
           style: .cancel,
-          accessibilityIdentifier: "button.confirmation.cancel",
+          accessibilityIdentifier: "alert.button.cancel",
           handler: controller.cancel
         ),
         .action(
           localized: .yes,
           style: .destructive,
-          accessibilityIdentifier: "button.confirmation.exit",
+          accessibilityIdentifier: "alert.button.exit",
           handler: controller.exit
         )
       )

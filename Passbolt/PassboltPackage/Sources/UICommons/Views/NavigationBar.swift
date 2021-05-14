@@ -44,6 +44,26 @@ public final class NavigationBar: UINavigationBar {
     }
   }
   
+  public lazy var dynamicTitleColor: DynamicColor
+    = .default(.black) {
+    didSet {
+      self.titleTextAttributes = [
+        .foregroundColor: dynamicTitleColor(in: traitCollection.userInterfaceStyle),
+        .font: titleFont
+      ]
+    }
+  }
+  
+  public lazy var titleFont: UIFont
+    = .systemFont(ofSize: 14) {
+    didSet {
+      self.titleTextAttributes = [
+        .foregroundColor: dynamicTitleColor(in: traitCollection.userInterfaceStyle),
+        .font: titleFont
+      ]
+    }
+  }
+  
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -58,5 +78,9 @@ public final class NavigationBar: UINavigationBar {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.barTintColor = dynamicBarTintColor(in: interfaceStyle)
+    self.titleTextAttributes = [
+      .foregroundColor: dynamicTitleColor(in: interfaceStyle),
+      .font: titleFont
+    ]
   }
 }

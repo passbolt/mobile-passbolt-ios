@@ -22,14 +22,20 @@
 
 import UIComponents
 
-internal final class WelcomeScreenNoAccountAlertViewController: AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent {
+// swiftlint:disable:next colon
+internal final class WelcomeScreenNoAccountAlertViewController:
+  AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent {
 
   internal func setup() {
     mut(self) {
       .combined(
         .title(localized: "welcome.no.account.alert.title"),
         .message(localized: "welcome.no.account.alert.text"),
-        .action(localized: .gotIt, handler: controller.dismiss)
+        .action(
+          localized: .gotIt,
+          accessibilityIdentifier: "alert.button.close",
+          handler: controller.dismiss
+        )
       )
     }
   }

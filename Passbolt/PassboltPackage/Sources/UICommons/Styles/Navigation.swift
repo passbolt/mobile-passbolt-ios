@@ -34,8 +34,18 @@ extension Mutation where Subject: NavigationBar {
       .shadowImage(UIImage()),
       .backgroundImage(nil),
       .custom { (subject: Subject) in
-        subject.backIndicatorImage = UIImage(named: ImageNameConstant.arrowLeft.rawValue)
-        subject.backIndicatorTransitionMaskImage = UIImage(named: ImageNameConstant.arrowLeft.rawValue)
+        subject.backIndicatorImage = UIImage(
+          named: ImageNameConstant.arrowLeft.rawValue,
+          in: .uiCommons,
+          with: nil
+        )
+        subject.backIndicatorTransitionMaskImage = UIImage(
+          named: ImageNameConstant.arrowLeft.rawValue,
+          in: .uiCommons,
+          with: nil
+        )
+        subject.titleFont = .inter(ofSize: 16, weight: .semibold)
+        subject.dynamicTitleColor = .primaryText
       }
     )
   }

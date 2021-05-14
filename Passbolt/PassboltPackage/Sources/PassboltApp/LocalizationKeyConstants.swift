@@ -33,4 +33,5 @@ extension LocalizationKeyConstant {
   internal static let retry: Self = "generic.retry"
   internal static let delete: Self = "generic.delete"
   internal static let gotIt: Self = "generic.got.it"
+  internal static let settings: Self = "generic.settings"
 }

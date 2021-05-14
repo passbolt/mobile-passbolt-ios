@@ -130,7 +130,7 @@ let package = Package(
       dependencies: [
         "Commons",
         "Storage"
-      ] // TODO: Add opengpg as dependency
+      ]
     ),
     .target(
       name: "Features",
@@ -138,6 +138,7 @@ let package = Package(
         "Commons",
         "Crypto",
         "Networking",
+        "OSIntegration",
         "Storage"
       ]
     ),
@@ -163,6 +164,12 @@ let package = Package(
       dependencies: [
         "NetworkClient",
         "TestExtensions"
+      ]
+    ),
+    .target(
+      name: "OSIntegration",
+      dependencies: [
+        "Commons"
       ]
     ),
     .target(

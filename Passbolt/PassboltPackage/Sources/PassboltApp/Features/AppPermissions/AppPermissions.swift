@@ -21,25 +21,44 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Features
+import OSIntegration
 
-extension Mutation where Subject: View {
+internal struct AppPermissions {
+  /// Ensure app has permission to use the camera
+  /// - Returns: A publisher which emits a boolean indicating wether
+  /// the permission has been granted or not.
+  internal var ensureCameraPermission: () -> AnyPublisher<Bool, Never>
+}
+
+extension AppPermissions: Feature {
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  internal typealias Environment = Camera
+  
+  internal static func environmentScope(_ rootEnvironment: RootEnvironment) -> Environment {
+    rootEnvironment.camera
   }
   
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
-  
-  public static func aspectRatio(_ ratio: CGFloat) -> Self {
-    .custom { (subject: Subject) in
-      subject.heightAnchor.constraint(
-        equalTo: subject.widthAnchor,
-        multiplier: ratio,
-        constant: 0
-      ).isActive = true
-    }
+  internal static func load(
+    in environment: Environment,
+    using features: FeatureFactory
+  ) -> Self {
+    Self(ensureCameraPermission: {
+      environment.checkPermission()
+        .map { status -> AnyPublisher<Bool, Never> in
+          switch status {
+          case .notDetermined:
+            return environment.requestPermission().eraseToAnyPublisher()
+            
+          case .denied:
+            return Just(false).eraseToAnyPublisher()
+            
+          case .authorized:
+            return Just(true).eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    })
   }
 }

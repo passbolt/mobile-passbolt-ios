@@ -24,5 +24,11 @@
 @testable import UIComponents
 
 public func testEnvironment() -> RootEnvironment {
-  (networking: .forTesting(), preferences: .forTesting, keychain: .forTesting)
+  (
+    networking: .forTesting(),
+    preferences: .forTesting,
+    keychain: .forTesting,
+    camera: .forTesting,
+    urlOpener: .forTesting
+  )
 }

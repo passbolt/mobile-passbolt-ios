@@ -34,7 +34,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
   private let accountButton: TextButton = .init()
   private let noAccountButton: TextButton = .init()
     
-  internal override func setup() {
+  override internal func setup() {
     
     let logoContainer: View = Mutation
       .backgroundColor(dynamic: .background)

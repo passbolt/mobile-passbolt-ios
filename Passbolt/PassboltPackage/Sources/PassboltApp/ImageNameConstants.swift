@@ -27,4 +27,5 @@ extension ImageNameConstant {
   
   internal static let appLogo: Self = "AppLogo"
   internal static let welcomeAccounts: Self = "WelcomeAccounts"
+  internal static let qrCode: Self = "QrCodeSample"
 }

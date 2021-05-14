@@ -54,10 +54,7 @@ internal final class WelcomeNavigationViewController: NavigationViewController, 
     setViewControllers([welcomeScreen], animated: false)
     
     mut(navigationBarView) {
-      .combined(
-        .primaryNavigationStyle(),
-        .isHidden(true)
-      )
+      .primaryNavigationStyle()
     }
   }
 }

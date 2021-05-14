@@ -21,25 +21,30 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Combine
+import Features
+import Foundation
+import OSIntegration
 
-extension Mutation where Subject: View {
+internal struct LinkOpener: Feature {
+  internal typealias Environment = ExternalURLOpener
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  internal static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
+    rootEnvironment.urlOpener
   }
   
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
+  internal static func load(
+    in environment: Environment,
+    using features: FeatureFactory
+  ) -> LinkOpener {
+    Self(
+      openLink: environment.openLink,
+      openAppSettings: environment.openAppSettings
+    )
   }
   
-  public static func aspectRatio(_ ratio: CGFloat) -> Self {
-    .custom { (subject: Subject) in
-      subject.heightAnchor.constraint(
-        equalTo: subject.widthAnchor,
-        multiplier: ratio,
-        constant: 0
-      ).isActive = true
-    }
-  }
+  internal var openLink: (URL) -> AnyPublisher<Bool, Never>
+  internal var openAppSettings: () -> AnyPublisher<Bool, Never>
 }
