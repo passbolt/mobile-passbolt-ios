@@ -41,18 +41,18 @@ extension UIViewController {
         .leadingAnchor(
           .equalTo,
           self.view.safeAreaLayoutGuide.leadingAnchor,
-          constant: 16
+          constant: 24
         ),
         .trailingAnchor(
           .equalTo,
           self.view.safeAreaLayoutGuide.trailingAnchor,
-          constant: -16
+          constant: -24
         ),
         .bottomAnchor(
           .equalTo,
           presentationAnchor.map(\.topAnchor)
             ?? self.view.safeAreaLayoutGuide.bottomAnchor,
-          constant: -16
+          constant: -24
         )
       )
     }

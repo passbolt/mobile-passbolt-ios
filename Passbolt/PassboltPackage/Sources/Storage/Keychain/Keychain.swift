@@ -379,12 +379,13 @@ private func deleteKeychainKeyQuery(
 #if DEBUG
 extension Keychain {
   
-  public static var forTesting: Self {
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
     Self(
-      verifyBiometricsPermission: placeholder("You have to provide mocks for methods used in test"),
-      load: placeholder("You have to provide mocks for methods used in test"),
-      save: placeholder("You have to provide mocks for methods used in test"),
-      delete: placeholder("You have to provide mocks for methods used in test")
+      verifyBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods "),
+      load: Commons.placeholder("You have to provide mocks for used methods "),
+      save: Commons.placeholder("You have to provide mocks for used methods "),
+      delete: Commons.placeholder("You have to provide mocks for used methods ")
     )
   }
 }

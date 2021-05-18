@@ -43,22 +43,33 @@ extension AppPermissions: Feature {
     in environment: Environment,
     using features: FeatureFactory
   ) -> Self {
-    Self(ensureCameraPermission: {
-      environment.checkPermission()
-        .map { status -> AnyPublisher<Bool, Never> in
-          switch status {
-          case .notDetermined:
-            return environment.requestPermission().eraseToAnyPublisher()
-            
-          case .denied:
-            return Just(false).eraseToAnyPublisher()
-            
-          case .authorized:
-            return Just(true).eraseToAnyPublisher()
+    Self(
+      ensureCameraPermission: {
+        environment.checkPermission()
+          .map { status -> AnyPublisher<Bool, Never> in
+            switch status {
+            case .notDetermined:
+              return environment.requestPermission().eraseToAnyPublisher()
+              
+            case .denied:
+              return Just(false).eraseToAnyPublisher()
+              
+            case .authorized:
+              return Just(true).eraseToAnyPublisher()
+            }
           }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    })
+          .switchToLatest()
+          .eraseToAnyPublisher()
+      }
+    )
   }
+  
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      ensureCameraPermission: Commons.placeholder("You have to provide mocks for used methods ")
+    )
+  }
+  #endif
 }

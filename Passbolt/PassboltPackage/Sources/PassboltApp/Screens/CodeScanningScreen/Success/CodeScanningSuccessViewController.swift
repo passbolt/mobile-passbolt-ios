@@ -19,53 +19,41 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
+import AVFoundation
 import UIComponents
 
-// swiftlint:disable:next colon
-internal final class TransferInfoCameraRequiredAlertViewController:
-  AlertViewController<TransferInfoCameraRequiredAlertController>, UIComponent {
+internal final class CodeScanningSuccessViewController: PlainViewController, UIComponent {
   
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "transfer.account.camera.access.alert.title"),
-        .message(localized: "transfer.account.camera.access.alert.text"),
-        .action(
-          localized: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          localized: .settings,
-          accessibilityIdentifier: "alert.button.dismiss",
-          handler: controller.showSettings
-        )
-      )
-    }
-  }
-}
-
-internal struct TransferInfoCameraRequiredAlertController {
-  
-  internal var showSettings: () -> Void
-}
-
-extension TransferInfoCameraRequiredAlertController: UIController {
-  
-  internal typealias Context = Void
+  internal typealias View = ResultView
+  internal typealias Controller = CodeScanningSuccessController
   
   internal static func instance(
-    in context: Context,
-    with features: FeatureFactory
+    using controller: Controller,
+    with components: UIComponentFactory
   ) -> Self {
-    let linkOpener: LinkOpener = features.instance()
-    var cancellable: AnyCancellable?
-    _ = cancellable // silence warning
-    
-    return Self(
-      showSettings: { cancellable = linkOpener.openAppSettings().sink { _ in } }
+    Self(
+      using: controller,
+      with: components
     )
+  }
+  
+  internal private(set) lazy var contentView: View = .init()
+  internal let components: UIComponentFactory
+  private let controller: Controller
+  private var cancellables: Array<AnyCancellable> = .init()
+  private var payloadProcessingCancellable: AnyCancellable?
+  
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+  
+  internal func setupView() {
+    #warning("TODO: [PAS-109]")
   }
 }

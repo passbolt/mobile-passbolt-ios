@@ -33,6 +33,7 @@ public func XCTAssertSuccess<T, E>(
   case .success:
     break // success
     
+  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     XCTFail(
       "Unexpected failure with error: \(error)",
@@ -49,6 +50,7 @@ public func XCTAssertSuccessEqual<T, E>(
   _ line: UInt = #line
 ) where T: Equatable, E: Error {
   switch lhs {
+  // swiftlint:disable:next explicit_type_interface
   case let .success(value):
     XCTAssertEqual(
       value,
@@ -56,7 +58,7 @@ public func XCTAssertSuccessEqual<T, E>(
       file: file,
       line: line
     )
-    
+  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     XCTFail(
       "Unexpected failure with error: \(error)",
@@ -73,6 +75,7 @@ public func XCTAssertSuccessNotEqual<T, E>(
   _ line: UInt = #line
 ) where T: Equatable, E: Error {
   switch lhs {
+  // swiftlint:disable:next explicit_type_interface
   case let .success(value):
     XCTAssertNotEqual(
       value,
@@ -80,7 +83,7 @@ public func XCTAssertSuccessNotEqual<T, E>(
       file: file,
       line: line
     )
-    
+  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     XCTFail(
       "Unexpected failure with error: \(error)",
@@ -96,6 +99,7 @@ public func XCTAssertFailure<T, E>(
   _ line: UInt = #line
 ) where E: Error {
   switch result {
+  // swiftlint:disable:next explicit_type_interface
   case let .success(value):
     XCTFail(
       "Unexpected success with value: \(value)",
@@ -115,13 +119,14 @@ public func XCTAssertFailureEqual<T, E>(
   _ line: UInt = #line
 ) where E: Equatable & Error {
   switch lhs {
+  // swiftlint:disable:next explicit_type_interface
   case let .success(value):
     XCTFail(
       "Unexpected success with value: \(value)",
       file: file,
       line: line
     )
-    
+  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     XCTAssertEqual(
       error,
@@ -139,13 +144,14 @@ public func XCTAssertFailureNotEqual<T, E>(
   _ line: UInt = #line
 ) where E: Equatable & Error {
   switch lhs {
+  // swiftlint:disable:next explicit_type_interface
   case let .success(value):
     XCTFail(
       "Unexpected success with value: \(value)",
       file: file,
       line: line
     )
-    
+  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     XCTAssertNotEqual(
       error,

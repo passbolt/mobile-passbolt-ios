@@ -103,10 +103,11 @@ extension Preferences {
 #if DEBUG
 extension Preferences {
   
-  public static var forTesting: Self {
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
     Self(
-      load: unreachable("Please use mock or verify your tests"),
-      save: unreachable("Please use mock or verify your tests")
+      load: Commons.placeholder("You have to provide mocks for used methods "),
+      save: Commons.placeholder("You have to provide mocks for used methods ")
     )
   }
 }

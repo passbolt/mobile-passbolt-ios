@@ -36,6 +36,7 @@ final class CodeScanningScreenTests: XCTestCase {
   
   override func setUp() {
     super.setUp()
+    #warning("TODO: use `FeatureFactory.autoLoadFeatures = false`")
     features = .init(environment: testEnvironment())
     cancellables = .init()
   }
@@ -115,6 +116,7 @@ final class CodeScanningScreenTests: XCTestCase {
     var result: Double!
     
     controller.progressPublisher()
+      .replaceError(with: 0) // ignore error but fail test
       .receive(on: ImmediateScheduler.shared)
       .sink { progress in
         result = progress
@@ -123,24 +125,5 @@ final class CodeScanningScreenTests: XCTestCase {
     
     XCTAssertGreaterThan(result, 0)
     XCTAssertLessThan(result, 1)
-  }
-  
-  func test_progress_isUpdated_whenUpdatingSteps() {
-    let controller: CodeScanningController = .instance(with: features)
-    let steps: UInt = 6
-    let completedSteps: UInt = 3
-    var result: Double!
-    
-    controller.progressPublisher()
-      .dropFirst()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { progress in
-        result = progress
-      }
-      .store(in: &cancellables)
-    
-    controller.updateProgress(steps: steps, completed: completedSteps)
-    
-    XCTAssertEqual(result, Double(completedSteps) / Double(steps))
   }
 }

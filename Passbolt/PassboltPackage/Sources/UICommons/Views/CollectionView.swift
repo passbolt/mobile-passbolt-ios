@@ -25,7 +25,9 @@ import AegithalosCocoa
 import Combine
 import Commons
 
-open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
+// swiftlint:disable:next colon
+open class CollectionView<Section: Hashable, Item: Hashable>:
+  UICollectionView, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
   
   public lazy var dynamicBackgroundColor: DynamicColor
   = .default(self.backgroundColor) {
@@ -274,6 +276,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>: UICollectionView, 
     at indexPath: IndexPath,
     point: CGPoint
   ) -> [UIDragItem] {
+    // swiftlint:disable:next legacy_objc_type
     let itemProvider: NSItemProvider = .init(object: "\(indexPath)" as NSString)
     let dragItem: UIDragItem = .init(itemProvider: itemProvider)
     dragItem.localObject = _dataSource.itemIdentifier(for: indexPath)

@@ -21,51 +21,38 @@
 // @since         v1.0
 //
 
-import UIComponents
+import AegithalosCocoa
 
-// swiftlint:disable:next colon
-internal final class TransferInfoCameraRequiredAlertViewController:
-  AlertViewController<TransferInfoCameraRequiredAlertController>, UIComponent {
+extension Mutation where Subject: View {
   
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "transfer.account.camera.access.alert.title"),
-        .message(localized: "transfer.account.camera.access.alert.text"),
-        .action(
-          localized: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          localized: .settings,
-          accessibilityIdentifier: "alert.button.dismiss",
-          handler: controller.showSettings
-        )
-      )
-    }
-  }
-}
-
-internal struct TransferInfoCameraRequiredAlertController {
-  
-  internal var showSettings: () -> Void
-}
-
-extension TransferInfoCameraRequiredAlertController: UIController {
-  
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory
+  public static func snackBarMessage(
+    localized localizationKey: LocalizationKeyConstant
   ) -> Self {
-    let linkOpener: LinkOpener = features.instance()
-    var cancellable: AnyCancellable?
-    _ = cancellable // silence warning
-    
-    return Self(
-      showSettings: { cancellable = linkOpener.openAppSettings().sink { _ in } }
+    .combined(
+      .backgroundColor(dynamic: .background),
+      .cornerRadius(4, masksToBounds: true),
+      .custom { (subject: Subject) in
+        Mutation<Label>
+          .combined(
+            .numberOfLines(1),
+            .font(.inter(ofSize: 14, weight: .regular)),
+            .textColor(dynamic: .primaryText),
+            .textAlignment(.center),
+            .text(localized: localizationKey),
+            .subview(of: subject),
+            .edges(
+              equalTo: subject,
+              insets: .init(
+                top: -16,
+                left: -16,
+                bottom: -16,
+                right: -16
+              ),
+              usingSafeArea: false
+            )
+          )
+          .instantiate()
+      }
     )
   }
 }

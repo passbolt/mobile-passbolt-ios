@@ -100,13 +100,15 @@ extension Networking {
   }
 }
 
+
 #if DEBUG
 extension Networking {
- 
-  public static func forTesting() -> Self {
+  
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
     Self(
-      execute: unreachable("Please use mock or verify your tests")
-      )
+      execute: Commons.placeholder("You have to provide mocks for used methods ")
+    )
   }
 }
 #endif

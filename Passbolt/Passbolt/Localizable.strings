@@ -41,6 +41,8 @@
 "code.scanning.help.title" = "Scanning QR codes";
 "code.scanning.help.message" = "You will see a sequence of QR codes. We will scan these codes until the progress bar is full. then you will be able to login!";
 "code.scanning.camera.unavailable" = "Camera unavailable";
+"code.scanning.processing.error" = "Something went wrong, please try again.";
+
 "transfer.account.title" = "Transfer account details";
 "transfer.account.description" = "Scan QR codes to transfer your account details";
 "transfer.account.info.step.first" = "Sign in using the browser extension";

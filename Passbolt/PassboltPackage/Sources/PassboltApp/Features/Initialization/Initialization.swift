@@ -5,16 +5,28 @@ public struct Initialization {
   public var initialize: () -> Bool
 }
 
-extension Initialization {
+extension Initialization: Feature {
   
-  internal init(
-    features: FeatureFactory
-  ) {
-    self.init(
+  public typealias Environment = Void
+  
+  public static func load(
+    in context: Environment,
+    using features: FeatureFactory
+  ) -> Initialization {
+    Self(
       initialize: {
         // initialize application features here
         return true // true if succeeded
       }
     )
   }
+  
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      initialize: Commons.placeholder("You have to provide mocks for used methods ")
+    )
+  }
+  #endif
 }

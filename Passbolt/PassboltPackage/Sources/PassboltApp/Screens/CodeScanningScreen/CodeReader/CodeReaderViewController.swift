@@ -64,7 +64,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   
   private let controller: Controller
   private var cancellables: Array<AnyCancellable> = .init()
-  private var payloadProcessingStateCancellable: AnyCancellable?
+  private var payloadProcessingCancellable: AnyCancellable?
   
   internal init(
     using controller: Controller,
@@ -82,22 +82,11 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   private func setupSubscriptions() {}
   
   internal func activate() {
-    payloadProcessingStateCancellable = controller
-      .payloadProcessingStatePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] processing in
-        if processing {
-          self?.cameraSession?.stopRunning()
-          self?.present(overlay: LoaderOverlayView())
-        } else {
-          self?.cameraSession?.startRunning()
-          self?.dismissOverlay()
-        }
-      }
+    cameraSession?.startRunning()
   }
 
   internal func deactivate() {
-    payloadProcessingStateCancellable = nil
+    payloadProcessingCancellable = nil
     cameraSession?.stopRunning()
   }
 }
@@ -110,9 +99,36 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
     from connection: AVCaptureConnection
   ) {
     guard
+      payloadProcessingCancellable == nil, // prevent multiple processing at the same time
       let metadata: AVMetadataMachineReadableCodeObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
-      let descriptor: CIQRCodeDescriptor = metadata.descriptor as? CIQRCodeDescriptor
+      let payload: String = metadata.stringValue
     else { return }
-    controller.processRawPayload(descriptor.errorCorrectedPayload)
+    // we are ignoring QRCodes which payload is not representable by String (utf8)
+    // due to public api limitations, CIQRCodeDescriptor contains raw data but with
+    // error correction bytes applied which can't be easily removed (Reed-Solomon encoding)
+    DispatchQueue.main.async { [weak self] in
+      self?.present(overlay: LoaderOverlayView())
+    }
+    payloadProcessingCancellable = controller.processPayload(payload)
+      .receive(on: RunLoop.main)
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          self?.dismissOverlay()
+          switch completion {
+          case .finished:
+            break
+
+          case .failure:
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarMessage(localized: "code.scanning.processing.error")
+                .instantiate(),
+              hideAfter: 3
+            )
+          }
+          self?.payloadProcessingCancellable = nil
+        },
+        receiveValue: { /* */ }
+      )
   }
 }

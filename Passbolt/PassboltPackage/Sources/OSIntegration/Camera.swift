@@ -88,9 +88,12 @@ extension Camera {
 #if DEBUG
 extension Camera {
   
-  public static var forTesting: Self = .init(
-    checkPermission: unreachable("Provide mocks for use in tests"),
-    requestPermission: unreachable("Provide mocks for use in tests")
-  )
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      checkPermission: Commons.placeholder("You have to provide mocks for used methods "),
+      requestPermission: Commons.placeholder("You have to provide mocks for used methods ")
+    )
+  }
 }
 #endif

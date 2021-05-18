@@ -27,11 +27,12 @@ extension Result {
   
   public var asPublisher: AnyPublisher<Success, Failure> {
     switch self {
+    // swiftlint:disable:next explicit_type_interface
     case let .success(success):
       return Just(success)
         .setFailureType(to: Failure.self)
         .eraseToAnyPublisher()
-      
+    // swiftlint:disable:next explicit_type_interface
     case let .failure(error):
       return Fail<Success, Failure>(error: error)
         .eraseToAnyPublisher()

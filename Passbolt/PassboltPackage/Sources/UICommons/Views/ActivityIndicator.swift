@@ -19,51 +19,30 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UIComponents
+import UIKit
 
-// swiftlint:disable:next colon
-internal final class CodeScanningExitConfirmationViewController:
-  AlertViewController<CodeScanningExitConfirmationController>, UIComponent {
+public final class ActivityIndicator: UIActivityIndicatorView {
   
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "code.scanning.exit.confirmation.title"),
-        .message(localized: "code.scanning.exit.confirmation.message"),
-        .action(
-          localized: .cancel,
-          style: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          localized: .yes,
-          style: .destructive,
-          accessibilityIdentifier: "alert.button.exit",
-          handler: controller.exit
-        )
-      )
+  public lazy var dynamicColor: DynamicColor
+  = .default(self.tintColor) {
+    didSet {
+      self.color = dynamicColor(in: traitCollection.userInterfaceStyle)
     }
   }
-}
-
-internal struct CodeScanningExitConfirmationController {
   
-  internal var exit: () -> Void
-}
-
-extension CodeScanningExitConfirmationController: UIController {
+  override public func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard traitCollection != previousTraitCollection
+    else { return }
+    updateColors()
+  }
   
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
-    return Self(
-      exit: accountTransfer.cancelTransfer
-    )
+  private func updateColors() {
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    self.color = dynamicColor(in: interfaceStyle)
   }
 }

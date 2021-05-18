@@ -31,13 +31,17 @@ open class KeyboardAwareView: View {
   public private(set) lazy var keyboardSafeAreaLayoutGuide: UILayoutGuide = {
     let guide: UILayoutGuide = .init()
     addLayoutGuide(guide)
-    keyboardSafeAreaLayoutGuideTopAnchor = guide.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor)
+    keyboardSafeAreaLayoutGuideTopAnchor
+      = guide.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor)
     keyboardSafeAreaLayoutGuideTopAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideLeadingAnchor = guide.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor)
+    keyboardSafeAreaLayoutGuideLeadingAnchor
+      = guide.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor)
     keyboardSafeAreaLayoutGuideLeadingAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideTrailingAnchor = guide.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor)
+    keyboardSafeAreaLayoutGuideTrailingAnchor
+      = guide.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor)
     keyboardSafeAreaLayoutGuideTrailingAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideBottomAnchor = guide.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor)
+    keyboardSafeAreaLayoutGuideBottomAnchor
+      = guide.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor)
     keyboardSafeAreaLayoutGuideBottomAnchor.isActive = true
     return guide
   }()

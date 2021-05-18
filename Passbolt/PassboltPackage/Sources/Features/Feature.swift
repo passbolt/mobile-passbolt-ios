@@ -25,16 +25,20 @@ public protocol Feature {
   
   associatedtype Environment
   
+  static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment
+  
   static func load(
     in environment: Environment,
     using features: FeatureFactory
   ) -> Self
   
-  static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment
-  
   func unload() -> Bool
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  static var placeholder: Self { get }
+  #endif
 }
 
 extension Feature {
@@ -48,4 +52,13 @@ extension Feature {
 extension Feature {
   
   internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
+}
+
+extension Feature where Environment == Void {
+  
+  public static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
+    Void()
+  }
 }

@@ -19,51 +19,14 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UIComponents
+import AegithalosCocoa
 
-// swiftlint:disable:next colon
-internal final class CodeScanningExitConfirmationViewController:
-  AlertViewController<CodeScanningExitConfirmationController>, UIComponent {
+extension Mutation where Subject: ActivityIndicator {
   
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "code.scanning.exit.confirmation.title"),
-        .message(localized: "code.scanning.exit.confirmation.message"),
-        .action(
-          localized: .cancel,
-          style: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          localized: .yes,
-          style: .destructive,
-          accessibilityIdentifier: "alert.button.exit",
-          handler: controller.exit
-        )
-      )
-    }
+  public static func color(dynamic color: DynamicColor) -> Self {
+    .custom { (subject: Subject) in subject.dynamicColor = color }
   }
 }
 
-internal struct CodeScanningExitConfirmationController {
-  
-  internal var exit: () -> Void
-}
-
-extension CodeScanningExitConfirmationController: UIController {
-  
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
-    return Self(
-      exit: accountTransfer.cancelTransfer
-    )
-  }
-}

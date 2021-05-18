@@ -43,7 +43,7 @@ final class NetworkRequestTests: XCTestCase {
     super.setUp()
     cancellables = .init()
     sessionSubject = .init()
-    networking = .forTesting()
+    networking = .placeholder
   }
   
   override func tearDown() {
@@ -93,7 +93,8 @@ final class NetworkRequestTests: XCTestCase {
           switch completion {
           case .finished:
             XCTFail("Unexpected behaviour")
-            
+          
+          // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             completionError = error
           }
@@ -125,7 +126,8 @@ final class NetworkRequestTests: XCTestCase {
           switch completion {
           case .finished:
             XCTFail("Unexpected behaviour")
-            
+          
+          // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             completionError = error
           }

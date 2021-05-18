@@ -105,9 +105,35 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
     controller
       .progressPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] progress in
-        self?.progressView.update(progress: progress, animated: true)
-      }
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          switch completion {
+          case .finished:
+            self?.push(
+              CodeScanningSuccessViewController.self,
+              completion: { [weak self] in
+                self?.popAll(Self.self, animated: false)
+              }
+            )
+          
+          case .failure(.canceled):
+            self?.pop(to: TransferInfoScreenViewController.self)
+            
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error):
+            self?.push(
+              CodeScanningFailureViewController.self,
+              in: error,
+              completion: { [weak self] in
+                self?.popAll(Self.self, animated: false)
+              }
+            )
+          }
+        },
+        receiveValue: { [weak self] progress in
+          self?.progressView.update(progress: progress, animated: true)
+        }
+      )
       .store(in: &cancellables)
     
     controller
@@ -117,12 +143,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         if presented {
           self?.present(
             CodeScanningExitConfirmationViewController.self,
-            in: CodeScanningExitConfirmationController.Context(
-              cancel: { [weak self] in
-                self?.controller.dismissExitConfirmation()
-              },
-              exit: { [weak self] in self?.navigationController?.popViewController(animated: true) }
-            )
+            in: CodeScanningExitConfirmationController.Context()
           )
         } else {
           self?.dismiss(CodeScanningExitConfirmationViewController.self)

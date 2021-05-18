@@ -2,7 +2,7 @@ import AegithalosCocoa
 
 public final class LoaderOverlayView: View {
 
-  private let activityIndicator: UIActivityIndicatorView = .init(style: .medium)
+  private let activityIndicator: ActivityIndicator = .init(style: .medium)
   private let label: Label = .init()
   
   public required init() {
@@ -36,6 +36,7 @@ public final class LoaderOverlayView: View {
     
     mut(activityIndicator) {
       .combined(
+        .color(dynamic: .icon),
         .subview(of: containerView),
         .centerYAnchor(.equalTo, centerYAnchor),
         .centerXAnchor(.equalTo, centerXAnchor)
@@ -52,12 +53,5 @@ public final class LoaderOverlayView: View {
     } else {
       activityIndicator.stopAnimating()
     }
-  }
-  
-  override public func traitCollectionDidChange(
-    _ previousTraitCollection: UITraitCollection?
-  ) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    activityIndicator.color = DynamicColor.icon(in: traitCollection.userInterfaceStyle)
   }
 }

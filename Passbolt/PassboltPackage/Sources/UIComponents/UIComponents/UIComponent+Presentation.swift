@@ -20,13 +20,25 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import Commons
 import UIKit
 
 public extension UIComponent {
   
   func present<Component>(
     _ type: Component.Type,
-    in context: Component.Controller.Context
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent, Component.Controller.Context == Void {
+    present(type, in: Void(), animated: animated, completion: completion)
+  }
+  
+  func present<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
   ) where Component: UIComponent {
     var presentedLeaf: UIViewController = self
     while let next: UIViewController = presentedLeaf.presentedViewController {
@@ -39,19 +51,100 @@ public extension UIComponent {
           of: Component.self,
           in: context
         ),
-      animated: true,
-      completion: nil
+      animated: animated,
+      completion: completion
     )
   }
   
-  func dismiss<Component>(_ type: Component.Type) where Component: UIComponent {
+  func dismiss<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
     var presentedLeaf: UIViewController = self
     while let next: UIViewController = presentedLeaf.presentedViewController {
       if next is Component {
-        return presentedLeaf.dismiss(animated: true)
+        return presentedLeaf.dismiss(animated: animated, completion: completion)
       } else {
         presentedLeaf = next
       }
     }
+  }
+  
+  func push<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent, Component.Controller.Context == Void {
+    push(type, in: Void(), animated: animated, completion: completion)
+  }
+  
+  func push<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    guard let navigationController = navigationController
+    else { unreachable("It is programmer error to push without navigation controller") }
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    navigationController
+      .pushViewController(
+        components
+          .instance(
+            of: Component.self,
+            in: context
+          ),
+        animated: animated
+      )
+    CATransaction.commit()
+  }
+  
+  func pop<Component>(
+    if type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    guard let navigationController = navigationController
+    else { unreachable("It is programmer error to pop without navigation controller") }
+    guard navigationController.viewControllers.last is Component
+    else { return } // ignore
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    navigationController.popViewController(animated: animated)
+    CATransaction.commit()
+  }
+  
+  func pop<Component>(
+    to type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    guard let navigationController = navigationController
+    else { unreachable("It is programmer error to pop without navigation controller") }
+    guard let targetViewController = navigationController.viewControllers.last(where: { $0 is Component })
+    else { return } // ignore
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    navigationController.popToViewController(targetViewController, animated: animated)
+    CATransaction.commit()
+  }
+  
+  func popAll<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    guard let navigationController = navigationController
+    else { unreachable("It is programmer error to pop without navigation controller") }
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    navigationController
+      .setViewControllers(
+        navigationController.viewControllers.filter { !($0 is Component) },
+        animated: animated && navigationController.viewControllers.last is Component
+      )
+    CATransaction.commit()
   }
 }

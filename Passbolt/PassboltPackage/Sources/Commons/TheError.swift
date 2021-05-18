@@ -83,3 +83,13 @@ extension TheError {
     lhs == rhs.identifier
   }
 }
+
+extension TheError.ID {
+  
+  public static let canceled: Self = "canceled"
+}
+
+extension TheError {
+  
+  public static let canceled: Self = .init(identifier: .canceled, underlyingError: nil, extensions: [:])
+}

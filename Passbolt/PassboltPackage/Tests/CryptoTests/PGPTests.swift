@@ -52,6 +52,7 @@ final class PGPTests: XCTestCase {
       input, passphrase, privateKey, publicKey
     )
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid error")
     }
@@ -83,6 +84,7 @@ final class PGPTests: XCTestCase {
       input, passphrase, privateKey, publicKey
     )
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid error")
     }
@@ -103,6 +105,7 @@ final class PGPTests: XCTestCase {
     
     let output: Result<String, TheError> = pgp.encrypt(input, "")
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid error")
     }
@@ -127,6 +130,7 @@ final class PGPTests: XCTestCase {
       input, passphrase, privateKey
     )
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid error")
     }
@@ -142,6 +146,7 @@ final class PGPTests: XCTestCase {
       input, passphrase, privateKey
     )
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.success(message) = output else {
       return XCTFail("Invalid value")
     }
@@ -160,6 +165,7 @@ final class PGPTests: XCTestCase {
       input, passphrase, privateKey
     )
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid error")
     }
@@ -182,6 +188,7 @@ final class PGPTests: XCTestCase {
  
     let output: Result<String, TheError> = pgp.verifyMessage(input, publicKey, verifyTime)
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid value")
     }
@@ -206,6 +213,7 @@ final class PGPTests: XCTestCase {
  
     let output: Result<String, TheError> = pgp.verifyMessage(input, publicKey, verifyTime)
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid value")
     }
@@ -228,6 +236,7 @@ final class PGPTests: XCTestCase {
     
     let output: Result<Void, TheError> = pgp.verifyPassphrase(privateKey, passphrase)
     
+    // swiftlint:disable:next explicit_type_interface
     guard case let Result.failure(error) = output else {
       return XCTFail("Invalid value")
     }

@@ -24,8 +24,7 @@ import UIComponents
 
 internal struct CodeReaderController: UIController {
   
-  internal var processRawPayload: (Data) -> Void
-  internal var payloadProcessingStatePublisher: () -> AnyPublisher<Bool, Never>
+  internal var processPayload: (String) -> AnyPublisher<Void, TheError>
 }
 
 extension CodeReaderController {
@@ -36,22 +35,15 @@ extension CodeReaderController {
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    let payloadProcessingStateSubject: CurrentValueSubject<Bool, Never> = .init(false)
-    
+    let accountTransfer: AccountTransfer = features.instance()
+
     return Self(
-      processRawPayload: { payload in
-        guard !payloadProcessingStateSubject.value
-        else { return } // ignore new payloads when processing
-        payloadProcessingStateSubject.send(true)
-        #warning("TODO: [PAS-71] process data - note that payload contains QR error correction bytes")
-        // temporary solution for getting data locally on development machine
+      processPayload: { payload in
+        #warning("Temporary solution for getting data locally on development machine, remove after [PAS-71]")
         let share: UIActivityViewController = .init(
           activityItems: [payload],
           applicationActivities: nil
         )
-        share.completionWithItemsHandler = { _, _, _, _ in
-          payloadProcessingStateSubject.send(false)
-        }
         DispatchQueue.main.async {
           UIApplication.shared
             .windows
@@ -63,8 +55,9 @@ extension CodeReaderController {
               completion: nil
             )
         }
-      },
-      payloadProcessingStatePublisher: payloadProcessingStateSubject.eraseToAnyPublisher
+        return accountTransfer
+          .processPayload(payload)
+      }
     )
   }
 }

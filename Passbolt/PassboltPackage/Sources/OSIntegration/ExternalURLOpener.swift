@@ -61,11 +61,13 @@ public extension ExternalURLOpener {
 }
 
 #if DEBUG
-public extension ExternalURLOpener {
-  static var forTesting: Self {
+extension ExternalURLOpener {
+  
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
     Self(
-      openLink: placeholder("You have to provide mocks for methods used in test"),
-      openAppSettings: placeholder("You have to provide mocks for methods used in test")
+      openLink: Commons.placeholder("You have to provide mocks for used methods "),
+      openAppSettings: Commons.placeholder("You have to provide mocks for used methods ")
     )
   }
 }

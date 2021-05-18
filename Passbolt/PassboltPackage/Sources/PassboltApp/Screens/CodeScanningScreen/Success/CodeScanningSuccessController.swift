@@ -23,36 +23,9 @@
 
 import UIComponents
 
-// swiftlint:disable:next colon
-internal final class TransferInfoCameraRequiredAlertViewController:
-  AlertViewController<TransferInfoCameraRequiredAlertController>, UIComponent {
-  
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "transfer.account.camera.access.alert.title"),
-        .message(localized: "transfer.account.camera.access.alert.text"),
-        .action(
-          localized: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          localized: .settings,
-          accessibilityIdentifier: "alert.button.dismiss",
-          handler: controller.showSettings
-        )
-      )
-    }
-  }
-}
+internal struct CodeScanningSuccessController {}
 
-internal struct TransferInfoCameraRequiredAlertController {
-  
-  internal var showSettings: () -> Void
-}
-
-extension TransferInfoCameraRequiredAlertController: UIController {
+extension CodeScanningSuccessController: UIController {
   
   internal typealias Context = Void
   
@@ -60,12 +33,6 @@ extension TransferInfoCameraRequiredAlertController: UIController {
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    let linkOpener: LinkOpener = features.instance()
-    var cancellable: AnyCancellable?
-    _ = cancellable // silence warning
-    
-    return Self(
-      showSettings: { cancellable = linkOpener.openAppSettings().sink { _ in } }
-    )
+    Self()
   }
 }

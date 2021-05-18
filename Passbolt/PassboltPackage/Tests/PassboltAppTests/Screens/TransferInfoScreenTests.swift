@@ -38,6 +38,7 @@ final class TransferInfoScreenTests: XCTestCase {
   
   override func setUp() {
     super.setUp()
+    #warning("TODO: use `FeatureFactory.autoLoadFeatures = false`")
     features = .init(environment: testEnvironment())
     cancellables = .init()
   }

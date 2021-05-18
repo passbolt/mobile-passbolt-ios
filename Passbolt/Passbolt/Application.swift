@@ -44,7 +44,7 @@ internal struct Application {
 extension Application {
   
   internal func initialize() -> Bool {
-    features.initialization.initialize()
+    features.instance(of: Initialization.self).initialize()
   }
 }
 

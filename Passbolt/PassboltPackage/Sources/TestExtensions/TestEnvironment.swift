@@ -25,10 +25,10 @@
 
 public func testEnvironment() -> RootEnvironment {
   (
-    networking: .forTesting(),
-    preferences: .forTesting,
-    keychain: .forTesting,
-    camera: .forTesting,
-    urlOpener: .forTesting
+    networking: .placeholder,
+    preferences: .placeholder,
+    keychain: .placeholder,
+    camera: .placeholder,
+    urlOpener: .placeholder
   )
 }

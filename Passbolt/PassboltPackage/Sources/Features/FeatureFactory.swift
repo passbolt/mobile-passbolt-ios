@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import class Foundation.NSRecursiveLock
 
 public final class FeatureFactory {
@@ -51,6 +52,15 @@ extension FeatureFactory {
     if let loaded: F = features[F.featureIdentifier] as? F {
       return loaded
     } else {
+      #if DEBUG
+      guard Self.autoLoadFeatures
+      else { return placeholder(
+        "Auto loading of features is disabled,"
+        + "please ensure you have provided instances of required features"
+        // swiftlint:disable:next force_cast
+        ) as! F // it looks like compiler issue, casting is required regardless of returning Never here
+      }
+      #endif
       let loaded: F = .load(
         in: F.environmentScope(environment),
         using: self
@@ -72,6 +82,8 @@ extension FeatureFactory {
 
 #if DEBUG
 extension FeatureFactory {
+  
+  public static var autoLoadFeatures: Bool = true
   
   public func use<F>(
     _ feature: F

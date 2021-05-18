@@ -26,7 +26,14 @@ import Features
 import Foundation
 import OSIntegration
 
-internal struct LinkOpener: Feature {
+internal struct LinkOpener {
+  
+  internal var openLink: (URL) -> AnyPublisher<Bool, Never>
+  internal var openAppSettings: () -> AnyPublisher<Bool, Never>
+}
+
+extension LinkOpener: Feature {
+  
   internal typealias Environment = ExternalURLOpener
   
   internal static func environmentScope(
@@ -45,6 +52,13 @@ internal struct LinkOpener: Feature {
     )
   }
   
-  internal var openLink: (URL) -> AnyPublisher<Bool, Never>
-  internal var openAppSettings: () -> AnyPublisher<Bool, Never>
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      openLink: Commons.placeholder("You have to provide mocks for used methods "),
+      openAppSettings: Commons.placeholder("You have to provide mocks for used methods ")
+    )
+  }
+  #endif
 }

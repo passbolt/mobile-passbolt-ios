@@ -20,3 +20,26 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import Features
+
+public struct Accounts {}
+
+extension Accounts: Feature {
+  
+  public typealias Environment = Void
+  
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory
+  ) -> Accounts {
+    Self()
+  }
+  
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self()
+  }
+  #endif
+}

@@ -24,8 +24,8 @@ import UIComponents
 
 internal struct CodeScanningController {
   
-  internal var progressPublisher: () -> AnyPublisher<Double, Never>
-  internal var updateProgress: (UInt, UInt) -> Void
+  // We expect this publisher to finish on process success and fail on process error
+  internal var progressPublisher: () -> AnyPublisher<Double, TheError>
   internal var presentExitConfirmation: () -> Void
   internal var dismissExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
@@ -36,35 +36,31 @@ internal struct CodeScanningController {
 
 extension CodeScanningController: UIController {
   
-  internal struct State {
-    
-    internal var steps: UInt = 20 // starting with some value that should be higher than most typical processes
-    // to allow progress rise when actually completing first step
-    internal var completedSteps: UInt = 1 // starting with least value above zero to render any progress
-    internal var progress: Double { Double(completedSteps) / Double(steps) }
-  }
-  
   internal typealias Context = Void
   
   internal static func instance(
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    let state: CurrentValueSubject<State, Never> = .init(State())
+    let accountTransfer: AccountTransfer = features.instance()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
-    #warning("TODO: [PAS-39] Use code reader (camera) component")
+    
     return Self(
-      progressPublisher: state
-        .map(\.progress)
+      progressPublisher: accountTransfer
+        .transferProgressPublisher()
+        .compactMap { progress -> Double? in
+          switch progress {
+          case .configuration:
+            return 1 / 20 // some initial value, greater than zero but not too small
+            
+          // swiftlint:disable:next explicit_type_interface
+          case let .progress(currentPage, pagesCount):
+            return Double(currentPage) / Double(pagesCount)
+          }
+        }
         .removeDuplicates()
         .eraseToAnyPublisher,
-      updateProgress: { steps, completed in
-        var stateValue: State = state.value
-        stateValue.steps = steps
-        stateValue.completedSteps = completed
-        state.value = stateValue
-      },
       presentExitConfirmation: { exitConfirmationPresentationSubject.send(true) },
       dismissExitConfirmation: { exitConfirmationPresentationSubject.send(false) },
       exitConfirmationPresentationPublisher: exitConfirmationPresentationSubject.eraseToAnyPublisher,
@@ -72,12 +68,5 @@ extension CodeScanningController: UIController {
       dismissHelp: { helpPresentationSubject.send(false) },
       helpPresentationPublisher: helpPresentationSubject.eraseToAnyPublisher
     )
-  }
-}
-
-extension CodeScanningController {
-  
-  internal func updateProgress(steps: UInt, completed: UInt) {
-    updateProgress(steps, completed)
   }
 }

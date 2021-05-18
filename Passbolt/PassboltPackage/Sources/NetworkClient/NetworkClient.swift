@@ -53,13 +53,11 @@ extension NetworkClient: Feature {
   public func unload() -> Bool {
     true // perform cleanup if needed
   }
-}
-
-extension NetworkClient {
   
-  internal static func forTesting() -> Self {
-    // provide unimplemented placeholders for tests
-    Self(
-    )
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self()
   }
+  #endif
 }
