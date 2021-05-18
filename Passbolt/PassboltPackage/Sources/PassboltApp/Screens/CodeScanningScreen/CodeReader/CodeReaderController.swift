@@ -20,11 +20,12 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import AccountSetup
 import UIComponents
 
 internal struct CodeReaderController: UIController {
   
-  internal var processPayload: (String) -> AnyPublisher<Void, TheError>
+  internal var processPayload: (String) -> AnyPublisher<Never, TheError>
 }
 
 extension CodeReaderController {
@@ -39,24 +40,7 @@ extension CodeReaderController {
 
     return Self(
       processPayload: { payload in
-        #warning("Temporary solution for getting data locally on development machine, remove after [PAS-71]")
-        let share: UIActivityViewController = .init(
-          activityItems: [payload],
-          applicationActivities: nil
-        )
-        DispatchQueue.main.async {
-          UIApplication.shared
-            .windows
-            .first?
-            .rootViewController?
-            .present(
-              share,
-              animated: true,
-              completion: nil
-            )
-        }
-        return accountTransfer
-          .processPayload(payload)
+        accountTransfer.processPayload(payload)
       }
     )
   }

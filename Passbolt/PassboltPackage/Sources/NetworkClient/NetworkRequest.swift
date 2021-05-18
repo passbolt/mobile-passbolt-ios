@@ -78,7 +78,34 @@ extension NetworkRequest {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      execute: Commons.placeholder("You have to provide mocks for used methods ")
+      execute: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+  
+  public static func respondingWith(
+    _ response: Response,
+    storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
+  ) -> Self {
+    Self(
+      execute: { variable in
+        requestVariableReference?.pointee = variable
+        return Just(response)
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
+  }
+  
+  public static func failingWith(
+    _ error: TheError,
+    storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
+  ) -> Self {
+    Self(
+      execute: { variable in
+        requestVariableReference?.pointee = variable
+        return Fail<Response, TheError>(error: error)
+          .eraseToAnyPublisher()
+      }
     )
   }
 }

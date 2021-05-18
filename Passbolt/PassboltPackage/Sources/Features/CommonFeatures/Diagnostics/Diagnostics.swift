@@ -22,54 +22,78 @@
 //
 
 import Features
+import struct Foundation.Date
+import struct Foundation.UUID
 import OSIntegration
 
-internal struct AppPermissions {
-  /// Ensure app has permission to use the camera
-  /// - Returns: A publisher which emits a boolean indicating wether
-  /// the permission has been granted or not.
-  internal var ensureCameraPermission: () -> AnyPublisher<Bool, Never>
+public struct Diagnostics {
+  
+  public var log: (String) -> Void
+  public var uniqueID: () -> String
 }
 
-extension AppPermissions: Feature {
+extension Diagnostics: Feature {
   
-  internal typealias Environment = Camera
+  public typealias Environment = (
+    time: Time,
+    uuidGenerator: UUIDGenerator,
+    logger: Logger
+  )
   
-  internal static func environmentScope(_ rootEnvironment: RootEnvironment) -> Environment {
-    rootEnvironment.camera
-  }
-  
-  internal static func load(
-    in environment: Environment,
-    using features: FeatureFactory
-  ) -> Self {
-    Self(
-      ensureCameraPermission: {
-        environment.checkPermission()
-          .map { status -> AnyPublisher<Bool, Never> in
-            switch status {
-            case .notDetermined:
-              return environment.requestPermission().eraseToAnyPublisher()
-              
-            case .denied:
-              return Just(false).eraseToAnyPublisher()
-              
-            case .authorized:
-              return Just(true).eraseToAnyPublisher()
-            }
-          }
-          .switchToLatest()
-          .eraseToAnyPublisher()
-      }
+  public static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
+    (
+      time: rootEnvironment.time,
+      uuidGenerator: rootEnvironment.uuidGenerator,
+      logger: rootEnvironment.logger
     )
   }
   
-  #if DEBUG
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory
+  ) -> Diagnostics {
+    Self(
+      log: { message in
+        environment
+          .logger
+          .consoleLog(
+            "[\(Date(timeIntervalSince1970: Double(environment.time.timestamp())))] \(message)"
+          )
+      },
+      uniqueID: { environment.uuidGenerator().uuidString }
+    )
+  }
+}
+
+extension Diagnostics {
+  
+  /// Debug log is stripped out in release build
+  public func debugLog(_ message: String) {
+    #if DEBUG
+    log(message)
+    #endif
+  }
+  
+  // drop all diagnostics
+  public static var disabled: Self {
+    Self(
+      log: { _ in },
+      uniqueID: { UUID().uuidString }
+    )
+  }
+}
+
+#if DEBUG
+extension Diagnostics {
+  
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      ensureCameraPermission: Commons.placeholder("You have to provide mocks for used methods ")
+      log: Commons.placeholder("You have to provide mocks for used methods"),
+      uniqueID: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
-  #endif
 }
+#endif

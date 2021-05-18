@@ -21,9 +21,43 @@
 // @since         v1.0
 //
 
-@testable import PassboltApp
-import XCTest
+import Combine
+import Foundation
+import OSIntegration
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-final class AccountTransferTests: XCTestCase {}
+public struct LinkOpener {
+  
+  public var openLink: (URL) -> AnyPublisher<Bool, Never>
+  public var openAppSettings: () -> AnyPublisher<Bool, Never>
+}
+
+extension LinkOpener: Feature {
+  
+  public typealias Environment = ExternalURLOpener
+  
+  public static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
+    rootEnvironment.urlOpener
+  }
+  
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory
+  ) -> LinkOpener {
+    Self(
+      openLink: environment.openLink,
+      openAppSettings: environment.openAppSettings
+    )
+  }
+  
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      openLink: Commons.placeholder("You have to provide mocks for used methods"),
+      openAppSettings: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+  #endif
+}

@@ -21,44 +21,27 @@
 // @since         v1.0
 //
 
-import Combine
 import Features
-import Foundation
-import OSIntegration
+import Networking
 
-internal struct LinkOpener {
+#if DEBUG
+public extension Networking {
   
-  internal var openLink: (URL) -> AnyPublisher<Bool, Never>
-  internal var openAppSettings: () -> AnyPublisher<Bool, Never>
+  func withLogs(using diagnostics: Diagnostics) -> Self {
+    Self { request in
+      let trackingID: String = diagnostics.uniqueID()
+      diagnostics.log("Executing request <\(trackingID)>:\n\(request)\n---")
+      return self.execute(request)
+        .map { response in
+          diagnostics.log("Received <\(trackingID)>:\n\(response)\n---")
+          return response
+        }
+        .mapError { error in
+          diagnostics.log("Received<\(trackingID)>:\n\(error)\n---")
+          return error
+        }
+        .eraseToAnyPublisher()
+    }
+  }
 }
-
-extension LinkOpener: Feature {
-  
-  internal typealias Environment = ExternalURLOpener
-  
-  internal static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.urlOpener
-  }
-  
-  internal static func load(
-    in environment: Environment,
-    using features: FeatureFactory
-  ) -> LinkOpener {
-    Self(
-      openLink: environment.openLink,
-      openAppSettings: environment.openAppSettings
-    )
-  }
-  
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      openLink: Commons.placeholder("You have to provide mocks for used methods "),
-      openAppSettings: Commons.placeholder("You have to provide mocks for used methods ")
-    )
-  }
-  #endif
-}
+#endif

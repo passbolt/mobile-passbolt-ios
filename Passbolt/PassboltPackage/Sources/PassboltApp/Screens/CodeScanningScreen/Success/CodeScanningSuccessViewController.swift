@@ -54,6 +54,37 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
   }
   
   internal func setupView() {
-    #warning("TODO: [PAS-109]")
+    mut(navigationItem) {
+      .hidesBackButton(true)
+    }
+    contentView
+      .applyOn(
+        image: .image(dynamic: .successMark)
+      )
+    contentView
+      .applyOn(
+        title: .text(localized: "transfer.account.result.success.title")
+      )
+    contentView
+      .applyOn(
+        button: .combined(
+          .text(localized: .continue),
+          .action(controller.continue)
+        )
+      )
+    setupSubscriptions()
+  }
+  
+  private func setupSubscriptions() {
+    controller
+      .signInPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink(
+        receiveCompletion: { [weak self] _ in
+          #warning("TODO: continue process")
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: &cancellables)
   }
 }

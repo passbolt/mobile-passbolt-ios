@@ -26,6 +26,8 @@ import UIComponents
 internal struct CodeScanningFailureController {
   
   internal var failureReason: () -> TheError
+  internal var `continue`: () -> Void
+  internal var backPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
 extension CodeScanningFailureController: UIController {
@@ -36,8 +38,12 @@ extension CodeScanningFailureController: UIController {
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    Self(
-      failureReason: { context }
+    let backPresentationSubject: PassthroughSubject<Never, Never> = .init()
+    
+    return Self(
+      failureReason: { context },
+      continue: { backPresentationSubject.send(completion: .finished) },
+      backPresentationPublisher: backPresentationSubject.eraseToAnyPublisher
     )
   }
 }

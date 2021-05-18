@@ -71,3 +71,7 @@ extension UIComponent where Self: UIAlertController {
   
   public func setupView() {}
 }
+
+public protocol UINavigationComponent: UIComponent where Self: UINavigationController {
+  
+}

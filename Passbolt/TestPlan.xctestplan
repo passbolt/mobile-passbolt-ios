@@ -54,6 +54,14 @@
         "identifier" : "CryptoTests",
         "name" : "CryptoTests"
       }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "AccountSetupTests",
+        "name" : "AccountSetupTests"
+      }
     }
   ],
   "version" : 1

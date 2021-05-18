@@ -66,8 +66,8 @@ extension ExternalURLOpener {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      openLink: Commons.placeholder("You have to provide mocks for used methods "),
-      openAppSettings: Commons.placeholder("You have to provide mocks for used methods ")
+      openLink: Commons.placeholder("You have to provide mocks for used methods"),
+      openAppSettings: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

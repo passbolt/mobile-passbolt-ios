@@ -32,7 +32,7 @@ extension TheError {
     Self(
       identifier: .httpError,
       underlyingError: error,
-      extensions: [:]
+      extensions: [.context: "networking"]
     )
   }
   
@@ -43,7 +43,10 @@ extension TheError {
     Self(
       identifier: .networkResponseDecodingFailed,
       underlyingError: underlyingError,
-      extensions: [.rawNetworkResponse: rawNetworkResponse]
+      extensions: [
+        .context: "networking-decoding",
+        .rawNetworkResponse: rawNetworkResponse
+      ]
     )
   }
 }

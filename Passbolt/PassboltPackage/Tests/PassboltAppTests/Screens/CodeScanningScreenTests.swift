@@ -20,7 +20,10 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import AccountSetup
 import Combine
+import Features
 @testable import PassboltApp
 import TestExtensions
 import UIComponents
@@ -34,9 +37,13 @@ final class CodeScanningScreenTests: XCTestCase {
   private var features: FeatureFactory!
   private var cancellables: Array<AnyCancellable>!
   
+  override class func setUp() {
+    super.setUp()
+    FeatureFactory.autoLoadFeatures = false
+  }
+  
   override func setUp() {
     super.setUp()
-    #warning("TODO: use `FeatureFactory.autoLoadFeatures = false`")
     features = .init(environment: testEnvironment())
     cancellables = .init()
   }
@@ -48,6 +55,13 @@ final class CodeScanningScreenTests: XCTestCase {
   }
   
   func test_exitConfirmation_isPresented_whenCallingPresent() {
+    var accountTransfer: AccountTransfer = .placeholder
+    accountTransfer.scanningProgressPublisher = {
+      Just(.configuration)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(accountTransfer)
     let controller: CodeScanningController = .instance(with: features)
     var result: Bool!
     
@@ -63,23 +77,14 @@ final class CodeScanningScreenTests: XCTestCase {
     XCTAssertTrue(result)
   }
   
-  func test_exitConfirmation_isNotPresented_whenCallingDismiss() {
-    let controller: CodeScanningController = .instance(with: features)
-    var result: Bool!
-    
-    controller.exitConfirmationPresentationPublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { presented in
-        result = presented
-      }
-      .store(in: &cancellables)
-    
-    controller.dismissExitConfirmation()
-    
-    XCTAssertFalse(result)
-  }
-  
   func test_help_isPresented_whenCallingPresent() {
+    var accountTransfer: AccountTransfer = .placeholder
+    accountTransfer.scanningProgressPublisher = {
+      Just(.configuration)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(accountTransfer)
     let controller: CodeScanningController = .instance(with: features)
     var result: Bool!
     
@@ -95,23 +100,14 @@ final class CodeScanningScreenTests: XCTestCase {
     XCTAssertTrue(result)
   }
   
-  func test_help_isNotPresented_whenCallingDismiss() {
-    let controller: CodeScanningController = .instance(with: features)
-    var result: Bool!
-    
-    controller.helpPresentationPublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { presented in
-        result = presented
-      }
-      .store(in: &cancellables)
-    
-    controller.dismissHelp()
-    
-    XCTAssertFalse(result)
-  }
-  
   func test_initialProgress_isNotEmptyAndNotFull() {
+    var accountTransfer: AccountTransfer = .placeholder
+    accountTransfer.scanningProgressPublisher = {
+      Just(.configuration)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(accountTransfer)
     let controller: CodeScanningController = .instance(with: features)
     var result: Double!
     

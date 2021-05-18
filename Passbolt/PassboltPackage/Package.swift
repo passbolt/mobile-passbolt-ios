@@ -26,10 +26,6 @@ let package = Package(
       ]
     ),
     .library(
-      name: "Diagnostics",
-      targets: ["Diagnostics"]
-    ),
-    .library(
       name: "Features",
       targets: ["Features"]
     ),
@@ -94,7 +90,6 @@ let package = Package(
       name: "Accounts",
       dependencies: [
         "Commons",
-        "Diagnostics",
         "Features",
         "Settings",
         "Storage"
@@ -105,12 +100,23 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
-        "Diagnostics",
         "Features",
         "NetworkClient",
       ]
     ),
-    .target(name: "Commons"),
+    .testTarget(
+      name: "AccountSetupTests",
+      dependencies: [
+        "AccountSetup",
+        "TestExtensions"
+      ]
+    ),
+    .target(
+      name: "Commons",
+      dependencies: [
+        .product(name: "AegithalosCocoa", package: "Aegithalos")
+      ]
+    ),
     .target(
       name: "Crypto",
       dependencies: [
@@ -125,13 +131,7 @@ let package = Package(
         "TestExtensions"
       ]
     ),
-    .target(
-      name: "Diagnostics",
-      dependencies: [
-        "Commons",
-        "Storage"
-      ]
-    ),
+
     .target(
       name: "Features",
       dependencies: [
@@ -154,7 +154,6 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
-        "Diagnostics",
         "Features",
         "Networking"
       ]
@@ -180,7 +179,6 @@ let package = Package(
         "Commons",
         "UICommons",
         "UIComponents",
-        "Diagnostics",
         "Features",
         "SignIn",
         "Resources",
@@ -201,7 +199,6 @@ let package = Package(
         "Commons",
         "UICommons",
         "UIComponents",
-        "Diagnostics",
         "Features",
         "SignIn",
         "Resources"
@@ -216,7 +213,6 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
-        "Diagnostics",
         "Features",
         "NetworkClient",
         "Safety",
@@ -230,7 +226,6 @@ let package = Package(
         "Accounts",
         "Commons",
         "Crypto",
-        "Diagnostics",
         "Features",
         "Settings"
       ]
@@ -239,7 +234,6 @@ let package = Package(
       name: "Settings",
       dependencies: [
         "Commons",
-        "Diagnostics",
         "Features",
         "Storage"
       ]
@@ -249,7 +243,6 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
-        "Diagnostics",
         "Features",
         "Safety",
         "NetworkClient"
@@ -304,7 +297,6 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
-        "Diagnostics",
         "Features",
         "NetworkClient",
         "Safety",

@@ -20,18 +20,19 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import AccountSetup
 import UIComponents
 
 internal struct CodeScanningController {
   
-  // We expect this publisher to finish on process success and fail on process error
-  internal var progressPublisher: () -> AnyPublisher<Double, TheError>
+  internal var progressPublisher: () -> AnyPublisher<Double, Never>
   internal var presentExitConfirmation: () -> Void
   internal var dismissExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var presentHelp: () -> Void
-  internal var dismissHelp: () -> Void
   internal var helpPresentationPublisher: () -> AnyPublisher<Bool, Never>
+  // We expect this publisher to emit value on process success and fail on process error
+  internal var resultPresentationPublisher: () -> AnyPublisher<Void, TheError>
 }
 
 extension CodeScanningController: UIController {
@@ -48,25 +49,40 @@ extension CodeScanningController: UIController {
     
     return Self(
       progressPublisher: accountTransfer
-        .transferProgressPublisher()
+        .scanningProgressPublisher()
         .compactMap { progress -> Double? in
           switch progress {
           case .configuration:
             return 1 / 20 // some initial value, greater than zero but not too small
             
           // swiftlint:disable:next explicit_type_interface
-          case let .progress(currentPage, pagesCount):
-            return Double(currentPage) / Double(pagesCount)
+          case let .progress(value):
+            return value
+            
+          case .finished:
+            return 1 // finished aka 100%
           }
         }
+        .replaceError(with: 1) // we break the process on error so it is kind of 100%
         .removeDuplicates()
         .eraseToAnyPublisher,
       presentExitConfirmation: { exitConfirmationPresentationSubject.send(true) },
       dismissExitConfirmation: { exitConfirmationPresentationSubject.send(false) },
       exitConfirmationPresentationPublisher: exitConfirmationPresentationSubject.eraseToAnyPublisher,
       presentHelp: { helpPresentationSubject.send(true) },
-      dismissHelp: { helpPresentationSubject.send(false) },
-      helpPresentationPublisher: helpPresentationSubject.eraseToAnyPublisher
+      helpPresentationPublisher: helpPresentationSubject.eraseToAnyPublisher,
+      resultPresentationPublisher: accountTransfer
+        .scanningProgressPublisher()
+        .compactMap { progress -> Void? in
+          switch progress {
+          case .configuration, .progress:
+            return nil
+            
+          case .finished:
+            return Void()
+          }
+        }
+        .eraseToAnyPublisher
     )
   }
 }

@@ -20,3 +20,32 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+internal struct AccountTransferState {
+  
+  internal var configuration: AccountTransferConfiguration? = nil
+  internal var account: AccountTransferAccount? = nil
+  internal var scanningParts: Array<AccountTransferScanningPart> = .init()
+}
+
+extension AccountTransferState {
+  
+  // we always expect configuration to be in page 0
+  internal var configurationScanningPage: Int { 0 }
+  
+  internal var nextScanningPage: Int? {
+    if scanningParts.count == configuration?.pagesCount {
+      return nil
+    } else {
+      return scanningParts.last.map { $0.page + 1 } ?? configurationScanningPage
+    }
+  }
+  
+  internal var lastScanningPage: Int? {
+    scanningParts.last?.page
+  }
+  
+  internal var scanningFinished: Bool {
+    configuration != nil && account != nil
+  }
+}

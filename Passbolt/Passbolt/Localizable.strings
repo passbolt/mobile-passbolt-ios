@@ -26,6 +26,7 @@
 "generic.cancel" = "Cancel";
 "generic.remove" = "Remove";
 "generic.loading" = "Loading...";
+"generic.continue" = "Continue";
 "generic.retry" = "Retry";
 "generic.delete" = "Delete";
 "generic.got.it" = "Got it";
@@ -41,6 +42,9 @@
 "code.scanning.help.title" = "Scanning QR codes";
 "code.scanning.help.message" = "You will see a sequence of QR codes. We will scan these codes until the progress bar is full. then you will be able to login!";
 "code.scanning.camera.unavailable" = "Camera unavailable";
+"code.scanning.begin" = "Aim the camera at the QR Codes";
+"code.scanning.processing.in.progress" = "Scanning... keep going!";
+"code.scanning.processing.invalid.code" = "It’s not the Passbolt QR. Try again!";
 "code.scanning.processing.error" = "Something went wrong, please try again.";
 
 "transfer.account.title" = "Transfer account details";
@@ -54,3 +58,7 @@
 "transfer.account.scan.qr.button" = "Scan QR codes";
 "transfer.account.camera.access.alert.title" = "Camera access required";
 "transfer.account.camera.access.alert.text" = "Go to Settings/Privacy/Camera to enable access to your Camera. ";
+"transfer.account.result.success.title" = "Your information has been transferred!";
+"transfer.account.result.already.linked.title" = "Account is already linked to the device.";
+"transfer.account.result.canceled.title" = "Transfer has been canceled.";
+"transfer.account.result.error.title" = "Something went wrong!";

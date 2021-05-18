@@ -21,7 +21,9 @@
 // @since         v1.0
 //
 
+import AccountSetup
 import Combine
+import Features
 import OSIntegration
 @testable import PassboltApp
 import TestExtensions
@@ -36,9 +38,13 @@ final class TransferInfoScreenTests: XCTestCase {
   private var features: FeatureFactory!
   private var cancellables: Array<AnyCancellable>!
   
+  override class func setUp() {
+    super.setUp()
+    FeatureFactory.autoLoadFeatures = false
+  }
+  
   override func setUp() {
     super.setUp()
-    #warning("TODO: use `FeatureFactory.autoLoadFeatures = false`")
     features = .init(environment: testEnvironment())
     cancellables = .init()
   }
@@ -65,30 +71,14 @@ final class TransferInfoScreenTests: XCTestCase {
     XCTAssertTrue(result)
   }
   
-  func test_noCameraPermissionAlert_isDismissed_whenCallingDismiss() {
-    let controller: TransferInfoScreenController = .instance(with: features)
-    var result: Bool!
-    
-    controller.presentNoCameraPermissionAlertPublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { presented in
-        result = presented
-      }
-      .store(in: &cancellables)
-    
-    controller.dismissNoCameraPermissionAlert()
-    
-    XCTAssertFalse(result)
-  }
-  
   func test_showSettings_isTriggered_whenCallingShowSettings() {
     var result: Void?
-    
-    features.environment.urlOpener.openAppSettings = {
-      result = ()
+    var linkOpener: LinkOpener = .placeholder
+    linkOpener.openAppSettings = {
+      result = Void()
       return Just(true).eraseToAnyPublisher()
     }
-    
+    features.use(linkOpener)
     let controller: TransferInfoCameraRequiredAlertController = .instance(with: features)
     
     controller.showSettings()
@@ -96,70 +86,30 @@ final class TransferInfoScreenTests: XCTestCase {
     XCTAssertNotNil(result)
   }
   
-  func test_cameraPermission_isRequested_andDenied_whenPermissionIsNotDetermined() {
-    features.environment.camera.checkPermission = {
-      Just(.notDetermined).eraseToAnyPublisher()
+  func test_requestOrNavigatePublisher_requestsCameraPermission() {
+    var result: Void?
+    var appPermissions: OSPermissions = .placeholder
+    appPermissions.ensureCameraPermission = {
+      result = Void()
+      return Just(false).eraseToAnyPublisher()
     }
-    
-    features.environment.camera.requestPermission = {
-      Just(false).eraseToAnyPublisher()
-    }
-    
+    features.use(appPermissions)
     let controller: TransferInfoScreenController = .instance(with: features)
-    var result: Bool!
     
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
-      .sink { granted in
-        result = granted
-      }
+      .sink { _ in }
       .store(in: &cancellables)
     
-    XCTAssertFalse(result)
+    XCTAssertNotNil(result)
   }
   
-  func test_cameraPermission_isRequested_andGranted_whenPermissionIsNotDetermined() {
-    features.environment.camera.checkPermission = {
-      Just(.notDetermined).eraseToAnyPublisher()
-    }
-    
-    features.environment.camera.requestPermission = {
+  func test_requestOrNavigatePublisher_passesPermissionState() {
+    var appPermissions: OSPermissions = .placeholder
+    appPermissions.ensureCameraPermission = {
       Just(true).eraseToAnyPublisher()
     }
-    
-    let controller: TransferInfoScreenController = .instance(with: features)
-    var result: Bool!
-    
-    controller.requestOrNavigatePublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { granted in
-        result = granted
-      }
-      .store(in: &cancellables)
-    
-    XCTAssertTrue(result)
-  }
-  
-  func test_cameraPermission_isNotRequested_whenPermissionIsAlreadyDenied() {
-    features.environment.camera.checkPermission = {
-      Just(.denied).eraseToAnyPublisher()
-    }
-    
-    let controller: TransferInfoScreenController = .instance(with: features)
-    var result: Bool!
-    
-    controller.requestOrNavigatePublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink { granted in
-        result = granted
-      }
-      .store(in: &cancellables)
-    
-    XCTAssertFalse(result)
-  }
-  
-  func test_cameraPermission_isAlreadyGranted_whenPermissionIsAuthorized() {
-    features.environment.camera.checkPermission = { Just(.authorized).eraseToAnyPublisher() }
+    features.use(appPermissions)
     
     let controller: TransferInfoScreenController = .instance(with: features)
     var result: Bool!

@@ -21,14 +21,14 @@
 // @since         v1.0
 //
 
+import Commons
 import Features
 import Networking
 
 #warning("TODO: session management: [PAS-69]")
 public struct NetworkClient {
   
-  // add requests interfaces here i.e.
-  // public var resources: NetworkRequest<ResourcesRequestVariable, ResourcesResponse>
+  public var accountTransferUpdate: AccountTransferUpdateRequest
 }
 
 extension NetworkClient: Feature {
@@ -39,8 +39,17 @@ extension NetworkClient: Feature {
     in environment: (Networking),
     using features: FeatureFactory
   ) -> NetworkClient {
+    #warning("TODO: temporary placeholder for session variable")
+    let tempSessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
+      = Just(NetworkSessionVariable())
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
     // provide implementations of requests
     return Self(
+      accountTransferUpdate: .live(
+        using: environment,
+        with: tempSessionVariablePublisher
+      )
     )
   }
   
@@ -57,7 +66,9 @@ extension NetworkClient: Feature {
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
-    Self()
+    Self(
+      accountTransferUpdate: .placeholder
+    )
   }
   #endif
 }

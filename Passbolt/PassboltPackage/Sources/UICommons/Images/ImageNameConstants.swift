@@ -25,7 +25,71 @@ import AegithalosCocoa
 
 extension ImageNameConstant {
   
+  public static let appLogo: Self = "AppLogo"
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
   public static var help: Self { "Help" }
+}
+
+extension DynamicImage {
+  
+  // swiftlint:disable force_unwrapping
+  public static var qrCodeSample: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "QrCodeSample",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "QrCodeSample",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  public static var successMark: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "successMark",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "successMark",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  public static var failureMark: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "failureMark",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "failureMark",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  // swiftlint:enable force_unwrapping
 }

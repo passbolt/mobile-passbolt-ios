@@ -25,6 +25,9 @@
 
 public func testEnvironment() -> RootEnvironment {
   (
+    time: .placeholder,
+    uuidGenerator: .placeholder,
+    logger: .placeholder,
     networking: .placeholder,
     preferences: .placeholder,
     keychain: .placeholder,

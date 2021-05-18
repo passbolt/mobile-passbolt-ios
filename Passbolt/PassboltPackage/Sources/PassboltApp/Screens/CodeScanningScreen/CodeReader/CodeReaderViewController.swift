@@ -83,6 +83,12 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   
   internal func activate() {
     cameraSession?.startRunning()
+    present(
+      snackbar: Mutation<UICommons.View>
+        .snackBarMessage(localized: "code.scanning.begin")
+        .instantiate(),
+      hideAfter: 2
+    )
   }
 
   internal func deactivate() {
@@ -106,18 +112,40 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
     // we are ignoring QRCodes which payload is not representable by String (utf8)
     // due to public api limitations, CIQRCodeDescriptor contains raw data but with
     // error correction bytes applied which can't be easily removed (Reed-Solomon encoding)
-    DispatchQueue.main.async { [weak self] in
-      self?.present(overlay: LoaderOverlayView())
-    }
-    payloadProcessingCancellable = controller.processPayload(payload)
+    payloadProcessingCancellable = controller
+      .processPayload(payload)
+      .subscribe(on: RunLoop.main)
+      .handleEvents(receiveSubscription: { [weak self] _ in
+        self?.present(
+          snackbar: Mutation<UICommons.View>
+            .snackBarMessage(localized: "code.scanning.processing.in.progress")
+            .instantiate(),
+          hideAfter: 2,
+          replaceCurrent: false
+        )
+      })
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] completion in
-          self?.dismissOverlay()
           switch completion {
-          case .finished:
-            break
-
+          case .finished, .failure(.canceled):
+            self?.payloadProcessingCancellable = nil
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error)
+          where error.identifier == .accountTransferScanningRecoverableError
+          && error.context?.contains("invalid-version-or-code") ?? false:
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarMessage(localized: "code.scanning.processing.invalid.code")
+                .instantiate(),
+              hideAfter: 3
+            )
+            // Delay unlocking QRCode processing until message becomes visible for some time.
+            // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
+            self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+              self?.payloadProcessingCancellable = nil
+            }
+            
           case .failure:
             self?.present(
               snackbar: Mutation<UICommons.View>
@@ -125,10 +153,14 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
                 .instantiate(),
               hideAfter: 3
             )
+            // Delay unlocking QRCode processing until message becomes visible for some time.
+            // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
+            self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+              self?.payloadProcessingCancellable = nil
+            }
           }
-          self?.payloadProcessingCancellable = nil
         },
-        receiveValue: { /* */ }
+        receiveValue: { _ in /* unreachable */ }
       )
   }
 }

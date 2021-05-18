@@ -105,35 +105,9 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
     controller
       .progressPublisher()
       .receive(on: RunLoop.main)
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          switch completion {
-          case .finished:
-            self?.push(
-              CodeScanningSuccessViewController.self,
-              completion: { [weak self] in
-                self?.popAll(Self.self, animated: false)
-              }
-            )
-          
-          case .failure(.canceled):
-            self?.pop(to: TransferInfoScreenViewController.self)
-            
-          // swiftlint:disable:next explicit_type_interface
-          case let .failure(error):
-            self?.push(
-              CodeScanningFailureViewController.self,
-              in: error,
-              completion: { [weak self] in
-                self?.popAll(Self.self, animated: false)
-              }
-            )
-          }
-        },
-        receiveValue: { [weak self] progress in
-          self?.progressView.update(progress: progress, animated: true)
-        }
-      )
+      .sink { [weak self] progress in
+        self?.progressView.update(progress: progress, animated: true)
+      }
       .store(in: &cancellables)
     
     controller
@@ -156,16 +130,45 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         if presented {
-          self?.present(
-            CodeScanningHelpViewController.self,
-            in: { [weak self] in
-              self?.controller.dismissExitConfirmation()
-            }
-          )
+          self?.present(CodeScanningHelpViewController.self)
         } else {
           self?.dismiss(CodeScanningExitConfirmationViewController.self)
         }
       }
+      .store(in: &cancellables)
+    
+    controller
+      .resultPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          switch completion {
+          case .finished:
+            unreachable("Unexpected behaviour in \(Self.self) \(#filePath):\(#line)")
+            
+          case .failure(.canceled):
+            self?.pop(to: TransferInfoScreenViewController.self)
+            
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error):
+            self?.push(
+              CodeScanningFailureViewController.self,
+              in: error,
+              completion: { [weak self] in
+                self?.popAll(Self.self, animated: false)
+              }
+            )
+          }
+        },
+        receiveValue: { [weak self] in
+          self?.push(
+            CodeScanningSuccessViewController.self,
+            completion: { [weak self] in
+              self?.popAll(Self.self, animated: false)
+            }
+          )
+        }
+      )
       .store(in: &cancellables)
   }
 }

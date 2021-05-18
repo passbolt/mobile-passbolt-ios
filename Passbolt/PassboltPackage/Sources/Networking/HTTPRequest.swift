@@ -93,8 +93,9 @@ extension HTTPRequest: CustomStringConvertible {
   public var description: String {
     // swiftlint:disable line_length
     """
-    \(method.rawValue) \(urlComponents.percentEncodedPath)\(urlComponents.percentEncodedQuery.map { "?\($0))" } ?? "") HTTP/1.1\r
-    \(headers.description)\r
+    \(method.rawValue) \(urlComponents.percentEncodedPath)\(urlComponents.percentEncodedQuery.map { "?\($0))" } ?? "") HTTP/1.1
+    \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
+    
     \(String(data: body, encoding: .utf8) ?? "")
     """
   }

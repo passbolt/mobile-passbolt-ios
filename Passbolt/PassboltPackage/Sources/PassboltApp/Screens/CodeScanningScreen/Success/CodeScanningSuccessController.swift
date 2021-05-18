@@ -23,7 +23,11 @@
 
 import UIComponents
 
-internal struct CodeScanningSuccessController {}
+internal struct CodeScanningSuccessController {
+  
+  internal var `continue`: () -> Void
+  internal var signInPresentationPublisher: () -> AnyPublisher<Never, Never>
+}
 
 extension CodeScanningSuccessController: UIController {
   
@@ -33,6 +37,10 @@ extension CodeScanningSuccessController: UIController {
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    Self()
+    let signInPresentationSubject: PassthroughSubject<Never, Never> = .init()
+    return Self(
+      continue: { signInPresentationSubject.send(completion: .finished) },
+      signInPresentationPublisher: signInPresentationSubject.eraseToAnyPublisher
+    )
   }
 }

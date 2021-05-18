@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Features
 import OSIntegration
 import UIComponents
 
@@ -29,7 +30,6 @@ internal struct TransferInfoScreenController {
   internal typealias Context = Void
   
   internal var presentNoCameraPermissionAlert: () -> Void
-  internal var dismissNoCameraPermissionAlert: () -> Void
   internal var requestOrNavigatePublisher: () -> AnyPublisher<Bool, Never>
   internal var presentNoCameraPermissionAlertPublisher: () -> AnyPublisher<Bool, Never>
 }
@@ -44,8 +44,7 @@ extension TransferInfoScreenController: UIController {
     
     return Self(
       presentNoCameraPermissionAlert: { presentNoCameraPermissionAlertSubject.send(true) },
-      dismissNoCameraPermissionAlert: { presentNoCameraPermissionAlertSubject.send(false) },
-      requestOrNavigatePublisher: { features.instance(of: AppPermissions.self).ensureCameraPermission() },
+      requestOrNavigatePublisher: { features.instance(of: OSPermissions.self).ensureCameraPermission() },
       presentNoCameraPermissionAlertPublisher: { presentNoCameraPermissionAlertSubject.eraseToAnyPublisher() }
     )
   }

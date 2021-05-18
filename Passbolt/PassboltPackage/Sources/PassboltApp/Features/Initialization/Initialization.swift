@@ -13,8 +13,12 @@ extension Initialization: Feature {
     in context: Environment,
     using features: FeatureFactory
   ) -> Initialization {
-    Self(
+    let diagnostics: Diagnostics = features.instance()
+    
+    return Self(
       initialize: {
+        diagnostics.debugLog("Initialization")
+        defer { diagnostics.debugLog("Initialization completed") }
         // initialize application features here
         return true // true if succeeded
       }
@@ -25,7 +29,7 @@ extension Initialization: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      initialize: Commons.placeholder("You have to provide mocks for used methods ")
+      initialize: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

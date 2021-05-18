@@ -34,9 +34,13 @@ final class WelcomeScreenTests: XCTestCase {
   private var factory: FeatureFactory!
   private var cancellables: Array<AnyCancellable>!
   
+  override class func setUp() {
+    super.setUp()
+    FeatureFactory.autoLoadFeatures = false
+  }
+  
   override func setUp() {
     super.setUp()
-    #warning("TODO: use `FeatureFactory.autoLoadFeatures = false`")
     factory = .init(environment: testEnvironment())
     cancellables = .init()
   }

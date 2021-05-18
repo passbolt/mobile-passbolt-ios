@@ -46,7 +46,7 @@ extension Keychain {
             .eraseToAnyPublisher()
         } else {
           let completionSubject: PassthroughSubject<Bool, TheError> = .init()
-          if !isInExtensionContext() {
+          if !isInExtensionContext {
             DispatchQueue.main.async {
               #warning("TODO: Provide localized string for reason")
               context.evaluatePolicy(
@@ -382,10 +382,10 @@ extension Keychain {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      verifyBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods "),
-      load: Commons.placeholder("You have to provide mocks for used methods "),
-      save: Commons.placeholder("You have to provide mocks for used methods "),
-      delete: Commons.placeholder("You have to provide mocks for used methods ")
+      verifyBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods"),
+      load: Commons.placeholder("You have to provide mocks for used methods"),
+      save: Commons.placeholder("You have to provide mocks for used methods"),
+      delete: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

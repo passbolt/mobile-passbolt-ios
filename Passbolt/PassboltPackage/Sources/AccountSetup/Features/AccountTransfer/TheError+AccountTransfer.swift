@@ -21,17 +21,35 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Commons
 
-extension LocalizationKeyConstant {
+extension TheError {
   
-  internal static let done: Self = "generic.done"
-  internal static let yes: Self = "generic.yes"
-  internal static let cancel: Self = "generic.cancel"
-  internal static let remove: Self = "generic.remove"
-  internal static let loading: Self = "generic.loading"
-  internal static let retry: Self = "generic.retry"
-  internal static let delete: Self = "generic.delete"
-  internal static let gotIt: Self = "generic.got.it"
-  internal static let settings: Self = "generic.settings"
+  public static func accountTransferScanningError(
+    underlyingError: Error? = nil,
+    context: String
+  ) -> Self {
+    .init(
+      identifier: .accountTransferScanningError,
+      underlyingError: underlyingError,
+      extensions: [.context: context]
+    )
+  }
+  
+  public static func accountTransferScanningRecoverableError(
+    underlyingError: Error? = nil,
+    context: String
+  ) -> Self {
+    .init(
+      identifier: .accountTransferScanningRecoverableError,
+      underlyingError: underlyingError,
+      extensions: [.context: context]
+    )
+  }
+}
+
+extension TheError.ID {
+  
+  public static let accountTransferScanningError: Self = "accountTransferScanningError"
+  public static let accountTransferScanningRecoverableError: Self = "accountTransferScanningRecoverableError"
 }

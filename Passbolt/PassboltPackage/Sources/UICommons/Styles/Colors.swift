@@ -28,6 +28,12 @@ public struct DynamicColor {
   
   private var color: (UIUserInterfaceStyle) -> UIColor
   
+  public init(
+    _ color: @escaping (UIUserInterfaceStyle) -> UIColor
+  ) {
+    self.color = color
+  }
+  
   public func callAsFunction(
     in interfaceStyle: UIUserInterfaceStyle
   ) -> UIColor {

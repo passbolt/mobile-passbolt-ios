@@ -26,6 +26,9 @@ import OSIntegration
 import Storage
 
 public typealias RootEnvironment = (
+  time: Time,
+  uuidGenerator: UUIDGenerator,
+  logger: Logger,
   networking: Networking,
   preferences: Preferences,
   keychain: Keychain,

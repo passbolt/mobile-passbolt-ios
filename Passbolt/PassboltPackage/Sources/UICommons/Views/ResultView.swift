@@ -40,12 +40,14 @@ public final class ResultView: View {
     
     mut(imageView) {
       .combined(
+        .contentMode(.scaleAspectFit),
+        .widthAnchor(.equalTo, imageView.heightAnchor),
         .subview(of: self),
         .centerXAnchor(.equalTo, centerXAnchor),
         .widthAnchor(.equalTo, widthAnchor, multiplier: 0.4, priority: .defaultHigh),
         .leadingAnchor(.greaterThanOrEqualTo, leadingAnchor, constant: 16),
         .trailingAnchor(.lessThanOrEqualTo, trailingAnchor, constant: -16),
-        .centerYAnchor(.equalTo, centerYAnchor, constant: 40)
+        .centerYAnchor(.equalTo, centerYAnchor, constant: -40)
       )
     }
     
@@ -53,11 +55,13 @@ public final class ResultView: View {
       .combined(
         .font(.inter(ofSize: 24, weight: .regular)),
         .textColor(dynamic: .primaryText),
+        .textAlignment(.center),
+        .numberOfLines(0),
         .subview(of: self),
         .centerXAnchor(.equalTo, centerXAnchor),
         .leadingAnchor(.greaterThanOrEqualTo, leadingAnchor, constant: 16),
         .trailingAnchor(.lessThanOrEqualTo, trailingAnchor, constant: -16),
-        .topAnchor(.equalTo, imageView.bottomAnchor, constant: -32)
+        .topAnchor(.equalTo, imageView.bottomAnchor, constant: 32)
       )
     }
     

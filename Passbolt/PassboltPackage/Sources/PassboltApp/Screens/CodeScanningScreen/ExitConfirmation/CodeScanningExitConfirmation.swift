@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import AccountSetup
 import UIComponents
 
 // swiftlint:disable:next colon

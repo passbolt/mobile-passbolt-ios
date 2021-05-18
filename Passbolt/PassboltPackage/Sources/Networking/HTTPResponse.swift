@@ -64,3 +64,22 @@ extension HTTPResponse {
     )
   }
 }
+
+extension HTTPResponse: CustomStringConvertible {
+  
+  public var description: String {
+    """
+    HTTP/1.1 \(statusCode)
+    \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
+    
+    \(String(data: body, encoding: .utf8) ?? "")
+    """
+  }
+}
+
+extension HTTPResponse: CustomDebugStringConvertible {
+  
+  public var debugDescription: String {
+    description
+  }
+}

@@ -56,7 +56,41 @@ extension TheError {
     value: Any
   ) -> Self {
     var mutable: Self = self
-    mutable.extensions[`extension`] = value
+    mutable.extend(with: `extension`, value: value)
+    return mutable
+  }
+  
+  public var logMessage: String? { extensions[.logMessage] as? String }
+  
+  public mutating func append(
+    logMessage: String
+  ) {
+    extensions[.logMessage] = extensions[.logMessage]
+      .map { "\($0)\n\(logMessage)" } ?? logMessage
+  }
+  
+  public func appending(
+    logMessage: String
+  ) -> Self {
+    var mutable: Self = self
+    mutable.append(logMessage: logMessage)
+    return mutable
+  }
+  
+  public var context: String? { extensions[.context] as? String }
+  
+  public mutating func append(
+    context: String
+  ) {
+    extensions[.context] = extensions[.context]
+      .map { "\($0)-\(context)" } ?? context
+  }
+  
+  public func appending(
+    context: String
+  ) -> Self {
+    var mutable: Self = self
+    mutable.append(context: context)
     return mutable
   }
 }
@@ -68,7 +102,8 @@ extension TheError: CustomDebugStringConvertible {
     ---
     Error: \(identifier)
     UnderlyingError: \(underlyingError.map { "\($0)" } ?? "N/A")
-    Extensions: \(extensions.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
+    Extensions:
+    \(extensions.map { "- \($0.key): \($0.value)" }.joined(separator: "\n"))
     ---
     """
   }
@@ -89,7 +124,13 @@ extension TheError.ID {
   public static let canceled: Self = "canceled"
 }
 
+extension TheError.Extension {
+  
+  public static let logMessage: Self = "logMessage"
+  public static let context: Self = "context"
+}
+
 extension TheError {
   
-  public static let canceled: Self = .init(identifier: .canceled, underlyingError: nil, extensions: [:])
+  public static let canceled: Self = .init(identifier: .canceled, underlyingError: nil, extensions: [.context: "canceled"])
 }

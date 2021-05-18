@@ -24,7 +24,8 @@
 import Combine
 import UICommons
 
-internal final class TransferInfoScreenView: ScrolledStackView {
+public final class TransferInfoScreenView: ScrolledStackView {
+  
   internal var tapButtonPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
   
   private let headerLabel: Label = .init()
@@ -32,7 +33,7 @@ internal final class TransferInfoScreenView: ScrolledStackView {
   private let imageView: ImageView = .init()
   private let button: TextButton = .init()
   
-  override internal func setup() {
+  override public func setup() {
     mut(headerLabel) {
       .combined(
         .font(.inter(ofSize: 14)),
@@ -53,7 +54,7 @@ internal final class TransferInfoScreenView: ScrolledStackView {
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
-        .image(named: .qrCode),
+        .image(dynamic: .qrCodeSample),
         .contentMode(.scaleAspectFit),
         .edges(
           equalTo: imageContainer,

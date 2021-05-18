@@ -33,28 +33,23 @@ internal final class CodeScanningHelpViewController: AlertViewController<CodeSca
           localized: .gotIt,
           style: .cancel,
           accessibilityIdentifier: "button.close",
-          handler: controller.close
+          handler: {}
         )
       )
     }
   }
 }
 
-internal struct CodeScanningHelpController {
-  
-  internal var close: () -> Void
-}
+internal struct CodeScanningHelpController {}
 
 extension CodeScanningHelpController: UIController {
   
-  internal typealias Context = () -> Void
+  internal typealias Context = Void
   
   internal static func instance(
-    in context: @escaping Context,
+    in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    Self(
-      close: context
-    )
+    Self()
   }
 }

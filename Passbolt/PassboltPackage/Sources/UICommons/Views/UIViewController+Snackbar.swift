@@ -29,8 +29,10 @@ extension UIViewController {
     snackbar: UIView,
     presentationAnchor: UIView? = nil, // bottom of screen is used if no anchor provided
     hideAfter hideDelay: TimeInterval = 3, // zero is not going to hide automatically
+    replaceCurrent: Bool = true, // presentation will be ignored if set to false and other is presented
     animated: Bool = true
   ) {
+    guard replaceCurrent || _snackbarView == nil else { return }
     dismissSnackbar(animated: animated)
     _snackbarView = snackbar
     snackbar.layer.removeAllAnimations()

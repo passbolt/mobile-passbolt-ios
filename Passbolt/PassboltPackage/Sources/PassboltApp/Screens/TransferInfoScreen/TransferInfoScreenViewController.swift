@@ -39,13 +39,13 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
     )
   }
   
-  internal private(set) lazy var contentView: TransferInfoScreenView = .init()
-  internal let components: UIComponentFactory
+  public private(set) lazy var contentView: TransferInfoScreenView = .init()
+  public let components: UIComponentFactory
   
   private let controller: TransferInfoScreenController
   private var cancellables: Array<AnyCancellable> = .init()
   
-  internal init(
+  public init(
     using controller: Controller,
     with components: UIComponentFactory
   ) {
@@ -54,7 +54,7 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
     super.init()
   }
   
-  internal func setupView() {
+  public func setupView() {
     mut(self) {
       .title(localized: "transfer.account.title")
     }

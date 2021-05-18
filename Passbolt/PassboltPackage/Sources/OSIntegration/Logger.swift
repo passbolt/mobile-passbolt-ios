@@ -20,3 +20,31 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import Commons
+
+public struct Logger {
+  
+  public var consoleLog: (String) -> Void
+}
+
+extension Logger {
+  
+  public static var live: Self {
+    Self(
+      consoleLog: { message in print(message) }
+    )
+  }
+}
+
+#if DEBUG
+extension Logger {
+  
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      consoleLog: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif

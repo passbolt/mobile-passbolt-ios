@@ -31,6 +31,21 @@ internal struct NetworkResponseDecoding<Response> {
   internal var decode: (HTTPResponse) -> Result<Response, TheError>
 }
 
+extension NetworkResponseDecoding where Response == Void {
+  
+  internal static func statusCode(
+    _ statusCode: HTTPStatusCode
+  ) -> Self {
+    Self { response in
+      if response.statusCode == statusCode {
+        return .success(Void())
+      } else {
+        return .failure(.httpError(.invalidResponse))
+      }
+    }
+  }
+}
+
 extension NetworkResponseDecoding where Response == Data {
   
   internal static var rawBody: Self {

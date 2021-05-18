@@ -35,6 +35,9 @@ internal struct Application {
     environment: RootEnvironment
   ) {
     let features: FeatureFactory = .init(environment: environment)
+    #if DEBUG
+    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
+    #endif
     
     self.ui = UI(features: features)
     self.features = features
@@ -53,6 +56,9 @@ extension Application {
   #warning("TODO: add shared user defaults identifier when able")
   internal static let shared: Application = .init(
     environment: RootEnvironment(
+      time: .live,
+      uuidGenerator: .live,
+      logger: .live,
       networking: .foundation(),
       preferences: .userDefaults(),
       keychain: .keychain(),

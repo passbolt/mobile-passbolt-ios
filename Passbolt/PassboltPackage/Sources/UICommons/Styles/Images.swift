@@ -28,6 +28,12 @@ public struct DynamicImage {
   
   private var image: (UIUserInterfaceStyle) -> UIImage
   
+  public init(
+    _ image: @escaping (UIUserInterfaceStyle) -> UIImage
+  ) {
+    self.image = image
+  }
+  
   public func callAsFunction(
     in interfaceStyle: UIUserInterfaceStyle
   ) -> UIImage {

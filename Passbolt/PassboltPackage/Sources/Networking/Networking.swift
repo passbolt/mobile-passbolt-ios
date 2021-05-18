@@ -34,6 +34,14 @@ public struct Networking {
   public var execute: (
     _ request: HTTPRequest
   ) -> AnyPublisher<HTTPResponse, HTTPError>
+  
+  public init(
+    execute: @escaping (
+      _ request: HTTPRequest
+    ) -> AnyPublisher<HTTPResponse, HTTPError>
+  ) {
+    self.execute = execute
+  }
 }
 
 extension Networking {
@@ -107,7 +115,7 @@ extension Networking {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      execute: Commons.placeholder("You have to provide mocks for used methods ")
+      execute: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

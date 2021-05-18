@@ -54,17 +54,48 @@ internal final class CodeScanningFailureViewController: PlainViewController, UIC
   }
   
   internal func setupView() {
-    mut(self.navigationItem) {
+    mut(navigationItem) {
       .hidesBackButton(true)
     }
-    #warning("TODO: [PAS-109]")
-    let failureReason: TheError = controller.failureReason()
-    switch failureReason {
+    contentView
+      .applyOn(
+        image: .image(dynamic: .failureMark)
+      )
+    
+    switch controller.failureReason() {
     case .canceled:
-      contentView.applyOn(title: .text("TODO: CANCELED"))
+      contentView
+        .applyOn(
+          title: .text(localized: "transfer.account.result.canceled.title")
+        )
       
     case _:
-      contentView.applyOn(title: .text("TODO: \(failureReason)"))
+      contentView
+        .applyOn(
+          title: .text(localized: "transfer.account.result.error.title")
+        )
     }
+    
+    contentView
+      .applyOn(
+        button: .combined(
+          .text(localized: .continue),
+          .action(controller.continue)
+        )
+      )
+    setupSubscriptions()
+  }
+  
+  private func setupSubscriptions() {
+    controller
+      .backPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink(
+        receiveCompletion: { [weak self] _ in
+          self?.pop(to: TransferInfoScreenViewController.self)
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: &cancellables)
   }
 }

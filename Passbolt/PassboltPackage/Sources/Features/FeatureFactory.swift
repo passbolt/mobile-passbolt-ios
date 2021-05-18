@@ -78,6 +78,14 @@ extension FeatureFactory {
     guard (features[F.featureIdentifier] as? F)?.unload() ?? false else { return }
     features[F.featureIdentifier] = nil
   }
+  
+  public func isLoaded<F>(
+    _ feature: F.Type
+  ) -> Bool where F: Feature {
+    featuresAccessLock.lock()
+    defer { featuresAccessLock.unlock() }
+    return features[F.featureIdentifier] is F
+  }
 }
 
 #if DEBUG
