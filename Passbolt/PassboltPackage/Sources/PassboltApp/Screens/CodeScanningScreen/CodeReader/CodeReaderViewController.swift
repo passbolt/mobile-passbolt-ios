@@ -82,13 +82,17 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   private func setupSubscriptions() {}
   
   internal func activate() {
-    cameraSession?.startRunning()
-    present(
-      snackbar: Mutation<UICommons.View>
-        .snackBarMessage(localized: "code.scanning.begin")
-        .instantiate(),
-      hideAfter: 2
-    )
+    if let cameraSession: AVCaptureSession = cameraSession {
+      cameraSession.startRunning()
+      present(
+        snackbar: Mutation<UICommons.View>
+          .snackBarMessage(localized: "code.scanning.begin")
+          .instantiate(),
+        hideAfter: 2
+      )
+    } else {
+      present(CodeScanningCameraInaccessibleViewController.self)
+    }
   }
 
   internal func deactivate() {
