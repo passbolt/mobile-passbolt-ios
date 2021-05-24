@@ -21,44 +21,4 @@
 // @since         v1.0
 //
 
-import Combine
 import Foundation
-import OSIntegration
-
-public struct LinkOpener {
-  
-  public var openLink: (URL) -> AnyPublisher<Bool, Never>
-  public var openAppSettings: () -> AnyPublisher<Bool, Never>
-}
-
-extension LinkOpener: Feature {
-  
-  public typealias Environment = ExternalURLOpener
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.urlOpener
-  }
-  
-  public static func load(
-    in environment: Environment,
-    using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
-  ) -> LinkOpener {
-    Self(
-      openLink: environment.openLink,
-      openAppSettings: environment.openAppSettings
-    )
-  }
-  
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      openLink: Commons.placeholder("You have to provide mocks for used methods"),
-      openAppSettings: Commons.placeholder("You have to provide mocks for used methods")
-    )
-  }
-  #endif
-}

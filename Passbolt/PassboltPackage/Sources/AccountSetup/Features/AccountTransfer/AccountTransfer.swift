@@ -40,7 +40,8 @@ extension AccountTransfer: Feature {
   
   public static func load(
     in environment: Environment,
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> AccountTransfer {
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()

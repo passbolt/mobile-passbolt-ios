@@ -69,6 +69,13 @@
         "identifier" : "CommonsTests",
         "name" : "CommonsTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "SafetyTests",
+        "name" : "SafetyTests"
+      }
     }
   ],
   "version" : 1

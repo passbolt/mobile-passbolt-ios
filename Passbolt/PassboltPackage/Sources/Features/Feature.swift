@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Combine
+
 public protocol Feature {
   
   associatedtype Environment
@@ -31,7 +33,8 @@ public protocol Feature {
   
   static func load(
     in environment: Environment,
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> Self
   
   func unload() -> Bool

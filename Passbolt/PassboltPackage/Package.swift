@@ -236,6 +236,13 @@ let package = Package(
         "Settings"
       ]
     ),
+    .testTarget(
+      name: "SafetyTests",
+      dependencies: [
+        "Safety",
+        "TestExtensions"
+      ]
+    ),
     .target(
       name: "Settings",
       dependencies: [

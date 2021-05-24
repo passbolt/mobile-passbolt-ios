@@ -37,7 +37,8 @@ extension NetworkClient: Feature {
   
   public static func load(
     in environment: (Networking),
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> NetworkClient {
     #warning("TODO: temporary placeholder for session variable")
     let tempSessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>

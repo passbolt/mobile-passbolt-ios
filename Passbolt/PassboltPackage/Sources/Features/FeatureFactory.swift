@@ -26,13 +26,15 @@ import class Foundation.NSRecursiveLock
 
 public final class FeatureFactory {
   
+  private typealias FeatureInstance = (feature: Any, cancellables: Array<AnyCancellable>)
+  
   #if DEBUG // debug builds allow change and access to environment for mocking and debug
   public var environment: RootEnvironment
   #else // production builds cannot access environment directly
   private let environment: RootEnvironment
   #endif
   private let featuresAccessLock: NSRecursiveLock = .init()
-  private var features: Dictionary<ObjectIdentifier, Any> = .init()
+  private var features: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
   
   public init(
     environment: RootEnvironment
@@ -49,7 +51,7 @@ extension FeatureFactory {
   where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    if let loaded: F = features[F.featureIdentifier] as? F {
+    if let loaded: F = features[F.featureIdentifier]?.feature as? F {
       return loaded
     } else {
       #if DEBUG
@@ -61,11 +63,17 @@ extension FeatureFactory {
         ) as! F // it looks like compiler issue, casting is required regardless of returning Never here
       }
       #endif
+      var featureCancellables: Array<AnyCancellable> = .init()
+      
       let loaded: F = .load(
         in: F.environmentScope(environment),
-        using: self
+        using: self,
+        cancellables: &featureCancellables
       )
-      features[F.featureIdentifier] = loaded
+      features[F.featureIdentifier] = FeatureInstance(
+        feature: loaded,
+        cancellables: featureCancellables
+      )
       return loaded
     }
   }
@@ -75,7 +83,7 @@ extension FeatureFactory {
   ) where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    guard (features[F.featureIdentifier] as? F)?.unload() ?? false else { return }
+    guard (features[F.featureIdentifier]?.feature as? F)?.unload() ?? false else { return }
     features[F.featureIdentifier] = nil
   }
   
@@ -84,7 +92,7 @@ extension FeatureFactory {
   ) -> Bool where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    return features[F.featureIdentifier] is F
+    return features[F.featureIdentifier]?.feature is F
   }
 }
 
@@ -94,14 +102,18 @@ extension FeatureFactory {
   public static var autoLoadFeatures: Bool = true
   
   public func use<F>(
-    _ feature: F
+    _ feature: F,
+    cancellables: Array<AnyCancellable> = .init()
   ) where F: Feature {
     featuresAccessLock.lock()
     assert(
       features[F.featureIdentifier] == nil,
       "Feature should not be replaced after initialization"
     )
-    features[F.featureIdentifier] = feature
+    features[F.featureIdentifier] = FeatureInstance(
+      feature: feature,
+      cancellables: cancellables
+    )
     featuresAccessLock.unlock()
   }
 }

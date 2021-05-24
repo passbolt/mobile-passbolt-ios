@@ -11,7 +11,8 @@ extension Initialization: Feature {
   
   public static func load(
     in context: Environment,
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> Initialization {
     let diagnostics: Diagnostics = features.instance()
     

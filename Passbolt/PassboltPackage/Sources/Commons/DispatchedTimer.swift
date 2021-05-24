@@ -21,44 +21,44 @@
 // @since         v1.0
 //
 
-import Combine
-import Foundation
-import OSIntegration
+import class Foundation.DispatchQueue
+import class Foundation.DispatchSource
+import struct Foundation.DispatchTime
+import protocol Foundation.DispatchSourceTimer
+import typealias Foundation.DispatchTimeInterval
+import class Foundation.Timer
 
-public struct LinkOpener {
+public final class DispatchedTimer {
   
-  public var openLink: (URL) -> AnyPublisher<Bool, Never>
-  public var openAppSettings: () -> AnyPublisher<Bool, Never>
-}
-
-extension LinkOpener: Feature {
+  internal let timer: DispatchSourceTimer
+  internal let queue: DispatchQueue
   
-  public typealias Environment = ExternalURLOpener
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.urlOpener
-  }
-  
-  public static func load(
-    in environment: Environment,
-    using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
-  ) -> LinkOpener {
-    Self(
-      openLink: environment.openLink,
-      openAppSettings: environment.openAppSettings
+  public init(
+    interval: DispatchTimeInterval,
+    repeating: DispatchTimeInterval = .never,
+    leeway: DispatchTimeInterval = .milliseconds(0),
+    queue: DispatchQueue = .main,
+    handler: @escaping () -> Void
+  ) {
+    self.queue = queue
+    self.timer = DispatchSource.makeTimerSource(queue: queue)
+    
+    timer.setEventHandler(handler: handler)
+    
+    timer.schedule(
+      deadline: .now().advanced(by: interval),
+      repeating: repeating,
+      leeway: leeway
     )
+    
+    timer.resume()
   }
   
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      openLink: Commons.placeholder("You have to provide mocks for used methods"),
-      openAppSettings: Commons.placeholder("You have to provide mocks for used methods")
-    )
+  deinit {
+    timer.cancel()
   }
-  #endif
+  
+  public func cancel() {
+    timer.cancel()
+  }
 }

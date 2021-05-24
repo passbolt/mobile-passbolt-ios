@@ -59,7 +59,8 @@ final class AccountTransferTests: XCTestCase {
     var result: AccountTransfer.ScanningProgress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     accountTransfer
@@ -87,7 +88,8 @@ final class AccountTransferTests: XCTestCase {
     var result: AccountTransfer.ScanningProgress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -118,7 +120,8 @@ final class AccountTransferTests: XCTestCase {
     var result: AccountTransfer.ScanningProgress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -154,7 +157,8 @@ final class AccountTransferTests: XCTestCase {
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     accountTransfer.cancelTransfer()
@@ -184,7 +188,8 @@ final class AccountTransferTests: XCTestCase {
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
@@ -213,7 +218,8 @@ final class AccountTransferTests: XCTestCase {
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     accountTransfer
@@ -240,7 +246,8 @@ final class AccountTransferTests: XCTestCase {
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     accountTransfer
@@ -268,7 +275,8 @@ final class AccountTransferTests: XCTestCase {
     var result: Void?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     accountTransfer
@@ -297,7 +305,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -316,7 +325,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     // we have to get configuration before
@@ -331,7 +341,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -357,7 +368,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -383,7 +395,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -409,7 +422,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -435,7 +449,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -463,7 +478,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -497,7 +513,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -531,7 +548,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -565,7 +583,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -599,7 +618,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -637,7 +657,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -652,7 +673,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     features.use(accountTransfer)
     XCTAssertTrue(features.isLoaded(AccountTransfer.self))
@@ -668,7 +690,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     
@@ -703,7 +726,8 @@ final class AccountTransferTests: XCTestCase {
     features.use(networkClient)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
-      using: features
+      using: features,
+      cancellables: &cancellables
     )
     var result: TheError?
     

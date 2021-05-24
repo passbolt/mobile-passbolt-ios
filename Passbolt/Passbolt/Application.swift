@@ -63,7 +63,8 @@ extension Application {
       preferences: .userDefaults(),
       keychain: .keychain(),
       camera: .live(),
-      urlOpener: .live()
+      urlOpener: .live(),
+      appLifeCycle: .live()
     )
   )
 }

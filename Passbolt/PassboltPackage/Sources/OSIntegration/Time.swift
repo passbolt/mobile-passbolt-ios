@@ -25,7 +25,7 @@ import Commons
 import func Foundation.time
 
 public struct Time {
-  
+  // Number of seconds from beginning of epoch (1/1/1970)
   public var timestamp: () -> Int
 }
 

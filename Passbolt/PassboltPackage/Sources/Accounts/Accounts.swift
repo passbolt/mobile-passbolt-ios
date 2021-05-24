@@ -31,7 +31,8 @@ extension Accounts: Feature {
   
   public static func load(
     in environment: Environment,
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> Accounts {
     Self()
   }

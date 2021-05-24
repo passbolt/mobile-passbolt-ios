@@ -33,5 +33,6 @@ public typealias RootEnvironment = (
   preferences: Preferences,
   keychain: Keychain,
   camera: Camera,
-  urlOpener: ExternalURLOpener
+  urlOpener: ExternalURLOpener,
+  appLifeCycle: AppLifeCycle
 )

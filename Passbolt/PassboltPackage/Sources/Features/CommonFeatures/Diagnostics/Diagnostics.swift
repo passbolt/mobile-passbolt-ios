@@ -51,7 +51,8 @@ extension Diagnostics: Feature {
   
   public static func load(
     in environment: Environment,
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> Diagnostics {
     Self(
       log: { message in

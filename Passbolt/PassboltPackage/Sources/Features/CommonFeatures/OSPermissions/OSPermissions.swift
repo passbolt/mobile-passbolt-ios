@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Combine
 import OSIntegration
 
 public struct OSPermissions {
@@ -42,7 +43,8 @@ extension OSPermissions: Feature {
   
   public static func load(
     in environment: Environment,
-    using features: FeatureFactory
+    using features: FeatureFactory,
+    cancellables: inout Array<AnyCancellable>
   ) -> Self {
     Self(
       ensureCameraPermission: {
