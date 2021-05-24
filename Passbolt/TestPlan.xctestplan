@@ -62,6 +62,13 @@
         "identifier" : "AccountSetupTests",
         "name" : "AccountSetupTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "CommonsTests",
+        "name" : "CommonsTests"
+      }
     }
   ],
   "version" : 1

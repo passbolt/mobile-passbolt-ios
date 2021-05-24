@@ -50,6 +50,12 @@ public class Button: UIControl {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
+  public lazy var dynamicBorderColor: DynamicColor
+  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
   public var pressedBackgroundColor: UIColor? {
     get { pressLayer.backgroundColor.map(UIColor.init(cgColor:)) }
     set { pressLayer.backgroundColor = newValue?.cgColor }

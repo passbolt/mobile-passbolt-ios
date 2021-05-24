@@ -48,4 +48,19 @@ extension Mutation where Subject: Button {
   public static func disabledBackgroundColor(_ color: UIColor?) -> Self {
     .custom { (subject: Subject) in subject.disabledBackgroundColor = color }
   }
+  
+  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
+    .custom { (subject: Subject) in
+      subject.dynamicBorderColor = color
+      subject.layer.borderWidth = width
+    }
+  }
+  
+  public static func enabled() -> Self {
+    .custom { (subject: Subject) in subject.isEnabled = true }
+  }
+  
+  public static func disabled() -> Self {
+    .custom { (subject: Subject) in subject.isEnabled = false }
+  }
 }

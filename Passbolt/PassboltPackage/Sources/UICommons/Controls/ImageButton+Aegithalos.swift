@@ -23,28 +23,23 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: TextField {
+extension Mutation where Subject: ImageButton {
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
+    .custom { (subject: Subject) in subject.dynamicImage = image }
   }
   
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
+  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
+    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
   }
   
-  public static func textColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTextColor = color }
+  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
+    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
   }
   
-  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
+  public static func image(symbol name: SymbolNameConstant) -> Self {
     .custom { (subject: Subject) in
-      subject.dynamicBorderColor = color
-      subject.layer.borderWidth = width
+      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
     }
-  }
-  
-  public static func contentInsets(_ insets: UIEdgeInsets) -> Self {
-    .custom { (subject: Subject) in subject.contentInsets = insets }
   }
 }

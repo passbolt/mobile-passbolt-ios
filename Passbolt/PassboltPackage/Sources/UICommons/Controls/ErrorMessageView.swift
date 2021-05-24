@@ -19,22 +19,76 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UICommons
+import AegithalosCocoa
 
-internal final class SplashScreenView: View {
-  private let imageView: ImageView = .init()
+internal class ErrorMessageView: View {
+  
+  private let label: Label = .init()
   
   internal required init() {
     super.init()
-    
-    mut(imageView) {
+    setup()
+  }
+  
+  internal func setText(_ text: String) {
+    label.text = text
+  }
+  
+  override internal func setup() {
+    Mutation<Label>
       .combined(
+        .font(.inter(ofSize: 12)),
+        .textColor(dynamic: .secondaryRed),
+        .numberOfLines(0),
         .subview(of: self),
-        .image(named: .appLogo, from: .uiCommons),
-        .centerXAnchor(.equalTo, centerXAnchor),
-        .centerYAnchor(.equalTo, centerYAnchor)
+        .edges(
+          equalTo: self,
+          insets: .init(
+            top: -8,
+            left: -8,
+            bottom: -8,
+            right: -8
+          )
+        )
       )
+      .apply(on: label)
+    
+    Mutation<View>
+      .combined(
+        .accessibilityIdentifier("errorMessage"),
+        .backgroundColor(dynamic: .background)
+      )
+      .apply(on: self)
+  }
+}
+
+extension Mutation where Subject: ErrorMessageView {
+  
+  internal static func text(
+    _ text: String
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.setText(text)
     }
+  }
+  
+  internal static func text(
+    localized localizationKey: String,
+    fromTable tableName: String? = nil,
+    inBundle bundle: Bundle = Bundle.main,
+    value: String = "",
+    localizationComment comment: String = ""
+  ) -> Self {
+    text(
+      NSLocalizedString(
+        localizationKey,
+        tableName: tableName,
+        bundle: bundle,
+        value: value,
+        comment: comment
+      )
+    )
   }
 }

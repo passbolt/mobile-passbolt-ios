@@ -19,17 +19,18 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import AccountSetup
+import UICommons
 import UIComponents
 
-internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
-  
-  internal typealias View = WelcomeScreenView
-  internal typealias Controller = WelcomeScreenController
+internal final class SignInViewController: PlainViewController, UIComponent {
+
+  internal typealias View = AuthorizationView
+  internal typealias Controller = SignInController
   
   internal static func instance(
-    using controller: WelcomeScreenController,
+    using controller: SignInController,
     with components: UIComponentFactory
   ) -> Self {
     Self(
@@ -38,10 +39,10 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     )
   }
   
-  internal private(set) lazy var contentView: WelcomeScreenView = .init()
-  internal let components: UIComponentFactory
+  internal private(set) lazy var contentView: View = .init()
+  internal var components: UIComponentFactory
   
-  private let controller: WelcomeScreenController
+  private let controller: Controller
   private var cancellables: Array<AnyCancellable> = .init()
   
   internal init(
@@ -54,49 +55,83 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
   }
   
   internal func setupView() {
+    mut(self) {
+      .title(localized: "sign.in.title")
+    }
+    
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
+    
+    #warning("TODO: Fill with proper values when available")
+    contentView.applyOn(name: .text("TODO: Provide user name"))
+    contentView.applyOn(email: .text("TODO: Provide email"))
+    contentView.applyOn(url: .text("TODO: Provide url"))
+    contentView.applyOn(passwordDescription: .text(localized: "autorization.passphrase.description.text"))
     
     setupSubscriptions()
   }
   
   private func setupSubscriptions() {
-    contentView.tapAccountPublisher
+    contentView.secureTextPublisher
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.pushTransferInfo()
+      .sink { [weak self] passphrase in
+        self?.controller.updatePassphrase(passphrase)
       }
       .store(in: &cancellables)
     
-    contentView.tapNoAccountPublisher
+    controller.validatedPassphrasePublisher()
+      .first() // skipping error just to update intial value
+      .map { Validated.valid($0.value) }
+      .merge(
+        with: controller
+          .validatedPassphrasePublisher()
+          .dropFirst()
+      )
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.presentNoAccountAlert()
+      .sink { [weak self] validatedPassphrase in
+        self?.contentView.update(from: validatedPassphrase)
+        self?.contentView.applyOn(
+          signInButton: .when(
+            validatedPassphrase.isValid,
+            then: .enabled(),
+            else: .disabled()
+          )
+        )
       }
       .store(in: &cancellables)
     
-    controller.noAccountAlertPresentationPublisher()
+    controller.validatedPassphrasePublisher()
+      .map(\.isValid)
+      .receive(on: RunLoop.main)
+      .sink { [weak self] isValid in
+        self?.contentView.applyOn(
+          signInButton: .when(
+            isValid,
+            then: .enabled(),
+            else: .disabled()
+          )
+        )
+      }
+      .store(in: &cancellables)
+    
+    controller.presentForgotPassphraseAlertPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         guard let self = self else { return }
+        
         if presented {
-          self.present(
-            WelcomeScreenNoAccountAlertViewController.self,
-            in: self.controller.dismissNoAccountAlert
-          )
+          self.present(ForgotPassphraseAlertViewController.self)
         } else {
-          self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
+          self.dismiss(ForgotPassphraseAlertViewController.self)
         }
       }
       .store(in: &cancellables)
-    
-    controller.pushTransferInfoPublisher()
+      
+    contentView.forgotTapPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        guard let self = self else { return }
-        let viewController: TransferInfoScreenViewController = self.components.instance()
-        self.navigationController?.pushViewController(viewController, animated: true)
+        self?.controller.presentForgotPassphraseAlert()
       }
       .store(in: &cancellables)
   }

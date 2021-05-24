@@ -45,6 +45,19 @@ open class TextField: UITextField {
     }
   }
   
+  public lazy var dynamicBorderColor: DynamicColor
+  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
+
+  public var endEditingOnReturn: Bool = true
+  
+  public var contentInsets: UIEdgeInsets = .zero {
+    didSet { setNeedsLayout() }
+  }
+  
   public required init() {
     super.init(frame: .zero)
   }
@@ -52,6 +65,22 @@ open class TextField: UITextField {
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  override open func textRect(forBounds bounds: CGRect) -> CGRect {
+    super.textRect(forBounds: bounds.inset(by: contentInsets))
+  }
+  
+  override open func editingRect(forBounds bounds: CGRect) -> CGRect {
+    super.editingRect(forBounds: bounds.inset(by: contentInsets))
+  }
+  
+  override open func rightViewRect(forBounds bounds: CGRect) -> CGRect {
+    super.rightViewRect(forBounds: bounds.inset(by: contentInsets))
+  }
+  
+  override open func leftViewRect(forBounds bounds: CGRect) -> CGRect {
+    super.leftViewRect(forBounds: bounds.inset(by: contentInsets))
   }
   
   override public func traitCollectionDidChange(
@@ -68,5 +97,16 @@ open class TextField: UITextField {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
+  }
+}
+
+extension TextField: UITextFieldDelegate {
+  
+  public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    if endEditingOnReturn {
+      resignFirstResponder()
+    } else { /* */ }
+    
+    return false
   }
 }

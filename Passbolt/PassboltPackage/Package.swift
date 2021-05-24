@@ -82,7 +82,7 @@ let package = Package(
     .package(
       name: "Aegithalos",
       url: "https://github.com/miquido/aegithalos.git",
-      .upToNextMajor(from: "2.0.0")
+      .upToNextMajor(from: "2.2.0")
     )
   ],
   targets: [
@@ -117,6 +117,13 @@ let package = Package(
         .product(name: "AegithalosCocoa", package: "Aegithalos")
       ]
     ),
+    .testTarget(
+      name: "CommonsTests",
+      dependencies: [
+        "Commons",
+        "TestExtensions"
+      ]
+    ),
     .target(
       name: "Crypto",
       dependencies: [
@@ -131,7 +138,6 @@ let package = Package(
         "TestExtensions"
       ]
     ),
-
     .target(
       name: "Features",
       dependencies: [

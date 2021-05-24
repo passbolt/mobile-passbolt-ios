@@ -33,7 +33,6 @@ import XCTest
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
 // swiftlint:disable force_unwrapping
-// swiftlint:disable private_subject
 final class NetworkingDecoratorsTests: XCTestCase {
   
   var diagnostics: Diagnostics!

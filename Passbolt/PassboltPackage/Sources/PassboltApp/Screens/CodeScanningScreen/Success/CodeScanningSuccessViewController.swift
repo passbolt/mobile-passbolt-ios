@@ -81,7 +81,7 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
-          #warning("TODO: continue process")
+          self?.push(SignInViewController.self)
         },
         receiveValue: { _ in }
       )

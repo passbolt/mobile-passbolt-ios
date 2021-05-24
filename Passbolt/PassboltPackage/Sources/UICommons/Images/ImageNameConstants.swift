@@ -29,6 +29,7 @@ extension ImageNameConstant {
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
   public static var help: Self { "Help" }
+  public static var person: Self { "Person" }
 }
 
 extension DynamicImage {

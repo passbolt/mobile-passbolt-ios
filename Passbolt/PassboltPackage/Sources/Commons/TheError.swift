@@ -93,6 +93,8 @@ extension TheError {
     mutable.append(context: context)
     return mutable
   }
+  
+  public var localizationKey: String? { extensions[.localizationKey] as? String }
 }
 
 extension TheError: CustomDebugStringConvertible {
@@ -132,5 +134,14 @@ extension TheError.Extension {
 
 extension TheError {
   
-  public static let canceled: Self = .init(identifier: .canceled, underlyingError: nil, extensions: [.context: "canceled"])
+  public static let canceled: Self = .init(
+    identifier: .canceled,
+    underlyingError: nil,
+    extensions: [.context: "canceled"]
+  )
+}
+
+extension TheError.Extension {
+  
+  public static var localizationKey: Self { "localizationKey" }
 }

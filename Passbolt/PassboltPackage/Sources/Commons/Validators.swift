@@ -21,30 +21,27 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Foundation
 
-extension Mutation where Subject: TextField {
+public extension Validator where Value: Collection {
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
-  }
-  
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
-  
-  public static func textColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTextColor = color }
-  }
-  
-  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicBorderColor = color
-      subject.layer.borderWidth = width
+  static func nonEmpty(
+    errorIdentifier: TheError.ID = .validation,
+    errorLocalizationKey: String
+  ) -> Self {
+    Self { value in
+      if !value.isEmpty {
+        return .valid(value)
+      } else {
+        return .invalid(
+          value,
+          errors: TheError(
+            identifier: errorIdentifier,
+            underlyingError: nil,
+            extensions: [.localizationKey: errorLocalizationKey]
+          )
+        )
+      }
     }
-  }
-  
-  public static func contentInsets(_ insets: UIEdgeInsets) -> Self {
-    .custom { (subject: Subject) in subject.contentInsets = insets }
   }
 }

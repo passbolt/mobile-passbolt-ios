@@ -21,30 +21,66 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Foundation
 
-extension Mutation where Subject: TextField {
+public struct Validator<Value> {
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  public var validate: (Value) -> Validated<Value>
+  
+  public init(validate: @escaping (Value) -> Validated<Value>) {
+    self.validate = validate
   }
+}
+
+extension Validator {
   
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
+  public func callAsFunction(_ value: Value) -> Validated<Value> {
+    validate(value)
   }
+}
+
+extension Validator {
   
-  public static func textColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTextColor = color }
+  public func contraMap<MappedValue>(
+    _ mapping: @escaping (MappedValue) -> Value
+  ) -> Validator<MappedValue> {
+    Validator<MappedValue> { mappedValue in
+      Validated
+        .valid(mappedValue)
+        .withErrors(
+          self.validate(mapping(mappedValue)).errors
+        )
+    }
   }
+}
+
+public func zip<Value>(
+  _ validators: Validator<Value>...
+) -> Validator<Value> {
+  Validator<Value> { value in
+    validators
+      .reduce(
+        into: .valid(value)
+      ) { validated, validator in
+        validated = validated.withErrors(validator(value).errors)
+      }
+  }
+}
+
+extension Validator {
   
-  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicBorderColor = color
-      subject.layer.borderWidth = width
+  public static var alwaysValid: Self {
+    Self { value in
+      .valid(value)
     }
   }
   
-  public static func contentInsets(_ insets: UIEdgeInsets) -> Self {
-    .custom { (subject: Subject) in subject.contentInsets = insets }
+  public static func alwaysInvalid(errorLocalizationKey: String) -> Self {
+    Self { value in
+      .invalid(
+        value,
+        errors: TheError.validationError(errorLocalizationKey)
+      )
+    }
   }
 }

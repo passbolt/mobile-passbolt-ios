@@ -21,30 +21,26 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-
-extension Mutation where Subject: TextField {
+@testable import Commons
+import XCTest
+// swiftlint:disable explicit_acl
+// swiftlint:disable explicit_top_level_acl
+final class ValidatorTests: XCTestCase {
+  private let messageKeyInvalid: String = "key.invalid"
   
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  func test_nonEmptyValidator_withNonEmptyValue_Succeeds() {
+    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: messageKeyInvalid)
+    let validated: Validated<String> = validator.validate("NonEmptyString")
+    
+    XCTAssertTrue(validated.isValid)
+    XCTAssertTrue(validated.errors.isEmpty)
   }
   
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
-  
-  public static func textColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTextColor = color }
-  }
-  
-  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicBorderColor = color
-      subject.layer.borderWidth = width
-    }
-  }
-  
-  public static func contentInsets(_ insets: UIEdgeInsets) -> Self {
-    .custom { (subject: Subject) in subject.contentInsets = insets }
+  func test_nonEmptyValidator_withEmptyValue_Fails() {
+    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: messageKeyInvalid)
+    let validated: Validated<String> = validator.validate("")
+    
+    XCTAssertFalse(validated.isValid)
+    XCTAssertEqual(validated.errors.first?.identifier, .validation)
   }
 }

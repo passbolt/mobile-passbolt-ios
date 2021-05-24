@@ -57,8 +57,15 @@
 "transfer.account.info.step.fourth" = "Scan the qr codes sequence";
 "transfer.account.scan.qr.button" = "Scan QR codes";
 "transfer.account.camera.access.alert.title" = "Camera access required";
-"transfer.account.camera.access.alert.text" = "Go to Settings/Privacy/Camera to enable access to your Camera. ";
+"transfer.account.camera.access.alert.text" = "Go to Settings/Privacy/Camera to enable access to your Camera.";
 "transfer.account.result.success.title" = "Your information has been transferred!";
 "transfer.account.result.already.linked.title" = "Account is already linked to the device.";
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
 "transfer.account.result.error.title" = "Something went wrong!";
+"sign.in.title" = "Enter your passphrase";
+"autorization.button.title" = "Sign In";
+"autorization.forgot.passphrase.button.title" = "I forgot my passphrase";
+"autorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";
+"autorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
+"autorization.passphrase.description.text" = "Passphrase";
+"autorization.passphrase.error" = "Passphrase is wrong!";

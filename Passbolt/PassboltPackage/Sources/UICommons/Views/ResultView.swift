@@ -23,7 +23,6 @@
 
 import AegithalosCocoa
 
-#warning("TODO: [PAS-109] - verify")
 public final class ResultView: View {
   
   private lazy var imageView: ImageView = .init()

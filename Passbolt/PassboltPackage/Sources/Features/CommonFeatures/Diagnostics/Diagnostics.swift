@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Features
 import struct Foundation.Date
 import struct Foundation.UUID
 import OSIntegration

@@ -39,6 +39,13 @@ open class View: UIView {
     }
   }
   
+  public lazy var dynamicBorderColor: DynamicColor
+  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
+  
   public required init() {
     super.init(frame: .zero)
     setup()

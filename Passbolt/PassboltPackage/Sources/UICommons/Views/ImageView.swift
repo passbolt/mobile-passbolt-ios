@@ -45,6 +45,13 @@ public class ImageView: UIImageView {
     }
   }
   
+  public lazy var dynamicBorderColor: DynamicColor
+  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
+  
   public init() {
     super.init(frame: .zero)
   }
