@@ -73,8 +73,7 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
         guard let self = self else { return }
         
         if granted {
-          let viewController: CodeScanningViewController = self.components.instance()
-          self.navigationController?.pushViewController(viewController, animated: true)
+          self.push(SignInViewController.self)
         } else {
           self.controller.presentNoCameraPermissionAlert()
         }
@@ -87,10 +86,7 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
         guard let self = self else { return }
         
         if presented {
-          self.present(
-            TransferInfoCameraRequiredAlertViewController.self,
-            in: ()
-          )
+          self.present(TransferInfoCameraRequiredAlertViewController.self)
         } else {
           self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
         }

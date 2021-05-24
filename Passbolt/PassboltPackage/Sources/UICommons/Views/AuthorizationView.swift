@@ -24,7 +24,7 @@
 import Combine
 import Commons
 
-public final class AuthorizationView: ScrolledStackView {
+public final class AuthorizationView: KeyboardAwareView {
   
   public var secureTextPublisher: AnyPublisher<String, Never> { passwordInput.textPublisher }
   public var biometricTapPublisher: AnyPublisher<Void, Never> { biometricButton.tapPublisher }
@@ -112,11 +112,16 @@ public final class AuthorizationView: ScrolledStackView {
 
     setupBottomButtons()
     
-    mut(self) {
+    Mutation<ScrolledStackView>
       .combined(
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
         .contentInset(.init(top: 0, left: 16, bottom: 0, right: 16)),
+        .subview(of: self),
+        .leadingAnchor(.equalTo, leadingAnchor),
+        .trailingAnchor(.equalTo, trailingAnchor),
+        .topAnchor(.equalTo, topAnchor),
+        .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
         .appendSpace(of: 72),
         .append(avatarParent),
         .appendSpace(of: 20),
@@ -133,7 +138,7 @@ public final class AuthorizationView: ScrolledStackView {
         .append(signInButton),
         .append(forgotButton)
       )
-    }
+      .instantiate()
   }
   
   public func applyOn(image mutation: Mutation<ImageView>) {
