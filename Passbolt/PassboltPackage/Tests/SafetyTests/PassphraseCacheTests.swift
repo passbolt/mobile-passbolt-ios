@@ -21,10 +21,11 @@
 // @since         v1.0
 //
 
-import Combine
+import Accounts
 import Commons
+import Crypto
+import Environment
 import Features
-import OSIntegration
 @testable import Safety
 import TestExtensions
 import XCTest
@@ -55,7 +56,7 @@ final class PassphraseCacheTests: XCTestCase {
   }
   
   func test_passphraseIsStored_whenStoreIsCalled() {
-    features.environment.time.timestamp = { 0 }
+    features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
@@ -67,7 +68,7 @@ final class PassphraseCacheTests: XCTestCase {
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
-    let accountID: AccountLocalID = "1"
+    let accountID: Account.LocalID = "1"
     var result: Passphrase!
       
     cache.passphrasePublisher(accountID)
@@ -83,7 +84,7 @@ final class PassphraseCacheTests: XCTestCase {
   }
   
   func test_passphraseIsNotStored_whenStoreIsCalled_withExpirationDateInThePast() {
-    features.environment.time.timestamp = { 0 }
+    features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
@@ -95,7 +96,7 @@ final class PassphraseCacheTests: XCTestCase {
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
-    let accountID: AccountLocalID = "1"
+    let accountID: Account.LocalID = "1"
     var result: Passphrase?
       
     cache.passphrasePublisher(accountID)
@@ -112,7 +113,7 @@ final class PassphraseCacheTests: XCTestCase {
   }
   
   func test_alreadyStoredPassphraseIsCleared_whenClearIsCalled() {
-    features.environment.time.timestamp = { 0 }
+    features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
@@ -124,7 +125,7 @@ final class PassphraseCacheTests: XCTestCase {
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
-    let accountID: AccountLocalID = "1"
+    let accountID: Account.LocalID = "1"
     var result: Passphrase?
       
     cache.passphrasePublisher(accountID)
@@ -147,7 +148,7 @@ final class PassphraseCacheTests: XCTestCase {
   func test_passphraseIsCleared_whenAppIsSentToBackground() {
     let lifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
     
-    features.environment.time.timestamp = { 0 }
+    features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       lifeCycleSubject.eraseToAnyPublisher()
     }
@@ -159,7 +160,7 @@ final class PassphraseCacheTests: XCTestCase {
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
-    let accountID: AccountLocalID = "1"
+    let accountID: Account.LocalID = "1"
     var result: Passphrase!
       
     cache.passphrasePublisher(accountID)

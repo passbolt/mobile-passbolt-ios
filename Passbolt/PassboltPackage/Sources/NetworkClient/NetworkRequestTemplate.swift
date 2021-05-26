@@ -22,7 +22,7 @@
 //
 
 import Aegithalos
-import Networking
+import Environment
 
 internal struct NetworkRequestTemplate<Variable> {
   

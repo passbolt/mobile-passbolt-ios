@@ -21,10 +21,9 @@
 // @since         v1.0
 //
 
-import Combine
 import Commons
+import Environment
 @testable import NetworkClient
-@testable import Networking
 import TestExtensions
 import XCTest
 

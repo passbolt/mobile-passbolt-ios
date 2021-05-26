@@ -23,8 +23,8 @@
 
 import AccountSetup
 import Combine
+import Environment
 import Features
-import OSIntegration
 @testable import PassboltApp
 import TestExtensions
 import UIComponents
@@ -106,9 +106,9 @@ final class TransferInfoScreenTests: XCTestCase {
   
   func test_requestOrNavigatePublisher_passesPermissionState() {
     var appPermissions: OSPermissions = .placeholder
-    appPermissions.ensureCameraPermission = {
+    appPermissions.ensureCameraPermission = always(
       Just(true).eraseToAnyPublisher()
-    }
+    )
     features.use(appPermissions)
     
     let controller: TransferInfoScreenController = .instance(with: features)

@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import OSIntegration
+import Environment
 import UIComponents
 
 internal final class TransferInfoScreenViewController: PlainViewController, UIComponent {
@@ -73,7 +73,7 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
         guard let self = self else { return }
         
         if granted {
-          self.push(SignInViewController.self)
+          self.push(CodeScanningViewController.self)
         } else {
           self.controller.presentNoCameraPermissionAlert()
         }

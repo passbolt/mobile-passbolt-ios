@@ -56,11 +56,12 @@ final class CodeScanningScreenTests: XCTestCase {
   
   func test_exitConfirmation_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.scanningProgressPublisher = {
+    accountTransfer.scanningProgressPublisher = always(
       Just(.configuration)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
-    }
+    )
+
     features.use(accountTransfer)
     let controller: CodeScanningController = .instance(with: features)
     var result: Bool!
@@ -79,11 +80,11 @@ final class CodeScanningScreenTests: XCTestCase {
   
   func test_help_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.scanningProgressPublisher = {
+    accountTransfer.scanningProgressPublisher = always(
       Just(.configuration)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
-    }
+    )
     features.use(accountTransfer)
     let controller: CodeScanningController = .instance(with: features)
     var result: Bool!
@@ -102,11 +103,11 @@ final class CodeScanningScreenTests: XCTestCase {
   
   func test_initialProgress_isNotEmptyAndNotFull() {
     var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.scanningProgressPublisher = {
+    accountTransfer.scanningProgressPublisher = always(
       Just(.configuration)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
-    }
+    )
     features.use(accountTransfer)
     let controller: CodeScanningController = .instance(with: features)
     var result: Double!

@@ -13,7 +13,7 @@
 //
 
 import Commons
-@testable import Crypto
+@testable import Environment
 import TestExtensions
 import XCTest
 
@@ -35,7 +35,7 @@ final class PGPTests: XCTestCase {
   
   func test_encryptionWithSigning_withCorrectKey_succeeds() {
     let input: String = "The quick brown fox jumps over the lazy dog"
-    let passphrase: String = "SecretPassphrase"
+    let passphrase: Passphrase = "SecretPassphrase"
     
     let output: Result<String, TheError> = pgp.encryptAndSign(
       input, passphrase, privateKey, publicKey
@@ -46,7 +46,7 @@ final class PGPTests: XCTestCase {
 
   func test_encryption_WithIncorrectPassphraseSigning_fails() {
     let input: String = ""
-    let passphrase: String = "SomeInvalidPassphrase"
+    let passphrase: Passphrase = "SomeInvalidPassphrase"
     
     let output: Result<String, TheError> = pgp.encryptAndSign(
       input, passphrase, privateKey, publicKey
@@ -62,7 +62,7 @@ final class PGPTests: XCTestCase {
   
   func test_decryptionAndVerification_withCorrectPassphrase_succeeds() {
     let input: String = signedCiphertext
-    let passphrase: String = "SecretPassphrase"
+    let passphrase: Passphrase = "SecretPassphrase"
     
     let output: Result<String, TheError> = pgp.decryptAndVerify(
       input, passphrase, privateKey, publicKey
@@ -78,7 +78,7 @@ final class PGPTests: XCTestCase {
     CORRUPTED DATA SHOULD FAIL
     -----END PGP MESSAGE-----
     """
-    let passphrase: String = "SecretPassphrase"
+    let passphrase: Passphrase = "SecretPassphrase"
     
     let output: Result<String, TheError> = pgp.decryptAndVerify(
       input, passphrase, privateKey, publicKey
@@ -95,7 +95,7 @@ final class PGPTests: XCTestCase {
   func test_encryptionWithoutSigning_withProperInputData_success() {
     let input: String = "The quick brown fox jumps over the lazy dog"
     
-    let output: Result<String, TheError> = pgp.encrypt(input, privateKey)
+    let output: Result<String, TheError> = pgp.encrypt(input, publicKey)
     
     XCTAssertSuccessNotEqual(output, input)
   }
@@ -115,7 +115,7 @@ final class PGPTests: XCTestCase {
   
   func test_decryptionWithoutVerifying_withCorrectPassphrase_succeeds() {
     let input: String = signedCiphertext
-    let passphrase: String = "SecretPassphrase"
+    let passphrase: Passphrase = "SecretPassphrase"
     
     let output: Result<String, TheError> = pgp.decrypt(input, passphrase, privateKey)
     
@@ -124,7 +124,7 @@ final class PGPTests: XCTestCase {
   
   func test_decryptionWithoutVerifying_withInvalidPassphrase_fails() {
     let input: String = signedCiphertext
-    let passphrase: String = "InvalidPasshrase"
+    let passphrase: Passphrase = "InvalidPasshrase"
     
     let output: Result<String, TheError> = pgp.decrypt(
       input, passphrase, privateKey
@@ -140,7 +140,7 @@ final class PGPTests: XCTestCase {
   
   func test_signMessage_withCorrectInputData_succeeds() {
     let input: String = "The quick brown fox jumps over the lazy dog"
-    let passphrase: String = "SecretPassphrase"
+    let passphrase: Passphrase = "SecretPassphrase"
     
     let output: Result<String, TheError> = pgp.signMessage(
       input, passphrase, privateKey
@@ -159,7 +159,7 @@ final class PGPTests: XCTestCase {
   
   func test_signMessage_withEmptyMessageAndPassphrase_fails() {
     let input: String = ""
-    let passphrase: String = ""
+    let passphrase: Passphrase = ""
     
     let output: Result<String, TheError> = pgp.signMessage(
       input, passphrase, privateKey
@@ -222,7 +222,7 @@ final class PGPTests: XCTestCase {
   }
   
   func test_verifyPassphrase_withCorrectPassphrase_succeeds() {
-    let passphrase: String = "SecretPassphrase"
+    let passphrase: Passphrase = "SecretPassphrase"
     
     let output: Result<Void, TheError> = pgp.verifyPassphrase(privateKey, passphrase)
     
@@ -232,7 +232,7 @@ final class PGPTests: XCTestCase {
   }
   
   func test_verifyPassphrase_withIncorrectInputData_fails() {
-    let passphrase: String = "InvalidPassphrase"
+    let passphrase: Passphrase = "InvalidPassphrase"
     
     let output: Result<Void, TheError> = pgp.verifyPassphrase(privateKey, passphrase)
     
@@ -246,7 +246,7 @@ final class PGPTests: XCTestCase {
   
   // MARK: Test data
   
-  private let publicKey: String =
+  private let publicKey: ArmoredPublicKey =
   """
   -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -280,7 +280,7 @@ final class PGPTests: XCTestCase {
   -----END PGP PUBLIC KEY BLOCK-----
   """
   
-  private let privateKey: String =
+  private let privateKey: ArmoredPrivateKey =
   """
   -----BEGIN PGP PRIVATE KEY BLOCK-----
   

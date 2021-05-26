@@ -22,9 +22,8 @@
 //
 
 import Aegithalos
-import Combine
 import Commons
-import Networking
+import Environment
 
 public struct NetworkRequest<Variable, Response> {
   

@@ -21,8 +21,11 @@
 // @since         v1.0
 //
 
+import Accounts
 import Commons
+import Crypto
 import CryptoKit
+import Environment
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
@@ -30,7 +33,7 @@ internal struct AccountTransferAccount {
   
   internal var userID: String
   internal var fingerprint: String
-  internal var armoredKey: String
+  internal var armoredKey: ArmoredPrivateKey
 }
 
 extension AccountTransferAccount {

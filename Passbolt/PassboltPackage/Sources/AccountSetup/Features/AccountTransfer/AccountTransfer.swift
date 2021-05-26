@@ -21,16 +21,18 @@
 // @since         v1.0
 //
 
+import Accounts
 import Commons
+import Crypto
 import Features
 import NetworkClient
-
-import class Foundation.RunLoop
+import Safety
 
 public struct AccountTransfer {
   
   public var scanningProgressPublisher: () -> AnyPublisher<ScanningProgress, TheError>
   public var processPayload: (String) -> AnyPublisher<Never, TheError>
+  public var completeTransfer: (Passphrase) -> AnyPublisher<Void, TheError>
   public var cancelTransfer: () -> Void
 }
 
@@ -45,12 +47,13 @@ extension AccountTransfer: Feature {
   ) -> AccountTransfer {
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
+    let accountSession: AccountSession = features.instance()
     let transferState: CurrentValueSubject<AccountTransferState, TheError> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable // silence warning
     
-    return Self(
-      scanningProgressPublisher: transferState
+    func scanningProgressPublisher() -> AnyPublisher<ScanningProgress, TheError> {
+      transferState
         .map { state -> ScanningProgress in
           if state.scanningFinished {
             return .finished
@@ -64,71 +67,113 @@ extension AccountTransfer: Feature {
           }
         }
         .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher,
-      processPayload: { payload in
-        switch processQRCodePayload(payload, in: transferState.value) {
-        // swiftlint:disable:next explicit_type_interface
-        case let .success(updatedState):
-          return requestNextPage(
-            for: updatedState,
-            using: networkClient
-          )
-          .handleEvents(receiveCompletion: { completion in
-            guard case .finished = completion else { return }
-            transferState.value = updatedState
-          })
+        .eraseToAnyPublisher()
+    }
+    
+    func processPayload(_ payload: String) -> AnyPublisher<Never, TheError> {
+      switch processQRCodePayload(payload, in: transferState.value) {
+      // swiftlint:disable:next explicit_type_interface
+      case let .success(updatedState):
+        return requestNextPage(
+          for: updatedState,
+          using: networkClient
+        )
+        .handleEvents(receiveCompletion: { completion in
+          guard case .finished = completion else { return }
+          transferState.value = updatedState
+        })
+        .collectErrorLog(using: diagnostics)
+        .eraseToAnyPublisher()
+      // swiftlint:disable:next explicit_type_interface
+      case let .failure(error)
+      where error.identifier == .canceled
+      || error.identifier == .accountTransferScanningRecoverableError:
+        return Fail<Never, TheError>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
-        // swiftlint:disable:next explicit_type_interface
-        case let .failure(error)
-        where error.identifier == .canceled
-        || error.identifier == .accountTransferScanningRecoverableError:
-          return Fail<Never, TheError>(error: error)
-          .collectErrorLog(using: diagnostics)
-          .eraseToAnyPublisher()
-        // swiftlint:disable:next explicit_type_interface
-        case let .failure(error):
-          if let configuration: AccountTransferConfiguration = transferState.value.configuration {
-            return requestCancelation(
-              with: configuration,
-              lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
-              using: networkClient,
-              causedByError: error
-            )
-            .handleEvents(receiveCompletion: { completion in
-              // swiftlint:disable:next explicit_type_interface
-              guard case let .failure(error) = completion
-              else { unreachable("Cannot complete without an error when processing error") }
-              transferState.send(completion: .failure(error))
-            })
-            .ignoreOutput() // we care only about completion or failure
-            .collectErrorLog(using: diagnostics)
-            .eraseToAnyPublisher()
-          } else { // we can't cancel if we don't have configuration yet
-            transferState.send(completion: .failure(error))
-            return Fail<Never, TheError>(error: error)
-            .collectErrorLog(using: diagnostics)
-            .eraseToAnyPublisher()
-          }
-        }
-      },
-      cancelTransfer: { [weak features] in
+      // swiftlint:disable:next explicit_type_interface
+      case let .failure(error):
         if let configuration: AccountTransferConfiguration = transferState.value.configuration {
-          transferCancelationCancellable = requestCancelation(
+          return requestCancelation(
             with: configuration,
             lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
-            using: networkClient
+            using: networkClient,
+            causedByError: error
           )
+          .handleEvents(receiveCompletion: { completion in
+            // swiftlint:disable:next explicit_type_interface
+            guard case let .failure(error) = completion
+            else { unreachable("Cannot complete without an error when processing error") }
+            transferState.send(completion: .failure(error))
+          })
+          .ignoreOutput() // we care only about completion or failure
           .collectErrorLog(using: diagnostics)
-          .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-        } else { /* we can't cancel if we don't have configuration yet */ }
-        transferState.send(
-          completion: .failure(
-            .canceled.appending(context: "account-transfer-scanning-cancel")
+          .eraseToAnyPublisher()
+        } else { // we can't cancel if we don't have configuration yet
+          transferState.send(completion: .failure(error))
+          return Fail<Never, TheError>(error: error)
+            .collectErrorLog(using: diagnostics)
+            .eraseToAnyPublisher()
+        }
+      }
+    }
+    
+    func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Void, TheError> {
+      guard
+        let configuration = transferState.value.configuration,
+        let account = transferState.value.account
+      else {
+        return Fail<Void, TheError>(
+          error: .accountTransferScanningRecoverableError(
+            context: "account-transfer-complete-invalid-state"
           )
         )
-        features?.unload(AccountTransfer.self)
+        .eraseToAnyPublisher()
       }
+      return accountSession
+        .completeAccountTransfer(
+          configuration.domain,
+          account.userID,
+          account.fingerprint,
+          account.armoredKey,
+          passphrase
+        )
+        .handleEvents(receiveCompletion: { [weak features] completion in
+          guard case .finished = completion else { return }
+          transferState.send(completion: .finished)
+          features?.unload(AccountTransfer.self)
+        })
+        .eraseToAnyPublisher()
+    }
+    
+    func _cancelTransfer(using features: FeatureFactory) -> Void {
+      if let configuration: AccountTransferConfiguration = transferState.value.configuration {
+        transferCancelationCancellable = requestCancelation(
+          with: configuration,
+          lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
+          using: networkClient
+        )
+        .collectErrorLog(using: diagnostics)
+        // we don't care about response, user exits process anyway
+        .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+      } else { /* we can't cancel if we don't have configuration yet */ }
+      transferState.send(
+        completion: .failure(
+          .canceled.appending(context: "account-transfer-scanning-cancel")
+        )
+      )
+      features.unload(AccountTransfer.self)
+    }
+    // swiftlint:disable:next unowned_variable_capture
+    let cancelTransfer: () -> Void = { [unowned features] in
+      _cancelTransfer(using: features)
+    }
+    
+    return Self(
+      scanningProgressPublisher: scanningProgressPublisher,
+      processPayload: processPayload,
+      completeTransfer: completeTransfer,
+      cancelTransfer: cancelTransfer
     )
   }
   
@@ -152,6 +197,7 @@ extension AccountTransfer: Feature {
     Self(
       scanningProgressPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       processPayload: Commons.placeholder("You have to provide mocks for used methods"),
+      completeTransfer: Commons.placeholder("You have to provide mocks for used methods"),
       cancelTransfer: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

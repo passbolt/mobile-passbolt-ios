@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Combine
 import Commons
 
 public final class AuthorizationView: KeyboardAwareView {

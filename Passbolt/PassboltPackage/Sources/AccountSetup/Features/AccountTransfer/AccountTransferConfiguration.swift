@@ -23,6 +23,7 @@
 
 import Commons
 import struct Foundation.Data
+import struct Foundation.URLComponents
 import class Foundation.JSONDecoder
 
 internal struct AccountTransferConfiguration {
@@ -41,18 +42,29 @@ extension AccountTransferConfiguration {
     _ part: AccountTransferScanningPart
   ) -> Result<Self, TheError> {
     let jsonDecoder: JSONDecoder = .init()
+    var decoded: Self
     do {
-      return .success(
-        try jsonDecoder
-          .decode(
-            Self.self,
-            from: part.payload
-          )
-      )
+      decoded = try jsonDecoder
+        .decode(
+          Self.self,
+          from: part.payload
+        )
     } catch {
       return .failure(
         .accountTransferScanningError(context: "configuration-decoding-invalid-json")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
+      )
+    }
+    
+    if // here we verify if it is valid url
+      let urlComponents: URLComponents = .init(string: decoded.domain),
+      urlComponents.scheme == "https" // we don't allow http servers since we can't handle it
+    {
+      return .success(decoded)
+    } else {
+      return .failure(
+        .accountTransferScanningError(context: "configuration-decoding-invalid-domain")
+          .appending(logMessage: "Invalid QRCode data - not a valid configuration domain")
       )
     }
   }

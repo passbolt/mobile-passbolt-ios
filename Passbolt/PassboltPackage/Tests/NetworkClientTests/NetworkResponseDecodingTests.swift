@@ -23,8 +23,8 @@
 
 import Commons
 import Foundation
+import Environment
 @testable import NetworkClient
-import Networking
 import TestExtensions
 import XCTest
 

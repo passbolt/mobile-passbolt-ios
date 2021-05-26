@@ -22,7 +22,6 @@
 //
 
 import Features
-import Networking
 
 #if DEBUG
 public extension Networking {

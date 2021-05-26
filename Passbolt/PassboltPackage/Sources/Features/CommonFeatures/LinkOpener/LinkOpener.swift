@@ -23,7 +23,7 @@
 
 import Combine
 import Foundation
-import OSIntegration
+import Environment
 
 public struct LinkOpener {
   

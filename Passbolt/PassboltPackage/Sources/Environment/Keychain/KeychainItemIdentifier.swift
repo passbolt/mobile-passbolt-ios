@@ -21,30 +21,24 @@
 // @since         v1.0
 //
 
-import Features
-import UIComponents
+import Commons
 
-internal struct TransferInfoScreenController {
+public struct KeychainItemIdentifier {
   
-  internal typealias Context = Void
+  public typealias Key = Tagged<String, Self>
+  public typealias Tag = Tagged<String, Key>
   
-  internal var presentNoCameraPermissionAlert: () -> Void
-  internal var requestOrNavigatePublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentNoCameraPermissionAlertPublisher: () -> AnyPublisher<Bool, Never>
-}
-
-extension TransferInfoScreenController: UIController {
+  public var key: Key
+  public var tag: Tag?
+  public var requiresBiometrics: Bool
   
-  internal static func instance(
-    in context: Void,
-    with features: FeatureFactory
-  ) -> TransferInfoScreenController {
-    let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
-    
-    return Self(
-      presentNoCameraPermissionAlert: { presentNoCameraPermissionAlertSubject.send(true) },
-      requestOrNavigatePublisher: { features.instance(of: OSPermissions.self).ensureCameraPermission() },
-      presentNoCameraPermissionAlertPublisher: { presentNoCameraPermissionAlertSubject.eraseToAnyPublisher() }
-    )
+  public init(
+    key: Key,
+    tag: Tag?,
+    requiresBiometrics: Bool
+  ) {
+    self.key = key
+    self.tag = tag
+    self.requiresBiometrics = requiresBiometrics
   }
 }

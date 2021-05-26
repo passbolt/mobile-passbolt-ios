@@ -23,7 +23,6 @@
 
 import Commons
 import Features
-import Networking
 
 #warning("TODO: session management: [PAS-69]")
 public struct NetworkClient {

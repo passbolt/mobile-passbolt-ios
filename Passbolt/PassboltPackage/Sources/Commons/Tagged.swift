@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct Tagged<RawValue: Hashable, Type>: Hashable, RawRepresentable {
+public struct Tagged<RawValue, Type>: RawRepresentable {
   
   public var rawValue: RawValue
   
@@ -150,11 +150,49 @@ where RawValue: ExpressibleByNilLiteral {
   }
 }
 
-extension Tagged {
+extension Tagged: Encodable
+where RawValue: Encodable {
   
-  public static func ~= <RawValue: Hashable, Type>(
+  public func encode(to encoder: Encoder) throws {
+    try rawValue.encode(to: encoder)
+  }
+}
+
+extension Tagged: Decodable
+where RawValue: Decodable {
+  
+  public init(from decoder: Decoder) throws {
+    self.rawValue = try RawValue(from: decoder)
+  }
+}
+
+extension Tagged: Equatable
+where RawValue: Equatable {
+  
+  public static func == (
     _ lhs: RawValue,
-    _ rhs: Tagged<RawValue, Type>
+    _ rhs: Tagged
+  ) -> Bool {
+    lhs == rhs.rawValue
+  }
+  
+  public static func == (
+    _ lhs: Tagged,
+    _ rhs: RawValue
+  ) -> Bool {
+    lhs.rawValue == rhs
+  }
+}
+
+extension Tagged: Hashable
+where RawValue: Hashable {}
+
+extension Tagged
+where RawValue: Equatable {
+  
+  public static func ~= (
+    _ lhs: RawValue,
+    _ rhs: Tagged
   ) -> Bool {
     lhs == rhs.rawValue
   }

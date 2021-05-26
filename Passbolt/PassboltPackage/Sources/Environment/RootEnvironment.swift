@@ -20,3 +20,15 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+public typealias RootEnvironment = (
+  time: Time,
+  uuidGenerator: UUIDGenerator,
+  logger: Logger,
+  networking: Networking,
+  preferences: Preferences,
+  keychain: Keychain,
+  camera: Camera,
+  urlOpener: ExternalURLOpener,
+  appLifeCycle: AppLifeCycle
+)

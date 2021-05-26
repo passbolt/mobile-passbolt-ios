@@ -21,9 +21,10 @@
 // @since         v1.0
 //
 
-@testable import PassboltApp
-import XCTest
+import Commons
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-final class PassboltAppTests: XCTestCase {}
+public enum ArmoredPrivateKeyTag {}
+public typealias ArmoredPrivateKey = Tagged<String, ArmoredPrivateKeyTag>
+
+public enum ArmoredPublicKeyTag {}
+public typealias ArmoredPublicKey = Tagged<String, ArmoredPublicKeyTag>

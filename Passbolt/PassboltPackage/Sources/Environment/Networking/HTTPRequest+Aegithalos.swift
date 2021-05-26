@@ -26,6 +26,7 @@ import Commons
 import struct Foundation.Data
 import class Foundation.JSONEncoder
 import struct Foundation.URL
+import struct Foundation.URLComponents
 import struct Foundation.URLQueryItem
 
 extension Mutation where Subject == HTTPRequest {
@@ -43,6 +44,14 @@ extension Mutation where Subject == HTTPRequest {
   ) -> Self {
     Self { request in
       request.url = url
+    }
+  }
+  
+  public static func url(
+    string: String
+  ) -> Self {
+    Self { request in
+      request.urlComponents = URLComponents(string: string) ?? .init()
     }
   }
   

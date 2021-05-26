@@ -32,7 +32,7 @@ public struct HTTPRequest {
   public var method: HTTPMethod
   public var headers: HTTPHeaders
   public var body: HTTPBody
-  private var urlComponents: URLComponents
+  public var urlComponents: URLComponents
   
   public init(
     url: URL? = .none,
@@ -119,7 +119,7 @@ extension HTTPRequest {
     urlRequest.httpMethod = method.rawValue
     urlRequest.httpBody = body
     urlRequest.allHTTPHeaderFields = headers
-    urlRequest.timeoutInterval = 30
+    urlRequest.timeoutInterval = 10
     urlRequest.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
     urlRequest.httpShouldHandleCookies = false
     return urlRequest

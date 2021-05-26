@@ -23,22 +23,21 @@
 
 import Commons
 
-public struct KeychainItemIdentifier {
+extension TheError {
   
-  public typealias Key = Tagged<String, Self>
-  public typealias Tag = Tagged<String, Self>
-  
-  public var key: Key
-  public var tag: Tag?
-  public var requiresBiometrics: Bool
-  
-  public init(
-    key: Key,
-    tag: Tag?,
-    requiresBiometrics: Bool
-  ) {
-    self.key = key
-    self.tag = tag
-    self.requiresBiometrics = requiresBiometrics
+  public static func invalidPassphrase(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .invalidPassphrase,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
   }
 }
+
+extension TheError.ID {
+  
+  public static let invalidPassphrase: Self = "invalidPassphrase"
+}
+

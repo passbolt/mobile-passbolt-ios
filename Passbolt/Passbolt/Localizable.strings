@@ -69,3 +69,5 @@
 "autorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
 "autorization.passphrase.description.text" = "Passphrase";
 "autorization.passphrase.error" = "Passphrase is wrong!";
+
+"biometrics.usage.reason" = "Biometrics can be used to save your passphrase securely.";

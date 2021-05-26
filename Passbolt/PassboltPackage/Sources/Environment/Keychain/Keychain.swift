@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Combine
 import Commons
 import Foundation
 import LocalAuthentication
@@ -48,10 +47,9 @@ extension Keychain {
           let completionSubject: PassthroughSubject<Bool, TheError> = .init()
           if !isInExtensionContext {
             DispatchQueue.main.async {
-              #warning("TODO: Provide localized string for reason")
               context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: "TODO: reason"
+                localizedReason: NSLocalizedString("biometrics.usage.reason", comment: "")
               ) { granted, error in
                 if error != nil {
                   completionSubject.send(

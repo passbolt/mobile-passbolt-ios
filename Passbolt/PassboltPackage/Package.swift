@@ -20,18 +20,11 @@ let package = Package(
     ),
     .library(
       name: "Crypto",
-      targets: [
-        "Crypto",
-        "gopenPGP"
-      ]
+      targets: ["Crypto"]
     ),
     .library(
       name: "Features",
       targets: ["Features"]
-    ),
-    .library(
-      name: "Networking",
-      targets: ["Networking"]
     ),
     .library(
       name: "NetworkClient",
@@ -58,14 +51,6 @@ let package = Package(
       targets: ["Settings"]
     ),
     .library(
-      name: "SignIn",
-      targets: ["SignIn"]
-    ),
-    .library(
-      name: "Storage",
-      targets: ["Storage"]
-    ),
-    .library(
       name: "UICommons",
       targets: ["UICommons"]
     ),
@@ -74,8 +59,11 @@ let package = Package(
       targets: ["UIComponents"]
     ),
     .library(
-      name: "User",
-      targets: ["User"]
+      name: "Environment",
+      targets: [
+        "Environment",
+        "gopenPGP"
+      ]
     )
   ],
   dependencies: [
@@ -90,9 +78,9 @@ let package = Package(
       name: "Accounts",
       dependencies: [
         "Commons",
+        "Crypto",
         "Features",
         "Settings",
-        "Storage"
       ]
     ),
     .target(
@@ -100,8 +88,10 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
+        "Crypto",
         "Features",
         "NetworkClient",
+        "Safety",
       ]
     ),
     .testTarget(
@@ -128,7 +118,6 @@ let package = Package(
       name: "Crypto",
       dependencies: [
         "Commons",
-        "gopenPGP"
       ]
     ),
     .testTarget(
@@ -142,17 +131,7 @@ let package = Package(
       name: "Features",
       dependencies: [
         "Commons",
-        "Crypto",
-        "Networking",
-        "OSIntegration",
-        "Storage"
-      ]
-    ),
-    .target(
-      name: "Networking",
-      dependencies: [
-        "Commons",
-        .product(name: "Aegithalos", package: "Aegithalos")
+        "Environment",
       ]
     ),
     .target(
@@ -161,7 +140,7 @@ let package = Package(
         "Accounts",
         "Commons",
         "Features",
-        "Networking"
+        "Environment"
       ]
     ),
     .testTarget(
@@ -172,9 +151,18 @@ let package = Package(
       ]
     ),
     .target(
-      name: "OSIntegration",
+      name: "Environment",
       dependencies: [
-        "Commons"
+        .product(name: "Aegithalos", package: "Aegithalos"),
+        "Commons",
+        "gopenPGP",
+      ]
+    ),
+    .testTarget(
+      name: "EnvironmentTests",
+      dependencies: [
+        "Environment",
+        "TestExtensions",
       ]
     ),
     .target(
@@ -186,9 +174,8 @@ let package = Package(
         "UICommons",
         "UIComponents",
         "Features",
-        "SignIn",
         "Resources",
-        "User"
+        "Environment"
       ]
     ),
     .testTarget(
@@ -206,8 +193,8 @@ let package = Package(
         "UICommons",
         "UIComponents",
         "Features",
-        "SignIn",
-        "Resources"
+        "Resources",
+        "Environment"
       ]
     ),
     .testTarget(
@@ -223,7 +210,7 @@ let package = Package(
         "NetworkClient",
         "Safety",
         "Settings",
-        "Storage"
+        "Environment"
       ]
     ),
     .target(
@@ -231,9 +218,9 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
-        "Crypto",
         "Features",
-        "Settings"
+        "Settings",
+        "Environment",
       ]
     ),
     .testTarget(
@@ -248,24 +235,8 @@ let package = Package(
       dependencies: [
         "Commons",
         "Features",
-        "Storage"
+        "Environment",
       ]
-    ),
-    .target(
-      name: "SignIn",
-      dependencies: [
-        "Accounts",
-        "Commons",
-        "Features",
-        "Safety",
-        "NetworkClient"
-      ]
-    ),
-    .target(
-      name: "Storage",
-      dependencies: [
-        "Commons"
-      ] // TODO: Add database as dependency
     ),
     .target(
       name: "TestExtensions",
@@ -293,28 +264,16 @@ let package = Package(
     .target(
       name: "UIComponents",
       dependencies: [
+        .product(name: "AegithalosCocoa", package: "Aegithalos"),
         "Commons",
         "Features",
         "UICommons",
-        .product(name: "AegithalosCocoa", package: "Aegithalos")
       ]
     ),
     .testTarget(
       name: "UIComponentsTests",
       dependencies: [
         "UIComponents"
-      ]
-    ),
-    .target(
-      name: "User",
-      dependencies: [
-        "Accounts",
-        "Commons",
-        "Features",
-        "NetworkClient",
-        "Safety",
-        "Settings",
-        "Storage"
       ]
     ),
     .binaryTarget(

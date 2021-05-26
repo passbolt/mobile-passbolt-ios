@@ -22,25 +22,111 @@
 //
 
 import Features
+import Crypto
 
-public struct Accounts {}
+public struct Accounts {
+  
+  public var verifyAccountsDataIntegrity: () -> Void
+  public var storedAccounts: () -> Array<Account>
+  public var storeAccount: (
+    _ domain: String,
+    _ userID: String,
+    _ fingerprint: String,
+    _ armoredKey: ArmoredPrivateKey
+  ) -> Account
+  public var removeAccount: (Account) -> Void
+}
 
 extension Accounts: Feature {
   
-  public typealias Environment = Void
+  public typealias Environment = (
+    preferences: Preferences,
+    keychain: Keychain,
+    uuidGenerator: UUIDGenerator
+  )
+  
+  public static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
+    (
+      preferences: rootEnvironment.preferences,
+      keychain: rootEnvironment.keychain,
+      uuidGenerator: rootEnvironment.uuidGenerator
+    )
+  }
   
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: inout Array<AnyCancellable>
-  ) -> Accounts {
-    Self()
+  ) -> Self {
+    let metadataStore: AccountsStore = features.instance()
+    
+    func verifyAccountsDataIntegrity() -> Void {
+      metadataStore.verifyDataIntegrity()
+    }
+    
+    func storedAccounts() -> Array<Account> {
+      #warning("TODO: [PAS-84]")
+      Commons.placeholder("TODO: [PAS-84]")
+    }
+    
+    func storeAccount(
+      domain: String,
+      userID: String,
+      fingerprint: String,
+      armoredKey: ArmoredPrivateKey
+    ) -> Account {
+      var storedAccountIdentifiers: Array<Account.LocalID>
+        = environment
+        .preferences
+        .load(Array<Account.LocalID>.self, for: "TODO: [PAS-84]")
+        ?? .init()
+      
+      let newLocalAccountIdentifier: Account.LocalID
+        = .init(rawValue: environment.uuidGenerator().uuidString)
+      storedAccountIdentifiers.append(newLocalAccountIdentifier)
+      environment
+        .preferences
+        .save(storedAccountIdentifiers, for: "TODO: [PAS-84]")
+      #warning("TODO: [PAS-84]")
+      Commons.placeholder("TODO: [PAS-84]")
+    }
+    
+    func removeAccount(_ account: Account) -> Void {
+      #warning("TODO: [PAS-84]")
+      Commons.placeholder("TODO: [PAS-84]")
+    }
+    
+    return Self(
+      verifyAccountsDataIntegrity: verifyAccountsDataIntegrity,
+      storedAccounts: storedAccounts,
+      storeAccount: storeAccount(domain:userID:fingerprint:armoredKey:),
+      removeAccount: removeAccount
+    )
   }
   
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
-    Self()
+    Self(
+      verifyAccountsDataIntegrity: Commons.placeholder("You have to provide mocks for used methods"),
+      storedAccounts: Commons.placeholder("You have to provide mocks for used methods"),
+      storeAccount: Commons.placeholder("You have to provide mocks for used methods"),
+      removeAccount: Commons.placeholder("You have to provide mocks for used methods")
+    )
   }
   #endif
+}
+
+extension Accounts {
+  
+  public func storeTransferedAccount(
+    domain: String,
+    userID: String,
+    fingerprint: String,
+    armoredKey: ArmoredPrivateKey
+  ) -> Account {
+    storeAccount(domain, userID, fingerprint, armoredKey)
+  }
 }

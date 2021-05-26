@@ -21,18 +21,7 @@
 // @since         v1.0
 //
 
-import Networking
-import OSIntegration
-import Storage
+import Commons
 
-public typealias RootEnvironment = (
-  time: Time,
-  uuidGenerator: UUIDGenerator,
-  logger: Logger,
-  networking: Networking,
-  preferences: Preferences,
-  keychain: Keychain,
-  camera: Camera,
-  urlOpener: ExternalURLOpener,
-  appLifeCycle: AppLifeCycle
-)
+public enum PassphraseTag {}
+public typealias Passphrase = Tagged<String, PassphraseTag>

@@ -49,13 +49,6 @@
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "CryptoTests",
-        "name" : "CryptoTests"
-      }
-    },
-    {
       "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
@@ -75,6 +68,13 @@
         "containerPath" : "container:PassboltPackage",
         "identifier" : "SafetyTests",
         "name" : "SafetyTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "EnvironmentTests",
+        "name" : "EnvironmentTests"
       }
     }
   ],

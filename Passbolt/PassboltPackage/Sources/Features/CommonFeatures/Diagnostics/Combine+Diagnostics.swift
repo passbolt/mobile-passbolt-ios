@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Combine
 import Commons
 
 extension Publisher where Failure == TheError {

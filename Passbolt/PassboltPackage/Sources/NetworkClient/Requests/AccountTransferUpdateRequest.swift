@@ -21,9 +21,8 @@
 // @since         v1.0
 //
 
-import Combine
 import Commons
-import Networking
+import Environment
 
 public typealias AccountTransferUpdateRequest
   = NetworkRequest<AccountTransferUpdateRequestVariable, AccountTransferUpdateResponse>
@@ -38,7 +37,7 @@ extension AccountTransferUpdateRequest {
       template: .init { _, requestVariable in
         .combined(
           .scheme("https"),
-          .host(requestVariable.domain.replacingOccurrences(of: "https://", with: "")),
+          .url(string: requestVariable.domain),
           .path("/mobile/transfers/\(requestVariable.transferID)/\(requestVariable.authenticationToken).json"),
           .method(.put),
           .header("Content-Type", value: "application/json"),

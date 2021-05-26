@@ -23,7 +23,7 @@
 
 import struct Foundation.Date
 import struct Foundation.UUID
-import OSIntegration
+import Environment
 
 public struct Diagnostics {
   

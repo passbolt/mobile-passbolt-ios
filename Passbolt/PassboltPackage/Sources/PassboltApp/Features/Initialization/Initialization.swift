@@ -1,3 +1,4 @@
+import Accounts
 import Features
 
 public struct Initialization {
@@ -15,12 +16,14 @@ extension Initialization: Feature {
     cancellables: inout Array<AnyCancellable>
   ) -> Initialization {
     let diagnostics: Diagnostics = features.instance()
+    let accounts: Accounts = features.instance()
     
     return Self(
       initialize: {
         diagnostics.debugLog("Initialization")
         defer { diagnostics.debugLog("Initialization completed") }
         // initialize application features here
+        accounts.verifyAccountsDataIntegrity()
         return true // true if succeeded
       }
     )

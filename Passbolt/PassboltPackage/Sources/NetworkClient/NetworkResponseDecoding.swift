@@ -22,7 +22,7 @@
 //
 
 import Commons
-import Networking
+import Environment
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 

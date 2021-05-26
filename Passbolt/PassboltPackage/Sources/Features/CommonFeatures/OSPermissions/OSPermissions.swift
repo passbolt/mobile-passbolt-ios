@@ -22,7 +22,7 @@
 //
 
 import Combine
-import OSIntegration
+import Environment
 
 public struct OSPermissions {
   /// Ensure app has permission to use the camera
@@ -37,7 +37,9 @@ extension OSPermissions: Feature {
   
   public typealias Environment = Camera
   
-  public static func environmentScope(_ rootEnvironment: RootEnvironment) -> Environment {
+  public static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
     rootEnvironment.camera
   }
   
