@@ -76,6 +76,13 @@
         "identifier" : "EnvironmentTests",
         "name" : "EnvironmentTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "CryptoTests",
+        "name" : "CryptoTests"
+      }
     }
   ],
   "version" : 1

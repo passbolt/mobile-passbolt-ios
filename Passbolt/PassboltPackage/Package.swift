@@ -123,6 +123,7 @@ let package = Package(
     .testTarget(
       name: "CryptoTests",
       dependencies: [
+        "Commons",
         "Crypto",
         "TestExtensions"
       ]

@@ -12,8 +12,8 @@
 // @since         v1.0
 //
 
+import Crypto
 import Commons
-@testable import Environment
 import TestExtensions
 import XCTest
 
@@ -94,10 +94,22 @@ final class PGPTests: XCTestCase {
   
   func test_encryptionWithoutSigning_withProperInputData_success() {
     let input: String = "The quick brown fox jumps over the lazy dog"
+    let passphrase: Passphrase = "SecretPassphrase"
     
-    let output: Result<String, TheError> = pgp.encrypt(input, publicKey)
+    // swiftlint:disable:next explicit_type_interface
+    guard case let Result.success(encrypted) = pgp.encrypt(input, publicKey) else {
+      XCTFail("Encryption failed")
+      return
+    }
     
-    XCTAssertSuccessNotEqual(output, input)
+    let decryptionOutput: Result<String, TheError> = pgp.decrypt(
+      encrypted,
+      passphrase,
+      privateKey
+    )
+    
+    XCTAssertNotEqual(encrypted, input)
+    XCTAssertSuccessEqual(decryptionOutput, input)
   }
   
   func test_encryptionWithoutSigning_withEmptyKey_failure() {
