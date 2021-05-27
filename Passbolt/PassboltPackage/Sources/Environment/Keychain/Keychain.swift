@@ -25,108 +25,189 @@ import Commons
 import Foundation
 import LocalAuthentication
 
+// swiftlint:disable file_length
 public struct Keychain {
   
   public var verifyBiometricsPermission: () -> AnyPublisher<Bool, TheError>
-  public var load: (KeychainItemIdentifier) -> Result<Data, TheError>
-  public var save: (Data, KeychainItemIdentifier) -> Result<Void, TheError>
-  public var delete: (KeychainItemIdentifier) -> Result<Void, TheError>
+  public var load: (KeychainQuery) -> Result<Array<Data>, TheError>
+  public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, TheError>
+  public var save: (Data, KeychainQuery) -> Result<Void, TheError>
+  public var delete: (KeychainQuery) -> Result<Void, TheError>
 }
 
 extension Keychain {
   
-  public static func keychain() -> Self {
-    Self(
-      verifyBiometricsPermission: {
-        let context: LAContext = biometricsContext()
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
-          return Just(true)
-            .setFailureType(to: TheError.self)
-            .eraseToAnyPublisher()
-        } else {
-          let completionSubject: PassthroughSubject<Bool, TheError> = .init()
-          if !isInExtensionContext {
-            DispatchQueue.main.async {
-              context.evaluatePolicy(
-                .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: NSLocalizedString("biometrics.usage.reason", comment: "")
-              ) { granted, error in
-                if error != nil {
-                  completionSubject.send(
-                    completion: .failure(.keychain(errSecNotAvailable))
-                  )
-                } else {
-                  completionSubject.send(granted)
-                  completionSubject.send(completion: .finished)
-                }
+  public static func live() -> Self {
+    
+    func verifyBiometricsPermission () -> AnyPublisher<Bool, TheError> {
+      let context: LAContext = biometricsContext()
+      if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
+        return Just(true)
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      } else {
+        let completionSubject: PassthroughSubject<Bool, TheError> = .init()
+        if !isInExtensionContext {
+          DispatchQueue.main.async {
+            context.evaluatePolicy(
+              .deviceOwnerAuthenticationWithBiometrics,
+              localizedReason: NSLocalizedString("biometrics.usage.reason", comment: "")
+            ) { granted, error in
+              if error != nil {
+                completionSubject.send(
+                  completion: .failure(.keychainError(errSecNotAvailable))
+                )
+              } else {
+                completionSubject.send(granted)
+                completionSubject.send(completion: .finished)
               }
             }
-          } else { /* */ }
-          return completionSubject
-            .eraseToAnyPublisher()
-        }
-      },
-      load: { identifier in
-        loadKeychainData(
-          for: identifier.key.rawValue,
-          tag: identifier.tag?.rawValue,
-          in: identifier.requiresBiometrics
-            ? biometricsContext()
-            : nil
-        )
-      },
-      save: { data, identifier in
-        saveKeychain(
-          data: data,
-          for: identifier.key.rawValue,
-          tag: identifier.tag?.rawValue,
-          in: identifier.requiresBiometrics
-            ? biometricsContext()
-            : nil
-        )
-      },
-      delete: { identifier in
-        deleteKeychainData(
-          for: identifier.key.rawValue,
-          tag: identifier.tag?.rawValue
-        )
+          }
+        } else { /* */ }
+        return completionSubject
+          .eraseToAnyPublisher()
       }
+    }
+    
+    func load(
+      matching query: KeychainQuery
+    ) -> Result<Array<Data>, TheError> {
+      loadKeychainData(
+        for: query.key.rawValue,
+        tag: query.tag?.rawValue,
+        in: query.requiresBiometrics
+          ? biometricsContext()
+          : nil
+      )
+    }
+    
+    func loadMeta(
+      matching query: KeychainQuery
+    ) -> Result<Array<KeychainItemMetadata>, TheError> {
+      loadKeychainMeta(
+        for: query.key.rawValue,
+        tag: query.tag?.rawValue,
+        in: query.requiresBiometrics
+          ? biometricsContext()
+          : nil
+      )
+      .map { results in
+        results.compactMap { result in
+          guard let rawKey: String = result[kSecAttrService] as? String
+          else { return nil }
+          let rawTag: String? = result[kSecAttrAccount] as? String
+          return KeychainItemMetadata(
+            key: .init(rawValue: rawKey),
+            tag: rawTag.map(KeychainItemMetadata.Tag.init(rawValue:))
+          )
+        }
+      }
+    }
+    
+    func save(
+      _ data: Data,
+      for query: KeychainQuery
+    ) -> Result<Void, TheError> {
+      saveKeychain(
+        data: data,
+        for: query.key.rawValue,
+        tag: query.tag?.rawValue,
+        in: query.requiresBiometrics
+          ? biometricsContext()
+          : nil
+      )
+    }
+    
+    func delete(
+      matching query: KeychainQuery
+    ) -> Result<Void, TheError> {
+      deleteKeychainData(
+        for: query.key.rawValue,
+        tag: query.tag?.rawValue
+      )
+    }
+    
+    return Self(
+      verifyBiometricsPermission: verifyBiometricsPermission,
+      load: load(matching:),
+      loadMeta: loadMeta(matching:),
+      save: save(_:for:),
+      delete: delete(matching:)
     )
   }
 }
 
 extension Keychain {
   
-  public func load<Value>(
+  public func loadAll<Value>(
     _: Value.Type = Value.self,
-    for item: KeychainItem<Value>
-  ) -> Result<Value, TheError>
+    matching query: KeychainQuery
+  ) -> Result<Array<Value>, TheError>
   where Value: Codable {
-    load(item.identifier)
-      .flatMap { data in
+    load(query)
+      .flatMap { items in
         do {
           return try .success(
-            jsonDecoder.decode(JSONWrapper<Value>.self, from: data).v
+            items.map { item in
+              try jsonDecoder.decode(
+                JSONWrapper<Value>.self,
+                from: item
+              ).v
+            }
           )
-        } catch {
-          return .failure(.keychain(errSecInvalidData))
+        } catch { // if any of values are invalid we treat it as error
+          return .failure(.keychainError(errSecInvalidData))
         }
       }
   }
   
+  public func loadFirst<Value>(
+    _: Value.Type = Value.self,
+    matching query: KeychainQuery
+  ) -> Result<Value?, TheError>
+  where Value: Codable {
+    load(query)
+      .flatMap { items in
+        guard let firstItem = items.first
+        else { return .success(nil) }
+        do {
+          return try .success(
+            jsonDecoder.decode(
+              JSONWrapper<Value>.self,
+              from: firstItem
+            ).v
+          )
+        } catch { // if any of values is invalid we treat it as error
+          return .failure(.keychainError(errSecInvalidData))
+        }
+      }
+  }
+  
+  public func loadMeta(
+    matching query: KeychainQuery
+  ) -> Result<Array<KeychainItemMetadata>, TheError> {
+    loadMeta(query)
+  }
+  
   public func save<Value>(
     _ value: Value,
-    for item: KeychainItem<Value>
+    for query: KeychainQuery
   ) -> Result<Void, TheError>
   where Value: Codable {
     do {
       return try save(
         jsonEncoder.encode(JSONWrapper(value)),
-        item.identifier
+        query
       )
     } catch {
-      return .failure(.keychain(errSecInvalidData))
+      return .failure(.keychainError(errSecInvalidData))
     }
+  }
+  
+  public func delete(
+    matching query: KeychainQuery
+  ) -> Result<Void, TheError> {
+    delete(query)
   }
 }
 
@@ -160,9 +241,9 @@ private func loadKeychainData(
   for key: String,
   tag: String?,
   in context: LAContext? = nil
-) -> Result<Data, TheError> {
+) -> Result<Array<Data>, TheError> {
   guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) ?? true
-  else { return .failure(.keychain(errSecNotAvailable)) }
+  else { return .failure(.keychainError(errSecNotAvailable)) }
   return loadKeychainKeyQuery(using: key, tag: tag, in: context)
     .flatMap { query in
       var queryResult: AnyObject?
@@ -170,14 +251,62 @@ private func loadKeychainData(
         query,
         &queryResult
       )
-      guard status == errSecSuccess
-      else { return .failure(.keychain(status)) }
+      switch status {
+      case errSecSuccess:
+        break // continue
       
-      guard
-        let existingItem = queryResult as? [String: AnyObject],
-        let data = existingItem[kSecValueData as String] as? Data
-      else { return .failure(.keychain(errSecDataNotAvailable)) }
-      return .success(data)
+      case errSecItemNotFound:
+        return .success([])
+        
+      case errSecAuthFailed:
+        return .failure(.keychainAuthFailed())
+        
+      case _:
+        return .failure(.keychainError(status))
+      }
+      
+      if let items: Array<Data> = queryResult as? Array<Data> {
+        return .success(items)
+      } else {
+        return .failure(.keychainError(errSecDataNotAvailable))
+      }
+    }
+}
+
+@inline(__always)
+private func loadKeychainMeta(
+  for key: String,
+  tag: String?,
+  in context: LAContext? = nil
+) -> Result<Array<Dictionary<CFString, Any>>, TheError> {
+  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) ?? true
+  else { return .failure(.keychainError(errSecNotAvailable)) }
+  return loadKeychainMetaQuery(using: key, tag: tag, in: context)
+    .flatMap { query in
+      var queryResult: AnyObject?
+      let status: OSStatus = SecItemCopyMatching(
+        query,
+        &queryResult
+      )
+      switch status {
+      case errSecSuccess:
+        break // continue
+      
+      case errSecItemNotFound:
+        return .success([])
+        
+      case errSecAuthFailed:
+        return .failure(.keychainAuthFailed())
+        
+      case _:
+        return .failure(.keychainError(status))
+      }
+      
+      if let items: Array<Dictionary<CFString, Any>> = queryResult as? Array<Dictionary<CFString, Any>> {
+        return .success(items)
+      } else {
+        return .failure(.keychainError(errSecDataNotAvailable))
+      }
     }
 }
 
@@ -189,9 +318,10 @@ private func saveKeychain(
   in context: LAContext? = nil
 ) -> Result<Void, TheError> {
   guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) ?? true
-  else { return .failure(.keychain(errSecNotAvailable)) }
+  else { return .failure(.keychainError(errSecNotAvailable)) }
   switch loadKeychainData(for: key, tag: tag, in: context) {
-  case .success:
+  // swiftlint:disable:next explicit_type_interface
+  case let .success(values) where !values.isEmpty:
     return updateKeychainKeyQuery(using: key, tag: tag, in: context)
       .flatMap { query in
         updateKeychainKeyAttributes(for: data)
@@ -201,12 +331,12 @@ private func saveKeychain(
             attributes
           )
           guard status == errSecSuccess
-          else { return .failure(.keychain(status)) }
-          return .success(Void())
+          else { return .failure(.keychainError(status)) }
+          return .success
         }
       }
     
-  case .failure:
+  case .failure, .success: // success without values aka errSecItemNotFound
     return saveKeychainKeyQuery(for: data, using: key, tag: tag, in: context)
       .flatMap { query in
         let status: OSStatus = SecItemAdd(
@@ -214,8 +344,8 @@ private func saveKeychain(
           nil
         )
         guard status == errSecSuccess
-        else { return .failure(.keychain(status)) }
-        return .success(Void())
+        else { return .failure(.keychainError(status)) }
+        return .success
       }
   }
 }
@@ -229,8 +359,8 @@ private func deleteKeychainData(
     .flatMap { query in
       let status: OSStatus = SecItemDelete(query)
       guard status == errSecSuccess || status == errSecItemNotFound
-      else { return .failure(.keychain(status)) }
-      return .success(Void())
+      else { return .failure(.keychainError(status)) }
+      return .success
     }
 }
 
@@ -243,16 +373,16 @@ private func loadKeychainKeyQuery(
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
-    kSecMatchLimit: kSecMatchLimitOne,
-    kSecReturnAttributes: kCFBooleanTrue as Any,
+    kSecMatchLimit: kSecMatchLimitAll,
+    kSecReturnAttributes: kCFBooleanFalse as Any,
     kSecReturnData: kCFBooleanTrue as Any,
-    kSecAttrAccount: key
+    kSecAttrService: key
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   } else { /* */ }
   if let tag: String = tag, !tag.isEmpty {
-    query[kSecAttrLabel] = tag
+    query[kSecAttrAccount] = tag
   } else { /* */ }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -264,7 +394,46 @@ private func loadKeychainKeyQuery(
         &error
       ),
       error == nil
-    else { return .failure(.keychain(errSecParam)) }
+    else { return .failure(.keychainError(errSecParam)) }
+    query[kSecAttrAccessControl] = acl
+    query[kSecUseAuthenticationContext] = context
+  } else {
+    query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+  }
+  return .success(query as CFDictionary)
+}
+
+@inline(__always)
+private func loadKeychainMetaQuery(
+  using key: String,
+  tag: String?,
+  in context: LAContext?
+) -> Result<CFDictionary, TheError> {
+  assert(!key.isEmpty, "Cannot use empty identifier for keychain")
+  var query: Dictionary<CFString, Any> = [
+    kSecClass: kSecClassGenericPassword,
+    kSecMatchLimit: kSecMatchLimitAll,
+    kSecReturnAttributes: kCFBooleanTrue as Any,
+    kSecReturnData: kCFBooleanFalse as Any,
+    kSecAttrService: key
+  ]
+  if !keychainShareGroupIdentifier.isEmpty {
+    query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
+  } else { /* */ }
+  if let tag: String = tag, !tag.isEmpty {
+    query[kSecAttrAccount] = tag
+  } else { /* */ }
+  if let context: LAContext = context {
+    var error: Unmanaged<CFError>?
+    guard
+      let acl = SecAccessControlCreateWithFlags(
+        kCFAllocatorDefault,
+        kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+        .userPresence,
+        &error
+      ),
+      error == nil
+    else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
   } else {
@@ -286,14 +455,14 @@ private func saveKeychainKeyQuery(
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
     kSecAttrIsInvisible: kCFBooleanTrue as Any,
-    kSecAttrAccount: key,
+    kSecAttrService: key,
     kSecValueData: data
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   } else { /* */ }
   if let tag: String = tag, !tag.isEmpty {
-    query[kSecAttrLabel] = tag
+    query[kSecAttrAccount] = tag
   } else { /* */ }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -305,7 +474,7 @@ private func saveKeychainKeyQuery(
         &error
       ),
       error == nil
-    else { return .failure(.keychain(errSecParam)) }
+    else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
   } else {
@@ -323,13 +492,13 @@ private func updateKeychainKeyQuery(
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
-    kSecAttrAccount: key
+    kSecAttrService: key
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   } else { /* */ }
   if let tag: String = tag, !tag.isEmpty {
-    query[kSecAttrLabel] = tag
+    query[kSecAttrAccount] = tag
   } else { /* */ }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -341,7 +510,7 @@ private func updateKeychainKeyQuery(
         &error
       ),
       error == nil
-    else { return .failure(.keychain(errSecParam)) }
+    else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
   } else {
@@ -366,10 +535,10 @@ private func deleteKeychainKeyQuery(
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
-    kSecAttrAccount: key
+    kSecAttrService: key
   ]
   if let tag: String = tag, !tag.isEmpty {
-    query[kSecAttrLabel] = tag
+    query[kSecAttrAccount] = tag
   } else { /* */ }
   return .success(query as CFDictionary)
 }
@@ -382,6 +551,7 @@ extension Keychain {
     Self(
       verifyBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods"),
       load: Commons.placeholder("You have to provide mocks for used methods"),
+      loadMeta: Commons.placeholder("You have to provide mocks for used methods"),
       save: Commons.placeholder("You have to provide mocks for used methods"),
       delete: Commons.placeholder("You have to provide mocks for used methods")
     )

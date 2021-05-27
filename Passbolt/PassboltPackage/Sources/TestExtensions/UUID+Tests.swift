@@ -21,13 +21,12 @@
 // @since         v1.0
 //
 
-import Commons
+import struct Foundation.UUID
 
-public struct KeychainItem<Value> {
+extension UUID {
   
-  public var identifier: KeychainItemIdentifier
-  
-  public init(identifier: KeychainItemIdentifier) {
-    self.identifier = identifier
+  public static var testUUID: Self {
+    // swiftlint:disable:next force_unwrapping  
+    UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
   }
 }

@@ -61,7 +61,7 @@ extension Application {
       logger: .live,
       networking: .foundation(),
       preferences: .userDefaults(),
-      keychain: .keychain(),
+      keychain: .live(),
       camera: .live(),
       urlOpener: .live(),
       appLifeCycle: .live()

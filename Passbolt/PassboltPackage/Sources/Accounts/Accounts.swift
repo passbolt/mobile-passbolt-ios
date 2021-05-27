@@ -21,19 +21,19 @@
 // @since         v1.0
 //
 
-import Features
 import Crypto
+import Features
 
 public struct Accounts {
   
-  public var verifyAccountsDataIntegrity: () -> Void
+  public var verifyAccountsDataIntegrity: () -> Result<Void, TheError>
   public var storedAccounts: () -> Array<Account>
   public var storeAccount: (
     _ domain: String,
     _ userID: String,
     _ fingerprint: String,
     _ armoredKey: ArmoredPrivateKey
-  ) -> Account
+  ) -> Result<Account, TheError>
   public var removeAccount: (Account) -> Void
 }
 
@@ -60,15 +60,14 @@ extension Accounts: Feature {
     using features: FeatureFactory,
     cancellables: inout Array<AnyCancellable>
   ) -> Self {
-    let metadataStore: AccountsStore = features.instance()
+    let dataStore: AccountsDataStore = features.instance()
     
-    func verifyAccountsDataIntegrity() -> Void {
-      metadataStore.verifyDataIntegrity()
+    func verifyAccountsDataIntegrity() -> Result<Void, TheError> {
+      dataStore.verifyDataIntegrity()
     }
     
     func storedAccounts() -> Array<Account> {
-      #warning("TODO: [PAS-84]")
-      Commons.placeholder("TODO: [PAS-84]")
+      dataStore.loadAccounts()
     }
     
     func storeAccount(
@@ -76,26 +75,23 @@ extension Accounts: Feature {
       userID: String,
       fingerprint: String,
       armoredKey: ArmoredPrivateKey
-    ) -> Account {
-      var storedAccountIdentifiers: Array<Account.LocalID>
-        = environment
-        .preferences
-        .load(Array<Account.LocalID>.self, for: "TODO: [PAS-84]")
-        ?? .init()
-      
-      let newLocalAccountIdentifier: Account.LocalID
-        = .init(rawValue: environment.uuidGenerator().uuidString)
-      storedAccountIdentifiers.append(newLocalAccountIdentifier)
-      environment
-        .preferences
-        .save(storedAccountIdentifiers, for: "TODO: [PAS-84]")
-      #warning("TODO: [PAS-84]")
-      Commons.placeholder("TODO: [PAS-84]")
+    ) -> Result<Account, TheError> {
+      let account: Account = .init(
+        localID: .init(rawValue: environment.uuidGenerator().uuidString),
+        domain: domain,
+        userID: userID,
+        fingerprint: fingerprint
+      )
+      return dataStore.storeAccount(
+        account,
+        armoredKey
+      )
+      .map { _ in account }
     }
     
     func removeAccount(_ account: Account) -> Void {
-      #warning("TODO: [PAS-84]")
-      Commons.placeholder("TODO: [PAS-84]")
+      dataStore.deleteAccount(account)
+      #warning("TODO: [PAS-69] - clear session data and passphrese? It might be done in Safety")
     }
     
     return Self(
@@ -126,7 +122,7 @@ extension Accounts {
     userID: String,
     fingerprint: String,
     armoredKey: ArmoredPrivateKey
-  ) -> Account {
+  ) -> Result<Account, TheError> {
     storeAccount(domain, userID, fingerprint, armoredKey)
   }
 }

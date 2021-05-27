@@ -20,3 +20,25 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import Commons
+
+public struct KeychainQuery {
+  
+  public typealias Key = Tagged<String, Self>
+  public typealias Tag = Tagged<String, Key>
+  
+  public var key: Key
+  public var tag: Tag?
+  public var requiresBiometrics: Bool
+  
+  public init(
+    key: Key,
+    tag: Tag?,
+    requiresBiometrics: Bool
+  ) {
+    self.key = key
+    self.tag = tag
+    self.requiresBiometrics = requiresBiometrics
+  }
+}

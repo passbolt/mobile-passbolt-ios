@@ -21,24 +21,14 @@
 // @since         v1.0
 //
 
-import Commons
-
-public struct KeychainItemIdentifier {
+extension Result {
   
-  public typealias Key = Tagged<String, Self>
-  public typealias Tag = Tagged<String, Key>
-  
-  public var key: Key
-  public var tag: Tag?
-  public var requiresBiometrics: Bool
-  
-  public init(
-    key: Key,
-    tag: Tag?,
-    requiresBiometrics: Bool
-  ) {
-    self.key = key
-    self.tag = tag
-    self.requiresBiometrics = requiresBiometrics
+  public func forceSuccess(_ message: String) {
+    switch self {
+    case .success:
+      break
+    case let .failure(error):
+      fatalError("Critical error, message: \(message), reason: \(error)")
+    }
   }
 }

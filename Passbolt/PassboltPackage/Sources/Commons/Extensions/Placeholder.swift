@@ -21,7 +21,8 @@
 // @since         v1.0
 //
 
-#if DEBUG
+#warning("FIXME: let it be only in DEBUG before release, allowing for dev builds now")
+// #if DEBUG
 public func placeholder(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
@@ -101,5 +102,4 @@ public func placeholder<A1, A2, A3, A4, A5, A6, A7, A8, R>(
 ) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> R {
   { _, _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
 }
-
-#endif
+// #endif

@@ -23,27 +23,26 @@
 
 import Commons
 
-public struct Account {
+public struct KeychainItemMetadata {
   
-  public typealias LocalID = Tagged<String, Self>
+  public typealias Key = Tagged<String, Self>
+  public typealias Tag = Tagged<String, Key>
   
-  public let localID: LocalID
-  public var domain: String
-  public var userID: String
-  public var fingerprint: String
+  public var key: Key
+  public var tag: Tag?
   
   public init(
-    localID: LocalID,
-    domain: String,
-    userID: String,
-    fingerprint: String
+    key: Key,
+    tag: Tag?
   ) {
-    self.localID = localID
-    self.domain = domain
-    self.userID = userID
-    self.fingerprint = fingerprint
+    self.key = key
+    self.tag = tag
   }
 }
 
-extension Account: Hashable {}
-extension Account: Codable {}
+extension KeychainItemMetadata: CustomDebugStringConvertible {
+  
+  public var debugDescription: String {
+    "KeychainItemMetadata(key: \(key.rawValue), tag:\(tag?.rawValue ?? "nil"))"
+  }
+}

@@ -83,6 +83,13 @@ let package = Package(
         "Settings",
       ]
     ),
+    .testTarget(
+      name: "AccountsTests",
+      dependencies: [
+        "Accounts",
+        "TestExtensions"
+      ]
+    ),
     .target(
       name: "AccountSetup",
       dependencies: [

@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import Accounts
 import UIComponents
 
 internal struct SplashScreenController {
@@ -35,9 +36,13 @@ extension SplashScreenController: UIController {
     in context: Context,
     with features: FeatureFactory
   ) -> Self {
-    Self(
+    let accounts: Accounts = features.instance()
+    
+    return Self(
       navigationDestinationPublisher: {
-        Just(Void())
+        #warning("TODO: switch initial screen for integrity check fail to allow diagnostics")
+        _ = accounts.verifyAccountsDataIntegrity()
+        return Just(Void())
           .eraseToAnyPublisher()
       }
     )

@@ -57,7 +57,7 @@ extension AccountSession: Feature {
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError> {
-      #warning("TODO: temporary placeholder for sign-in process")
+      #warning("TODO: [PAS-131] temporary placeholder for sign-in process")
       return Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
@@ -75,29 +75,38 @@ extension AccountSession: Feature {
         armoredKey: armoredKey,
         passphrase: passphrase
       )
-      .map {
-        currentAccountSubject
-          .send(
-            accounts
-              .storeAccount(
-                domain,
-                userID,
-                fingerprint,
-                armoredKey
-              )
+      .flatMap { _ -> AnyPublisher<Void, TheError> in
+        let accountSaveResult: Result<Account, TheError> = accounts
+          .storeAccount(
+            domain,
+            userID,
+            fingerprint,
+            armoredKey
           )
+        switch accountSaveResult {
+        // swiftlint:disable:next explicit_type_interface
+        case let .success(account):
+          currentAccountSubject.send(account)
+          return Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+        // swiftlint:disable:next explicit_type_interface
+        case let .failure(error):
+          return Fail<Void, TheError>(error: error).eraseToAnyPublisher()
+        }
       }
       .eraseToAnyPublisher()
     }
     
-    func signIn(account: Account, passphrase: Passphrase) -> AnyPublisher<Void, TheError> {
-      #warning("TODO: [PAS-84]")
-      Commons.placeholder("TODO: [PAS-84]")
+    func signIn(
+      account: Account,
+      passphrase: Passphrase
+    ) -> AnyPublisher<Void, TheError> {
+      #warning("TODO: [PAS-131]")
+      Commons.placeholder("TODO: [PAS-131]")
     }
     
     func signOut() -> AnyPublisher<Void, TheError> {
-      #warning("TODO: [PAS-84]")
-      Commons.placeholder("TODO: [PAS-84]")
+      #warning("TODO: [PAS-131]")
+      Commons.placeholder("TODO: [PAS-131]")
     }
     
     return Self(

@@ -11,19 +11,17 @@ extension Initialization: Feature {
   public typealias Environment = Void
   
   public static func load(
-    in context: Environment,
+    in environment: Environment,
     using features: FeatureFactory,
     cancellables: inout Array<AnyCancellable>
   ) -> Initialization {
     let diagnostics: Diagnostics = features.instance()
-    let accounts: Accounts = features.instance()
     
     return Self(
       initialize: {
-        diagnostics.debugLog("Initialization")
-        defer { diagnostics.debugLog("Initialization completed") }
+        diagnostics.debugLog("Initializing...")
+        defer { diagnostics.debugLog("... initialization completed") }
         // initialize application features here
-        accounts.verifyAccountsDataIntegrity()
         return true // true if succeeded
       }
     )

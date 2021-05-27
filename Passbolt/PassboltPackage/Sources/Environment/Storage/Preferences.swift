@@ -80,15 +80,15 @@ extension Preferences {
 
 extension Preferences {
   
-  public func load<Value>(
-    _ type: Value.Type = Value.self,
+  public func load(
+    _ type: String.Type = String.self,
     for key: Key
-  ) -> Value? {
-    load(key) as? Value
+  ) -> String? {
+    load(key) as? String
   }
-  
-  public func save<Value>(
-    _ value: Value,
+
+  public func save(
+    _ value: String,
     for key: Key
   ) {
     save(value, key)
@@ -110,6 +110,24 @@ extension Preferences {
   }
   
   public func load<Value>(
+    _ type: Array<Value>.Type = Array<Value>.self,
+    for key: Key
+  ) -> Array<Value>
+  where Value: RawRepresentable, Value.RawValue == String {
+    load(key)
+      .flatMap { $0 as? Array<Value.RawValue> }
+      .map { $0.compactMap(Value.init(rawValue:)) }
+      ?? []
+  }
+  
+  public func save<Value>(
+    _ value: Array<Value>,
+    for key: Key
+  ) where Value: RawRepresentable, Value.RawValue == String {
+    save(value.map(\.rawValue), key)
+  }
+  
+  public func load<Value>(
     _ type: Value.Type = Value.self,
     for key: Key
   ) -> Value?
@@ -124,34 +142,22 @@ extension Preferences {
     save(value.rawValue, key)
   }
   
-  public func load(
-    _ type: UUID.Type = UUID.self,
+  public func load<Value>(
+    _ type: Array<Value>.Type = Array<Value>.self,
     for key: Key
-  ) -> UUID? {
-    (load(key) as? String)
-      .flatMap(UUID.init(uuidString:))
+  ) -> Array<Value>
+  where Value: RawRepresentable, Value.RawValue == Int {
+    load(key)
+      .flatMap { $0 as? Array<Value.RawValue> }
+      .map { $0.compactMap(Value.init(rawValue:)) }
+      ?? []
   }
   
-  public func save(
-    _ value: UUID,
+  public func save<Value>(
+    _ value: Array<Value>,
     for key: Key
-  ) {
-    save(value.uuidString, key)
-  }
-  
-  public func load(
-    _ type: Array<UUID>.Type = Array<UUID>.self,
-    for key: Key
-  ) -> Array<UUID>? {
-    (load(key) as? Array<String>)
-      .flatMap { $0.compactMap(UUID.init(uuidString:)) }
-  }
-  
-  public func save(
-    _ value: Array<UUID>,
-    for key: Key
-  ) {
-    save(value.map(\.uuidString), key)
+  ) where Value: RawRepresentable, Value.RawValue == Int {
+    save(value.map(\.rawValue), key)
   }
 }
 

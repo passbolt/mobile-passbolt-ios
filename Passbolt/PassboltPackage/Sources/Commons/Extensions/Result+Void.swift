@@ -21,29 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
-
-public struct Account {
+extension Result where Success == Void {
   
-  public typealias LocalID = Tagged<String, Self>
-  
-  public let localID: LocalID
-  public var domain: String
-  public var userID: String
-  public var fingerprint: String
-  
-  public init(
-    localID: LocalID,
-    domain: String,
-    userID: String,
-    fingerprint: String
-  ) {
-    self.localID = localID
-    self.domain = domain
-    self.userID = userID
-    self.fingerprint = fingerprint
-  }
+  public static var success: Self { .success(Void()) }
 }
-
-extension Account: Hashable {}
-extension Account: Codable {}

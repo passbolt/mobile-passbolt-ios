@@ -83,6 +83,13 @@
         "identifier" : "CryptoTests",
         "name" : "CryptoTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "AccountsTests",
+        "name" : "AccountsTests"
+      }
     }
   ],
   "version" : 1

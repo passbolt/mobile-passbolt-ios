@@ -61,3 +61,8 @@ extension TheError.Extension {
   
   public static var rawNetworkResponse: Self { "rawNetworkResponse" }
 }
+
+extension TheError {
+  
+  public var rawNetworkResponse: HTTPResponse? { extensions[.rawNetworkResponse] as? HTTPResponse }
+}

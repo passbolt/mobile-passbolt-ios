@@ -21,6 +21,7 @@ import XCTest
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
 final class PGPTests: XCTestCase {
+  
   var pgp: PGP!
   
   override func setUp() {
