@@ -1,11 +1,16 @@
 stages:
   - static_analysis
   - test
+  - qa_build
 
 lint:
   stage: static_analysis
   script:
     make lint
+  artifacts:
+    paths:
+      - lint-report.html
+    expire_in: 1 week
   only:
     - branches
     - merge_request
@@ -16,8 +21,26 @@ unit_tests:
   stage: test
   script:
     - make test
+  artifacts:
+    paths:
+      - TestResults.xcresult
+      - test-coverage-report.txt
+    expire_in: 1 week
   only:
     - branches
     - merge_request
+  tags:
+    - ios
+
+qa_build_upload:
+  stage: qa_build
+  script:
+    make qa_build_publish
+  artifacts:
+    paths: 
+    - Passbolt.ipa
+    expire_in: 1 week
+  only:
+    - develop
   tags:
     - ios

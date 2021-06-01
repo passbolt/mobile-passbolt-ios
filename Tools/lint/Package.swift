@@ -11,7 +11,7 @@ let package = Package(
   dependencies: [
     .package(
       name: "SwiftLint",
-      url: "https://github.com/realm/SwiftLint.git", .branch("master")
+      url: "https://github.com/realm/SwiftLint.git", .exact("0.43.1")
     )
   ],
   targets: [

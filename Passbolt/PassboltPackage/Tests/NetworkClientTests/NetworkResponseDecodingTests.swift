@@ -22,8 +22,8 @@
 //
 
 import Commons
-import Foundation
 import Environment
+import Foundation
 @testable import NetworkClient
 import TestExtensions
 import XCTest

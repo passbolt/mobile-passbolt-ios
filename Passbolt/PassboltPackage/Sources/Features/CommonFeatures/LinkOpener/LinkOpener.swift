@@ -22,8 +22,8 @@
 //
 
 import Combine
-import Foundation
 import Environment
+import Foundation
 
 public struct LinkOpener {
   

@@ -110,7 +110,7 @@ extension AccountSession: Feature {
     }
     
     return Self(
-      currentAccountPublisher: Commons.placeholder(),
+      currentAccountPublisher: unreachable("TODO: [PAS-84]"),
       completeAccountTransfer: completeAccountTransfer(domain:userID:fingerprint:armoredKey:passphrase:),
       signIn: signIn(account:passphrase:),
       signOut: signOut

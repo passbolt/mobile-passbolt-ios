@@ -208,7 +208,7 @@ type_name:
 
 excluded:
   - .build
-  - "*/DerivedData"
+  - "*/DerivedData/"
   - "./DerivedData"
   - "*/Package.swift"
   - "*Tests.swift"

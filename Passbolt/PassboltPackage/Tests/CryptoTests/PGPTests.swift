@@ -12,8 +12,8 @@
 // @since         v1.0
 //
 
-import Crypto
 import Commons
+import Crypto
 import TestExtensions
 import XCTest
 
