@@ -57,8 +57,7 @@ let package = Package(
     .library(
       name: "Environment",
       targets: [
-        "Environment",
-        "gopenPGP"
+        "Environment"
       ]
     )
   ],
@@ -76,6 +75,7 @@ let package = Package(
         "Commons",
         "Crypto",
         "Features",
+        "NetworkClient",
         "Settings",
       ]
     ),
@@ -120,6 +120,7 @@ let package = Package(
       name: "Crypto",
       dependencies: [
         "Commons",
+        "gopenPGP"
       ]
     ),
     .testTarget(
@@ -140,8 +141,8 @@ let package = Package(
     .target(
       name: "NetworkClient",
       dependencies: [
-        "Accounts",
         "Commons",
+        "Crypto",
         "Features",
         "Environment"
       ]
@@ -158,7 +159,7 @@ let package = Package(
       dependencies: [
         .product(name: "Aegithalos", package: "Aegithalos"),
         "Commons",
-        "gopenPGP",
+        "Crypto",
       ]
     ),
     .testTarget(

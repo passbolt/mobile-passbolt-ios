@@ -63,6 +63,7 @@
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
 "transfer.account.result.error.title" = "Something went wrong!";
 "sign.in.title" = "Enter your passphrase";
+"sign.in.error.message" = "Sign in failed";
 "authorization.button.title" = "Sign In";
 "authorization.forgot.passphrase.button.title" = "I forgot my passphrase";
 "authorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";

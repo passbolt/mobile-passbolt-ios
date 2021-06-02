@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-
 #warning("FIXME: let it be only in DEBUG before release, allowing for dev builds now")
 
 public func placeholder(

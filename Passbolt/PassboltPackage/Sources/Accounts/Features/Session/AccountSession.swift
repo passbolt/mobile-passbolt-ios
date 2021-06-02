@@ -23,26 +23,26 @@
 
 import Crypto
 import Features
+import NetworkClient
 
 public struct AccountSession {
   // Publishes current account and associated network session token.
   public var statePublisher: () -> AnyPublisher<State, Never>
   // Used for sign in (including switch to other account) and unlocking whichever is required.
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Void, TheError>
+  // Select account for network requests without authorization (each account can have a unique domain etc)
+  public var select: (Account) -> Void
   // Closes current session and removes associated temporary data.
   // Not required for account switch, in that case use `authorize` with different account.
   public var close: () -> Void
 }
 
 extension AccountSession {
-  
-  #warning("TODO: [PAS-131] It might be changed to struct which can be used to verify expiration time")
-  public typealias Token = Tagged<String, Self>
-  
+
   public enum State {
     
-    case authorized(Account, token: Token)
-    case authorizationRequired(Account, token: Token?)
+    case authorized(Account, token: SessionTokens)
+    case authorizationRequired(Account, token: SessionTokens?)
     case none(lastUsed: Account?)
   }
   
@@ -75,12 +75,35 @@ extension AccountSession: Feature {
     let diagnostics: Diagnostics = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
+    let networkClient: NetworkClient = features.instance()
+    let login: SignIn = features.instance()
+    let logoutCancellable: AnyCancellable?
     
     let stateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
     
-    #warning("TODO: [PAS-131] - add timer for token expire with auto refresh")
+    // When timer fires perform refresh when authorized otherwise stateSubject.send(.authorizationRequired)
+    #warning("TODO: [PAS-154] - schedule a timer: for when access token expires auto refresh it using refresh token")
+    
+    stateSubject
+      .map { state -> NetworkSessionVariable? in
+        switch state {
+        // swiftlint:disable:next explicit_type_interface
+        case let .authorized(account, token):
+          return NetworkSessionVariable(domain: account.domain, authorizationToken: token.accessToken.rawValue)
+        // swiftlint:disable:next explicit_type_interface
+        case let .authorizationRequired(account, token):
+          return NetworkSessionVariable(domain: account.domain, authorizationToken: token?.accessToken.rawValue)
+          
+        case .none:
+          return nil
+        }
+      }
+      .sink { sessionVariable in
+        networkClient.updateSession(sessionVariable)
+      }
+      .store(in: cancellables)
     
     // bind passphrase cache expiration with authorizationRequired state change
     stateSubject
@@ -117,7 +140,7 @@ extension AccountSession: Feature {
       switch stateSubject.value {
       // swiftlint:disable:next explicit_type_interface
       case let .authorized(account, token: _), let .authorizationRequired(account, token: .some):
-        #warning("TODO: [PAS-131] send request for sign out")
+        #warning("TODO: [PAS-154] perform logout request - use cancellable localCancellable")
         stateSubject.send(.none(lastUsed: account))
         passphraseCache.clear()
       // swiftlint:disable:next explicit_type_interface
@@ -133,22 +156,25 @@ extension AccountSession: Feature {
       _close(using: features)
     }
     
-    func signInPlaceholder(
+    func signIn(
+      userID: Account.UserID,
       domain: String,
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<Token, TheError> {
-      #warning("TODO: [PAS-131] temporary placeholder for sign-in process")
-      return Just("signInPlaceholderToken")
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    ) -> AnyPublisher<SessionTokens, TheError> {
+      login.signIn(
+        userID,
+        domain,
+        armoredKey,
+        passphrase
+      )
     }
     
     func authorize(
       account: Account,
       authorizationMethod: AuthorizationMethod
     ) -> AnyPublisher<Void, TheError> {
-      #warning("TODO: [PAS-131] verify token and reuse or use session refresh if needed")
+      #warning("TODO: [PAS-154] verify if token is expired and reuse or use session refresh if needed")
       
       // sign in process
       let passphrase: Passphrase
@@ -200,12 +226,16 @@ extension AccountSession: Feature {
         }
       }
       
-      return signInPlaceholder(
+      #warning("Not sure if this is such a good idea, but will do for now")
+      stateSubject.send(.authorizationRequired(account, token: nil))
+  
+      return signIn(
+        userID: account.userID,
         domain: account.domain,
         armoredKey: armoredPrivateKey,
         passphrase: passphrase
       )
-      .handleEvents(receiveOutput: { token in
+      .handleEvents(receiveOutput: { sessionTokens in
         accountsDataStore.storeLastUsedAccount(account.localID)
         passphraseCache
           .store(
@@ -216,26 +246,45 @@ extension AccountSession: Feature {
                 + PassphraseCache.defaultExpirationTimeInterval
             )
           )
-        stateSubject.send(.authorized(account, token: token))
+        stateSubject.send(
+          .authorized(account, token: sessionTokens)
+        )
       })
       .map { _ in Void() }
       .eraseToAnyPublisher()
     }
     
+    func select(account: Account) {
+      switch stateSubject.value {
+      case .authorizationRequired, .authorized:
+        closeSession()
+        
+      case .none:
+        break
+      }
+      
+      stateSubject.send(.authorizationRequired(account, token: nil))
+    }
+    
     return Self(
       statePublisher: stateSubject.eraseToAnyPublisher,
       authorize: authorize(account:authorizationMethod:),
+      select: select(account:),
       close: closeSession
     )
   }
-  
-  #if DEBUG
+}
+
+#if DEBUG
+extension AccountSession {
+
   public static var placeholder: AccountSession {
     Self(
       statePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
+      select: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
-  #endif
 }
+#endif

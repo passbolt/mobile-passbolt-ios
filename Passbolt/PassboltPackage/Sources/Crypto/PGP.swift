@@ -265,3 +265,19 @@ extension PGP {
   }
 }
 
+#if DEBUG
+extension PGP {
+  
+  public static var placeholder: Self {
+    Self(
+      encryptAndSign: Commons.placeholder("You have to provide mocks for used methods"),
+      decryptAndVerify: Commons.placeholder("You have to provide mocks for used methods"),
+      encrypt: Commons.placeholder("You have to provide mocks for used methods"),
+      decrypt: Commons.placeholder("You have to provide mocks for used methods"),
+      signMessage: Commons.placeholder("You have to provide mocks for used methods"),
+      verifyMessage: Commons.placeholder("You have to provide mocks for used methods"),
+      verifyPassphrase: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif

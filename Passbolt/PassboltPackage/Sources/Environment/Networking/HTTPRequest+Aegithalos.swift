@@ -164,6 +164,7 @@ extension Mutation where Subject == HTTPRequest {
       #if DEBUG
       do {
         request.body = try JSONEncoder().encode(body)
+        request.headers["Content-Type"] = "application/json"
       } catch {
         unreachable("Failing request body encoding - \(error)")
       }

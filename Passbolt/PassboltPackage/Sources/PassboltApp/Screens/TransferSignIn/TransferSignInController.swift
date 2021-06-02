@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import AccountSetup
 import Commons
 import Crypto
@@ -30,6 +31,7 @@ import UIComponents
 internal struct TransferSignInController {
   
   internal var accountProfilePublisher: () -> AnyPublisher<AccountTransfer.AccountDetails, Never>
+  internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
   internal var updatePassphrase: (String) -> Void
   internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
   internal var completeTransfer: () -> AnyPublisher<Never, TheError>
@@ -51,6 +53,7 @@ extension TransferSignInController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
+    let accountSession: AccountSession = features.instance()
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -73,11 +76,21 @@ extension TransferSignInController: UIController {
       .store(in: cancellables)
 
     func accountProfilePublisher() -> AnyPublisher<AccountTransfer.AccountDetails, Never> {
+      // swiftlint:disable:next array_init
       accountTransfer
         .accountDetailsPublisher()
         .map { details -> AccountTransfer.AccountDetails? in details }
         .replaceError(with: nil)
         .compactMap { $0 }
+        .eraseToAnyPublisher()
+    }
+    
+    func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
+      // swiftlint:disable:next array_init
+      accountTransfer
+        .avatarPublisher()
+        .map { data -> Data? in data }
+        .replaceError(with: nil)
         .eraseToAnyPublisher()
     }
     
@@ -122,6 +135,7 @@ extension TransferSignInController: UIController {
     
     return Self(
       accountProfilePublisher: accountProfilePublisher,
+      accountAvatarPublisher: accountAvatarPublisher,
       updatePassphrase: updatePassphrase,
       validatedPassphrasePublisher: validatedPassphrasePublisher,
       completeTransfer: completeTransfer,

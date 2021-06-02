@@ -43,7 +43,6 @@ extension AccountTransferUpdateRequest {
             requestVariable.requestUserProfile,
             then: .queryItem("contain[user.profile]", value: "1")
           ),
-          .header("Content-Type", value: "application/json"),
           .jsonBody(
             from: AccountTransferUpdateRequestVariable.Body(
               currentPage: requestVariable.currentPage,

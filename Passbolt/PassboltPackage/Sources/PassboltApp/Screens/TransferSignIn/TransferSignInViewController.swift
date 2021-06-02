@@ -86,8 +86,20 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         self?.contentView.applyOn(name: .text("\(details.label)"))
         self?.contentView.applyOn(email: .text(details.username))
         self?.contentView.applyOn(url: .text(details.domain))
-        #warning("TODO: [PAS-131] avatar image")
         self?.contentView.applyOn(biometricButton: .hidden(true))
+      }
+      .store(in: cancellables)
+    
+    controller
+      .accountAvatarPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] data in
+        guard let imageData = data,
+          let image: UIImage = .init(data: imageData) else {
+          return
+        }
+        
+        self?.contentView.applyOn(image: .image(image))
       }
       .store(in: cancellables)
     
@@ -143,11 +155,18 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         guard let self = self else { return }
         self.controller
           .completeTransfer()
-          .sink(receiveCompletion: { completion in
+          .receive(on: RunLoop.main)
+          .sink(receiveCompletion: { [weak self] completion in
             // swiftlint:disable:next explicit_type_interface
             guard case let .failure(error) = completion
             else { return }
-            #warning("TODO: [PAS-131] handle result error")
+            
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarMessage(localized: "sign.in.error.message")
+                .instantiate(),
+              hideAfter: 2
+            )
           })
           .store(in: self.cancellables)
       }
@@ -193,8 +212,8 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .sink(receiveCompletion: { [weak self] completion in
         switch completion {
         case .finished:
-          #warning("TODO: [PAS-132] navigate to biometrics setup")
-          Commons.placeholder("Not implemented yet")
+          #warning("TODO - replace with biometry setup")
+          self?.push(MainTabsViewController.self)
           
         case .failure(.canceled):
           self?.pop(to: TransferInfoScreenViewController.self)

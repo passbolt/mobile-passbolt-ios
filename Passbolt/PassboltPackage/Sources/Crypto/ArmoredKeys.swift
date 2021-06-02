@@ -22,9 +22,13 @@
 //
 
 import Commons
+import struct Foundation.Data
 
 public enum ArmoredPrivateKeyTag {}
 public typealias ArmoredPrivateKey = Tagged<String, ArmoredPrivateKeyTag>
 
 public enum ArmoredPublicKeyTag {}
 public typealias ArmoredPublicKey = Tagged<String, ArmoredPublicKeyTag>
+
+public enum ArmoredMessageTag {}
+public typealias ArmoredMessage = Tagged<String, ArmoredMessageTag>

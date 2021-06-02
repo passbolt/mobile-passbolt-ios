@@ -25,6 +25,7 @@ import Accounts
 import Commons
 import Crypto
 import Features
+import struct Foundation.Data
 import NetworkClient
 
 // swiftlint:disable file_length
@@ -34,6 +35,7 @@ public struct AccountTransfer {
   public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, TheError>
   public var processPayload: (String) -> AnyPublisher<Never, TheError>
   public var completeTransfer: (Passphrase) -> AnyPublisher<Never, TheError>
+  public var avatarPublisher: () -> AnyPublisher<Data, TheError>
   public var cancelTransfer: () -> Void
   public var featureUnload: () -> Bool
 }
@@ -45,7 +47,6 @@ extension AccountTransfer {
     public let domain: String
     public let label: String
     public let username: String
-    public let avatarImagePath: String
   }
 }
 
@@ -91,13 +92,21 @@ extension AccountTransfer: Feature {
             let config: AccountTransferConfiguration = state.configuration,
             let profile: AccountTransferAccountProfile = state.profile
           else { return nil }
+          
           return AccountDetails(
             domain: config.domain,
             label: "\(profile.firstName) \(profile.lastName)",
-            username: profile.username,
-            avatarImagePath: profile.avatarImagePath
+            username: profile.username
           )
         }
+        .eraseToAnyPublisher()
+    }
+    
+    func mediaPublisher() -> AnyPublisher<Data, TheError> {
+      transferState
+        .compactMap { $0.profile }
+        .map { networkClient.mediaDownload.make(using: .init(path: $0.avatarImagePath)) }
+        .switchToLatest()
         .eraseToAnyPublisher()
     }
     
@@ -265,6 +274,7 @@ extension AccountTransfer: Feature {
       accountDetailsPublisher: accountDetailsPublisher,
       processPayload: processPayload,
       completeTransfer: completeTransfer,
+      avatarPublisher: mediaPublisher,
       cancelTransfer: cancelTransfer,
       featureUnload: featureUnload
     )
@@ -278,6 +288,7 @@ extension AccountTransfer: Feature {
       accountDetailsPublisher:  Commons.placeholder("You have to provide mocks for used methods"),
       processPayload: Commons.placeholder("You have to provide mocks for used methods"),
       completeTransfer: Commons.placeholder("You have to provide mocks for used methods"),
+      avatarPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       cancelTransfer: Commons.placeholder("You have to provide mocks for used methods"),
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )

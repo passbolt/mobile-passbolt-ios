@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Crypto
+
 public typealias RootEnvironment = (
   time: Time,
   uuidGenerator: UUIDGenerator,
@@ -30,5 +32,7 @@ public typealias RootEnvironment = (
   keychain: Keychain,
   camera: Camera,
   urlOpener: ExternalURLOpener,
-  appLifeCycle: AppLifeCycle
+  appLifeCycle: AppLifeCycle,
+  pgp: PGP,
+  signatureVerification: SignatureVerfication
 )

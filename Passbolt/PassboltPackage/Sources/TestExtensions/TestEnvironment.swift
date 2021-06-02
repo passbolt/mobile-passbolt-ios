@@ -33,6 +33,8 @@ public func testEnvironment() -> RootEnvironment {
     keychain: .placeholder,
     camera: .placeholder,
     urlOpener: .placeholder,
-    appLifeCycle: .placeholder
+    appLifeCycle: .placeholder,
+    pgp: .placeholder,
+    signatureVerification: .placeholder
   )
 }

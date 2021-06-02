@@ -154,10 +154,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
           case let .failure(error):
             self?.push(
               AccountTransferFailureViewController.self,
-              in: error//,
-//              completion: { [weak self] in
-//                self?.popAll(Self.self, animated: false)
-//              }
+              in: error
             )
           }
         },

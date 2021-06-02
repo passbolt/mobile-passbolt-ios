@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Commons
 import Combine
+import Commons
 import Environment
 
 public protocol Feature {

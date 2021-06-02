@@ -51,13 +51,3 @@ extension TheError.ID {
   public static var keychainError: Self { "keychainError" }
   public static var keychainAuthFailed: Self { "keychainAuthFailed" }
 }
-
-extension TheError.Extension {
-  
-  public static var osStatus: Self { "osStatus" }
-}
-
-extension TheError {
-  
-  public var osStatus: OSStatus? { extensions[.osStatus] as? OSStatus }
-}

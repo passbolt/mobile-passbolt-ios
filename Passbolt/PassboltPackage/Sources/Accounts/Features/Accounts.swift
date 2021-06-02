@@ -119,7 +119,7 @@ extension Accounts: Feature {
       let account: Account = .init(
         localID: accountID,
         domain: domain,
-        userID: userID,
+        userID: Account.UserID(rawValue: userID),
         fingerprint: fingerprint
       )
       let accountProfile: AccountProfile = .init(

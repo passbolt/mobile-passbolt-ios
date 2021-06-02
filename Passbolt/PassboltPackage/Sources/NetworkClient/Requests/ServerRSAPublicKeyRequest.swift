@@ -21,53 +21,41 @@
 // @since         v1.0
 //
 
-import Combine
-import Features
-import Foundation
-import PassboltApp
+import Commons
+import Environment
 
-internal struct Application {
-  
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
-    #endif
-    
-    self.ui = UI(features: features)
-    self.features = features
-  }
-}
+public typealias ServerRSAPublicKeyRequest =
+  NetworkRequest<DomainSessionVariable, ServerRSAPublicKeyVariable, ServerRSAPublicKeyResponse>
 
-extension Application {
+extension ServerRSAPublicKeyRequest {
   
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
-  }
-}
-
-extension Application {
-  
-  #warning("TODO: add shared user defaults identifier when able")
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      time: .live,
-      uuidGenerator: .live,
-      logger: .live,
-      networking: .foundation(),
-      preferences: .userDefaults(),
-      keychain: .live(),
-      camera: .live(),
-      urlOpener: .live(),
-      appLifeCycle: .live(),
-      pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256()
+  internal static func live(
+    using networking: Networking,
+    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+  ) -> Self {
+    Self(
+      template: .init { sessionVariable, _ in
+        .combined(
+          .url(string: sessionVariable.domain),
+          .path("/auth/jwt/rsa.json"),
+          .method(.get)
+        )
+      },
+      responseDecoder: .bodyAsJSON(),
+      using: networking,
+      with: sessionVariablePublisher
     )
-  )
+  }
 }
 
+public typealias ServerRSAPublicKeyVariable = Void
+public typealias ServerRSAPublicKeyResponse = CommonResponse<ServerRSAPublicKeyResponseBody>
+
+public struct ServerRSAPublicKeyResponseBody: Decodable {
+  
+  public var keyData: String
+  
+  private enum CodingKeys: String, CodingKey {
+    case keyData = "keydata"
+  }
+}

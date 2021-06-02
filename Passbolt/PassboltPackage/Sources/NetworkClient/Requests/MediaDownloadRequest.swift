@@ -26,13 +26,13 @@ import Environment
 import struct Foundation.Data
 
 public typealias MediaDownloadRequest
-  = NetworkRequest<NetworkSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse>
+  = NetworkRequest<DomainSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse>
 
 extension MediaDownloadRequest {
-  #warning("TODO: [PAS-69] fill in session data - token")
+  
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init(cacheResponse: true) { sessionVariable, requestVariable in
@@ -52,6 +52,10 @@ extension MediaDownloadRequest {
 public struct MediaDownloadRequestVariable {
   
   public var path: String
+  
+  public init(path: String) {
+    self.path = path
+  }
 }
 
 public typealias MediaDownloadResponse = Data

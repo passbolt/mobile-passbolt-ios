@@ -26,11 +26,12 @@ import Commons
 // Immutable part of account, used to identify account and associated server.
 public struct Account {
   
-  public typealias LocalID = Tagged<String, Self>
+  public typealias UserID = Tagged<String, Self>
+  public typealias LocalID = Tagged<String, UserID>
   
   public let localID: LocalID
   public let domain: String
-  public let userID: String
+  public let userID: UserID
   public let fingerprint: String
 }
 

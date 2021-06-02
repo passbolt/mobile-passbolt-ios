@@ -21,53 +21,17 @@
 // @since         v1.0
 //
 
-import Combine
-import Features
 import Foundation
-import PassboltApp
 
-internal struct Application {
-  
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
-    #endif
+extension String {
+  // Decode base64 url encoded
+  public func base64DecodeFromURLEncoded(options: Data.Base64DecodingOptions = []) -> Data? {
+    var result: String = self
+      .replacingOccurrences(of: "-", with: "+")
+      .replacingOccurrences(of: "_", with: "/")
     
-    self.ui = UI(features: features)
-    self.features = features
+    result += String(repeating: "=", count: result.count % 4)
+    
+    return .init(base64Encoded: result, options: options)
   }
 }
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
-  }
-}
-
-extension Application {
-  
-  #warning("TODO: add shared user defaults identifier when able")
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      time: .live,
-      uuidGenerator: .live,
-      logger: .live,
-      networking: .foundation(),
-      preferences: .userDefaults(),
-      keychain: .live(),
-      camera: .live(),
-      urlOpener: .live(),
-      appLifeCycle: .live(),
-      pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256()
-    )
-  )
-}
-

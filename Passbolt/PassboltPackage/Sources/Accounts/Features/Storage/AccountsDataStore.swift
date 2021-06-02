@@ -25,7 +25,6 @@ import Crypto
 import Features
 
 #warning("TODO: [PAS-82] - database")
-#warning("TODO: [PAS-131] - session")
 // swiftlint:disable file_length
 internal struct AccountsDataStore {
   
@@ -42,6 +41,9 @@ internal struct AccountsDataStore {
   internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
   internal var deleteAccount: (Account.LocalID) -> Void
   internal var accountDatabaseConnection: (Account.LocalID) -> Result<DatabaseConnection, TheError>
+  internal var storeRefreshToken: (String, Account.LocalID) -> Result<Void, TheError>
+  internal var loadRefreshToken: (Account.LocalID) -> Result<String?, TheError>
+  internal var deleteRefreshToken: (Account.LocalID) -> Result<Void, TheError>
 }
 
 extension AccountsDataStore: Feature {
@@ -177,7 +179,7 @@ extension AccountsDataStore: Feature {
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.debugLog(
-            "Failed to delete account profile for accountID: \(updatedAccountsList)"
+            "Failed to delete account profile for accountID: \(accountID)"
               + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
           )
           return .failure(error)
@@ -219,6 +221,44 @@ extension AccountsDataStore: Feature {
       } else { /* We can't delete passphrases selectively due to biometrics */ }
       
       #warning("TODO: [PAS-82] Verify database files and remove detached")
+
+      let storedTokens: Array<Account.LocalID>
+      
+      switch environment.keychain.loadMeta(matching: .refreshTokensQuery()) {
+      // swiftlint:disable:next explicit_type_interface
+      case let .success(metadata):
+        storedTokens = metadata
+          .compactMap(\.tag)
+          .map { Account.LocalID(rawValue: $0.rawValue) }
+        
+      // swiftlint:disable:next explicit_type_interface
+      case let .failure(error):
+        diagnostics.debugLog(
+          "Failed to load refresh tokens meta"
+          + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+        )
+        return .failure(error)
+      }
+      
+      let tokensToRemove: Array<Account.LocalID> = storedTokens
+        .filter { !updatedAccountsList.contains($0) }
+      
+      for accountID in tokensToRemove {
+        switch environment.keychain.delete(matching: .refreshTokenQuery(for: accountID)) {
+        case .success:
+          continue
+        // swiftlint:disable:next explicit_type_interface
+        case let .failure(error):
+          diagnostics.debugLog(
+            "Failed to delete token for accountID: \(accountID)"
+            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          )
+          return .failure(error)
+        }
+      }
+      
+      diagnostics.debugLog("Deleted account tokens: \(tokensToRemove)")
+      
       return .success
     }
     
@@ -452,12 +492,19 @@ extension AccountsDataStore: Feature {
         .delete(matching: .accountArmoredKeyQuery(for: accountID))
       _ = environment
         .keychain
+        .delete(matching: .refreshTokenQuery(for: accountID))
+      _ = environment
+        .keychain
         .delete(matching: .accountQuery(for: accountID))
+      _ = environment
+        .keychain
+        .delete(matching: .accountProfileQuery(for: accountID))
       var accountIdentifiers: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.removeAll(where: { $0 == accountID })
       environment.preferences.save(accountIdentifiers, for: .accountsList)
+      
       #warning("TODO: [PAS-82] remove database files")
     }
     
@@ -466,6 +513,25 @@ extension AccountsDataStore: Feature {
     ) -> Result<DatabaseConnection, TheError> {
       #warning("TODO: [PAS-82] prepare connection and files if needed")
       return .success(DatabaseConnection.placeholder)
+    }
+    
+    func store(
+      refreshToken: String,
+      accountID: Account.LocalID
+    ) -> Result<Void, TheError> {
+      environment.keychain.save(refreshToken, for: .refreshTokenQuery(for: accountID))
+    }
+    
+    func loadRefreshToken(
+      for accountID: Account.LocalID
+    ) -> Result<String?, TheError> {
+      environment.keychain.loadFirst(matching: .refreshTokenQuery(for: accountID))
+    }
+    
+    func deleteRefreshToken(
+      for accountID: Account.LocalID
+    ) -> Result<Void, TheError> {
+      environment.keychain.delete(matching: .refreshTokenQuery(for: accountID))
     }
     
     return Self(
@@ -481,7 +547,10 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: loadAccountProfile(for:),
       updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
-      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:)
+      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:),
+      storeRefreshToken: store(refreshToken:accountID:),
+      loadRefreshToken: loadRefreshToken(for:),
+      deleteRefreshToken: deleteRefreshToken(for:)
     )
   }
   
@@ -500,7 +569,10 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods")
+      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods"),
+      storeRefreshToken: Commons.placeholder("You have to provide mocks for used methods"),
+      loadRefreshToken: Commons.placeholder("You have to provide mocks for used methods"),
+      deleteRefreshToken: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
@@ -592,6 +664,28 @@ extension KeychainQuery {
       key: "accountPassphrase",
       tag: .init(rawValue: identifier.rawValue),
       // all passphrases have to be stored with biometrics, but it is not required to delete them
+      requiresBiometrics: false
+    )
+  }
+  
+  fileprivate static func refreshTokensQuery() -> Self {
+    Self(
+      key: "refreshToken",
+      tag: nil,
+      requiresBiometrics: false
+    )
+  }
+  
+  fileprivate static func refreshTokenQuery(
+    for identifier: Account.LocalID
+  ) -> Self {
+    assert(
+      !identifier.rawValue.isEmpty,
+      "Cannot use empty account identifiers for refresh token keychain operations"
+    )
+    return Self(
+      key: "refreshToken",
+      tag: .init(rawValue: identifier.rawValue),
       requiresBiometrics: false
     )
   }

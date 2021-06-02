@@ -21,53 +21,35 @@
 // @since         v1.0
 //
 
-import Combine
-import Features
-import Foundation
-import PassboltApp
+import Commons
 
-internal struct Application {
+public struct JWKS: Decodable {
   
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: RootEnvironment
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
-    #endif
+  public enum Key {
     
-    self.ui = UI(features: features)
-    self.features = features
+    public enum Kind: String, Decodable {
+      // We're supporting only RSA
+      case rsa = "RSA"
+    }
+    
+    public enum Purpose: String, Decodable {
+      // We're supporting only signature
+      case signature = "sig"
+    }
+  }
+  
+  public var algorithm: JWT.Algorithm
+  public var keyType: Key.Kind
+  public var purpose: Key.Purpose
+  public var exponent: String
+  public var modulus: String
+  
+  private enum CodingKeys: String, CodingKey {
+    
+    case algorithm = "alg"
+    case keyType = "kty"
+    case purpose = "use"
+    case exponent = "e"
+    case modulus = "n"
   }
 }
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
-  }
-}
-
-extension Application {
-  
-  #warning("TODO: add shared user defaults identifier when able")
-  internal static let shared: Application = .init(
-    environment: RootEnvironment(
-      time: .live,
-      uuidGenerator: .live,
-      logger: .live,
-      networking: .foundation(),
-      preferences: .userDefaults(),
-      keychain: .live(),
-      camera: .live(),
-      urlOpener: .live(),
-      appLifeCycle: .live(),
-      pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256()
-    )
-  )
-}
-
