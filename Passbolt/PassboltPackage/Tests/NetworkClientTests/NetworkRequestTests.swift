@@ -137,7 +137,7 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: &cancellables)
     
-    sessionSubject.send(NetworkSessionVariable())
+    sessionSubject.send(NetworkSessionVariable(domain: "", authorizationToken: ""))
     
     XCTAssertEqual(completionError?.identifier, .httpError)
   }
@@ -178,7 +178,7 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: &cancellables)
     
-    sessionSubject.send(NetworkSessionVariable())
+    sessionSubject.send(NetworkSessionVariable(domain: "", authorizationToken: ""))
     
     XCTAssertEqual(bodySent, bodyReceived)
   }

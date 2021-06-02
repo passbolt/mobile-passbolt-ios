@@ -21,13 +21,15 @@
 // @since         v1.0
 //
 
+import Accounts
 import Commons
 import Features
 
-#warning("TODO: session management: [PAS-69]")
+#warning("TODO: session management: [PAS-131]")
 public struct NetworkClient {
   
   public var accountTransferUpdate: AccountTransferUpdateRequest
+  public var featureUnload: () -> Bool
 }
 
 extension NetworkClient: Feature {
@@ -39,17 +41,41 @@ extension NetworkClient: Feature {
     using features: FeatureFactory,
     cancellables: inout Array<AnyCancellable>
   ) -> NetworkClient {
-    #warning("TODO: temporary placeholder for session variable")
-    let tempSessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
-      = Just(NetworkSessionVariable())
-      .setFailureType(to: TheError.self)
+    let session: AccountSession = features.instance()
+    let tempSessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError> = session
+      .statePublisher()
+      .map { sessionState -> AnyPublisher<NetworkSessionVariable, TheError> in
+        switch sessionState {
+        // swiftlint:disable:next explicit_type_interface
+        case let .authorized(account, token), let .authorizationRequired(account, .some(token)):
+          return Just(
+            NetworkSessionVariable(
+              domain: account.domain,
+              authorizationToken: token.rawValue
+            )
+          )
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+          
+        case .authorizationRequired, .none:
+          #warning("Change error")
+          return Fail<NetworkSessionVariable, TheError>(error: .sessionClosed())
+            .eraseToAnyPublisher()
+        }
+      }
+      .switchToLatest()
       .eraseToAnyPublisher()
-    // provide implementations of requests
+    
+    func featureUnload() -> Bool {
+      true // perform cleanup if needed
+    }
+    
     return Self(
       accountTransferUpdate: .live(
         using: environment,
         with: tempSessionVariablePublisher
-      )
+      ),
+      featureUnload: featureUnload
     )
   }
   
@@ -58,16 +84,13 @@ extension NetworkClient: Feature {
   ) -> Environment {
     rootEnvironment.networking
   }
-  
-  public func unload() -> Bool {
-    true // perform cleanup if needed
-  }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      accountTransferUpdate: .placeholder
+      accountTransferUpdate: .placeholder,
+      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

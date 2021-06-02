@@ -21,5 +21,8 @@
 // @since         v1.0
 //
 
-#warning("TODO: session management: [PAS-69]")
-internal struct NetworkSessionVariable {}
+internal struct NetworkSessionVariable {
+  
+  internal var domain: String
+  internal var authorizationToken: String
+}

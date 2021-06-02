@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
+import Accounts
 @testable import AccountSetup
 import Features
 import NetworkClient
-import Safety
 import TestExtensions
 import XCTest
 
@@ -58,6 +58,7 @@ final class AccountTransferTests: XCTestCase {
   func test_scanningProgressPublisher_publishesConfigurationValue_initially() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: AccountTransfer.ScanningProgress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -88,6 +89,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: AccountTransfer.ScanningProgress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -121,6 +123,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: AccountTransfer.ScanningProgress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -159,6 +162,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -191,6 +195,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -222,6 +227,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -251,6 +257,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .failingWith(.testError())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: TheError?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -281,6 +288,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     var result: Void?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
@@ -313,6 +321,7 @@ final class AccountTransferTests: XCTestCase {
     )
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -334,6 +343,7 @@ final class AccountTransferTests: XCTestCase {
     )
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -351,6 +361,7 @@ final class AccountTransferTests: XCTestCase {
   func test_processPayload_fails_withInvalidVersionByte() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -379,6 +390,7 @@ final class AccountTransferTests: XCTestCase {
   func test_processPayload_fails_withInvalidPageBytes() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -407,6 +419,7 @@ final class AccountTransferTests: XCTestCase {
   func test_processPayload_fails_withInvalidPageNumber() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -435,6 +448,7 @@ final class AccountTransferTests: XCTestCase {
   func test_processPayload_fails_withInvalidConfigurationPart() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -463,6 +477,7 @@ final class AccountTransferTests: XCTestCase {
   func test_processPayload_fails_withInvalidJSONInConfigurationPart() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -493,6 +508,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -523,6 +539,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -559,6 +576,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -595,6 +613,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -631,6 +650,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -667,6 +687,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -707,6 +728,7 @@ final class AccountTransferTests: XCTestCase {
     )
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -724,6 +746,7 @@ final class AccountTransferTests: XCTestCase {
   func test_cancelTransfer_unloadsFeature() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -742,6 +765,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
@@ -779,6 +803,7 @@ final class AccountTransferTests: XCTestCase {
     networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
+    features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,

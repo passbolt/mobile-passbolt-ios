@@ -21,19 +21,21 @@
 // @since         v1.0
 //
 
-import Accounts
 import Commons
 import Crypto
 import Environment
 import Features
 import struct Foundation.Date
+import struct Foundation.TimeInterval
 import enum Foundation.DispatchTimeInterval
 import class Foundation.NSRecursiveLock
 
-public struct PassphraseCache {
+internal struct PassphraseCache {
   // Get passphrase stored in memory - accountID used only for verification of stored data
   // If accountID does not match previously stored data then the cache is cleared.
-  internal var passphrasePublisher: (_ accountID: Account.LocalID) -> AnyPublisher<Passphrase?, Never>
+  internal var passphrasePublisher: (
+    _ accountID: Account.LocalID
+  ) -> AnyPublisher<Passphrase?, Never>
   // Store passphrase in memory for a specific accountID.
   internal var store: (
     _ passphrase: Passphrase,
@@ -45,6 +47,9 @@ public struct PassphraseCache {
 }
 
 extension PassphraseCache {
+  
+  internal static let defaultExpirationTimeInterval: TimeInterval = 5 * 60 // 5 minutes
+  
   internal struct Entry {
     
     internal var accountID: Account.LocalID
@@ -55,15 +60,18 @@ extension PassphraseCache {
 
 extension PassphraseCache: Feature {
   
-  public typealias Environment = (time: Time, lifeCycle: AppLifeCycle)
+  internal typealias Environment = (time: Time, lifeCycle: AppLifeCycle)
   
-  public static func environmentScope(
+  internal static func environmentScope(
     _ rootEnvironment: RootEnvironment
   ) -> Environment {
-    (rootEnvironment.time, rootEnvironment.appLifeCycle)
+    (
+      rootEnvironment.time,
+      rootEnvironment.appLifeCycle
+    )
   }
   
-  public static func load(
+  internal static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: inout Array<AnyCancellable>
@@ -107,8 +115,8 @@ extension PassphraseCache: Feature {
     func createPassphrasePublisher(
       accountID: Account.LocalID
     ) -> AnyPublisher<Passphrase?, Never> {
-      if let storedAccountId: Account.LocalID = currentPassphraseSubject.value?.accountID,
-        accountID != storedAccountId {
+      if let storedAccountID: Account.LocalID = currentPassphraseSubject.value?.accountID,
+        accountID != storedAccountID {
         currentPassphraseSubject.send(nil)
       } else { /* */ }
       
@@ -155,7 +163,7 @@ extension PassphraseCache: Feature {
 #if DEBUG
 extension PassphraseCache {
   
-  public static var placeholder: PassphraseCache {
+  internal static var placeholder: PassphraseCache {
     Self(
       passphrasePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       store: Commons.placeholder("You have to provide mocks for used methods"),

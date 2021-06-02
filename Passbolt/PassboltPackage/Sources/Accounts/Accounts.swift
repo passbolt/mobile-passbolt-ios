@@ -26,15 +26,17 @@ import Features
 
 public struct Accounts {
   
-  public var verifyAccountsDataIntegrity: () -> Result<Void, TheError>
+  public var verifyStorageDataIntegrity: () -> Result<Void, TheError>
   public var storedAccounts: () -> Array<Account>
-  public var storeAccount: (
+  // Saves account data if authorization succeeds and creates session.
+  public var completeAccountTransfer: (
     _ domain: String,
     _ userID: String,
     _ fingerprint: String,
-    _ armoredKey: ArmoredPrivateKey
-  ) -> Result<Account, TheError>
-  public var removeAccount: (Account) -> Void
+    _ armoredKey: ArmoredPrivateKey,
+    _ passphrase: Passphrase
+  ) -> AnyPublisher<Void, TheError>
+  public var removeAccount: (Account.LocalID) -> Result<Void, TheError>
 }
 
 extension Accounts: Feature {
@@ -60,6 +62,8 @@ extension Accounts: Feature {
     using features: FeatureFactory,
     cancellables: inout Array<AnyCancellable>
   ) -> Self {
+    let diagnostics: Diagnostics = features.instance()
+    let session: AccountSession = features.instance()
     let dataStore: AccountsDataStore = features.instance()
     
     func verifyAccountsDataIntegrity() -> Result<Void, TheError> {
@@ -70,35 +74,83 @@ extension Accounts: Feature {
       dataStore.loadAccounts()
     }
     
-    func storeAccount(
+    func completeAccountTransfer(
       domain: String,
       userID: String,
       fingerprint: String,
-      armoredKey: ArmoredPrivateKey
-    ) -> Result<Account, TheError> {
+      armoredKey: ArmoredPrivateKey,
+      passphrase: Passphrase
+    ) -> AnyPublisher<Void, TheError> {
+      let accountID: Account.LocalID = .init(rawValue: environment.uuidGenerator().uuidString)
       let account: Account = .init(
-        localID: .init(rawValue: environment.uuidGenerator().uuidString),
+        localID: accountID,
         domain: domain,
         userID: userID,
         fingerprint: fingerprint
       )
-      return dataStore.storeAccount(
-        account,
-        armoredKey
+      let accountDetails: AccountDetails = .init(
+        accountID: accountID,
+        biometricsEnabled: false // it is always disabled initially
       )
-      .map { _ in account }
+      return session
+        .authorize(account, .passphrase(passphrase))
+        .map { _ -> AnyPublisher<Void, TheError> in
+          switch dataStore.storeAccount(account, accountDetails, armoredKey) {
+          case .success:
+            return Just(Void())
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error):
+            diagnostics.debugLog(
+              "Failed to save account: \(account.localID)"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+            )
+            session.close() // cleanup session
+            return Fail<Void, TheError>(error: error)
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
     }
     
-    func removeAccount(_ account: Account) -> Void {
-      dataStore.deleteAccount(account)
-      #warning("TODO: [PAS-69] - clear session data and passphrese? It might be done in Safety")
+    func remove(
+      accountWithID accountID: Account.LocalID
+    ) -> Result<Void, TheError> {
+      dataStore.deleteAccount(accountID)
+      _ = session
+        .statePublisher()
+        .prefix(1)
+        .map { sessionState -> Bool in
+          switch sessionState {
+          case
+            // swiftlint:disable:next explicit_type_interface
+            let .authorized(account, token: _)
+          where account.localID == accountID,
+            // swiftlint:disable:next explicit_type_interface
+            let .authorizationRequired(account, token: _)
+          where account.localID == accountID:
+            return true
+            
+          case .authorized, .authorizationRequired, .none:
+            return false
+          }
+        }
+        .sink { signOutRequired in
+          if signOutRequired {
+            session.close()
+          } else { /* */ }
+        }
+      
+      return .success
     }
     
     return Self(
-      verifyAccountsDataIntegrity: verifyAccountsDataIntegrity,
+      verifyStorageDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
-      storeAccount: storeAccount(domain:userID:fingerprint:armoredKey:),
-      removeAccount: removeAccount
+      completeAccountTransfer: completeAccountTransfer(domain:userID:fingerprint:armoredKey:passphrase:),
+      removeAccount: remove(accountWithID:)
     )
   }
   
@@ -106,23 +158,11 @@ extension Accounts: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      verifyAccountsDataIntegrity: Commons.placeholder("You have to provide mocks for used methods"),
+      verifyStorageDataIntegrity: Commons.placeholder("You have to provide mocks for used methods"),
       storedAccounts: Commons.placeholder("You have to provide mocks for used methods"),
-      storeAccount: Commons.placeholder("You have to provide mocks for used methods"),
+      completeAccountTransfer: Commons.placeholder("You have to provide mocks for used methods"),
       removeAccount: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
-}
-
-extension Accounts {
-  
-  public func storeTransferedAccount(
-    domain: String,
-    userID: String,
-    fingerprint: String,
-    armoredKey: ArmoredPrivateKey
-  ) -> Result<Account, TheError> {
-    storeAccount(domain, userID, fingerprint, armoredKey)
-  }
 }

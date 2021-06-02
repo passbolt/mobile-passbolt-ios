@@ -58,6 +58,7 @@ final class AccountsStoreTests: XCTestCase {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
     features.use(accountsDataStore)
+    features.use(AccountSession.placeholder)
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
       using: features,
@@ -77,25 +78,33 @@ final class AccountsStoreTests: XCTestCase {
       return .success
     }
     features.use(accountsDataStore)
+    features.use(AccountSession.placeholder)
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
       using: features,
       cancellables: &cancellables
     )
     
-    _ = accounts.verifyAccountsDataIntegrity()
+    _ = accounts.verifyStorageDataIntegrity()
     
     XCTAssertNotNil(result)
   }
   
   func test_storeTransferedAccount_storesDataInAccountsDataStore() {
-    var result: (account: Account, armoredKey: ArmoredPrivateKey)?
+    var result: (account: Account, details: AccountDetails, armoredKey: ArmoredPrivateKey)?
     var accountsDataStore: AccountsDataStore = .placeholder
-    accountsDataStore.storeAccount = { account, key in
-      result = (account: account, armoredKey: key)
+    accountsDataStore.storeAccount = { account, details, key in
+      result = (account: account, details: details, armoredKey: key)
       return .success
     }
     features.use(accountsDataStore)
+    var accountSession: AccountSession = .placeholder
+    accountSession.authorize = always(
+      Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
     features.environment.uuidGenerator.uuid = always(.testUUID)
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
@@ -103,25 +112,36 @@ final class AccountsStoreTests: XCTestCase {
       cancellables: &cancellables
     )
     
-    _ = accounts
-      .storeTransferedAccount(
-        domain: validAccount.domain,
-        userID: validAccount.userID,
-        fingerprint: validAccount.fingerprint,
-        armoredKey: validPrivateKey
+    accounts
+      .completeAccountTransfer(
+        validAccount.domain,
+        validAccount.userID,
+        validAccount.fingerprint,
+        validPrivateKey,
+        validPassphrase
       )
+      .sink(receiveCompletion: { _ in }, receiveValue: {})
+      .store(in: &cancellables)
     
     XCTAssertEqual(result?.account, validAccount)
+    XCTAssertEqual(result?.details, validAccountDetails)
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
   
   func test_removeAccount_removesDataFromAccountsDataStore() {
-    var result: Account?
+    var result: Account.LocalID?
     var accountsDataStore: AccountsDataStore = .placeholder
-    accountsDataStore.deleteAccount = { account in
-      result = account
+    accountsDataStore.deleteAccount = { accountID in
+      result = accountID
     }
     features.use(accountsDataStore)
+    var accountSession: AccountSession = .placeholder
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount, token: ""))
+        .eraseToAnyPublisher()
+    )
+    accountSession.close = always(Void())
+    features.use(accountSession)
     features.environment.uuidGenerator.uuid = always(.testUUID)
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
@@ -129,9 +149,9 @@ final class AccountsStoreTests: XCTestCase {
       cancellables: &cancellables
     )
     
-    _ = accounts.removeAccount(validAccount)
+    _ = accounts.removeAccount(validAccount.localID)
     
-    XCTAssertEqual(result, validAccount)
+    XCTAssertEqual(result, validAccount.localID)
   }
 }
 
@@ -141,6 +161,13 @@ private let validAccount: Account = .init(
   userID: "USER_ID",
   fingerprint: "FINGERPRINT"
 )
+
+private let validAccountDetails: AccountDetails = .init(
+  accountID: .init(rawValue: UUID.testUUID.uuidString),
+  biometricsEnabled: false
+)
+
+private let validPassphrase: Passphrase = "SecretPassphrase"
 
 private let validPrivateKey: ArmoredPrivateKey =
   """

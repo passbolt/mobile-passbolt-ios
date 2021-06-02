@@ -26,7 +26,6 @@ import Commons
 import Crypto
 import Features
 import NetworkClient
-import Safety
 
 public struct AccountTransfer {
   
@@ -34,12 +33,14 @@ public struct AccountTransfer {
   public var processPayload: (String) -> AnyPublisher<Never, TheError>
   public var completeTransfer: (Passphrase) -> AnyPublisher<Void, TheError>
   public var cancelTransfer: () -> Void
+  public var featureUnload: () -> Bool
 }
 
 extension AccountTransfer: Feature {
   
   public typealias Environment = Void
   
+  // swiftlint:disable:next function_body_length
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -47,7 +48,7 @@ extension AccountTransfer: Feature {
   ) -> AccountTransfer {
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
-    let accountSession: AccountSession = features.instance()
+    let accounts: Accounts = features.instance()
     let transferState: CurrentValueSubject<AccountTransferState, TheError> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable // silence warning
@@ -130,7 +131,7 @@ extension AccountTransfer: Feature {
         )
         .eraseToAnyPublisher()
       }
-      return accountSession
+      return accounts
         .completeAccountTransfer(
           configuration.domain,
           account.userID,
@@ -169,26 +170,27 @@ extension AccountTransfer: Feature {
       _cancelTransfer(using: features)
     }
     
+    func featureUnload() -> Bool {
+      #if DEBUG
+      _ = scanningProgressPublisher()
+        .receive(on: ImmediateScheduler.shared)
+        .sink(
+          receiveCompletion: { _ in /* expected */ },
+          receiveValue: { _ in
+            assertionFailure("\(Self.self) has to have finished (either completed or canceled) scanning to be unloaded")
+          }
+        )
+      #endif
+      return true // we should unload this feature after use and it always succeeds
+    }
+    
     return Self(
       scanningProgressPublisher: scanningProgressPublisher,
       processPayload: processPayload,
       completeTransfer: completeTransfer,
-      cancelTransfer: cancelTransfer
+      cancelTransfer: cancelTransfer,
+      featureUnload: featureUnload
     )
-  }
-  
-  public func unload() -> Bool {
-    #if DEBUG
-    _ = scanningProgressPublisher()
-      .receive(on: ImmediateScheduler.shared)
-      .sink(
-        receiveCompletion: { _ in /* expected */ },
-        receiveValue: { _ in
-          assertionFailure("\(Self.self) has to have finished (either completed or canceled) scanning to be unloaded")
-        }
-      )
-    #endif
-    return true // we should unload this feature after use and it always succeeds
   }
   
   #if DEBUG
@@ -198,7 +200,8 @@ extension AccountTransfer: Feature {
       scanningProgressPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       processPayload: Commons.placeholder("You have to provide mocks for used methods"),
       completeTransfer: Commons.placeholder("You have to provide mocks for used methods"),
-      cancelTransfer: Commons.placeholder("You have to provide mocks for used methods")
+      cancelTransfer: Commons.placeholder("You have to provide mocks for used methods"),
+      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

@@ -28,22 +28,10 @@ public struct Account {
   public typealias LocalID = Tagged<String, Self>
   
   public let localID: LocalID
-  public var domain: String
-  public var userID: String
-  public var fingerprint: String
-  
-  public init(
-    localID: LocalID,
-    domain: String,
-    userID: String,
-    fingerprint: String
-  ) {
-    self.localID = localID
-    self.domain = domain
-    self.userID = userID
-    self.fingerprint = fingerprint
-  }
+  public let domain: String
+  public let userID: String
+  public let fingerprint: String
 }
 
-extension Account: Hashable {}
+extension Account: Equatable {}
 extension Account: Codable {}

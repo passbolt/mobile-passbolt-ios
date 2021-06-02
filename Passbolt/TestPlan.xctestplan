@@ -66,13 +66,6 @@
     {
       "target" : {
         "containerPath" : "container:PassboltPackage",
-        "identifier" : "SafetyTests",
-        "name" : "SafetyTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
         "identifier" : "EnvironmentTests",
         "name" : "EnvironmentTests"
       }

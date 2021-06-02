@@ -21,12 +21,22 @@
 // @since         v1.0
 //
 
-import struct Foundation.UUID
+import Commons
 
-extension UUID {
+extension TheError {
   
-  public static var testUUID: Self {
-    // swiftlint:disable:next force_unwrapping
-    UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+  public static func sessionClosed(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .sessionClosed,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
   }
+}
+
+extension TheError.ID {
+  
+  public static let sessionClosed: Self = "sessionClosed"
 }

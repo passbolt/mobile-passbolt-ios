@@ -21,12 +21,14 @@
 // @since         v1.0
 //
 
-import struct Foundation.UUID
-
-extension UUID {
+public struct DatabaseStatement {
   
-  public static var testUUID: Self {
-    // swiftlint:disable:next force_unwrapping
-    UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+  internal let rawString: String
+}
+
+extension DatabaseStatement: ExpressibleByStringLiteral {
+  
+  public init(stringLiteral value: StaticString) {
+    self.init(rawString: value.description)
   }
 }

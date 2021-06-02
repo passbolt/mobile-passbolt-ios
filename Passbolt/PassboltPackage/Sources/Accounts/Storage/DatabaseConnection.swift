@@ -23,21 +23,31 @@
 
 import Commons
 
-extension TheError {
+#warning("TODO: [PAS-82] Prepare database with environment")
+internal struct DatabaseConnection {
   
-  public static func invalidPassphrase(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .invalidPassphrase,
-      underlyingError: underlyingError,
-      extensions: .init()
+  internal var accountID: () -> Account.LocalID
+  internal var execute: (
+    _ statement: DatabaseStatement,
+    _ bindings: Array<DatabaseStatementBindable?>
+  ) -> AnyPublisher<Void, TheError>
+  internal var loadRows: (
+    _ query: DatabaseStatement,
+    _ bindings: Array<DatabaseStatementBindable?>
+  ) -> AnyPublisher<Array<DatabaseRow>, TheError>
+  internal var close: () -> Void
+}
+
+#if DEBUG
+extension DatabaseConnection {
+  
+  internal static var placeholder: Self {
+    Self(
+      accountID: Commons.placeholder("You have to provide mocks for used methods"),
+      execute: Commons.placeholder("You have to provide mocks for used methods"),
+      loadRows: Commons.placeholder("You have to provide mocks for used methods"),
+      close: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }
-
-extension TheError.ID {
-  
-  public static let invalidPassphrase: Self = "invalidPassphrase"
-}
-
+#endif

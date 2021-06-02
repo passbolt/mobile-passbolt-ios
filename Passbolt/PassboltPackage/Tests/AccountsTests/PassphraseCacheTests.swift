@@ -21,12 +21,11 @@
 // @since         v1.0
 //
 
-import Accounts
+@testable import Accounts
 import Commons
 import Crypto
 import Environment
 import Features
-@testable import Safety
 import TestExtensions
 import XCTest
 

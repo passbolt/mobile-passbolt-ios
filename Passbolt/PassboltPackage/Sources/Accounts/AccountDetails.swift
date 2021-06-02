@@ -21,12 +21,13 @@
 // @since         v1.0
 //
 
-import struct Foundation.UUID
+import Commons
 
-extension UUID {
+public struct AccountDetails {
   
-  public static var testUUID: Self {
-    // swiftlint:disable:next force_unwrapping
-    UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-  }
+  public let accountID: Account.LocalID
+  public internal(set) var biometricsEnabled: Bool
 }
+
+extension AccountDetails: Equatable {}
+extension AccountDetails: Codable {}

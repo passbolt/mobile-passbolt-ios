@@ -21,12 +21,45 @@
 // @since         v1.0
 //
 
-import struct Foundation.UUID
+import Commons
 
-extension UUID {
+extension TheError {
   
-  public static var testUUID: Self {
-    // swiftlint:disable:next force_unwrapping
-    UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+  public static func invalidAccount(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .invalidAccount,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
+  
+  public static func invalidPassphrase(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .invalidPassphrase,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
+  
+  public static func biometricsNotAvailable(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .biometricsNotAvailable,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
   }
 }
+
+extension TheError.ID {
+  
+  public static let invalidAccount: Self = "invalidAccount"
+  public static let invalidPassphrase: Self = "invalidPassphrase"
+  public static let biometricsNotAvailable: Self = "biometricsNotAvailable"
+}
+

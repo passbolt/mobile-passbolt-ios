@@ -41,7 +41,7 @@ extension SplashScreenController: UIController {
     return Self(
       navigationDestinationPublisher: {
         #warning("TODO: switch initial screen for integrity check fail to allow diagnostics")
-        _ = accounts.verifyAccountsDataIntegrity()
+        _ = accounts.verifyStorageDataIntegrity()
         return Just(Void())
           .eraseToAnyPublisher()
       }

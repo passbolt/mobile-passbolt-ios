@@ -78,13 +78,15 @@ extension FeatureFactory {
     }
   }
   
+  @discardableResult
   public func unload<F>(
     _ feature: F.Type
-  ) where F: Feature {
+  ) -> Bool where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    guard (features[F.featureIdentifier]?.feature as? F)?.unload() ?? false else { return }
+    guard (features[F.featureIdentifier]?.feature as? F)?.featureUnload() ?? false else { return false }
     features[F.featureIdentifier] = nil
+    return true
   }
   
   public func isLoaded<F>(

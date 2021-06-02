@@ -38,7 +38,7 @@ public protocol Feature {
     cancellables: inout Array<AnyCancellable>
   ) -> Self
   
-  func unload() -> Bool
+  var featureUnload: () -> Bool { get }
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   static var placeholder: Self { get }
@@ -47,9 +47,11 @@ public protocol Feature {
 
 extension Feature {
   
-  public func unload() -> Bool {
-    assertionFailure("Unloading is not supported by \(Self.self)")
-    return false
+  public var featureUnload: () -> Bool {
+    {
+      assertionFailure("Unloading is not supported by \(Self.self)")
+      return false
+    }
   }
 }
 

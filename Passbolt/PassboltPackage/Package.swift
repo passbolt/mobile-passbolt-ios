@@ -43,10 +43,6 @@ let package = Package(
       targets: ["Resources"]
     ),
     .library(
-      name: "Safety",
-      targets: ["Safety"]
-    ),
-    .library(
       name: "Settings",
       targets: ["Settings"]
     ),
@@ -98,7 +94,6 @@ let package = Package(
         "Crypto",
         "Features",
         "NetworkClient",
-        "Safety",
       ]
     ),
     .testTarget(
@@ -216,26 +211,8 @@ let package = Package(
         "Commons",
         "Features",
         "NetworkClient",
-        "Safety",
         "Settings",
         "Environment"
-      ]
-    ),
-    .target(
-      name: "Safety",
-      dependencies: [
-        "Accounts",
-        "Commons",
-        "Features",
-        "Settings",
-        "Environment",
-      ]
-    ),
-    .testTarget(
-      name: "SafetyTests",
-      dependencies: [
-        "Safety",
-        "TestExtensions"
       ]
     ),
     .target(

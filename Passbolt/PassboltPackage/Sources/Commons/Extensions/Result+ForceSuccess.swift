@@ -27,6 +27,7 @@ extension Result {
     switch self {
     case .success:
       break
+    // swiftlint:disable:next explicit_type_interface
     case let .failure(error):
       fatalError("Critical error, message: \(message), reason: \(error)")
     }
