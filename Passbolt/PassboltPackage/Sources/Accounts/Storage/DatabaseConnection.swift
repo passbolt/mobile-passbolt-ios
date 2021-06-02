@@ -38,7 +38,7 @@ internal struct DatabaseConnection {
   internal var close: () -> Void
 }
 
-#if DEBUG
+#warning("FIXME: PAS-82 - this should only be available in DEBUG")
 extension DatabaseConnection {
   
   internal static var placeholder: Self {
@@ -50,4 +50,3 @@ extension DatabaseConnection {
     )
   }
 }
-#endif
