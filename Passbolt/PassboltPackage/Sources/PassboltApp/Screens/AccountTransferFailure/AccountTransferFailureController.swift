@@ -21,32 +21,31 @@
 // @since         v1.0
 //
 
-internal struct AccountTransferState {
+import UIComponents
+
+internal struct AccountTransferFailureController {
   
-  internal var configuration: AccountTransferConfiguration? = nil
-  internal var account: AccountTransferAccount? = nil
-  internal var profile: AccountTransferAccountProfile? = nil
-  internal var scanningParts: Array<AccountTransferScanningPart> = .init()
+  internal var failureReason: () -> TheError
+  internal var `continue`: () -> Void
+  internal var backPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
-extension AccountTransferState {
+extension AccountTransferFailureController: UIController {
   
-  // we always expect configuration to be in page 0
-  internal var configurationScanningPage: Int { 0 }
+  internal typealias Context = TheError
   
-  internal var nextScanningPage: Int? {
-    if scanningParts.count == configuration?.pagesCount {
-      return nil
-    } else {
-      return scanningParts.last.map { $0.page + 1 } ?? configurationScanningPage
-    }
-  }
-  
-  internal var lastScanningPage: Int? {
-    scanningParts.last?.page
-  }
-  
-  internal var scanningFinished: Bool {
-    configuration != nil && account != nil
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let backPresentationSubject: PassthroughSubject<Never, Never> = .init()
+    
+    return Self(
+      failureReason: { context },
+      continue: { backPresentationSubject.send(completion: .finished) },
+      backPresentationPublisher: backPresentationSubject.eraseToAnyPublisher
+    )
   }
 }
+

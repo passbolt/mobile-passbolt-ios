@@ -34,8 +34,8 @@ import XCTest
 
 final class SignInScreenTests: XCTestCase {
   
-  private var features: FeatureFactory!
-  private var cancellables: Array<AnyCancellable>!
+  var features: FeatureFactory!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -55,7 +55,7 @@ final class SignInScreenTests: XCTestCase {
   }
   
   func test_forgotPassword_isPresented_whenCallingPresent() {
-    let controller: SignInController = .instance(with: features)
+    let controller: SignInController = .instance(with: features, cancellables: cancellables)
     var result: Bool!
     
     controller.presentForgotPassphraseAlertPublisher()
@@ -63,7 +63,7 @@ final class SignInScreenTests: XCTestCase {
       .sink { presented in
         result = presented
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.presentForgotPassphraseAlert()
     
@@ -71,7 +71,7 @@ final class SignInScreenTests: XCTestCase {
   }
   
   func test_validation_withCorrectValue_succeedes() {
-    let controller: SignInController = .instance(with: features)
+    let controller: SignInController = .instance(with: features, cancellables: cancellables)
     var result: Validated<String>!
     
     controller.validatedPassphrasePublisher()
@@ -79,7 +79,7 @@ final class SignInScreenTests: XCTestCase {
       .sink { validated in
         result = validated
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.updatePassphrase("SomeSecretPassphrase")
     
@@ -88,7 +88,7 @@ final class SignInScreenTests: XCTestCase {
   }
   
   func test_validation_withInCorrectValue_failsWithValidationError() {
-    let controller: SignInController = .instance(with: features)
+    let controller: SignInController = .instance(with: features, cancellables: cancellables)
     var result: Validated<String>!
     
     controller.validatedPassphrasePublisher()
@@ -96,7 +96,7 @@ final class SignInScreenTests: XCTestCase {
       .sink { validated in
         result = validated
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.updatePassphrase("")
     

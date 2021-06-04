@@ -33,10 +33,10 @@ import XCTest
 // swiftlint:disable private_subject
 final class NetworkRequestTests: XCTestCase {
   
-  var cancellables: Array<AnyCancellable>!
+  var cancellables: Cancellables!
   var sessionSubject: PassthroughSubject<NetworkSessionVariable, TheError>!
   var networking: Networking!
-  var request: NetworkRequest<TestCodable, TestCodable>!
+  var request: NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable>!
   
   override func setUp() {
     super.setUp()
@@ -73,7 +73,7 @@ final class NetworkRequestTests: XCTestCase {
           XCTFail("Unexpected behaviour")
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     sessionSubject.send(completion: .finished)
     
@@ -102,7 +102,7 @@ final class NetworkRequestTests: XCTestCase {
           XCTFail("Unexpected behaviour")
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     sessionSubject.send(completion: .failure(errorSent))
     
@@ -135,7 +135,7 @@ final class NetworkRequestTests: XCTestCase {
           XCTFail("Unexpected behaviour")
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     sessionSubject.send(NetworkSessionVariable(domain: "", authorizationToken: ""))
     
@@ -176,14 +176,14 @@ final class NetworkRequestTests: XCTestCase {
           bodyReceived = received
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     sessionSubject.send(NetworkSessionVariable(domain: "", authorizationToken: ""))
     
     XCTAssertEqual(bodySent, bodyReceived)
   }
   
-  func prepareRequest() -> NetworkRequest<TestCodable, TestCodable> {
+  func prepareRequest() -> NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in
         .combined(

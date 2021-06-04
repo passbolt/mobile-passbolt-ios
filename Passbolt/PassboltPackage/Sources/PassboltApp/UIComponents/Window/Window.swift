@@ -28,13 +28,17 @@ internal final class Window {
   private let window: UIWindow
   private let controller: WindowController
   private let components: UIComponentFactory
+  private let cancellables: Cancellables = .init()
   
   internal init(
     in scene: UIWindowScene,
     using features: FeatureFactory
   ) {
     self.window = UIWindow(windowScene: scene)
-    self.controller = WindowController.instance(with: features)
+    self.controller = WindowController.instance(
+      with: features,
+      cancellables: cancellables
+    )
     self.components = UIComponentFactory(features: features)
     self.window.rootViewController = components
       .instance(

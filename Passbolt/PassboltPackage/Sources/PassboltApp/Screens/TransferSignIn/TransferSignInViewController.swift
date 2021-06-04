@@ -24,10 +24,10 @@
 import UICommons
 import UIComponents
 
-internal final class SignInViewController: PlainViewController, UIComponent {
-
+internal final class TransferSignInViewController: PlainViewController, UIComponent {
+  
   internal typealias View = AuthorizationView
-  internal typealias Controller = SignInController
+  internal typealias Controller = TransferSignInController
   
   internal static func instance(
     using controller: Controller,
@@ -54,32 +54,53 @@ internal final class SignInViewController: PlainViewController, UIComponent {
   }
   
   internal func setupView() {
-    mut(self) {
-      .title(localized: "sign.in.title")
+    mut(navigationItem) {
+      .combined(
+        .leftBarButtonItem(
+          Mutation<UIBarButtonItem>
+            .combined(
+              .backStyle(),
+              .accessibilityIdentifier("button.exit"),
+              .action { [weak self] in
+                self?.controller.presentExitConfirmation()
+              }
+            )
+            .instantiate()
+        ),
+        .title(localized: "sign.in.title")
+      )
     }
     
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
     
-    #warning("TODO: Fill with proper values when available")
-    contentView.applyOn(name: .text("TODO: Provide user name"))
-    contentView.applyOn(email: .text("TODO: Provide email"))
-    contentView.applyOn(url: .text("TODO: Provide url"))
-    contentView.applyOn(passwordDescription: .text(localized: "authorization.passphrase.description.text"))
-    
     setupSubscriptions()
   }
   
   private func setupSubscriptions() {
-    contentView.secureTextPublisher
+    controller
+      .accountProfilePublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] details in
+        self?.contentView.applyOn(name: .text("\(details.label)"))
+        self?.contentView.applyOn(email: .text(details.username))
+        self?.contentView.applyOn(url: .text(details.domain))
+        #warning("TODO: [PAS-131] avatar image")
+        self?.contentView.applyOn(biometricButton: .hidden(true))
+      }
+      .store(in: cancellables)
+    
+    contentView
+      .secureTextPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] passphrase in
         self?.controller.updatePassphrase(passphrase)
       }
       .store(in: cancellables)
     
-    controller.validatedPassphrasePublisher()
+    controller
+      .validatedPassphrasePublisher()
       .first() // skipping error just to update intial value
       .map { Validated.valid($0.value) }
       .merge(
@@ -100,7 +121,8 @@ internal final class SignInViewController: PlainViewController, UIComponent {
       }
       .store(in: cancellables)
     
-    controller.validatedPassphrasePublisher()
+    controller
+      .validatedPassphrasePublisher()
       .map(\.isValid)
       .receive(on: RunLoop.main)
       .sink { [weak self] isValid in
@@ -114,7 +136,33 @@ internal final class SignInViewController: PlainViewController, UIComponent {
       }
       .store(in: cancellables)
     
-    controller.presentForgotPassphraseAlertPublisher()
+    contentView
+      .signInTapPublisher
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        guard let self = self else { return }
+        self.controller
+          .completeTransfer()
+          .sink(receiveCompletion: { completion in
+            // swiftlint:disable:next explicit_type_interface
+            guard case let .failure(error) = completion
+            else { return }
+            #warning("TODO: [PAS-131] handle result error")
+          })
+          .store(in: self.cancellables)
+      }
+      .store(in: cancellables)
+    
+    contentView
+      .forgotTapPublisher
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.controller.presentForgotPassphraseAlert()
+      }
+      .store(in: cancellables)
+    
+    controller
+      .presentForgotPassphraseAlertPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         guard let self = self else { return }
@@ -126,12 +174,38 @@ internal final class SignInViewController: PlainViewController, UIComponent {
         }
       }
       .store(in: cancellables)
-      
-    contentView.forgotTapPublisher
+    
+    controller
+      .exitConfirmationPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.presentForgotPassphraseAlert()
+      .sink { [weak self] presented in
+        if presented {
+          self?.present(TransferSignInExitConfirmationViewController.self)
+        } else {
+          self?.dismiss(TransferSignInExitConfirmationViewController.self)
+        }
       }
+      .store(in: cancellables)
+    
+    controller
+      .resultPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink(receiveCompletion: { [weak self] completion in
+        switch completion {
+        case .finished:
+          #warning("TODO: [PAS-132] navigate to biometrics setup")
+          Commons.placeholder("Not implemented yet")
+          
+        case .failure(.canceled):
+          self?.pop(to: TransferInfoScreenViewController.self)
+        // swiftlint:disable:next explicit_type_interface
+        case let .failure(error):
+          self?.push(
+            AccountTransferFailureViewController.self,
+            in: error
+          )
+        }
+      })
       .store(in: cancellables)
   }
 }

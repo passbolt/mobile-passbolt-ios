@@ -42,7 +42,6 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
   internal let components: UIComponentFactory
   
   private let controller: WelcomeScreenController
-  private var cancellables: Array<AnyCancellable> = .init()
   
   internal init(
     using controller: Controller,
@@ -67,14 +66,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
       .sink { [weak self] in
         self?.controller.pushTransferInfo()
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     contentView.tapNoAccountPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         self?.controller.presentNoAccountAlert()
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.noAccountAlertPresentationPublisher()
       .receive(on: RunLoop.main)
@@ -89,7 +88,7 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
         }
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.pushTransferInfoPublisher()
       .receive(on: RunLoop.main)
@@ -98,6 +97,6 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
         let viewController: TransferInfoScreenViewController = self.components.instance()
         self.navigationController?.pushViewController(viewController, animated: true)
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
 }

@@ -29,18 +29,21 @@ public protocol UIController {
   
   static func instance(
     in context: Context,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self
 }
 
 extension UIController where Context == Void {
   
   public static func instance(
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
     instance(
       in: Context(),
-      with: features
+      with: features,
+      cancellables: cancellables
     )
   }
 }

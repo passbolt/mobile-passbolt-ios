@@ -23,18 +23,19 @@
 import AccountSetup
 import UIComponents
 
-internal struct CodeReaderController: UIController {
+internal struct CodeReaderController {
   
   internal var processPayload: (String) -> AnyPublisher<Never, TheError>
 }
 
-extension CodeReaderController {
+extension CodeReaderController: UIController {
   
   internal typealias Context = Void
   
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
 

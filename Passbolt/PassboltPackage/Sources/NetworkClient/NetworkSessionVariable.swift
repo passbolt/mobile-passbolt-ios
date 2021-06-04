@@ -21,7 +21,9 @@
 // @since         v1.0
 //
 
-internal struct NetworkSessionVariable {
+public typealias EmptyNetworkSessionVariable = Void
+
+public struct NetworkSessionVariable {
   
   internal var domain: String
   internal var authorizationToken: String

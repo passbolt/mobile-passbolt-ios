@@ -63,7 +63,6 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   }()
   
   private let controller: Controller
-  private var cancellables: Array<AnyCancellable> = .init()
   private var payloadProcessingCancellable: AnyCancellable?
   
   internal init(
@@ -108,6 +107,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
     didOutput metadataObjects: Array<AVMetadataObject>,
     from connection: AVCaptureConnection
   ) {
+    dispatchPrecondition(condition: .onQueue(captureMetadataQueue))
     guard
       payloadProcessingCancellable == nil, // prevent multiple processing at the same time
       let metadata: AVMetadataMachineReadableCodeObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
@@ -118,6 +118,21 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
     // error correction bytes applied which can't be easily removed (Reed-Solomon encoding)
     payloadProcessingCancellable = controller
       .processPayload(payload)
+      .handleEvents(receiveCompletion: { [weak self] completion in
+        switch completion {
+        case .finished, .failure(.canceled):
+          self?.captureMetadataQueue.async { [weak self] in
+            self?.payloadProcessingCancellable = nil
+          }
+          
+        case .failure:
+          // Delay unlocking QRCode processing until message becomes visible for some time.
+          // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
+          self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            self?.payloadProcessingCancellable = nil
+          }
+        }
+      })
       .subscribe(on: RunLoop.main)
       .handleEvents(receiveSubscription: { [weak self] _ in
         self?.present(
@@ -133,7 +148,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         receiveCompletion: { [weak self] completion in
           switch completion {
           case .finished, .failure(.canceled):
-            self?.payloadProcessingCancellable = nil
+            break
           // swiftlint:disable:next explicit_type_interface
           case let .failure(error)
           where error.identifier == .accountTransferScanningRecoverableError
@@ -144,11 +159,6 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
                 .instantiate(),
               hideAfter: 3
             )
-            // Delay unlocking QRCode processing until message becomes visible for some time.
-            // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
-            self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-              self?.payloadProcessingCancellable = nil
-            }
             
           case .failure:
             self?.present(
@@ -157,14 +167,8 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
                 .instantiate(),
               hideAfter: 3
             )
-            // Delay unlocking QRCode processing until message becomes visible for some time.
-            // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
-            self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-              self?.payloadProcessingCancellable = nil
-            }
           }
-        },
-        receiveValue: { _ in /* unreachable */ }
+        }
       )
   }
 }

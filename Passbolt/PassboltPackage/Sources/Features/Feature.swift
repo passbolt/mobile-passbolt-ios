@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Combine
 import Environment
 
@@ -35,7 +36,7 @@ public protocol Feature {
   static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> Self
   
   var featureUnload: () -> Bool { get }

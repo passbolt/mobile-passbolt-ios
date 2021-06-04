@@ -24,18 +24,18 @@
 import Aegithalos
 import Environment
 
-internal struct NetworkRequestTemplate<Variable> {
+internal struct NetworkRequestTemplate<SessionVariable, Variable> {
   
-  private var template: (NetworkSessionVariable, Variable) -> Mutation<HTTPRequest>
+  private var template: (SessionVariable, Variable) -> Mutation<HTTPRequest>
   
   internal init(
-    _ template: @escaping (NetworkSessionVariable, Variable) -> Mutation<HTTPRequest>
+    _ template: @escaping (SessionVariable, Variable) -> Mutation<HTTPRequest>
   ) {
     self.template = template
   }
   
   internal func prepareRequest(
-    with sessionVariable: NetworkSessionVariable,
+    with sessionVariable: SessionVariable,
     and requestVariable: Variable
   ) -> HTTPRequest {
     template(sessionVariable, requestVariable)

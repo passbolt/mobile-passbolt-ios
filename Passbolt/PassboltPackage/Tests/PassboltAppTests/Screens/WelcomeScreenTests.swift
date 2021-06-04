@@ -28,11 +28,11 @@ import XCTest
 
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
+// swiftlint:disable implicitly_unwrapped_optional
 final class WelcomeScreenTests: XCTestCase {
   
-  // swiftlint:disable implicitly_unwrapped_optional
-  private var factory: FeatureFactory!
-  private var cancellables: Array<AnyCancellable>!
+  var factory: FeatureFactory!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -52,7 +52,7 @@ final class WelcomeScreenTests: XCTestCase {
   }
   
   func test_noAccountAlertAppears_whenTapped_Succeeds() {
-    let controller: WelcomeScreenController = .instance(with: factory)
+    let controller: WelcomeScreenController = .instance(with: factory, cancellables: cancellables)
     var result: Bool!
     
     controller.noAccountAlertPresentationPublisher()
@@ -60,7 +60,7 @@ final class WelcomeScreenTests: XCTestCase {
       .sink { presented in
         result = presented
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.presentNoAccountAlert()
     
@@ -68,7 +68,7 @@ final class WelcomeScreenTests: XCTestCase {
   }
   
   func test_noAccountAlertDisappears_whenDissmissed_Succeeds() {
-    let controller: WelcomeScreenController = .instance(with: factory)
+    let controller: WelcomeScreenController = .instance(with: factory, cancellables: cancellables)
     var result: Bool!
     
     controller.noAccountAlertPresentationPublisher()
@@ -76,7 +76,7 @@ final class WelcomeScreenTests: XCTestCase {
       .sink { presented in
         result = presented
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.dismissNoAccountAlert()
     
@@ -84,7 +84,7 @@ final class WelcomeScreenTests: XCTestCase {
   }
   
   func test_navigateToNextScreen_whenTriggered_Succeeds() {
-    let controller: WelcomeScreenController = .instance(with: factory)
+    let controller: WelcomeScreenController = .instance(with: factory, cancellables: cancellables)
     var result: Void?
     
     controller.pushTransferInfoPublisher()
@@ -92,7 +92,7 @@ final class WelcomeScreenTests: XCTestCase {
       .sink {
         result = ()
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.pushTransferInfo()
     

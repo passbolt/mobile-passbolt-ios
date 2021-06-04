@@ -25,7 +25,7 @@ import Aegithalos
 import Commons
 import Environment
 
-public struct NetworkRequest<Variable, Response> {
+public struct NetworkRequest<SessionVariable, Variable, Response> {
   
   public var execute: (Variable) -> AnyPublisher<Response, TheError>
 }
@@ -33,10 +33,10 @@ public struct NetworkRequest<Variable, Response> {
 extension NetworkRequest {
   
   internal init(
-    template: NetworkRequestTemplate<Variable>,
+    template: NetworkRequestTemplate<SessionVariable, Variable>,
     responseDecoder: NetworkResponseDecoding<Response>,
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<SessionVariable, TheError>
   ) {
     self.execute = { requestVariable in
       sessionVariablePublisher

@@ -52,7 +52,7 @@ extension Diagnostics: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> Diagnostics {
     Self(
       log: { message in
@@ -69,10 +69,20 @@ extension Diagnostics: Feature {
 
 extension Diagnostics {
   
-  /// Debug log is stripped out in release build
+  /// Diagnostics log is persisted on device for support and diagnostics.
+  /// - warning: Keep in mind that it will be visible in prod env
+  public func diagnosticLog(_ message: String) {
+    #if DEBUG
+    log("[DIAG] \(message)")
+    #else
+    log(message)
+    #endif
+  }
+  
+  /// Debug log is stripped out in release build.
   public func debugLog(_ message: String) {
     #if DEBUG
-    log(message)
+    log("[DEBUG] \(message)")
     #endif
   }
   

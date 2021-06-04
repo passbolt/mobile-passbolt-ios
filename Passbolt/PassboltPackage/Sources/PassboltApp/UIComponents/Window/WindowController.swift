@@ -31,7 +31,8 @@ extension WindowController: UIController {
   
   internal static func instance(
     in context: Void,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self()
   }

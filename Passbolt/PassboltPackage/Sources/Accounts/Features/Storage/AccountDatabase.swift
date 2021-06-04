@@ -49,7 +49,7 @@ extension AccountDatabase: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> AccountDatabase {
     let diagnostics: Diagnostics = features.instance()
     let accountSession: AccountSession = features.instance()
@@ -104,7 +104,7 @@ extension AccountDatabase: Feature {
         databaseConnectionSubject.value?.close()
         databaseConnectionSubject.send(connection)
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     func execute(
       statement: DatabaseStatement,

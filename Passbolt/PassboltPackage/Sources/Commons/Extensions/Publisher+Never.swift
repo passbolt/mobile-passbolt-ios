@@ -21,32 +21,28 @@
 // @since         v1.0
 //
 
-internal struct AccountTransferState {
+import Combine
+
+extension Publisher where Output == Never {
   
-  internal var configuration: AccountTransferConfiguration? = nil
-  internal var account: AccountTransferAccount? = nil
-  internal var profile: AccountTransferAccountProfile? = nil
-  internal var scanningParts: Array<AccountTransferScanningPart> = .init()
+  public func sink(
+    receiveCompletion: @escaping (Subscribers.Completion<Self.Failure>) -> Void
+  ) -> AnyCancellable {
+    self.sink(
+      receiveCompletion: receiveCompletion,
+      receiveValue: { _ in unreachable("Cannot emit Never") }
+    )
+  }
 }
 
-extension AccountTransferState {
+extension Publisher where Output == Never, Failure == Never {
   
-  // we always expect configuration to be in page 0
-  internal var configurationScanningPage: Int { 0 }
-  
-  internal var nextScanningPage: Int? {
-    if scanningParts.count == configuration?.pagesCount {
-      return nil
-    } else {
-      return scanningParts.last.map { $0.page + 1 } ?? configurationScanningPage
-    }
-  }
-  
-  internal var lastScanningPage: Int? {
-    scanningParts.last?.page
-  }
-  
-  internal var scanningFinished: Bool {
-    configuration != nil && account != nil
+  public func sink(
+    receiveCompletion: @escaping () -> Void
+  ) -> AnyCancellable {
+    self.sink(
+      receiveCompletion: { _ in receiveCompletion() },
+      receiveValue: { _ in unreachable("Cannot emit Never") }
+    )
   }
 }

@@ -33,13 +33,13 @@ internal struct AccountsDataStore {
   internal var loadAccounts: () -> Array<Account>
   internal var loadLastUsedAccount: () -> Account?
   internal var storeLastUsedAccount: (Account.LocalID) -> Void
-  internal var storeAccount: (Account, AccountDetails, ArmoredPrivateKey) -> Result<Void, TheError>
+  internal var storeAccount: (Account, AccountProfile, ArmoredPrivateKey) -> Result<Void, TheError>
   internal var loadAccountPrivateKey: (Account.LocalID) -> Result<ArmoredPrivateKey, TheError>
   internal var storeAccountPassphrase: (Account.LocalID, Passphrase) -> Result<Void, TheError>
   internal var loadAccountPassphrase: (Account.LocalID) -> Result<Passphrase, TheError>
   internal var deleteAccountPassphrase: (Account.LocalID) -> Result<Void, TheError>
-  internal var loadAccountDetails: (Account.LocalID) -> Result<AccountDetails, TheError>
-  internal var updateAccountDetails: (AccountDetails) -> Result<Void, TheError>
+  internal var loadAccountProfile: (Account.LocalID) -> Result<AccountProfile, TheError>
+  internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
   internal var deleteAccount: (Account.LocalID) -> Void
   internal var accountDatabaseConnection: (Account.LocalID) -> Result<DatabaseConnection, TheError>
 }
@@ -66,7 +66,7 @@ extension AccountsDataStore: Feature {
   internal static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> Self {
     let diagnostics: Diagnostics = features.instance()
     
@@ -97,21 +97,21 @@ extension AccountsDataStore: Feature {
       }
       diagnostics.debugLog("Stored accounts: \(storedAccounts)")
       
-      // storedAccountsDetails - keychain accounts metadata
-      let storedAccountsDetails: Array<Account.LocalID>
-      switch environment.keychain.loadAll(AccountDetails.self, matching: .accountsDetailsQuery) {
+      // storedAccountProfiles - keychain accounts metadata
+      let storedAccountsProfiles: Array<Account.LocalID>
+      switch environment.keychain.loadAll(AccountProfile.self, matching: .accountsProfilesQuery) {
       // swiftlint:disable:next explicit_type_interface
       case let .success(accounts):
-        storedAccountsDetails = accounts.map(\.accountID)
+        storedAccountsProfiles = accounts.map(\.accountID)
       // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         diagnostics.debugLog(
-          "Failed to load keychain accounts details data, recovering with empty list"
+          "Failed to load keychain account profiles data, recovering with empty list"
             + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
         )
-        storedAccountsDetails = .init()
+        storedAccountsProfiles = .init()
       }
-      diagnostics.debugLog("Stored accounts details: \(storedAccountsDetails)")
+      diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
       
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
@@ -141,7 +141,7 @@ extension AccountsDataStore: Feature {
       let updatedAccountsList: Array<Account.LocalID> = storedAccountsList
         .filter {
           storedAccounts.contains($0)
-          && storedAccountsDetails.contains($0)
+          && storedAccountsProfiles.contains($0)
           && storedAccountKeys.contains($0)
         }
       environment
@@ -167,23 +167,23 @@ extension AccountsDataStore: Feature {
       }
       diagnostics.debugLog("Deleted accounts: \(accountsToRemove)")
       
-      let accountsDetailsToRemove: Array<Account.LocalID> = storedAccountsDetails
+      let accountProfilesToRemove: Array<Account.LocalID> = storedAccountsProfiles
         .filter { !updatedAccountsList.contains($0) }
       
-      for accountID in accountsDetailsToRemove {
-        switch environment.keychain.delete(matching: .accountDetailsQuery(for: accountID)) {
+      for accountID in accountProfilesToRemove {
+        switch environment.keychain.delete(matching: .accountProfileQuery(for: accountID)) {
         case .success:
           continue
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.debugLog(
-            "Failed to delete account details for accountID: \(updatedAccountsList)"
+            "Failed to delete account profile for accountID: \(updatedAccountsList)"
               + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
           )
           return .failure(error)
         }
       }
-      diagnostics.debugLog("Deleted accounts details: \(accountsDetailsToRemove)")
+      diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
       
       let keysToRemove: Array<Account.LocalID> = storedAccountKeys
         .filter { !updatedAccountsList.contains($0) }
@@ -278,7 +278,7 @@ extension AccountsDataStore: Feature {
     
     func store(
       account: Account,
-      details: AccountDetails,
+      profile: AccountProfile,
       armoredKey: ArmoredPrivateKey
     ) -> Result<Void, TheError> {
       // data integrity check performs cleanup in case of partial success
@@ -291,7 +291,7 @@ extension AccountsDataStore: Feature {
       
       return environment
         .keychain
-        .save(details, for: .accountDetailsQuery(for: account.localID))
+        .save(profile, for: .accountProfileQuery(for: account.localID))
         .flatMap { _ in
           environment
             .keychain
@@ -332,17 +332,17 @@ extension AccountsDataStore: Feature {
       environment
         .keychain
         .loadFirst(
-          AccountDetails.self,
-          matching: .accountDetailsQuery(for: accountID)
+          AccountProfile.self,
+          matching: .accountProfileQuery(for: accountID)
         )
-        .flatMap { accountDetails in
-          if var updatedAccountDetails: AccountDetails = accountDetails {
-            updatedAccountDetails.biometricsEnabled = true
+        .flatMap { accountProfile in
+          if var updatedAccountProfile: AccountProfile = accountProfile {
+            updatedAccountProfile.biometricsEnabled = true
             return environment
               .keychain
               .save(
-                updatedAccountDetails,
-                for: .accountDetailsQuery(for: accountID)
+                updatedAccountProfile,
+                for: .accountProfileQuery(for: accountID)
               )
               .flatMap { _ in
                 environment
@@ -387,17 +387,17 @@ extension AccountsDataStore: Feature {
       environment
         .keychain
         .loadFirst(
-          AccountDetails.self,
-          matching: .accountDetailsQuery(for: accountID)
+          AccountProfile.self,
+          matching: .accountProfileQuery(for: accountID)
         )
-        .flatMap { accountDetails in
-          if var updatedAccountDetails: AccountDetails = accountDetails {
-            updatedAccountDetails.biometricsEnabled = false
+        .flatMap { accountProfile in
+          if var updatedAccountProfile: AccountProfile = accountProfile {
+            updatedAccountProfile.biometricsEnabled = false
             return environment
               .keychain
               .save(
-                updatedAccountDetails,
-                for: .accountDetailsQuery(for: accountID)
+                updatedAccountProfile,
+                for: .accountProfileQuery(for: accountID)
               )
               .flatMap { _ in
                 environment
@@ -410,15 +410,15 @@ extension AccountsDataStore: Feature {
         }
     }
     
-    func loadAccountDetails(
+    func loadAccountProfile(
       for accountID: Account.LocalID
-    ) -> Result<AccountDetails, TheError> {
+    ) -> Result<AccountProfile, TheError> {
       environment
         .keychain
-        .loadFirst(AccountDetails.self, matching: .accountDetailsQuery(for: accountID))
-        .flatMap { details in
-          if let details: AccountDetails = details {
-            return .success(details)
+        .loadFirst(AccountProfile.self, matching: .accountProfileQuery(for: accountID))
+        .flatMap { profile in
+          if let profile: AccountProfile = profile {
+            return .success(profile)
           } else {
             return .failure(.invalidAccount())
           }
@@ -426,16 +426,16 @@ extension AccountsDataStore: Feature {
     }
     
     func update(
-      accountDetails: AccountDetails
+      accountProfile: AccountProfile
     ) -> Result<Void, TheError> {
       let accountsList: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
-      guard accountsList.contains(accountDetails.accountID)
+      guard accountsList.contains(accountProfile.accountID)
       else { return .failure(.invalidAccount()) }
       return environment
         .keychain
-        .save(accountDetails, for: .accountDetailsQuery(for: accountDetails.accountID))
+        .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
     }
     
     func deleteAccount(withID accountID: Account.LocalID) {
@@ -473,13 +473,13 @@ extension AccountsDataStore: Feature {
       loadAccounts: loadAccounts,
       loadLastUsedAccount: loadLastUsedAccount,
       storeLastUsedAccount: storeLastUsedAccount,
-      storeAccount: store(account:details:armoredKey:),
+      storeAccount: store(account:profile:armoredKey:),
       loadAccountPrivateKey: loadAccountPrivateKey(for:),
       storeAccountPassphrase: storePassphrase(for:passphrase:),
       loadAccountPassphrase: loadPassphrase(for:),
       deleteAccountPassphrase: deletePassphrase(for:),
-      loadAccountDetails: loadAccountDetails(for:),
-      updateAccountDetails: update(accountDetails:),
+      loadAccountProfile: loadAccountProfile(for:),
+      updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
       accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:)
     )
@@ -497,8 +497,8 @@ extension AccountsDataStore: Feature {
       storeAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
       loadAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
-      loadAccountDetails: Commons.placeholder("You have to provide mocks for used methods"),
-      updateAccountDetails: Commons.placeholder("You have to provide mocks for used methods"),
+      loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
+      updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
       accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods")
     )
@@ -536,15 +536,15 @@ extension KeychainQuery {
     )
   }
   
-  fileprivate static var accountsDetailsQuery: Self {
+  fileprivate static var accountsProfilesQuery: Self {
     Self(
-      key: "accountDetails",
+      key: "accountProfile",
       tag: nil,
       requiresBiometrics: false
     )
   }
   
-  fileprivate static func accountDetailsQuery(
+  fileprivate static func accountProfileQuery(
     for identifier: Account.LocalID
   ) -> Self {
     assert(
@@ -552,7 +552,7 @@ extension KeychainQuery {
       "Cannot use empty account identifiers for account keychain operations"
     )
     return Self(
-      key: "accountDetails",
+      key: "accountProfile",
       tag: .init(rawValue: identifier.rawValue),
       requiresBiometrics: false
     )

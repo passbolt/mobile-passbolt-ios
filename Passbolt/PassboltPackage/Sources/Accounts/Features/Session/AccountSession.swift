@@ -47,8 +47,11 @@ extension AccountSession {
   }
   
   public enum AuthorizationMethod {
-    
+    // for unstored accounts
+    case adHoc(Passphrase, ArmoredPrivateKey)
+    // for stored account
     case passphrase(Passphrase)
+    // for account stored with passphrase
     case biometrics
   }
 }
@@ -63,10 +66,11 @@ extension AccountSession: Feature {
     rootEnvironment.time
   }
   
+  // swiftlint:disable:next function_body_length
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> AccountSession {
     let diagnostics: Diagnostics = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
@@ -106,7 +110,7 @@ extension AccountSession: Feature {
         // it will only publish authorizationRequired state
         stateSubject?.send(newState)
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     func _close(using features: FeatureFactory) {
       features.unload(AccountDatabase.self)
@@ -148,10 +152,28 @@ extension AccountSession: Feature {
       
       // sign in process
       let passphrase: Passphrase
+      let armoredPrivateKey: ArmoredPrivateKey
       switch authorizationMethod {
+      // swiftlint:disable:next explicit_type_interface
+      case let .adHoc(pass, privateKey):
+        passphrase = pass
+        armoredPrivateKey = privateKey
       // swiftlint:disable:next explicit_type_interface
       case let .passphrase(value):
         passphrase = value
+        switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+        // swiftlint:disable:next explicit_type_interface
+        case let .success(armoredKey):
+          armoredPrivateKey = armoredKey
+        // swiftlint:disable:next explicit_type_interface
+        case let .failure(error):
+          diagnostics.debugLog(
+            "Failed to retrieve private key for account: \(account.localID)"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          )
+          return Fail<Void, TheError>(error: error)
+            .eraseToAnyPublisher()
+        }
         
       case .biometrics:
         switch accountsDataStore.loadAccountPassphrase(account.localID) {
@@ -163,20 +185,19 @@ extension AccountSession: Feature {
           return Fail<Void, TheError>(error: error)
             .eraseToAnyPublisher()
         }
-      }
-      let armoredPrivateKey: ArmoredPrivateKey
-      switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-      // swiftlint:disable:next explicit_type_interface
-      case let .success(armoredKey):
-        armoredPrivateKey = armoredKey
-      // swiftlint:disable:next explicit_type_interface
-      case let .failure(error):
-        diagnostics.debugLog(
-          "Failed to retrieve private key for account: \(account.localID)"
-          + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-        )
-        return Fail<Void, TheError>(error: error)
-          .eraseToAnyPublisher()
+        switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+        // swiftlint:disable:next explicit_type_interface
+        case let .success(armoredKey):
+          armoredPrivateKey = armoredKey
+        // swiftlint:disable:next explicit_type_interface
+        case let .failure(error):
+          diagnostics.debugLog(
+            "Failed to retrieve private key for account: \(account.localID)"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          )
+          return Fail<Void, TheError>(error: error)
+            .eraseToAnyPublisher()
+        }
       }
       
       return signInPlaceholder(

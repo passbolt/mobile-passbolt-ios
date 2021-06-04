@@ -36,7 +36,7 @@ import XCTest
 final class AccountsDataStoreTests: XCTestCase {
   
   var features: FeatureFactory!
-  var cancellables: Array<AnyCancellable>!
+  var cancellables: Cancellables!
   var mockPreferencesStore: Dictionary<Preferences.Key, Any>!
   var mockKeychainStore: Array<(data: Data, query: KeychainQuery)>!
   
@@ -117,7 +117,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Array<Account> = dataStore.loadAccounts()
@@ -130,7 +130,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Array<Account> = dataStore.loadAccounts()
@@ -143,7 +143,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Array<Account> = dataStore.loadAccounts()
@@ -157,7 +157,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Account? = dataStore.loadLastUsedAccount()
@@ -171,7 +171,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Account? = dataStore.loadLastUsedAccount()
@@ -185,7 +185,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Account? = dataStore.loadLastUsedAccount()
@@ -199,7 +199,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Account? = dataStore.loadLastUsedAccount()
@@ -215,7 +215,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     dataStore.storeLastUsedAccount(validAccount.localID)
@@ -230,7 +230,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
@@ -242,7 +242,7 @@ final class AccountsDataStoreTests: XCTestCase {
     )
     XCTAssertEqual(
       mockKeychainStore.map(\.data),
-      [validAccountDetailsKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
+      [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
     )
   }
   
@@ -251,7 +251,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
@@ -264,7 +264,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     _ = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
@@ -302,7 +302,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     dataStore.deleteAccount(validAccount.localID)
@@ -321,7 +321,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
@@ -352,7 +352,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
@@ -365,9 +365,9 @@ final class AccountsDataStoreTests: XCTestCase {
     mockKeychainStore = [
       
       (
-        data: validAccountDetailsKeychainData,
+        data: validAccountProfileKeychainData,
         query: .init(
-          key: "accountDetails",
+          key: "accountProfile",
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
@@ -392,7 +392,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     _ = dataStore.verifyDataIntegrity()
@@ -403,7 +403,7 @@ final class AccountsDataStoreTests: XCTestCase {
     )
     XCTAssertEqual(
       mockKeychainStore.map(\.data),
-      [validAccountDetailsKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
+      [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
     )
   }
   
@@ -430,7 +430,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
@@ -461,7 +461,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
@@ -492,7 +492,7 @@ final class AccountsDataStoreTests: XCTestCase {
     let dataStore: AccountsDataStore = .load(
       in: AccountsDataStore.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
@@ -519,13 +519,18 @@ private let validAccount: Account = .init(
 // swiftlint:disable:next force_try
 private let validAccountKeychainData: Data = try! JSONEncoder().encode(["v": validAccount])
 
-private let validAccountDetails: AccountDetails = .init(
+private let validAccountDetails: AccountProfile = .init(
   accountID: .init(rawValue: UUID.testUUID.uuidString),
+  label: "label",
+  username: "username",
+  firstName: "firstName",
+  lastName: "lastName",
+  avatarImagePath: "avatarImagePath",
   biometricsEnabled: false
 )
 // keychain wrapper encodes values within own structure putting value under "v" key
 // swiftlint:disable:next force_try
-private let validAccountDetailsKeychainData: Data = try! JSONEncoder().encode(["v": validAccountDetails])
+private let validAccountProfileKeychainData: Data = try! JSONEncoder().encode(["v": validAccountDetails])
 
 private let validPrivateKey: ArmoredPrivateKey =
   """

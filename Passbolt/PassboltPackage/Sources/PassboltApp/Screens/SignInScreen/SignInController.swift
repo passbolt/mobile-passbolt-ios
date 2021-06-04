@@ -24,25 +24,27 @@
 import Commons
 import UIComponents
 
-internal struct SignInController: UIController {
+internal struct SignInController {
+  
   internal var updatePassphrase: (String) -> Void
   internal var presentForgotPassphraseAlert: () -> Void
   internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
   internal var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
 }
 
-extension SignInController {
+extension SignInController: UIController {
   
   internal typealias Context = Void
   
   internal static func instance(
-    in context: Void,
-    with features: FeatureFactory
-  ) -> SignInController {
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
     
     let passphrase: CurrentValueSubject<String, Never> = .init("")
     let presentForgotAlertPublisher: PassthroughSubject<Bool, Never> = .init()
-    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "autorization.passphrase.error")
+    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
     
     return Self(
       updatePassphrase: passphrase.send,

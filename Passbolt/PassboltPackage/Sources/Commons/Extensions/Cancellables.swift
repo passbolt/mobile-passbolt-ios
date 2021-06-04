@@ -21,13 +21,22 @@
 // @since         v1.0
 //
 
-import Commons
+import Combine
+import class Foundation.NSLock
 
-public struct AccountDetails {
+public final class Cancellables {
   
-  public let accountID: Account.LocalID
-  public internal(set) var biometricsEnabled: Bool
+  fileprivate let lock: NSLock = .init()
+  fileprivate var cancellables: Array<AnyCancellable> = .init()
+  
+  public init() {}
 }
 
-extension AccountDetails: Equatable {}
-extension AccountDetails: Codable {}
+extension AnyCancellable {
+  
+  public func store(in cancellables: Cancellables) {
+    cancellables.lock.lock()
+    cancellables.cancellables.append(self)
+    cancellables.lock.unlock()
+  }
+}

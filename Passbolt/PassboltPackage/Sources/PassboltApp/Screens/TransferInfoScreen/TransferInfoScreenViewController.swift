@@ -43,7 +43,6 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
   internal let components: UIComponentFactory
   
   private let controller: TransferInfoScreenController
-  private var cancellables: Array<AnyCancellable> = .init()
   
   internal init(
     using controller: Controller,
@@ -78,7 +77,7 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
           self.controller.presentNoCameraPermissionAlert()
         }
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.presentNoCameraPermissionAlertPublisher()
       .receive(on: RunLoop.main)
@@ -91,6 +90,6 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
           self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
         }
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
 }

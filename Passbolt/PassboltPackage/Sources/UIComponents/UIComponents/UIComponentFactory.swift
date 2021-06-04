@@ -22,6 +22,7 @@
 //
 
 import Features
+import ObjectiveC
 
 public struct UIComponentFactory {
   
@@ -39,25 +40,56 @@ extension UIComponentFactory {
     in context: Component.Controller.Context
   ) -> Component
   where Component: UIComponent {
-    Component.instance(
+    let cancellables: Cancellables = .init()
+    let component: Component = .instance(
       using: .instance(
         in: context,
-        with: features
+        with: features,
+        cancellables: cancellables
       ),
       with: self
     )
+    component.cancellables = cancellables
+    return component
   }
   
   public func instance<Component>(
     of component: Component.Type = Component.self
   ) -> Component
   where Component: UIComponent, Component.Controller.Context == Void {
-    Component.instance(
+    let cancellables: Cancellables = .init()
+    let component: Component = .instance(
       using: .instance(
-        with: features
+        with: features,
+        cancellables: cancellables
       ),
       with: self
     )
+    component.cancellables = cancellables
+    return component
   }
 }
 
+extension UIComponent {
+  
+  public fileprivate(set) var cancellables: Cancellables {
+    get {
+      guard let stored: Cancellables = objc_getAssociatedObject(
+        self,
+        &cancellablesAssociationKey
+      ) as? Cancellables
+      else { unreachable("Component initialized outside of UIComponentFactory") }
+      return stored
+    }
+    set {
+      objc_setAssociatedObject(
+        self,
+        &cancellablesAssociationKey,
+        newValue,
+        .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+      )
+    }
+  }
+}
+
+private var cancellablesAssociationKey: Int = 0

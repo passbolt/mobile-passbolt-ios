@@ -28,7 +28,8 @@ internal struct WelcomeNavigationController: UIController {
   
   internal static func instance(
     in context: Void,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> WelcomeNavigationController {
     Self()
   }

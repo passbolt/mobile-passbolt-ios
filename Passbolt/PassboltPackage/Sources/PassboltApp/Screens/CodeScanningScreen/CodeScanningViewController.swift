@@ -40,7 +40,6 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
-  private var cancellables: Array<AnyCancellable> = .init()
   private let progressView: ProgressView = .init()
   
   internal init(
@@ -108,22 +107,19 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       .sink { [weak self] progress in
         self?.progressView.update(progress: progress, animated: true)
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller
       .exitConfirmationPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         if presented {
-          self?.present(
-            CodeScanningExitConfirmationViewController.self,
-            in: CodeScanningExitConfirmationController.Context()
-          )
+          self?.present(CodeScanningExitConfirmationViewController.self)
         } else {
           self?.dismiss(CodeScanningExitConfirmationViewController.self)
         }
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller
       .helpPresentationPublisher()
@@ -135,7 +131,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
           self?.dismiss(CodeScanningExitConfirmationViewController.self)
         }
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller
       .resultPresentationPublisher()
@@ -144,7 +140,12 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         receiveCompletion: { [weak self] completion in
           switch completion {
           case .finished:
-            unreachable("Unexpected behaviour in \(Self.self) \(#filePath):\(#line)")
+            self?.push(
+              CodeScanningSuccessViewController.self,
+              completion: { [weak self] in
+                self?.popAll(Self.self, animated: false)
+              }
+            )
             
           case .failure(.canceled):
             self?.pop(to: TransferInfoScreenViewController.self)
@@ -152,23 +153,16 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
           // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             self?.push(
-              CodeScanningFailureViewController.self,
-              in: error,
-              completion: { [weak self] in
-                self?.popAll(Self.self, animated: false)
-              }
+              AccountTransferFailureViewController.self,
+              in: error//,
+//              completion: { [weak self] in
+//                self?.popAll(Self.self, animated: false)
+//              }
             )
           }
         },
-        receiveValue: { [weak self] in
-          self?.push(
-            CodeScanningSuccessViewController.self,
-            completion: { [weak self] in
-              self?.popAll(Self.self, animated: false)
-            }
-          )
-        }
+        receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
 }

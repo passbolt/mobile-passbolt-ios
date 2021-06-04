@@ -58,7 +58,8 @@ extension TransferInfoCameraRequiredAlertController: UIController {
   
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
     let linkOpener: LinkOpener = features.instance()
     var cancellable: AnyCancellable?

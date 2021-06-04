@@ -30,8 +30,8 @@ internal final class ForgotPassphraseAlertViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "autorization.forgot.passphrase.alert.title"),
-        .message(localized: "autorization.forgot.passphrase.alert.message"),
+        .title(localized: "authorization.forgot.passphrase.alert.title"),
+        .message(localized: "authorization.forgot.passphrase.alert.message"),
         .action(
           localized: .gotIt,
           style: .cancel,
@@ -53,7 +53,8 @@ extension ForgotPassphraseAlertController: UIController {
   
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> ForgotPassphraseAlertController {
     Self()
   }

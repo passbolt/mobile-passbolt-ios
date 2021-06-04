@@ -34,8 +34,8 @@ import XCTest
 // swiftlint:disable implicitly_unwrapped_optional
 final class CodeReaderScreenTests: XCTestCase {
   
-  private var features: FeatureFactory!
-  private var cancellables: Array<AnyCancellable>!
+  var features: FeatureFactory!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -63,14 +63,14 @@ final class CodeReaderScreenTests: XCTestCase {
         .eraseToAnyPublisher()
     }
     features.use(accountTransfer)
-    let controller: CodeReaderController = .instance(with: features)
+    let controller: CodeReaderController = .instance(with: features, cancellables: cancellables)
     controller
       .processPayload("TEST")
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result, "TEST")
   }

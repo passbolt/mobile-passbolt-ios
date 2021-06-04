@@ -25,21 +25,24 @@ import Commons
 import Environment
 
 public typealias AccountTransferUpdateRequest
-  = NetworkRequest<AccountTransferUpdateRequestVariable, AccountTransferUpdateResponse>
+  = NetworkRequest<EmptyNetworkSessionVariable, AccountTransferUpdateRequestVariable, AccountTransferUpdateResponse>
 
 extension AccountTransferUpdateRequest {
   
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { _, requestVariable in
         .combined(
-          .scheme("https"),
           .url(string: requestVariable.domain),
           .path("/mobile/transfers/\(requestVariable.transferID)/\(requestVariable.authenticationToken).json"),
           .method(.put),
+          .when(
+            requestVariable.requestUserProfile,
+            then: .queryItem("contain[user.profile]", value: "1")
+          ),
           .header("Content-Type", value: "application/json"),
           .jsonBody(
             from: AccountTransferUpdateRequestVariable.Body(
@@ -49,7 +52,7 @@ extension AccountTransferUpdateRequest {
           )
         )
       },
-      responseDecoder: .statusCode(200),
+      responseDecoder: .bodyAsJSON(),
       using: networking,
       with: sessionVariablePublisher
     )
@@ -63,19 +66,22 @@ public struct AccountTransferUpdateRequestVariable {
   public var transferID: String
   public var currentPage: Int
   public var status: Status
+  public var requestUserProfile: Bool
   
   public init(
     domain: String,
     authenticationToken: String,
     transferID: String,
     currentPage: Int,
-    status: Status
+    status: Status,
+    requestUserProfile: Bool
   ) {
     self.domain = domain
     self.authenticationToken = authenticationToken
     self.transferID = transferID
     self.currentPage = currentPage
     self.status = status
+    self.requestUserProfile = requestUserProfile
   }
 }
 
@@ -102,4 +108,52 @@ extension AccountTransferUpdateRequestVariable {
   }
 }
 
-public typealias AccountTransferUpdateResponse = Void
+public typealias AccountTransferUpdateResponse = CommonResponse<AccountTransferUpdateResponseBody>
+
+public struct AccountTransferUpdateResponseBody: Decodable {
+  
+  public var user: User?
+}
+
+extension AccountTransferUpdateResponseBody {
+  
+  public struct User: Decodable {
+    
+    public var username: String
+    public var profile: Profile
+  }
+}
+
+extension AccountTransferUpdateResponseBody.User {
+  
+  public struct Profile: Decodable {
+    
+    public var firstName: String
+    public var lastName: String
+    public var avatar: Avatar
+    
+    public enum CodingKeys: String, CodingKey {
+      
+      case firstName = "first_name"
+      case lastName = "last_name"
+      case avatar = "avatar"
+    }
+  }
+}
+
+extension AccountTransferUpdateResponseBody.User.Profile {
+  
+  public struct Avatar: Decodable {
+    
+    public var url: Image
+  }
+}
+
+extension AccountTransferUpdateResponseBody.User.Profile.Avatar {
+  
+  public struct Image: Decodable {
+    
+    public var medium: String
+    public var small: String
+  }
+}

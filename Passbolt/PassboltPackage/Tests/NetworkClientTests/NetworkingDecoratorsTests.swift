@@ -34,7 +34,7 @@ import XCTest
 final class NetworkingDecoratorsTests: XCTestCase {
   
   var diagnostics: Diagnostics!
-  var cancellables: Array<AnyCancellable>!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -88,7 +88,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
       receiveCompletion: { _ in },
       receiveValue: { _ in }
     )
-    .store(in: &cancellables)
+    .store(in: cancellables)
     
     XCTAssertEqual(
       result,
@@ -125,7 +125,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
       receiveCompletion: { _ in },
       receiveValue: { _ in }
     )
-    .store(in: &cancellables)
+    .store(in: cancellables)
     
     XCTAssertEqual(
       result,

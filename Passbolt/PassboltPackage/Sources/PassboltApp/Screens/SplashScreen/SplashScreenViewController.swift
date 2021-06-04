@@ -40,7 +40,6 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   internal private(set) lazy var contentView: SplashScreenView = .init()
   internal let components: UIComponentFactory
   private let controller: SplashScreenController
-  private var cancellables: Array<AnyCancellable> = .init()
   
   internal init(
     using controller: SplashScreenController,
@@ -67,7 +66,7 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       .sink { [weak self] destination in
         self?.navigate(to: destination)
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
   
   #warning("TODO: navigate to proper destination based on accounts info")

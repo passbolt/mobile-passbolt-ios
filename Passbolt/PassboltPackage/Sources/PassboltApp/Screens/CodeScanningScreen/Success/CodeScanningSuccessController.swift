@@ -26,6 +26,7 @@ import UIComponents
 internal struct CodeScanningSuccessController {
   
   internal var `continue`: () -> Void
+  // Since there is only one direction and no way back we only expect finish to navigate further
   internal var signInPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
@@ -35,7 +36,8 @@ extension CodeScanningSuccessController: UIController {
   
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
     let signInPresentationSubject: PassthroughSubject<Never, Never> = .init()
     return Self(

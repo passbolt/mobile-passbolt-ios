@@ -108,6 +108,12 @@ public final class AuthorizationView: KeyboardAwareView {
         )
       )
     }
+    
+    passwordInput.applyOn(
+      description: .text(
+        localized: "authorization.passphrase.description.text"
+      )
+    )
 
     setupBottomButtons()
     
@@ -206,14 +212,14 @@ public final class AuthorizationView: KeyboardAwareView {
     mut(signInButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "autorization.button.title")
+        .text(localized: "authorization.button.title")
       )
     }
     
     mut(forgotButton) {
       .combined(
         .linkStyle(),
-        .text(localized: "autorization.forgot.passphrase.button.title")
+        .text(localized: "authorization.forgot.passphrase.button.title")
       )
     }
   }

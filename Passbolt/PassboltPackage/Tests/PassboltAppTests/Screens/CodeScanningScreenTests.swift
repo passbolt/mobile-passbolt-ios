@@ -34,8 +34,8 @@ import XCTest
 // swiftlint:disable implicitly_unwrapped_optional
 final class CodeScanningScreenTests: XCTestCase {
   
-  private var features: FeatureFactory!
-  private var cancellables: Array<AnyCancellable>!
+  var features: FeatureFactory!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -56,14 +56,14 @@ final class CodeScanningScreenTests: XCTestCase {
   
   func test_exitConfirmation_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.scanningProgressPublisher = always(
+    accountTransfer.progressPublisher = always(
       Just(.configuration)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
 
     features.use(accountTransfer)
-    let controller: CodeScanningController = .instance(with: features)
+    let controller: CodeScanningController = .instance(with: features, cancellables: cancellables)
     var result: Bool!
     
     controller.exitConfirmationPresentationPublisher()
@@ -71,7 +71,7 @@ final class CodeScanningScreenTests: XCTestCase {
       .sink { presented in
         result = presented
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.presentExitConfirmation()
     
@@ -80,13 +80,13 @@ final class CodeScanningScreenTests: XCTestCase {
   
   func test_help_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.scanningProgressPublisher = always(
+    accountTransfer.progressPublisher = always(
       Just(.configuration)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
     features.use(accountTransfer)
-    let controller: CodeScanningController = .instance(with: features)
+    let controller: CodeScanningController = .instance(with: features, cancellables: cancellables)
     var result: Bool!
     
     controller.helpPresentationPublisher()
@@ -94,22 +94,22 @@ final class CodeScanningScreenTests: XCTestCase {
       .sink { presented in
         result = presented
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.presentHelp()
     
     XCTAssertTrue(result)
   }
   
-  func test_initialProgress_isNotEmptyAndNotFull() {
+  func test_initialProgress_isEmpty() {
     var accountTransfer: AccountTransfer = .placeholder
-    accountTransfer.scanningProgressPublisher = always(
+    accountTransfer.progressPublisher = always(
       Just(.configuration)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
     features.use(accountTransfer)
-    let controller: CodeScanningController = .instance(with: features)
+    let controller: CodeScanningController = .instance(with: features, cancellables: cancellables)
     var result: Double!
     
     controller.progressPublisher()
@@ -118,9 +118,9 @@ final class CodeScanningScreenTests: XCTestCase {
       .sink { progress in
         result = progress
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
-    XCTAssertGreaterThan(result, 0)
+    XCTAssertEqual(result, 0)
     XCTAssertLessThan(result, 1)
   }
 }

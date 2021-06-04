@@ -27,13 +27,26 @@ import Crypto
 import Features
 import NetworkClient
 
+// swiftlint:disable file_length
 public struct AccountTransfer {
-  
-  public var scanningProgressPublisher: () -> AnyPublisher<ScanningProgress, TheError>
+  // Publishes progess, finishes when process is completed or fails if it becomes interrupted.
+  public var progressPublisher: () -> AnyPublisher<Progress, TheError>
+  public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, TheError>
   public var processPayload: (String) -> AnyPublisher<Never, TheError>
-  public var completeTransfer: (Passphrase) -> AnyPublisher<Void, TheError>
+  public var completeTransfer: (Passphrase) -> AnyPublisher<Never, TheError>
   public var cancelTransfer: () -> Void
   public var featureUnload: () -> Bool
+}
+
+extension AccountTransfer {
+  
+  public struct AccountDetails {
+    
+    public let domain: String
+    public let label: String
+    public let username: String
+    public let avatarImagePath: String
+  }
 }
 
 extension AccountTransfer: Feature {
@@ -44,7 +57,7 @@ extension AccountTransfer: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> AccountTransfer {
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
@@ -53,13 +66,13 @@ extension AccountTransfer: Feature {
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable // silence warning
     
-    func scanningProgressPublisher() -> AnyPublisher<ScanningProgress, TheError> {
+    func progressPublisher() -> AnyPublisher<Progress, TheError> {
       transferState
-        .map { state -> ScanningProgress in
+        .map { state -> Progress in
           if state.scanningFinished {
-            return .finished
+            return .scanningFinished
           } else if let configuration: AccountTransferConfiguration = state.configuration {
-            return .progress(
+            return .scanningProgress(
               Double(state.nextScanningPage ?? configuration.pagesCount)
                 / Double(configuration.pagesCount)
             )
@@ -71,20 +84,67 @@ extension AccountTransfer: Feature {
         .eraseToAnyPublisher()
     }
     
-    func processPayload(_ payload: String) -> AnyPublisher<Never, TheError> {
+    func accountDetailsPublisher() -> AnyPublisher<AccountDetails, TheError> {
+      transferState
+        .compactMap { state in
+          guard
+            let config: AccountTransferConfiguration = state.configuration,
+            let profile: AccountTransferAccountProfile = state.profile
+          else { return nil }
+          return AccountDetails(
+            domain: config.domain,
+            label: "\(profile.firstName) \(profile.lastName)",
+            username: profile.username,
+            avatarImagePath: profile.avatarImagePath
+          )
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func _processPayload(
+      _ payload: String,
+      using features: FeatureFactory
+    ) -> AnyPublisher<Never, TheError> {
       switch processQRCodePayload(payload, in: transferState.value) {
       // swiftlint:disable:next explicit_type_interface
-      case let .success(updatedState):
-        return requestNextPage(
-          for: updatedState,
-          using: networkClient
-        )
-        .handleEvents(receiveCompletion: { completion in
-          guard case .finished = completion else { return }
-          transferState.value = updatedState
-        })
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+      case var .success(updatedState):
+        // if we have config we can ask for profile,
+        // there is no need to do it every time
+        // so doing it once when requesting for the next page first time
+        if updatedState.configuration != nil, updatedState.scanningParts.count == 1 {
+          return requestNextPageWithUserProfile(
+            for: updatedState,
+            using: networkClient
+          )
+          .handleEvents(
+            receiveOutput: { user in
+              updatedState.profile = .init(
+                username: user.username,
+                firstName: user.profile.firstName,
+                lastName: user.profile.lastName,
+                avatarImagePath: user.profile.avatar.url.medium
+              )
+            },
+            receiveCompletion: { completion in
+              guard case .finished = completion else { return }
+              transferState.value = updatedState
+            }
+          )
+          .ignoreOutput()
+          .collectErrorLog(using: diagnostics)
+          .eraseToAnyPublisher()
+        } else {
+          return requestNextPage(
+            for: updatedState,
+            using: networkClient
+          )
+          .handleEvents(receiveCompletion: { completion in
+            guard case .finished = completion else { return }
+            transferState.value = updatedState
+          })
+          .collectErrorLog(using: diagnostics)
+          .eraseToAnyPublisher()
+        }
       // swiftlint:disable:next explicit_type_interface
       case let .failure(error)
       where error.identifier == .canceled
@@ -106,12 +166,14 @@ extension AccountTransfer: Feature {
             guard case let .failure(error) = completion
             else { unreachable("Cannot complete without an error when processing error") }
             transferState.send(completion: .failure(error))
+            features.unload(Self.self)
           })
           .ignoreOutput() // we care only about completion or failure
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
         } else { // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
+          features.unload(Self.self)
           return Fail<Never, TheError>(error: error)
             .collectErrorLog(using: diagnostics)
             .eraseToAnyPublisher()
@@ -119,12 +181,18 @@ extension AccountTransfer: Feature {
       }
     }
     
-    func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Void, TheError> {
+    // swiftlint:disable:next unowned_variable_capture
+    let processPayload: (String) -> AnyPublisher<Never, TheError> = { [unowned features] payload in
+      _processPayload(payload, using: features)
+    }
+    
+    func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, TheError> {
       guard
         let configuration = transferState.value.configuration,
-        let account = transferState.value.account
+        let account = transferState.value.account,
+        let profile = transferState.value.profile
       else {
-        return Fail<Void, TheError>(
+        return Fail<Never, TheError>(
           error: .accountTransferScanningRecoverableError(
             context: "account-transfer-complete-invalid-state"
           )
@@ -132,9 +200,13 @@ extension AccountTransfer: Feature {
         .eraseToAnyPublisher()
       }
       return accounts
-        .completeAccountTransfer(
+        .transferAccount(
           configuration.domain,
           account.userID,
+          profile.username,
+          profile.firstName,
+          profile.lastName,
+          profile.avatarImagePath,
           account.fingerprint,
           account.armoredKey,
           passphrase
@@ -142,13 +214,17 @@ extension AccountTransfer: Feature {
         .handleEvents(receiveCompletion: { [weak features] completion in
           guard case .finished = completion else { return }
           transferState.send(completion: .finished)
-          features?.unload(AccountTransfer.self)
+          features?.unload(Self.self)
         })
+        .ignoreOutput()
         .eraseToAnyPublisher()
     }
     
     func _cancelTransfer(using features: FeatureFactory) -> Void {
-      if let configuration: AccountTransferConfiguration = transferState.value.configuration {
+      if
+        let configuration: AccountTransferConfiguration = transferState.value.configuration,
+        !transferState.value.scanningFinished
+      {
         transferCancelationCancellable = requestCancelation(
           with: configuration,
           lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
@@ -163,7 +239,7 @@ extension AccountTransfer: Feature {
           .canceled.appending(context: "account-transfer-scanning-cancel")
         )
       )
-      features.unload(AccountTransfer.self)
+      features.unload(Self.self)
     }
     // swiftlint:disable:next unowned_variable_capture
     let cancelTransfer: () -> Void = { [unowned features] in
@@ -172,7 +248,7 @@ extension AccountTransfer: Feature {
     
     func featureUnload() -> Bool {
       #if DEBUG
-      _ = scanningProgressPublisher()
+      _ = progressPublisher()
         .receive(on: ImmediateScheduler.shared)
         .sink(
           receiveCompletion: { _ in /* expected */ },
@@ -185,7 +261,8 @@ extension AccountTransfer: Feature {
     }
     
     return Self(
-      scanningProgressPublisher: scanningProgressPublisher,
+      progressPublisher: progressPublisher,
+      accountDetailsPublisher: accountDetailsPublisher,
       processPayload: processPayload,
       completeTransfer: completeTransfer,
       cancelTransfer: cancelTransfer,
@@ -197,7 +274,8 @@ extension AccountTransfer: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      scanningProgressPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      progressPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      accountDetailsPublisher:  Commons.placeholder("You have to provide mocks for used methods"),
       processPayload: Commons.placeholder("You have to provide mocks for used methods"),
       completeTransfer: Commons.placeholder("You have to provide mocks for used methods"),
       cancelTransfer: Commons.placeholder("You have to provide mocks for used methods"),
@@ -333,10 +411,55 @@ private func requestNextPage(
         currentPage: state.nextScanningPage
           ?? state.lastScanningPage
           ?? state.configurationScanningPage,
-        status: state.scanningFinished ? .complete : .inProgress
+        status: state.scanningFinished ? .complete : .inProgress,
+        requestUserProfile: false
       )
     )
     .ignoreOutput()
+    .mapError { $0.appending(context: "next-page-request") }
+    .eraseToAnyPublisher()
+}
+
+private func requestNextPageWithUserProfile(
+  for state: AccountTransferState,
+  using networkClient: NetworkClient
+) -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheError> {
+  guard let configuration: AccountTransferConfiguration = state.configuration
+  else {
+    return Fail<AccountTransferUpdateResponseBody.User, TheError>(
+      error: .accountTransferScanningError(context: "next-page-request-missing-configuration")
+        .appending(logMessage: "Missing account transfer configuration")
+    )
+    .eraseToAnyPublisher()
+  }
+  return networkClient
+    .accountTransferUpdate
+    .make(
+      using: AccountTransferUpdateRequestVariable(
+        domain: configuration.domain,
+        authenticationToken: configuration.authenticationToken,
+        transferID: configuration.transferID,
+        currentPage: state.nextScanningPage
+          ?? state.lastScanningPage
+          ?? state.configurationScanningPage,
+        status: state.scanningFinished ? .complete : .inProgress,
+        requestUserProfile: true
+      )
+    )
+    .map { response -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheError> in
+      if let user: AccountTransferUpdateResponseBody.User = response.body.user {
+        return Just(user)
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      } else {
+        return Fail<AccountTransferUpdateResponseBody.User, TheError>(
+          error: .accountTransferScanningError(context: "next-page-request-missing-user-profile")
+            .appending(logMessage: "Missing user profile data")
+        )
+        .eraseToAnyPublisher()
+      }
+    }
+    .switchToLatest()
     .mapError { $0.appending(context: "next-page-request") }
     .eraseToAnyPublisher()
 }
@@ -346,7 +469,7 @@ private func requestCancelation(
   lastPage: Int,
   using networkClient: NetworkClient,
   causedByError error: TheError? = nil
-) -> AnyPublisher<Void, TheError> {
+) -> AnyPublisher<Never, TheError> {
   let responsePublisher: AnyPublisher<Void, TheError> = networkClient
     .accountTransferUpdate
     .make(
@@ -355,30 +478,33 @@ private func requestCancelation(
         authenticationToken: configuration.authenticationToken,
         transferID: configuration.transferID,
         currentPage: lastPage,
-        status: error == nil ? .cancel : .error
+        status: error == nil ? .cancel : .error,
+        requestUserProfile: false
       )
     )
     .map { _ in Void() }
-    .mapError { $0.appending(context: "account-transfer-scanning-cancelation-request") }
     .eraseToAnyPublisher()
-  
   if let error: TheError = error {
     return responsePublisher
-      .mapError { _ in error }
       .flatMap { _ in Fail<Void, TheError>(error: error) }
+      .ignoreOutput()
       .eraseToAnyPublisher()
   } else {
     return responsePublisher
+      .ignoreOutput()
+      .mapError { error in
+        error.appending(context: "account-transfer-scanning-cancelation-request")
+      }
       .eraseToAnyPublisher()
   }
 }
 
 extension AccountTransfer {
   
-  public enum ScanningProgress {
+  public enum Progress {
     
     case configuration
-    case progress(Double)
-    case finished
+    case scanningProgress(Double)
+    case scanningFinished
   }
 }

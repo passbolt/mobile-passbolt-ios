@@ -21,32 +21,14 @@
 // @since         v1.0
 //
 
-internal struct AccountTransferState {
+public struct CommonResponse<Body: Decodable>: Decodable {
   
-  internal var configuration: AccountTransferConfiguration? = nil
-  internal var account: AccountTransferAccount? = nil
-  internal var profile: AccountTransferAccountProfile? = nil
-  internal var scanningParts: Array<AccountTransferScanningPart> = .init()
+  public var header: CommonResponseHeader
+  public var body: Body
 }
 
-extension AccountTransferState {
+public struct CommonResponseHeader: Decodable {
   
-  // we always expect configuration to be in page 0
-  internal var configurationScanningPage: Int { 0 }
-  
-  internal var nextScanningPage: Int? {
-    if scanningParts.count == configuration?.pagesCount {
-      return nil
-    } else {
-      return scanningParts.last.map { $0.page + 1 } ?? configurationScanningPage
-    }
-  }
-  
-  internal var lastScanningPage: Int? {
-    scanningParts.last?.page
-  }
-  
-  internal var scanningFinished: Bool {
-    configuration != nil && account != nil
-  }
+  public var id: String
+  public var message: String
 }

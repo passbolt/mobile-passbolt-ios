@@ -44,7 +44,7 @@ extension LinkOpener: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> LinkOpener {
     Self(
       openLink: environment.openLink,

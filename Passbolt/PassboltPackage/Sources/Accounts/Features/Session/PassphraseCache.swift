@@ -74,7 +74,7 @@ extension PassphraseCache: Feature {
   internal static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> PassphraseCache {
     let currentPassphraseSubject: CurrentValueSubject<Entry?, Never> = .init(nil)
     let lock: NSRecursiveLock = .init()
@@ -106,7 +106,7 @@ extension PassphraseCache: Feature {
           break
         }
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     func clearCache() {
       currentPassphraseSubject.send(nil)

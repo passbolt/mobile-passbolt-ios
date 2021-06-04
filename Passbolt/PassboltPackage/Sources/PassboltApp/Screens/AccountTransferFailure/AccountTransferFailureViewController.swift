@@ -23,10 +23,10 @@
 import AVFoundation
 import UIComponents
 
-internal final class CodeScanningFailureViewController: PlainViewController, UIComponent {
+internal final class AccountTransferFailureViewController: PlainViewController, UIComponent {
   
   internal typealias View = ResultView
-  internal typealias Controller = CodeScanningFailureController
+  internal typealias Controller = AccountTransferFailureController
   
   internal static func instance(
     using controller: Controller,
@@ -41,7 +41,6 @@ internal final class CodeScanningFailureViewController: PlainViewController, UIC
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
-  private var cancellables: Array<AnyCancellable> = .init()
   private var payloadProcessingCancellable: AnyCancellable?
   
   internal init(
@@ -96,6 +95,6 @@ internal final class CodeScanningFailureViewController: PlainViewController, UIC
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
 }

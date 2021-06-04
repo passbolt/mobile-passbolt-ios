@@ -21,30 +21,19 @@
 // @since         v1.0
 //
 
-import UIComponents
+import Commons
 
-internal struct CodeScanningFailureController {
+// Mutable part of account, used to store profile details and settings.
+public struct AccountProfile {
   
-  internal var failureReason: () -> TheError
-  internal var `continue`: () -> Void
-  internal var backPresentationPublisher: () -> AnyPublisher<Never, Never>
+  public let accountID: Account.LocalID
+  public var label: String
+  public var username: String
+  public var firstName: String
+  public var lastName: String
+  public var avatarImagePath: String
+  public internal(set) var biometricsEnabled: Bool
 }
 
-extension CodeScanningFailureController: UIController {
-  
-  internal typealias Context = TheError
-  
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory
-  ) -> Self {
-    let backPresentationSubject: PassthroughSubject<Never, Never> = .init()
-    
-    return Self(
-      failureReason: { context },
-      continue: { backPresentationSubject.send(completion: .finished) },
-      backPresentationPublisher: backPresentationSubject.eraseToAnyPublisher
-    )
-  }
-}
-
+extension AccountProfile: Equatable {}
+extension AccountProfile: Codable {}

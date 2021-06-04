@@ -35,7 +35,7 @@ import XCTest
 final class PassphraseCacheTests: XCTestCase {
   
   var features: FeatureFactory!
-  var cancellables: Array<AnyCancellable>!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -63,7 +63,7 @@ final class PassphraseCacheTests: XCTestCase {
     let cache: PassphraseCache = .load(
       in: PassphraseCache.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
@@ -75,7 +75,7 @@ final class PassphraseCacheTests: XCTestCase {
       .sink { passphrase in
         result = passphrase
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     cache.store(passphrase, accountID, .distantFuture)
     
@@ -91,7 +91,7 @@ final class PassphraseCacheTests: XCTestCase {
     let cache: PassphraseCache = .load(
       in: PassphraseCache.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
@@ -103,7 +103,7 @@ final class PassphraseCacheTests: XCTestCase {
       .sink { passphrase in
         result = passphrase
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     cache.store(passphrase, accountID, .distantPast)
     
@@ -120,7 +120,7 @@ final class PassphraseCacheTests: XCTestCase {
     let cache: PassphraseCache = .load(
       in: PassphraseCache.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
@@ -132,7 +132,7 @@ final class PassphraseCacheTests: XCTestCase {
       .sink { passphrase in
         result = passphrase
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     cache.store(passphrase, accountID, .distantFuture)
     
@@ -155,7 +155,7 @@ final class PassphraseCacheTests: XCTestCase {
     let cache: PassphraseCache = .load(
       in: PassphraseCache.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     let passphrase: Passphrase = "Passphrase to be stored"
@@ -167,7 +167,7 @@ final class PassphraseCacheTests: XCTestCase {
       .sink { passphrase in
         result = passphrase
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     cache.store(passphrase, accountID, .distantFuture)
   

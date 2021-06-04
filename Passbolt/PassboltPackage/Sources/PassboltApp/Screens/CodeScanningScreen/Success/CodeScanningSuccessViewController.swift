@@ -41,7 +41,6 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
-  private var cancellables: Array<AnyCancellable> = .init()
   private var payloadProcessingCancellable: AnyCancellable?
   
   internal init(
@@ -81,10 +80,10 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
-          self?.push(SignInViewController.self)
+          self?.push(TransferSignInViewController.self)
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
 }

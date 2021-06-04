@@ -34,7 +34,7 @@ import XCTest
 final class AccountsStoreTests: XCTestCase {
   
   var features: FeatureFactory!
-  var cancellables: Array<AnyCancellable>!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -57,17 +57,18 @@ final class AccountsStoreTests: XCTestCase {
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     features.use(accountsDataStore)
     features.use(AccountSession.placeholder)
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
-    let result: Array<Account> = accounts.storedAccounts()
+    let result: Array<AccountWithProfile> = accounts.storedAccounts()
     
-    XCTAssertEqual(result, [validAccount])
+    XCTAssertEqual(result, [validAccountWithProfile])
   }
 
   func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() {
@@ -82,7 +83,7 @@ final class AccountsStoreTests: XCTestCase {
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     _ = accounts.verifyStorageDataIntegrity()
@@ -91,7 +92,7 @@ final class AccountsStoreTests: XCTestCase {
   }
   
   func test_storeTransferedAccount_storesDataInAccountsDataStore() {
-    var result: (account: Account, details: AccountDetails, armoredKey: ArmoredPrivateKey)?
+    var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPrivateKey)?
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.storeAccount = { account, details, key in
       result = (account: account, details: details, armoredKey: key)
@@ -109,22 +110,26 @@ final class AccountsStoreTests: XCTestCase {
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     accounts
-      .completeAccountTransfer(
+      .transferAccount(
         validAccount.domain,
         validAccount.userID,
+        validAccountProfile.username,
+        validAccountProfile.firstName,
+        validAccountProfile.lastName,
+        validAccountProfile.avatarImagePath,
         validAccount.fingerprint,
         validPrivateKey,
         validPassphrase
       )
       .sink(receiveCompletion: { _ in }, receiveValue: {})
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.account, validAccount)
-    XCTAssertEqual(result?.details, validAccountDetails)
+    XCTAssertEqual(result?.details, validAccountProfile)
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
   
@@ -146,7 +151,7 @@ final class AccountsStoreTests: XCTestCase {
     let accounts: Accounts = .load(
       in: Accounts.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     _ = accounts.removeAccount(validAccount.localID)
@@ -162,11 +167,26 @@ private let validAccount: Account = .init(
   fingerprint: "FINGERPRINT"
 )
 
-private let validAccountDetails: AccountDetails = .init(
+private let validAccountProfile: AccountProfile = .init(
   accountID: .init(rawValue: UUID.testUUID.uuidString),
+  label: "firstName lastName",
+  username: "username",
+  firstName: "firstName",
+  lastName: "lastName",
+  avatarImagePath: "avatarImagePath",
   biometricsEnabled: false
 )
 
+private let validAccountWithProfile: AccountWithProfile = .init(
+  localID: .init(rawValue: UUID.testUUID.uuidString),
+  domain: "https://passbolt.dev",
+  label: "firstName lastName",
+  username: "username",
+  firstName: "firstName",
+  lastName: "lastName",
+  avatarImagePath: "avatarImagePath",
+  biometricsEnabled: false
+)
 private let validPassphrase: Passphrase = "SecretPassphrase"
 
 private let validPrivateKey: ArmoredPrivateKey =

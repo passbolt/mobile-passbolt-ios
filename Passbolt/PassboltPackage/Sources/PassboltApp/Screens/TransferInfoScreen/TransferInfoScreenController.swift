@@ -37,7 +37,8 @@ extension TransferInfoScreenController: UIController {
   
   internal static func instance(
     in context: Void,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> TransferInfoScreenController {
     let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
     

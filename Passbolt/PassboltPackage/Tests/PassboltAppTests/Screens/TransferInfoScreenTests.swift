@@ -35,8 +35,8 @@ import XCTest
 // swiftlint:disable implicitly_unwrapped_optional
 final class TransferInfoScreenTests: XCTestCase {
 
-  private var features: FeatureFactory!
-  private var cancellables: Array<AnyCancellable>!
+  var features: FeatureFactory!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -56,7 +56,7 @@ final class TransferInfoScreenTests: XCTestCase {
   }
   
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {
-    let controller: TransferInfoScreenController = .instance(with: features)
+    let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
     var result: Bool!
     
     controller.presentNoCameraPermissionAlertPublisher()
@@ -64,7 +64,7 @@ final class TransferInfoScreenTests: XCTestCase {
       .sink { presented in
         result = presented
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     controller.presentNoCameraPermissionAlert()
     
@@ -79,7 +79,7 @@ final class TransferInfoScreenTests: XCTestCase {
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
-    let controller: TransferInfoCameraRequiredAlertController = .instance(with: features)
+    let controller: TransferInfoCameraRequiredAlertController = .instance(with: features, cancellables: cancellables)
     
     controller.showSettings()
     
@@ -94,12 +94,12 @@ final class TransferInfoScreenTests: XCTestCase {
       return Just(false).eraseToAnyPublisher()
     }
     features.use(appPermissions)
-    let controller: TransferInfoScreenController = .instance(with: features)
+    let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
     
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { _ in }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertNotNil(result)
   }
@@ -111,7 +111,7 @@ final class TransferInfoScreenTests: XCTestCase {
     )
     features.use(appPermissions)
     
-    let controller: TransferInfoScreenController = .instance(with: features)
+    let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
     var result: Bool!
     
     controller.requestOrNavigatePublisher()
@@ -119,7 +119,7 @@ final class TransferInfoScreenTests: XCTestCase {
       .sink { granted in
         result = granted
       }
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertTrue(result)
   }

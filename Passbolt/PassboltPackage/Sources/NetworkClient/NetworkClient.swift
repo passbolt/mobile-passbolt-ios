@@ -39,10 +39,13 @@ extension NetworkClient: Feature {
   public static func load(
     in environment: (Networking),
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> NetworkClient {
     let session: AccountSession = features.instance()
-    let tempSessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError> = session
+    let emptySessionVariablePubliher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    let sessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError> = session
       .statePublisher()
       .map { sessionState -> AnyPublisher<NetworkSessionVariable, TheError> in
         switch sessionState {
@@ -66,6 +69,7 @@ extension NetworkClient: Feature {
       .switchToLatest()
       .eraseToAnyPublisher()
     
+    
     func featureUnload() -> Bool {
       true // perform cleanup if needed
     }
@@ -73,7 +77,7 @@ extension NetworkClient: Feature {
     return Self(
       accountTransferUpdate: .live(
         using: environment,
-        with: tempSessionVariablePublisher
+        with: emptySessionVariablePubliher
       ),
       featureUnload: featureUnload
     )

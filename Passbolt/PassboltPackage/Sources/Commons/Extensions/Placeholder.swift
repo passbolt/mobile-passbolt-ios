@@ -103,3 +103,11 @@ public func placeholder<A1, A2, A3, A4, A5, A6, A7, A8, R>(
 ) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> R {
   { _, _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
 }
+
+public func placeholder<A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
+  _ message: String = "Unimplemented",
+  file: StaticString = #filePath,
+  line: Int = #line
+) -> (A1, A2, A3, A4, A5, A6, A7, A8, A9) -> R {
+  { _, _, _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+}

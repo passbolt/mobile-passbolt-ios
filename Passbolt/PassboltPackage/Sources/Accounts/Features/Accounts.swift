@@ -27,11 +27,15 @@ import Features
 public struct Accounts {
   
   public var verifyStorageDataIntegrity: () -> Result<Void, TheError>
-  public var storedAccounts: () -> Array<Account>
+  public var storedAccounts: () -> Array<AccountWithProfile>
   // Saves account data if authorization succeeds and creates session.
-  public var completeAccountTransfer: (
+  public var transferAccount: (
     _ domain: String,
     _ userID: String,
+    _ username: String,
+    _ firstName: String,
+    _ lastName: String,
+    _ avatarImagePath: String,
     _ fingerprint: String,
     _ armoredKey: ArmoredPrivateKey,
     _ passphrase: Passphrase
@@ -60,7 +64,7 @@ extension Accounts: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: inout Array<AnyCancellable>
+    cancellables: Cancellables
   ) -> Self {
     let diagnostics: Diagnostics = features.instance()
     let session: AccountSession = features.instance()
@@ -70,13 +74,43 @@ extension Accounts: Feature {
       dataStore.verifyDataIntegrity()
     }
     
-    func storedAccounts() -> Array<Account> {
-      dataStore.loadAccounts()
+    func storedAccounts() -> Array<AccountWithProfile> {
+      dataStore
+        .loadAccounts()
+        .compactMap { account -> AccountWithProfile? in
+          let profileLoadResult: Result<AccountProfile, TheError> = dataStore
+            .loadAccountProfile(account.localID)
+          switch profileLoadResult {
+          // swiftlint:disable:next explicit_type_interface
+          case let .success(profile):
+            return AccountWithProfile(
+              localID: account.localID,
+              domain: account.domain,
+              label: profile.label,
+              username: profile.username,
+              firstName: profile.firstName,
+              lastName: profile.lastName,
+              avatarImagePath: profile.avatarImagePath,
+              biometricsEnabled: profile.biometricsEnabled
+            )
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error):
+            diagnostics.debugLog(
+              "Failed to load account profile: \(account.localID)"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+            )
+            return nil
+          }
+        }
     }
     
-    func completeAccountTransfer(
+    func transferAccount(
       domain: String,
       userID: String,
+      username: String,
+      firstName: String,
+      lastName: String,
+      avatarImagePath: String,
       fingerprint: String,
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
@@ -88,14 +122,19 @@ extension Accounts: Feature {
         userID: userID,
         fingerprint: fingerprint
       )
-      let accountDetails: AccountDetails = .init(
+      let accountProfile: AccountProfile = .init(
         accountID: accountID,
+        label: "\(firstName) \(lastName)", // initial label
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
+        avatarImagePath: avatarImagePath,
         biometricsEnabled: false // it is always disabled initially
       )
       return session
-        .authorize(account, .passphrase(passphrase))
+        .authorize(account, .adHoc(passphrase, armoredKey))
         .map { _ -> AnyPublisher<Void, TheError> in
-          switch dataStore.storeAccount(account, accountDetails, armoredKey) {
+          switch dataStore.storeAccount(account, accountProfile, armoredKey) {
           case .success:
             return Just(Void())
               .setFailureType(to: TheError.self)
@@ -149,7 +188,7 @@ extension Accounts: Feature {
     return Self(
       verifyStorageDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
-      completeAccountTransfer: completeAccountTransfer(domain:userID:fingerprint:armoredKey:passphrase:),
+      transferAccount: transferAccount(domain:userID:username:firstName:lastName:avatarImagePath:fingerprint:armoredKey:passphrase:),
       removeAccount: remove(accountWithID:)
     )
   }
@@ -160,7 +199,7 @@ extension Accounts: Feature {
     Self(
       verifyStorageDataIntegrity: Commons.placeholder("You have to provide mocks for used methods"),
       storedAccounts: Commons.placeholder("You have to provide mocks for used methods"),
-      completeAccountTransfer: Commons.placeholder("You have to provide mocks for used methods"),
+      transferAccount: Commons.placeholder("You have to provide mocks for used methods"),
       removeAccount: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

@@ -23,6 +23,7 @@
 
 import Commons
 
+// Immutable part of account, used to identify account and associated server.
 public struct Account {
   
   public typealias LocalID = Tagged<String, Self>

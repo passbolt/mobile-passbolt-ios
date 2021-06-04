@@ -24,7 +24,7 @@
 import Accounts
 @testable import AccountSetup
 import Features
-import NetworkClient
+@testable import NetworkClient
 import TestExtensions
 import XCTest
 
@@ -35,7 +35,7 @@ import XCTest
 final class AccountTransferTests: XCTestCase {
   
   var features: FeatureFactory!
-  var cancellables: Array<AnyCancellable>!
+  var cancellables: Cancellables!
   
   override class func setUp() {
     super.setUp()
@@ -59,15 +59,15 @@ final class AccountTransferTests: XCTestCase {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
-    var result: AccountTransfer.ScanningProgress?
+    var result: AccountTransfer.Progress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     accountTransfer
-      .scanningProgressPublisher()
+      .progressPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
@@ -75,7 +75,7 @@ final class AccountTransferTests: XCTestCase {
           result = progress
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     if case .configuration = result {
       /* expected */
@@ -86,21 +86,21 @@ final class AccountTransferTests: XCTestCase {
   
   func test_scanningProgressPublisher_publishesProgressValue_afterProcessingFirstPart() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
-    var result: AccountTransfer.ScanningProgress?
+    var result: AccountTransfer.Progress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
     
     accountTransfer
-      .scanningProgressPublisher()
+      .progressPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
@@ -108,10 +108,10 @@ final class AccountTransferTests: XCTestCase {
           result = progress
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     // swiftlint:disable:next explicit_type_interface
-    if case let .progress(progressValue) = result {
+    if case let .scanningProgress(progressValue) = result {
       XCTAssertEqual(progressValue, 1 / 7)
     } else {
       XCTFail("Invalid initial account transfer progress")
@@ -120,15 +120,15 @@ final class AccountTransferTests: XCTestCase {
   
   func test_scanningProgressPublisher_publishesFinishedValue_afterProcessingAllParts() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
-    var result: AccountTransfer.ScanningProgress?
+    var result: AccountTransfer.Progress?
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -140,7 +140,7 @@ final class AccountTransferTests: XCTestCase {
     processPart(qrCodePart6, using: accountTransfer)
     
     accountTransfer
-      .scanningProgressPublisher()
+      .progressPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
@@ -148,9 +148,9 @@ final class AccountTransferTests: XCTestCase {
           result = progress
         }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
-    if case .finished = result {
+    if case .scanningFinished = result {
       /* expected */
     } else {
       XCTFail("Invalid initial account transfer progress")
@@ -159,7 +159,7 @@ final class AccountTransferTests: XCTestCase {
   
   func test_scanningProgressPublisher_completes_afterCancelation() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
@@ -167,13 +167,13 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     accountTransfer.cancelTransfer()
     
     accountTransfer
-      .scanningProgressPublisher()
+      .progressPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
@@ -184,7 +184,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .canceled)
     XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-cancel")
@@ -192,7 +192,7 @@ final class AccountTransferTests: XCTestCase {
   
   func test_scanningProgressPublisher_completesWithError_afterProcessingInvalidPart() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
@@ -200,13 +200,13 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
     
     accountTransfer
-      .scanningProgressPublisher()
+      .progressPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
@@ -217,14 +217,14 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
   }
   
   func test_processPayload_fails_withInvalidContent() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
@@ -232,7 +232,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     accountTransfer
@@ -247,7 +247,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
   }
@@ -262,7 +262,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     accountTransfer
@@ -277,7 +277,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .testError)
     XCTAssertEqual(result?.context, "next-page-request")
@@ -285,7 +285,7 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_succeeds_withValidContent() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
@@ -293,7 +293,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     accountTransfer
@@ -307,7 +307,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertNotNil(result)
   }
@@ -316,7 +316,7 @@ final class AccountTransferTests: XCTestCase {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
-      AccountTransferUpdateResponse(),
+      accountTransferUpdateResponse,
       storeVariableIn: &result
     )
     features.use(networkClient)
@@ -325,7 +325,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -338,7 +338,7 @@ final class AccountTransferTests: XCTestCase {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
-      AccountTransferUpdateResponse(),
+      accountTransferUpdateResponse,
       storeVariableIn: &result
     )
     features.use(networkClient)
@@ -347,7 +347,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     // we have to get configuration before
@@ -365,7 +365,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -381,7 +381,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningRecoverableError)
     XCTAssertEqual(result?.context, "part-decoding-invalid-version-or-code")
@@ -394,7 +394,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -410,7 +410,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "part-decoding-invalid-page")
@@ -423,7 +423,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -439,7 +439,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "decoding-invalid-page")
@@ -452,7 +452,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -468,7 +468,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "configuration-decoding-invalid-json")
@@ -481,7 +481,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -497,7 +497,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "configuration-decoding-invalid-json")
@@ -505,14 +505,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withInvalidConfigurationDomain() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -528,7 +528,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "configuration-decoding-invalid-domain")
@@ -536,14 +536,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withInvalidConfigurationHash() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -565,7 +565,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
@@ -573,14 +573,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withInvalidMiddlePart() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -602,7 +602,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
@@ -610,14 +610,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withInvalidJSONInMiddlePart() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -639,7 +639,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
@@ -647,14 +647,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withNoHashInConfig() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -676,7 +676,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "missing-configuration-or-hash")
@@ -684,14 +684,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withInvalidContentHash() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -713,7 +713,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .accountTransferScanningError)
     XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
@@ -723,7 +723,7 @@ final class AccountTransferTests: XCTestCase {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
-      AccountTransferUpdateResponse(),
+      accountTransferUpdateResponse,
       storeVariableIn: &result
     )
     features.use(networkClient)
@@ -732,7 +732,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -750,7 +750,7 @@ final class AccountTransferTests: XCTestCase {
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     features.use(accountTransfer)
     XCTAssertTrue(features.isLoaded(AccountTransfer.self))
@@ -762,14 +762,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withUnexpectedPage() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -792,7 +792,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .canceled)
     XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-unexpected-page")
@@ -800,14 +800,14 @@ final class AccountTransferTests: XCTestCase {
   
   func test_processPayload_fails_withRepeatedPage() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(AccountTransferUpdateResponse())
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     features.use(Accounts.placeholder)
     let accountTransfer: AccountTransfer = .load(
       in: AccountTransfer.environmentScope(features.environment),
       using: features,
-      cancellables: &cancellables
+      cancellables: cancellables
     )
     var result: TheError?
     
@@ -824,7 +824,7 @@ final class AccountTransferTests: XCTestCase {
         },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
     
     XCTAssertEqual(result?.identifier, .canceled)
     XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-repeated-page")
@@ -844,9 +844,31 @@ extension AccountTransferTests {
         receiveCompletion: { _ in },
         receiveValue: { _ in }
       )
-      .store(in: &cancellables)
+      .store(in: cancellables)
   }
 }
+
+private let accountTransferUpdateResponse: AccountTransferUpdateResponse = .init(
+  header: .init(
+    id: "id",
+    message: "message"
+  ),
+  body: .init(
+    user: .init(
+      username: "username",
+      profile: .init(
+        firstName: "firstName",
+        lastName: "lastName",
+        avatar: .init(
+          url: .init(
+            medium: "mediumAvatarImagePath",
+            small: "smallAvatarImagePath"
+          )
+        )
+      )
+    )
+  )
+)
 
 // swiftlint:disable line_length
 private let qrCodePart0: String =

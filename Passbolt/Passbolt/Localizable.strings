@@ -63,11 +63,11 @@
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
 "transfer.account.result.error.title" = "Something went wrong!";
 "sign.in.title" = "Enter your passphrase";
-"autorization.button.title" = "Sign In";
-"autorization.forgot.passphrase.button.title" = "I forgot my passphrase";
-"autorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";
-"autorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
-"autorization.passphrase.description.text" = "Passphrase";
-"autorization.passphrase.error" = "Passphrase is wrong!";
+"authorization.button.title" = "Sign In";
+"authorization.forgot.passphrase.button.title" = "I forgot my passphrase";
+"authorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";
+"authorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
+"authorization.passphrase.description.text" = "Passphrase";
+"authorization.passphrase.error" = "Passphrase is wrong!";
 
 "biometrics.usage.reason" = "Biometrics can be used to save your passphrase securely.";

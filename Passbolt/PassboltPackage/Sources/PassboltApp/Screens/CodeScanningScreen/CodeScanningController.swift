@@ -27,12 +27,11 @@ internal struct CodeScanningController {
   
   internal var progressPublisher: () -> AnyPublisher<Double, Never>
   internal var presentExitConfirmation: () -> Void
-  internal var dismissExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var presentHelp: () -> Void
   internal var helpPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  // We expect this publisher to emit value on process success and fail on process error
-  internal var resultPresentationPublisher: () -> AnyPublisher<Void, TheError>
+  // We expect this publisher to finish on process success and fail on process error
+  internal var resultPresentationPublisher: () -> AnyPublisher<Never, TheError>
 }
 
 extension CodeScanningController: UIController {
@@ -41,48 +40,79 @@ extension CodeScanningController: UIController {
   
   internal static func instance(
     in context: Context,
-    with features: FeatureFactory
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
+    let resultPresentationSubject: PassthroughSubject<Never, TheError> = .init()
     
-    return Self(
-      progressPublisher: accountTransfer
-        .scanningProgressPublisher()
+    accountTransfer
+      .progressPublisher()
+      .sink(
+        receiveCompletion: { completion in
+          // swiftlint:disable:next explicit_type_interface
+          guard case let .failure(error) = completion
+          else { return }
+          resultPresentationSubject.send(completion: .failure(error))
+        },
+        receiveValue: { progress in
+          guard case .scanningFinished = progress
+          else { return }
+          resultPresentationSubject.send(completion: .finished)
+        }
+      )
+      .store(in: cancellables)
+    
+    func progressPublisher() -> AnyPublisher<Double, Never> {
+      accountTransfer
+        .progressPublisher()
         .compactMap { progress -> Double? in
           switch progress {
           case .configuration:
-            return 1 / 20 // some initial value, greater than zero but not too small
-            
+            return 0 // initial value
+          
           // swiftlint:disable:next explicit_type_interface
-          case let .progress(value):
+          case let .scanningProgress(value):
             return value
             
-          case .finished:
+          case .scanningFinished:
             return 1 // finished aka 100%
           }
         }
         .replaceError(with: 1) // we break the process on error so it is kind of 100%
         .removeDuplicates()
-        .eraseToAnyPublisher,
-      presentExitConfirmation: { exitConfirmationPresentationSubject.send(true) },
-      dismissExitConfirmation: { exitConfirmationPresentationSubject.send(false) },
-      exitConfirmationPresentationPublisher: exitConfirmationPresentationSubject.eraseToAnyPublisher,
-      presentHelp: { helpPresentationSubject.send(true) },
-      helpPresentationPublisher: helpPresentationSubject.eraseToAnyPublisher,
-      resultPresentationPublisher: accountTransfer
-        .scanningProgressPublisher()
-        .compactMap { progress -> Void? in
-          switch progress {
-          case .configuration, .progress:
-            return nil
-            
-          case .finished:
-            return Void()
-          }
-        }
-        .eraseToAnyPublisher
+        .eraseToAnyPublisher()
+    }
+    
+    func presentExitConfirmation() -> Void {
+      exitConfirmationPresentationSubject.send(true)
+    }
+    
+    func exitConfirmationPresentationPublisher() -> AnyPublisher<Bool, Never> {
+      exitConfirmationPresentationSubject.eraseToAnyPublisher()
+    }
+    
+    func presentHelp() -> Void {
+      helpPresentationSubject.send(true)
+    }
+    
+    func helpPresentationPublisher() -> AnyPublisher<Bool, Never> {
+      helpPresentationSubject.eraseToAnyPublisher()
+    }
+    
+    func resultPresentationPublisher() -> AnyPublisher<Never, TheError> {
+      resultPresentationSubject.eraseToAnyPublisher()
+    }
+    
+    return Self(
+      progressPublisher: progressPublisher,
+      presentExitConfirmation: presentExitConfirmation,
+      exitConfirmationPresentationPublisher: exitConfirmationPresentationPublisher,
+      presentHelp: presentHelp,
+      helpPresentationPublisher: helpPresentationPublisher,
+      resultPresentationPublisher: resultPresentationPublisher
     )
   }
 }

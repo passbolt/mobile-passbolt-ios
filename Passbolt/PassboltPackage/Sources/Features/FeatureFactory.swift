@@ -26,7 +26,7 @@ import class Foundation.NSRecursiveLock
 
 public final class FeatureFactory {
   
-  private typealias FeatureInstance = (feature: Any, cancellables: Array<AnyCancellable>)
+  private typealias FeatureInstance = (feature: Any, cancellables: Cancellables)
   
   #if DEBUG // debug builds allow change and access to environment for mocking and debug
   public var environment: RootEnvironment
@@ -63,12 +63,12 @@ extension FeatureFactory {
         ) as! F // it looks like compiler issue, casting is required regardless of returning Never here
       }
       #endif
-      var featureCancellables: Array<AnyCancellable> = .init()
+      var featureCancellables: Cancellables = .init()
       
       let loaded: F = .load(
         in: F.environmentScope(environment),
         using: self,
-        cancellables: &featureCancellables
+        cancellables: featureCancellables
       )
       features[F.featureIdentifier] = FeatureInstance(
         feature: loaded,
@@ -105,7 +105,7 @@ extension FeatureFactory {
   
   public func use<F>(
     _ feature: F,
-    cancellables: Array<AnyCancellable> = .init()
+    cancellables: Cancellables = .init()
   ) where F: Feature {
     featuresAccessLock.lock()
     assert(

@@ -21,32 +21,52 @@
 // @since         v1.0
 //
 
-internal struct AccountTransferState {
-  
-  internal var configuration: AccountTransferConfiguration? = nil
-  internal var account: AccountTransferAccount? = nil
-  internal var profile: AccountTransferAccountProfile? = nil
-  internal var scanningParts: Array<AccountTransferScanningPart> = .init()
-}
+import AccountSetup
+import UIComponents
 
-extension AccountTransferState {
+// swiftlint:disable:next colon
+internal final class TransferSignInExitConfirmationViewController:
+  AlertViewController<TransferSignInExitConfirmationController>, UIComponent {
   
-  // we always expect configuration to be in page 0
-  internal var configurationScanningPage: Int { 0 }
-  
-  internal var nextScanningPage: Int? {
-    if scanningParts.count == configuration?.pagesCount {
-      return nil
-    } else {
-      return scanningParts.last.map { $0.page + 1 } ?? configurationScanningPage
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "code.scanning.exit.confirmation.title"),
+        .message(localized: "code.scanning.exit.confirmation.message"),
+        .action(
+          localized: .cancel,
+          style: .cancel,
+          accessibilityIdentifier: "alert.button.cancel",
+          handler: {}
+        ),
+        .action(
+          localized: .yes,
+          style: .destructive,
+          accessibilityIdentifier: "alert.button.exit",
+          handler: controller.exit
+        )
+      )
     }
   }
+}
+
+internal struct TransferSignInExitConfirmationController {
   
-  internal var lastScanningPage: Int? {
-    scanningParts.last?.page
-  }
+  internal var exit: () -> Void
+}
+
+extension TransferSignInExitConfirmationController: UIController {
   
-  internal var scanningFinished: Bool {
-    configuration != nil && account != nil
+  internal typealias Context = Void
+  
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let accountTransfer: AccountTransfer = features.instance()
+    return Self(
+      exit: accountTransfer.cancelTransfer
+    )
   }
 }
