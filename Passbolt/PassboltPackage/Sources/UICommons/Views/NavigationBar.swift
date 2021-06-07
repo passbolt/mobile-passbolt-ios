@@ -43,7 +43,6 @@ public final class NavigationBar: UINavigationBar {
       self.barTintColor = dynamicBarTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
   public lazy var dynamicTitleColor: DynamicColor
     = .default(.black) {
     didSet {

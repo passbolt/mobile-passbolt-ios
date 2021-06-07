@@ -67,6 +67,15 @@ extension UIComponent where Self: UINavigationController {
   public func setupView() {}
 }
 
+extension UIComponent where Self: UITabBarController {
+  
+  public var contentView: NavigationView {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+  
+  public func setupView() {}
+}
+
 extension UIComponent where Self: UIAlertController {
   
   public func setupView() {}

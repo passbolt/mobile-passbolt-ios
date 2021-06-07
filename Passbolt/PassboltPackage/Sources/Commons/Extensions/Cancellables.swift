@@ -27,9 +27,11 @@ import class Foundation.NSLock
 public final class Cancellables {
   
   fileprivate let lock: NSLock = .init()
-  fileprivate var cancellables: Array<AnyCancellable> = .init()
+  fileprivate var cancellables: Array<AnyCancellable>
   
-  public init() {}
+  public init(extend other: Cancellables...) {
+    self.cancellables = other.flatMap(\.cancellables)
+  }
 }
 
 extension AnyCancellable {

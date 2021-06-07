@@ -19,42 +19,13 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
 import Accounts
-import UIComponents
 
-internal struct SplashScreenController {
+internal enum SplashScreenNavigationDestination: Equatable {
   
-  internal var navigationDestinationPublisher: () -> AnyPublisher<SplashScreenNavigationDestination, Never>
-}
-
-extension SplashScreenController: UIController {
-  
-  internal typealias Context = Void
-  
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    let accounts: Accounts = features.instance()
-    
-    return Self(
-      navigationDestinationPublisher: {
-        guard case .success = accounts.verifyStorageDataIntegrity()
-        else {
-          return Just(.diagnostics)
-            .eraseToAnyPublisher()
-        }
-        let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-        if storedAccounts.isEmpty {
-          return Just(.accountSetup)
-            .eraseToAnyPublisher()
-        } else {
-          return Just(.accountSelection(storedAccounts))
-            .eraseToAnyPublisher()
-        }
-      }
-    )
-  }
+  case accountSetup
+  case accountSelection(Array<AccountWithProfile>)
+  case diagnostics
 }

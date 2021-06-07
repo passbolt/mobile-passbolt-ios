@@ -71,3 +71,6 @@
 "authorization.passphrase.error" = "Passphrase is wrong!";
 
 "biometrics.usage.reason" = "Biometrics can be used to save your passphrase securely.";
+
+"tab.home" = "Home";
+"tab.settings" = "Settings";

@@ -19,13 +19,14 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
+import UICommons
 import UIComponents
 
-internal final class SplashScreenViewController: PlainViewController, UIComponent {
+internal final class SettingsTabViewController: NavigationViewController, UIComponent {
   
-  internal typealias View = SplashScreenView
-  internal typealias Controller = SplashScreenController
+  internal typealias Controller = HomeTabController
   
   internal static func instance(
     using controller: Controller,
@@ -37,12 +38,11 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     )
   }
   
-  internal private(set) lazy var contentView: SplashScreenView = .init()
   internal let components: UIComponentFactory
-  private let controller: SplashScreenController
+  private let controller: Controller
   
   internal init(
-    using controller: SplashScreenController,
+    using controller: Controller,
     with components: UIComponentFactory
   ) {
     self.controller = controller
@@ -50,41 +50,16 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     super.init()
   }
   
-  internal func setupView() {
-    mut(contentView) {
-      .backgroundColor(dynamic: .background)
+  internal func setup() {
+    mut(navigationBarView) {
+      .primaryNavigationStyle()
     }
-    
-    setupSubscriptions()
-  }
-  
-  private func setupSubscriptions() {
-    controller
-      .navigationDestinationPublisher()
-      .delay(for: 0.3, scheduler: RunLoop.main)
-      .receive(on: RunLoop.main)
-      .sink { [weak self] destination in
-        self?.navigate(to: destination)
-      }
-      .store(in: cancellables)
-  }
-  
-  private func navigate(to destination: SplashScreenNavigationDestination) {
-    let destinationViewController: UIViewController
-    switch destination {
-    // swiftlint:disable:next explicit_type_interface
-    case let .accountSelection(accounts):
-      #warning("TODO: FIXME: [PAS-136] - replace with account selection")
-      destinationViewController = components
-        .instance(of: MainTabsViewController.self)
-      
-    case .accountSetup:
-      destinationViewController = components
-        .instance(of: WelcomeNavigationViewController.self)
-      
-    case .diagnostics:
-      Commons.placeholder("TODO: diagnsotics screen")
+    mut(tabBarItem) {
+      .combined(
+        .title(localized: "tab.settings"),
+        .image(named: .settingsTab, from: .uiCommons)
+      )
     }
-    view.window?.rootViewController = destinationViewController
   }
 }
+

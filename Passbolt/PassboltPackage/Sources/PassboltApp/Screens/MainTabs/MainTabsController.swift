@@ -19,17 +19,19 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import Accounts
+import Features
 import UIComponents
 
-internal struct SplashScreenController {
+internal struct MainTabsController {
   
-  internal var navigationDestinationPublisher: () -> AnyPublisher<SplashScreenNavigationDestination, Never>
+  internal var setActiveTab: (MainTab) -> Void
+  internal var activeTabPublisher: () -> AnyPublisher<MainTab, Never>
 }
 
-extension SplashScreenController: UIController {
-  
+extension MainTabsController: UIController {
+ 
   internal typealias Context = Void
   
   internal static func instance(
@@ -37,24 +39,19 @@ extension SplashScreenController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let accounts: Accounts = features.instance()
+    let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
+    
+    func setActiveTab(_ tab: MainTab) -> Void {
+      activeTabSubject.send(tab)
+    }
+    
+    func activeTabPublisher() -> AnyPublisher<MainTab, Never> {
+      activeTabSubject.eraseToAnyPublisher()
+    }
     
     return Self(
-      navigationDestinationPublisher: {
-        guard case .success = accounts.verifyStorageDataIntegrity()
-        else {
-          return Just(.diagnostics)
-            .eraseToAnyPublisher()
-        }
-        let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-        if storedAccounts.isEmpty {
-          return Just(.accountSetup)
-            .eraseToAnyPublisher()
-        } else {
-          return Just(.accountSelection(storedAccounts))
-            .eraseToAnyPublisher()
-        }
-      }
+      setActiveTab: setActiveTab,
+      activeTabPublisher: activeTabPublisher
     )
   }
 }

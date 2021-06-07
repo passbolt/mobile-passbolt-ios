@@ -26,6 +26,32 @@ import UIKit
 
 open class TabsViewController: UITabBarController {
   
+  // Overriding TabBar is almost impossible, we delegate its colors setup to VC
+  public lazy var tabBarDynamicBackgroundColor: DynamicColor
+  = .default(self.tabBar.backgroundColor) {
+    didSet {
+      self.tabBar.backgroundColor = tabBarDynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var tabBarDynamicTintColor: DynamicColor
+  = .default(self.tabBar.tintColor) {
+    didSet {
+      self.tabBar.tintColor = tabBarDynamicTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var tabBarDynamicBarTintColor: DynamicColor
+  = .default(self.tabBar.barTintColor) {
+    didSet {
+      self.tabBar.barTintColor = tabBarDynamicBarTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  public lazy var tabBarDynamicUnselectedItemTintColor: DynamicColor
+  = .default(.black) {
+    didSet {
+      self.tabBar.unselectedItemTintColor = tabBarDynamicUnselectedItemTintColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
+  
   public init() {
     super.init(nibName: nil, bundle: nil)
     navigationItem.backButtonTitle = ""
@@ -78,6 +104,23 @@ open class TabsViewController: UITabBarController {
         completion?()
       }
     )
+  }
+  
+  override public func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard traitCollection != previousTraitCollection
+    else { return }
+    updateColors()
+  }
+  
+  private func updateColors() {
+    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
+    self.tabBar.backgroundColor = tabBarDynamicBackgroundColor(in: interfaceStyle)
+    self.tabBar.tintColor = tabBarDynamicTintColor(in: interfaceStyle)
+    self.tabBar.barTintColor = tabBarDynamicBarTintColor(in: interfaceStyle)
+    self.tabBar.unselectedItemTintColor = tabBarDynamicUnselectedItemTintColor(in: interfaceStyle)
   }
 }
 

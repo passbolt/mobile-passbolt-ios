@@ -74,20 +74,44 @@ extension UIComponent {
   
   public fileprivate(set) var cancellables: Cancellables {
     get {
-      guard let stored: Cancellables = objc_getAssociatedObject(
+      let stored: Cancellables? = objc_getAssociatedObject(
         self,
         &cancellablesAssociationKey
       ) as? Cancellables
-      else { unreachable("Component initialized outside of UIComponentFactory") }
-      return stored
+      
+      if let stored: Cancellables = stored {
+        return stored
+      } else {
+        let newValue: Cancellables = .init()
+        objc_setAssociatedObject(
+          self,
+          &cancellablesAssociationKey,
+          newValue,
+          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        )
+        return newValue
+      }
     }
     set {
-      objc_setAssociatedObject(
+      let stored: Cancellables? = objc_getAssociatedObject(
         self,
-        &cancellablesAssociationKey,
-        newValue,
-        .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-      )
+        &cancellablesAssociationKey
+      ) as? Cancellables
+      if let stored: Cancellables = stored {
+        objc_setAssociatedObject(
+          self,
+          &cancellablesAssociationKey,
+          Cancellables(extend: stored, newValue),
+          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        )
+      } else {
+        objc_setAssociatedObject(
+          self,
+          &cancellablesAssociationKey,
+          newValue,
+          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        )
+      }
     }
   }
 }

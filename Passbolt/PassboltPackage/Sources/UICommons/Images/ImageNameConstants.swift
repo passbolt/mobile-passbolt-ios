@@ -30,6 +30,8 @@ extension ImageNameConstant {
   public static var arrowLeft: Self { "ArrowLeft" }
   public static var help: Self { "Help" }
   public static var person: Self { "Person" }
+  public static var homeTab: Self { "HomeTab" }
+  public static var settingsTab: Self { "SettingsTab" }
 }
 
 extension DynamicImage {
