@@ -26,11 +26,14 @@ import Environment
 
 internal struct NetworkRequestTemplate<SessionVariable, Variable> {
   
+  internal let cacheResponse: Bool
   private var template: (SessionVariable, Variable) -> Mutation<HTTPRequest>
   
   internal init(
+    cacheResponse: Bool = false,
     _ template: @escaping (SessionVariable, Variable) -> Mutation<HTTPRequest>
   ) {
+    self.cacheResponse = cacheResponse
     self.template = template
   }
   

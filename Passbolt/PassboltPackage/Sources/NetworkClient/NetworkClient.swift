@@ -29,6 +29,8 @@ import Features
 public struct NetworkClient {
   
   public var accountTransferUpdate: AccountTransferUpdateRequest
+  // intended to be used for images download and relatively small blobs (few MB)
+  public var mediaDownload: MediaDownloadRequest
   public var featureUnload: () -> Bool
 }
 
@@ -61,14 +63,13 @@ extension NetworkClient: Feature {
           .eraseToAnyPublisher()
           
         case .authorizationRequired, .none:
-          #warning("Change error")
+          #warning("TODO: [PAS-69] Change error")
           return Fail<NetworkSessionVariable, TheError>(error: .sessionClosed())
             .eraseToAnyPublisher()
         }
       }
       .switchToLatest()
       .eraseToAnyPublisher()
-    
     
     func featureUnload() -> Bool {
       true // perform cleanup if needed
@@ -78,6 +79,10 @@ extension NetworkClient: Feature {
       accountTransferUpdate: .live(
         using: environment,
         with: emptySessionVariablePubliher
+      ),
+      mediaDownload: .live(
+        using: environment,
+        with: sessionVariablePublisher
       ),
       featureUnload: featureUnload
     )
@@ -94,6 +99,7 @@ extension NetworkClient: Feature {
   public static var placeholder: Self {
     Self(
       accountTransferUpdate: .placeholder,
+      mediaDownload: .placeholder,
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

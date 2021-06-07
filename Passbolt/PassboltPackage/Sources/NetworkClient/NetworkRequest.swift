@@ -50,7 +50,7 @@ extension NetworkRequest {
         }
         .map { request -> AnyPublisher<Response, TheError> in
           networking
-            .make(request)
+            .make(request, useCache: template.cacheResponse)
             .mapError(TheError.httpError)
             .map(withResultAsPublisher(responseDecoder.decode))
             .switchToLatest()

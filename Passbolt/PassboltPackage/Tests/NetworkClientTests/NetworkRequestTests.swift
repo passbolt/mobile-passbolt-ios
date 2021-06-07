@@ -110,7 +110,7 @@ final class NetworkRequestTests: XCTestCase {
   }
   
   func test_request_withHTTPError_fails() {
-    networking = .init { _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
       Fail<HTTPResponse, HTTPError>(error: .canceled)
         .eraseToAnyPublisher()
     }
@@ -143,7 +143,7 @@ final class NetworkRequestTests: XCTestCase {
   }
   
   func test_requestBodyAndResponseBody_withBodyMirroring_areEqual() {
-    networking = .init { request -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
       Just(
         HTTPResponse(
           url: request.url ?? .testURL,

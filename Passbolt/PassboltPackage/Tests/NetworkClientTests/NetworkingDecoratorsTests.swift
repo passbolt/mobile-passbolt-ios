@@ -61,7 +61,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
     }
     
     var networking: Networking = .placeholder
-    networking.execute = { _ in
+    networking.execute = { _, _ in
       Just(
         HTTPResponse(
           url: URL(string: "https://passbolt.com")!,
@@ -93,7 +93,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
     XCTAssertEqual(
       result,
       [
-        "Executing request <uniqueID>:\nGET  HTTP/1.1\n\n\n\n---",
+        "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
         "Received <uniqueID>:\nHTTP/1.1 200\n\n\n\n---"
       ]
     )
@@ -106,7 +106,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
     }
     
     var networking: Networking = .placeholder
-    networking.execute = { _ in
+    networking.execute = { _, _ in
       Fail<HTTPResponse, HTTPError>(error: .cannotConnect)
       .eraseToAnyPublisher()
     }
@@ -130,8 +130,8 @@ final class NetworkingDecoratorsTests: XCTestCase {
     XCTAssertEqual(
       result,
       [
-        "Executing request <uniqueID>:\nGET  HTTP/1.1\n\n\n\n---",
-        "Received<uniqueID>:\ncannotConnect\n---"
+        "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
+        "Received <uniqueID>:\ncannotConnect\n---"
       ]
     )
   }

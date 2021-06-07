@@ -23,6 +23,7 @@
 
 import Commons
 import struct Foundation.Data
+import class Foundation.URLCache
 import struct Foundation.URLError
 import class Foundation.URLSession
 import class Foundation.URLResponse
@@ -31,36 +32,50 @@ import struct Foundation.URLRequest
 public struct Networking {
   
   public var execute: (
-    _ request: HTTPRequest
+    _ request: HTTPRequest,
+    _ useCache: Bool
   ) -> AnyPublisher<HTTPResponse, HTTPError>
+  
+  public var clearCache: () -> Void
   
   public init(
     execute: @escaping (
-      _ request: HTTPRequest
-    ) -> AnyPublisher<HTTPResponse, HTTPError>
+      _ request: HTTPRequest,
+      _ useCache: Bool
+    ) -> AnyPublisher<HTTPResponse, HTTPError>,
+    clearCache: @escaping () -> Void
   ) {
     self.execute = execute
+    self.clearCache = clearCache
   }
 }
 
 extension Networking {
   
   public func make(
-    _ request: HTTPRequest
+    _ request: HTTPRequest,
+    useCache: Bool = false
   ) -> AnyPublisher<HTTPResponse, HTTPError> {
-    execute(request)
+    execute(request, useCache)
   }
 }
 
 extension Networking {
- 
-  private static let urlSession: URLSession = .init(configuration: .ephemeral)
   
-  public static func foundation() -> Self {
-    Self(
-      execute: { request in
-        guard
-          let urlRequest = request.urlRequest
+  public static func foundation(_ urlSession: URLSession = .init(configuration: .ephemeral)) -> Self {
+    let urlCache: URLCache = .init(
+      memoryCapacity: 25_600, // 25 MB ram
+      diskCapacity: 307_200 // 300 MB disk
+    )
+    urlSession.configuration.urlCache = urlCache
+    return Self(
+      execute: { request, useCache in
+        let urlRequest: URLRequest? = request.urlRequest(
+          cachePolicy: useCache
+            ? .returnCacheDataElseLoad
+            : .reloadIgnoringLocalAndRemoteCacheData
+        )
+        guard let urlRequest: URLRequest = urlRequest
         else {
           return Fail<HTTPResponse, HTTPError>(
             error: .invalidRequest(request)
@@ -102,7 +117,8 @@ extension Networking {
             }
           }
           .eraseToAnyPublisher()
-      }
+      },
+      clearCache: urlCache.removeAllCachedResponses
     )
   }
 }
@@ -113,7 +129,8 @@ extension Networking {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      execute: Commons.placeholder("You have to provide mocks for used methods")
+      execute: Commons.placeholder("You have to provide mocks for used methods"),
+      clearCache: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

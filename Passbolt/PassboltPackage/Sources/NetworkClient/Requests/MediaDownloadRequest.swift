@@ -21,29 +21,37 @@
 // @since         v1.0
 //
 
-import Features
+import Commons
+import Environment
+import struct Foundation.Data
 
-#if DEBUG
-public extension Networking {
-  
-  func withLogs(using diagnostics: Diagnostics) -> Self {
+public typealias MediaDownloadRequest
+  = NetworkRequest<NetworkSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse>
+
+extension MediaDownloadRequest {
+  #warning("TODO: [PAS-69] fill in session data - token")
+  internal static func live(
+    using networking: Networking,
+    with sessionVariablePublisher: AnyPublisher<NetworkSessionVariable, TheError>
+  ) -> Self {
     Self(
-      execute: { request, useCache in
-        let trackingID: String = diagnostics.uniqueID()
-        diagnostics.log("Executing request <\(trackingID)> (useCache: \(useCache)):\n\(request)\n---")
-        return self.execute(request, useCache)
-          .map { response in
-            diagnostics.log("Received <\(trackingID)>:\n\(response)\n---")
-            return response
-          }
-          .mapError { error in
-            diagnostics.log("Received <\(trackingID)>:\n\(error)\n---")
-            return error
-          }
-          .eraseToAnyPublisher()
+      template: .init(cacheResponse: true) { sessionVariable, requestVariable in
+        .combined(
+          .url(string: sessionVariable.domain),
+          .path(requestVariable.path),
+          .method(.get)
+        )
       },
-      clearCache: self.clearCache
+      responseDecoder: .rawBody,
+      using: networking,
+      with: sessionVariablePublisher
     )
   }
 }
-#endif
+
+public struct MediaDownloadRequestVariable {
+  
+  public var path: String
+}
+
+public typealias MediaDownloadResponse = Data

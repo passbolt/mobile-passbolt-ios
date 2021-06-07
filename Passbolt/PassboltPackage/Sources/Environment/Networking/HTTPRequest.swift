@@ -111,7 +111,9 @@ extension HTTPRequest: CustomDebugStringConvertible {
 
 extension HTTPRequest {
   
-  internal var urlRequest: URLRequest? {
+  internal func urlRequest(
+    cachePolicy: URLRequest.CachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+  ) -> URLRequest? {
     guard
       var urlRequest: URLRequest = url.map({ URLRequest(url: $0) })
     else { return nil }
@@ -120,7 +122,7 @@ extension HTTPRequest {
     urlRequest.httpBody = body
     urlRequest.allHTTPHeaderFields = headers
     urlRequest.timeoutInterval = 10
-    urlRequest.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+    urlRequest.cachePolicy = cachePolicy
     urlRequest.httpShouldHandleCookies = false
     return urlRequest
   }
