@@ -38,9 +38,9 @@ public class ImageView: UIImageView {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicImage: DynamicImage
-  = .default(self.image) {
+  public lazy var dynamicImage: DynamicImage? = nil {
     didSet {
+      guard let dynamicImage = dynamicImage else { return }
       self.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
   }
@@ -105,6 +105,7 @@ public class ImageView: UIImageView {
   }
   
   private func updateImages() {
+    guard let dynamicImage = dynamicImage else { return }
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.image = dynamicImage(in: interfaceStyle)
   }
@@ -116,6 +117,8 @@ public class ImageView: UIImageView {
     {
       let width: CGFloat = image.size.width
       let height: CGFloat = image.size.height
+      guard width > 0 && height > 0
+      else { return scaleConstraint = nil }
       scaleConstraint = widthAnchor
         .constraint(
           equalTo: heightAnchor,

@@ -43,7 +43,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     mut(logoImageView) {
       .combined(
         .subview(of: logoContainer),
-        .image(named: .appLogo),
+        .image(named: .appLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, logoContainer.topAnchor),
         .bottomAnchor(.equalTo, logoContainer.bottomAnchor),
@@ -71,6 +71,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     mut(titleLabel) {
       .combined(
         .font(.inter(ofSize: 24, weight: .semibold)),
+        .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .text(localized: "welcome.title"),
         .accessibilityIdentifier("welcome.title.label")
@@ -81,6 +82,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
       .combined(
         .font(.inter(ofSize: 14)),
         .lineBreakMode(.byWordWrapping),
+        .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
         .text(localized: "welcome.description"),
@@ -108,15 +110,15 @@ internal final class WelcomeScreenView: ScrolledStackView {
       .combined(
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 60, left: 16, bottom: 8, right: 16)),
+        .contentInset(.init(top: 8, left: 16, bottom: 8, right: 16)),
         .append(logoContainer),
-        .appendSpace(of: 56),
+        .appendSpace(of: 62),
         .append(accountsContainer),
         .appendSpace(of: 56),
         .append(titleLabel),
-        .appendSpace(of: 56),
+        .appendSpace(of: 16),
         .append(descriptionLabel),
-        .appendFiller(minSize: 20),
+        .appendFiller(minSize: 8),
         .append(accountButton),
         .append(noAccountButton)
       )
