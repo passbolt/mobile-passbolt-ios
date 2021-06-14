@@ -74,8 +74,10 @@ extension Camera {
         
         DispatchQueue.main.async {
           AVCaptureDevice.requestAccess(for: .video) { granted in
-            DispatchQueue.main.async { requestPermissionSubject.send(granted) }
-            requestPermissionSubject.send(completion: .finished)
+            DispatchQueue.main.async {
+              requestPermissionSubject.send(granted)
+              requestPermissionSubject.send(completion: .finished)
+            }
           }
         }
         

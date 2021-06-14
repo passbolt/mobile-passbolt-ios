@@ -21,44 +21,61 @@
 // @since         v1.0
 //
 
-import Features
+import Accounts
 import UIComponents
 
-internal struct TransferInfoScreenController {
+internal struct BiometricsInfoController {
+  
+  internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, Never>
+  internal var supportedBiometryType: () -> Biometrics.BiometryType
+  internal var setupBiometrics: () -> Void
+  internal var skipSetup: () -> Void
+}
+
+extension BiometricsInfoController {
+  
+  internal enum Destination {
+    
+    case biometricsSetup
+    case extensionSetup
+  }
+}
+
+extension BiometricsInfoController: UIController {
   
   internal typealias Context = Void
   
-  internal var presentNoCameraPermissionAlert: () -> Void
-  internal var requestOrNavigatePublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentNoCameraPermissionAlertPublisher: () -> AnyPublisher<Bool, Never>
-}
-
-extension TransferInfoScreenController: UIController {
-  
   internal static func instance(
-    in context: Void,
+    in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> TransferInfoScreenController {
-    let permissions: OSPermissions = features.instance()
-    let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
+  ) -> Self {
+    let biometry: Biometry = features.instance()
     
-    func presentNoCameraPermissionAlert() -> Void {
-      presentNoCameraPermissionAlertSubject.send(true)
+    let presentationDestinationSubject: PassthroughSubject<Destination, Never> = .init()
+    
+    func continueSetupPresentationPublisher() -> AnyPublisher<Destination, Never> {
+      presentationDestinationSubject.eraseToAnyPublisher()
     }
     
-    func requestOrNavigatePublisher() -> AnyPublisher<Bool, Never> {
-      permissions.ensureCameraPermission()
+    func supportedBiometryType() -> Biometrics.BiometryType {
+      biometry.supportedBiometryType()
     }
     
-    func presentNoCameraPermissionAlertPublisher() -> AnyPublisher<Bool, Never> {
-      presentNoCameraPermissionAlertSubject.eraseToAnyPublisher()
+    func setupBiometrics() -> Void {
+      presentationDestinationSubject.send(.biometricsSetup)
+    }
+    
+    func skipSetup() -> Void {
+      presentationDestinationSubject.send(.extensionSetup)
     }
     
     return Self(
-      presentNoCameraPermissionAlert: presentNoCameraPermissionAlert,
-      requestOrNavigatePublisher: requestOrNavigatePublisher,
-      presentNoCameraPermissionAlertPublisher: presentNoCameraPermissionAlertPublisher
+      presentationDestinationPublisher: continueSetupPresentationPublisher,
+      supportedBiometryType: supportedBiometryType,
+      setupBiometrics: setupBiometrics,
+      skipSetup: skipSetup
     )
   }
 }
+

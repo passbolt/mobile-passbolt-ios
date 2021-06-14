@@ -21,31 +21,12 @@
 // @since         v1.0
 //
 
-// Read only composite of Account and AccountProfile for displaying authorization and account list.
-public struct AccountWithProfile {
+import UICommons
+
+internal final class ExtensionSetupView: ScrolledStackView {
   
-  public let localID: Account.LocalID
-  public let userID: Account.UserID
-  public let domain: String
-  public let label: String
-  public let username: String
-  public let firstName: String
-  public let lastName: String
-  public let avatarImagePath: String
-  public let fingerprint: String
-  public let biometricsEnabled: Bool
-}
-
-extension AccountWithProfile {
-
-  public var account: Account {
-    Account(
-      localID: localID,
-      domain: domain,
-      userID: userID,
-      fingerprint: fingerprint
-    )
+  internal required init() {
+    super.init()
+    #warning("TODO: [PAS-133] to complete")
   }
 }
-
-extension AccountWithProfile: Equatable {}

@@ -25,18 +25,31 @@ import AegithalosCocoa
 
 extension Mutation where Subject: View {
   
-  public static func snackBarMessage(
+  public static func snackBarErrorMessage(
     localized localizationKey: LocalizationKeyConstant
   ) -> Self {
+    snackBarMessage(
+      localized: localizationKey,
+      backgroundColor: .secondaryRed,
+      textColor: .primaryTextAlternative
+    )
+  }
+    
+  public static func snackBarMessage(
+    localized localizationKey: LocalizationKeyConstant,
+    backgroundColor: DynamicColor,
+    textColor: DynamicColor
+  ) -> Self {
     .combined(
-      .backgroundColor(dynamic: .background),
+      .backgroundColor(dynamic: backgroundColor),
       .cornerRadius(4, masksToBounds: true),
       .custom { (subject: Subject) in
         Mutation<Label>
           .combined(
-            .numberOfLines(1),
+            .numberOfLines(0),
+            .lineBreakMode(.byWordWrapping),
             .font(.inter(ofSize: 14, weight: .regular)),
-            .textColor(dynamic: .primaryText),
+            .textColor(dynamic: textColor),
             .textAlignment(.center),
             .text(localized: localizationKey),
             .subview(of: subject),

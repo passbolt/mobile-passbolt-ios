@@ -28,46 +28,20 @@ import LocalAuthentication
 // swiftlint:disable file_length
 public struct Keychain {
   
-  public var verifyBiometricsPermission: () -> AnyPublisher<Bool, TheError>
   public var load: (KeychainQuery) -> Result<Array<Data>, TheError>
   public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, TheError>
   public var save: (Data, KeychainQuery) -> Result<Void, TheError>
   public var delete: (KeychainQuery) -> Result<Void, TheError>
 }
 
+// we would like to ask every time but some methods request it multiple times in a row, so using small timout
+private let keychainBiometricsTimeout: TimeInterval = 5 // 5 sec
+
 extension Keychain {
   
   public static func live() -> Self {
-    
-    func verifyBiometricsPermission () -> AnyPublisher<Bool, TheError> {
-      let context: LAContext = biometricsContext()
-      if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
-        return Just(true)
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      } else {
-        let completionSubject: PassthroughSubject<Bool, TheError> = .init()
-        if !isInExtensionContext {
-          DispatchQueue.main.async {
-            context.evaluatePolicy(
-              .deviceOwnerAuthenticationWithBiometrics,
-              localizedReason: NSLocalizedString("biometrics.usage.reason", comment: "")
-            ) { granted, error in
-              if error != nil {
-                completionSubject.send(
-                  completion: .failure(.keychainError(errSecNotAvailable))
-                )
-              } else {
-                completionSubject.send(granted)
-                completionSubject.send(completion: .finished)
-              }
-            }
-          }
-        } else { /* */ }
-        return completionSubject
-          .eraseToAnyPublisher()
-      }
-    }
+    let biometricsContext: LAContext = .init()
+    biometricsContext.touchIDAuthenticationAllowableReuseDuration = keychainBiometricsTimeout
     
     func load(
       matching query: KeychainQuery
@@ -76,7 +50,7 @@ extension Keychain {
         for: query.key.rawValue,
         tag: query.tag?.rawValue,
         in: query.requiresBiometrics
-          ? biometricsContext()
+          ? biometricsContext
           : nil
       )
     }
@@ -88,7 +62,7 @@ extension Keychain {
         for: query.key.rawValue,
         tag: query.tag?.rawValue,
         in: query.requiresBiometrics
-          ? biometricsContext()
+          ? biometricsContext
           : nil
       )
       .map { results in
@@ -113,7 +87,7 @@ extension Keychain {
         for: query.key.rawValue,
         tag: query.tag?.rawValue,
         in: query.requiresBiometrics
-          ? biometricsContext()
+          ? biometricsContext
           : nil
       )
     }
@@ -128,7 +102,6 @@ extension Keychain {
     }
     
     return Self(
-      verifyBiometricsPermission: verifyBiometricsPermission,
       load: load(matching:),
       loadMeta: loadMeta(matching:),
       save: save(_:for:),
@@ -212,13 +185,6 @@ extension Keychain {
 }
 
 private let keychainShareGroupIdentifier: String = "UHX38H22ZT.com.passbolt.mobile"
-private let keychainBiometricsTimeout: TimeInterval = 0 // require biometrics each time
-
-private func biometricsContext() -> LAContext {
-  let context: LAContext = .init()
-  context.touchIDAuthenticationAllowableReuseDuration = keychainBiometricsTimeout
-  return context
-}
 
 private struct JSONWrapper<Value: Codable>: Codable {
   
@@ -549,7 +515,6 @@ extension Keychain {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      verifyBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods"),
       load: Commons.placeholder("You have to provide mocks for used methods"),
       loadMeta: Commons.placeholder("You have to provide mocks for used methods"),
       save: Commons.placeholder("You have to provide mocks for used methods"),

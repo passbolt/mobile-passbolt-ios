@@ -31,6 +31,7 @@
 "generic.delete" = "Delete";
 "generic.got.it" = "Got it";
 "generic.settings" = "Settings";
+"generic.error" = "Something went wrong!";
 "welcome.title" = "Welcome!";
 "welcome.description" = "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device.";
 "welcome.connect.to.account" = "Connect to an existing account";
@@ -73,5 +74,21 @@
 
 "biometrics.usage.reason" = "Biometrics can be used to save your passphrase securely.";
 
+"biometrics.info.title.face" = "Configure Face ID!";
+"biometrics.info.title.finger" = "Configure Touch ID!";
+"biometrics.info.description.face" = "If you want to use FaceID as a fast sign-in method, configure it in the Settings.";
+"biometrics.info.description.finger" = "If you want to use TouchID as a fast sign-in method, configure it in the Settings.";
+"biometrics.info.setup.button.face" = "Configure Face ID";
+"biometrics.info.setup.button.finger" = "Configure Touch ID";
+"biometrics.info.later.button" = "Maybe later";
+
+"biometrics.setup.title.face" = "Use Face ID instead of passphrase!";
+"biometrics.setup.title.finger" = "Use Touch ID instead of passphrase!";
+"biometrics.setup.description" = "Unlock your secrets in a second.";
+"biometrics.setup.setup.button.face" = "Use FaceID";
+"biometrics.setup.setup.button.finger" = "Use TouchID";
+"biometrics.setup.later.button" = "Maybe later";
+
 "tab.home" = "Home";
 "tab.settings" = "Settings";
+

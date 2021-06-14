@@ -56,6 +56,7 @@ extension DynamicImage {
       }
     }
   }
+  
   public static var successMark: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
@@ -75,6 +76,7 @@ extension DynamicImage {
       }
     }
   }
+  
   public static var failureMark: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
@@ -88,6 +90,86 @@ extension DynamicImage {
       case .light, _:
         return UIImage(
           named: "failureMark",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var faceID: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "FaceID",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "FaceID",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var faceIDSetup: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "FaceIDSetup",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "FaceIDSetup",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var touchID: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "TouchID",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "TouchID",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var touchIDSetup: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "TouchIDSetup",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "TouchIDSetup",
           in: .uiCommons,
           with: nil
         )!

@@ -35,4 +35,5 @@ extension LocalizationKeyConstant {
   public static let delete: Self = "generic.delete"
   public static let gotIt: Self = "generic.got.it"
   public static let settings: Self = "generic.settings"
+  public static let genericError: Self = "generic.error"
 }

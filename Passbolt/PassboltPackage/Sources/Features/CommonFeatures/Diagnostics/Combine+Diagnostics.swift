@@ -35,7 +35,11 @@ extension Publisher where Failure == TheError {
        
       // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
-        diagnostics.log(error.debugDescription)
+        // swiftlint:disable:next line_length
+        diagnostics.diagnosticLog("Error: \(error.identifier) \(error.context.map { "[\($0)] " } ?? "")\(error.logMessage ?? "-")")
+        #if DEBUG
+        diagnostics.debugLog(error.debugDescription)
+        #endif
       }
     })
     .eraseToAnyPublisher()

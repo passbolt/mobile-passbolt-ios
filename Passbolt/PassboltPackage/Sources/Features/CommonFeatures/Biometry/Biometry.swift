@@ -21,31 +21,45 @@
 // @since         v1.0
 //
 
-// Read only composite of Account and AccountProfile for displaying authorization and account list.
-public struct AccountWithProfile {
+import Environment
+
+public struct Biometry {
   
-  public let localID: Account.LocalID
-  public let userID: Account.UserID
-  public let domain: String
-  public let label: String
-  public let username: String
-  public let firstName: String
-  public let lastName: String
-  public let avatarImagePath: String
-  public let fingerprint: String
-  public let biometricsEnabled: Bool
+  public var supportedBiometryType: () -> Biometrics.BiometryType
 }
 
-extension AccountWithProfile {
-
-  public var account: Account {
-    Account(
-      localID: localID,
-      domain: domain,
-      userID: userID,
-      fingerprint: fingerprint
+extension Biometry: Feature {
+  
+  public typealias Environment = Biometrics
+  
+  public static func environmentScope(
+    _ rootEnvironment: RootEnvironment
+  ) -> Environment {
+    rootEnvironment.biometrics
+  }
+  
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    
+    func supportedBiometryType() -> Biometrics.BiometryType {
+      environment.supportedBiometryType()
+    }
+    
+    return Self(
+      supportedBiometryType: supportedBiometryType
     )
   }
+  
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      supportedBiometryType: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+  #endif
 }
 
-extension AccountWithProfile: Equatable {}

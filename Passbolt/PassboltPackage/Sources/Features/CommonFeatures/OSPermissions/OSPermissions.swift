@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Combine
+import Commons
 import Environment
 
 public struct OSPermissions {
@@ -31,16 +31,20 @@ public struct OSPermissions {
   /// - Returns: A publisher which emits a boolean indicating wether
   /// the permission has been granted or not.
   public var ensureCameraPermission: () -> AnyPublisher<Bool, Never>
+  public var ensureBiometricsPermission: () -> AnyPublisher<Bool, Never>
 }
 
 extension OSPermissions: Feature {
   
-  public typealias Environment = Camera
+  public typealias Environment = (camera: Camera, biometrics: Biometrics)
   
   public static func environmentScope(
     _ rootEnvironment: RootEnvironment
   ) -> Environment {
-    rootEnvironment.camera
+    (
+      camera: rootEnvironment.camera,
+      biometrics: rootEnvironment.biometrics
+    )
   }
   
   public static func load(
@@ -48,28 +52,42 @@ extension OSPermissions: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    Self(
-      ensureCameraPermission: {
-        environment.checkPermission()
-          .map { status -> AnyPublisher<Bool, Never> in
-            switch status {
-            case .notDetermined:
-              if isInExtensionContext {
-                return Just(false).eraseToAnyPublisher()
-              } else {
-                return environment.requestPermission().eraseToAnyPublisher()
-              }
-              
-            case .denied:
+    let diagnostics: Diagnostics = features.instance()
+    
+    func ensureCameraPermission() -> AnyPublisher<Bool, Never> {
+      environment.camera.checkPermission()
+        .map { status -> AnyPublisher<Bool, Never> in
+          switch status {
+          case .notDetermined:
+            if isInExtensionContext {
               return Just(false).eraseToAnyPublisher()
-              
-            case .authorized:
-              return Just(true).eraseToAnyPublisher()
+            } else {
+              return environment.camera.requestPermission().eraseToAnyPublisher()
             }
+            
+          case .denied:
+            return Just(false).eraseToAnyPublisher()
+            
+          case .authorized:
+            return Just(true).eraseToAnyPublisher()
           }
-          .switchToLatest()
-          .eraseToAnyPublisher()
-      }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+    
+    func ensureBiometricsPermission() -> AnyPublisher<Bool, Never> {
+      environment
+        .biometrics
+        .requestBiometricsPermission()
+        .collectErrorLog(using: diagnostics)
+        .replaceError(with: false)
+        .eraseToAnyPublisher()
+    }
+    
+    return Self(
+      ensureCameraPermission: ensureCameraPermission,
+      ensureBiometricsPermission: ensureBiometricsPermission
     )
   }
   
@@ -77,7 +95,8 @@ extension OSPermissions: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      ensureCameraPermission: Commons.placeholder("You have to provide mocks for used methods")
+      ensureCameraPermission: Commons.placeholder("You have to provide mocks for used methods"),
+      ensureBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

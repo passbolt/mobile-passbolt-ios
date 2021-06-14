@@ -663,8 +663,7 @@ extension KeychainQuery {
     return Self(
       key: "accountPassphrase",
       tag: .init(rawValue: identifier.rawValue),
-      // all passphrases have to be stored with biometrics, but it is not required to delete them
-      requiresBiometrics: false
+      requiresBiometrics: true
     )
   }
   

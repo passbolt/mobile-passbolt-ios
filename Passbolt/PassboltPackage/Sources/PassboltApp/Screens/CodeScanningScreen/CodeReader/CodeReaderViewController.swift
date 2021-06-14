@@ -85,7 +85,11 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
       cameraSession.startRunning()
       present(
         snackbar: Mutation<UICommons.View>
-          .snackBarMessage(localized: "code.scanning.begin")
+          .snackBarMessage(
+            localized: "code.scanning.begin",
+            backgroundColor: .background,
+            textColor: .primaryText
+          )
           .instantiate(),
         hideAfter: 2
       )
@@ -137,7 +141,11 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       .handleEvents(receiveSubscription: { [weak self] _ in
         self?.present(
           snackbar: Mutation<UICommons.View>
-            .snackBarMessage(localized: "code.scanning.processing.in.progress")
+            .snackBarMessage(
+              localized: "code.scanning.processing.in.progress",
+              backgroundColor: .background,
+              textColor: .primaryText
+            )
             .instantiate(),
           hideAfter: 2,
           replaceCurrent: false
@@ -155,7 +163,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           && error.context?.contains("invalid-version-or-code") ?? false:
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarMessage(localized: "code.scanning.processing.invalid.code")
+                .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
                 .instantiate(),
               hideAfter: 3
             )
@@ -163,7 +171,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           case .failure:
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarMessage(localized: "code.scanning.processing.error")
+                .snackBarErrorMessage(localized: "code.scanning.processing.error")
                 .instantiate(),
               hideAfter: 3
             )

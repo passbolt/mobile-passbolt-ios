@@ -30,6 +30,7 @@ public typealias RootEnvironment = (
   networking: Networking,
   preferences: Preferences,
   keychain: Keychain,
+  biometrics: Biometrics,
   camera: Camera,
   urlOpener: ExternalURLOpener,
   appLifeCycle: AppLifeCycle,

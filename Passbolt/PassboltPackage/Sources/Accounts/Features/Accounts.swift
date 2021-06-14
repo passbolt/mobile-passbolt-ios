@@ -85,12 +85,14 @@ extension Accounts: Feature {
           case let .success(profile):
             return AccountWithProfile(
               localID: account.localID,
+              userID: account.userID,
               domain: account.domain,
               label: profile.label,
               username: profile.username,
               firstName: profile.firstName,
               lastName: profile.lastName,
               avatarImagePath: profile.avatarImagePath,
+              fingerprint: account.fingerprint,
               biometricsEnabled: profile.biometricsEnabled
             )
           // swiftlint:disable:next explicit_type_interface
@@ -160,7 +162,7 @@ extension Accounts: Feature {
       dataStore.deleteAccount(accountID)
       _ = session
         .statePublisher()
-        .prefix(1)
+        .first()
         .map { sessionState -> Bool in
           switch sessionState {
           case

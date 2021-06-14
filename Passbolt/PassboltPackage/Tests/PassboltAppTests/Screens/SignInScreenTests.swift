@@ -31,7 +31,6 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-
 final class SignInScreenTests: XCTestCase {
   
   var features: FeatureFactory!

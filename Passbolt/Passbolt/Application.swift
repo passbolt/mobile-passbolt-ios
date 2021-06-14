@@ -62,6 +62,7 @@ extension Application {
       networking: .foundation(),
       preferences: .userDefaults(),
       keychain: .live(),
+      biometrics: .live,
       camera: .live(),
       urlOpener: .live(),
       appLifeCycle: .live(),

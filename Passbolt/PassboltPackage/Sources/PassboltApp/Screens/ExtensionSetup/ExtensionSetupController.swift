@@ -21,31 +21,45 @@
 // @since         v1.0
 //
 
-// Read only composite of Account and AccountProfile for displaying authorization and account list.
-public struct AccountWithProfile {
+import UIComponents
+
+internal struct ExtensionSetupController {
   
-  public let localID: Account.LocalID
-  public let userID: Account.UserID
-  public let domain: String
-  public let label: String
-  public let username: String
-  public let firstName: String
-  public let lastName: String
-  public let avatarImagePath: String
-  public let fingerprint: String
-  public let biometricsEnabled: Bool
+  internal var continueSetupPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var setupExtension: () -> AnyPublisher<Void, TheError>
+  internal var skipSetup: () -> Void
 }
 
-extension AccountWithProfile {
-
-  public var account: Account {
-    Account(
-      localID: localID,
-      domain: domain,
-      userID: userID,
-      fingerprint: fingerprint
+extension ExtensionSetupController: UIController {
+  
+  internal typealias Context = Void
+  
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let continueSetupPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    
+    func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
+      continueSetupPresentationSubject.eraseToAnyPublisher()
+    }
+    
+    func setupExtension() -> AnyPublisher<Void, TheError> {
+      #warning("TODO: [PAS-133] open system settings")
+      Commons.placeholder()
+    }
+    
+    func skipSetup() -> Void {
+      continueSetupPresentationSubject.send()
+    }
+    
+    return Self(
+      continueSetupPresentationPublisher: continueSetupPresentationPublisher,
+      setupExtension: setupExtension,
+      skipSetup: skipSetup
     )
   }
 }
 
-extension AccountWithProfile: Equatable {}
+

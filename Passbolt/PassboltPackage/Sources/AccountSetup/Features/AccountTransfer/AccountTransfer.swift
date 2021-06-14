@@ -120,7 +120,7 @@ extension AccountTransfer: Feature {
         // if we have config we can ask for profile,
         // there is no need to do it every time
         // so doing it once when requesting for the next page first time
-        if updatedState.configuration != nil, updatedState.scanningParts.count == 1 {
+        if updatedState.configuration != nil, updatedState.profile == nil {
           return requestNextPageWithUserProfile(
             for: updatedState,
             using: networkClient

@@ -79,6 +79,31 @@ extension TheError {
     return mutable
   }
   
+  #if DEBUG
+  public var debugLogMessage: String? { extensions[.debugLogMessage] as? String }
+  #endif
+  
+  public mutating func append(
+    debugLogMessage: String
+  ) {
+    #if DEBUG
+    extensions[.debugLogMessage] = extensions[.debugLogMessage]
+      .map { "\($0)\n\(debugLogMessage)" } ?? debugLogMessage
+    #endif
+  }
+  
+  public func appending(
+    debugLogMessage: String
+  ) -> Self {
+    #if DEBUG
+    var mutable: Self = self
+    mutable.append(debugLogMessage: debugLogMessage)
+    return mutable
+    #else
+    return self
+    #endif
+  }
+  
   public var context: String? { extensions[.context] as? String }
   
   public mutating func append(
@@ -99,12 +124,19 @@ extension TheError {
   public var localizationKey: String? { extensions[.localizationKey] as? String }
 }
 
+extension TheError: CustomStringConvertible {
+  
+  public var description: String {
+    "TheError: \(identifier)\(context.map { ", \($0)" } ?? "")"
+  }
+}
+
 extension TheError: CustomDebugStringConvertible {
   
   public var debugDescription: String {
     """
-    ---
-    Error: \(identifier)
+    -TheError-
+    \(identifier)\(debugLogMessage.map { "\nDebug log:\($0)" } ?? "")\(logMessage.map { "\nLog:\($0)" } ?? "")
     UnderlyingError: \(underlyingError.map { "\($0)" } ?? "N/A")
     Extensions:
     \(extensions.map { "- \($0.key): \($0.value)" }.joined(separator: "\n"))
@@ -131,6 +163,9 @@ extension TheError.ID {
 extension TheError.Extension {
   
   public static let logMessage: Self = "logMessage"
+  #if DEBUG
+  public static let debugLogMessage: Self = "debugLogMessage"
+  #endif
   public static let context: Self = "context"
 }
 

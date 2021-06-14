@@ -182,12 +182,14 @@ private let validAccountProfile: AccountProfile = .init(
 
 private let validAccountWithProfile: AccountWithProfile = .init(
   localID: .init(rawValue: UUID.testUUID.uuidString),
+  userID: "USER_ID",
   domain: "https://passbolt.dev",
   label: "firstName lastName",
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
   avatarImagePath: "avatarImagePath",
+  fingerprint: "FINGERPRINT",
   biometricsEnabled: false
 )
 private let validPassphrase: Passphrase = "SecretPassphrase"

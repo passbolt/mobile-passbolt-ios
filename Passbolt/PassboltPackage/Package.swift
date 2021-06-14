@@ -228,6 +228,7 @@ let package = Package(
       name: "TestExtensions",
       dependencies: [
         "Commons",
+        "Features",
         "UIComponents"
       ]
     ),

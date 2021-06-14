@@ -163,7 +163,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarMessage(localized: "sign.in.error.message")
+                .snackBarErrorMessage(localized: "sign.in.error.message")
                 .instantiate(),
               hideAfter: 2
             )
@@ -212,8 +212,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .sink(receiveCompletion: { [weak self] completion in
         switch completion {
         case .finished:
-          #warning("TODO - replace with biometry setup")
-          self?.push(MainTabsViewController.self)
+          self?.push(BiometricsInfoViewController.self)
           
         case .failure(.canceled):
           self?.pop(to: TransferInfoScreenViewController.self)

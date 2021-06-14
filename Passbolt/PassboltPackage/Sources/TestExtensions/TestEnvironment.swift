@@ -31,6 +31,7 @@ public func testEnvironment() -> RootEnvironment {
     networking: .placeholder,
     preferences: .placeholder,
     keychain: .placeholder,
+    biometrics: .placeholder,
     camera: .placeholder,
     urlOpener: .placeholder,
     appLifeCycle: .placeholder,

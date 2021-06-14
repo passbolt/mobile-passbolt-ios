@@ -56,6 +56,9 @@ final class TransferInfoScreenTests: XCTestCase {
   }
   
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {
+    var permissions: OSPermissions = .placeholder
+    permissions.ensureCameraPermission = always(Just(true).eraseToAnyPublisher())
+    features.use(permissions)
     let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
     var result: Bool!
     

@@ -25,6 +25,16 @@ import Commons
 
 extension TheError {
   
+  public static func authorizationRequired(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .authorizationRequired,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
+  
   public static func sessionClosed(
     underlyingError: Error? = nil
   ) -> Self {
@@ -38,5 +48,6 @@ extension TheError {
 
 extension TheError.ID {
   
+  public static let authorizationRequired: Self = "authorizationRequired"
   public static let sessionClosed: Self = "sessionClosed"
 }

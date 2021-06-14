@@ -40,7 +40,7 @@ extension NetworkRequest {
   ) {
     self.execute = { requestVariable in
       sessionVariablePublisher
-        .prefix(1)
+        .first()
         .map { sessionVariable -> HTTPRequest in
           template
             .prepareRequest(

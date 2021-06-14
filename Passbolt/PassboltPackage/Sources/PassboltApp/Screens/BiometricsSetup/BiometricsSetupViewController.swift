@@ -21,16 +21,16 @@
 // @since         v1.0
 //
 
-import Environment
+import AccountSetup
 import UIComponents
 
-internal final class TransferInfoScreenViewController: PlainViewController, UIComponent {
+internal final class BiometricsSetupViewController: PlainViewController, UIComponent {
   
-  internal typealias View = TransferInfoScreenView
-  internal typealias Controller = TransferInfoScreenController
+  internal typealias View = BiometricsSetupView
+  internal typealias Controller = BiometricsSetupController
   
   internal static func instance(
-    using controller: TransferInfoScreenController,
+    using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
     Self(
@@ -39,10 +39,10 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
     )
   }
   
-  internal private(set) lazy var contentView: TransferInfoScreenView = .init()
+  internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   
-  private let controller: TransferInfoScreenController
+  private let controller: Controller
   
   internal init(
     using controller: Controller,
@@ -54,43 +54,50 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
   }
   
   internal func setupView() {
-    mut(self) {
-      .title(localized: "transfer.account.title")
+    mut(navigationItem) {
+      .hidesBackButton(true)
     }
-        
+    contentView.update(for: controller.supportedBiometryType())
     setupSubscriptions()
   }
   
   private func setupSubscriptions() {
     contentView
-      .tapButtonPublisher
-      .compactMap { [weak self] in
-        self?.controller.requestOrNavigatePublisher()
-      }
-      .switchToLatest()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] granted in
+      .setupTapPublisher
+      .sink { [weak self] in
         guard let self = self else { return }
-        
-        if granted {
-          self.push(CodeScanningViewController.self)
-        } else {
-          self.controller.presentNoCameraPermissionAlert()
-        }
+        self.controller
+          .setupBiometrics()
+          .receive(on: RunLoop.main)
+          .sink(receiveCompletion: { [weak self] completion in
+            guard case .failure = completion
+            else { return }
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarErrorMessage(localized: .genericError)
+                .instantiate(),
+              hideAfter: 2
+            )
+          })
+          .store(in: self.cancellables)
       }
       .store(in: cancellables)
     
-    controller.presentNoCameraPermissionAlertPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] presented in
+    contentView
+      .skipTapPublisher
+      .sink { [weak self] in
         guard let self = self else { return }
-        
-        if presented {
-          self.present(TransferInfoCameraRequiredAlertViewController.self)
-        } else {
-          self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
-        }
+        self.controller.skipSetup()
+      }
+      .store(in: cancellables)
+    
+    controller
+      .continueSetupPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.push(ExtensionSetupViewController.self)
       }
       .store(in: cancellables)
   }
 }
+
