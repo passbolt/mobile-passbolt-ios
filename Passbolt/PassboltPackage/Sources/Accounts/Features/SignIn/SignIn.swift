@@ -29,15 +29,20 @@ import class Foundation.JSONDecoder
 import struct Foundation.Data
 import NetworkClient
 
-#warning("PAS-154: Write tests")
 public struct SignIn {
+  
+  public enum Method {
+    case challenge
+    case refreshToken(String)
+  }
   
   public var signIn: (
     _ userID: Account.UserID,
     _ domain: String,
     _ armoredKey: ArmoredPrivateKey,
-    _ passphrase: Passphrase
-    ) -> AnyPublisher<SessionTokens, TheError>
+    _ passphrase: Passphrase,
+    _ method: Method
+  ) -> AnyPublisher<SessionTokens, TheError>
 }
 
 extension SignIn: Feature {
@@ -68,53 +73,86 @@ extension SignIn: Feature {
     let networkClient: NetworkClient = features.instance()
     let diagnostics: Diagnostics = features.instance()
     
+    let encoder: JSONEncoder = .init()
+    let decoder: JSONDecoder = .init()
+    
+    let serverPGPPublicKey: AnyPublisher<ArmoredPublicKey, TheError> =
+      networkClient.serverPGPPublicKeyRequest.make(using: ())
+      .map { (response: ServerPGPPublicKeyResponse) -> ArmoredPublicKey in
+        ArmoredPublicKey(rawValue: response.body.keyData)
+      }
+      .eraseToAnyPublisher()
+    
+    let rsaPublicKeyStep: AnyPublisher<String, TheError> =
+      networkClient.serverRSAPublicKeyRequest.make(using: ())
+      .map(\.body.keyData)
+      .eraseToAnyPublisher()
+    
+    let verificationToken: String = environment.uuidGenerator().uuidString
+    let verificationExpiration: Int = environment.time.timestamp() + 120 // 120s is verification token's lifetime
+    
+    func prepareChallenge(
+      for method: Method,
+      domain: String,
+      verificationToken: String,
+      verificationExpiration: Int
+    ) -> Result<String, TheError> {
+      switch method {
+      case .challenge:
+        let challenge: SignInRequestChallenge = .init(
+          version: "1.0.0", // Protocol version 1.0.0
+          token: verificationToken,
+          domain: domain,
+          expiration: verificationExpiration
+        )
+        
+        do {
+          let challengeData: Data = try encoder.encode(challenge)
+      
+          guard let encodedChallenge: String = .init(bytes: challengeData, encoding: .utf8) else {
+            return .failure(.signInError().appending(context: "Failed to encode challenge to string"))
+          }
+          
+          return .success(encodedChallenge)
+        } catch {
+          return .failure(.signInError(underlyingError: error).appending(context: "Failed to encode challenge"))
+        }
+      // swiftlint:disable:next explicit_type_interface
+      case let .refreshToken(token):
+        return .success(token)
+      }
+    }
+    
     func signIn(
       userID: Account.UserID,
       domain: String,
       armoredKey: ArmoredPrivateKey,
-      passphrase: Passphrase
+      passphrase: Passphrase,
+      method: Method
     ) -> AnyPublisher<SessionTokens, TheError> {
-      let encoder: JSONEncoder = .init()
-      let decoder: JSONDecoder = .init()
-      
-      #warning("PAS-154 - determine what is 'version'")
-      let challenge: LoginRequestChallenge = .init(
-        version: "1.0.0",
-        token: environment.uuidGenerator().uuidString,
-        domain: domain,
-        expiration: environment.time.timestamp() + 120 // 120s is verification token's lifetime
-      )
-      
-      let serverPgpPublicKey: AnyPublisher<ArmoredPublicKey, TheError> =
-        networkClient.serverPgpPublicKeyRequest.make(using: ())
-        .map { (response: ServerPgpPublicKeyResponse) -> ArmoredPublicKey in
-          ArmoredPublicKey(rawValue: response.body.keyData)
-        }
-        .eraseToAnyPublisher()
-      
-      let jwtStep: AnyPublisher<String, TheError> = serverPgpPublicKey
-        .map { (publicKey: ArmoredPublicKey) -> AnyPublisher<ArmoredMessage, TheError> in
-          let encoded: Data
+      let jwtStep: AnyPublisher<String, TheError> = serverPGPPublicKey
+        .map { (serverPublicKey: ArmoredPublicKey) -> AnyPublisher<ArmoredMessage, TheError> in
+          let encodedChallenge: String
           
-          do {
-            encoded = try encoder.encode(challenge)
-          } catch {
+          switch prepareChallenge(
+            for: method,
+            domain: domain,
+            verificationToken: verificationToken,
+            verificationExpiration: verificationExpiration
+          ) {
+          // swiftlint:disable:next explicit_type_interface
+          case let .success(challenge):
+            encodedChallenge = challenge
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error):
             return Fail<ArmoredMessage, TheError>(
-              error: .signInError(underlyingError: error)
-            )
-            .eraseToAnyPublisher()
-          }
-          
-          guard let encodedChallenge: String = .init(bytes: encoded, encoding: .utf8) else {
-            return Fail<ArmoredMessage, TheError>(
-              error: .signInError().appending(logMessage: "JWT: Failed to encode challenge")
-            )
-            .eraseToAnyPublisher()
+              error: .signInError(underlyingError: error).appending(logMessage: "JWT: Failed to encode challenge")
+            ).eraseToAnyPublisher()
           }
 
           let encryptedAndSigned: String
           
-          switch environment.pgp.encryptAndSign(encodedChallenge, passphrase, armoredKey, publicKey) {
+          switch environment.pgp.encryptAndSign(encodedChallenge, passphrase, armoredKey, serverPublicKey) {
           // swiftlint:disable:next explicit_type_interface
           case let .success(result):
             encryptedAndSigned = result
@@ -130,13 +168,23 @@ extension SignIn: Feature {
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .map { (challenge: ArmoredMessage) -> AnyPublisher<LoginResponse, TheError> in
-          networkClient.loginRequest.make(
-            using: .init(
-              userID: userID.rawValue,
-              challenge: challenge
+        .map { (challenge: ArmoredMessage) -> AnyPublisher<SignInResponse, TheError> in
+          switch method {
+          case .challenge:
+            return networkClient.signInRequest.make(
+              using: .init(
+                userID: userID.rawValue,
+                challenge: challenge
+              )
             )
-          )
+          case let .refreshToken(token):
+            return networkClient.refreshSessionRequest.make(
+              using: .init(
+                userID: userID.rawValue,
+                refreshToken: token
+              )
+            )
+          }
         }
         .switchToLatest()
         .map { response -> String in
@@ -144,12 +192,7 @@ extension SignIn: Feature {
         }
         .eraseToAnyPublisher()
       
-      let rsaPublicKeyStep: AnyPublisher<String, TheError> =
-        networkClient.serverRsaPublicKeyRequest.make(using: ())
-        .map(\.body.keyData)
-        .eraseToAnyPublisher()
-      
-      let decryptedToken: AnyPublisher<Tokens, TheError> = Publishers.Zip(jwtStep, serverPgpPublicKey)
+      let decryptedToken: AnyPublisher<Tokens, TheError> = Publishers.Zip(jwtStep, serverPGPPublicKey)
         .map { encryptedTokenPayload, publicKey -> AnyPublisher<String, TheError> in
           let decrypted: String
           
@@ -203,13 +246,14 @@ extension SignIn: Feature {
           // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             return Fail<SessionTokens, TheError>(
-              error: .signInError(underlyingError: error).appending(logMessage: "Failed to prepare for signature verification")
+              error: .signInError(underlyingError: error)
+                .appending(logMessage: "Failed to prepare for signature verification")
             )
             .eraseToAnyPublisher()
           }
           
-          guard challenge.token == decryptedToken.verificationToken,
-            challenge.expiration > environment.time.timestamp(),
+          guard verificationToken == decryptedToken.verificationToken,
+            verificationExpiration > environment.time.timestamp(),
             let key: Data = Data(base64Encoded: publicKey.stripArmoredFormat()),
             let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
             let signedData: Data = accessToken.signedPayload.data(using: .utf8)

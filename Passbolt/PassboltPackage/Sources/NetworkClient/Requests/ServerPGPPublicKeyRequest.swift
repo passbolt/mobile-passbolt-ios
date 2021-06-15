@@ -21,14 +21,43 @@
 // @since         v1.0
 //
 
-import Foundation
+import Commons
+import Environment
 
-extension Data {
-  // Encode data a base64 url encoded string
-  public func base64URLEncode(options: Base64EncodingOptions = []) -> String {
-    self.base64EncodedString(options: options)
-      .replacingOccurrences(of: "+", with: "-")
-      .replacingOccurrences(of: "/", with: "_")
-      .replacingOccurrences(of: "=", with: "")
+public typealias ServerPGPPublicKeyRequest =
+  NetworkRequest<DomainSessionVariable, ServerPGPPublicKeyVariable, ServerPGPPublicKeyResponse>
+
+extension ServerPGPPublicKeyRequest {
+  
+  internal static func live(
+    using networking: Networking,
+    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+  ) -> Self {
+    Self(
+      template: .init { sessionVariable, _ in
+        .combined(
+          .url(string: sessionVariable.domain),
+          .path("/auth/verify.json"),
+          .method(.get)
+        )
+      },
+      responseDecoder: .bodyAsJSON(),
+      using: networking,
+      with: sessionVariablePublisher
+    )
+  }
+}
+
+public typealias ServerPGPPublicKeyVariable = Void
+public typealias ServerPGPPublicKeyResponse = CommonResponse<ServerPGPPublicKeyResponseBody>
+
+public struct ServerPGPPublicKeyResponseBody: Decodable {
+  
+  public var fingerprint: String
+  public var keyData: String
+  
+  private enum CodingKeys: String, CodingKey {
+    case fingerprint = "fingerprint"
+    case keyData = "keydata"
   }
 }

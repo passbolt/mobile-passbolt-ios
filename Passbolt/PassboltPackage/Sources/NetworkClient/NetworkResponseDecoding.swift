@@ -33,11 +33,11 @@ internal struct NetworkResponseDecoding<Response> {
 
 extension NetworkResponseDecoding where Response == Void {
   
-  internal static func statusCode(
-    _ statusCode: HTTPStatusCode
+  internal static func statusCodes(
+    _ statusCodes: Range<HTTPStatusCode>
   ) -> Self {
     Self { response in
-      if response.statusCode == statusCode {
+      if statusCodes ~= response.statusCode {
         return .success(Void())
       } else {
         return .failure(.httpError(.invalidResponse))

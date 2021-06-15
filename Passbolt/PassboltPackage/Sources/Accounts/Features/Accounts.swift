@@ -167,10 +167,10 @@ extension Accounts: Feature {
           switch sessionState {
           case
             // swiftlint:disable:next explicit_type_interface
-            let .authorized(account, token: _)
+            let .authorized(account)
           where account.localID == accountID,
             // swiftlint:disable:next explicit_type_interface
-            let .authorizationRequired(account, token: _)
+            let .authorizationRequired(account)
           where account.localID == accountID:
             return true
             

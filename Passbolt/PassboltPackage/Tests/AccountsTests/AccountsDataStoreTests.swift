@@ -112,8 +112,6 @@ final class AccountsDataStoreTests: XCTestCase {
     super.tearDown()
   }
   
-  #warning("PAS-154: Add tests for tokens")
-  
   func test_loadAccounts_loadsItemsStoredInKeychain() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
     let dataStore: AccountsDataStore = .load(
@@ -299,6 +297,14 @@ final class AccountsDataStoreTests: XCTestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
+      ),
+      (
+        data: refreshToken,
+        query: .init(
+          key: "refreshToken",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
       )
     ]
     let dataStore: AccountsDataStore = .load(
@@ -349,6 +355,14 @@ final class AccountsDataStoreTests: XCTestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
+      ),
+      (
+        data: refreshToken,
+        query: .init(
+          key: "refreshToken",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
       )
     ]
     let dataStore: AccountsDataStore = .load(
@@ -389,6 +403,14 @@ final class AccountsDataStoreTests: XCTestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
+      ),
+      (
+        data: refreshToken,
+        query: .init(
+          key: "refreshToken",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
       )
     ]
     let dataStore: AccountsDataStore = .load(
@@ -405,7 +427,7 @@ final class AccountsDataStoreTests: XCTestCase {
     )
     XCTAssertEqual(
       mockKeychainStore.map(\.data),
-      [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
+      [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData, refreshToken]
     )
   }
   
@@ -424,6 +446,14 @@ final class AccountsDataStoreTests: XCTestCase {
         data: validPrivateKeyKeychainData,
         query: .init(
           key: "accountArmoredKey",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: refreshToken,
+        query: .init(
+          key: "refreshToken",
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
@@ -458,6 +488,14 @@ final class AccountsDataStoreTests: XCTestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
+      ),
+      (
+        data: refreshToken,
+        query: .init(
+          key: "refreshToken",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
       )
     ]
     let dataStore: AccountsDataStore = .load(
@@ -486,6 +524,14 @@ final class AccountsDataStoreTests: XCTestCase {
         data: validAccountKeychainData,
         query: .init(
           key: "account",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: refreshToken,
+        query: .init(
+          key: "refreshToken",
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
@@ -600,3 +646,5 @@ private let validPrivateKey: ArmoredPrivateKey =
 // keychain wrapper encodes values within own structure putting value under "v" key
 // swiftlint:disable:next force_try
 private let validPrivateKeyKeychainData: Data = try! JSONEncoder().encode(["v": validPrivateKey])
+// swiftlint:disable:next force_try
+private let refreshToken: Data = try! JSONEncoder().encode(["v": UUID.testUUID.uuidString])

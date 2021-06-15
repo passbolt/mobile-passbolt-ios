@@ -61,7 +61,7 @@ extension AccountDatabase: Feature {
       .compactMap { sessionState -> AnyPublisher<DatabaseConnection?, Never>? in
         switch sessionState {
         // swiftlint:disable:next explicit_type_interface
-        case let .authorized(account, token: _):
+        case let .authorized(account):
           if databaseConnectionSubject.value == nil {
             // create database connection
             switch accountsDataStore.accountDatabaseConnection(account.localID) {

@@ -30,10 +30,6 @@ private let jsonEncoder: JSONEncoder = .init()
 
 public struct JWT: Codable {
   public typealias Signature = String
-
-  internal enum Error: Swift.Error {
-    case missingSignature
-  }
   
   public var header: Header
   public var payload: Payload
@@ -94,8 +90,8 @@ extension JWT {
   ) -> Result<(header: Header, payload: Payload, signature: String), TheError> {
     var components: Array<String> = token.components(separatedBy: ".")
     
-    guard let signature: Signature = components.popLast() else {
-      return .failure(.jwtError(underlyingError: JWT.Error.missingSignature))
+    guard components.count == 3, let signature: Signature = components.popLast() else {
+      return .failure(.jwtError().appending(context: "malformed-token"))
     }
     
     return decode(

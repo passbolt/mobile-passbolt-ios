@@ -57,7 +57,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_biometricsEnabledPublisher_publishesProfileValueInitially() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -81,7 +81,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_biometricsEnabledPublisher_publishesTrue_afterEnablingBiometrics() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -114,7 +114,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_biometricsEnabledPublisher_publishesFalse_whenProfileLoadingFails() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -141,7 +141,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_succeedsEnabling_withAllRequirementsFulfilled() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -169,7 +169,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_succeedsDisabling_withAllRequirementsFulfilled() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -225,7 +225,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_failsDisabling_withSessionAuthorizationRequired() {
     accountSession.statePublisher = always(
-      Just(.authorizationRequired(validAccount, token: nil))
+      Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -253,7 +253,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_failsDisabling_whenPasphraseDeleteFails() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -309,7 +309,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_failsEnabling_withSessionAuthorizationRequired() {
     accountSession.statePublisher = always(
-      Just(.authorizationRequired(validAccount, token: nil))
+      Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -337,7 +337,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_failsEnabling_whenProfileSaveFails() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -365,7 +365,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_failsEnabling_withNoBiometricsPermission() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -393,7 +393,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_failsEnabling_withPassphraseMissing() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -421,7 +421,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_savesPassphrase_whenEnabling() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -449,7 +449,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_savesPassphraseForCurrentAccount_whenEnabling() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -477,7 +477,7 @@ final class AccountSettingsTests: TestCase {
   
   func test_setBiometricsEnabled_deletesPassphraseForCurrentAccount_whenDisabling() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount, token: validSessionTokens))
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)

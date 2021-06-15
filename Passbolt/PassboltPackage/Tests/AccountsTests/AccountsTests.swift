@@ -31,7 +31,6 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable force_unwrapping
 final class AccountsStoreTests: XCTestCase {
   
   var features: FeatureFactory!
@@ -144,7 +143,7 @@ final class AccountsStoreTests: XCTestCase {
     var accountSession: AccountSession = .placeholder
     accountSession.statePublisher = always(
       Just(
-        .authorized(validAccount, token: SessionTokens(accessToken: validToken, refreshToken: ""))
+        .authorized(validAccount)
       )
       .eraseToAnyPublisher()
     )
@@ -261,4 +260,5 @@ private let validPrivateKey: ArmoredPrivateKey =
 // swiftlint:disable force_try
 private let validToken: JWT = try! .from(rawValue: """
   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-  """).get()
+  """)
+  .get()

@@ -57,7 +57,8 @@ extension FeatureFactory {
       #if DEBUG
       guard Self.autoLoadFeatures
       else { return placeholder(
-        "Auto loading of features is disabled,"
+        "Failed to load: \(F.self) "
+        + "Auto loading of features is disabled,"
         + "please ensure you have provided instances of required features"
         // swiftlint:disable:next force_cast
         ) as! F // it looks like compiler issue, casting is required regardless of returning Never here

@@ -49,12 +49,23 @@ extension TheError {
       ]
     )
   }
+  
+  internal static func missingSession(
+    underlyingError: Error? = nil
+  ) -> Self {
+    Self(
+      identifier: .missingSession,
+      underlyingError: underlyingError,
+      extensions: [:]
+    )
+  }
 }
 
 extension TheError.ID {
   
   public static var httpError: Self { "httpError" }
   public static var networkResponseDecodingFailed: Self { "networkResponseDecodingFailed" }
+  public static var missingSession: Self { "missingSession" }
 }
 
 extension TheError.Extension {

@@ -115,4 +115,36 @@ final class NetworkResponseDecodingTests: XCTestCase {
     
     XCTAssertFailure(decodingResult)
   }
+  
+  func test_succeesCodes_withStatusOk_succeeds() {
+    let decoding: NetworkResponseDecoding<Void> = .statusCodes(200..<400)
+    
+    let decodingResult: Result<Void, TheError> = decoding
+      .decode(
+        HTTPResponse(
+          url: .testURL,
+          statusCode: 201,
+          headers: [:],
+          body: .empty
+        )
+      )
+    
+    XCTAssertSuccess(decodingResult)
+  }
+  
+  func test_succeesCodes_withInvalidStatus_fails() {
+    let decoding: NetworkResponseDecoding<Void> = .statusCodes(200..<400)
+    
+    let decodingResult: Result<Void, TheError> = decoding
+      .decode(
+        HTTPResponse(
+          url: .testURL,
+          statusCode: 401,
+          headers: [:],
+          body: .empty
+        )
+      )
+    
+    XCTAssertFailure(decodingResult)
+  }
 }

@@ -26,12 +26,16 @@ public typealias EmptyNetworkSessionVariable = Void
 public struct NetworkSessionVariable {
   
   internal var domain: String
-  internal var authorizationToken: String?
   
-  public init(domain: String, authorizationToken: String?) {
+  public init(domain: String) {
     self.domain = domain
-    self.authorizationToken = authorizationToken
   }
+}
+
+public struct AuthorizedSessionVariable {
+  
+  internal var domain: String
+  internal var authorizationToken: String
 }
 
 public struct DomainSessionVariable {

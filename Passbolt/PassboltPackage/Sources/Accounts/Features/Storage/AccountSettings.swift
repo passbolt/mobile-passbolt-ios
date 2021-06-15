@@ -51,7 +51,7 @@ extension AccountSettings: Feature {
       .map { (sessionState: AccountSession.State) -> Bool in
         switch sessionState {
         // swiftlint:disable:next explicit_type_interface
-        case let .authorized(account, token: _), let .authorizationRequired(account, token: _):
+        case let .authorized(account), let .authorizationRequired(account):
           let profileLoadResult: Result<AccountProfile, TheError>
             = accountsDataStore
             .loadAccountProfile(account.localID)
@@ -92,7 +92,7 @@ extension AccountSettings: Feature {
             .first()
             .map { (sessionState: AccountSession.State) -> AnyPublisher<Never, TheError> in
               // swiftlint:disable:next explicit_type_interface
-              guard case let .authorized(account, token: _) = sessionState
+              guard case let .authorized(account) = sessionState
               else {
                 return Fail<Never, TheError>(error: .authorizationRequired())
                   .eraseToAnyPublisher()

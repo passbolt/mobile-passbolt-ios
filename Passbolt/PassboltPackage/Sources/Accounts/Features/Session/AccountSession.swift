@@ -39,10 +39,10 @@ public struct AccountSession {
 
 extension AccountSession {
 
-  public enum State {
+  public enum State: Equatable {
     
-    case authorized(Account, token: SessionTokens)
-    case authorizationRequired(Account, token: SessionTokens?)
+    case authorized(Account)
+    case authorizationRequired(Account)
     case none(lastUsed: Account?)
   }
   
@@ -76,26 +76,26 @@ extension AccountSession: Feature {
     let passphraseCache: PassphraseCache = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
     let networkClient: NetworkClient = features.instance()
-    let login: SignIn = features.instance()
-    let logoutCancellable: AnyCancellable?
+    let signIn: SignIn = features.instance()
+    var signOutCancellable: AnyCancellable?
+    
+    _ = signOutCancellable // Silence warning
     
     let stateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
     
-    // When timer fires perform refresh when authorized otherwise stateSubject.send(.authorizationRequired)
-    #warning("TODO: [PAS-154] - schedule a timer: for when access token expires auto refresh it using refresh token")
+    let sessionSubject: CurrentValueSubject<SessionTokens?, Never> = .init(nil)
     
     stateSubject
+      .removeDuplicates()
       .map { state -> NetworkSessionVariable? in
         switch state {
         // swiftlint:disable:next explicit_type_interface
-        case let .authorized(account, token):
-          return NetworkSessionVariable(domain: account.domain, authorizationToken: token.accessToken.rawValue)
+        case let .authorized(account), let .authorizationRequired(account):
+          return NetworkSessionVariable(domain: account.domain)
         // swiftlint:disable:next explicit_type_interface
-        case let .authorizationRequired(account, token):
-          return NetworkSessionVariable(domain: account.domain, authorizationToken: token?.accessToken.rawValue)
-          
+  
         case .none:
           return nil
         }
@@ -107,10 +107,11 @@ extension AccountSession: Feature {
     
     // bind passphrase cache expiration with authorizationRequired state change
     stateSubject
+      .removeDuplicates()
       .compactMap { state -> AnyPublisher<State, Never>? in
         switch state {
         // swiftlint:disable:next explicit_type_interface
-        case let .authorized(account, token):
+        case let .authorized(account):
           return passphraseCache
             .passphrasePublisher(account.localID)
             .compactMap { passphrase -> State? in
@@ -119,7 +120,7 @@ extension AccountSession: Feature {
                 return nil
                 
               case .none:
-                return .authorizationRequired(account, token: token)
+                return .authorizationRequired(account)
               }
             }
             .eraseToAnyPublisher()
@@ -137,37 +138,38 @@ extension AccountSession: Feature {
     
     func _close(using features: FeatureFactory) {
       features.unload(AccountDatabase.self)
+      
       switch stateSubject.value {
       // swiftlint:disable:next explicit_type_interface
-      case let .authorized(account, token: _), let .authorizationRequired(account, token: .some):
-        #warning("TODO: [PAS-154] perform logout request - use cancellable localCancellable")
+      case let .authorized(account):
+        
+        if let refreshToken: String = sessionSubject.value?.refreshToken {
+          signOutCancellable = networkClient.signOutRequest.make(
+            using: .init(
+              refreshToken: refreshToken
+            )
+          )
+          .ignoreOutput()
+          .sink { _ in }
+        }
+      
         stateSubject.send(.none(lastUsed: account))
+        sessionSubject.send(nil)
         passphraseCache.clear()
       // swiftlint:disable:next explicit_type_interface
-      case let .authorizationRequired(account, token: .none):
+      case let .authorizationRequired(account):
         stateSubject.send(.none(lastUsed: account))
+        sessionSubject.send(nil)
         
       case .none:
         break // do nothing
       }
+      
+      sessionSubject.send(nil)
     }
     // swiftlint:disable:next unowned_variable_capture
     let closeSession: () -> Void = { [unowned features] in
       _close(using: features)
-    }
-    
-    func signIn(
-      userID: Account.UserID,
-      domain: String,
-      armoredKey: ArmoredPrivateKey,
-      passphrase: Passphrase
-    ) -> AnyPublisher<SessionTokens, TheError> {
-      login.signIn(
-        userID,
-        domain,
-        armoredKey,
-        passphrase
-      )
     }
     
     func authorize(
@@ -226,14 +228,74 @@ extension AccountSession: Feature {
         }
       }
       
-      #warning("Not sure if this is such a good idea, but will do for now")
-      stateSubject.send(.authorizationRequired(account, token: nil))
+      // Authorization required for a new / switched account
+      stateSubject.send(.authorizationRequired(account))
+      
+      #warning("TODO: Determine if session should be deleted (sessionSubject.send(nil)")
+      
+      let method: SignIn.Method
+      if let token = sessionSubject.value?.refreshToken {
+        method = .refreshToken(token)
+      } else {
+        method = .challenge
+      }
+
+      let tokensPublisher: AnyPublisher<NetworkClient.Tokens?, Never> =
+        sessionSubject
+        .eraseToAnyPublisher()
+        .map { (sessionTokens: SessionTokens?) -> AnyPublisher<SessionTokens?, Never> in
+          let method: SignIn.Method
+          
+          switch sessionTokens {
+          // swiftlint:disable:next explicit_type_interface
+          case let .some(tokens):
+            method = .refreshToken(tokens.refreshToken)
+            
+          case .none:
+            method = .challenge
+          }
+          
+          let signInPublisher: AnyPublisher<SessionTokens?, Never> =
+            // swiftlint:disable:next array_init
+            signIn.signIn(
+              account.userID,
+              account.domain,
+              armoredPrivateKey,
+              passphrase,
+              method
+            )
+            .map { sessionTokens -> SessionTokens? in
+              sessionTokens // switching type to optional
+            }
+            .collectErrorLog(using: diagnostics)
+            .replaceError(with: nil)
+            .eraseToAnyPublisher()
+          
+          return signInPublisher
+        }
+        .switchToLatest()
+        .map { (sessionTokens: SessionTokens?) -> NetworkClient.Tokens? in
+          guard let sessionTokens = sessionTokens else {
+            return nil
+          }
+          
+          return NetworkClient.Tokens(
+            accessToken: sessionTokens.accessToken.rawValue,
+            isExpired: { sessionTokens.accessToken.isExpired(timestamp: environment.timestamp()) },
+            refreshToken: sessionTokens.refreshToken
+          )
+        }
+        .setFailureType(to: Never.self)
+        .eraseToAnyPublisher()
+      
+      networkClient.setTokensPublisher(tokensPublisher)
   
-      return signIn(
-        userID: account.userID,
-        domain: account.domain,
-        armoredKey: armoredPrivateKey,
-        passphrase: passphrase
+      return signIn.signIn(
+        account.userID,
+        account.domain,
+        armoredPrivateKey,
+        passphrase,
+        method
       )
       .handleEvents(receiveOutput: { sessionTokens in
         accountsDataStore.storeLastUsedAccount(account.localID)
@@ -246,8 +308,11 @@ extension AccountSession: Feature {
                 + PassphraseCache.defaultExpirationTimeInterval
             )
           )
+
+        sessionSubject.send(sessionTokens)
+        
         stateSubject.send(
-          .authorized(account, token: sessionTokens)
+          .authorized(account)
         )
       })
       .map { _ in Void() }
@@ -263,11 +328,11 @@ extension AccountSession: Feature {
         break
       }
       
-      stateSubject.send(.authorizationRequired(account, token: nil))
+      stateSubject.send(.authorizationRequired(account))
     }
     
     return Self(
-      statePublisher: stateSubject.eraseToAnyPublisher,
+      statePublisher: stateSubject.removeDuplicates().eraseToAnyPublisher,
       authorize: authorize(account:authorizationMethod:),
       select: select(account:),
       close: closeSession

@@ -22,12 +22,12 @@
 //
 
 import Commons
-import Crypto
 import Environment
 
-public typealias LoginRequest = NetworkRequest<DomainSessionVariable, LoginRequestVariable, LoginResponse>
+public typealias RefreshSessionRequest =
+  NetworkRequest<DomainSessionVariable, RefreshSessionRequestVariable, RefreshSessionResponse>
 
-extension LoginRequest {
+extension RefreshSessionRequest {
   
   internal static func live(
     using networking: Networking,
@@ -37,7 +37,7 @@ extension LoginRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain),
-          .path("/auth/jwt/login.json"),
+          .path("/auth/jwt/refresh.json"),
           .method(.post),
           .jsonBody(from: requestVariable)
         )
@@ -49,72 +49,23 @@ extension LoginRequest {
   }
 }
 
-public struct LoginRequestVariable: Encodable {
+public struct RefreshSessionRequestVariable: Encodable {
   
   public var userID: String
-  public var challenge: ArmoredMessage
-  
-  public init(userID: String, challenge: ArmoredMessage) {
-    self.userID = userID
-    self.challenge = challenge
-  }
-  
-  private enum CodingKeys: String, CodingKey {
-    
-    case userID = "user_id"
-    case challenge = "challenge"
-  }
-}
-
-public struct LoginRequestChallenge: Encodable {
-  
-  public var version: String
-  public var token: String
-  public var domain: String
-  public var expiration: Int
-  
-  public init(
-    version: String,
-    token: String,
-    domain: String,
-    expiration: Int
-  ) {
-    self.version = version
-    self.token = token
-    self.domain = domain
-    self.expiration = expiration
-  }
-  
-  private enum CodingKeys: String, CodingKey {
-    
-    case version = "version"
-    case token = "verify_token"
-    case domain = "domain"
-    case expiration = "verify_token_expiry"
-  }
-}
-
-public typealias LoginResponse = CommonResponse<LoginResponseBody>
-
-public struct LoginResponseBody: Decodable {
-  
-  public var challenge: String
-}
-
-public struct Tokens: Decodable {
-  
-  public var version: String
-  public var domain: String
-  public var verificationToken: String
-  public var accessToken: String
   public var refreshToken: String
-    
+  
   private enum CodingKeys: String, CodingKey {
-    
-    case version = "version"
-    case domain = "domain"
-    case verificationToken = "verify_token"
-    case accessToken = "access_token"
+    case userID = "user_id"
     case refreshToken = "refresh_token"
   }
+  
+  public init(
+    userID: String,
+    refreshToken: String
+  ) {
+    self.userID = userID
+    self.refreshToken = refreshToken
+  }
 }
+
+public typealias RefreshSessionResponse = CommonResponse<SignInResponseBody>

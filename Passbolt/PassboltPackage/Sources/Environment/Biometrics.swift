@@ -65,9 +65,9 @@ extension Biometrics {
           error: &errorPtr
         )
       if let laError: LAError = errorPtr as? LAError,
-         laError.code == .biometryNotAvailable
-          || laError.code == .biometryNotEnrolled
-          || laError.code == .passcodeNotSet {
+        laError.code == .biometryNotAvailable
+        || laError.code == .biometryNotEnrolled
+        || laError.code == .passcodeNotSet {
         return Fail<Bool, TheError>(error: .biometricsUnavailable(underlyingError: laError))
           .eraseToAnyPublisher()
       } else {

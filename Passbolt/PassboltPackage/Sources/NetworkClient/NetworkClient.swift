@@ -24,18 +24,29 @@
 import Commons
 import Features
 
-#warning("TODO: session management: [PAS-154]")
 public struct NetworkClient {
   
   public var accountTransferUpdate: AccountTransferUpdateRequest
   // intended to be used for images download and relatively small blobs (few MB)
   public var mediaDownload: MediaDownloadRequest
-  public var serverPgpPublicKeyRequest: ServerPgpPublicKeyRequest
+  public var serverPGPPublicKeyRequest: ServerPGPPublicKeyRequest
   public var serverPublicKeyRequest: ServerJWKSRequest
-  public var serverRsaPublicKeyRequest: ServerRSAPublicKeyRequest
-  public var loginRequest: LoginRequest
+  public var serverRSAPublicKeyRequest: ServerRSAPublicKeyRequest
+  public var signInRequest: SignInRequest
+  public var signOutRequest: SignOutRequest
+  public var refreshSessionRequest: RefreshSessionRequest
   public var featureUnload: () -> Bool
   public var updateSession: (NetworkSessionVariable?) -> Void
+  public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
+}
+
+extension NetworkClient {
+  
+  public typealias Tokens = (
+    accessToken: String,
+    isExpired: () -> Bool,
+    refreshToken: String
+  )
 }
 
 extension NetworkClient: Feature {
@@ -48,19 +59,29 @@ extension NetworkClient: Feature {
     cancellables: Cancellables
   ) -> NetworkClient {
     let sessionSubject: CurrentValueSubject<NetworkSessionVariable?, Never> = .init(nil)
+    let tokensSubject: CurrentValueSubject<AnyPublisher<Tokens?, Never>, Never> = .init(Empty().eraseToAnyPublisher())
 
     let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
-    let _: AnyPublisher<NetworkSessionVariable, TheError> = sessionSubject
-      .map { session -> AnyPublisher<NetworkSessionVariable, TheError> in
-        if let session: NetworkSessionVariable = session {
-          return Just(session)
-            .setFailureType(to: TheError.self)
-            .eraseToAnyPublisher()
+    
+    let sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError> = sessionSubject
+      .combineLatest(tokensSubject.switchToLatest())
+      .map { (session: NetworkSessionVariable?, tokens: NetworkClient.Tokens?) -> AnyPublisher<AuthorizedSessionVariable, TheError> in
+        if let session: NetworkSessionVariable = session,
+          let authorizationToken: String = tokens?.accessToken,
+           !(tokens?.isExpired() ?? true) {
+          return Just(
+            AuthorizedSessionVariable(
+              domain: session.domain,
+              authorizationToken: authorizationToken
+            )
+          )
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
         } else {
-          #warning("FIXME - PAS-131 - change this error to new error type")
-          return Fail<NetworkSessionVariable, TheError>(error: .canceled)
+          #warning("TODO - PAS-160 - trigger session refresh if expired or when token is missing")
+          return Fail<AuthorizedSessionVariable, TheError>(error: .missingSession())
             .eraseToAnyPublisher()
         }
       }
@@ -75,8 +96,7 @@ extension NetworkClient: Feature {
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
         } else {
-          #warning("FIXME - PAS-131 - change this error to new error type")
-          return Fail<DomainSessionVariable, TheError>(error: .canceled)
+          return Fail<DomainSessionVariable, TheError>(error: .missingSession())
             .eraseToAnyPublisher()
         }
       }
@@ -85,6 +105,10 @@ extension NetworkClient: Feature {
 
     func featureUnload() -> Bool {
       true // perform cleanup if needed
+    }
+    
+    func setTokens(publisher: AnyPublisher<Tokens?, Never>) {
+      tokensSubject.send(publisher)
     }
 
     return Self(
@@ -96,7 +120,7 @@ extension NetworkClient: Feature {
         using: environment,
         with: domainVariablePublisher
       ),
-      serverPgpPublicKeyRequest: .live(
+      serverPGPPublicKeyRequest: .live(
         using: environment,
         with: domainVariablePublisher
       ),
@@ -104,16 +128,25 @@ extension NetworkClient: Feature {
         using: environment,
         with: domainVariablePublisher
       ),
-      serverRsaPublicKeyRequest: .live(
+      serverRSAPublicKeyRequest: .live(
         using: environment,
         with: domainVariablePublisher
       ),
-      loginRequest: .live(
+      signInRequest: .live(
+        using: environment,
+        with: domainVariablePublisher
+      ),
+      signOutRequest: .live(
+        using: environment,
+        with: domainVariablePublisher
+      ),
+      refreshSessionRequest: .live(
         using: environment,
         with: domainVariablePublisher
       ),
       featureUnload: featureUnload,
-      updateSession: sessionSubject.send(_:)
+      updateSession: sessionSubject.send(_:),
+      setTokensPublisher: setTokens(publisher:)
     )
   }
   
@@ -129,12 +162,15 @@ extension NetworkClient: Feature {
     Self(
       accountTransferUpdate: .placeholder,
       mediaDownload: .placeholder,
-      serverPgpPublicKeyRequest: .placeholder,
+      serverPGPPublicKeyRequest: .placeholder,
       serverPublicKeyRequest: .placeholder,
-      serverRsaPublicKeyRequest: .placeholder,
-      loginRequest: .placeholder,
+      serverRSAPublicKeyRequest: .placeholder,
+      signInRequest: .placeholder,
+      signOutRequest: .placeholder,
+      refreshSessionRequest: .placeholder,
       featureUnload: Commons.placeholder("You have to provide mocks for used methods"),
-      updateSession: Commons.placeholder("You have to provide mocks for used methods")
+      updateSession: Commons.placeholder("You have to provide mocks for used methods"),
+      setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

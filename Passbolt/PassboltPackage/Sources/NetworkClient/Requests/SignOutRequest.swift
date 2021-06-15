@@ -24,40 +24,41 @@
 import Commons
 import Environment
 
-public typealias ServerPgpPublicKeyRequest =
-  NetworkRequest<DomainSessionVariable, ServerPgpPublicKeyVariable, ServerPgpPublicKeyResponse>
+public typealias SignOutRequest = NetworkRequest<DomainSessionVariable, SignOutRequestVariable, Void>
 
-extension ServerPgpPublicKeyRequest {
-  
+extension SignOutRequest {
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
   ) -> Self {
     Self(
-      template: .init { sessionVariable, _ in
+      template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain),
-          .path("/auth/verify.json"),
-          .method(.get)
+          .path("/auth/jwt/logout.json"),
+          .method(.post),
+          .jsonBody(from: requestVariable)
         )
       },
-      responseDecoder: .bodyAsJSON(),
+      responseDecoder: .statusCodes(200..<300),
       using: networking,
       with: sessionVariablePublisher
     )
   }
 }
 
-public typealias ServerPgpPublicKeyVariable = Void
-public typealias ServerPgpPublicKeyResponse = CommonResponse<ServerPgpPublicKeyResponseBody>
-
-public struct ServerPgpPublicKeyResponseBody: Decodable {
+public struct SignOutRequestVariable: Encodable {
   
-  public var fingerprint: String
-  public var keyData: String
+  public var refreshToken: String
   
   private enum CodingKeys: String, CodingKey {
-    case fingerprint = "fingerprint"
-    case keyData = "keydata"
+    case refreshToken = "refresh_token"
+  }
+  
+  public init(refreshToken: String) {
+    self.refreshToken = refreshToken
   }
 }
+
+public typealias SignOutResponse = Void

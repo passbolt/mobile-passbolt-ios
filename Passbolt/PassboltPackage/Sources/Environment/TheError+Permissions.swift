@@ -40,5 +40,3 @@ extension TheError.ID {
   
   public static let permissionRequired: Self = "permissionRequired"
 }
-
-
