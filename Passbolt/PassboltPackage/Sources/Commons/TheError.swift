@@ -134,6 +134,7 @@ extension TheError: CustomStringConvertible {
 extension TheError: CustomDebugStringConvertible {
   
   public var debugDescription: String {
+    #if DEBUG
     """
     -TheError-
     \(identifier)\(debugLogMessage.map { "\nDebug log:\($0)" } ?? "")\(logMessage.map { "\nLog:\($0)" } ?? "")
@@ -142,6 +143,9 @@ extension TheError: CustomDebugStringConvertible {
     \(extensions.map { "- \($0.key): \($0.value)" }.joined(separator: "\n"))
     ---
     """
+    #else
+    "TheError: \(identifier)\(context.map { " [\($0)]" } ?? "")"
+    #endif
   }
 }
 
