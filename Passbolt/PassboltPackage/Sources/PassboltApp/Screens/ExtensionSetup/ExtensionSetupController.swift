@@ -26,7 +26,7 @@ import UIComponents
 internal struct ExtensionSetupController {
   
   internal var continueSetupPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var setupExtension: () -> AnyPublisher<Void, TheError>
+  internal var setupExtension: () -> AnyPublisher<Never, TheError>
   internal var skipSetup: () -> Void
 }
 
@@ -39,15 +39,22 @@ extension ExtensionSetupController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let linkOpener: LinkOpener = features.instance()
     let continueSetupPresentationSubject: PassthroughSubject<Void, Never> = .init()
     
     func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
       continueSetupPresentationSubject.eraseToAnyPublisher()
     }
     
-    func setupExtension() -> AnyPublisher<Void, TheError> {
-      #warning("TODO: [PAS-133] open system settings")
-      Commons.placeholder()
+    func setupExtension() -> AnyPublisher<Never, TheError> {
+      linkOpener
+        .openSystemSettings()
+        .ignoreOutput()
+        .setFailureType(to: TheError.self)
+        .handleEvents(receiveCompletion: { _ in
+          continueSetupPresentationSubject.send()
+        })
+        .eraseToAnyPublisher()
     }
     
     func skipSetup() -> Void {
@@ -61,5 +68,3 @@ extension ExtensionSetupController: UIController {
     )
   }
 }
-
-

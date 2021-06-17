@@ -54,13 +54,47 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   }
   
   internal func setupView() {
-    #warning("TODO: [PAS-133] to complete")
+    mut(navigationItem) {
+      .hidesBackButton(true)
+    }
     setupSubscriptions()
   }
   
   private func setupSubscriptions() {
-    #warning("TODO: [PAS-133] to complete")
+    contentView
+      .setupTapPublisher
+      .sink { [weak self] in
+        guard let self = self else { return }
+        self.controller
+          .setupExtension()
+          .sink(
+            receiveCompletion: { [weak self] completion in
+              guard case .failure = completion else { return }
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(localized: .genericError)
+                  .instantiate(),
+                hideAfter: 3
+              )
+            }
+          )
+          .store(in: self.cancellables)
+      }
+      .store(in: cancellables)
+    
+    contentView
+      .skipTapPublisher
+      .sink { [weak self] in
+        self?.controller.skipSetup()
+      }
+      .store(in: cancellables)
+    
+    controller
+      .continueSetupPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.replaceWindowRoot(with: MainTabsViewController.self)
+      }
+      .store(in: cancellables)
   }
 }
-
-

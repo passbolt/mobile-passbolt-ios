@@ -34,6 +34,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
   private let button: TextButton = .init()
   
   override public func setup() {
+    
     mut(headerLabel) {
       .combined(
         .font(.inter(ofSize: 14)),
@@ -42,8 +43,102 @@ public final class TransferInfoScreenView: ScrolledStackView {
       )
     }
     
-    let strings: Array<NSAttributedString> = prepareAttributedTexts()
-    let steps: Array<StackView> = prepareSteps(strings: strings)
+    func icon(number: Int) -> Label {
+      Mutation<Label>
+        .combined(
+          .widthAnchor(.equalTo, constant: 24),
+          .heightAnchor(.equalTo, constant: 24),
+          .cornerRadius(12),
+          .border(width: 1, color: .gray),
+          .font(.inter(ofSize: 14, weight: .semibold)),
+          .textColor(dynamic: .primaryText),
+          .textAlignment(.center),
+          .text("\(number)")
+        )
+        .instantiate()
+    }
+    
+    let firstStep: StepListItemView = .init()
+    mut(firstStep) {
+      .combined(
+        .iconView(icon(number: 1)),
+        .label(
+          mutatation: .attributedString(
+            .localized(
+              "transfer.account.info.step.first",
+              font: .inter(
+                ofSize: 14,
+                weight: .regular
+              ),
+              color: .secondaryText
+            )
+          )
+        )
+      )
+    }
+    
+    let secondStep: StepListItemView = .init()
+    mut(secondStep) {
+      .combined(
+        .iconView(icon(number: 2)),
+        .label(
+          mutatation: .attributedString(
+            .localized(
+              "transfer.account.info.step.second",
+              withBoldSubstringLocalized: "transfer.account.info.step.second.distinct",
+              fontSize: 14,
+              color: .secondaryText
+            )
+          )
+        )
+      )
+    }
+    
+    let thirdStep: StepListItemView = .init()
+    mut(thirdStep) {
+      .combined(
+        .iconView(icon(number: 3)),
+        .label(
+          mutatation: .attributedString(
+            .localized(
+              "transfer.account.info.step.third",
+              withBoldSubstringLocalized: "transfer.account.info.step.third.distinct",
+              fontSize: 14,
+              color: .secondaryText
+            )
+          )
+        )
+      )
+    }
+    
+    let fourthStep: StepListItemView = .init()
+    mut(fourthStep) {
+      .combined(
+        .iconView(icon(number: 4)),
+        .label(
+          mutatation: .attributedString(
+            .localized(
+              "transfer.account.info.step.fourth",
+              font: .inter(
+                ofSize: 14,
+                weight: .regular
+              ),
+              color: .secondaryText
+            )
+          )
+        )
+      )
+    }
+
+    let stepListView: StepListView = .init()
+    mut(stepListView) {
+      .steps(
+        firstStep,
+        secondStep,
+        thirdStep,
+        fourthStep
+      )
+    }
     
     let imageContainer: View = Mutation<View>
       .combined(
@@ -78,122 +173,12 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .contentInset(.init(top: 24, left: 16, bottom: 8, right: 16)),
         .append(headerLabel),
         .appendSpace(of: 24),
-        .append(views: steps),
+        .append(stepListView),
         .appendSpace(of: 80),
         .append(imageContainer),
         .appendFiller(minSize: 0),
         .append(button)
       )
     }
-  }
-  
-  private func prepareSteps(strings: Array<NSAttributedString>) -> Array<StackView> {
-    strings.enumerated().map { index, attributedString in
-      let verticalStack: StackView = Mutation<StackView>
-        .combined(
-          .axis(.vertical),
-          .spacing(0)
-        )
-        .instantiate()
-      
-      let horizontalStack: StackView = Mutation<StackView>
-        .combined(
-          .arrangedSubview(of: verticalStack),
-          .axis(.horizontal),
-          .spacing(0)
-        )
-        .instantiate()
-      
-      let numberLabel: Label = Mutation<Label>
-        .combined(
-          .arrangedSubview(of: horizontalStack),
-          .widthAnchor(.equalTo, constant: 24),
-          .heightAnchor(.equalTo, constant: 24),
-          .cornerRadius(12),
-          .border(width: 1, color: .gray),
-          .font(.inter(ofSize: 14, weight: .semibold)),
-          .textColor(dynamic: .primaryText),
-          .textAlignment(.center),
-          .text(String(index + 1))
-        )
-        .instantiate()
-      
-      horizontalStack.appendSpace(of: 12)
-      
-      Mutation<Label>
-        .combined(
-          .arrangedSubview(of: horizontalStack),
-          .attributedText(attributedString)
-        )
-        .instantiate()
-      
-      if index != strings.count - 1 {
-        let divider: View = Mutation<View>
-          .combined(
-            .arrangedSubview(of: verticalStack),
-            .backgroundColor(dynamic: .background)
-          )
-          .instantiate()
-        
-        Mutation<View>
-          .combined(
-            .subview(of: divider),
-            .topAnchor(.equalTo, divider.topAnchor, constant: 4),
-            .bottomAnchor(.equalTo, divider.bottomAnchor, constant: -4),
-            .widthAnchor(.equalTo, constant: 1),
-            .heightAnchor(.equalTo, constant: 16),
-            .centerXAnchor(.equalTo, numberLabel.centerXAnchor),
-            .backgroundColor(dynamic: .divider)
-          )
-          .instantiate()
-      }
-      
-      return verticalStack
-    }
-  }
-  
-  private func prepareAttributedTexts() -> Array<NSAttributedString> {
-    let texts: Array<String> = [
-      "transfer.account.info.step.first",
-      "transfer.account.info.step.second",
-      "transfer.account.info.step.third",
-      "transfer.account.info.step.fourth"
-    ]
-    .map {
-      NSLocalizedString($0, comment: "")
-    }
-    
-    let distinctTexts: Array<String?> = [
-      nil,
-      "transfer.account.info.step.second.distinct",
-      "transfer.account.info.step.third.distinct",
-      nil
-    ]
-    
-    let strings: Array<NSAttributedString> = zip(texts, distinctTexts)
-      .map { regular, distinct in
-        let regularTextAttributes: [NSAttributedString.Key: Any] = [
-          .foregroundColor: DynamicColor.secondaryText(in: traitCollection.userInterfaceStyle),
-          .font: UIFont.inter(ofSize: 14)
-        ]
-        let boldTextAttributes: [NSAttributedString.Key: Any] = [
-          .foregroundColor: DynamicColor.secondaryText(in: traitCollection.userInterfaceStyle),
-          .font: UIFont.inter(ofSize: 14, weight: .bold)
-        ]
-        
-        let string: NSMutableAttributedString = .init(
-          string: regular,
-          attributes: regularTextAttributes
-        )
-        
-        if let bold: String = distinct {
-          let localized: String = NSLocalizedString(bold, comment: "")
-          string.apply(attributes: boldTextAttributes, to: localized)
-        } else { /* */ }
-        
-        return string
-      }
-    
-    return strings
   }
 }

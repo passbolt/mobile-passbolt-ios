@@ -25,6 +25,12 @@ import AegithalosCocoa
 
 extension Mutation where Subject: Label {
   
+  public static func attributedString(
+    _ attributedString: AttributedString
+  ) -> Self {
+    .custom { (subject: Subject) in subject.attributedString = attributedString }
+  }
+  
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
   }

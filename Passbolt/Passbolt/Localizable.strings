@@ -89,6 +89,20 @@
 "biometrics.setup.setup.button.finger" = "Use TouchID";
 "biometrics.setup.later.button" = "Maybe later";
 
+"extension.setup.title" = "Log In to your favourite apps in 3 seconds!";
+"extension.setup.settings.step" = "Go to the Settings";
+"extension.setup.settings.step.bold" = "Settings";
+"extension.setup.keyboard.step" = "Open Autofill Passwords";
+"extension.setup.keyboard.step.bold" = "Autofill Passwords";
+"extension.setup.switch.step" = "Enable Autofill Passwords";
+"extension.setup.switch.step.bold" = "Enable";
+"extension.setup.keychain.step" = "Turn off Keychain";
+"extension.setup.keychain.step.bold" = "Turn off";
+"extension.setup.passbolt.step" = "Choose Passbolt!";
+"extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.setup.button" = "Go to settings";
+"extension.setup.later.button" = "Maybe later";
+
 "tab.home" = "Home";
 "tab.settings" = "Settings";
 

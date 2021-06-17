@@ -23,17 +23,14 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: TextField {
+extension Mutation where Subject: Label {
   
-  public static func primaryStyle() -> Self {
+  public static func titleStyle() -> Self {
     .combined(
-      .contentInsets(.init(top: 4, left: 8, bottom: 4, right: 8)),
-      .font(.inter(ofSize: 14, weight: .medium)),
+      .font(.inter(ofSize: 24, weight: .semibold)),
       .textColor(dynamic: .primaryText),
-      .backgroundColor(dynamic: .background),
-      .cornerRadius(4),
-      .border(dynamic: .divider, width: 1),
-      .heightAnchor(.equalTo, constant: 48)
+      .textAlignment(.center),
+      .numberOfLines(0)
     )
   }
 }

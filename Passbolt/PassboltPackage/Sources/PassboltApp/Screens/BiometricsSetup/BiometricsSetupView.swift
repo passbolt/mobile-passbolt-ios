@@ -61,9 +61,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     
     mut(titleLabel) {
       .combined(
-        .font(.inter(ofSize: 24, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .textAlignment(.center),
+        .titleStyle(),
         .text(localized: "biometrics.setup.title"),
         .accessibilityIdentifier("biometrics.setup.title.label")
       )

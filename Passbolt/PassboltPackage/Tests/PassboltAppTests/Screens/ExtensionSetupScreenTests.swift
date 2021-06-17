@@ -30,72 +30,81 @@ import UIComponents
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable explicit_type_interface
-final class BiometricsInfoScreenTests: TestCase {
+final class ExtensionSetupScreenTests: TestCase {
   
-  var biometry: Biometry!
+  var linkOpener: LinkOpener!
   
   override func setUp() {
     super.setUp()
-    biometry = .placeholder
+    linkOpener = .placeholder
   }
   
   override func tearDown() {
-    biometry = nil
+    linkOpener = nil
     super.tearDown()
   }
   
-  func test_supportedBiometryType_isProvidedByBiometry() {
-    biometry.supportedBiometryType = always(.touchID)
-    features.use(biometry)
-    let controller: BiometricsInfoController = testInstance()
+  func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
+    features.use(linkOpener)
+    let controller: ExtensionSetupController = testInstance()
     
-    let result = controller.supportedBiometryType()
-    
-    XCTAssertEqual(result, .touchID)
-  }
-  
-  func test_presentationDestinationPublisher_doesNotPublishInitially() {
-    features.use(biometry)
-    
-    let controller: BiometricsInfoController = testInstance()
-    
-    var result: BiometricsInfoController.Destination!
-    controller.presentationDestinationPublisher()
+    var result: Void!
+    controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
     
     XCTAssertNil(result)
   }
   
-  func test_presentationDestinationPublisher_publishExtensionSetup_afterSkip() {
-    features.use(biometry)
+  func test_continueSetupPresentationPublisher_publish_afterSkip() {
+    features.use(linkOpener)
     
-    let controller: BiometricsInfoController = testInstance()
+    let controller: ExtensionSetupController = testInstance()
     
-    var result: BiometricsInfoController.Destination!
-    controller.presentationDestinationPublisher()
+    var result: Void!
+    controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
     
     controller.skipSetup()
     
-    XCTAssertEqual(result, .extensionSetup)
+    XCTAssertNotNil(result)
   }
   
-  func test_continueSetupPresentationPublisher_publishBiometrySetup_afterSetup() {
-    features.use(biometry)
+  func test_continueSetupPresentationPublisher_publish_afterSetup() {
+    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
+    features.use(linkOpener)
     
-    let controller: BiometricsInfoController = testInstance()
+    let controller: ExtensionSetupController = testInstance()
     
-    var result: BiometricsInfoController.Destination!
-    controller.presentationDestinationPublisher()
+    var result: Void!
+    controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
     
-    controller.setupBiometrics()
+    controller
+      .setupExtension()
+      .sink { _ in }
+      .store(in: cancellables)
     
-    XCTAssertEqual(result, .biometricsSetup)
+    XCTAssertNotNil(result)
+  }
+  
+  func test_setupExtension_opensSystemSettings() {
+    var result: Void!
+    linkOpener.openSystemSettings = {
+      result = Void()
+      return Just(true).eraseToAnyPublisher()
+    }
+    features.use(linkOpener)
+    
+    let controller: ExtensionSetupController = testInstance()
+    
+    controller
+      .setupExtension()
+      .sink { _ in }
+      .store(in: cancellables)
+    
+    XCTAssertNotNil(result)
   }
 }
-

@@ -70,21 +70,17 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   }
   
   private func navigate(to destination: SplashScreenNavigationDestination) {
-    let destinationViewController: UIViewController
     switch destination {
     // swiftlint:disable:next explicit_type_interface
     case let .accountSelection(accounts):
       #warning("TODO: FIXME: [PAS-136] - replace with account selection")
-      destinationViewController = components
-        .instance(of: MainTabsViewController.self)
-      
+      replaceWindowRoot(with: MainTabsViewController.self)
+
     case .accountSetup:
-      destinationViewController = components
-        .instance(of: WelcomeNavigationViewController.self)
-      
+      replaceWindowRoot(with: WelcomeNavigationViewController.self)
+
     case .diagnostics:
       Commons.placeholder("TODO: diagnsotics screen")
     }
-    view.window?.rootViewController = destinationViewController
   }
 }

@@ -176,5 +176,105 @@ extension DynamicImage {
       }
     }
   }
+  
+  public static var keychainIcon: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "KeychainIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "KeychainIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var keyboardIcon: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "KeyboardIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "KeyboardIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var settingsIcon: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "SettingsIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "SettingsIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var switchIcon: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "SwitchIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "SwitchIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
+  public static var passboltIcon: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "PassboltIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "PassboltIcon",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
   // swiftlint:enable force_unwrapping
 }

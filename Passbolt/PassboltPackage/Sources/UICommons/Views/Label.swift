@@ -44,6 +44,12 @@ open class Label: UILabel {
       self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
+  // Conflicts with `attributedText` property, never use both at the same time.
+  public var attributedString: AttributedString? {
+    didSet {
+      self.attributedText = attributedString?.nsAttributedString(in: traitCollection.userInterfaceStyle)
+    }
+  }
   
   public required init() {
     super.init(frame: .zero)
@@ -73,5 +79,8 @@ open class Label: UILabel {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
+    if let attributedString: AttributedString = attributedString {
+      self.attributedText = attributedString.nsAttributedString(in: interfaceStyle)
+    } else { /* */ }
   }
 }

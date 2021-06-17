@@ -26,6 +26,45 @@ import UIKit
 
 public extension UIComponent {
   
+  func replaceWindowRoot<Component>(
+    with type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent, Component.Controller.Context == Void {
+    replaceWindowRoot(
+      with: type,
+      in: Void(),
+      animated: animated,
+      completion: completion
+    )
+  }
+  
+  func replaceWindowRoot<Component>(
+    with type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    guard let window: UIWindow = view.window
+    else { unreachable("Cannot replace window root without window") }
+    
+    let currentView: UIView? = window.rootViewController?.view
+    window.rootViewController = components
+      .instance(
+        of: Component.self,
+        in: context
+      )
+    UIView.transition(
+      with: window,
+      duration: animated ? 0.3 : 0,
+      options: [.transitionCrossDissolve],
+      animations: {
+        currentView?.alpha = 0
+      },
+      completion: { _ in completion?() }
+    )
+  }
+  
   func present<Component>(
     _ type: Component.Type,
     animated: Bool = true,
