@@ -21,10 +21,35 @@
 // @since         v1.0
 //
 
-@_exported import AegithalosCocoa
-@_exported import Commons
+import UICommons
 
-extension Bundle {
+internal final class ExtensionSetupView: View {
   
-  public static var uiCommons: Bundle { Bundle.module }
+  internal var backToAppTapPublisher: AnyPublisher<Void, Never>
+  
+  internal required init() {
+    let backToAppButton: TextButton = .init()
+    
+    self.backToAppTapPublisher = backToAppButton.tapPublisher
+    
+    super.init()
+    
+    #warning("TODO: [PAS-133] to complete")
+    
+    mut(self) {
+      .backgroundColor(dynamic: .background)
+    }
+    
+    mut(backToAppButton) {
+      .combined(
+        .primaryStyle(),
+        .text(localized: "TODO"),
+        .subview(of: self),
+        .centerYAnchor(.equalTo, centerYAnchor),
+        .centerXAnchor(.equalTo, centerXAnchor),
+        .leadingAnchor(.equalTo, safeAreaLayoutGuide.leadingAnchor),
+        .trailingAnchor(.equalTo, safeAreaLayoutGuide.trailingAnchor)
+      )
+    }
+  }
 }

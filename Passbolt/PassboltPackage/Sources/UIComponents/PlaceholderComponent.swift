@@ -21,14 +21,54 @@
 // @since         v1.0
 //
 
-import UIComponents
+import AegithalosCocoa
 
-internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
+#warning("FIXME: let it be only in DEBUG before release, allowing for dev builds now")
+
+public final class PlaceholderView: View {
   
-  internal typealias View = ExtensionSetupView
-  internal typealias Controller = ExtensionSetupController
+  public required init() {
+    super.init()
+    
+    mut(self) {
+      .combined(
+        .backgroundColor(dynamic: .background)
+      )
+    }
+    
+    let label: Label = .init()
+    mut(label) {
+      .combined(
+        .titleStyle(),
+        .text("🚧 Not completed yet 🚧"),
+        .subview(of: self),
+        .edges(equalTo: self)
+      )
+    }
+  }
+}
+
+public struct PlaceholderController {}
+
+extension PlaceholderController: UIController {
   
-  internal static func instance(
+  public typealias Context = Void
+  
+  public static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    Self()
+  }
+}
+
+public final class PlaceholderViewController: PlainViewController, UIComponent {
+
+  public typealias View = PlaceholderView
+  public typealias Controller = PlaceholderController
+  
+  public static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
@@ -38,12 +78,11 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     )
   }
   
-  internal private(set) lazy var contentView: View = .init()
-  internal let components: UIComponentFactory
-  
+  public var components: UIComponentFactory
   private let controller: Controller
+  public private(set) lazy var contentView: View = .init()
   
-  internal init(
+  public init(
     using controller: Controller,
     with components: UIComponentFactory
   ) {
@@ -52,48 +91,5 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     super.init()
   }
   
-  internal func setupView() {
-    mut(navigationItem) {
-      .hidesBackButton(true)
-    }
-    setupSubscriptions()
-  }
-  
-  private func setupSubscriptions() {
-    contentView
-      .setupTapPublisher
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller
-          .setupExtension()
-          .sink(
-            receiveCompletion: { [weak self] completion in
-              guard case .failure = completion else { return }
-              self?.present(
-                snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(localized: .genericError)
-                  .instantiate(),
-                hideAfter: 3
-              )
-            }
-          )
-          .store(in: self.cancellables)
-      }
-      .store(in: cancellables)
-    
-    contentView
-      .skipTapPublisher
-      .sink { [weak self] in
-        self?.controller.skipSetup()
-      }
-      .store(in: cancellables)
-    
-    controller
-      .continueSetupPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.replaceWindowRoot(with: MainTabsViewController.self)
-      }
-      .store(in: cancellables)
-  }
+  public func setupView() {}
 }

@@ -21,7 +21,33 @@
 // @since         v1.0
 //
 
+import AegithalosCocoa
 import AuthenticationServices
+import Commons
+import PassboltExtension
 
-internal class CredentialProviderViewController: ASCredentialProviderViewController {
+@objc(RootViewController)
+internal class RootViewController: ASCredentialProviderViewController {
+  
+  private lazy var applicationExtension: ApplicationExtension = .init(rootViewController: self)
+  
+  internal init() {
+    super.init(nibName: nil, bundle: nil)
+    applicationExtension.initialize()
+  }
+  
+  @available(*, unavailable)
+  internal required init?(coder: NSCoder) {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+  override internal func prepareCredentialList(
+    for serviceIdentifiers: Array<ASCredentialServiceIdentifier>
+  ) {
+    applicationExtension.ui.prepareCredentialList()
+    #warning("TODO: [PAS-134] to complete - use serviceIdentifiers for suggestions")
+  }
+
+  override internal func prepareInterfaceForExtensionConfiguration() {
+    applicationExtension.ui.prepareInterfaceForExtensionConfiguration()
+  }
 }

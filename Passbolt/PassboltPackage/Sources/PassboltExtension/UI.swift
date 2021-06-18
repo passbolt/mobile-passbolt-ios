@@ -21,51 +21,51 @@
 // @since         v1.0
 //
 
-import Combine
-import Features
-import Foundation
-import PassboltApp
+import class AuthenticationServices.ASPasswordCredentialIdentity
+import UIComponents
 
-internal struct Application {
+public final class UI {
   
-  internal let ui: UI
+  private let rootViewController: UIViewController
   private let features: FeatureFactory
+  private let components: UIComponentFactory
   
-  internal init(
-    environment: RootEnvironment = RootEnvironment(
-      time: .live,
-      uuidGenerator: .live,
-      logger: .live,
-      networking: .foundation(),
-      preferences: .sharedUserDefaults(),
-      keychain: .live(),
-      biometrics: .live,
-      camera: .live(),
-      urlOpener: .live(),
-      appLifeCycle: .live(),
-      pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256()
-    )
+  public init(
+    rootViewController: UIViewController,
+    features: FeatureFactory
   ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
-    #endif
-    
-    self.ui = UI(features: features)
+    self.rootViewController = rootViewController
     self.features = features
+    self.components = UIComponentFactory(features: features)
   }
 }
 
-extension Application {
+extension UI {
   
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
+  public func prepareCredentialList() {
+    #warning("TODO: [PAS-???] to complete")
+    let vc: UIViewController = .init()
+    vc.view.backgroundColor = .green
+    setRootContent(vc)
+  }
+  
+  public func prepareInterfaceForExtensionConfiguration() {
+    setRootContent(components.instance(of: ExtensionSetupViewController.self))
+  }
+  
+  private func setRootContent(_ viewController: UIViewController) {
+    rootViewController.children.forEach {
+      $0.willMove(toParent: nil)
+      $0.view.removeFromSuperview()
+      $0.removeFromParent()
+    }
+    rootViewController.addChild(viewController)
+    mut(viewController.view) {
+      .combined(
+        .subview(of: rootViewController.view),
+        .edges(equalTo: rootViewController.view, usingSafeArea: false)
+      )
+    }
+    rootViewController.didMove(toParent: rootViewController)
   }
 }
-
-extension Application {
-  
-  internal static let shared: Application = .init()
-}
-

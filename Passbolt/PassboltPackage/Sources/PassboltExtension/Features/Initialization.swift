@@ -26,7 +26,7 @@ import Features
 
 public struct Initialization {
   
-  public var initialize: () -> Bool
+  public var initialize: () -> Void
   public var featureUnload: () -> Bool
 }
 
@@ -38,19 +38,17 @@ extension Initialization: Feature {
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Initialization {
+  ) -> Self {
     let diagnostics: Diagnostics = features.instance()
     
-    
-    func _initialize(with features: FeatureFactory) -> Bool {
+    func _initialize(with features: FeatureFactory) {
       diagnostics.debugLog("Initializing...")
       defer { diagnostics.debugLog("... initialization completed") }
       defer { features.unload(Initialization.self) }
       // initialize application extension features here
-      return true // true if succeeded
     }
     // swiftlint:disable:next unowned_variable_capture
-    let initialize: () -> Bool = { [unowned features] in
+    let initialize: () -> Void = { [unowned features] in
       _initialize(with: features)
     }
     
@@ -63,14 +61,17 @@ extension Initialization: Feature {
       featureUnload: featureUnload
     )
   }
+}
+
+#if DEBUG
+extension Initialization {
   
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
       initialize: Commons.placeholder("You have to provide mocks for used methods"),
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
-  #endif
 }
+#endif
+

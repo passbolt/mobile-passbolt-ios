@@ -21,10 +21,40 @@
 // @since         v1.0
 //
 
-@_exported import AegithalosCocoa
-@_exported import Commons
+import Features
+import UIComponents
 
-extension Bundle {
+internal struct ExtensionSetupController {
   
-  public static var uiCommons: Bundle { Bundle.module }
+  internal var goBackToApp: () -> Void
 }
+
+extension ExtensionSetupController: UIController {
+  
+  internal typealias Context = Void
+  
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let linkOpener: LinkOpener = features.instance()
+    let autofillExtensionContext: AutofillExtensionContext = features.instance()
+    
+    func goBackToApp() -> Void {
+      linkOpener
+        .openApp()
+        .ignoreOutput()
+        .sink(receiveCompletion: { _ in
+          // it will close extension and release all memory
+          autofillExtensionContext.completeExtensionConfiguration()
+        })
+        .store(in: cancellables)
+    }
+    
+    return Self(
+      goBackToApp: goBackToApp
+    )
+  }
+}
+

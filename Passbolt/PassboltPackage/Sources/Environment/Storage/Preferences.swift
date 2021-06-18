@@ -36,9 +36,10 @@ public struct Preferences {
 
 extension Preferences {
   
-  public static func userDefaults(
-    _ defaults: UserDefaults = .standard
-  ) -> Self {
+  public static func sharedUserDefaults() -> Self {
+    let defaults: UserDefaults
+      = .init(suiteName: "group.com.passbolt.mobile")
+      ?? .standard
     let supportedTypes: Set<ObjectIdentifier> = [
       ObjectIdentifier(Data.self),
       ObjectIdentifier(Data?.self),

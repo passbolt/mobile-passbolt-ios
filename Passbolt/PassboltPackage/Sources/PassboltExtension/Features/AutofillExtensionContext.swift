@@ -21,10 +21,40 @@
 // @since         v1.0
 //
 
-@_exported import AegithalosCocoa
-@_exported import Commons
+import Features
 
-extension Bundle {
+public struct AutofillExtensionContext {
   
-  public static var uiCommons: Bundle { Bundle.module }
+  #warning("TODO: [PAS-134] to complete - other methods")
+  public var completeExtensionConfiguration: () -> Void
+  
+  public init(
+    completeExtensionConfiguration: @escaping () -> Void
+  ) {
+    self.completeExtensionConfiguration = completeExtensionConfiguration
+  }
 }
+
+extension AutofillExtensionContext: Feature {
+  
+  public typealias Environment = Void
+  
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    unreachable("\(Self.self) does not support auto loading, it has to be created manually using root ASCredentialProviderViewController instance.")
+  }
+}
+  
+#if DEBUG
+extension AutofillExtensionContext {
+  
+  public static var placeholder: Self {
+    Self(
+      completeExtensionConfiguration: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif

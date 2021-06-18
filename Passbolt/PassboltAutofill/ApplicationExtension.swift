@@ -21,17 +21,19 @@
 // @since         v1.0
 //
 
-import Combine
+import class AuthenticationServices.ASCredentialProviderViewController
 import Features
-import Foundation
-import PassboltApp
+import NetworkClient
+import PassboltExtension
+import UIComponents
 
-internal struct Application {
+internal struct ApplicationExtension {
   
   internal let ui: UI
   private let features: FeatureFactory
   
   internal init(
+    rootViewController: ASCredentialProviderViewController,
     environment: RootEnvironment = RootEnvironment(
       time: .live,
       uuidGenerator: .live,
@@ -49,23 +51,38 @@ internal struct Application {
   ) {
     let features: FeatureFactory = .init(environment: environment)
     #if DEBUG
-    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
+    features.environment.networking = features
+      .environment
+      .networking
+      .withLogs(using: features.instance())
     #endif
     
-    self.ui = UI(features: features)
+    #warning("TODO: [PAS-134] to complete - other methods")
+    features.use(
+      AutofillExtensionContext(
+        completeExtensionConfiguration: {
+          DispatchQueue
+            .main
+            .async(
+              execute: rootViewController
+                .extensionContext
+                .completeExtensionConfigurationRequest
+            )
+        }
+      )
+    )
+    
+    self.ui = UI(
+      rootViewController: rootViewController,
+      features: features
+    )
     self.features = features
   }
 }
 
-extension Application {
+extension ApplicationExtension {
   
-  internal func initialize() -> Bool {
+  internal func initialize() {
     features.instance(of: Initialization.self).initialize()
   }
 }
-
-extension Application {
-  
-  internal static let shared: Application = .init()
-}
-

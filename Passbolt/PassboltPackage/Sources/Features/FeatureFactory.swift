@@ -63,7 +63,7 @@ extension FeatureFactory {
         ) as! F // it looks like compiler issue, casting is required regardless of returning Never here
       }
       #endif
-      var featureCancellables: Cancellables = .init()
+      let featureCancellables: Cancellables = .init()
       
       let loaded: F = .load(
         in: F.environmentScope(environment),
@@ -96,12 +96,6 @@ extension FeatureFactory {
     defer { featuresAccessLock.unlock() }
     return features[F.featureIdentifier]?.feature is F
   }
-}
-
-#if DEBUG
-extension FeatureFactory {
-  
-  public static var autoLoadFeatures: Bool = true
   
   public func use<F>(
     _ feature: F,
@@ -120,5 +114,9 @@ extension FeatureFactory {
   }
 }
 
+#if DEBUG
+extension FeatureFactory {
+  
+  public static var autoLoadFeatures: Bool = true
+}
 #endif
-

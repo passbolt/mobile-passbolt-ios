@@ -20,3 +20,49 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import UIComponents
+
+internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
+  
+  internal typealias View = ExtensionSetupView
+  internal typealias Controller = ExtensionSetupController
+  
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
+    )
+  }
+  
+  internal private(set) lazy var contentView: View = .init()
+  internal let components: UIComponentFactory
+  
+  private let controller: Controller
+  
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+  
+  internal func setupView() {
+    setupSubscriptions()
+  }
+  
+  private func setupSubscriptions() {
+    contentView
+      .backToAppTapPublisher
+      .sink { [weak self] in
+        self?.controller.goBackToApp()
+      }
+      .store(in: cancellables)
+  }
+}
+

@@ -29,6 +29,7 @@ import UIKit
 public struct ExternalURLOpener {
   
   public var openLink: (URL) -> AnyPublisher<Bool, Never>
+  public var openApp: () -> AnyPublisher<Bool, Never>
   public var openAppSettings: () -> AnyPublisher<Bool, Never>
   public var openSystemSettings: () -> AnyPublisher<Bool, Never>
 }
@@ -55,6 +56,7 @@ public extension ExternalURLOpener {
     // swiftlint:disable force_unwrapping
     return Self(
       openLink: openUrl,
+      openApp: { openUrl(URL(string: "passbolt:")!) },
       openAppSettings: { openUrl(URL(string: UIApplication.openSettingsURLString)!) },
       openSystemSettings: {
         #warning("TODO: there used to be system settings link but it looks like it is unavailable")
@@ -72,6 +74,7 @@ extension ExternalURLOpener {
   public static var placeholder: Self {
     Self(
       openLink: Commons.placeholder("You have to provide mocks for used methods"),
+      openApp: Commons.placeholder("You have to provide mocks for used methods"),
       openAppSettings: Commons.placeholder("You have to provide mocks for used methods"),
       openSystemSettings: Commons.placeholder("You have to provide mocks for used methods")
     )

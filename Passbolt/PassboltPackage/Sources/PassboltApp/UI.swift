@@ -27,11 +27,13 @@ public final class UI {
   
   private var windows: Dictionary<String, Window> = .init()
   private let features: FeatureFactory
+  private let components: UIComponentFactory
   
   public init(
     features: FeatureFactory
   ) {
     self.features = features
+    self.components = UIComponentFactory(features: features)
   }
 }
 
@@ -80,9 +82,15 @@ extension UI {
     in session: UISceneSession,
     with options: UIScene.ConnectionOptions
   ) -> Window {
-    Window(
+    let cancellables: Cancellables = .init()
+    return Window(
       in: scene,
-      using: features
+      using: WindowController.instance(
+        with: features,
+        cancellables: cancellables
+      ),
+      within: components,
+      cancellables: cancellables
     )
   }
 }

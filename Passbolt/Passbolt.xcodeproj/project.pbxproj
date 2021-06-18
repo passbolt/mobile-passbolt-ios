@@ -8,13 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		424C5B7E26319B2F006B7C9F /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424C5B7D26319B2F006B7C9F /* Application.swift */; };
+		426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
 		DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DD38F94A261746C500A6C627 /* Assets.xcassets */; };
 		DD38F96326174BB700A6C627 /* AuthenticationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD38F96226174BB700A6C627 /* AuthenticationServices.framework */; };
-		DD38F96626174BB700A6C627 /* CredentialProviderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F96526174BB700A6C627 /* CredentialProviderViewController.swift */; };
-		DD38F96926174BB700A6C627 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DD38F96726174BB700A6C627 /* MainInterface.storyboard */; };
-		DD38F96E26174BB700A6C627 /* Passbolt Autofill.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DD38F96626174BB700A6C627 /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F96526174BB700A6C627 /* RootViewController.swift */; };
+		DD38F96E26174BB700A6C627 /* PassboltAutofill.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DD38F96026174BB700A6C627 /* PassboltAutofill.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DD38F97626174D5600A6C627 /* AuthenticationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD38F96226174BB700A6C627 /* AuthenticationServices.framework */; };
 		DD3F9EBC26244C020027D016 /* PassboltApp in Frameworks */ = {isa = PBXBuildFile; productRef = DD3F9EBB26244C020027D016 /* PassboltApp */; };
 		DD59A9C82625A37500736D43 /* PassboltExtension in Frameworks */ = {isa = PBXBuildFile; productRef = DD59A9C72625A37500736D43 /* PassboltExtension */; };
@@ -40,7 +40,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				DD38F96E26174BB700A6C627 /* Passbolt Autofill.appex in Embed App Extensions */,
+				DD38F96E26174BB700A6C627 /* PassboltAutofill.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -49,17 +49,17 @@
 
 /* Begin PBXFileReference section */
 		424C5B7D26319B2F006B7C9F /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
+		426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationExtension.swift; sourceTree = "<group>"; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DD38F943261746C400A6C627 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		DD38F94A261746C500A6C627 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DD38F94F261746C500A6C627 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Passbolt Autofill.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD38F96026174BB700A6C627 /* PassboltAutofill.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PassboltAutofill.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F96226174BB700A6C627 /* AuthenticationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AuthenticationServices.framework; path = System/Library/Frameworks/AuthenticationServices.framework; sourceTree = SDKROOT; };
-		DD38F96526174BB700A6C627 /* CredentialProviderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialProviderViewController.swift; sourceTree = "<group>"; };
-		DD38F96826174BB700A6C627 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		DD38F96526174BB700A6C627 /* RootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootViewController.swift; sourceTree = "<group>"; };
 		DD38F96A26174BB700A6C627 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DD38F96B26174BB700A6C627 /* Passbolt_Autofill.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Passbolt_Autofill.entitlements; sourceTree = "<group>"; };
+		DD38F96B26174BB700A6C627 /* PassboltAutofill.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PassboltAutofill.entitlements; sourceTree = "<group>"; };
 		DD38F97526174D5600A6C627 /* Passbolt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Passbolt.entitlements; sourceTree = "<group>"; };
 		DD3F9EB726244A330027D016 /* PassboltPackage */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PassboltPackage; sourceTree = "<group>"; };
 		DD87927E262983CF006ECC0A /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
@@ -96,7 +96,7 @@
 				DD87927E262983CF006ECC0A /* TestPlan.xctestplan */,
 				DD3F9EB726244A330027D016 /* PassboltPackage */,
 				DD38F940261746C400A6C627 /* Passbolt */,
-				DD38F96426174BB700A6C627 /* Passbolt Autofill */,
+				DD38F96426174BB700A6C627 /* PassboltAutofill */,
 				DD38F96126174BB700A6C627 /* Frameworks */,
 				DD38F93F261746C400A6C627 /* Products */,
 			);
@@ -106,7 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				DD38F93E261746C400A6C627 /* Passbolt.app */,
-				DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */,
+				DD38F96026174BB700A6C627 /* PassboltAutofill.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -135,15 +135,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		DD38F96426174BB700A6C627 /* Passbolt Autofill */ = {
+		DD38F96426174BB700A6C627 /* PassboltAutofill */ = {
 			isa = PBXGroup;
 			children = (
-				DD38F96526174BB700A6C627 /* CredentialProviderViewController.swift */,
-				DD38F96726174BB700A6C627 /* MainInterface.storyboard */,
+				DD38F96526174BB700A6C627 /* RootViewController.swift */,
 				DD38F96A26174BB700A6C627 /* Info.plist */,
-				DD38F96B26174BB700A6C627 /* Passbolt_Autofill.entitlements */,
+				DD38F96B26174BB700A6C627 /* PassboltAutofill.entitlements */,
+				426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */,
 			);
-			path = "Passbolt Autofill";
+			path = PassboltAutofill;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -172,9 +172,9 @@
 			productReference = DD38F93E261746C400A6C627 /* Passbolt.app */;
 			productType = "com.apple.product-type.application";
 		};
-		DD38F95F26174BB700A6C627 /* Passbolt Autofill */ = {
+		DD38F95F26174BB700A6C627 /* PassboltAutofill */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DD38F96F26174BB700A6C627 /* Build configuration list for PBXNativeTarget "Passbolt Autofill" */;
+			buildConfigurationList = DD38F96F26174BB700A6C627 /* Build configuration list for PBXNativeTarget "PassboltAutofill" */;
 			buildPhases = (
 				DD38F95C26174BB700A6C627 /* Sources */,
 				DD38F95D26174BB700A6C627 /* Frameworks */,
@@ -184,12 +184,12 @@
 			);
 			dependencies = (
 			);
-			name = "Passbolt Autofill";
+			name = PassboltAutofill;
 			packageProductDependencies = (
 				DD59A9C72625A37500736D43 /* PassboltExtension */,
 			);
 			productName = "Passbolt Autofill";
-			productReference = DD38F96026174BB700A6C627 /* Passbolt Autofill.appex */;
+			productReference = DD38F96026174BB700A6C627 /* PassboltAutofill.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -223,7 +223,7 @@
 			projectRoot = "";
 			targets = (
 				DD38F93D261746C400A6C627 /* Passbolt */,
-				DD38F95F26174BB700A6C627 /* Passbolt Autofill */,
+				DD38F95F26174BB700A6C627 /* PassboltAutofill */,
 			);
 		};
 /* End PBXProject section */
@@ -244,7 +244,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DD38F96926174BB700A6C627 /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,7 +285,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DD38F96626174BB700A6C627 /* CredentialProviderViewController.swift in Sources */,
+				426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */,
+				DD38F96626174BB700A6C627 /* RootViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,21 +295,10 @@
 /* Begin PBXTargetDependency section */
 		DD38F96D26174BB700A6C627 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DD38F95F26174BB700A6C627 /* Passbolt Autofill */;
+			target = DD38F95F26174BB700A6C627 /* PassboltAutofill */;
 			targetProxy = DD38F96C26174BB700A6C627 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		DD38F96726174BB700A6C627 /* MainInterface.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				DD38F96826174BB700A6C627 /* Base */,
-			);
-			name = MainInterface.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		DD38F950261746C500A6C627 /* Debug */ = {
@@ -483,11 +472,11 @@
 		DD38F97026174BB700A6C627 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "Passbolt Autofill/Passbolt_Autofill.entitlements";
+				CODE_SIGN_ENTITLEMENTS = PassboltAutofill/PassboltAutofill.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = UHX38H22ZT;
-				INFOPLIST_FILE = "Passbolt Autofill/Info.plist";
+				INFOPLIST_FILE = PassboltAutofill/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -507,11 +496,11 @@
 		DD38F97126174BB700A6C627 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "Passbolt Autofill/Passbolt_Autofill.entitlements";
+				CODE_SIGN_ENTITLEMENTS = PassboltAutofill/PassboltAutofill.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = UHX38H22ZT;
-				INFOPLIST_FILE = "Passbolt Autofill/Info.plist";
+				INFOPLIST_FILE = PassboltAutofill/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -549,7 +538,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DD38F96F26174BB700A6C627 /* Build configuration list for PBXNativeTarget "Passbolt Autofill" */ = {
+		DD38F96F26174BB700A6C627 /* Build configuration list for PBXNativeTarget "PassboltAutofill" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DD38F97026174BB700A6C627 /* Debug */,

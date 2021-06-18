@@ -27,19 +27,17 @@ internal final class Window {
   
   private let window: UIWindow
   private let controller: WindowController
-  private let components: UIComponentFactory
-  private let cancellables: Cancellables = .init()
+  private let cancellables: Cancellables
   
   internal init(
     in scene: UIWindowScene,
-    using features: FeatureFactory
+    using controller: WindowController,
+    within components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.window = UIWindow(windowScene: scene)
-    self.controller = WindowController.instance(
-      with: features,
-      cancellables: cancellables
-    )
-    self.components = UIComponentFactory(features: features)
+    self.controller = controller
+    self.cancellables = cancellables
     self.window.rootViewController = components
       .instance(
         of: SplashScreenViewController.self,
