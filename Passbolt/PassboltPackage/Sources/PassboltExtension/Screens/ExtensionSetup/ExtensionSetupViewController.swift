@@ -58,6 +58,13 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   
   private func setupSubscriptions() {
     contentView
+      .closeTapPublisher
+      .sink { [weak self] in
+        self?.controller.closeConfiguration()
+      }
+      .store(in: cancellables)
+    
+    contentView
       .backToAppTapPublisher
       .sink { [weak self] in
         self?.controller.goBackToApp()

@@ -34,6 +34,7 @@ internal final class CodeScanningCameraInaccessibleViewController:
         .title(localized: "code.scanning.camera.unavailable"),
         .action(
           localized: .gotIt,
+          inBundle: .commons,
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: controller.exit

@@ -78,7 +78,10 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
     contentView
       .applyOn(
         button: .combined(
-          .text(localized: .continue),
+          .text(
+            localized: .continue,
+            inBundle: .commons
+          ),
           .action(controller.continue)
         )
       )

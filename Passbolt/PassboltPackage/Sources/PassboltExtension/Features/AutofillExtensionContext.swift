@@ -44,7 +44,10 @@ extension AutofillExtensionContext: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    unreachable("\(Self.self) does not support auto loading, it has to be created manually using root ASCredentialProviderViewController instance.")
+    unreachable(
+      "\(Self.self) does not support auto loading,"
+      + " it has to be created manually using root ASCredentialProviderViewController instance."
+    )
   }
 }
   

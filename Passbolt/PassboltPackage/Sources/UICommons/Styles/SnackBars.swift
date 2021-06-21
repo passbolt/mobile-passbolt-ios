@@ -26,10 +26,12 @@ import AegithalosCocoa
 extension Mutation where Subject: View {
   
   public static func snackBarErrorMessage(
-    localized localizationKey: LocalizationKeyConstant
+    localized localizationKey: LocalizationKeyConstant,
+    inBundle bundle: Bundle = .main
   ) -> Self {
     snackBarMessage(
       localized: localizationKey,
+      inBundle: bundle,
       backgroundColor: .secondaryRed,
       textColor: .primaryTextAlternative
     )
@@ -37,6 +39,7 @@ extension Mutation where Subject: View {
     
   public static func snackBarMessage(
     localized localizationKey: LocalizationKeyConstant,
+    inBundle bundle: Bundle = .main,
     backgroundColor: DynamicColor,
     textColor: DynamicColor
   ) -> Self {
@@ -51,7 +54,7 @@ extension Mutation where Subject: View {
             .font(.inter(ofSize: 14, weight: .regular)),
             .textColor(dynamic: textColor),
             .textAlignment(.center),
-            .text(localized: localizationKey),
+            .text(localized: localizationKey, inBundle: bundle),
             .subview(of: subject),
             .edges(
               equalTo: subject,

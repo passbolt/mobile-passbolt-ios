@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
   name: "PassboltPackage",
+  defaultLocalization: "en",
   platforms: [.iOS(.v14)],
   products: [
     .library(
@@ -107,6 +108,9 @@ let package = Package(
       name: "Commons",
       dependencies: [
         .product(name: "AegithalosCocoa", package: "Aegithalos")
+      ],
+      resources: [
+        .process("Localizable.strings")
       ]
     ),
     .testTarget(
@@ -203,7 +207,10 @@ let package = Package(
     ),
     .testTarget(
       name: "PassboltExtensionTests",
-      dependencies: ["PassboltExtension"]
+      dependencies: [
+        "PassboltExtension",
+        "TestExtensions"
+      ]
     ),
     .target(
       name: "Resources",

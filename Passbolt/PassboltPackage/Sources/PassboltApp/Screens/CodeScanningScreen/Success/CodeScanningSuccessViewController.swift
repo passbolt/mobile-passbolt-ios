@@ -67,7 +67,10 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
     contentView
       .applyOn(
         button: .combined(
-          .text(localized: .continue),
+          .text(
+            localized: .continue,
+            inBundle: .commons
+          ),
           .action(controller.continue)
         )
       )

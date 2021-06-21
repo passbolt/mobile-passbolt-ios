@@ -31,6 +31,7 @@ internal final class CodeScanningHelpViewController: AlertViewController<CodeSca
         .message(localized: "code.scanning.help.message"),
         .action(
           localized: .gotIt,
+          inBundle: .commons,
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: {}

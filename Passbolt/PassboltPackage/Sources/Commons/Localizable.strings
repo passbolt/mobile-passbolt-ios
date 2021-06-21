@@ -19,45 +19,18 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import UIComponents
+// Commons
 
-// swiftlint:disable:next colon
-internal final class WelcomeScreenNoAccountAlertViewController:
-  AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent {
-
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "welcome.no.account.alert.title"),
-        .message(localized: "welcome.no.account.alert.text"),
-        .action(
-          localized: .gotIt,
-          inBundle: .commons,
-          accessibilityIdentifier: "alert.button.close",
-          handler: controller.dismiss
-        )
-      )
-    }
-  }
-}
-
-internal struct WelcomeScreenNoAccountAlertController {
-  
-  internal var dismiss: () -> Void
-}
-
-extension WelcomeScreenNoAccountAlertController: UIController {
-  
-  internal typealias Context = () -> Void
-  
-  internal static func instance(
-    in context: @escaping Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      dismiss: context
-    )
-  }
-}
+"generic.done" = "Done";
+"generic.yes" = "Yes";
+"generic.cancel" = "Cancel";
+"generic.remove" = "Remove";
+"generic.loading" = "Loading...";
+"generic.continue" = "Continue";
+"generic.retry" = "Retry";
+"generic.delete" = "Delete";
+"generic.got.it" = "Got it";
+"generic.settings" = "Settings";
+"generic.error" = "Something went wrong!";

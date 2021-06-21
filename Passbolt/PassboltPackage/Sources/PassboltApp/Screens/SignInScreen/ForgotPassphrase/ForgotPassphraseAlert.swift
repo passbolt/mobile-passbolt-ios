@@ -34,6 +34,7 @@ internal final class ForgotPassphraseAlertViewController:
         .message(localized: "authorization.forgot.passphrase.alert.message"),
         .action(
           localized: .gotIt,
+          inBundle: .commons,
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: {}

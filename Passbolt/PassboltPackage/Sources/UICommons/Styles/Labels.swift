@@ -33,4 +33,13 @@ extension Mutation where Subject: Label {
       .numberOfLines(0)
     )
   }
+  
+  public static func infoStyle() -> Self {
+    .combined(
+      .font(.inter(ofSize: 14, weight: .light)),
+      .textColor(dynamic: .secondaryText),
+      .textAlignment(.center),
+      .numberOfLines(0)
+    )
+  }
 }

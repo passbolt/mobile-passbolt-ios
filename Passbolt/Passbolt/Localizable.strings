@@ -21,17 +21,8 @@
 // @since         v1.0
 //
 
-"generic.done" = "Done";
-"generic.yes" = "Yes";
-"generic.cancel" = "Cancel";
-"generic.remove" = "Remove";
-"generic.loading" = "Loading...";
-"generic.continue" = "Continue";
-"generic.retry" = "Retry";
-"generic.delete" = "Delete";
-"generic.got.it" = "Got it";
-"generic.settings" = "Settings";
-"generic.error" = "Something went wrong!";
+// Passbolt application
+
 "welcome.title" = "Welcome!";
 "welcome.description" = "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device.";
 "welcome.connect.to.account" = "Connect to an existing account";

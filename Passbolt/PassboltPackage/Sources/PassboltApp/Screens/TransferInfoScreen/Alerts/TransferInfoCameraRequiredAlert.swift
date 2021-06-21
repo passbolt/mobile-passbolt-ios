@@ -34,11 +34,13 @@ internal final class TransferInfoCameraRequiredAlertViewController:
         .message(localized: "transfer.account.camera.access.alert.text"),
         .action(
           localized: .cancel,
+          inBundle: .commons,
           accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
           localized: .settings,
+          inBundle: .commons,
           accessibilityIdentifier: "alert.button.dismiss",
           handler: controller.showSettings
         )

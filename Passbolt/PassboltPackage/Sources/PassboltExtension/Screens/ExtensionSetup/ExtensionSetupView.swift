@@ -23,32 +23,81 @@
 
 import UICommons
 
-internal final class ExtensionSetupView: View {
+internal final class ExtensionSetupView: ScrolledStackView {
   
+  internal var closeTapPublisher: AnyPublisher<Void, Never>
   internal var backToAppTapPublisher: AnyPublisher<Void, Never>
   
   internal required init() {
+    let closeButton: TextButton = .init()
     let backToAppButton: TextButton = .init()
     
+    self.closeTapPublisher = closeButton.tapPublisher
     self.backToAppTapPublisher = backToAppButton.tapPublisher
     
     super.init()
     
-    #warning("TODO: [PAS-133] to complete")
-    
-    mut(self) {
+    let imageContainer: View = .init()
+    mut(imageContainer) {
       .backgroundColor(dynamic: .background)
     }
     
-    mut(backToAppButton) {
+    let imageView: ImageView = .init()
+    mut(imageView) {
+      .combined(
+        .subview(of: imageContainer),
+        .image(dynamic: .successMark),
+        .contentMode(.scaleAspectFit),
+        .topAnchor(.equalTo, imageContainer.topAnchor),
+        .bottomAnchor(.equalTo, imageContainer.bottomAnchor),
+        .centerXAnchor(.equalTo, imageContainer.centerXAnchor),
+        .widthAnchor(.lessThanOrEqualTo, imageContainer.widthAnchor, multiplier: 0.4)
+      )
+    }
+
+    let titleLabel: Label = .init()
+    mut(titleLabel) {
+      .combined(
+        .titleStyle(),
+        .text(localized: "extension.setup.title")
+      )
+    }
+
+    let infoLabel: Label = .init()
+    mut(infoLabel) {
+      .combined(
+        .infoStyle(),
+        .text(localized: "extension.setup.info")
+      )
+    }
+
+    mut(closeButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "TODO"),
-        .subview(of: self),
-        .centerYAnchor(.equalTo, centerYAnchor),
-        .centerXAnchor(.equalTo, centerXAnchor),
-        .leadingAnchor(.equalTo, safeAreaLayoutGuide.leadingAnchor),
-        .trailingAnchor(.equalTo, safeAreaLayoutGuide.trailingAnchor)
+        .text(localized: .done, inBundle: .commons)
+      )
+    }
+
+    mut(backToAppButton) {
+      .combined(
+        .linkStyle(),
+        .text(localized: "extension.setup.button.back.to.app")
+      )
+    }
+
+    mut(self) {
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .isLayoutMarginsRelativeArrangement(true),
+        .contentInset(.init(top: 54, left: 16, bottom: 8, right: 16)),
+        .append(imageContainer),
+        .appendSpace(of: 32),
+        .append(titleLabel),
+        .appendSpace(of: 16),
+        .append(infoLabel),
+        .appendFiller(minSize: 8),
+        .append(closeButton),
+        .append(backToAppButton)
       )
     }
   }
