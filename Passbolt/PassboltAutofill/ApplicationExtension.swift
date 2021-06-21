@@ -22,6 +22,7 @@
 //
 
 import class AuthenticationServices.ASCredentialProviderViewController
+import class AuthenticationServices.ASCredentialServiceIdentifier
 import Features
 import NetworkClient
 import PassboltExtension
@@ -31,6 +32,8 @@ internal struct ApplicationExtension {
   
   internal let ui: UI
   private let features: FeatureFactory
+  private let requestedServicesSubject: CurrentValueSubject<Array<AutofillExtensionContext.ServiceIdentifier>, Never>
+    = .init(Array())
   
   internal init(
     rootViewController: ASCredentialProviderViewController,
@@ -57,18 +60,36 @@ internal struct ApplicationExtension {
       .withLogs(using: features.instance())
     #endif
     
-    #warning("TODO: [PAS-134] to complete - other methods")
     features.use(
       AutofillExtensionContext(
+        completeWithCredential: { credential in
+          DispatchQueue.main.async {
+            rootViewController
+              .extensionContext
+              .completeRequest(
+                withSelectedCredential: .init(
+                  user: credential.user,
+                  password: credential.password
+                ),
+                completionHandler: nil
+              )
+          }
+        },
+        completeWithError: { error in
+          DispatchQueue.main.async {
+            rootViewController
+              .extensionContext
+              .cancelRequest(withError: error)
+          }
+        },
         completeExtensionConfiguration: {
-          DispatchQueue
-            .main
-            .async(
-              execute: rootViewController
-                .extensionContext
-                .completeExtensionConfigurationRequest
-            )
-        }
+          DispatchQueue.main.async(
+            execute: rootViewController
+              .extensionContext
+              .completeExtensionConfigurationRequest
+          )
+        },
+        requestedServiceIdentifiersPublisher: requestedServicesSubject.eraseToAnyPublisher
       )
     )
     
@@ -84,5 +105,18 @@ extension ApplicationExtension {
   
   internal func initialize() {
     features.instance(of: Initialization.self).initialize()
+  }
+  
+  internal func requestSuggestions(
+    for identifiers: Array<ASCredentialServiceIdentifier>
+  ) {
+    requestedServicesSubject.send(
+      identifiers
+        .map { identifier in
+          AutofillExtensionContext.ServiceIdentifier(
+            rawValue: identifier.identifier
+          )
+        }
+    )
   }
 }

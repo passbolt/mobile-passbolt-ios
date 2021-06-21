@@ -43,8 +43,8 @@ internal class RootViewController: ASCredentialProviderViewController {
   override internal func prepareCredentialList(
     for serviceIdentifiers: Array<ASCredentialServiceIdentifier>
   ) {
+    applicationExtension.requestSuggestions(for: serviceIdentifiers)
     applicationExtension.ui.prepareCredentialList()
-    #warning("TODO: [PAS-134] to complete - use serviceIdentifiers for suggestions")
   }
 
   override internal func prepareInterfaceForExtensionConfiguration() {

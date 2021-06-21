@@ -22,16 +22,45 @@
 //
 
 import Features
+import struct Foundation.URL
 
 public struct AutofillExtensionContext {
   
-  #warning("TODO: [PAS-134] to complete - other methods")
+  public var completeWithCredential: (Credential) -> Void
+  public var completeWithError: (TheError) -> Void
   public var completeExtensionConfiguration: () -> Void
+  public var requestedServiceIdentifiersPublisher: () -> AnyPublisher<Array<ServiceIdentifier>, Never>
   
   public init(
-    completeExtensionConfiguration: @escaping () -> Void
+    completeWithCredential: @escaping (Credential) -> Void,
+    completeWithError: @escaping (TheError) -> Void,
+    completeExtensionConfiguration: @escaping () -> Void,
+    requestedServiceIdentifiersPublisher: @escaping () -> AnyPublisher<Array<ServiceIdentifier>, Never>
   ) {
+    self.completeWithCredential = completeWithCredential
+    self.completeWithError = completeWithError
     self.completeExtensionConfiguration = completeExtensionConfiguration
+    self.requestedServiceIdentifiersPublisher = requestedServiceIdentifiersPublisher
+  }
+}
+
+extension AutofillExtensionContext {
+  
+  public enum ServiceIdentifierTag {}
+  public typealias ServiceIdentifier = Tagged<String, ServiceIdentifierTag>
+  
+  public struct Credential {
+    
+    public let user: String
+    public let password: String
+    
+    public init(
+      user: String,
+      password: String
+    ) {
+      self.user = user
+      self.password = password
+    }
   }
 }
 
@@ -56,7 +85,10 @@ extension AutofillExtensionContext {
   
   public static var placeholder: Self {
     Self(
-      completeExtensionConfiguration: Commons.placeholder("You have to provide mocks for used methods")
+      completeWithCredential: Commons.placeholder("You have to provide mocks for used methods"),
+      completeWithError: Commons.placeholder("You have to provide mocks for used methods"),
+      completeExtensionConfiguration: Commons.placeholder("You have to provide mocks for used methods"),
+      requestedServiceIdentifiersPublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }
