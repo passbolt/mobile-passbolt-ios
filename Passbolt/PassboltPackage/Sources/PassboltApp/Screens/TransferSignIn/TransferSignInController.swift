@@ -63,6 +63,8 @@ extension TransferSignInController: UIController {
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
     let biometrics: Biometry = features.instance()
+    let diagnostics: Diagnostics = features.instance()
+    
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -107,6 +109,7 @@ extension TransferSignInController: UIController {
       accountTransfer
         .accountDetailsPublisher()
         .map { details -> AccountTransfer.AccountDetails? in details }
+        .collectErrorLog(using: diagnostics)
         .replaceError(with: nil)
         .compactMap { $0 }
         .eraseToAnyPublisher()
@@ -117,6 +120,7 @@ extension TransferSignInController: UIController {
       accountTransfer
         .avatarPublisher()
         .map { data -> Data? in data }
+        .collectErrorLog(using: diagnostics)
         .replaceError(with: nil)
         .eraseToAnyPublisher()
     }

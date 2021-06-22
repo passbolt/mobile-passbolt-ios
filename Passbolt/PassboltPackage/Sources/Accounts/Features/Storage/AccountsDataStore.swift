@@ -484,6 +484,7 @@ extension AccountsDataStore: Feature {
       
       // data integrity check performs cleanup in case of partial success
       defer { checkDataIntegrity().forceSuccess("Data integrity protection") }
+      #warning("TODO: Consider propagating the error outside of this function")
       _ = environment
         .keychain
         .delete(matching: .accountPassphraseQuery(for: accountID))

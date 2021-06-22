@@ -34,6 +34,7 @@ import XCTest
 // swiftlint:disable implicitly_unwrapped_optional
 // swiftlint:disable force_try
 // swiftlint:disable force_unwrapping
+// swiftlint:disable file_length
 
 final class SignInTests: TestCase {
   

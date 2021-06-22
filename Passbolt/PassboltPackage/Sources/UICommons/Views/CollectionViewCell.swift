@@ -41,6 +41,13 @@ open class CollectionViewCell: UICollectionViewCell {
     }
   }
   
+  public lazy var dynamicBorderColor: DynamicColor
+  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
+  
   override public convenience init(frame: CGRect) {
     self.init()
   }
@@ -72,5 +79,20 @@ open class CollectionViewCell: UICollectionViewCell {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.layer.borderColor = dynamicBorderColor(in: interfaceStyle).cgColor
+  }
+}
+
+extension Mutation where Subject == CollectionViewCell {
+  
+  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
+    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  }
+  
+  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
+    .custom { (subject: Subject) in
+      subject.dynamicBorderColor = color
+      subject.layer.borderWidth = width
+    }
   }
 }

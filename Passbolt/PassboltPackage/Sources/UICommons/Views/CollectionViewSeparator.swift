@@ -21,41 +21,9 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-
-extension Mutation where Subject: ImageButton {
+public class CollectionViewSeparator: CollectionViewSupplementaryView {
   
-  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
-  
-  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
-  }
-  
-  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
-  }
-  
-  public static func image(symbol name: SymbolNameConstant) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
-    }
-  }
-  
-  @inlinable public static func image(
-    named imageName: ImageNameConstant,
-    from bundle: Bundle? = nil,
-    compatibleWith traitCollection: UITraitCollection? = nil
-  ) -> Self {
-    Self { (subject: Subject) in
-      let image: UIImage? = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
-      )
-      
-      subject.dynamicImage = .default(image)
-    }
+  override public func setup() {
+    dynamicBackgroundColor = .divider
   }
 }

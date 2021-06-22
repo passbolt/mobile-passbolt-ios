@@ -73,8 +73,9 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     switch destination {
     // swiftlint:disable:next explicit_type_interface
     case let .accountSelection(accounts):
-      #warning("TODO: FIXME: [PAS-136] - replace with account selection")
-      replaceWindowRoot(with: MainTabsViewController.self)
+      replaceWindowRoot(
+        with: AccountSelectionNavigationViewController.self
+      )
 
     case .accountSetup:
       replaceWindowRoot(with: WelcomeNavigationViewController.self)

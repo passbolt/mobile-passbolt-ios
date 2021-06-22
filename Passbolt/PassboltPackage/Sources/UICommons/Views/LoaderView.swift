@@ -1,4 +1,5 @@
 import AegithalosCocoa
+import Commons
 
 public final class LoaderOverlayView: View {
 
@@ -26,7 +27,7 @@ public final class LoaderOverlayView: View {
         .textAlignment(.center),
         .numberOfLines(1),
         .textColor(dynamic: .primaryText),
-        .text(localized: "generic.loading"),
+        .text(localized: .loading, inBundle: .commons),
         .subview(of: containerView),
         .leadingAnchor(.equalTo, containerView.leadingAnchor, constant: 8),
         .trailingAnchor(.equalTo, containerView.trailingAnchor, constant: -8),

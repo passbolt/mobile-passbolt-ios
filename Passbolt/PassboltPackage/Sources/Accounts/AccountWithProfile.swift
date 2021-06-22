@@ -31,7 +31,7 @@ public struct AccountWithProfile {
   public let username: String
   public let firstName: String
   public let lastName: String
-  public let avatarImagePath: String
+  public let avatarImageURL: String
   public let fingerprint: String
   public let biometricsEnabled: Bool
 }

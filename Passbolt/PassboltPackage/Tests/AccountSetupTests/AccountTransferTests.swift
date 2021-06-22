@@ -870,7 +870,7 @@ private let validAccountWithProfile: AccountWithProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImagePath: "avatarImagePath",
+  avatarImageURL: "avatarImagePath",
   fingerprint: "FINGERPRINT",
   biometricsEnabled: false
 )

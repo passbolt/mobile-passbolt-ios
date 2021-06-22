@@ -35,7 +35,7 @@ public struct Accounts {
     _ username: String,
     _ firstName: String,
     _ lastName: String,
-    _ avatarImagePath: String,
+    _ avatarImageURL: String,
     _ fingerprint: String,
     _ armoredKey: ArmoredPrivateKey,
     _ passphrase: Passphrase
@@ -91,7 +91,7 @@ extension Accounts: Feature {
               username: profile.username,
               firstName: profile.firstName,
               lastName: profile.lastName,
-              avatarImagePath: profile.avatarImagePath,
+              avatarImageURL: profile.avatarImageURL,
               fingerprint: account.fingerprint,
               biometricsEnabled: profile.biometricsEnabled
             )
@@ -112,7 +112,7 @@ extension Accounts: Feature {
       username: String,
       firstName: String,
       lastName: String,
-      avatarImagePath: String,
+      avatarImageURL: String,
       fingerprint: String,
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
@@ -144,7 +144,7 @@ extension Accounts: Feature {
         username: username,
         firstName: firstName,
         lastName: lastName,
-        avatarImagePath: avatarImagePath,
+        avatarImageURL: avatarImageURL,
         biometricsEnabled: false // it is always disabled initially
       )
       
@@ -205,7 +205,7 @@ extension Accounts: Feature {
     return Self(
       verifyStorageDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
-      transferAccount: transferAccount(domain:userID:username:firstName:lastName:avatarImagePath:fingerprint:armoredKey:passphrase:),
+      transferAccount: transferAccount(domain:userID:username:firstName:lastName:avatarImageURL:fingerprint:armoredKey:passphrase:),
       removeAccount: remove(accountWithID:)
     )
   }

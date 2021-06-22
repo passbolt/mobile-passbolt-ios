@@ -21,41 +21,18 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Accounts
+import UIComponents
 
-extension Mutation where Subject: ImageButton {
+internal struct AccountSelectionNavigationController: UIController {
   
-  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
+  internal typealias Context = Void
   
-  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
-  }
-  
-  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
-  }
-  
-  public static func image(symbol name: SymbolNameConstant) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
-    }
-  }
-  
-  @inlinable public static func image(
-    named imageName: ImageNameConstant,
-    from bundle: Bundle? = nil,
-    compatibleWith traitCollection: UITraitCollection? = nil
+  internal static func instance(
+    in context: Void,
+    with features: FeatureFactory,
+    cancellables: Cancellables
   ) -> Self {
-    Self { (subject: Subject) in
-      let image: UIImage? = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
-      )
-      
-      subject.dynamicImage = .default(image)
-    }
+    Self()
   }
 }

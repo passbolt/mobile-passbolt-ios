@@ -23,39 +23,38 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: ImageButton {
+public final class ContainerView<ContentView: UIView>: View {
   
-  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
+  private let contentView: ContentView
   
-  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
-  }
-  
-  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
-  }
-  
-  public static func image(symbol name: SymbolNameConstant) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
-    }
-  }
-  
-  @inlinable public static func image(
-    named imageName: ImageNameConstant,
-    from bundle: Bundle? = nil,
-    compatibleWith traitCollection: UITraitCollection? = nil
-  ) -> Self {
-    Self { (subject: Subject) in
-      let image: UIImage? = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
+  public init(
+    contentView: ContentView,
+    mutation: Mutation<ContentView> = .none,
+    edges: UIEdgeInsets = .zero,
+    widthMultiplier: CGFloat = 1,
+    heightMultiplier: CGFloat = 1
+  ) {
+    self.contentView = contentView
+    super.init()
+    
+    mut(contentView) {
+      .combined(
+        mutation,
+        .subview(of: self),
+        .leftAnchor(.greaterThanOrEqualTo, leftAnchor, constant: edges.left),
+        .rightAnchor(.lessThanOrEqualTo, rightAnchor, constant: -edges.right),
+        .topAnchor(.greaterThanOrEqualTo, topAnchor, constant: edges.top),
+        .bottomAnchor(.lessThanOrEqualTo, bottomAnchor, constant: -edges.bottom),
+        .centerXAnchor(.equalTo, centerXAnchor),
+        .centerYAnchor(.equalTo, centerYAnchor),
+        .widthAnchor(.equalTo, widthAnchor, multiplier: widthMultiplier),
+        .heightAnchor(.equalTo, heightAnchor, multiplier: heightMultiplier)
       )
-      
-      subject.dynamicImage = .default(image)
     }
+  }
+  
+  @available(*, unavailable)
+  public required init() {
+    unreachable("\(Self.self).\(#function) should not be used")
   }
 }

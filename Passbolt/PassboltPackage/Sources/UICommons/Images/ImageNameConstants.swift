@@ -32,6 +32,8 @@ extension ImageNameConstant {
   public static var person: Self { "Person" }
   public static var homeTab: Self { "HomeTab" }
   public static var settingsTab: Self { "SettingsTab" }
+  public static var trash: Self { "Trash" }
+  public static var plus: Self { "Plus" }
 }
 
 extension DynamicImage {

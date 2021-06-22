@@ -155,14 +155,17 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         guard let self = self else { return }
         self.controller
           .completeTransfer()
+          .handleEvents(receiveSubscription: { [weak self] _ in
+            self?.present(overlay: LoaderOverlayView())
+          })
           .receive(on: RunLoop.main)
           .sink(receiveCompletion: { [weak self] completion in
-            // swiftlint:disable:next explicit_type_interface
+            self?.dismissOverlay()
+            
             switch completion {
             case .finished:
               break
-            case .failure(.duplicateAccount):
-              break
+              
             case .failure:
               self?.present(
                 snackbar: Mutation<UICommons.View>

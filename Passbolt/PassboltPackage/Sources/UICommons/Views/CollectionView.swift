@@ -40,6 +40,14 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
+  
+  public lazy var dynamicBorderColor: DynamicColor
+  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
+  
   public var emptyStateView: UIView? {
     didSet {
       oldValue?.removeFromSuperview()
@@ -63,7 +71,8 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     layout: UICollectionViewLayout,
     cells: Array<CollectionViewCell.Type>,
     headers: Array<CollectionReusableView.Type> = [],
-    footers: Array<CollectionReusableView.Type> = []
+    footers: Array<CollectionReusableView.Type> = [],
+    supplementaryViews: Array<CollectionViewSupplementaryView.Type> = []
   ) {
     super.init(
       frame: .zero,
@@ -82,10 +91,18 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     footers.forEach { footer in
       register(
         footer,
-        forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+        forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
         withReuseIdentifier: footer.reuseIdentifier
       )
     }
+    supplementaryViews.forEach { supplementaryView in
+      register(
+        supplementaryView,
+        forSupplementaryViewOfKind: supplementaryView.kind,
+        withReuseIdentifier: supplementaryView.reuseIdentifier
+      )
+    }
+    
     setup()
   }
   
@@ -139,14 +156,22 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     unreachable("\(Self.self).\(#function) should be overriden to be used")
   }
   
-  internal func setupHeader(
+  open func setupHeader(
     for section: Section,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
     unreachable("\(Self.self).\(#function) should be overriden to be used")
   }
 
-  internal func setupFooter(
+  open func setupFooter(
+    for section: Section,
+    at indexPath: IndexPath
+  ) -> CollectionReusableView? {
+    unreachable("\(Self.self).\(#function) should be overriden to be used")
+  }
+  
+  open func setupSupplementaryView(
+    _ kind: String,
     for section: Section,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
@@ -190,7 +215,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
         return self.setupFooter(for: self.section(at: indexPath), at: indexPath)
         
       case _:
-        return nil
+        return self.setupSupplementaryView(kind, for: self.section(at: indexPath), at: indexPath)
       }
     }
     return dataSource

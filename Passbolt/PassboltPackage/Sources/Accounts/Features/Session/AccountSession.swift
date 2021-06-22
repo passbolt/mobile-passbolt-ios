@@ -234,7 +234,7 @@ extension AccountSession: Feature {
       #warning("TODO: Determine if session should be deleted (sessionSubject.send(nil)")
       
       let method: SignIn.Method
-      if let token = sessionSubject.value?.refreshToken {
+      if let token: String = sessionSubject.value?.refreshToken {
         method = .refreshToken(token)
       } else {
         method = .challenge

@@ -517,7 +517,7 @@ private let validAccountProfile: AccountProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImagePath: "avatarImagePath",
+  avatarImageURL: "avatarImagePath",
   biometricsEnabled: false
 )
 

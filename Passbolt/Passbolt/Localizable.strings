@@ -94,3 +94,11 @@
 "tab.home" = "Home";
 "tab.settings" = "Settings";
 
+"account.selection.title" = "Welcome back!";
+"account.selection.subtitle" = "Choose an account to sign in!";
+"account.selection.remove.account.button.title" = "Remove an account from this device";
+"account.selection.add.account.footer.title" = "Add new account";
+"account.selection.remove.account.title" = "Unlink an account";
+"account.selection.remove.account.subtitle" = "Choose an account to unlink.";
+"account.selection.remove.alert.title" = "Are you sure ?";
+"account.selection.remove.alert.message" = "This will remove your account from this device. Your passwords will not be deleted.";

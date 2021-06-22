@@ -26,19 +26,18 @@ import Environment
 import struct Foundation.Data
 
 public typealias MediaDownloadRequest
-  = NetworkRequest<DomainSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse>
+  = NetworkRequest<EmptyNetworkSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse>
 
 extension MediaDownloadRequest {
   
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
-      template: .init(cacheResponse: true) { sessionVariable, requestVariable in
+      template: .init(cacheResponse: true) { _, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
-          .path(requestVariable.path),
+          .url(string: requestVariable.urlString),
           .method(.get)
         )
       },
@@ -50,11 +49,11 @@ extension MediaDownloadRequest {
 }
 
 public struct MediaDownloadRequestVariable {
+
+  public var urlString: String
   
-  public var path: String
-  
-  public init(path: String) {
-    self.path = path
+  public init(urlString: String) {
+    self.urlString = urlString
   }
 }
 

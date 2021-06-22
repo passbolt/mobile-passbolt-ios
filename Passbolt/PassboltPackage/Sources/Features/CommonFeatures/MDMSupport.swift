@@ -40,7 +40,7 @@ extension MDMSupport {
     public let username: String
     public let firstName: String
     public let lastName: String
-    public let avatarImagePath: String
+    public let avatarImageURL: String
     public let fingerprint: String
     public let armoredKey: String
   }
@@ -81,7 +81,7 @@ extension MDMSupport: Feature {
         let username: String = transferedAccountData["username"] as? String,
         let firstName: String = transferedAccountData["firstName"] as? String,
         let lastName: String = transferedAccountData["lastName"] as? String,
-        let avatarImagePath: String = transferedAccountData["avatarImagePath"] as? String,
+        let avatarImageURL: String = transferedAccountData["avatarImageURL"] as? String,
         let fingerprint: String = transferedAccountData["fingerprint"] as? String,
         let flattenedArmoredKey: String = transferedAccountData["flattenedArmoredKey"] as? String
       else { return nil }
@@ -101,7 +101,7 @@ extension MDMSupport: Feature {
         username: username,
         firstName: firstName,
         lastName: lastName,
-        avatarImagePath: avatarImagePath,
+        avatarImageURL: avatarImageURL,
         fingerprint: fingerprint,
         armoredKey: armoredKey
       )

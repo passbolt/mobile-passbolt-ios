@@ -118,7 +118,7 @@ extension NetworkClient: Feature {
       ),
       mediaDownload: .live(
         using: environment,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
       ),
       serverPGPPublicKeyRequest: .live(
         using: environment,

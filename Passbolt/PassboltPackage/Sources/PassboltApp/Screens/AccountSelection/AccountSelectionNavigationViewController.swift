@@ -21,41 +21,41 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import UICommons
+import UIComponents
 
-extension Mutation where Subject: ImageButton {
+internal final class AccountSelectionNavigationViewController: NavigationViewController, UIComponent {
   
-  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
+  internal typealias Controller = AccountSelectionNavigationController
   
-  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
-  }
-  
-  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
-  }
-  
-  public static func image(symbol name: SymbolNameConstant) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
-    }
-  }
-  
-  @inlinable public static func image(
-    named imageName: ImageNameConstant,
-    from bundle: Bundle? = nil,
-    compatibleWith traitCollection: UITraitCollection? = nil
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
   ) -> Self {
-    Self { (subject: Subject) in
-      let image: UIImage? = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
-      )
-      
-      subject.dynamicImage = .default(image)
+    Self(
+      using: controller,
+      with: components
+    )
+  }
+  
+  internal let components: UIComponentFactory
+  private let controller: AccountSelectionNavigationController
+  
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+  
+  internal func setup() {
+    let accountSelectionScreen: AccountSelectionViewController = components.instance()
+    setViewControllers([accountSelectionScreen], animated: false)
+    
+    mut(navigationBarView) {
+      .primaryNavigationStyle()
     }
   }
 }

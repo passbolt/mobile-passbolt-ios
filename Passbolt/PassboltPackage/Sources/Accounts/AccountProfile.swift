@@ -31,7 +31,7 @@ public struct AccountProfile {
   public var username: String
   public var firstName: String
   public var lastName: String
-  public var avatarImagePath: String
+  public var avatarImageURL: String
   public internal(set) var biometricsEnabled: Bool
 }
 

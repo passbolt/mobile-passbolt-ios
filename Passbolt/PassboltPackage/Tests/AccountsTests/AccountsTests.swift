@@ -121,7 +121,7 @@ final class AccountsStoreTests: XCTestCase {
         validAccountProfile.username,
         validAccountProfile.firstName,
         validAccountProfile.lastName,
-        validAccountProfile.avatarImagePath,
+        validAccountProfile.avatarImageURL,
         validAccount.fingerprint,
         validPrivateKey,
         validPassphrase
@@ -154,7 +154,7 @@ final class AccountsStoreTests: XCTestCase {
         validAccountProfile.username,
         validAccountProfile.firstName,
         validAccountProfile.lastName,
-        validAccountProfile.avatarImagePath,
+        validAccountProfile.avatarImageURL,
         validAccount.fingerprint,
         validPrivateKey,
         validPassphrase
@@ -214,7 +214,7 @@ private let validAccountProfile: AccountProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImagePath: "avatarImagePath",
+  avatarImageURL: "avatarImagePath",
   biometricsEnabled: false
 )
 
@@ -226,7 +226,7 @@ private let validAccountWithProfile: AccountWithProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImagePath: "avatarImagePath",
+  avatarImageURL: "avatarImagePath",
   fingerprint: "FINGERPRINT",
   biometricsEnabled: false
 )

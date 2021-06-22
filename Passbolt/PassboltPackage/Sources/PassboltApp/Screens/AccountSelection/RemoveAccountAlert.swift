@@ -21,41 +21,52 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import UIComponents
 
-extension Mutation where Subject: ImageButton {
+// swiftlint:disable:next colon
+internal final class RemoveAccountAlertViewController:
+  AlertViewController<RemoveAccountAlertController>, UIComponent {
   
-  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
-  
-  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
-  }
-  
-  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
-  }
-  
-  public static func image(symbol name: SymbolNameConstant) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
-    }
-  }
-  
-  @inlinable public static func image(
-    named imageName: ImageNameConstant,
-    from bundle: Bundle? = nil,
-    compatibleWith traitCollection: UITraitCollection? = nil
-  ) -> Self {
-    Self { (subject: Subject) in
-      let image: UIImage? = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "account.selection.remove.alert.title"),
+        .message(localized: "account.selection.remove.alert.message"),
+        .action(
+          localized: .cancel,
+          inBundle: .commons,
+          style: .cancel,
+          accessibilityIdentifier: "button.close",
+          handler: {}
+        ),
+        .action(
+          localized: .remove,
+          inBundle: .commons,
+          style: .destructive,
+          accessibilityIdentifier: "button.remove",
+          handler: controller.removeAccount
+        )
       )
-      
-      subject.dynamicImage = .default(image)
     }
+  }
+}
+
+internal struct RemoveAccountAlertController {
+  
+  internal var removeAccount: () -> Void
+}
+
+extension RemoveAccountAlertController: UIController {
+  
+  internal typealias Context = () -> Void
+  
+  internal static func instance(
+    in context: @escaping Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> RemoveAccountAlertController {
+    Self(
+      removeAccount: context
+    )
   }
 }

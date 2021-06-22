@@ -573,7 +573,7 @@ private let validAccountDetails: AccountProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImagePath: "avatarImagePath",
+  avatarImageURL: "avatarImagePath",
   biometricsEnabled: false
 )
 // keychain wrapper encodes values within own structure putting value under "v" key

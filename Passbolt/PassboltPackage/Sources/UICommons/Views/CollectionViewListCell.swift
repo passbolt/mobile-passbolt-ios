@@ -19,11 +19,12 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
 import AegithalosCocoa
 import Commons
 
-open class CollectionReusableView: UICollectionReusableView {
+open class CollectionViewListCell: UICollectionViewListCell {
   
   public static var reuseIdentifier: String { String(describing: self) }
   
@@ -81,10 +82,9 @@ open class CollectionReusableView: UICollectionReusableView {
   }
 }
 
-public typealias CollectionViewHeader = CollectionReusableView
-public typealias CollectionViewFooter = CollectionReusableView
+import Aegithalos
 
-extension Mutation where Subject == CollectionViewFooter {
+extension Mutation where Subject == CollectionViewListCell {
   
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
@@ -96,9 +96,4 @@ extension Mutation where Subject == CollectionViewFooter {
       subject.layer.borderWidth = width
     }
   }
-}
-
-open class CollectionViewSupplementaryView: CollectionReusableView {
-  
-  public static var kind: String { String(describing: Self.self) }
 }

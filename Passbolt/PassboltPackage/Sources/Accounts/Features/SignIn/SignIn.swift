@@ -177,6 +177,7 @@ extension SignIn: Feature {
                 challenge: challenge
               )
             )
+          // swiftlint:disable:next explicit_type_interface)
           case let .refreshToken(token):
             return networkClient.refreshSessionRequest.make(
               using: .init(

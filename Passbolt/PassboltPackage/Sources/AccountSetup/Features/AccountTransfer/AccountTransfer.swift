@@ -108,7 +108,7 @@ extension AccountTransfer: Feature {
                 username: mdmTransferedAccount.username,
                 firstName: mdmTransferedAccount.firstName,
                 lastName: mdmTransferedAccount.lastName,
-                avatarImagePath: mdmTransferedAccount.avatarImagePath
+                avatarImageURL: mdmTransferedAccount.avatarImageURL
               ),
               scanningParts: []
             )
@@ -158,7 +158,7 @@ extension AccountTransfer: Feature {
     func mediaPublisher() -> AnyPublisher<Data, TheError> {
       transferState
         .compactMap { $0.profile }
-        .map { networkClient.mediaDownload.make(using: .init(path: $0.avatarImagePath)) }
+        .map { networkClient.mediaDownload.make(using: .init(urlString: $0.avatarImageURL)) }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
@@ -219,7 +219,7 @@ extension AccountTransfer: Feature {
                 username: user.username,
                 firstName: user.profile.firstName,
                 lastName: user.profile.lastName,
-                avatarImagePath: user.profile.avatar.url.medium
+                avatarImageURL: user.profile.avatar.url.medium
               )
             },
             receiveCompletion: { completion in
@@ -303,7 +303,7 @@ extension AccountTransfer: Feature {
           profile.username,
           profile.firstName,
           profile.lastName,
-          profile.avatarImagePath,
+          profile.avatarImageURL,
           account.fingerprint,
           account.armoredKey,
           passphrase
