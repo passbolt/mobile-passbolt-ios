@@ -60,6 +60,7 @@ open class TextField: UITextField {
   
   public required init() {
     super.init(frame: .zero)
+    self.delegate = self
   }
   
   @available(*, unavailable)

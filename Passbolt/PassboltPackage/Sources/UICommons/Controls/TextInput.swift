@@ -221,6 +221,8 @@ public final class SecureTextInput: TextInput {
       )
     }
     
+    textField.returnKeyType = .done
+    textField.endEditingOnReturn = true
     textField.isSecureTextEntry = true
     textField.rightViewMode = .always
     textField.rightView = imageButton

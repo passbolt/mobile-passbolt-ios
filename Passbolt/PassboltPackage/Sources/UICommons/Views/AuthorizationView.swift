@@ -35,6 +35,7 @@ public final class AuthorizationView: KeyboardAwareView {
   private let emailLabel: Label = .init()
   private let urlLabel: Label = .init()
   private let passwordInput: SecureTextInput = .init()
+  private let biometricButtonContainer: View = .init()
   private let biometricButton: ImageButton = .init()
   private let signInButton: TextButton = .init()
   private let forgotButton: TextButton = .init()
@@ -83,7 +84,7 @@ public final class AuthorizationView: KeyboardAwareView {
       )
       .instantiate()
     
-    let biometricButtonContainer: View = Mutation<View>
+    mut(biometricButtonContainer) {
       .combined(
         .subview(of: buttonContainer),
         .backgroundColor(dynamic: .background),
@@ -94,7 +95,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .widthAnchor(.equalTo, constant: 56),
         .heightAnchor(.equalTo, constant: 56)
       )
-      .instantiate()
+    }
     
     mut(biometricButton) {
       .combined(
@@ -164,6 +165,10 @@ public final class AuthorizationView: KeyboardAwareView {
   
   public func applyOn(biometricButton mutation: Mutation<ImageButton>) {
     mutation.apply(on: biometricButton)
+  }
+  
+  public func applyOn(biometricButtonContainer mutation: Mutation<View>) {
+    mutation.apply(on: biometricButtonContainer)
   }
   
   public func applyOn(signInButton mutation: Mutation<Button>) {
