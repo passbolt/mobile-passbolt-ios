@@ -208,8 +208,9 @@ private func loadKeychainData(
   tag: String?,
   in context: LAContext? = nil
 ) -> Result<Array<Data>, TheError> {
-  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) ?? true
-  else { return .failure(.keychainError(errSecNotAvailable)) }
+  var errorPtr: NSError?
+  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
+  else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
   return loadKeychainKeyQuery(using: key, tag: tag, in: context)
     .flatMap { query in
       var queryResult: AnyObject?
@@ -245,8 +246,9 @@ private func loadKeychainMeta(
   tag: String?,
   in context: LAContext? = nil
 ) -> Result<Array<Dictionary<CFString, Any>>, TheError> {
-  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) ?? true
-  else { return .failure(.keychainError(errSecNotAvailable)) }
+  var errorPtr: NSError?
+  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
+  else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
   return loadKeychainMetaQuery(using: key, tag: tag, in: context)
     .flatMap { query in
       var queryResult: AnyObject?
@@ -283,8 +285,9 @@ private func saveKeychain(
   tag: String?,
   in context: LAContext? = nil
 ) -> Result<Void, TheError> {
-  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) ?? true
-  else { return .failure(.keychainError(errSecNotAvailable)) }
+  var errorPtr: NSError?
+  guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
+  else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
   switch loadKeychainData(for: key, tag: tag, in: context) {
   // swiftlint:disable:next explicit_type_interface
   case let .success(values) where !values.isEmpty:

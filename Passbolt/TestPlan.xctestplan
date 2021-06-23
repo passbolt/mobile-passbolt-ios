@@ -83,6 +83,13 @@
         "identifier" : "AccountsTests",
         "name" : "AccountsTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "FeaturesTests",
+        "name" : "FeaturesTests"
+      }
     }
   ],
   "version" : 1

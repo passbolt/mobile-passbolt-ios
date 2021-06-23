@@ -33,29 +33,23 @@ import UIComponents
 // swiftlint:disable explicit_type_interface
 final class BiometricsInfoScreenTests: TestCase {
   
+  var linkOpener: LinkOpener!
   var biometry: Biometry!
   
   override func setUp() {
     super.setUp()
+    linkOpener = .placeholder
     biometry = .placeholder
   }
   
   override func tearDown() {
+    linkOpener = nil
     biometry = nil
     super.tearDown()
   }
   
-  func test_supportedBiometryType_isProvidedByBiometry() {
-    biometry.supportedBiometryType = always(.touchID)
-    features.use(biometry)
-    let controller: BiometricsInfoController = testInstance()
-    
-    let result = controller.supportedBiometryType()
-    
-    XCTAssertEqual(result, .touchID)
-  }
-  
   func test_presentationDestinationPublisher_doesNotPublishInitially() {
+    features.use(linkOpener)
     features.use(biometry)
     
     let controller: BiometricsInfoController = testInstance()
@@ -68,7 +62,29 @@ final class BiometricsInfoScreenTests: TestCase {
     XCTAssertNil(result)
   }
   
+  func test_setupBiometrics_opensSystemSettings() {
+    var result: Void!
+    linkOpener.openSystemSettings = {
+      result = Void()
+      return Just(true).eraseToAnyPublisher()
+    }
+    features.use(linkOpener)
+    biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
+    features.use(biometry)
+    
+    let controller: BiometricsInfoController = testInstance()
+    
+    controller.presentationDestinationPublisher()
+      .sink { _ in }
+      .store(in: cancellables)
+    
+    controller.setupBiometrics()
+    
+    XCTAssertNotNil(result)
+  }
+  
   func test_presentationDestinationPublisher_publishExtensionSetup_afterSkip() {
+    features.use(linkOpener)
     features.use(biometry)
     
     let controller: BiometricsInfoController = testInstance()
@@ -83,7 +99,10 @@ final class BiometricsInfoScreenTests: TestCase {
     XCTAssertEqual(result, .extensionSetup)
   }
   
-  func test_continueSetupPresentationPublisher_publishBiometrySetup_afterSetup() {
+  func test_presentationDestinationPublisher_publishBiometrySetup_afterSetup_withBiometricsAvailable() {
+    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
+    features.use(linkOpener)
+    biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     features.use(biometry)
     
     let controller: BiometricsInfoController = testInstance()
@@ -96,6 +115,24 @@ final class BiometricsInfoScreenTests: TestCase {
     controller.setupBiometrics()
     
     XCTAssertEqual(result, .biometricsSetup)
+  }
+  
+  func test_presentationDestinationPublisher_doesNotPublish_afterSetup_withBiometricsUnavailable() {
+    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
+    features.use(linkOpener)
+    biometry.biometricsStatePublisher = always(Just(.unavailable).eraseToAnyPublisher())
+    features.use(biometry)
+    
+    let controller: BiometricsInfoController = testInstance()
+    
+    var result: BiometricsInfoController.Destination!
+    controller.presentationDestinationPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+    
+    controller.setupBiometrics()
+    
+    XCTAssertNil(result)
   }
 }
 

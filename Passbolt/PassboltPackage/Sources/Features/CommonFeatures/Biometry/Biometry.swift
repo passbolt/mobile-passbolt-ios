@@ -21,21 +21,28 @@
 // @since         v1.0
 //
 
+import Commons
 import Environment
 
 public struct Biometry {
   
-  public var supportedBiometryType: () -> Biometrics.BiometryType
+  public var biometricsStatePublisher: () -> AnyPublisher<Biometrics.State, Never>
 }
 
 extension Biometry: Feature {
   
-  public typealias Environment = Biometrics
+  public typealias Environment = (
+    biometrics: Biometrics,
+    appLifeCycle: AppLifeCycle
+  )
   
   public static func environmentScope(
     _ rootEnvironment: RootEnvironment
   ) -> Environment {
-    rootEnvironment.biometrics
+    (
+      biometrics: rootEnvironment.biometrics,
+      appLifeCycle: rootEnvironment.appLifeCycle
+    )
   }
   
   public static func load(
@@ -44,12 +51,43 @@ extension Biometry: Feature {
     cancellables: Cancellables
   ) -> Self {
     
-    func supportedBiometryType() -> Biometrics.BiometryType {
-      environment.supportedBiometryType()
+    let biometricsStateSubject: CurrentValueSubject<Biometrics.State, Never> = .init(
+      environment
+        .biometrics
+        .checkBiometricsState()
+    )
+    
+    environment
+      .appLifeCycle
+      .lifeCyclePublisher()
+      .removeDuplicates()
+      // Looking for sequence of didEnterBackground and didBecomeActive which indicates exiting
+      // and goind back to the application, we check biometrics state again if it ha changed or not
+      .scan((Optional<Void>.none, AppLifeCycle.Transition.didBecomeActive), { prev, next in
+        if prev.1 == .didEnterBackground && next == .didBecomeActive {
+          return (Void(), next)
+        } else {
+          return (nil, next)
+        }
+      })
+      .compactMap(\.0)
+      .sink {
+        biometricsStateSubject.send(
+          environment
+            .biometrics
+            .checkBiometricsState()
+        )
+      }
+      .store(in: cancellables)
+    
+    func biometricsStatePublisher() -> AnyPublisher<Biometrics.State, Never> {
+      biometricsStateSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
     
     return Self(
-      supportedBiometryType: supportedBiometryType
+      biometricsStatePublisher: biometricsStatePublisher
     )
   }
   
@@ -57,7 +95,7 @@ extension Biometry: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      supportedBiometryType: Commons.placeholder("You have to provide mocks for used methods")
+      biometricsStatePublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

@@ -47,8 +47,10 @@ internal final class BiometricsInfoView: ScrolledStackView {
       .backgroundColor(dynamic: .background)
     }
     
+    #warning("TODO: replace image with generic graphic when available")
     mut(imageView) {
       .combined(
+        .image(dynamic: .touchID),
         .subview(of: imageContainer),
         .image(named: .welcomeAccounts),
         .contentMode(.scaleAspectFit),
@@ -62,6 +64,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
     
     mut(titleLabel) {
       .combined(
+        .text(localized: "biometrics.info.title"),
         .titleStyle(),
         .text(localized: "biometrics.info.title"),
         .accessibilityIdentifier("biometrics.info.title.label")
@@ -70,6 +73,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
     
     mut(descriptionLabel) {
       .combined(
+        .text(localized: "biometrics.info.description"),
         .font(.inter(ofSize: 14)),
         .lineBreakMode(.byWordWrapping),
         .textAlignment(.center),
@@ -84,12 +88,13 @@ internal final class BiometricsInfoView: ScrolledStackView {
       .combined(
         .primaryStyle(),
         .text(localized: "biometrics.info.setup.button"),
-        .accessibilityIdentifier("biometrics.info.setup..button")
+        .accessibilityIdentifier("biometrics.info.setup.button")
       )
     }
     
     mut(skipButton) {
       .combined(
+        .text(localized: "biometrics.info.setup.button"),
         .linkStyle(),
         .text(localized: "biometrics.info.later.button"),
         .accessibilityIdentifier("biometrics.info.later.button")
@@ -111,41 +116,6 @@ internal final class BiometricsInfoView: ScrolledStackView {
         .append(setupButton),
         .append(skipButton)
       )
-    }
-  }
-  
-  internal func update(for bimetryType: Biometrics.BiometryType) {
-    switch bimetryType {
-    case .none:
-      unreachable("Cannot propose biometrics for devices which does not support it")
-      
-    case .touchID:
-      mut(imageView) {
-        .image(dynamic: .touchID)
-      }
-      mut(titleLabel) {
-        .text(localized: "biometrics.info.title.finger")
-      }
-      mut(descriptionLabel) {
-        .text(localized: "biometrics.info.description.finger")
-      }
-      mut(setupButton) {
-        .text(localized: "biometrics.info.setup.button.finger")
-      }
-      
-    case .faceID:
-      mut(imageView) {
-        .image(dynamic: .faceID)
-      }
-      mut(titleLabel) {
-        .text(localized: "biometrics.info.title.face")
-      }
-      mut(descriptionLabel) {
-        .text(localized: "biometrics.info.description.face")
-      }
-      mut(setupButton) {
-        .text(localized: "biometrics.info.setup.button.face")
-      }
     }
   }
 }

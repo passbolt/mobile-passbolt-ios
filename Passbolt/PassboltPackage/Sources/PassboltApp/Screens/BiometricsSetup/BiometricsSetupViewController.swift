@@ -57,11 +57,18 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
     mut(navigationItem) {
       .hidesBackButton(true)
     }
-    contentView.update(for: controller.supportedBiometryType())
     setupSubscriptions()
   }
   
   private func setupSubscriptions() {
+    controller
+      .biometricsStatePublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] biometricsState in
+        self?.contentView.update(for: biometricsState)
+      }
+      .store(in: cancellables)
+    
     contentView
       .setupTapPublisher
       .sink { [weak self] in

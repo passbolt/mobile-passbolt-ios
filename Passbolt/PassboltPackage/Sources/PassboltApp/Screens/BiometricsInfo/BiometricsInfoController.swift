@@ -27,7 +27,6 @@ import UIComponents
 internal struct BiometricsInfoController {
   
   internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, Never>
-  internal var supportedBiometryType: () -> Biometrics.BiometryType
   internal var setupBiometrics: () -> Void
   internal var skipSetup: () -> Void
 }
@@ -50,6 +49,7 @@ extension BiometricsInfoController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let linkOpener: LinkOpener = features.instance()
     let biometry: Biometry = features.instance()
     
     let presentationDestinationSubject: PassthroughSubject<Destination, Never> = .init()
@@ -58,12 +58,32 @@ extension BiometricsInfoController: UIController {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
     
-    func supportedBiometryType() -> Biometrics.BiometryType {
-      biometry.supportedBiometryType()
-    }
-    
     func setupBiometrics() -> Void {
-      presentationDestinationSubject.send(.biometricsSetup)
+      linkOpener
+        .openSystemSettings()
+        .map { opened -> AnyPublisher<Bool, Never> in
+          guard opened
+          else { return Empty().eraseToAnyPublisher() }
+          return biometry
+            .biometricsStatePublisher()
+            .first()
+            .map { state in
+              switch state {
+              case .unavailable:
+                return false
+                
+              case .unconfigured, .configuredTouchID, .configuredFaceID:
+                return true
+              }
+            }
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .sink { available in
+          guard available else { return }
+          presentationDestinationSubject.send(.biometricsSetup)
+        }
+        .store(in: cancellables)
     }
     
     func skipSetup() -> Void {
@@ -72,7 +92,6 @@ extension BiometricsInfoController: UIController {
     
     return Self(
       presentationDestinationPublisher: continueSetupPresentationPublisher,
-      supportedBiometryType: supportedBiometryType,
       setupBiometrics: setupBiometrics,
       skipSetup: skipSetup
     )

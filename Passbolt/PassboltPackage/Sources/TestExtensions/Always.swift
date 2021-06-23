@@ -24,55 +24,55 @@
 import Commons
 
 public func always<V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> () -> V {
-  { value }
+  value
 }
 
 public func always<A1, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1) -> V {
-  { _ in value }
+  { _ in value() }
 }
 
 public func always<A1, A2, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2) -> V {
-  { _, _ in value }
+  { _, _ in value() }
 }
 
 public func always<A1, A2, A3, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3) -> V {
-  { _, _, _ in value }
+  { _, _, _ in value() }
 }
 
 public func always<A1, A2, A3, A4, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3, A4) -> V {
-  { _, _, _, _ in value }
+  { _, _, _, _ in value() }
 }
 
 public func always<A1, A2, A3, A4, A5, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3, A4, A5) -> V {
-  { _, _, _, _, _ in value }
+  { _, _, _, _, _ in value() }
 }
 
 public func always<A1, A2, A3, A4, A5, A6, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3, A4, A5, A6) -> V {
-  { _, _, _, _, _, _ in value }
+  { _, _, _, _, _, _ in value() }
 }
 
 public func always<A1, A2, A3, A4, A5, A6, A7, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3, A4, A5, A6, A7) -> V {
-  { _, _, _, _, _, _, _ in value }
+  { _, _, _, _, _, _, _ in value() }
 }
 
 public func always<A1, A2, A3, A4, A5, A6, A7, A8, V>(
-  _ value: V
+  _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> V {
-  { _, _, _, _, _, _, _, _ in value }
+  { _, _, _, _, _, _, _, _ in value() }
 }

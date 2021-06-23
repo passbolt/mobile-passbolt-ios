@@ -28,11 +28,12 @@ import let Foundation.errSecAuthFailed
 extension TheError {
   
   internal static func keychainError(
-    _ status: OSStatus
+    _ status: OSStatus,
+    underlyingError: Error? = nil
   ) -> Self {
     Self(
       identifier: .keychainError,
-      underlyingError: nil,
+      underlyingError: underlyingError,
       extensions: [.osStatus: status]
     )
   }

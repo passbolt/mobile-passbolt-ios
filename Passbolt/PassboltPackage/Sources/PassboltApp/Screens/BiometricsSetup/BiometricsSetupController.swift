@@ -27,7 +27,7 @@ import UIComponents
 internal struct BiometricsSetupController {
 
   internal var continueSetupPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var supportedBiometryType: () -> Biometrics.BiometryType
+  internal var biometricsStatePublisher: () -> AnyPublisher<Biometrics.State, Never>
   internal var setupBiometrics: () -> AnyPublisher<Never, TheError>
   internal var skipSetup: () -> Void
 }
@@ -51,8 +51,8 @@ extension BiometricsSetupController: UIController {
       continueSetupPresentationSubject.eraseToAnyPublisher()
     }
     
-    func supportedBiometryType() -> Biometrics.BiometryType {
-      biometry.supportedBiometryType()
+    func biometricsStatePublisher() -> AnyPublisher<Biometrics.State, Never> {
+      biometry.biometricsStatePublisher()
     }
     
     func setupBiometrics() -> AnyPublisher<Never, TheError> {
@@ -72,7 +72,7 @@ extension BiometricsSetupController: UIController {
     
     return Self(
       continueSetupPresentationPublisher: continueSetupPresentationPublisher,
-      supportedBiometryType: supportedBiometryType,
+      biometricsStatePublisher: biometricsStatePublisher,
       setupBiometrics: setupBiometrics,
       skipSetup: skipSetup
     )

@@ -49,17 +49,6 @@ final class BiometricsSetupScreenTests: TestCase {
     super.tearDown()
   }
   
-  func test_supportedBiometryType_isProvidedByBiometry() {
-    features.use(accountSettings)
-    biometry.supportedBiometryType = always(.touchID)
-    features.use(biometry)
-    let controller: BiometricsSetupController = testInstance()
-    
-    let result = controller.supportedBiometryType()
-    
-    XCTAssertEqual(result, .touchID)
-  }
-  
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
     features.use(accountSettings)
     features.use(biometry)

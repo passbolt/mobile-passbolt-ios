@@ -57,7 +57,6 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
     mut(navigationItem) {
       .hidesBackButton(true)
     }
-    contentView.update(for: controller.supportedBiometryType())
     setupSubscriptions()
   }
   

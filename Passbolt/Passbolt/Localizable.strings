@@ -65,12 +65,9 @@
 
 "biometrics.usage.reason" = "Biometrics can be used to save your passphrase securely.";
 
-"biometrics.info.title.face" = "Configure Face ID!";
-"biometrics.info.title.finger" = "Configure Touch ID!";
-"biometrics.info.description.face" = "If you want to use FaceID as a fast sign-in method, configure it in the Settings.";
-"biometrics.info.description.finger" = "If you want to use TouchID as a fast sign-in method, configure it in the Settings.";
-"biometrics.info.setup.button.face" = "Configure Face ID";
-"biometrics.info.setup.button.finger" = "Configure Touch ID";
+"biometrics.info.title" = "Configure biometrics";
+"biometrics.info.description" = "If you want to use FaceID or TouchID as a fast sign-in method, configure it in the Settings.";
+"biometrics.info.setup.button" = "Configure biometrics";
 "biometrics.info.later.button" = "Maybe later";
 
 "biometrics.setup.title.face" = "Use Face ID instead of passphrase!";

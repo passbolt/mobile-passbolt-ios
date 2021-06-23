@@ -207,23 +207,37 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .store(in: cancellables)
     
     controller
-      .resultPresentationPublisher()
+      .presentationDestinationPublisher()
       .receive(on: RunLoop.main)
-      .sink(receiveCompletion: { [weak self] completion in
-        switch completion {
-        case .finished:
-          self?.push(BiometricsInfoViewController.self)
-          
-        case .failure(.canceled):
-          self?.pop(to: TransferInfoScreenViewController.self)
-        // swiftlint:disable:next explicit_type_interface
-        case let .failure(error):
-          self?.push(
-            AccountTransferFailureViewController.self,
-            in: error
-          )
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          switch completion {
+          case .finished:
+            break
+            
+          case .failure(.canceled):
+            self?.pop(to: TransferInfoScreenViewController.self)
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error):
+            self?.push(
+              AccountTransferFailureViewController.self,
+              in: error
+            )
+          }
+        },
+        receiveValue: { [weak self] destination in
+          switch destination {
+          case .biometryInfo:
+            self?.push(BiometricsInfoViewController.self)
+            
+          case .biometrySetup:
+            self?.push(BiometricsSetupViewController.self)
+            
+          case .extensionSetup:
+            self?.push(ExtensionSetupViewController.self)
+          }
         }
-      })
+      )
       .store(in: cancellables)
   }
 }

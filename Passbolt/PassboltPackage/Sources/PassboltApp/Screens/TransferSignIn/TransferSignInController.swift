@@ -39,8 +39,17 @@ internal struct TransferSignInController {
   internal var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
   internal var presentExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  // We expect this publisher to finish on process success and fail on process error
-  internal var resultPresentationPublisher: () -> AnyPublisher<Never, TheError>
+  internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, TheError>
+}
+
+extension TransferSignInController {
+  
+  internal enum Destination {
+    
+    case biometryInfo
+    case biometrySetup
+    case extensionSetup
+  }
 }
 
 extension TransferSignInController: UIController {
@@ -53,11 +62,12 @@ extension TransferSignInController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
-    let accountSession: AccountSession = features.instance()
+    let biometrics: Biometry = features.instance()
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
-    let resultPresentationSubject: PassthroughSubject<Never, TheError> = .init()
+    
+    let presentationDestinationSubject: PassthroughSubject<Destination, TheError> = .init()
     
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
     
@@ -67,10 +77,27 @@ extension TransferSignInController: UIController {
       .sink(receiveCompletion: { completion in
         switch completion {
         case .finished:
-          resultPresentationSubject.send(completion: .finished)
+          biometrics
+            .biometricsStatePublisher()
+            .first()
+            .sink { biometricsState in
+              switch biometricsState {
+              case .unavailable:
+                presentationDestinationSubject.send(.extensionSetup)
+                
+              case .unconfigured:
+                presentationDestinationSubject.send(.biometryInfo)
+                
+              case .configuredTouchID, .configuredFaceID:
+                presentationDestinationSubject.send(.biometrySetup)
+                
+              }
+              presentationDestinationSubject.send(completion: .finished)
+            }
+            .store(in: cancellables)
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
-          resultPresentationSubject.send(completion: .failure(error))
+          presentationDestinationSubject.send(completion: .failure(error))
         }
       })
       .store(in: cancellables)
@@ -129,8 +156,8 @@ extension TransferSignInController: UIController {
       exitConfirmationPresentationSubject.eraseToAnyPublisher()
     }
     
-    func resultPresentationPublisher() -> AnyPublisher<Never, TheError> {
-      resultPresentationSubject.eraseToAnyPublisher()
+    func presentationDestinationPublisher() -> AnyPublisher<Destination, TheError> {
+      presentationDestinationSubject.eraseToAnyPublisher()
     }
     
     return Self(
@@ -143,7 +170,7 @@ extension TransferSignInController: UIController {
       presentForgotPassphraseAlertPublisher: presentForgotPassphraseAlertPublisher,
       presentExitConfirmation: presentExitConfirmation,
       exitConfirmationPresentationPublisher: exitConfirmationPresentationPublisher,
-      resultPresentationPublisher: resultPresentationPublisher
+      presentationDestinationPublisher: presentationDestinationPublisher
     )
   }
 }

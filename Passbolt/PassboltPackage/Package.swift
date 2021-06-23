@@ -142,6 +142,13 @@ let package = Package(
         "Environment",
       ]
     ),
+    .testTarget(
+      name: "FeaturesTests",
+      dependencies: [
+        "Features",
+        "TestExtensions",
+      ]
+    ),
     .target(
       name: "NetworkClient",
       dependencies: [

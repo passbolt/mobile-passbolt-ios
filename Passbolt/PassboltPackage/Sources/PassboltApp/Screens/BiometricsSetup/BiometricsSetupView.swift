@@ -113,12 +113,15 @@ internal final class BiometricsSetupView: ScrolledStackView {
     }
   }
   
-  internal func update(for bimetryType: Biometrics.BiometryType) {
-    switch bimetryType {
-    case .none:
-      unreachable("Cannot propose biometrics for devices which does not support it")
+  internal func update(for bimetryState: Biometrics.State) {
+    switch bimetryState {
+    case .unavailable:
+      unreachable("Cannot setup biometrics for devices which does not support it")
       
-    case .touchID:
+    case .unconfigured:
+      unreachable("Cannot setup biometrics if it is not configured")
+      
+    case .configuredTouchID:
       mut(imageView) {
         .image(dynamic: .touchIDSetup)
       }
@@ -129,7 +132,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .text(localized: "biometrics.setup.setup.button.finger")
       }
       
-    case .faceID:
+    case .configuredFaceID:
       mut(imageView) {
         .image(dynamic: .faceIDSetup)
       }

@@ -26,17 +26,19 @@ import LocalAuthentication
 
 public struct Biometrics {
   
-  public var checkBiometricsPermission: () -> AnyPublisher<Bool, Never>
+  public var checkBiometricsState: () -> State
+  public var checkBiometricsPermission: () -> Bool
   public var requestBiometricsPermission: () -> AnyPublisher<Bool, TheError>
-  public var supportedBiometryType: () -> BiometryType
 }
 
 extension Biometrics {
   
-  public enum BiometryType {
-    case none
-    case touchID
-    case faceID
+  public enum State {
+    
+    case unavailable
+    case unconfigured
+    case configuredTouchID
+    case configuredFaceID
   }
 }
 
@@ -45,15 +47,53 @@ extension Biometrics {
   public static var live: Self {
     let context: LAContext = .init()
     
-    func checkBiometricsPermission() -> AnyPublisher<Bool, Never> {
+    func checkBiometricsState() -> State {
       var errorPtr: NSError?
       let result: Bool = context
         .canEvaluatePolicy(
           .deviceOwnerAuthenticationWithBiometrics,
           error: &errorPtr
         )
-      return Just(result && errorPtr == nil && context.biometryType != .none)
-        .eraseToAnyPublisher()
+      
+      if let laError: LAError = errorPtr as? LAError {
+        switch laError.code {
+        case .biometryNotAvailable:
+          return .unavailable
+          
+        case .biometryNotEnrolled, .passcodeNotSet:
+          return .unconfigured
+          
+        case _:
+          return .unavailable
+        }
+      } else {
+        switch (context.biometryType, result) {
+        case (.none, _):
+          return .unavailable
+          
+        case (_, false):
+          return .unconfigured
+          
+        case (.faceID, true):
+          return .configuredFaceID
+          
+        case (.touchID, true):
+          return .configuredFaceID
+          
+        case (_, true): // @unknown
+          return .unavailable
+        }
+      }
+    }
+    
+    func checkBiometricsPermission() -> Bool {
+      var errorPtr: NSError?
+      let result: Bool = context
+        .canEvaluatePolicy(
+          .deviceOwnerAuthenticationWithBiometrics,
+          error: &errorPtr
+        )
+      return result && errorPtr == nil && context.biometryType != .none
     }
     
     func requestBiometricsPermission() -> AnyPublisher<Bool, TheError> {
@@ -92,30 +132,10 @@ extension Biometrics {
       }
     }
     
-    func supportedBiometryType() -> BiometryType {
-      // we don't care the result, it is required to set valid `biometryType` by context
-      _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-      
-      switch context.biometryType {
-      case .none:
-        return .none
-        
-      case .touchID:
-        return .touchID
-        
-      case .faceID:
-        return .faceID
-        
-      @unknown default:
-        assertionFailure("Unknown biometry type \(context.biometryType)")
-        return .none
-      }
-    }
-    
     return Self(
+      checkBiometricsState: checkBiometricsState,
       checkBiometricsPermission: checkBiometricsPermission,
-      requestBiometricsPermission: requestBiometricsPermission,
-      supportedBiometryType: supportedBiometryType
+      requestBiometricsPermission: requestBiometricsPermission
     )
   }
 }
@@ -126,9 +146,9 @@ extension Biometrics {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
+      checkBiometricsState: Commons.placeholder("You have to provide mocks for used methods"),
       checkBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods"),
-      requestBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods"),
-      supportedBiometryType: Commons.placeholder("You have to provide mocks for used methods")
+      requestBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }
