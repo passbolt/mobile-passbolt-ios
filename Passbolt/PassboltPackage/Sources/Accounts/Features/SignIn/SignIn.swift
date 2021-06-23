@@ -88,9 +88,6 @@ extension SignIn: Feature {
       .map(\.body.keyData)
       .eraseToAnyPublisher()
     
-    let verificationToken: String = environment.uuidGenerator().uuidString
-    let verificationExpiration: Int = environment.time.timestamp() + 120 // 120s is verification token's lifetime
-    
     func prepareChallenge(
       for method: Method,
       domain: String,
@@ -130,6 +127,9 @@ extension SignIn: Feature {
       passphrase: Passphrase,
       method: Method
     ) -> AnyPublisher<SessionTokens, TheError> {
+      let verificationToken: String = environment.uuidGenerator().uuidString
+      let verificationExpiration: Int = environment.time.timestamp() + 120 // 120s is verification token's lifetime
+      
       let jwtStep: AnyPublisher<String, TheError> = serverPGPPublicKey
         .map { (serverPublicKey: ArmoredPublicKey) -> AnyPublisher<ArmoredMessage, TheError> in
           let encodedChallenge: String
