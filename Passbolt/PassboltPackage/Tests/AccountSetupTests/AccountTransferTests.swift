@@ -32,27 +32,15 @@ import XCTest
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
 // swiftlint:disable file_length
-final class AccountTransferTests: XCTestCase {
-  
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
+final class AccountTransferTests: TestCase {
   
   override func setUp() {
     super.setUp()
-    features = .init(environment: testEnvironment())
-    features.use(Diagnostics.disabled)
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
+    #if DEBUG
+    var mdmSupport: MDMSupport = .placeholder
+    mdmSupport.transferedAccount = always(nil)
+    features.use(mdmSupport)
+    #endif
   }
   
   func test_scanningProgressPublisher_publishesConfigurationValue_initially() {

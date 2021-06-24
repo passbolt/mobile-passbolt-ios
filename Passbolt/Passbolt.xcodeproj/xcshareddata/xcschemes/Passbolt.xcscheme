@@ -80,6 +80,12 @@
             ReferencedContainer = "container:Passbolt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-com.apple.configuration.managed &lt;dict&gt;&lt;key&gt;transferedAccountData&lt;/key&gt;&lt;dict&gt;&lt;key&gt;userID&lt;/key&gt;&lt;string&gt;USER_ID_HERE&lt;/string&gt;&lt;key&gt;domain&lt;/key&gt;&lt;string&gt;https://passbolt.dev\&lt;/string&gt;&lt;key&gt;username&lt;/key&gt;&lt;string&gt;USERNAME_HERE&lt;/string&gt;&lt;key&gt;firstName&lt;/key&gt;&lt;string&gt;FIRST_NAME_HERE&lt;/string&gt;&lt;key&gt;lastName&lt;/key&gt;&lt;string&gt;LAST_NAME_HERE&lt;/string&gt;&lt;key&gt;avatarImagePath&lt;/key&gt;&lt;string&gt;AVATAR_IMAGE_PATH_HERE&lt;/string&gt;&lt;key&gt;fingerprint&lt;/key&gt;&lt;string&gt;FINGERPRINT_HERE&lt;/string&gt;&lt;key&gt;armoredKey&lt;/key&gt;&lt;string&gt;ARMORED_KEY_HERE&lt;/string&gt;&lt;/dict&gt;&lt;/dict&gt;"
+            isEnabled = "NO">
+         </CommandLineArgument>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

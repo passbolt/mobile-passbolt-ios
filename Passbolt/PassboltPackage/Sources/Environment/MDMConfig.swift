@@ -21,22 +21,53 @@
 // @since         v1.0
 //
 
-@testable import UIComponents
+import Commons
+import class Foundation.UserDefaults
+import Foundation
 
-public func testEnvironment() -> RootEnvironment {
-  (
-    time: .placeholder,
-    uuidGenerator: .placeholder,
-    logger: .placeholder,
-    networking: .placeholder,
-    preferences: .placeholder,
-    keychain: .placeholder,
-    biometrics: .placeholder,
-    camera: .placeholder,
-    urlOpener: .placeholder,
-    appLifeCycle: .placeholder,
-    pgp: .placeholder,
-    signatureVerification: .placeholder,
-    mdmConfig: .placeholder
-  )
+public struct MDMConfig {
+  
+  public var loadConfig: () -> Dictionary<String, Any>
+  public var updateConfig: (Dictionary<String, Any>) -> Void
 }
+
+extension MDMConfig {
+  
+  // user defaults key for MDM configuration
+  private static let configurationKey: String = "com.apple.configuration.managed"
+  
+  public static var live: Self {
+    let defaults: UserDefaults = .standard
+    
+    func loadConfig() -> Dictionary<String, Any> {
+      return defaults.object(
+        forKey: MDMConfig.configurationKey
+      ) as? [String: Any] ?? [:]
+    }
+    
+    func updateConfig(_ updated: Dictionary<String, Any>) {
+      defaults.set(
+        updated,
+        forKey: MDMConfig.configurationKey
+      )
+    }
+    
+    return Self(
+      loadConfig: loadConfig,
+      updateConfig: updateConfig
+    )
+  }
+}
+
+#if DEBUG
+extension MDMConfig {
+  
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      loadConfig: Commons.placeholder("You have to provide mocks for used methods"),
+      updateConfig: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif

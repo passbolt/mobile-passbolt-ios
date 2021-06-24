@@ -49,7 +49,8 @@ internal struct ApplicationExtension {
       urlOpener: .live(),
       appLifeCycle: .live(),
       pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256()
+      signatureVerification: .RSSHA256(),
+      mdmConfig: .live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

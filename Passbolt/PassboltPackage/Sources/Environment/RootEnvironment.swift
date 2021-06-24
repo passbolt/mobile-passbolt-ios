@@ -35,5 +35,6 @@ public typealias RootEnvironment = (
   urlOpener: ExternalURLOpener,
   appLifeCycle: AppLifeCycle,
   pgp: PGP,
-  signatureVerification: SignatureVerfication
+  signatureVerification: SignatureVerfication,
+  mdmConfig: MDMConfig
 )

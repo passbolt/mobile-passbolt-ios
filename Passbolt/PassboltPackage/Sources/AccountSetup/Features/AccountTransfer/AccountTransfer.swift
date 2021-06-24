@@ -24,6 +24,9 @@
 import Accounts
 import Commons
 import Crypto
+#if DEBUG
+import Dispatch
+#endif
 import Features
 import struct Foundation.Data
 import NetworkClient
@@ -61,11 +64,49 @@ extension AccountTransfer: Feature {
     cancellables: Cancellables
   ) -> AccountTransfer {
     let diagnostics: Diagnostics = features.instance()
+    #if DEBUG
+    let mdmSupport: MDMSupport = features.instance()
+    #endif
     let networkClient: NetworkClient = features.instance()
     let accounts: Accounts = features.instance()
     let transferState: CurrentValueSubject<AccountTransferState, TheError> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable // silence warning
+    
+    #if DEBUG
+    if let mdmTransferedAccount: MDMSupport.TransferedAccount = mdmSupport.transferedAccount() {
+      // since this bypass is not a proper app feature we have a bit hacky solution
+      // where we set the state before presenting associated views and without informing it
+      // this results in view presentation issues and requires some delay
+      // which happened to be around 1 sec minimum at the time of writing this code
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        transferState.send(
+          .init(
+            configuration: AccountTransferConfiguration(
+              transferID: "N/A",
+              pagesCount: 0,
+              userID: mdmTransferedAccount.userID,
+              authenticationToken: "N/A",
+              domain: mdmTransferedAccount.domain,
+              hash: "N/A"
+            ),
+            account: AccountTransferAccount(
+              userID: mdmTransferedAccount.userID,
+              fingerprint: mdmTransferedAccount.fingerprint,
+              armoredKey: ArmoredPrivateKey(rawValue: mdmTransferedAccount.armoredKey)
+            ),
+            profile: AccountTransferAccountProfile(
+              username: mdmTransferedAccount.username,
+              firstName: mdmTransferedAccount.firstName,
+              lastName: mdmTransferedAccount.lastName,
+              avatarImagePath: mdmTransferedAccount.avatarImagePath
+            ),
+            scanningParts: []
+          )
+        )
+      }
+    } else { /* */ }
+    #endif
     
     func progressPublisher() -> AnyPublisher<Progress, TheError> {
       transferState
