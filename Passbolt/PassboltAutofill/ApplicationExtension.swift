@@ -23,6 +23,7 @@
 
 import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier
+import Crypto
 import Features
 import NetworkClient
 import PassboltExtension
@@ -37,28 +38,27 @@ internal struct ApplicationExtension {
   
   internal init(
     rootViewController: ASCredentialProviderViewController,
-    environment: RootEnvironment = RootEnvironment(
-      time: .live,
-      uuidGenerator: .live,
-      logger: .live,
-      networking: .foundation(),
-      preferences: .sharedUserDefaults(),
-      keychain: .live(),
-      biometrics: .live,
-      camera: .live(),
-      urlOpener: .live(),
-      appLifeCycle: .live(),
-      pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256(),
-      mdmConfig: .live
+    environment: Environment = Environment(
+      Time.live,
+      Logger.live,
+      Networking.foundation(),
+      Preferences.sharedUserDefaults(),
+      Keychain.live(),
+      Biometrics.live,
+      ExternalURLOpener.live(),
+      PGP.gopenPGP(),
+      SignatureVerfication.RSSHA256(),
+      MDMConfig.live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
     #if DEBUG
-    features.environment.networking = features
-      .environment
-      .networking
-      .withLogs(using: features.instance())
+    features.environment.use(
+      features
+        .environment
+        .networking
+        .withLogs(using: features.instance())
+    )
     #endif
     
     features.use(

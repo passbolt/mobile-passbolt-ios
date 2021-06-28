@@ -49,20 +49,12 @@ extension MDMSupport {
 
 extension MDMSupport: Feature {
   
-  public typealias Environment = MDMConfig
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.mdmConfig
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let mdmConfig: MDMConfig = environment
+    let mdmConfig: MDMConfig = environment.mdmConfig
     
     #if DEBUG
     func transferedAccount() -> TransferedAccount? {

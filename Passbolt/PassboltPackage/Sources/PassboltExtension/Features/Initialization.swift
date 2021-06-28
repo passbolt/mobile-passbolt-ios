@@ -32,8 +32,6 @@ public struct Initialization {
 
 extension Initialization: Feature {
   
-  public typealias Environment = Void
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,

@@ -26,7 +26,7 @@ import struct Foundation.Data
 import class Foundation.UserDefaults
 import struct Foundation.UUID
 
-public struct Preferences {
+public struct Preferences: EnvironmentElement {
   
   public typealias Key = Tagged<String, Self>
   
@@ -159,6 +159,14 @@ extension Preferences {
     for key: Key
   ) where Value: RawRepresentable, Value.RawValue == Int {
     save(value.map(\.rawValue), key)
+  }
+}
+
+extension Environment {
+  
+  public var preferences: Preferences {
+    get { element(Preferences.self) }
+    set { use(newValue) }
   }
 }
 

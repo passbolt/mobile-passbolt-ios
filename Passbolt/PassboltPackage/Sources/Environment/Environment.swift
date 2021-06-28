@@ -22,37 +22,50 @@
 //
 
 import Commons
+import Crypto
 
-public struct Logger: EnvironmentElement {
+public protocol EnvironmentElement {}
+
+extension EnvironmentElement {
   
-  public var consoleLog: (String) -> Void
+  fileprivate static var environmentIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }
 
-extension Logger {
+public struct Environment {
   
-  public static var live: Self {
-    Self(
-      consoleLog: { message in print(message) }
-    )
+  private var environment: Dictionary<ObjectIdentifier, EnvironmentElement> = .init()
+  
+  public init(_ elements: EnvironmentElement...) {
+    var environment: Dictionary<ObjectIdentifier, EnvironmentElement> = .init()
+    environment.reserveCapacity(elements.count)
+    elements.forEach { element in
+      environment[type(of: element).environmentIdentifier] = element
+    }
+    self.environment = environment
   }
 }
 
 extension Environment {
   
-  public var logger: Logger {
-    get { element(Logger.self) }
-    set { use(newValue) }
+  public func element<E>(
+    _ elementType: E.Type = E.self
+  ) -> E where E: EnvironmentElement {
+    if let element: E = environment[elementType.environmentIdentifier] as? E {
+      return element
+    } else {
+      unreachable("Trying to use uninitialized environment element: \(E.self)")
+    }
   }
-}
-
-#if DEBUG
-extension Logger {
   
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      consoleLog: Commons.placeholder("You have to provide mocks for used methods")
-    )
+  public func contains<E>(
+    _ elementType: E.Type = E.self
+  ) -> Bool where E: EnvironmentElement {
+    environment[elementType.environmentIdentifier] is E
+  }
+  
+  public mutating func use<E>(
+    _ element: E
+  ) where E: EnvironmentElement {
+    environment[type(of: element).environmentIdentifier] = element
   }
 }
-#endif

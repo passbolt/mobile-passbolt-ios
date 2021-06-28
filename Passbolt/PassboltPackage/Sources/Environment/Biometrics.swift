@@ -24,7 +24,7 @@
 import Commons
 import LocalAuthentication
 
-public struct Biometrics {
+public struct Biometrics: EnvironmentElement {
   
   public var checkBiometricsState: () -> State
   public var checkBiometricsPermission: () -> Bool
@@ -137,6 +137,14 @@ extension Biometrics {
       checkBiometricsPermission: checkBiometricsPermission,
       requestBiometricsPermission: requestBiometricsPermission
     )
+  }
+}
+
+extension Environment {
+  
+  public var biometrics: Biometrics {
+    get { element(Biometrics.self) }
+    set { use(newValue) }
   }
 }
 

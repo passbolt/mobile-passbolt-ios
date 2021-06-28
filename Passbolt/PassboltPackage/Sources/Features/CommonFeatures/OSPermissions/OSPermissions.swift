@@ -36,33 +36,24 @@ public struct OSPermissions {
 
 extension OSPermissions: Feature {
   
-  public typealias Environment = (camera: Camera, biometrics: Biometrics)
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      camera: rootEnvironment.camera,
-      biometrics: rootEnvironment.biometrics
-    )
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let camera: Camera = environment.camera
+    let biometrics: Biometrics = environment.biometrics
     let diagnostics: Diagnostics = features.instance()
     
     func ensureCameraPermission() -> AnyPublisher<Bool, Never> {
-      environment.camera.checkPermission()
+      camera.checkPermission()
         .map { status -> AnyPublisher<Bool, Never> in
           switch status {
           case .notDetermined:
             if isInExtensionContext {
               return Just(false).eraseToAnyPublisher()
             } else {
-              return environment.camera.requestPermission().eraseToAnyPublisher()
+              return camera.requestPermission().eraseToAnyPublisher()
             }
             
           case .denied:
@@ -77,8 +68,7 @@ extension OSPermissions: Feature {
     }
     
     func ensureBiometricsPermission() -> AnyPublisher<Bool, Never> {
-      environment
-        .biometrics
+      biometrics
         .requestBiometricsPermission()
         .collectErrorLog(using: diagnostics)
         .replaceError(with: false)

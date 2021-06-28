@@ -32,27 +32,7 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class PassphraseCacheTests: XCTestCase {
-  
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
-  override func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
-  }
+final class PassphraseCacheTests: TestCase {
   
   func test_passphraseIsStored_whenStoreIsCalled() {
     features.environment.time.timestamp = always(0)
@@ -60,11 +40,7 @@ final class PassphraseCacheTests: XCTestCase {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
     
-    let cache: PassphraseCache = .load(
-      in: PassphraseCache.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let cache: PassphraseCache = testInstance()
     
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
@@ -88,11 +64,7 @@ final class PassphraseCacheTests: XCTestCase {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
     
-    let cache: PassphraseCache = .load(
-      in: PassphraseCache.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let cache: PassphraseCache = testInstance()
     
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
@@ -117,11 +89,7 @@ final class PassphraseCacheTests: XCTestCase {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
     
-    let cache: PassphraseCache = .load(
-      in: PassphraseCache.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let cache: PassphraseCache = testInstance()
     
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
@@ -152,11 +120,7 @@ final class PassphraseCacheTests: XCTestCase {
       lifeCycleSubject.eraseToAnyPublisher()
     }
     
-    let cache: PassphraseCache = .load(
-      in: PassphraseCache.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let cache: PassphraseCache = testInstance()
     
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"

@@ -21,23 +21,14 @@
 // @since         v1.0
 //
 
-@testable import UIComponents
-@testable import Crypto
+import Crypto
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder
-  )
+extension SignatureVerfication: EnvironmentElement {}
+
+extension Environment {
+  
+  public var signatureVerfication: SignatureVerfication {
+    get { element(SignatureVerfication.self) }
+    set { use(newValue) }
+  }
 }

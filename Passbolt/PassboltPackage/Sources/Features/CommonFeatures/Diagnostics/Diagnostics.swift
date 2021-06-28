@@ -33,36 +33,23 @@ public struct Diagnostics {
 
 extension Diagnostics: Feature {
   
-  public typealias Environment = (
-    time: Time,
-    uuidGenerator: UUIDGenerator,
-    logger: Logger
-  )
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      time: rootEnvironment.time,
-      uuidGenerator: rootEnvironment.uuidGenerator,
-      logger: rootEnvironment.logger
-    )
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Diagnostics {
-    Self(
+    let time: Time = environment.time
+    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
+    let logger: Logger = environment.logger
+    
+    return Self(
       log: { message in
-        environment
-          .logger
+        logger
           .consoleLog(
-            "[\(Date(timeIntervalSince1970: Double(environment.time.timestamp())))] \(message)"
+            "[\(Date(timeIntervalSince1970: Double(time.timestamp())))] \(message)"
           )
       },
-      uniqueID: { environment.uuidGenerator().uuidString }
+      uniqueID: { uuidGenerator().uuidString }
     )
   }
 }

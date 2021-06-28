@@ -29,30 +29,10 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class WelcomeScreenTests: XCTestCase {
-  
-  var factory: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
-  override func setUp() {
-    super.setUp()
-    factory = .init(environment: testEnvironment())
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    factory = nil
-    cancellables = nil
-    super.tearDown()
-  }
+final class WelcomeScreenTests: TestCase {
   
   func test_noAccountAlertAppears_whenTapped_Succeeds() {
-    let controller: WelcomeScreenController = .instance(with: factory, cancellables: cancellables)
+    let controller: WelcomeScreenController = testInstance()
     var result: Bool!
     
     controller.noAccountAlertPresentationPublisher()
@@ -68,7 +48,7 @@ final class WelcomeScreenTests: XCTestCase {
   }
   
   func test_noAccountAlertDisappears_whenDissmissed_Succeeds() {
-    let controller: WelcomeScreenController = .instance(with: factory, cancellables: cancellables)
+    let controller: WelcomeScreenController = testInstance()
     var result: Bool!
     
     controller.noAccountAlertPresentationPublisher()
@@ -84,7 +64,7 @@ final class WelcomeScreenTests: XCTestCase {
   }
   
   func test_navigateToNextScreen_whenTriggered_Succeeds() {
-    let controller: WelcomeScreenController = .instance(with: factory, cancellables: cancellables)
+    let controller: WelcomeScreenController = testInstance()
     var result: Void?
     
     controller.pushTransferInfoPublisher()

@@ -31,30 +31,10 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class SignInScreenTests: XCTestCase {
-  
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
-  override func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
-  }
+final class SignInScreenTests: TestCase {
   
   func test_forgotPassword_isPresented_whenCallingPresent() {
-    let controller: SignInController = .instance(with: features, cancellables: cancellables)
+    let controller: SignInController = testInstance()
     var result: Bool!
     
     controller.presentForgotPassphraseAlertPublisher()
@@ -70,7 +50,7 @@ final class SignInScreenTests: XCTestCase {
   }
   
   func test_validation_withCorrectValue_succeedes() {
-    let controller: SignInController = .instance(with: features, cancellables: cancellables)
+    let controller: SignInController = testInstance()
     var result: Validated<String>!
     
     controller.validatedPassphrasePublisher()
@@ -87,7 +67,7 @@ final class SignInScreenTests: XCTestCase {
   }
   
   func test_validation_withInCorrectValue_failsWithValidationError() {
-    let controller: SignInController = .instance(with: features, cancellables: cancellables)
+    let controller: SignInController = testInstance()
     var result: Validated<String>!
     
     controller.validatedPassphrasePublisher()

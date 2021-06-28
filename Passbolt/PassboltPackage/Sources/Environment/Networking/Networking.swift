@@ -29,7 +29,7 @@ import class Foundation.URLSession
 import class Foundation.URLResponse
 import struct Foundation.URLRequest
 
-public struct Networking {
+public struct Networking: EnvironmentElement {
   
   public var execute: (
     _ request: HTTPRequest,
@@ -120,6 +120,14 @@ extension Networking {
       },
       clearCache: urlCache.removeAllCachedResponses
     )
+  }
+}
+
+extension Environment {
+  
+  public var networking: Networking {
+    get { element(Networking.self) }
+    set { use(newValue) }
   }
 }
 

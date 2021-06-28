@@ -55,8 +55,6 @@ extension AccountTransfer {
 
 extension AccountTransfer: Feature {
   
-  public typealias Environment = Void
-  
   // swiftlint:disable:next function_body_length
   public static func load(
     in environment: Environment,

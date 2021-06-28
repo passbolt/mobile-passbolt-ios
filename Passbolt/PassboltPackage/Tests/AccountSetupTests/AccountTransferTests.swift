@@ -49,9 +49,10 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: AccountTransfer.Progress?
+    
     let accountTransfer: AccountTransfer = testInstance()
     
+    var result: AccountTransfer.Progress?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -77,11 +78,12 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: AccountTransfer.Progress?
+
     let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
     
+    var result: AccountTransfer.Progress?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -108,7 +110,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: AccountTransfer.Progress?
+
     let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -119,6 +121,7 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart5, using: accountTransfer)
     processPart(qrCodePart6, using: accountTransfer)
     
+    var result: AccountTransfer.Progress?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -144,11 +147,12 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: TheError?
+
     let accountTransfer: AccountTransfer = testInstance()
     
     accountTransfer.cancelTransfer()
     
+    var result: TheError?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -174,11 +178,12 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: TheError?
+
     let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
     
+    var result: TheError?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -203,9 +208,10 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: TheError?
+    
     let accountTransfer: AccountTransfer = testInstance()
     
+    var result: TheError?
     accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
@@ -288,6 +294,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+    
     let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -308,6 +315,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+    
     let accountTransfer: AccountTransfer = testInstance()
     
     // we have to get configuration before
@@ -324,6 +332,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -350,6 +359,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -376,6 +386,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -402,6 +413,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -428,6 +440,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -456,6 +469,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+    
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -484,6 +498,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+    
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -518,6 +533,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -552,6 +568,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+    
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -586,6 +603,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -620,6 +638,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -658,6 +677,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -674,6 +694,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     features.use(accountTransfer)
     XCTAssertTrue(features.isLoaded(AccountTransfer.self))
@@ -691,6 +712,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
@@ -727,9 +749,9 @@ final class AccountTransferTests: TestCase {
     accounts.storedAccounts = always([])
     features.use(accounts)
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
     
     processPart(qrCodePart0, using: accountTransfer)
+    var result: TheError?
     accountTransfer
       .processPayload(qrCodePart0)
       .sink(

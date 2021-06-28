@@ -35,24 +35,18 @@ public struct LinkOpener {
 
 extension LinkOpener: Feature {
   
-  public typealias Environment = ExternalURLOpener
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.urlOpener
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> LinkOpener {
-    Self(
-      openLink: environment.openLink,
-      openApp: environment.openApp,
-      openAppSettings: environment.openAppSettings,
-      openSystemSettings: environment.openSystemSettings
+    let externalURLOpener: ExternalURLOpener = environment.externalURLOpener
+    
+    return Self(
+      openLink: externalURLOpener.openLink,
+      openApp: externalURLOpener.openApp,
+      openAppSettings: externalURLOpener.openAppSettings,
+      openSystemSettings: externalURLOpener.openSystemSettings
     )
   }
   

@@ -31,40 +31,16 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class AccountsStoreTests: XCTestCase {
-  
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
-  override func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    features.use(Diagnostics.disabled)
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
-  }
-  
+final class AccountsStoreTests: TestCase {
+
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     features.use(accountsDataStore)
     features.use(AccountSession.placeholder)
-    let accounts: Accounts = .load(
-      in: Accounts.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let accounts: Accounts = testInstance()
     
     let result: Array<AccountWithProfile> = accounts.storedAccounts()
     
@@ -80,11 +56,8 @@ final class AccountsStoreTests: XCTestCase {
     }
     features.use(accountsDataStore)
     features.use(AccountSession.placeholder)
-    let accounts: Accounts = .load(
-      in: Accounts.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let accounts: Accounts = testInstance()
     
     _ = accounts.verifyStorageDataIntegrity()
     
@@ -108,11 +81,8 @@ final class AccountsStoreTests: XCTestCase {
     )
     features.use(accountSession)
     features.environment.uuidGenerator.uuid = always(.testUUID)
-    let accounts: Accounts = .load(
-      in: Accounts.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let accounts: Accounts = testInstance()
     
     accounts
       .transferAccount(
@@ -140,11 +110,8 @@ final class AccountsStoreTests: XCTestCase {
     features.use(accountsDataStore)
     var accountSession: AccountSession = .placeholder
     features.use(AccountSession.placeholder)
-    let accounts: Accounts = .load(
-      in: Accounts.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let accounts: Accounts = testInstance()
     
     var result: TheError!
     accounts
@@ -189,11 +156,8 @@ final class AccountsStoreTests: XCTestCase {
     accountSession.close = always(Void())
     features.use(accountSession)
     features.environment.uuidGenerator.uuid = always(.testUUID)
-    let accounts: Accounts = .load(
-      in: Accounts.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let accounts: Accounts = testInstance()
     
     _ = accounts.removeAccount(validAccount.localID)
     

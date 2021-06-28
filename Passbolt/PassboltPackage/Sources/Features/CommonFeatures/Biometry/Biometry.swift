@@ -32,31 +32,18 @@ public struct Biometry {
 
 extension Biometry: Feature {
   
-  public typealias Environment = (
-    biometrics: Biometrics,
-    appLifeCycle: AppLifeCycle
-  )
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      biometrics: rootEnvironment.biometrics,
-      appLifeCycle: rootEnvironment.appLifeCycle
-    )
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let biometrics: Biometrics = environment.biometrics
+    let appLifeCycle: AppLifeCycle = environment.appLifeCycle
     
     func biometricsStateChangesPublisher() -> AnyPublisher<Biometrics.State, Never> {
       Publishers.Merge(
         Just(Void()),
-        environment
-          .appLifeCycle
+        appLifeCycle
           .lifeCyclePublisher()
           // Looking for sequence of didEnterBackground and didBecomeActive which indicates exiting
           // and goind back to the application, we check biometrics state again if it has changed or not
@@ -72,8 +59,7 @@ extension Biometry: Feature {
           .compactMap(\.0)
         )
         .map {
-          environment
-            .biometrics
+          biometrics
             .checkBiometricsState()
         }
         .removeDuplicates()

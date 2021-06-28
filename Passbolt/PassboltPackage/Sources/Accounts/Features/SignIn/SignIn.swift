@@ -47,29 +47,16 @@ public struct SignIn {
 
 extension SignIn: Feature {
 
-  public typealias Environment = (
-    uuidGenerator: UUIDGenerator,
-    time: Time,
-    pgp: PGP,
-    signatureVerification: SignatureVerfication
-  )
-
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      rootEnvironment.uuidGenerator,
-      rootEnvironment.time,
-      rootEnvironment.pgp,
-      rootEnvironment.signatureVerification
-    )
-  }
-
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> SignIn {
+    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
+    let time: Time = environment.time
+    let pgp: PGP = environment.pgp
+    let signatureVerification: SignatureVerfication = environment.signatureVerfication
+    
     let networkClient: NetworkClient = features.instance()
     let diagnostics: Diagnostics = features.instance()
     
@@ -127,8 +114,8 @@ extension SignIn: Feature {
       passphrase: Passphrase,
       method: Method
     ) -> AnyPublisher<SessionTokens, TheError> {
-      let verificationToken: String = environment.uuidGenerator().uuidString
-      let verificationExpiration: Int = environment.time.timestamp() + 120 // 120s is verification token's lifetime
+      let verificationToken: String = uuidGenerator().uuidString
+      let verificationExpiration: Int = time.timestamp() + 120 // 120s is verification token's lifetime
       
       let jwtStep: AnyPublisher<String, TheError> = serverPGPPublicKey
         .map { (serverPublicKey: ArmoredPublicKey) -> AnyPublisher<ArmoredMessage, TheError> in
@@ -152,7 +139,7 @@ extension SignIn: Feature {
 
           let encryptedAndSigned: String
           
-          switch environment.pgp.encryptAndSign(encodedChallenge, passphrase, armoredKey, serverPublicKey) {
+          switch pgp.encryptAndSign(encodedChallenge, passphrase, armoredKey, serverPublicKey) {
           // swiftlint:disable:next explicit_type_interface
           case let .success(result):
             encryptedAndSigned = result
@@ -197,7 +184,7 @@ extension SignIn: Feature {
         .map { encryptedTokenPayload, publicKey -> AnyPublisher<String, TheError> in
           let decrypted: String
           
-          switch environment.pgp.decryptAndVerify(encryptedTokenPayload, passphrase, armoredKey, publicKey) {
+          switch pgp.decryptAndVerify(encryptedTokenPayload, passphrase, armoredKey, publicKey) {
           // swiftlint:disable:next explicit_type_interface
           case let .success(result):
             decrypted = result
@@ -254,7 +241,7 @@ extension SignIn: Feature {
           }
           
           guard verificationToken == decryptedToken.verificationToken,
-            verificationExpiration > environment.time.timestamp(),
+            verificationExpiration > time.timestamp(),
             let key: Data = Data(base64Encoded: publicKey.stripArmoredFormat()),
             let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
             let signedData: Data = accessToken.signedPayload.data(using: .utf8)
@@ -265,7 +252,7 @@ extension SignIn: Feature {
             .eraseToAnyPublisher()
           }
           
-          switch environment.signatureVerification.verify(signedData, signature, key) {
+          switch signatureVerification.verify(signedData, signature, key) {
           case .success:
             return Just(
               SessionTokens(accessToken: accessToken, refreshToken: decryptedToken.refreshToken)

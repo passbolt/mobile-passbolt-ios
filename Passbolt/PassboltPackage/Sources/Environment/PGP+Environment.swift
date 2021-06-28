@@ -23,18 +23,12 @@
 
 import Crypto
 
-public typealias RootEnvironment = (
-  time: Time,
-  uuidGenerator: UUIDGenerator,
-  logger: Logger,
-  networking: Networking,
-  preferences: Preferences,
-  keychain: Keychain,
-  biometrics: Biometrics,
-  camera: Camera,
-  urlOpener: ExternalURLOpener,
-  appLifeCycle: AppLifeCycle,
-  pgp: PGP,
-  signatureVerification: SignatureVerfication,
-  mdmConfig: MDMConfig
-)
+extension PGP: EnvironmentElement {}
+
+extension Environment {
+  
+  public var pgp: PGP {
+    get { element(PGP.self) }
+    set { use(newValue) }
+  }
+}

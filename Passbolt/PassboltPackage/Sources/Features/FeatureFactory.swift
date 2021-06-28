@@ -29,15 +29,15 @@ public final class FeatureFactory {
   private typealias FeatureInstance = (feature: Any, cancellables: Cancellables)
   
   #if DEBUG // debug builds allow change and access to environment for mocking and debug
-  public var environment: RootEnvironment
+  public var environment: Environment
   #else // production builds cannot access environment directly
-  private let environment: RootEnvironment
+  private let environment: Environment
   #endif
   private let featuresAccessLock: NSRecursiveLock = .init()
   private var features: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
   
   public init(
-    environment: RootEnvironment
+    environment: Environment
   ) {
     self.environment = environment
   }
@@ -67,7 +67,7 @@ extension FeatureFactory {
       let featureCancellables: Cancellables = .init()
       
       let loaded: F = .load(
-        in: F.environmentScope(environment),
+        in: environment,
         using: self,
         cancellables: featureCancellables
       )

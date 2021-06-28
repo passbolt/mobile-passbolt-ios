@@ -25,7 +25,7 @@ import Commons
 
 import struct Foundation.UUID
 
-public struct UUIDGenerator {
+public struct UUIDGenerator: EnvironmentElement {
   
   public var uuid: () -> UUID
 }
@@ -40,6 +40,14 @@ extension UUIDGenerator {
     Self(
       uuid: UUID.init
     )
+  }
+}
+
+extension Environment {
+  
+  public var uuidGenerator: UUIDGenerator {
+    get { element(UUIDGenerator.self) }
+    set { use(newValue) }
   }
 }
 

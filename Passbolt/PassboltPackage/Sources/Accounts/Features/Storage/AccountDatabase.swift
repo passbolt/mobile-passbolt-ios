@@ -38,19 +38,13 @@ public struct AccountDatabase {
 
 extension AccountDatabase: Feature {
   
-  public typealias Environment = AppLifeCycle
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.appLifeCycle
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountDatabase {
+    let appLifeCycle: AppLifeCycle = environment.appLifeCycle
+    
     let diagnostics: Diagnostics = features.instance()
     let accountSession: AccountSession = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
@@ -88,7 +82,7 @@ extension AccountDatabase: Feature {
           
         case .authorizationRequired:
           // drop connection only when going to background
-          return environment
+          return appLifeCycle
             .lifeCyclePublisher()
             .filter { $0 == .didEnterBackground }
             .map { _ -> DatabaseConnection? in nil }

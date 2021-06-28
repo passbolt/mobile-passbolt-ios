@@ -33,28 +33,17 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class AccountSelectionScreenTests: XCTestCase {
-  var networkClient: NetworkClient!
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
+final class AccountSelectionScreenTests: TestCase {
   
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
+  var networkClient: NetworkClient!
   
   override func setUp() {
     super.setUp()
-    features = .init(environment: testEnvironment())
-    features.use(Diagnostics.disabled)
-    
     networkClient = .placeholder
-    cancellables = .init()
   }
   
   override func tearDown() {
-    features = nil
-    cancellables = nil
+    networkClient = nil
     super.tearDown()
   }
   
@@ -66,7 +55,7 @@ final class AccountSelectionScreenTests: XCTestCase {
     networkClient.mediaDownload = .respondingWith(Data())
     features.use(networkClient)
     
-    let controller: AccountSelectionController = .instance(with: features, cancellables: cancellables)
+    let controller: AccountSelectionController = testInstance()
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
     
@@ -107,7 +96,7 @@ final class AccountSelectionScreenTests: XCTestCase {
     networkClient.mediaDownload = .failingWith(.testError())
     features.use(networkClient)
     
-    let controller: AccountSelectionController = .instance(with: features, cancellables: cancellables)
+    let controller: AccountSelectionController = testInstance()
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
     
@@ -146,7 +135,7 @@ final class AccountSelectionScreenTests: XCTestCase {
     features.use(accounts)
     features.use(networkClient)
     
-    let controller: AccountSelectionController = .instance(with: features, cancellables: cancellables)
+    let controller: AccountSelectionController = testInstance()
     controller.changeMode(.removal)
     
     var result: Array<AccountSelectionListItem> = []
@@ -176,7 +165,7 @@ final class AccountSelectionScreenTests: XCTestCase {
     features.use(accounts)
     features.use(networkClient)
     
-    let controller: AccountSelectionController = .instance(with: features, cancellables: cancellables)
+    let controller: AccountSelectionController = testInstance()
     var result: Array<AccountSelectionListItem> = []
     
     controller.accountsPublisher()
@@ -199,7 +188,7 @@ final class AccountSelectionScreenTests: XCTestCase {
     features.use(accounts)
     features.use(networkClient)
     
-    let controller: AccountSelectionController = .instance(with: features, cancellables: cancellables)
+    let controller: AccountSelectionController = testInstance()
     var result: Array<AccountSelectionListItem> = []
     
     let removeResult: Result<Void, TheError> = controller.removeAccount(firstAccount.localID)
@@ -235,7 +224,7 @@ final class AccountSelectionScreenTests: XCTestCase {
     features.use(accounts)
     features.use(networkClient)
     
-    let controller: AccountSelectionController = .instance(with: features, cancellables: cancellables)
+    let controller: AccountSelectionController = testInstance()
     var result: Array<AccountSelectionListItem> = []
     var completed: Void?
     

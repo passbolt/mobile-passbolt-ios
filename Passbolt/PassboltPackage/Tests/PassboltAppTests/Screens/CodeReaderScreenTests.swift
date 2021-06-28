@@ -32,27 +32,7 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class CodeReaderScreenTests: XCTestCase {
-  
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
-  override func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
-  }
+final class CodeReaderScreenTests: TestCase {
   
   func test_processPayload_passesPayloadToAccountTransfer() {
     var accountTransfer: AccountTransfer = .placeholder
@@ -63,7 +43,7 @@ final class CodeReaderScreenTests: XCTestCase {
         .eraseToAnyPublisher()
     }
     features.use(accountTransfer)
-    let controller: CodeReaderController = .instance(with: features, cancellables: cancellables)
+    let controller: CodeReaderController = testInstance()
     controller
       .processPayload("TEST")
       .sink(

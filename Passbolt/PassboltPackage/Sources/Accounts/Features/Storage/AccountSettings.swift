@@ -32,8 +32,6 @@ public struct AccountSettings {
 
 extension AccountSettings: Feature {
   
-  public typealias Environment = Void
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,

@@ -48,28 +48,16 @@ internal struct AccountsDataStore {
 
 extension AccountsDataStore: Feature {
   
-  internal typealias Environment = (
-    preferences: Preferences,
-    keychain: Keychain,
-    uuidGenerator: UUIDGenerator
-  )
-  
-  internal static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      preferences: rootEnvironment.preferences,
-      keychain: rootEnvironment.keychain,
-      uuidGenerator: rootEnvironment.uuidGenerator
-    )
-  }
-  
   // swiftlint:disable:next function_body_length
   internal static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let preferences: Preferences = environment.preferences
+    let keychain: Keychain = environment.keychain
+    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
+    
     let diagnostics: Diagnostics = features.instance()
     
     // swiftlint:disable:next cyclomatic_complexity function_body_length cyclomatic_complexity
@@ -78,14 +66,13 @@ extension AccountsDataStore: Feature {
       defer { diagnostics.debugLog("...data integrity verification finished") }
       
       // storedAccountsList - user defaults control list
-      let storedAccountsList: Array<Account.LocalID> = environment
-        .preferences
+      let storedAccountsList: Array<Account.LocalID> = preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       diagnostics.debugLog("Stored accounts list: \(storedAccountsList)")
       
       // storedAccounts - keychain accounts
       let storedAccounts: Array<Account.LocalID>
-      switch environment.keychain.loadAll(Account.self, matching: .accountsQuery) {
+      switch keychain.loadAll(Account.self, matching: .accountsQuery) {
       // swiftlint:disable:next explicit_type_interface
       case let .success(accounts):
         storedAccounts = accounts.map(\.localID)
@@ -101,7 +88,7 @@ extension AccountsDataStore: Feature {
       
       // storedAccountProfiles - keychain accounts metadata
       let storedAccountsProfiles: Array<Account.LocalID>
-      switch environment.keychain.loadAll(AccountProfile.self, matching: .accountsProfilesQuery) {
+      switch keychain.loadAll(AccountProfile.self, matching: .accountsProfilesQuery) {
       // swiftlint:disable:next explicit_type_interface
       case let .success(accounts):
         storedAccountsProfiles = accounts.map(\.accountID)
@@ -122,7 +109,7 @@ extension AccountsDataStore: Feature {
         tag: nil,
         requiresBiometrics: false
       )
-      switch environment.keychain.loadMeta(matching: armoredKeysQuery) {
+      switch keychain.loadMeta(matching: armoredKeysQuery) {
       // swiftlint:disable:next explicit_type_interface
       case let .success(keysMeta):
         storedAccountKeys = keysMeta
@@ -155,7 +142,7 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
       
       for accountID in accountsToRemove {
-        switch environment.keychain.delete(matching: .accountQuery(for: accountID)) {
+        switch keychain.delete(matching: .accountQuery(for: accountID)) {
         case .success:
           continue
         // swiftlint:disable:next explicit_type_interface
@@ -173,7 +160,7 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
       
       for accountID in accountProfilesToRemove {
-        switch environment.keychain.delete(matching: .accountProfileQuery(for: accountID)) {
+        switch keychain.delete(matching: .accountProfileQuery(for: accountID)) {
         case .success:
           continue
         // swiftlint:disable:next explicit_type_interface
@@ -191,7 +178,7 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
       
       for accountID in keysToRemove {
-        switch environment.keychain.delete(matching: .accountArmoredKeyQuery(for: accountID)) {
+        switch keychain.delete(matching: .accountArmoredKeyQuery(for: accountID)) {
         case .success:
           continue
         // swiftlint:disable:next explicit_type_interface
@@ -207,7 +194,7 @@ extension AccountsDataStore: Feature {
       
       if updatedAccountsList.isEmpty {
         diagnostics.debugLog("Deleting stored passphrases")
-        switch environment.keychain.delete(matching: .accountPassphraseDeletionQuery()) {
+        switch keychain.delete(matching: .accountPassphraseDeletionQuery()) {
         case .success:
           break
         // swiftlint:disable:next explicit_type_interface
@@ -224,7 +211,7 @@ extension AccountsDataStore: Feature {
 
       let storedTokens: Array<Account.LocalID>
       
-      switch environment.keychain.loadMeta(matching: .refreshTokensQuery()) {
+      switch keychain.loadMeta(matching: .refreshTokensQuery()) {
       // swiftlint:disable:next explicit_type_interface
       case let .success(metadata):
         storedTokens = metadata
@@ -244,7 +231,7 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
       
       for accountID in tokensToRemove {
-        switch environment.keychain.delete(matching: .refreshTokenQuery(for: accountID)) {
+        switch keychain.delete(matching: .refreshTokenQuery(for: accountID)) {
         case .success:
           continue
         // swiftlint:disable:next explicit_type_interface
@@ -313,7 +300,7 @@ extension AccountsDataStore: Feature {
     }
     
     func storeLastUsedAccount(_ accountID: Account.LocalID) -> Void {
-      environment.preferences.save(accountID, for: .lastUsedAccount)
+      preferences.save(accountID, for: .lastUsedAccount)
     }
     
     func store(
@@ -327,7 +314,7 @@ extension AccountsDataStore: Feature {
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.append(account.localID)
-      environment.preferences.save(accountIdentifiers, for: .accountsList)
+      preferences.save(accountIdentifiers, for: .accountsList)
       
       return environment
         .keychain
@@ -504,7 +491,7 @@ extension AccountsDataStore: Feature {
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.removeAll(where: { $0 == accountID })
-      environment.preferences.save(accountIdentifiers, for: .accountsList)
+      preferences.save(accountIdentifiers, for: .accountsList)
       
       #warning("TODO: [PAS-82] remove database files")
     }
@@ -520,19 +507,19 @@ extension AccountsDataStore: Feature {
       refreshToken: String,
       accountID: Account.LocalID
     ) -> Result<Void, TheError> {
-      environment.keychain.save(refreshToken, for: .refreshTokenQuery(for: accountID))
+      keychain.save(refreshToken, for: .refreshTokenQuery(for: accountID))
     }
     
     func loadRefreshToken(
       for accountID: Account.LocalID
     ) -> Result<String?, TheError> {
-      environment.keychain.loadFirst(matching: .refreshTokenQuery(for: accountID))
+      keychain.loadFirst(matching: .refreshTokenQuery(for: accountID))
     }
     
     func deleteRefreshToken(
       for accountID: Account.LocalID
     ) -> Result<Void, TheError> {
-      environment.keychain.delete(matching: .refreshTokenQuery(for: accountID))
+      keychain.delete(matching: .refreshTokenQuery(for: accountID))
     }
     
     return Self(

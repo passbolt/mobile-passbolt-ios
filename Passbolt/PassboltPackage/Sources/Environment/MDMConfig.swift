@@ -23,9 +23,9 @@
 
 import Commons
 import class Foundation.UserDefaults
-import Foundation
+//import Foundation
 
-public struct MDMConfig {
+public struct MDMConfig: EnvironmentElement {
   
   public var loadConfig: () -> Dictionary<String, Any>
   public var updateConfig: (Dictionary<String, Any>) -> Void
@@ -56,6 +56,14 @@ extension MDMConfig {
       loadConfig: loadConfig,
       updateConfig: updateConfig
     )
+  }
+}
+
+extension Environment {
+  
+  public var mdmConfig: MDMConfig {
+    get { element(MDMConfig.self) }
+    set { use(newValue) }
   }
 }
 

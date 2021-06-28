@@ -60,22 +60,14 @@ extension PassphraseCache {
 
 extension PassphraseCache: Feature {
   
-  internal typealias Environment = (time: Time, lifeCycle: AppLifeCycle)
-  
-  internal static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      rootEnvironment.time,
-      rootEnvironment.appLifeCycle
-    )
-  }
-  
   internal static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> PassphraseCache {
+    let time: Time = environment.time
+    let appLifeCycle: AppLifeCycle = environment.appLifeCycle
+    
     let currentPassphraseSubject: CurrentValueSubject<Entry?, Never> = .init(nil)
     let lock: NSRecursiveLock = .init()
     var timer: DispatchedTimer?
@@ -93,7 +85,7 @@ extension PassphraseCache: Feature {
       }
     }
     
-    environment.lifeCycle
+    appLifeCycle
       .lifeCyclePublisher()
       .sink { appState in
         switch appState {

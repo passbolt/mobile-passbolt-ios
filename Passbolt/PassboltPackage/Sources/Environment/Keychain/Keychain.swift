@@ -26,7 +26,7 @@ import Foundation
 import LocalAuthentication
 
 // swiftlint:disable file_length
-public struct Keychain {
+public struct Keychain: EnvironmentElement {
   
   public var load: (KeychainQuery) -> Result<Array<Data>, TheError>
   public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, TheError>
@@ -510,6 +510,14 @@ private func deleteKeychainKeyQuery(
     query[kSecAttrAccount] = tag
   } else { /* */ }
   return .success(query as CFDictionary)
+}
+
+extension Environment {
+  
+  public var keychain: Keychain {
+    get { element(Keychain.self) }
+    set { use(newValue) }
+  }
 }
 
 #if DEBUG

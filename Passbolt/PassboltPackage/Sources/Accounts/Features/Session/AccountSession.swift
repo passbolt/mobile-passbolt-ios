@@ -57,14 +57,7 @@ extension AccountSession {
 }
 
 extension AccountSession: Feature {
-  
-  public typealias Environment = Time
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.time
-  }
+
   
   // swiftlint:disable:next function_body_length
   public static func load(
@@ -72,6 +65,8 @@ extension AccountSession: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountSession {
+    let time: Time = environment.time
+    
     let diagnostics: Diagnostics = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
@@ -281,7 +276,7 @@ extension AccountSession: Feature {
           
           return NetworkClient.Tokens(
             accessToken: sessionTokens.accessToken.rawValue,
-            isExpired: { sessionTokens.accessToken.isExpired(timestamp: environment.timestamp()) },
+            isExpired: { sessionTokens.accessToken.isExpired(timestamp: time.timestamp()) },
             refreshToken: sessionTokens.refreshToken
           )
         }
@@ -304,7 +299,7 @@ extension AccountSession: Feature {
             passphrase,
             account.localID,
             .init(
-              timeIntervalSince1970: .init(environment.timestamp())
+              timeIntervalSince1970: .init(time.timestamp())
                 + PassphraseCache.defaultExpirationTimeInterval
             )
           )

@@ -27,12 +27,6 @@ import Environment
 
 public protocol Feature {
   
-  associatedtype Environment
-  
-  static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment
-  
   static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -59,13 +53,4 @@ extension Feature {
 extension Feature {
   
   internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
-}
-
-extension Feature where Environment == Void {
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    Void()
-  }
 }

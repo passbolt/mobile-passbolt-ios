@@ -33,23 +33,13 @@ import XCTest
 // swiftlint:disable implicitly_unwrapped_optional
 // swiftlint:disable unowned_variable_capture
 // swiftlint:disable file_length
-final class AccountsDataStoreTests: XCTestCase {
+final class AccountsDataStoreTests: TestCase {
   
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
   var mockPreferencesStore: Dictionary<Preferences.Key, Any>!
   var mockKeychainStore: Array<(data: Data, query: KeychainQuery)>!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
+
   override func setUp() {
     super.setUp()
-    features = .init(environment: testEnvironment())
-    features.use(Diagnostics.disabled)
-    cancellables = .init()
     mockPreferencesStore = .init()
     mockKeychainStore = .init()
     features.environment.preferences.load = { [unowned self] key in
@@ -105,8 +95,6 @@ final class AccountsDataStoreTests: XCTestCase {
   }
   
   override func tearDown() {
-    features = nil
-    cancellables = nil
     mockPreferencesStore = nil
     mockKeychainStore = nil
     super.tearDown()
@@ -114,11 +102,8 @@ final class AccountsDataStoreTests: XCTestCase {
   
   func test_loadAccounts_loadsItemsStoredInKeychain() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Array<Account> = dataStore.loadAccounts()
     
@@ -127,11 +112,8 @@ final class AccountsDataStoreTests: XCTestCase {
   
   func test_loadAccounts_loadsEmptyIfKeychainContainsInvalidItems() {
     features.environment.keychain.load = always(.success([Data([65, 66, 67]), validAccountKeychainData]))
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Array<Account> = dataStore.loadAccounts()
     
@@ -140,11 +122,8 @@ final class AccountsDataStoreTests: XCTestCase {
   
   func test_loadAccounts_loadsEmptyIfKeychainLoadFails() {
     features.environment.keychain.load = always(.failure(.testError()))
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Array<Account> = dataStore.loadAccounts()
     
@@ -154,11 +133,8 @@ final class AccountsDataStoreTests: XCTestCase {
   func test_loadLastUsedAccount_loadsStoredLastAccount() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Account? = dataStore.loadLastUsedAccount()
     
@@ -168,11 +144,8 @@ final class AccountsDataStoreTests: XCTestCase {
   func test_loadLastUsedAccount_loadsNoneIfKeychainDataIsMissing() {
     features.environment.keychain.load = always(.success([]))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Account? = dataStore.loadLastUsedAccount()
     
@@ -182,11 +155,8 @@ final class AccountsDataStoreTests: XCTestCase {
   func test_loadLastUsedAccount_loadsNoneIfKeychainLoadFails() {
     features.environment.keychain.load = always(.failure(.testError()))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Account? = dataStore.loadLastUsedAccount()
     
@@ -196,11 +166,8 @@ final class AccountsDataStoreTests: XCTestCase {
   func test_loadLastUsedAccount_loadsNoneIfNoAccountIDSaved() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
     features.environment.preferences.load = always(nil)
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Account? = dataStore.loadLastUsedAccount()
     
@@ -212,11 +179,8 @@ final class AccountsDataStoreTests: XCTestCase {
     features.environment.preferences.save = { value, _ in
       result = value as? String
     }
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     dataStore.storeLastUsedAccount(validAccount.localID)
     
@@ -227,11 +191,7 @@ final class AccountsDataStoreTests: XCTestCase {
   }
   
   func test_storeAccount_savesDataProperly() {
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
     
@@ -248,11 +208,8 @@ final class AccountsDataStoreTests: XCTestCase {
   
   func test_storeAccount_failsIfKeychainSaveFails() {
     features.environment.keychain.save = always(.failure(.testError()))
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
     
@@ -261,11 +218,8 @@ final class AccountsDataStoreTests: XCTestCase {
   
   func test_storeAccount_dataIsNotSavedIfKeychainSaveFails() {
     features.environment.keychain.save = always(.failure(.testError()))
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     _ = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
     
@@ -307,11 +261,8 @@ final class AccountsDataStoreTests: XCTestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     dataStore.deleteAccount(validAccount.localID)
     
@@ -326,11 +277,7 @@ final class AccountsDataStoreTests: XCTestCase {
   }
   
   func test_verifyDataIntegrity_succeedsWithNoData() {
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
     
@@ -365,11 +312,7 @@ final class AccountsDataStoreTests: XCTestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
     
@@ -413,11 +356,7 @@ final class AccountsDataStoreTests: XCTestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let dataStore: AccountsDataStore = testInstance()
     
     _ = dataStore.verifyDataIntegrity()
     
@@ -459,11 +398,7 @@ final class AccountsDataStoreTests: XCTestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
     
@@ -498,11 +433,8 @@ final class AccountsDataStoreTests: XCTestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
     
@@ -537,11 +469,8 @@ final class AccountsDataStoreTests: XCTestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = .load(
-      in: AccountsDataStore.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    
+    let dataStore: AccountsDataStore = testInstance()
     
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
     

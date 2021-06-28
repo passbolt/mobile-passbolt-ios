@@ -65,9 +65,7 @@ extension AutofillExtensionContext {
 }
 
 extension AutofillExtensionContext: Feature {
-  
-  public typealias Environment = Void
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,

@@ -24,7 +24,7 @@
 import Commons
 import func Foundation.time
 
-public struct Time {
+public struct Time: EnvironmentElement {
   // Number of seconds from beginning of epoch (1/1/1970)
   public var timestamp: () -> Int
 }
@@ -35,6 +35,14 @@ extension Time {
     Self(
       timestamp: { time(nil) }
     )
+  }
+}
+
+extension Environment {
+  
+  public var time: Time {
+    get { element(Time.self) }
+    set { use(newValue) }
   }
 }
 

@@ -26,7 +26,7 @@ import Commons
 import struct Foundation.URL
 import UIKit
 
-public struct ExternalURLOpener {
+public struct ExternalURLOpener: EnvironmentElement {
   
   public var openLink: (URL) -> AnyPublisher<Bool, Never>
   public var openApp: () -> AnyPublisher<Bool, Never>
@@ -64,6 +64,14 @@ public extension ExternalURLOpener {
       }
     )
     // swiftlint:enable force_unwrapping
+  }
+}
+
+extension Environment {
+  
+  public var externalURLOpener: ExternalURLOpener {
+    get { element(ExternalURLOpener.self) }
+    set { use(newValue) }
   }
 }
 

@@ -98,13 +98,9 @@ final class SignInTests: TestCase {
     features.environment.uuidGenerator.uuid = always(verificationToken)
     features.environment.pgp.encryptAndSign = { _, _, _, _ in .success("EncryptedAndSigned") }
     features.environment.pgp.decryptAndVerify = { _, _, _, _ in .success(encodedTokens) }
-    features.environment.signatureVerification.verify = { _, _, _ in .success(()) }
+    features.environment.signatureVerfication.verify = { _, _, _ in .success(()) }
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)
@@ -140,11 +136,7 @@ final class SignInTests: TestCase {
     features.environment.time.timestamp = always(1_516_000_000)
     features.environment.uuidGenerator.uuid = always(verificationToken)
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)
@@ -173,11 +165,7 @@ final class SignInTests: TestCase {
     features.environment.time.timestamp = always(1_516_000_000)
     features.environment.uuidGenerator.uuid = always(verificationToken)
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)
@@ -221,11 +209,7 @@ final class SignInTests: TestCase {
     features.environment.uuidGenerator.uuid = always(verificationToken)
     features.environment.pgp.encryptAndSign = { _, _, _, _ in .failure(.pgpError(nil)) }
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)
@@ -277,11 +261,7 @@ final class SignInTests: TestCase {
     features.environment.pgp.encryptAndSign = { _, _, _, _ in .success("EncryptedAndSigned") }
     features.environment.pgp.decryptAndVerify = { _, _, _, _ in .failure(.pgpError(nil)) }
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)
@@ -344,13 +324,9 @@ final class SignInTests: TestCase {
     features.environment.uuidGenerator.uuid = always(verificationToken)
     features.environment.pgp.encryptAndSign = { _, _, _, _ in .success("EncryptedAndSigned") }
     features.environment.pgp.decryptAndVerify = { _, _, _, _ in .success(encodedTokens) }
-    features.environment.signatureVerification.verify = { _, _, _ in .failure(.signatureError(nil)) }
+    features.environment.signatureVerfication.verify = { _, _, _ in .failure(.signatureError(nil)) }
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)
@@ -413,13 +389,9 @@ final class SignInTests: TestCase {
     features.environment.uuidGenerator.uuid = always(.testUUID)
     features.environment.pgp.encryptAndSign = { _, _, _, _ in .success("EncryptedAndSigned") }
     features.environment.pgp.decryptAndVerify = { _, _, _, _ in .success(encodedTokens) }
-    features.environment.signatureVerification.verify = { _, _, _ in .success(()) }
+    features.environment.signatureVerfication.verify = { _, _, _ in .success(()) }
     
-    let signIn: SignIn = .load(
-      in: SignIn.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let signIn: SignIn = testInstance()
     
     signIn.signIn("0", domain, pgpPrivateKey, passphrase, .challenge)
       .receive(on: ImmediateScheduler.shared)

@@ -30,7 +30,7 @@ open class TestCase: XCTestCase {
   
   public var features: FeatureFactory!
   public var cancellables: Cancellables!
-  public var environment: RootEnvironment {
+  public var environment: Environment {
     get { features.environment }
     set { features.environment = newValue }
   }
@@ -79,7 +79,7 @@ open class TestCase: XCTestCase {
     _ type: F.Type = F.self
   ) -> F {
     F.load(
-      in: F.environmentScope(environment),
+      in: environment,
       using: features,
       cancellables: cancellables
     )

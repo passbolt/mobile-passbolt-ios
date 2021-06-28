@@ -51,13 +51,13 @@ extension NetworkClient {
 
 extension NetworkClient: Feature {
   
-  public typealias Environment = Networking
-  
   public static func load(
-    in environment: (Networking),
+    in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> NetworkClient {
+    let networking: Networking = environment.networking
+    
     let sessionSubject: CurrentValueSubject<NetworkSessionVariable?, Never> = .init(nil)
     let tokensSubject: CurrentValueSubject<AnyPublisher<Tokens?, Never>, Never> = .init(Empty().eraseToAnyPublisher())
 
@@ -113,47 +113,41 @@ extension NetworkClient: Feature {
 
     return Self(
       accountTransferUpdate: .live(
-        using: environment,
+        using: networking,
         with: emptySessionVariablePublisher
       ),
       mediaDownload: .live(
-        using: environment,
+        using: networking,
         with: emptySessionVariablePublisher
       ),
       serverPGPPublicKeyRequest: .live(
-        using: environment,
+        using: networking,
         with: domainVariablePublisher
       ),
       serverPublicKeyRequest: .live(
-        using: environment,
+        using: networking,
         with: domainVariablePublisher
       ),
       serverRSAPublicKeyRequest: .live(
-        using: environment,
+        using: networking,
         with: domainVariablePublisher
       ),
       signInRequest: .live(
-        using: environment,
+        using: networking,
         with: domainVariablePublisher
       ),
       signOutRequest: .live(
-        using: environment,
+        using: networking,
         with: domainVariablePublisher
       ),
       refreshSessionRequest: .live(
-        using: environment,
+        using: networking,
         with: domainVariablePublisher
       ),
       featureUnload: featureUnload,
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:)
     )
-  }
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    rootEnvironment.networking
   }
 
   #if DEBUG

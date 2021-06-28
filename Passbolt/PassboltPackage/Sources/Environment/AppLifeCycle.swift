@@ -24,7 +24,7 @@
 import Commons
 import UIKit
 
-public struct AppLifeCycle {
+public struct AppLifeCycle: EnvironmentElement {
   
   public enum Transition: Equatable {
     
@@ -74,6 +74,14 @@ extension AppLifeCycle {
         .eraseToAnyPublisher()
       }
     )
+  }
+}
+
+extension Environment {
+
+  public var appLifeCycle: AppLifeCycle {
+    get { element(AppLifeCycle.self) }
+    set { use(newValue) }
   }
 }
 

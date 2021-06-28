@@ -33,33 +33,13 @@ import XCTest
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
-final class TransferInfoScreenTests: XCTestCase {
-
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-  
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-  
-  override func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    cancellables = .init()
-  }
-  
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
-  }
+final class TransferInfoScreenTests: TestCase {
   
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {
     var permissions: OSPermissions = .placeholder
     permissions.ensureCameraPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
-    let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
+    let controller: TransferInfoScreenController = testInstance()
     var result: Bool!
     
     controller.presentNoCameraPermissionAlertPublisher()
@@ -82,7 +62,7 @@ final class TransferInfoScreenTests: XCTestCase {
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
-    let controller: TransferInfoCameraRequiredAlertController = .instance(with: features, cancellables: cancellables)
+    let controller: TransferInfoCameraRequiredAlertController = testInstance()
     
     controller.showSettings()
     
@@ -97,7 +77,7 @@ final class TransferInfoScreenTests: XCTestCase {
       return Just(false).eraseToAnyPublisher()
     }
     features.use(appPermissions)
-    let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
+    let controller: TransferInfoScreenController = testInstance()
     
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
@@ -114,7 +94,7 @@ final class TransferInfoScreenTests: XCTestCase {
     )
     features.use(appPermissions)
     
-    let controller: TransferInfoScreenController = .instance(with: features, cancellables: cancellables)
+    let controller: TransferInfoScreenController = testInstance()
     var result: Bool!
     
     controller.requestOrNavigatePublisher()

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Crypto
 import Combine
 import Features
 import Foundation
@@ -32,25 +33,30 @@ internal struct Application {
   private let features: FeatureFactory
   
   internal init(
-    environment: RootEnvironment = RootEnvironment(
-      time: .live,
-      uuidGenerator: .live,
-      logger: .live,
-      networking: .foundation(),
-      preferences: .sharedUserDefaults(),
-      keychain: .live(),
-      biometrics: .live,
-      camera: .live(),
-      urlOpener: .live(),
-      appLifeCycle: .live(),
-      pgp: .gopenPGP(),
-      signatureVerification: .RSSHA256(),
-      mdmConfig: .live
+    environment: Environment = Environment(
+      Time.live,
+      UUIDGenerator.live,
+      Logger.live,
+      Networking.foundation(),
+      Preferences.sharedUserDefaults(),
+      Keychain.live(),
+      Biometrics.live,
+      Camera.live(),
+      ExternalURLOpener.live(),
+      AppLifeCycle.live(),
+      PGP.gopenPGP(),
+      SignatureVerfication.RSSHA256(),
+      MDMConfig.live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
     #if DEBUG
-    features.environment.networking = features.environment.networking.withLogs(using: features.instance())
+    features.environment.use(
+      features
+        .environment
+        .networking
+        .withLogs(using: features.instance())
+    )
     #endif
     
     self.ui = UI(features: features)

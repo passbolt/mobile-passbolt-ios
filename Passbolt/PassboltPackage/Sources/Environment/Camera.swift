@@ -24,7 +24,7 @@
 import AVFoundation
 import Commons
 
-public struct Camera {
+public struct Camera: EnvironmentElement {
   
   public var checkPermission: () -> AnyPublisher<Camera.PermissionStatus, Never>
   public var requestPermission: () -> AnyPublisher<Bool, Never>
@@ -84,6 +84,14 @@ extension Camera {
         return requestPermissionSubject.eraseToAnyPublisher()
       }
     )
+  }
+}
+
+extension Environment {
+  
+  public var camera: Camera {
+    get { element(Camera.self) }
+    set { use(newValue) }
   }
 }
 

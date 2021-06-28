@@ -45,27 +45,13 @@ public struct Accounts {
 
 extension Accounts: Feature {
   
-  public typealias Environment = (
-    preferences: Preferences,
-    keychain: Keychain,
-    uuidGenerator: UUIDGenerator
-  )
-  
-  public static func environmentScope(
-    _ rootEnvironment: RootEnvironment
-  ) -> Environment {
-    (
-      preferences: rootEnvironment.preferences,
-      keychain: rootEnvironment.keychain,
-      uuidGenerator: rootEnvironment.uuidGenerator
-    )
-  }
-  
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
+    
     let diagnostics: Diagnostics = features.instance()
     let session: AccountSession = features.instance()
     let dataStore: AccountsDataStore = features.instance()
@@ -117,6 +103,7 @@ extension Accounts: Feature {
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError> {
+    
       let accountAlreadyStored: Bool = dataStore
         .loadAccounts()
         .contains(
@@ -131,7 +118,7 @@ extension Accounts: Feature {
           .eraseToAnyPublisher()
       }
       
-      let accountID: Account.LocalID = .init(rawValue: environment.uuidGenerator().uuidString)
+      let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
       let account: Account = .init(
         localID: accountID,
         domain: domain,
