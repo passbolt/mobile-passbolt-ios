@@ -2,7 +2,7 @@
 
 ## Accounts
 
-Contains features associated with managing account data on device.
+Contains features associated with accessing and modifying account data on device.
 
 ## AccountSetup
 
@@ -40,10 +40,6 @@ Entrypoint for application extension target.
 ## Resources
 
 Module responsible for managing all resources (passwords).
-
-## Safety
-
-Provides high level cryptography, session management and authorization functions.
 
 ## Settings
 
