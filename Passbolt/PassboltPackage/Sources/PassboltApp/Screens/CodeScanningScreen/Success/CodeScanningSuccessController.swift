@@ -40,6 +40,7 @@ extension CodeScanningSuccessController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let signInPresentationSubject: PassthroughSubject<Never, Never> = .init()
+    
     return Self(
       continue: { signInPresentationSubject.send(completion: .finished) },
       signInPresentationPublisher: signInPresentationSubject.eraseToAnyPublisher

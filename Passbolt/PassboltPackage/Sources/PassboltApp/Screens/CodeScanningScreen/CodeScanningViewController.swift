@@ -150,6 +150,14 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
           case .failure(.canceled):
             self?.pop(to: TransferInfoScreenViewController.self)
             
+          case .failure(.duplicateAccount):
+            self?.push(
+              CodeScanningDuplicateViewController.self,
+              completion: { [weak self] in
+                self?.popAll(Self.self, animated: false)
+              }
+            )
+            
           // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             self?.push(

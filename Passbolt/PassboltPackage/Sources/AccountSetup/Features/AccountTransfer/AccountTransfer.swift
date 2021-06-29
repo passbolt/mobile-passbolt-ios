@@ -75,35 +75,47 @@ extension AccountTransfer: Feature {
     
     #if DEBUG
     if let mdmTransferedAccount: MDMSupport.TransferedAccount = mdmSupport.transferedAccount() {
-      // since this bypass is not a proper app feature we have a bit hacky solution
-      // where we set the state before presenting associated views and without informing it
-      // this results in view presentation issues and requires some delay
-      // which happened to be around 1 sec minimum at the time of writing this code
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-        transferState.send(
-          .init(
-            configuration: AccountTransferConfiguration(
-              transferID: "N/A",
-              pagesCount: 0,
-              userID: mdmTransferedAccount.userID,
-              authenticationToken: "N/A",
-              domain: mdmTransferedAccount.domain,
-              hash: "N/A"
-            ),
-            account: AccountTransferAccount(
-              userID: mdmTransferedAccount.userID,
-              fingerprint: mdmTransferedAccount.fingerprint,
-              armoredKey: ArmoredPrivateKey(rawValue: mdmTransferedAccount.armoredKey)
-            ),
-            profile: AccountTransferAccountProfile(
-              username: mdmTransferedAccount.username,
-              firstName: mdmTransferedAccount.firstName,
-              lastName: mdmTransferedAccount.lastName,
-              avatarImagePath: mdmTransferedAccount.avatarImagePath
-            ),
-            scanningParts: []
-          )
+      let accountAlreadyStored: Bool = accounts
+        .storedAccounts()
+        .contains(
+          where: { stored in
+            stored.userID.rawValue == mdmTransferedAccount.userID
+            && stored.domain == mdmTransferedAccount.domain
+          }
         )
+      if !accountAlreadyStored {
+        // since this bypass is not a proper app feature we have a bit hacky solution
+        // where we set the state before presenting associated views and without informing it
+        // this results in view presentation issues and requires some delay
+        // which happened to be around 1 sec minimum at the time of writing this code
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+          transferState.send(
+            .init(
+              configuration: AccountTransferConfiguration(
+                transferID: "N/A",
+                pagesCount: 0,
+                userID: mdmTransferedAccount.userID,
+                authenticationToken: "N/A",
+                domain: mdmTransferedAccount.domain,
+                hash: "N/A"
+              ),
+              account: AccountTransferAccount(
+                userID: mdmTransferedAccount.userID,
+                fingerprint: mdmTransferedAccount.fingerprint,
+                armoredKey: ArmoredPrivateKey(rawValue: mdmTransferedAccount.armoredKey)
+              ),
+              profile: AccountTransferAccountProfile(
+                username: mdmTransferedAccount.username,
+                firstName: mdmTransferedAccount.firstName,
+                lastName: mdmTransferedAccount.lastName,
+                avatarImagePath: mdmTransferedAccount.avatarImagePath
+              ),
+              scanningParts: []
+            )
+          )
+        }
+      } else {
+        diagnostics.debugLog("Skipping account transfer bypass - duplicate account")
       }
     } else { /* */ }
     #endif
@@ -161,7 +173,42 @@ extension AccountTransfer: Feature {
         // if we have config we can ask for profile,
         // there is no need to do it every time
         // so doing it once when requesting for the next page first time
-        if updatedState.configuration != nil, updatedState.profile == nil {
+        if let configuration: AccountTransferConfiguration = updatedState.configuration,
+          updatedState.profile == nil {
+          // since we do this once per process (hopefully)
+          // and right after reading initial configuration
+          // we can verify immediately if we already have the same account stored
+          let accountAlreadyStored: Bool = accounts
+            .storedAccounts()
+            .contains(
+              where: { stored in
+                stored.userID.rawValue == configuration.userID
+                && stored.domain == configuration.domain
+              }
+            )
+          
+          guard !accountAlreadyStored
+          else {
+            requestCancelation(
+              with: configuration,
+              lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
+              using: networkClient,
+              causedByError: nil
+            )
+            .handleEvents(receiveCompletion: { completion in
+              // we are completing transfer with duplicate regardless the response
+              transferState.send(completion: .failure(.duplicateAccount()))
+              features.unload(Self.self)
+            })
+            .ignoreOutput()
+            .collectErrorLog(using: diagnostics)
+            .sink(receiveCompletion: { _ in })
+            .store(in: cancellables)
+            
+            return Fail<Never, TheError>(error: .duplicateAccount())
+              .eraseToAnyPublisher()
+          }
+          
           return requestNextPageWithUserProfile(
             for: updatedState,
             using: networkClient
@@ -262,9 +309,18 @@ extension AccountTransfer: Feature {
           passphrase
         )
         .handleEvents(receiveCompletion: { [weak features] completion in
-          guard case .finished = completion else { return }
-          transferState.send(completion: .finished)
-          features?.unload(Self.self)
+          switch completion {
+          case .finished:
+            transferState.send(completion: .finished)
+            features?.unload(Self.self)
+          // swiftlint:disable:next explicit_type_interface
+          case let .failure(error) where error.identifier == .duplicateAccount:
+            transferState.send(completion: .failure(error))
+            features?.unload(Self.self)
+            
+          case .failure:
+            break
+          }
         })
         .ignoreOutput()
         .eraseToAnyPublisher()

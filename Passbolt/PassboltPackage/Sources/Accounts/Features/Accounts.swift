@@ -117,6 +117,20 @@ extension Accounts: Feature {
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError> {
+      let accountAlreadyStored: Bool = dataStore
+        .loadAccounts()
+        .contains(
+          where: { stored in
+            stored.userID.rawValue == userID
+            && stored.domain == domain
+          }
+        )
+      guard !accountAlreadyStored
+      else {
+        return Fail<Void, TheError>(error: .duplicateAccount())
+          .eraseToAnyPublisher()
+      }
+      
       let accountID: Account.LocalID = .init(rawValue: environment.uuidGenerator().uuidString)
       let account: Account = .init(
         localID: accountID,
@@ -133,6 +147,7 @@ extension Accounts: Feature {
         avatarImagePath: avatarImagePath,
         biometricsEnabled: false // it is always disabled initially
       )
+      
       return session
         .authorize(account, .adHoc(passphrase, armoredKey))
         .map { _ -> AnyPublisher<Void, TheError> in

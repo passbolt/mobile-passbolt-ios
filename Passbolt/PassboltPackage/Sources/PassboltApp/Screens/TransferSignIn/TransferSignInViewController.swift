@@ -158,15 +158,19 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           .receive(on: RunLoop.main)
           .sink(receiveCompletion: { [weak self] completion in
             // swiftlint:disable:next explicit_type_interface
-            guard case let .failure(error) = completion
-            else { return }
-            
-            self?.present(
-              snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: "sign.in.error.message")
-                .instantiate(),
-              hideAfter: 2
-            )
+            switch completion {
+            case .finished:
+              break
+            case .failure(.duplicateAccount):
+              break
+            case .failure:
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(localized: "sign.in.error.message")
+                  .instantiate(),
+                hideAfter: 2
+              )
+            }
           })
           .store(in: self.cancellables)
       }
@@ -217,6 +221,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             
           case .failure(.canceled):
             self?.pop(to: TransferInfoScreenViewController.self)
+            
           // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             self?.push(

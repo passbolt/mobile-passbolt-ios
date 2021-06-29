@@ -21,56 +21,30 @@
 // @since         v1.0
 //
 
-import Commons
+import UIComponents
 
-extension TheError {
+internal struct CodeScanningDuplicateController {
   
-  public static func duplicateAccount(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .duplicateAccount,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
-  
-  public static func invalidAccount(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .invalidAccount,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
-  
-  public static func invalidPassphrase(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .invalidPassphrase,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
-  
-  public static func biometricsNotAvailable(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .biometricsNotAvailable,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
+  internal var `continue`: () -> Void
+  // Since there is only one direction and no way back we only expect finish to navigate further
+  internal var accountListPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
-extension TheError.ID {
+extension CodeScanningDuplicateController: UIController {
   
-  public static let duplicateAccount: Self = "duplicateAccount"
-  public static let invalidAccount: Self = "invalidAccount"
-  public static let invalidPassphrase: Self = "invalidPassphrase"
-  public static let biometricsNotAvailable: Self = "biometricsNotAvailable"
+  internal typealias Context = Void
+  
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let accountListPresentationSubject: PassthroughSubject<Never, Never> = .init()
+    
+    return Self(
+      continue: { accountListPresentationSubject.send(completion: .finished) },
+      accountListPresentationPublisher: accountListPresentationSubject.eraseToAnyPublisher
+    )
+  }
 }
 

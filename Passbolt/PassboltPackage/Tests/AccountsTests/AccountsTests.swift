@@ -98,6 +98,7 @@ final class AccountsStoreTests: XCTestCase {
       result = (account: account, details: details, armoredKey: key)
       return .success
     }
+    accountsDataStore.loadAccounts = always([])
     features.use(accountsDataStore)
     var accountSession: AccountSession = .placeholder
     accountSession.authorize = always(
@@ -131,6 +132,44 @@ final class AccountsStoreTests: XCTestCase {
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.details, validAccountProfile)
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
+  }
+  
+  func test_storeTransferedAccount_failsWithDuplicateError_whenAccountAlreadyStored() {
+    var accountsDataStore: AccountsDataStore = .placeholder
+    accountsDataStore.loadAccounts = always([validAccount])
+    features.use(accountsDataStore)
+    var accountSession: AccountSession = .placeholder
+    features.use(AccountSession.placeholder)
+    let accounts: Accounts = .load(
+      in: Accounts.environmentScope(features.environment),
+      using: features,
+      cancellables: cancellables
+    )
+    
+    var result: TheError!
+    accounts
+      .transferAccount(
+        validAccount.domain,
+        validAccount.userID.rawValue,
+        validAccountProfile.username,
+        validAccountProfile.firstName,
+        validAccountProfile.lastName,
+        validAccountProfile.avatarImagePath,
+        validAccount.fingerprint,
+        validPrivateKey,
+        validPassphrase
+      )
+      .sink(
+        receiveCompletion: { completion in
+          // swiftlint:disable:next explicit_type_interface
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+    
+    XCTAssertEqual(result.identifier, .duplicateAccount)
   }
   
   func test_removeAccount_removesDataFromAccountsDataStore() {
@@ -191,6 +230,7 @@ private let validAccountWithProfile: AccountWithProfile = .init(
   fingerprint: "FINGERPRINT",
   biometricsEnabled: false
 )
+
 private let validPassphrase: Passphrase = "SecretPassphrase"
 
 private let validPrivateKey: ArmoredPrivateKey =

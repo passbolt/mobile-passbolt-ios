@@ -57,6 +57,26 @@ extension DynamicImage {
     }
   }
   
+  public static var duplicateMark: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIImage(
+          named: "DuplicateMark",
+          in: .uiCommons,
+          with: nil
+        )!
+        
+      case .light, _:
+        return UIImage(
+          named: "DuplicateMark",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+  
   public static var successMark: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {

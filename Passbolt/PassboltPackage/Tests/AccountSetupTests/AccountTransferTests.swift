@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Accounts
+@testable import Accounts
 @testable import AccountSetup
 import Features
 @testable import NetworkClient
@@ -46,17 +46,14 @@ final class AccountTransferTests: TestCase {
   func test_scanningProgressPublisher_publishesConfigurationValue_initially() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: AccountTransfer.Progress?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     accountTransfer
       .progressPublisher()
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { progress in
@@ -77,19 +74,16 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: AccountTransfer.Progress?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
     
     accountTransfer
       .progressPublisher()
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { progress in
@@ -111,13 +105,11 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: AccountTransfer.Progress?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
     processPart(qrCodePart1, using: accountTransfer)
@@ -129,7 +121,6 @@ final class AccountTransferTests: TestCase {
     
     accountTransfer
       .progressPublisher()
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { progress in
@@ -150,19 +141,16 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: TheError?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     accountTransfer.cancelTransfer()
     
     accountTransfer
       .progressPublisher()
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -183,19 +171,16 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: TheError?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
     
     accountTransfer
       .progressPublisher()
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -215,17 +200,14 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: TheError?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -245,17 +227,14 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .failingWith(.testError())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: TheError?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     accountTransfer
       .processPayload(qrCodePart0)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -276,17 +255,14 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
     var result: Void?
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    let accountTransfer: AccountTransfer = testInstance()
     
     accountTransfer
       .processPayload(qrCodePart0)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           guard case .finished = completion
@@ -309,12 +285,10 @@ final class AccountTransferTests: TestCase {
     )
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
     
@@ -331,12 +305,10 @@ final class AccountTransferTests: TestCase {
     )
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     
     // we have to get configuration before
     processPart(qrCodePart0, using: accountTransfer)
@@ -349,17 +321,14 @@ final class AccountTransferTests: TestCase {
   func test_processPayload_fails_withInvalidVersionByte() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     accountTransfer
       .processPayload(qrCodePartInvalidVersionByte)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -378,17 +347,14 @@ final class AccountTransferTests: TestCase {
   func test_processPayload_fails_withInvalidPageBytes() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -407,17 +373,14 @@ final class AccountTransferTests: TestCase {
   func test_processPayload_fails_withInvalidPageNumber() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     accountTransfer
       .processPayload(qrCodePartInvalidPageNumber)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -436,17 +399,14 @@ final class AccountTransferTests: TestCase {
   func test_processPayload_fails_withInvalidConfigurationPart() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     accountTransfer
       .processPayload(qrCodePart0InvalidConfiguration)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -465,17 +425,14 @@ final class AccountTransferTests: TestCase {
   func test_processPayload_fails_withInvalidJSONInConfigurationPart() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     accountTransfer
       .processPayload(qrCodePart0InvalidJSON)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -496,17 +453,14 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     accountTransfer
       .processPayload(qrCodePart0InvalidDomain)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -527,12 +481,10 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0InvalidHash, using: accountTransfer)
@@ -543,7 +495,6 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart5, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart6)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -564,12 +515,10 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -580,7 +529,6 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart5, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart6)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -601,12 +549,10 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -617,7 +563,6 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart5, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart6InvalidJSON)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -638,12 +583,10 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0NoHash, using: accountTransfer)
@@ -654,7 +597,6 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart5, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart6)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -675,12 +617,10 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -691,7 +631,6 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart5, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart6)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -716,12 +655,10 @@ final class AccountTransferTests: TestCase {
     )
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     
     processPart(qrCodePart0, using: accountTransfer)
     
@@ -734,12 +671,10 @@ final class AccountTransferTests: TestCase {
   func test_cancelTransfer_unloadsFeature() {
     features.use(NetworkClient.placeholder)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     features.use(accountTransfer)
     XCTAssertTrue(features.isLoaded(AccountTransfer.self))
     
@@ -753,12 +688,10 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0, using: accountTransfer)
@@ -770,7 +703,6 @@ final class AccountTransferTests: TestCase {
     processPart(qrCodePart6, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart7Unexpected)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -791,18 +723,15 @@ final class AccountTransferTests: TestCase {
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
     features.use(networkClient)
     features.use(AccountSession.placeholder)
-    features.use(Accounts.placeholder)
-    let accountTransfer: AccountTransfer = .load(
-      in: AccountTransfer.environmentScope(features.environment),
-      using: features,
-      cancellables: cancellables
-    )
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
     
     processPart(qrCodePart0, using: accountTransfer)
     accountTransfer
       .processPayload(qrCodePart0)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { completion in
           // swiftlint:disable:next explicit_type_interface
@@ -817,6 +746,82 @@ final class AccountTransferTests: TestCase {
     XCTAssertEqual(result?.identifier, .canceled)
     XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-repeated-page")
   }
+  
+  func test_processPayload_fails_withDuplicateAccount() {
+    var networkClient: NetworkClient = .placeholder
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
+    features.use(networkClient)
+    features.use(AccountSession.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([validAccountWithProfile])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
+    var result: TheError?
+    
+    accountTransfer
+      .processPayload(qrCodePart0)
+      .sink(
+        receiveCompletion: { completion in
+          // swiftlint:disable:next explicit_type_interface
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+    
+    XCTAssertEqual(result?.identifier, .duplicateAccount)
+  }
+  
+  func test_processPayload_sendsCancelationRequest_withDuplicateAccount() {
+    var networkClient: NetworkClient = .placeholder
+    var result: AccountTransferUpdateRequestVariable?
+    networkClient.accountTransferUpdate = .respondingWith(
+      accountTransferUpdateResponse,
+      storeVariableIn: &result
+    )
+    features.use(networkClient)
+    features.use(AccountSession.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([validAccountWithProfile])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
+    
+    processPart(qrCodePart0, using: accountTransfer)
+    
+    XCTAssertEqual(result?.currentPage, 0)
+    XCTAssertEqual(result?.status, .cancel)
+  }
+  
+  func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() {
+    var networkClient: NetworkClient = .placeholder
+    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
+    features.use(networkClient)
+    features.use(AccountSession.placeholder)
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([validAccountWithProfile])
+    features.use(accounts)
+    let accountTransfer: AccountTransfer = testInstance()
+    
+    var result: TheError!
+    accountTransfer
+      .progressPublisher()
+      .sink(
+        receiveCompletion: { completion in
+        // swiftlint:disable:next explicit_type_interface
+        guard case let .failure(error) = completion
+        else { return }
+        result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+    
+    processPart(qrCodePart0, using: accountTransfer)
+    
+    XCTAssertEqual(result.identifier, .duplicateAccount)
+  }
 }
 
 extension AccountTransferTests {
@@ -827,7 +832,6 @@ extension AccountTransferTests {
   ) {
     accountTransfer
       .processPayload(part)
-      .receive(on: ImmediateScheduler.shared)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { _ in }
@@ -856,6 +860,19 @@ private let accountTransferUpdateResponse: AccountTransferUpdateResponse = .init
       )
     )
   )
+)
+
+private let validAccountWithProfile: AccountWithProfile = .init(
+  localID: .init(rawValue: UUID.testUUID.uuidString),
+  userID: "f848277c-5398-58f8-a82a-72397af2d450",
+  domain: "https://localhost:8443",
+  label: "firstName lastName",
+  username: "username",
+  firstName: "firstName",
+  lastName: "lastName",
+  avatarImagePath: "avatarImagePath",
+  fingerprint: "FINGERPRINT",
+  biometricsEnabled: false
 )
 
 // swiftlint:disable line_length
