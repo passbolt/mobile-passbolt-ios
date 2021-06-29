@@ -83,8 +83,18 @@ extension MDMSupport: Feature {
         let lastName: String = transferedAccountData["lastName"] as? String,
         let avatarImagePath: String = transferedAccountData["avatarImagePath"] as? String,
         let fingerprint: String = transferedAccountData["fingerprint"] as? String,
-        let armoredKey: String = transferedAccountData["armoredKey"] as? String
+        let flattenedArmoredKey: String = transferedAccountData["flattenedArmoredKey"] as? String
       else { return nil }
+      // user defaults replacement through launch arguments cannot handle "-" and newlines
+      // we have to recreate those manually and put the private key without
+      // "-----BEGIN PGP PRIVATE KEY BLOCK-----" prefix and
+      // "-----END PGP PRIVATE KEY BLOCK-----" suffix
+      // additionally we have to replace all newlines (actaully \r\n) with \n explicitly
+      // in order to recreate those here
+      let armoredKey: String
+        = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+        + flattenedArmoredKey.replacingOccurrences(of: "\\n", with: "\r\n")
+        + "-----END PGP PRIVATE KEY BLOCK-----"
       return TransferedAccount(
         userID: userID,
         domain: domain,

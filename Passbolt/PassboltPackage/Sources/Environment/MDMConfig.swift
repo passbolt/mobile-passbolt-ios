@@ -40,7 +40,7 @@ extension MDMConfig {
     let defaults: UserDefaults = .standard
     
     func loadConfig() -> Dictionary<String, Any> {
-      return defaults.object(
+      defaults.object(
         forKey: MDMConfig.configurationKey
       ) as? [String: Any] ?? [:]
     }
