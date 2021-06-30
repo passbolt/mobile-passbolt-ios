@@ -31,8 +31,8 @@ public final class ContainerView<ContentView: UIView>: View {
     contentView: ContentView,
     mutation: Mutation<ContentView> = .none,
     edges: UIEdgeInsets = .zero,
-    widthMultiplier: CGFloat = 1,
-    heightMultiplier: CGFloat = 1
+    widthMultiplier: CGFloat? = nil,
+    heightMultiplier: CGFloat? = nil
   ) {
     self.contentView = contentView
     super.init()
@@ -47,8 +47,18 @@ public final class ContainerView<ContentView: UIView>: View {
         .bottomAnchor(.lessThanOrEqualTo, bottomAnchor, constant: -edges.bottom),
         .centerXAnchor(.equalTo, centerXAnchor),
         .centerYAnchor(.equalTo, centerYAnchor),
-        .widthAnchor(.equalTo, widthAnchor, multiplier: widthMultiplier),
-        .heightAnchor(.equalTo, heightAnchor, multiplier: heightMultiplier)
+        .whenSome(
+          widthMultiplier,
+          then: { [unowned self] multiplier in
+            .widthAnchor(.equalTo, self.widthAnchor, multiplier: multiplier)
+          }
+        ),
+        .whenSome(
+          heightMultiplier,
+          then: { [unowned self] multiplier in
+            .heightAnchor(.equalTo, self.heightAnchor, multiplier: multiplier)
+          }
+        )
       )
     }
   }

@@ -43,35 +43,21 @@ public final class AuthorizationView: KeyboardAwareView {
   public required init() {
     super.init()
     
-    let avatarParent: View = Mutation<View>
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .heightAnchor(.equalTo, constant: 96)
-      )
-      .instantiate()
-    
-    let avatarContainer: View = Mutation<View>
-      .combined(
-        .subview(of: avatarParent),
-        .backgroundColor(dynamic: .background),
-        .cornerRadius(48),
-        .border(dynamic: .divider),
-        .widthAnchor(.equalTo, constant: 96),
-        .heightAnchor(.equalTo, constant: 96),
-        .centerXAnchor(.equalTo, avatarParent.centerXAnchor),
-        .centerYAnchor(.equalTo, avatarParent.centerYAnchor)
-      )
-      .instantiate()
+    let avatarContainer: ContainerView<ImageView> = .init(
+      contentView: avatar,
+      mutation: .backgroundColor(.clear),
+      heightMultiplier: 1
+    )
     
     mut(avatar) {
       .combined(
-        .subview(of: avatarContainer),
         .image(named: .person, from: .uiCommons),
         .contentMode(.scaleAspectFit),
-        .edges(
-          equalTo: avatarContainer,
-          insets: .init(top: -24, left: -24, bottom: -24, right: -24)
-        )
+        .backgroundColor(dynamic: .background),
+        .border(dynamic: .divider),
+        .cornerRadius(48, masksToBounds: true),
+        .widthAnchor(.equalTo, constant: 96),
+        .heightAnchor(.equalTo, constant: 96)
       )
     }
     
@@ -86,6 +72,7 @@ public final class AuthorizationView: KeyboardAwareView {
     
     mut(biometricButtonContainer) {
       .combined(
+        .hidden(true),
         .subview(of: buttonContainer),
         .backgroundColor(dynamic: .background),
         .border(dynamic: .divider),
@@ -129,7 +116,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .topAnchor(.equalTo, topAnchor),
         .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
         .appendSpace(of: 72),
-        .append(avatarParent),
+        .append(avatarContainer),
         .appendSpace(of: 20),
         .append(nameLabel),
         .appendSpace(of: 16),

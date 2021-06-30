@@ -54,36 +54,38 @@ extension BiometricsInfoController: UIController {
     
     let presentationDestinationSubject: PassthroughSubject<Destination, Never> = .init()
     
+    var setupBiometricsCancellable: AnyCancellable?
+    _ = setupBiometricsCancellable // silence warning
+    
     func continueSetupPresentationPublisher() -> AnyPublisher<Destination, Never> {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
-    
+      
     func setupBiometrics() -> Void {
-      linkOpener
+      setupBiometricsCancellable = linkOpener
         .openSystemSettings()
         .map { opened -> AnyPublisher<Bool, Never> in
           guard opened
           else { return Empty().eraseToAnyPublisher() }
           return biometry
-            .biometricsStatePublisher()
-            .first()
-            .map { state in
+            .biometricsStateChangesPublisher()
+            .dropFirst()
+            .map { (state: Biometrics.State) -> Bool in
               switch state {
-              case .unavailable:
+              case .unavailable, .unconfigured:
                 return false
                 
-              case .unconfigured, .configuredTouchID, .configuredFaceID:
+              case .configuredTouchID, .configuredFaceID:
                 return true
               }
             }
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .sink { available in
-          guard available else { return }
+        .filter { $0 }
+        .sink { _ in
           presentationDestinationSubject.send(.biometricsSetup)
         }
-        .store(in: cancellables)
     }
     
     func skipSetup() -> Void {

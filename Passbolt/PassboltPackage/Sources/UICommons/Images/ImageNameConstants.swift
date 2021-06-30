@@ -119,19 +119,19 @@ extension DynamicImage {
     }
   }
   
-  public static var faceID: Self {
+  public static var biometrics: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
         return UIImage(
-          named: "FaceID",
+          named: "Biometrics",
           in: .uiCommons,
           with: nil
         )!
         
       case .light, _:
         return UIImage(
-          named: "FaceID",
+          named: "Biometrics",
           in: .uiCommons,
           with: nil
         )!
@@ -152,26 +152,6 @@ extension DynamicImage {
       case .light, _:
         return UIImage(
           named: "FaceIDSetup",
-          in: .uiCommons,
-          with: nil
-        )!
-      }
-    }
-  }
-  
-  public static var touchID: Self {
-    Self { userInterfaceStyle in
-      switch userInterfaceStyle {
-      case .dark:
-        return UIImage(
-          named: "TouchID",
-          in: .uiCommons,
-          with: nil
-        )!
-        
-      case .light, _:
-        return UIImage(
-          named: "TouchID",
           in: .uiCommons,
           with: nil
         )!

@@ -30,7 +30,7 @@ import TestExtensions
 // swiftlint:disable explicit_type_interface
 final class BiometryTests: TestCase {
 
-  func test_biometricsStatePublisher_publishesBiometricsState_initially() {
+  func test_biometricsStateChangesPublisher_publishesBiometricsState_initially() {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
     
@@ -38,14 +38,14 @@ final class BiometryTests: TestCase {
     
     var result: Biometrics.State!
     feature
-      .biometricsStatePublisher()
+      .biometricsStateChangesPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
     
     XCTAssertEqual(result, .configuredTouchID)
   }
   
-  func test_biometricsStatePublisher_publishesBiometricsStateAgain_afterPickingApplicationFromBackground_whenStateDoesNotChange() {
+  func test_biometricsStateChangesPublisher_publishesBiometricsStateAgain_afterPickingApplicationFromBackground_whenStateDoesNotChange() {
     var biometricsState: Biometrics.State = .configuredTouchID
     environment.biometrics.checkBiometricsState = always(biometricsState)
     environment.appLifeCycle.lifeCyclePublisher = always(
@@ -65,7 +65,7 @@ final class BiometryTests: TestCase {
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
     feature
-      .biometricsStatePublisher()
+      .biometricsStateChangesPublisher()
       .sink {
         result.append($0)
         guard result.count == 2 else { return }
@@ -76,7 +76,7 @@ final class BiometryTests: TestCase {
     XCTAssertEqual(result, [.configuredTouchID, .configuredFaceID])
   }
   
-  func test_biometricsStatePublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges() {
+  func test_biometricsStateChangesPublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges() {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(
       [
@@ -94,7 +94,7 @@ final class BiometryTests: TestCase {
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
     feature
-      .biometricsStatePublisher()
+      .biometricsStateChangesPublisher()
       .sink {
         result.append($0)
         guard result.count == 1 else { return }

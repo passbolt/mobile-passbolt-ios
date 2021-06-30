@@ -69,7 +69,7 @@ final class BiometricsInfoScreenTests: TestCase {
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
-    biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
+    biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     features.use(biometry)
     
     let controller: BiometricsInfoController = testInstance()
@@ -102,7 +102,8 @@ final class BiometricsInfoScreenTests: TestCase {
   func test_presentationDestinationPublisher_publishBiometrySetup_afterSetup_withBiometricsAvailable() {
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
-    biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
+    // by default it publishes current state, it is ignored so it has to publish again
+    biometry.biometricsStateChangesPublisher = always([.unconfigured, .configuredTouchID].publisher.eraseToAnyPublisher())
     features.use(biometry)
     
     let controller: BiometricsInfoController = testInstance()
@@ -120,7 +121,7 @@ final class BiometricsInfoScreenTests: TestCase {
   func test_presentationDestinationPublisher_doesNotPublish_afterSetup_withBiometricsUnavailable() {
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
-    biometry.biometricsStatePublisher = always(Just(.unavailable).eraseToAnyPublisher())
+    biometry.biometricsStateChangesPublisher = always(Just(.unavailable).eraseToAnyPublisher())
     features.use(biometry)
     
     let controller: BiometricsInfoController = testInstance()

@@ -80,7 +80,7 @@ extension TransferSignInController: UIController {
         switch completion {
         case .finished:
           biometrics
-            .biometricsStatePublisher()
+            .biometricsStateChangesPublisher()
             .first()
             .sink { biometricsState in
               switch biometricsState {
@@ -92,7 +92,6 @@ extension TransferSignInController: UIController {
                 
               case .configuredTouchID, .configuredFaceID:
                 presentationDestinationSubject.send(.biometrySetup)
-                
               }
               presentationDestinationSubject.send(completion: .finished)
             }

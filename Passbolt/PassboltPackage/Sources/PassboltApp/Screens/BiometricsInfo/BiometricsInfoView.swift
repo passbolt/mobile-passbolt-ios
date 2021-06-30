@@ -50,9 +50,8 @@ internal final class BiometricsInfoView: ScrolledStackView {
     #warning("TODO: replace image with generic graphic when available")
     mut(imageView) {
       .combined(
-        .image(dynamic: .touchID),
+        .image(dynamic: .biometrics),
         .subview(of: imageContainer),
-        .image(named: .welcomeAccounts),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),
         .bottomAnchor(.equalTo, imageContainer.bottomAnchor),

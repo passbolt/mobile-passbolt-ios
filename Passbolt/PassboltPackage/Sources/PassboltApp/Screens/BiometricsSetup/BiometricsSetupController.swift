@@ -52,7 +52,7 @@ extension BiometricsSetupController: UIController {
     }
     
     func biometricsStatePublisher() -> AnyPublisher<Biometrics.State, Never> {
-      biometry.biometricsStatePublisher()
+      biometry.biometricsStateChangesPublisher()
     }
     
     func setupBiometrics() -> AnyPublisher<Never, TheError> {

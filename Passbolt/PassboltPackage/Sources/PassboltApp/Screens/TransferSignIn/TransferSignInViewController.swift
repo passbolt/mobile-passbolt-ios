@@ -155,13 +155,17 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         guard let self = self else { return }
         self.controller
           .completeTransfer()
-          .handleEvents(receiveSubscription: { [weak self] _ in
-            self?.present(overlay: LoaderOverlayView())
-          })
+          .subscribe(on: RunLoop.main)
           .receive(on: RunLoop.main)
+          .handleEvents(
+            receiveSubscription: { [weak self] _ in
+              self?.present(overlay: LoaderOverlayView())
+            },
+            receiveCompletion: { [weak self] _ in
+              self?.dismissOverlay()
+            }
+          )
           .sink(receiveCompletion: { [weak self] completion in
-            self?.dismissOverlay()
-            
             switch completion {
             case .finished:
               break
@@ -215,7 +219,16 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
     
     controller
       .presentationDestinationPublisher()
+      .subscribe(on: RunLoop.main)
       .receive(on: RunLoop.main)
+      .handleEvents(
+        receiveOutput: { [weak self] _ in
+          self?.dismissOverlay()
+        },
+        receiveCompletion: { [weak self] _ in
+          self?.dismissOverlay()
+        }
+      )
       .sink(
         receiveCompletion: { [weak self] completion in
           switch completion {

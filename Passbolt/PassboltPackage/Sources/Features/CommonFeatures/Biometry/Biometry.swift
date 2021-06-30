@@ -26,7 +26,8 @@ import Environment
 
 public struct Biometry {
   
-  public var biometricsStatePublisher: () -> AnyPublisher<Biometrics.State, Never>
+  // publishes current value initially
+  public var biometricsStateChangesPublisher: () -> AnyPublisher<Biometrics.State, Never>
 }
 
 extension Biometry: Feature {
@@ -51,43 +52,36 @@ extension Biometry: Feature {
     cancellables: Cancellables
   ) -> Self {
     
-    let biometricsStateSubject: CurrentValueSubject<Biometrics.State, Never> = .init(
-      environment
-        .biometrics
-        .checkBiometricsState()
-    )
-    
-    environment
-      .appLifeCycle
-      .lifeCyclePublisher()
-      .removeDuplicates()
-      // Looking for sequence of didEnterBackground and didBecomeActive which indicates exiting
-      // and goind back to the application, we check biometrics state again if it ha changed or not
-      .scan((Optional<Void>.none, AppLifeCycle.Transition.didBecomeActive), { prev, next in
-        if prev.1 == .didEnterBackground && next == .didBecomeActive {
-          return (Void(), next)
-        } else {
-          return (nil, next)
-        }
-      })
-      .compactMap(\.0)
-      .sink {
-        biometricsStateSubject.send(
+    func biometricsStateChangesPublisher() -> AnyPublisher<Biometrics.State, Never> {
+      Publishers.Merge(
+        Just(Void()),
+        environment
+          .appLifeCycle
+          .lifeCyclePublisher()
+          // Looking for sequence of didEnterBackground and didBecomeActive which indicates exiting
+          // and goind back to the application, we check biometrics state again if it has changed or not
+          .scan((Optional<Void>.none, AppLifeCycle.Transition.didBecomeActive)) { prev, next in
+            guard next == .didEnterBackground || next == .didBecomeActive
+            else { return (nil, prev.1) }
+            if prev.1 == .didEnterBackground && next == .didBecomeActive {
+              return (Void(), next)
+            } else {
+              return (nil, next)
+            }
+          }
+          .compactMap(\.0)
+        )
+        .map {
           environment
             .biometrics
             .checkBiometricsState()
-        )
-      }
-      .store(in: cancellables)
-    
-    func biometricsStatePublisher() -> AnyPublisher<Biometrics.State, Never> {
-      biometricsStateSubject
+        }
         .removeDuplicates()
         .eraseToAnyPublisher()
     }
     
     return Self(
-      biometricsStatePublisher: biometricsStatePublisher
+      biometricsStateChangesPublisher: biometricsStateChangesPublisher
     )
   }
   
@@ -95,7 +89,7 @@ extension Biometry: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      biometricsStatePublisher: Commons.placeholder("You have to provide mocks for used methods")
+      biometricsStateChangesPublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
