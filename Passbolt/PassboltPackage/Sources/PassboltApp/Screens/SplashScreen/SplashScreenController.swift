@@ -38,23 +38,41 @@ extension SplashScreenController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let accounts: Accounts = features.instance()
+    let accountSession: AccountSession = features.instance()
+    
+    func destinationPublisher() -> AnyPublisher<SplashScreenNavigationDestination, Never> {
+      guard case .success = accounts.verifyStorageDataIntegrity()
+      else {
+        return Just(.diagnostics)
+          .eraseToAnyPublisher()
+      }
+      let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+      if storedAccounts.isEmpty {
+        return Just(.accountSetup)
+          .eraseToAnyPublisher()
+      } else {
+        return accountSession.statePublisher()
+          .first()
+          .map { state -> SplashScreenNavigationDestination in
+            switch state {
+            // swiftlint:disable:next explicit_type_interface
+            case let .none(lastUsed: .some(lastUsedAccount)):
+              return .accountSelection(lastUsedAccount.localID)
+
+            // swiftlint:disable:next explicit_type_interface
+            case let .authorized(account):
+              return .home(account)
+              
+            case _:
+              return .accountSelection(nil)
+            }
+          }
+          .eraseToAnyPublisher()
+      }
+    }
     
     return Self(
-      navigationDestinationPublisher: {
-        guard case .success = accounts.verifyStorageDataIntegrity()
-        else {
-          return Just(.diagnostics)
-            .eraseToAnyPublisher()
-        }
-        let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-        if storedAccounts.isEmpty {
-          return Just(.accountSetup)
-            .eraseToAnyPublisher()
-        } else {
-          return Just(.accountSelection(storedAccounts))
-            .eraseToAnyPublisher()
-        }
-      }
+      navigationDestinationPublisher: destinationPublisher
     )
   }
 }

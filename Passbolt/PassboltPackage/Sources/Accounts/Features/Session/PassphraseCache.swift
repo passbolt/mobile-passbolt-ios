@@ -65,8 +65,8 @@ extension PassphraseCache: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> PassphraseCache {
-    let time: Time = environment.time
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
+    let time: Time = environment.time
     
     let currentPassphraseSubject: CurrentValueSubject<Entry?, Never> = .init(nil)
     let lock: NSRecursiveLock = .init()
@@ -116,7 +116,7 @@ extension PassphraseCache: Feature {
         .map { passphrase in
           guard let pass = passphrase,
             accountID == pass.accountID,
-            Int(pass.expirationDate.timeIntervalSince1970) > environment.time.timestamp() else {
+            Int(pass.expirationDate.timeIntervalSince1970) > time.timestamp() else {
             return nil
           }
           
@@ -137,7 +137,7 @@ extension PassphraseCache: Feature {
         expirationDate: expirationDate
       )
       
-      let interval: DispatchTimeInterval = .seconds(.init(environment.time.timestamp()))
+      let interval: DispatchTimeInterval = .seconds(.init(time.timestamp()))
       
       sychronizedTimer = .init(interval: interval, handler: clearCache)
       

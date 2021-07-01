@@ -84,8 +84,10 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
-          #warning("TODO: FIXME: [PAS-136] - replace with account selection")
-          self?.replaceWindowRoot(with: MainTabsViewController.self)
+          self?.replaceWindowRoot(
+            with: AccountSelectionNavigationViewController.self,
+            in: nil
+          )
         },
         receiveValue: { _ in }
       )

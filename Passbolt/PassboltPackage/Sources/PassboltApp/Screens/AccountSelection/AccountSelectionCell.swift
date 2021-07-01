@@ -29,6 +29,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
   private let icon: ImageView = .init()
   private let titleLabel: Label = .init()
   private let subTitleLabel: Label = .init()
+  private let button: Button = .init()
   private let imageButton: ImageButton = .init()
   private let stack: StackView = .init()
   private var tapAction: (() -> Void)?
@@ -45,16 +46,8 @@ internal final class AccountSelectionCell: CollectionViewCell {
       )
     }
     
-    Mutation<Button>.combined(
-      .backgroundColor(.clear),
-      .subview(of: contentView),
-      .edges(equalTo: contentView),
-      .action({ [weak self] in self?.tapAction?() })
-    )
-    .instantiate()
-    
     mut(contentView) {
-      .subview(icon, stack, imageButton)
+      .subview(icon, stack, button, imageButton)
     }
     
     mut(titleLabel) {
@@ -73,7 +66,6 @@ internal final class AccountSelectionCell: CollectionViewCell {
   
     mut(stack) {
       .combined(
-        .subview(of: contentView),
         .axis(.vertical),
         .spacing(8),
         .arrangedSubview(titleLabel, subTitleLabel),
@@ -86,7 +78,6 @@ internal final class AccountSelectionCell: CollectionViewCell {
     
     mut(icon) {
       .combined(
-        .subview(of: contentView),
         .image(named: .person, from: .uiCommons),
         .tintColor(dynamic: .icon),
         .contentMode(.scaleAspectFit),
@@ -96,6 +87,16 @@ internal final class AccountSelectionCell: CollectionViewCell {
         .bottomAnchor(.equalTo, contentView.bottomAnchor, constant: -12),
         .widthAnchor(.equalTo, constant: 40),
         .heightAnchor(.equalTo, constant: 40)
+      )
+    }
+    
+    mut(button) {
+      .combined(
+        .backgroundColor(.clear),
+        .edges(equalTo: contentView, usingSafeArea: false),
+        .action { [weak self] in
+          self?.tapAction?()
+        }
       )
     }
     

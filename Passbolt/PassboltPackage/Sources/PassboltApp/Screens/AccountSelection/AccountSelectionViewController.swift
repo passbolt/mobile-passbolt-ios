@@ -79,8 +79,11 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       .store(in: cancellables)
     
     contentView.accountTapPublisher
-      .sink { _ in
-        #warning("TODO - PAS-172 - navigate to sign in/authorization for a particular account")
+      .sink { [weak self] item in
+        self?.push(
+          AuthorizationViewController.self,
+          in: item.localID
+        )
       }
       .store(in: cancellables)
     

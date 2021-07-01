@@ -31,6 +31,7 @@ public struct AccountSession {
   // Used for sign in (including switch to other account) and unlocking whichever is required.
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Void, TheError>
   // Select account for network requests without authorization (each account can have a unique domain etc)
+  #warning("Determine if 'select' can be removed")
   public var select: (Account) -> Void
   // Closes current session and removes associated temporary data.
   // Not required for account switch, in that case use `authorize` with different account.

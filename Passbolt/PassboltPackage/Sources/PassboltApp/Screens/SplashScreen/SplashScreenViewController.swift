@@ -72,16 +72,20 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   private func navigate(to destination: SplashScreenNavigationDestination) {
     switch destination {
     // swiftlint:disable:next explicit_type_interface
-    case let .accountSelection(accounts):
+    case let .accountSelection(lastAccountID):
       replaceWindowRoot(
-        with: AccountSelectionNavigationViewController.self
+        with: AccountSelectionNavigationViewController.self,
+        in: lastAccountID
       )
 
     case .accountSetup:
       replaceWindowRoot(with: WelcomeNavigationViewController.self)
 
     case .diagnostics:
-      Commons.placeholder("TODO: diagnsotics screen")
+      Commons.placeholder("TODO: diagnostics screen")
+      
+    case .home:
+      replaceWindowRoot(with: MainTabsViewController.self)
     }
   }
 }

@@ -26,6 +26,7 @@ import Accounts
 internal enum SplashScreenNavigationDestination: Equatable {
   
   case accountSetup
-  case accountSelection(Array<AccountWithProfile>)
+  case accountSelection(Account.LocalID?)
   case diagnostics
+  case home(Account)
 }

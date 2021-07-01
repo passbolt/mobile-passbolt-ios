@@ -21,13 +21,14 @@
 // @since         v1.0
 //
 
-import UICommons
+import Foundation
 import UIComponents
+import Accounts
 
-internal final class TransferSignInViewController: PlainViewController, UIComponent {
+internal final class AuthorizationViewController: PlainViewController, UIComponent {
   
   internal typealias View = AuthorizationView
-  internal typealias Controller = TransferSignInController
+  internal typealias Controller = AuthorizationController
   
   internal static func instance(
     using controller: Controller,
@@ -39,7 +40,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
     )
   }
   
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: AuthorizationView = .init()
   internal var components: UIComponentFactory
   
   private let controller: Controller
@@ -54,51 +55,34 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
   }
   
   internal func setupView() {
-    mut(navigationItem) {
-      .combined(
-        .leftBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .backStyle(),
-              .accessibilityIdentifier("button.exit"),
-              .action { [weak self] in
-                self?.controller.presentExitConfirmation()
-              }
-            )
-            .instantiate()
-        ),
-        .title(localized: "sign.in.title")
-      )
+    mut(self) {
+      .title(localized: "authorization.title")
     }
     
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
     
+    let accountProfile: AccountWithProfile = controller.accountProfile()
+    
+    contentView.applyOn(name: .text("\(accountProfile.label)"))
+    contentView.applyOn(email: .text(accountProfile.username))
+    contentView.applyOn(url: .text(accountProfile.domain))
+    contentView.applyOn(biometricButtonContainer: .hidden(!accountProfile.biometricsEnabled))
+    
     setupSubscriptions()
   }
-
-  // swiftlint:disable:next cyclomatic_complexity function_body_length
+  
+  // swiftlint:disable:next function_body_length
   private func setupSubscriptions() {
-    controller
-      .accountProfilePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] details in
-        self?.contentView.applyOn(name: .text("\(details.label)"))
-        self?.contentView.applyOn(email: .text(details.username))
-        self?.contentView.applyOn(url: .text(details.domain))
-        self?.contentView.applyOn(biometricButtonContainer: .hidden(true))
-      }
-      .store(in: cancellables)
-    
     controller
       .accountAvatarPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] data in
-        guard let imageData = data,
-          let image: UIImage = .init(data: imageData) else {
-          return
-        }
+        guard
+          let imageData = data,
+          let image: UIImage = .init(data: imageData)
+        else { return }
         
         self?.contentView.applyOn(image: .image(image))
       }
@@ -151,27 +135,17 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
     
     contentView
       .signInTapPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller
-          .completeTransfer()
-          .subscribe(on: RunLoop.main)
+      // swiftlint:disable:next unowned_variable_capture
+      .map { [unowned self] () -> AnyPublisher<Void, Never> in
+        self.controller.signIn()
           .receive(on: RunLoop.main)
           .handleEvents(
             receiveSubscription: { [weak self] _ in
               self?.present(overlay: LoaderOverlayView())
             },
-            receiveCompletion: { [weak self] _ in
+            receiveCompletion: { [weak self] completion in
               self?.dismissOverlay()
-            }
-          )
-          .sink(receiveCompletion: { [weak self] completion in
-            switch completion {
-            case .finished:
-              break
-              
-            case .failure:
+              guard case .failure = completion else { return }
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(localized: "sign.in.error.message")
@@ -179,9 +153,40 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 hideAfter: 2
               )
             }
-          })
-          .store(in: self.cancellables)
+          )
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
       }
+      .switchToLatest()
+      .sink { /* */ }
+      .store(in: cancellables)
+    
+    contentView
+      .biometricTapPublisher
+      // swiftlint:disable:next unowned_variable_capture
+      .map { [unowned self] () -> AnyPublisher<Void, Never> in
+        self.controller.biometricSignIn()
+          .receive(on: RunLoop.main)
+          .handleEvents(
+            receiveSubscription: { [weak self] _ in
+              self?.present(overlay: LoaderOverlayView())
+            },
+            receiveCompletion: { [weak self] completion in
+              self?.dismissOverlay()
+              guard case .failure = completion else { return }
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(localized: "sign.in.error.message")
+                  .instantiate(),
+                hideAfter: 2
+              )
+            }
+          )
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .sink { /* */ }
       .store(in: cancellables)
     
     contentView
@@ -204,62 +209,6 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           self.dismiss(ForgotPassphraseAlertViewController.self)
         }
       }
-      .store(in: cancellables)
-    
-    controller
-      .exitConfirmationPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] presented in
-        if presented {
-          self?.present(TransferSignInExitConfirmationViewController.self)
-        } else {
-          self?.dismiss(TransferSignInExitConfirmationViewController.self)
-        }
-      }
-      .store(in: cancellables)
-    
-    controller
-      .presentationDestinationPublisher()
-      .subscribe(on: RunLoop.main)
-      .receive(on: RunLoop.main)
-      .handleEvents(
-        receiveOutput: { [weak self] _ in
-          self?.dismissOverlay()
-        },
-        receiveCompletion: { [weak self] _ in
-          self?.dismissOverlay()
-        }
-      )
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          switch completion {
-          case .finished:
-            break
-            
-          case .failure(.canceled):
-            self?.pop(to: TransferInfoScreenViewController.self)
-            
-          // swiftlint:disable:next explicit_type_interface
-          case let .failure(error):
-            self?.push(
-              AccountTransferFailureViewController.self,
-              in: error
-            )
-          }
-        },
-        receiveValue: { [weak self] destination in
-          switch destination {
-          case .biometryInfo:
-            self?.push(BiometricsInfoViewController.self)
-            
-          case .biometrySetup:
-            self?.push(BiometricsSetupViewController.self)
-            
-          case .extensionSetup:
-            self?.push(ExtensionSetupViewController.self)
-          }
-        }
-      )
       .store(in: cancellables)
   }
 }

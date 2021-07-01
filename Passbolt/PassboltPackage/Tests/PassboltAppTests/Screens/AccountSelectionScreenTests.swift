@@ -73,6 +73,7 @@ final class AccountSelectionScreenTests: TestCase {
       return cellItem
     }
     
+    // swiftlint:disable:next force_unwrapping
     accountItems.first!
       .imagePublisher!
       .sink { data in
@@ -114,6 +115,7 @@ final class AccountSelectionScreenTests: TestCase {
       return cellItem
     }
     
+    // swiftlint:disable:next force_unwrapping
     accountItems.first!
       .imagePublisher!
       .sink { data in
@@ -241,6 +243,27 @@ final class AccountSelectionScreenTests: TestCase {
     
     XCTAssertTrue(result.isEmpty)
     XCTAssertNotNil(completed)
+  }
+  
+  func test_removeAccountAlertPublisherPublishes_whenPresentRemoveAccountCalled() {
+    var accounts: Accounts = .placeholder
+    accounts.storedAccounts = always([])
+    accounts.removeAccount = { _ in return .success(()) }
+    features.use(accounts)
+    features.use(networkClient)
+    
+    let controller: AccountSelectionController = testInstance()
+    var result: Void?
+    
+    controller.presentRemoveAccountAlertPublisher()
+      .sink { _ in
+        result = Void()
+      }
+      .store(in: cancellables)
+    
+    controller.presentRemoveAccountAlert()
+  
+    XCTAssertNotNil(result)
   }
 }
 
