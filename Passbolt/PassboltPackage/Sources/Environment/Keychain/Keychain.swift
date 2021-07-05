@@ -129,7 +129,12 @@ extension Keychain {
             }
           )
         } catch { // if any of values are invalid we treat it as error
-          return .failure(.keychainError(errSecInvalidData))
+          return .failure(
+            .keychainError(
+              errSecInvalidData,
+              underlyingError: error
+            )
+          )
         }
       }
   }
@@ -150,8 +155,13 @@ extension Keychain {
               from: firstItem
             ).v
           )
-        } catch { // if any of values is invalid we treat it as error
-          return .failure(.keychainError(errSecInvalidData))
+        } catch { // if any of values are invalid we treat it as error
+          return .failure(
+            .keychainError(
+              errSecInvalidData,
+              underlyingError: error
+            )
+          )
         }
       }
   }
@@ -173,7 +183,12 @@ extension Keychain {
         query
       )
     } catch {
-      return .failure(.keychainError(errSecInvalidData))
+      return .failure(
+        .keychainError(
+          errSecInvalidData,
+          underlyingError: error
+        )
+      )
     }
   }
   

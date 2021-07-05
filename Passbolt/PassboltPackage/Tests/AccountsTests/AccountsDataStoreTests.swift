@@ -251,14 +251,6 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      ),
-      (
-        data: refreshToken,
-        query: .init(
-          key: "refreshToken",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
       )
     ]
     
@@ -302,14 +294,6 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      ),
-      (
-        data: refreshToken,
-        query: .init(
-          key: "refreshToken",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
       )
     ]
     let dataStore: AccountsDataStore = testInstance()
@@ -346,14 +330,6 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      ),
-      (
-        data: refreshToken,
-        query: .init(
-          key: "refreshToken",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
       )
     ]
     let dataStore: AccountsDataStore = testInstance()
@@ -366,7 +342,7 @@ final class AccountsDataStoreTests: TestCase {
     )
     XCTAssertEqual(
       mockKeychainStore.map(\.data),
-      [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData, refreshToken]
+      [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
     )
   }
   
@@ -385,14 +361,6 @@ final class AccountsDataStoreTests: TestCase {
         data: validPrivateKeyKeychainData,
         query: .init(
           key: "accountArmoredKey",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
-      ),
-      (
-        data: refreshToken,
-        query: .init(
-          key: "refreshToken",
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
@@ -423,14 +391,6 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      ),
-      (
-        data: refreshToken,
-        query: .init(
-          key: "refreshToken",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
       )
     ]
     
@@ -456,14 +416,6 @@ final class AccountsDataStoreTests: TestCase {
         data: validAccountKeychainData,
         query: .init(
           key: "account",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
-      ),
-      (
-        data: refreshToken,
-        query: .init(
-          key: "refreshToken",
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
@@ -575,5 +527,3 @@ private let validPrivateKey: ArmoredPrivateKey =
 // keychain wrapper encodes values within own structure putting value under "v" key
 // swiftlint:disable:next force_try
 private let validPrivateKeyKeychainData: Data = try! JSONEncoder().encode(["v": validPrivateKey])
-// swiftlint:disable:next force_try
-private let refreshToken: Data = try! JSONEncoder().encode(["v": UUID.testUUID.uuidString])

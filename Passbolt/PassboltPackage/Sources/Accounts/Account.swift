@@ -24,6 +24,9 @@
 import Commons
 
 // Immutable part of account, used to identify account and associated server.
+// WARNING: Do not add new or rename fields in this structure
+// - it will cause data wipe on devices after update.
+// Prepare data migration mechanism before making such changes.
 public struct Account {
   
   public typealias UserID = Tagged<String, Self>

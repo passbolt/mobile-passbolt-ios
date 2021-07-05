@@ -41,9 +41,6 @@ internal struct AccountsDataStore {
   internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
   internal var deleteAccount: (Account.LocalID) -> Void
   internal var accountDatabaseConnection: (Account.LocalID) -> Result<DatabaseConnection, TheError>
-  internal var storeRefreshToken: (String, Account.LocalID) -> Result<Void, TheError>
-  internal var loadRefreshToken: (Account.LocalID) -> Result<String?, TheError>
-  internal var deleteRefreshToken: (Account.LocalID) -> Result<Void, TheError>
 }
 
 extension AccountsDataStore: Feature {
@@ -56,14 +53,23 @@ extension AccountsDataStore: Feature {
   ) -> Self {
     let preferences: Preferences = environment.preferences
     let keychain: Keychain = environment.keychain
-    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
     
     let diagnostics: Diagnostics = features.instance()
     
+    func forceDelete(matching query: KeychainQuery) {
+      diagnostics.debugLog("Purging data for \(query.key)")
+      switch keychain.delete(matching: query) {
+      case .success:
+        break
+      // swiftlint:disable:next explicit_type_interface
+      case let .failure(error):
+        fatalError(error.description)
+      }
+    }
     // swiftlint:disable:next cyclomatic_complexity function_body_length cyclomatic_complexity
-    func checkDataIntegrity() -> Result<Void, TheError> {
-      diagnostics.debugLog("Verifying data integrity...")
-      defer { diagnostics.debugLog("...data integrity verification finished") }
+    func ensureDataIntegrity() -> Result<Void, TheError> {
+      diagnostics.diagnosticLog("Verifying data integrity...")
+      defer { diagnostics.diagnosticLog("...data integrity verification finished") }
       
       // storedAccountsList - user defaults control list
       let storedAccountsList: Array<Account.LocalID> = preferences
@@ -78,10 +84,11 @@ extension AccountsDataStore: Feature {
         storedAccounts = accounts.map(\.localID)
       // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
-        diagnostics.debugLog(
-          "Failed to load keychain accounts data, recovering with empty list"
-          + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+        diagnostics.diagnosticLog(
+          "Failed to load accounts data, recovering with empty list"
         )
+        diagnostics.debugLog(error.description)
+        forceDelete(matching: .accountsQuery)
         storedAccounts = .init()
       }
       diagnostics.debugLog("Stored accounts: \(storedAccounts)")
@@ -94,10 +101,11 @@ extension AccountsDataStore: Feature {
         storedAccountsProfiles = accounts.map(\.accountID)
       // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
-        diagnostics.debugLog(
-          "Failed to load keychain account profiles data, recovering with empty list"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+        diagnostics.diagnosticLog(
+          "Failed to load account profiles data, recovering with empty list"
         )
+        diagnostics.debugLog(error.description)
+        forceDelete(matching: .accountsProfilesQuery)
         storedAccountsProfiles = .init()
       }
       diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
@@ -119,10 +127,11 @@ extension AccountsDataStore: Feature {
           }
       // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
-        diagnostics.debugLog(
-          "Failed to load keychain armored keys meta, recovering with empty list"
-          + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+        diagnostics.diagnosticLog(
+          "Failed to load armored keys metadata, recovering with empty list"
         )
+        diagnostics.debugLog(error.description)
+        forceDelete(matching: armoredKeysQuery)
         storedAccountKeys = .init()
       }
       diagnostics.debugLog("Stored account keys: \(storedAccountKeys)")
@@ -147,10 +156,10 @@ extension AccountsDataStore: Feature {
           continue
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
-          diagnostics.debugLog(
-            "Failed to delete account for accountID: \(updatedAccountsList)"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          diagnostics.diagnosticLog(
+            "Failed to delete account for accountID: \(accountID)"
           )
+          diagnostics.debugLog(error.description)
           return .failure(error)
         }
       }
@@ -165,10 +174,10 @@ extension AccountsDataStore: Feature {
           continue
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
-          diagnostics.debugLog(
+          diagnostics.diagnosticLog(
             "Failed to delete account profile for accountID: \(accountID)"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
           )
+          diagnostics.debugLog(error.description)
           return .failure(error)
         }
       }
@@ -183,14 +192,14 @@ extension AccountsDataStore: Feature {
           continue
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
-          diagnostics.debugLog(
-            "Failed to delete account key for accountID: \(updatedAccountsList)"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          diagnostics.diagnosticLog(
+            "Failed to delete account private key for accountID: \(accountID)"
           )
+          diagnostics.debugLog(error.description)
           return .failure(error)
         }
       }
-      diagnostics.debugLog("Deleted account keys: \(keysToRemove)")
+      diagnostics.debugLog("Deleted account private keys: \(keysToRemove)")
       
       if updatedAccountsList.isEmpty {
         diagnostics.debugLog("Deleting stored passphrases")
@@ -199,52 +208,19 @@ extension AccountsDataStore: Feature {
           break
         // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
-          diagnostics.debugLog(
-            "Failed to delete passphrases: \(updatedAccountsList)"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          diagnostics.diagnosticLog(
+            "Failed to delete stored passphrases"
           )
+          diagnostics.debugLog(error.description)
           return .failure(error)
         }
       } else { /* We can't delete passphrases selectively due to biometrics */ }
       
+      diagnostics.diagnosticLog(
+        "Deleted accounts: \(Set(accountsToRemove + accountProfilesToRemove + keysToRemove))"
+      )
+      
       #warning("TODO: [PAS-82] Verify database files and remove detached")
-
-      let storedTokens: Array<Account.LocalID>
-      
-      switch keychain.loadMeta(matching: .refreshTokensQuery()) {
-      // swiftlint:disable:next explicit_type_interface
-      case let .success(metadata):
-        storedTokens = metadata
-          .compactMap(\.tag)
-          .map { Account.LocalID(rawValue: $0.rawValue) }
-        
-      // swiftlint:disable:next explicit_type_interface
-      case let .failure(error):
-        diagnostics.debugLog(
-          "Failed to load refresh tokens meta"
-          + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-        )
-        return .failure(error)
-      }
-      
-      let tokensToRemove: Array<Account.LocalID> = storedTokens
-        .filter { !updatedAccountsList.contains($0) }
-      
-      for accountID in tokensToRemove {
-        switch keychain.delete(matching: .refreshTokenQuery(for: accountID)) {
-        case .success:
-          continue
-        // swiftlint:disable:next explicit_type_interface
-        case let .failure(error):
-          diagnostics.debugLog(
-            "Failed to delete token for accountID: \(accountID)"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-          )
-          return .failure(error)
-        }
-      }
-      
-      diagnostics.debugLog("Deleted account tokens: \(tokensToRemove)")
       
       return .success
     }
@@ -309,7 +285,7 @@ extension AccountsDataStore: Feature {
       armoredKey: ArmoredPrivateKey
     ) -> Result<Void, TheError> {
       // data integrity check performs cleanup in case of partial success
-      defer { checkDataIntegrity().forceSuccess("Data integrity protection") }
+      defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
       var accountIdentifiers: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
@@ -470,7 +446,7 @@ extension AccountsDataStore: Feature {
       // we should assert on that or make it impossible")
       
       // data integrity check performs cleanup in case of partial success
-      defer { checkDataIntegrity().forceSuccess("Data integrity protection") }
+      defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
       #warning("TODO: Consider propagating the error outside of this function")
       _ = environment
         .keychain
@@ -478,9 +454,6 @@ extension AccountsDataStore: Feature {
       _ = environment
         .keychain
         .delete(matching: .accountArmoredKeyQuery(for: accountID))
-      _ = environment
-        .keychain
-        .delete(matching: .refreshTokenQuery(for: accountID))
       _ = environment
         .keychain
         .delete(matching: .accountQuery(for: accountID))
@@ -503,27 +476,8 @@ extension AccountsDataStore: Feature {
       return .success(DatabaseConnection.placeholder)
     }
     
-    func store(
-      refreshToken: String,
-      accountID: Account.LocalID
-    ) -> Result<Void, TheError> {
-      keychain.save(refreshToken, for: .refreshTokenQuery(for: accountID))
-    }
-    
-    func loadRefreshToken(
-      for accountID: Account.LocalID
-    ) -> Result<String?, TheError> {
-      keychain.loadFirst(matching: .refreshTokenQuery(for: accountID))
-    }
-    
-    func deleteRefreshToken(
-      for accountID: Account.LocalID
-    ) -> Result<Void, TheError> {
-      keychain.delete(matching: .refreshTokenQuery(for: accountID))
-    }
-    
     return Self(
-      verifyDataIntegrity: checkDataIntegrity,
+      verifyDataIntegrity: ensureDataIntegrity,
       loadAccounts: loadAccounts,
       loadLastUsedAccount: loadLastUsedAccount,
       storeLastUsedAccount: storeLastUsedAccount,
@@ -535,10 +489,7 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: loadAccountProfile(for:),
       updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
-      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:),
-      storeRefreshToken: store(refreshToken:accountID:),
-      loadRefreshToken: loadRefreshToken(for:),
-      deleteRefreshToken: deleteRefreshToken(for:)
+      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:)
     )
   }
   
@@ -557,10 +508,7 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods"),
-      storeRefreshToken: Commons.placeholder("You have to provide mocks for used methods"),
-      loadRefreshToken: Commons.placeholder("You have to provide mocks for used methods"),
-      deleteRefreshToken: Commons.placeholder("You have to provide mocks for used methods")
+      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
@@ -652,28 +600,6 @@ extension KeychainQuery {
       key: "accountPassphrase",
       tag: .init(rawValue: identifier.rawValue),
       requiresBiometrics: true
-    )
-  }
-  
-  fileprivate static func refreshTokensQuery() -> Self {
-    Self(
-      key: "refreshToken",
-      tag: nil,
-      requiresBiometrics: false
-    )
-  }
-  
-  fileprivate static func refreshTokenQuery(
-    for identifier: Account.LocalID
-  ) -> Self {
-    assert(
-      !identifier.rawValue.isEmpty,
-      "Cannot use empty account identifiers for refresh token keychain operations"
-    )
-    return Self(
-      key: "refreshToken",
-      tag: .init(rawValue: identifier.rawValue),
-      requiresBiometrics: false
     )
   }
 }

@@ -24,6 +24,9 @@
 import Commons
 
 // Mutable part of account, used to store profile details and settings.
+// WARNING: Do not add new or rename fields in this structure
+// - it will cause data wipe on devices after update.
+// Prepare data migration mechanism before making such changes.
 public struct AccountProfile {
   
   public let accountID: Account.LocalID
@@ -33,6 +36,9 @@ public struct AccountProfile {
   public var lastName: String
   public var avatarImageURL: String
   public internal(set) var biometricsEnabled: Bool
+  // Due to data migration limitations, properties that are yet undefined can be stored
+  // in this dictionary until migration becomes implemented.
+  public internal(set) var settings: Dictionary<String, String> = .init()
 }
 
 extension AccountProfile: Equatable {}
