@@ -118,7 +118,8 @@ extension AccountTransfer: Feature {
         diagnostics.debugLog("Skipping account transfer bypass - duplicate account")
       }
     }
-    else { /* */
+    else {
+      /* */
     }
     #endif
 

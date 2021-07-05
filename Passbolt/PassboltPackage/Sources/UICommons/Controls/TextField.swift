@@ -106,7 +106,8 @@ extension TextField: UITextFieldDelegate {
     if endEditingOnReturn {
       resignFirstResponder()
     }
-    else { /* */
+    else {
+      /* */
     }
 
     return false

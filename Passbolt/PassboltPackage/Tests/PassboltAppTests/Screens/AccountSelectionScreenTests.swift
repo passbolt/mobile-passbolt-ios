@@ -31,24 +31,31 @@ import XCTest
 @testable import Accounts
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountSelectionScreenTests: TestCase {
 
+  var accounts: Accounts!
+  var accountSession: AccountSession!
   var networkClient: NetworkClient!
 
   override func setUp() {
     super.setUp()
+    accounts = .placeholder
     networkClient = .placeholder
+    accountSession = .placeholder
   }
 
   override func tearDown() {
+    accounts = nil
+    accountSession = nil
     networkClient = nil
     super.tearDown()
   }
 
   func test_loadStoredAccounts_andPrepareCellItemsWithImage_inSelectionMode() {
-    var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([firstAccount, secondAccount])
     features.use(accounts)
+    features.use(accountSession)
 
     networkClient.mediaDownload = .respondingWith(Data())
     features.use(networkClient)
@@ -86,9 +93,9 @@ final class AccountSelectionScreenTests: TestCase {
   }
 
   func test_loadStoredAccounts_andPrepareCellItemsWithoutImage_inSelectionMode() {
-    var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([firstAccount, secondAccount])
     features.use(accounts)
+    features.use(accountSession)
 
     networkClient.mediaDownload = .failingWith(.testError())
     features.use(networkClient)
@@ -126,13 +133,13 @@ final class AccountSelectionScreenTests: TestCase {
   }
 
   func test_loadStoredAccounts_andPrepareCellItems_withoutAddAccountItem_inRemovalMode() {
-    var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([firstAccount, secondAccount])
     features.use(accounts)
+    features.use(accountSession)
     features.use(networkClient)
 
     let controller: AccountSelectionController = testInstance()
-    controller.changeMode(.removal)
+    controller.toggleMode()
 
     var result: Array<AccountSelectionListItem> = []
 
@@ -155,9 +162,9 @@ final class AccountSelectionScreenTests: TestCase {
   }
 
   func test_loadStoredAccounts_andPrepareNoCellItems_whenAccountsEmpty() {
-    var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
+    features.use(accountSession)
     features.use(networkClient)
 
     let controller: AccountSelectionController = testInstance()
@@ -174,13 +181,14 @@ final class AccountSelectionScreenTests: TestCase {
 
   func test_removeStoredAccount_Succeeds() {
     var storedAccounts: Array<AccountWithProfile> = [firstAccount, secondAccount]
-    var accounts: Accounts = .placeholder
     accounts.storedAccounts = always(storedAccounts)
     accounts.removeAccount = { localID in
       storedAccounts.removeAll { $0.localID == localID }
       return .success(())
     }
     features.use(accounts)
+    accountSession.close = always(Void())
+    features.use(accountSession)
     features.use(networkClient)
 
     let controller: AccountSelectionController = testInstance()
@@ -207,56 +215,100 @@ final class AccountSelectionScreenTests: TestCase {
     XCTAssertTrue(result.contains(.addAccount(.default)))
   }
 
-  func test_removeLastStoredAccount_completesPublisher() {
+  func test_removeStoredAccount_updatesAccountsList() {
     var storedAccounts: Array<AccountWithProfile> = [firstAccount, secondAccount]
-    var accounts: Accounts = .placeholder
     accounts.storedAccounts = always(storedAccounts)
     accounts.removeAccount = { localID in
       storedAccounts.removeAll { $0.localID == localID }
       return .success(())
     }
     features.use(accounts)
+    features.use(accountSession)
     features.use(networkClient)
 
     let controller: AccountSelectionController = testInstance()
     var result: Array<AccountSelectionListItem> = []
-    var completed: Void?
 
     _ = controller.removeAccount(firstAccount.localID)
-    _ = controller.removeAccount(secondAccount.localID)
 
-    controller.accountsPublisher()
+    controller
+      .accountsPublisher()
       .sink(
-        receiveCompletion: { completion in
-          completed = completion == .finished ? () : nil
-        },
+        receiveCompletion: { _ in },
         receiveValue: { items in
           result = items
         }
       )
       .store(in: cancellables)
 
-    XCTAssertTrue(result.isEmpty)
-    XCTAssertNotNil(completed)
+    XCTAssertEqual(
+      result.compactMap {
+        guard case let .account(accountItem) = $0
+        else { return nil }
+        return accountItem.localID
+      },
+      [secondAccount.localID]
+    )
   }
 
-  func test_removeAccountAlertPublisherPublishes_whenPresentRemoveAccountCalled() {
-    var accounts: Accounts = .placeholder
+  func test_removeAccountAlertPresentationPublisher_publishes_whenPresentRemoveAccountCalled() {
     accounts.storedAccounts = always([])
     accounts.removeAccount = { _ in return .success(()) }
     features.use(accounts)
+    features.use(accountSession)
     features.use(networkClient)
 
     let controller: AccountSelectionController = testInstance()
     var result: Void?
 
-    controller.presentRemoveAccountAlertPublisher()
+    controller.removeAccountAlertPresentationPublisher()
       .sink { _ in
         result = Void()
       }
       .store(in: cancellables)
 
     controller.presentRemoveAccountAlert()
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_addAccount_closesSession() {
+    accounts.storedAccounts = always([])
+    accounts.removeAccount = always(.success(()))
+    features.use(accounts)
+    var result: Void!
+    accountSession.close = {
+      result = Void()
+    }
+    features.use(accountSession)
+    features.use(networkClient)
+
+    let controller: AccountSelectionController = testInstance()
+
+    controller.addAccount()
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_addAccountPresentationPublisher_publishes_whenAddAccountCalled() {
+    accounts.storedAccounts = always([])
+    accounts.removeAccount = always(.success(()))
+    features.use(accounts)
+    accountSession.close = always(Void())
+    features.use(accountSession)
+    features.use(networkClient)
+
+    let controller: AccountSelectionController = testInstance()
+    var result: Void!
+
+    controller
+      .addAccountPresentationPublisher()
+      .sink(receiveValue: {
+        result = Void()
+      })
+      .store(in: cancellables)
+
+    controller.addAccount()
 
     XCTAssertNotNil(result)
   }

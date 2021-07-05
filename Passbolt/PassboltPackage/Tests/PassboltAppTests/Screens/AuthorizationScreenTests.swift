@@ -31,34 +31,45 @@ import XCTest
 @testable import Accounts
 @testable import PassboltApp
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable explicit_type_interface
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AuthorizationScreenTests: TestCase {
+
+  var accounts: Accounts!
+  var accountSession: AccountSession!
+  var networkClient: NetworkClient!
+  var biometry: Biometry!
 
   override func setUp() {
     super.setUp()
 
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([account])
-    features.use(accounts)
+    accounts = .placeholder
+    accountSession = .placeholder
+    networkClient = .placeholder
+    biometry = .placeholder
   }
 
-  func test_forgotPassword_isPresented_whenCallingPresent() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
-    features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
-    accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
-    )
-    features.use(accountSession)
+  override func tearDown() {
+    accounts = nil
+    accountSession = nil
+    networkClient = nil
+    biometry = nil
+    super.tearDown()
+  }
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
+  func test_presentForgotPassphraseAlertPublisher_publishesTrue_whenPresentForgotPassphraseAlertCalled() {
+    features.use(networkClient)
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
+    features.use(accountSession)
+    features.use(biometry)
+
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
     var result: Bool!
 
-    controller.presentForgotPassphraseAlertPublisher()
+    controller
+      .presentForgotPassphraseAlertPublisher()
       .sink { presented in
         result = presented
       }
@@ -69,20 +80,20 @@ final class AuthorizationScreenTests: TestCase {
     XCTAssertTrue(result)
   }
 
-  func test_validation_withCorrectValue_succeedes() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
+  func test_validatedPassphrasePublisher_publishesValidatedPassphrase_whenUpdatePassphraseCalled() {
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
-    accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
-    )
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
     var result: Validated<String>!
 
-    controller.validatedPassphrasePublisher()
+    controller
+      .validatedPassphrasePublisher()
       .sink { validated in
         result = validated
       }
@@ -90,158 +101,152 @@ final class AuthorizationScreenTests: TestCase {
 
     controller.updatePassphrase("SomeSecretPassphrase")
 
-    XCTAssertTrue(result.isValid)
-    XCTAssertTrue(result.errors.isEmpty)
+    XCTAssertEqual(result.value, "SomeSecretPassphrase")
   }
 
-  func test_validation_withInCorrectValue_failsWithValidationError() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
+  func test_signIn_succeeds_whenAuthorizationSucceeds() {
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var result: Validated<String>!
-
-    controller.validatedPassphrasePublisher()
-      .sink { validated in
-        result = validated
-      }
-      .store(in: cancellables)
-
-    controller.updatePassphrase("")
-
-    XCTAssertFalse(result.isValid)
-    XCTAssertEqual(result.errors.first?.identifier, .validation)
-  }
-
-  func test_signIn_Succeeds() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
-    features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
-    accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
     )
-    features.use(accountSession)
+    var result: Void!
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var result: Void?
-
-    controller.updatePassphrase("Secret passphrase")
-    controller.signIn()
-      .sink { _ in
-      } receiveValue: { value in
-        result = value
-      }
+    controller
+      .signIn()
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { value in
+          result = value
+        }
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_signIn_Fails() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
+  func test_signIn_fails_whenAuthorizationFails() {
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     accountSession.authorize = always(
-      Fail(error: .testError()).eraseToAnyPublisher()
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var completionError: TheError?
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: TheError!
 
-    controller.updatePassphrase("Secret passphrase")
-    controller.signIn()
-      .sink { completion in
-        switch completion {
-        case let .failure(error):
-          completionError = error
-
-        case _:
-          break
-        }
-      } receiveValue: { _ in
-      }
+    controller
+      .signIn()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
       .store(in: cancellables)
 
-    XCTAssertNotNil(completionError)
+    XCTAssertEqual(result.identifier, .testError)
   }
 
-  func test_biometricSignIn_Succeeds() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
+  func test_biometricSignIn_succeeds_whenAuthorizationSucceeds() {
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var result: Void?
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: Void!
 
-    controller.updatePassphrase("Secret passphrase")
-    controller.biometricSignIn()
-      .sink { _ in
-      } receiveValue: { value in
-        result = value
-      }
+    controller
+      .biometricSignIn()
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { value in
+          result = value
+        }
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_biometricSignIn_Fails() {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.mediaDownload = .respondingWith(.empty)
+  func test_biometricSignIn_fails_whenAuthorizationFails() {
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     accountSession.authorize = always(
-      Fail(error: .testError()).eraseToAnyPublisher()
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var completionError: TheError?
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: TheError!
 
-    controller.updatePassphrase("Secret passphrase")
-    controller.biometricSignIn()
-      .sink { completion in
-        switch completion {
-        case let .failure(error):
-          completionError = error
-
-        case _:
-          break
-        }
-      } receiveValue: { _ in
-      }
+    controller
+      .biometricSignIn()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
       .store(in: cancellables)
 
-    XCTAssertNotNil(completionError)
+    XCTAssertEqual(result.identifier, .testError)
   }
 
-  func test_avatarPublisher_publishesData_whenNetworkRequest_Succeeds() {
-    let testData: Data = .init(repeating: 1, count: 10)
-    var networkClient: NetworkClient = .placeholder
+  func test_avatarPublisher_publishesData_whenNetworkRequestSucceeds() {
+    let testData: Data = .init([0x01, 0x02])
     networkClient.mediaDownload = .respondingWith(testData)
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var result: Data?
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: Data!
 
-    controller.accountAvatarPublisher()
+    controller
+      .accountAvatarPublisher()
       .sink { data in
         result = data
       }
@@ -250,20 +255,26 @@ final class AuthorizationScreenTests: TestCase {
     XCTAssertEqual(result, testData)
   }
 
-  func test_avatarPublisher_publishesNil_whenNetworkRequest_Fails() {
-    var networkClient: NetworkClient = .placeholder
+  func test_avatarPublisher_publishesNil_whenNetworkRequestFails() {
     networkClient.mediaDownload = .failingWith(.testError())
     features.use(networkClient)
-    var accountSession: AccountSession = .placeholder
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
     accountSession.authorize = always(
-      Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.use(biometry)
 
-    let controller: AuthorizationController = testInstance(context: account.localID)
-    var result: Data?
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: Data!
 
-    controller.accountAvatarPublisher()
+    controller
+      .accountAvatarPublisher()
       .sink { data in
         result = data
       }
@@ -271,9 +282,101 @@ final class AuthorizationScreenTests: TestCase {
 
     XCTAssertNil(result)
   }
+
+  func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsUnavailable() {
+    features.use(networkClient)
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
+    features.use(accountSession)
+    biometry.biometricsStateChangesPublisher = always(Just(.unavailable).eraseToAnyPublisher())
+    features.use(biometry)
+
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: AuthorizationController.BiometricsState!
+
+    controller
+      .biometricStatePublisher()
+      .sink { state in
+        result = state
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .unavailable)
+  }
+
+  func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsAvailableAndAccountDoesNotUseIt() {
+    features.use(networkClient)
+    accounts.storedAccounts = always([accountWithoutBiometry])
+    features.use(accounts)
+    features.use(accountSession)
+    biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    features.use(biometry)
+
+    let controller: AuthorizationController = testInstance(
+      context: accountWithoutBiometry.localID
+    )
+    var result: AuthorizationController.BiometricsState!
+
+    controller
+      .biometricStatePublisher()
+      .sink { state in
+        result = state
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .unavailable)
+  }
+
+  func test_biometricStatePublisher_publishesFaceID_whenAvailableBiometricsIsFaceIDAndAccountUsesIt() {
+    features.use(networkClient)
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
+    features.use(accountSession)
+    biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    features.use(biometry)
+
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: AuthorizationController.BiometricsState!
+
+    controller
+      .biometricStatePublisher()
+      .sink { state in
+        result = state
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .faceID)
+  }
+
+  func test_biometricStatePublisher_publishesTouchID_whenAvailableBiometricsIsTouchIDAndAccountUsesIt() {
+    features.use(networkClient)
+    accounts.storedAccounts = always([accountWithBiometry])
+    features.use(accounts)
+    features.use(accountSession)
+    biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    features.use(biometry)
+
+    let controller: AuthorizationController = testInstance(
+      context: accountWithBiometry.localID
+    )
+    var result: AuthorizationController.BiometricsState!
+
+    controller
+      .biometricStatePublisher()
+      .sink { state in
+        result = state
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .faceID)
+  }
 }
 
-private let account: AccountWithProfile = .init(
+private let accountWithoutBiometry: AccountWithProfile = .init(
   localID: "localID",
   userID: "userID",
   domain: "passbolt.com",
@@ -284,4 +387,17 @@ private let account: AccountWithProfile = .init(
   avatarImageURL: "",
   fingerprint: "FINGERPRINT",
   biometricsEnabled: false
+)
+
+private let accountWithBiometry: AccountWithProfile = .init(
+  localID: "localID",
+  userID: "userID",
+  domain: "passbolt.com",
+  label: "passbolt",
+  username: "username",
+  firstName: "Adam",
+  lastName: "Smith",
+  avatarImageURL: "",
+  fingerprint: "FINGERPRINT",
+  biometricsEnabled: true
 )

@@ -80,7 +80,7 @@ extension Biometrics {
           return .configuredFaceID
 
         case (.touchID, true):
-          return .configuredFaceID
+          return .configuredTouchID
 
         case (_, true):  // @unknown
           return .unavailable

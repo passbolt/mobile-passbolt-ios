@@ -28,14 +28,25 @@ import UIComponents
 
 internal struct AuthorizationController {
 
-  internal var accountProfile: () -> AccountWithProfile
+  internal var accountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
   internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
   internal var updatePassphrase: (String) -> Void
   internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
+  internal var biometricStatePublisher: () -> AnyPublisher<BiometricsState, Never>
   internal var signIn: () -> AnyPublisher<Void, TheError>
   internal var biometricSignIn: () -> AnyPublisher<Void, TheError>
   internal var presentForgotPassphraseAlert: () -> Void
   internal var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
+}
+
+extension AuthorizationController {
+
+  internal enum BiometricsState {
+
+    case unavailable
+    case faceID
+    case touchID
+  }
 }
 
 extension AuthorizationController: UIController {
@@ -49,6 +60,7 @@ extension AuthorizationController: UIController {
   ) -> Self {
     let accounts: Accounts = features.instance()
     let accountSession: AccountSession = features.instance()
+    let biometry: Biometry = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
 
@@ -59,8 +71,12 @@ extension AuthorizationController: UIController {
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
 
+    func accountProfilePublisher() -> AnyPublisher<AccountWithProfile, Never> {
+      #warning("TODO: [PAS-180] switch to account settings to provide data - remove context")
+      return Just(accountWithProfile).eraseToAnyPublisher()
+    }
+
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
-      // swiftlint:disable:next array_init
       networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
         .collectErrorLog(using: diagnostics)
         .map { data -> Data? in data }
@@ -78,6 +94,28 @@ extension AuthorizationController: UIController {
         .eraseToAnyPublisher()
     }
 
+    func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
+      #warning("TODO: [PAS-180] switch to account settings to provide data - remove context")
+      return Publishers.CombineLatest(
+        biometry
+          .biometricsStateChangesPublisher(),
+        Just(accountWithProfile)
+      )
+      .map { biometricsState, accountWithProfile in
+        switch (biometricsState, accountWithProfile.biometricsEnabled) {
+        case (.unavailable, _), (.unconfigured, _), (.configuredTouchID, false), (.configuredFaceID, false):
+          return .unavailable
+
+        case (.configuredTouchID, true):
+          return .touchID
+
+        case (.configuredFaceID, true):
+          return .faceID
+        }
+      }
+      .eraseToAnyPublisher()
+    }
+
     func performSignIn() -> AnyPublisher<Void, TheError> {
       passphraseSubject
         .first()
@@ -92,10 +130,11 @@ extension AuthorizationController: UIController {
     }
 
     func performBiometricSignIn() -> AnyPublisher<Void, TheError> {
-      accountSession.authorize(
-        accountWithProfile.account,
-        .biometrics
-      )
+      accountSession
+        .authorize(
+          accountWithProfile.account,
+          .biometrics
+        )
     }
 
     func presentForgotPassphraseAlert() {
@@ -107,10 +146,11 @@ extension AuthorizationController: UIController {
     }
 
     return Self(
-      accountProfile: { accountWithProfile },
+      accountProfilePublisher: accountProfilePublisher,
       accountAvatarPublisher: accountAvatarPublisher,
       updatePassphrase: updatePassphrase,
       validatedPassphrasePublisher: validatedPassphrasePublisher,
+      biometricStatePublisher: biometricStatePublisher,
       signIn: performSignIn,
       biometricSignIn: performBiometricSignIn,
       presentForgotPassphraseAlert: presentForgotPassphraseAlert,

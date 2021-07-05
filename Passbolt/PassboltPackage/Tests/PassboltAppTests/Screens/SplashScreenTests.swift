@@ -31,29 +31,37 @@ import XCTest
 @testable import Accounts
 @testable import PassboltApp
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SplashScreenTests: TestCase {
+
+  var accountDataStore: AccountsDataStore!
+  var networkClient: NetworkClient!
+  var accounts: Accounts!
+  var accountSession: AccountSession!
 
   override func setUp() {
     super.setUp()
+    accountDataStore = .placeholder
+    networkClient = .placeholder
+    accounts = .placeholder
+    accountSession = .placeholder
+  }
 
-    features.use(PassphraseCache.placeholder)
-    features.use(SignIn.placeholder)
+  override func tearDown() {
+    accountDataStore = nil
+    networkClient = nil
+    accounts = nil
+    accountSession = nil
+    super.tearDown()
   }
 
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() {
-    var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(nil)
     features.use(accountDataStore)
-    var networkClient: NetworkClient = testInstance()
     networkClient.updateSession = { _ in }
     features.use(networkClient)
-    var accountSession: AccountSession = testInstance()
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
-    var accounts: Accounts = testInstance()
     accounts.verifyStorageDataIntegrity = always(.failure(.testError()))
     features.use(accounts)
 
@@ -70,16 +78,12 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToAccountSetup_whenNoStoredAccounts() {
-    var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(nil)
     features.use(accountDataStore)
-    var networkClient: NetworkClient = testInstance()
     networkClient.updateSession = { _ in }
     features.use(networkClient)
-    var accountSession: AccountSession = testInstance()
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
-    var accounts: Accounts = testInstance()
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([])
     features.use(accounts)
@@ -97,16 +101,12 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withLastUsedAccount_andNotAuthorized() {
-    var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    var networkClient: NetworkClient = testInstance()
     networkClient.updateSession = { _ in }
     features.use(networkClient)
-    var accountSession: AccountSession = testInstance()
     accountSession.statePublisher = always(Just(.none(lastUsed: account)).eraseToAnyPublisher())
     features.use(accountSession)
-    var accounts: Accounts = testInstance()
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
@@ -124,16 +124,12 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() {
-    var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    var networkClient: NetworkClient = testInstance()
     networkClient.updateSession = { _ in }
     features.use(networkClient)
-    var accountSession: AccountSession = testInstance()
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
-    var accounts: Accounts = testInstance()
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
@@ -151,16 +147,12 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToHome_whenAuthorized() {
-    var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    var networkClient: NetworkClient = testInstance()
     networkClient.updateSession = { _ in }
     features.use(networkClient)
-    var accountSession: AccountSession = testInstance()
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
-    var accounts: Accounts = testInstance()
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)

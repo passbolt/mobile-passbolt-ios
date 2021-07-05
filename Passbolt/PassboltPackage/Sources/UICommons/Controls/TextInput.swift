@@ -232,6 +232,7 @@ public final class SecureTextInput: TextInput {
     textField.returnKeyType = .done
     textField.endEditingOnReturn = true
     textField.isSecureTextEntry = true
+    textField.autocorrectionType = .no
     textField.rightViewMode = .always
     textField.rightView = imageButton
 

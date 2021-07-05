@@ -24,12 +24,12 @@
 import Accounts
 import UIComponents
 
-internal struct AccountSelectionNavigationController {
+internal struct AuthorizationNavigationController {
 
   internal var selectedAccountID: Account.LocalID?
 }
 
-extension AccountSelectionNavigationController: UIController {
+extension AuthorizationNavigationController: UIController {
 
   internal typealias Context = Account.LocalID?
 
@@ -38,6 +38,16 @@ extension AccountSelectionNavigationController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    Self(selectedAccountID: context)
+    let accounts: Accounts = features.instance()
+    if accounts.storedAccounts().contains(where: { $0.localID == context }) {
+      return Self(
+        selectedAccountID: context
+      )
+    }
+    else {
+      return Self(
+        selectedAccountID: nil
+      )
+    }
   }
 }

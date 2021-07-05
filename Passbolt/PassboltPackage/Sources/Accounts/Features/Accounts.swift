@@ -183,7 +183,8 @@ extension Accounts: Feature {
           if signOutRequired {
             session.close()
           }
-          else { /* */
+          else {
+            /* */
           }
         }
 

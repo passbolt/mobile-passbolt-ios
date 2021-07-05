@@ -115,7 +115,8 @@ extension PassphraseCache: Feature {
       {
         currentPassphraseSubject.send(nil)
       }
-      else { /* */
+      else {
+        /* */
       }
 
       return

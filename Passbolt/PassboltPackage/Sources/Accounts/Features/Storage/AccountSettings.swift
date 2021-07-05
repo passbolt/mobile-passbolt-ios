@@ -27,6 +27,7 @@ import Features
 public struct AccountSettings {
 
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
+  #warning("FIXME: it won't request authorization prompt")
   public var setBiometricsEnabled: (Bool) -> AnyPublisher<Never, TheError>
 }
 

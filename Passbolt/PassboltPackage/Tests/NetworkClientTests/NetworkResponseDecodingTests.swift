@@ -29,6 +29,7 @@ import XCTest
 
 @testable import NetworkClient
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class NetworkResponseDecodingTests: XCTestCase {
 
   func test_rawBody_passesUnmodifiedData() {

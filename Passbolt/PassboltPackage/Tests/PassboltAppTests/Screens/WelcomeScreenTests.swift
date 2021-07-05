@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
 import Combine
 import TestExtensions
 import UIComponents
@@ -27,6 +28,7 @@ import XCTest
 
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class WelcomeScreenTests: TestCase {
 
   func test_noAccountAlertAppears_whenTapped_Succeeds() {

@@ -21,12 +21,13 @@
 // @since         v1.0
 //
 
+import Accounts
 import UICommons
 import UIComponents
 
-internal final class AccountSelectionNavigationViewController: NavigationViewController, UIComponent {
+internal final class AuthorizationNavigationViewController: NavigationViewController, UIComponent {
 
-  internal typealias Controller = AccountSelectionNavigationController
+  internal typealias Controller = AuthorizationNavigationController
 
   internal static func instance(
     using controller: Controller,
@@ -39,7 +40,7 @@ internal final class AccountSelectionNavigationViewController: NavigationViewCon
   }
 
   internal let components: UIComponentFactory
-  private let controller: AccountSelectionNavigationController
+  private let controller: AuthorizationNavigationController
 
   internal init(
     using controller: Controller,
@@ -50,12 +51,46 @@ internal final class AccountSelectionNavigationViewController: NavigationViewCon
     super.init()
   }
 
+  internal var isAuthorizationPromptAllowed: Bool {
+    viewControllers
+      .contains(where: { viewController in
+        viewController is BiometricsInfoViewController
+          || viewController is BiometricsSetupViewController
+          || viewController is ExtensionSetupViewController
+      })
+  }
+
+  internal var isInitialScreenNavigationAllowed: Bool {
+    !viewControllers
+      .contains(where: { viewController in
+        viewController is AccountTransferFailureViewController
+          || viewController is BiometricsInfoViewController
+          || viewController is BiometricsSetupViewController
+          || viewController is CodeScanningViewController
+          || viewController is CodeScanningSuccessViewController
+          || viewController is CodeScanningDuplicateViewController
+          || viewController is TransferSignInViewController
+          || viewController is TransferInfoScreenViewController
+          || viewController is ExtensionSetupViewController
+      })
+  }
+
   internal func setup() {
     let accountSelectionScreen: AccountSelectionViewController = components.instance()
     setViewControllers([accountSelectionScreen], animated: false)
 
     mut(navigationBarView) {
       .primaryNavigationStyle()
+    }
+
+    if let selectedAccountID: Account.LocalID = controller.selectedAccountID {
+      push(
+        AuthorizationViewController.self,
+        in: selectedAccountID
+      )
+    }
+    else {
+      /* */
     }
   }
 }

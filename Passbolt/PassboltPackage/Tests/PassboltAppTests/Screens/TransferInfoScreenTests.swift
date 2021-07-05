@@ -31,6 +31,7 @@ import XCTest
 
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class TransferInfoScreenTests: TestCase {
 
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {

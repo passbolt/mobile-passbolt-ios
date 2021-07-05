@@ -442,24 +442,60 @@ extension AccountsDataStore: Feature {
 
       // data integrity check performs cleanup in case of partial success
       defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
-      #warning("TODO: Consider propagating the error outside of this function")
-      _ = environment
-        .keychain
-        .delete(matching: .accountPassphraseQuery(for: accountID))
-      _ = environment
-        .keychain
-        .delete(matching: .accountArmoredKeyQuery(for: accountID))
-      _ = environment
-        .keychain
-        .delete(matching: .accountQuery(for: accountID))
-      _ = environment
-        .keychain
-        .delete(matching: .accountProfileQuery(for: accountID))
+
+      var results: Array<Result<Void, TheError>> = .init()
+      results.append(
+        environment
+          .keychain
+          .delete(matching: .accountPassphraseQuery(for: accountID))
+      )
+      results.append(
+        environment
+          .keychain
+          .delete(matching: .accountArmoredKeyQuery(for: accountID))
+      )
+      results.append(
+        environment
+          .keychain
+          .delete(matching: .accountQuery(for: accountID))
+      )
+      results.append(
+        environment
+          .keychain
+          .delete(matching: .accountProfileQuery(for: accountID))
+      )
+
+      do {
+        #warning("TODO: Consider propagating errors outside of this function")
+        try results.forEach { try $0.get() }
+      }
+      catch {
+        diagnostics.diagnosticLog("Failed to properly delete account \(accountID)")
+        diagnostics.debugLog("\(error)")
+      }
+
       var accountIdentifiers: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
+
       accountIdentifiers.removeAll(where: { $0 == accountID })
       preferences.save(accountIdentifiers, for: .accountsList)
+      let lastUsedAccount: Account.LocalID? = environment
+        .preferences
+        .load(
+          Account.LocalID.self,
+          for: .lastUsedAccount
+        )
+      if lastUsedAccount == accountID {
+        environment
+          .preferences
+          .deleteValue(
+            for: .lastUsedAccount
+          )
+      }
+      else {
+        Void()
+      }
 
       #warning("TODO: [PAS-82] remove database files")
     }

@@ -28,6 +28,7 @@ import XCTest
 
 @testable import NetworkClient
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class NetworkingDecoratorsTests: XCTestCase {
 
   var diagnostics: Diagnostics!

@@ -106,4 +106,34 @@ final class BiometryTests: TestCase {
     wait(for: [expectation], timeout: 0.3)
     XCTAssertEqual(result, [.configuredTouchID])
   }
+
+  func test_biometricsStateChangesPublisher_publishesConfiguredTouchID_whenBiometricsStateIsConfiguredTouchID() {
+    environment.biometrics.checkBiometricsState = always(.configuredTouchID)
+    environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
+
+    let feature: Biometry = testInstance()
+
+    var result: Biometrics.State!
+    feature
+      .biometricsStateChangesPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .configuredTouchID)
+  }
+
+  func test_biometricsStateChangesPublisher_publishesConfiguredFaceID_whenBiometricsStateIsConfiguredFaceID() {
+    environment.biometrics.checkBiometricsState = always(.configuredFaceID)
+    environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
+
+    let feature: Biometry = testInstance()
+
+    var result: Biometrics.State!
+    feature
+      .biometricsStateChangesPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .configuredFaceID)
+  }
 }

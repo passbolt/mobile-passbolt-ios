@@ -63,18 +63,88 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
       .backgroundColor(dynamic: .background)
     }
 
-    let accountProfile: AccountWithProfile = controller.accountProfile()
-
-    contentView.applyOn(name: .text("\(accountProfile.label)"))
-    contentView.applyOn(email: .text(accountProfile.username))
-    contentView.applyOn(url: .text(accountProfile.domain))
-    contentView.applyOn(biometricButtonContainer: .hidden(!accountProfile.biometricsEnabled))
-
     setupSubscriptions()
   }
 
-  // swiftlint:disable:next function_body_length
+  func activate() {
+    // If biometrics auth is available prompt it on screen presentation.
+    controller
+      .biometricStatePublisher()
+      .first()
+      .delay(for: 1, scheduler: RunLoop.main)
+      .receive(on: RunLoop.main)
+      .map { [unowned self] state -> AnyPublisher<Void, Never> in
+        switch state {
+        case .unavailable:
+          return Empty<Void, Never>()
+            .eraseToAnyPublisher()
+
+        case .faceID, .touchID:
+          return self.controller
+            .biometricSignIn()
+            .receive(on: RunLoop.main)
+            .handleEvents(
+              receiveSubscription: { [weak self] _ in
+                self?.present(overlay: LoaderOverlayView())
+              },
+              receiveCompletion: { [weak self] completion in
+                self?.dismissOverlay()
+                guard case .failure = completion else { return }
+                self?.present(
+                  snackbar: Mutation<UICommons.View>
+                    .snackBarErrorMessage(localized: "sign.in.error.message")
+                    .instantiate(),
+                  hideAfter: 2
+                )
+              }
+            )
+            .replaceError(with: Void())
+            .eraseToAnyPublisher()
+        }
+      }
+      .switchToLatest()
+      .sink { /* */  }
+      .store(in: cancellables)
+  }
+
   private func setupSubscriptions() {
+    controller
+      .accountProfilePublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] accountProfile in
+        self?.contentView.applyOn(name: .text("\(accountProfile.label)"))
+        self?.contentView.applyOn(email: .text(accountProfile.username))
+        self?.contentView.applyOn(url: .text(accountProfile.domain))
+      }
+      .store(in: cancellables)
+
+    controller
+      .biometricStatePublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] state in
+        switch state {
+        case .unavailable:
+          self?.contentView.applyOn(
+            biometricButtonContainer: .hidden(true)
+          )
+        case .faceID:
+          self?.contentView.applyOn(
+            biometricButton: .image(symbol: .faceID)
+          )
+          self?.contentView.applyOn(
+            biometricButtonContainer: .hidden(false)
+          )
+        case .touchID:
+          self?.contentView.applyOn(
+            biometricButton: .image(symbol: .touchID)
+          )
+          self?.contentView.applyOn(
+            biometricButtonContainer: .hidden(false)
+          )
+        }
+      }
+      .store(in: cancellables)
+
     controller
       .accountAvatarPublisher()
       .receive(on: RunLoop.main)
@@ -136,7 +206,6 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
 
     contentView
       .signInTapPublisher
-      // swiftlint:disable:next unowned_variable_capture
       .map { [unowned self] () -> AnyPublisher<Void, Never> in
         self.controller.signIn()
           .receive(on: RunLoop.main)
@@ -164,7 +233,6 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
 
     contentView
       .biometricTapPublisher
-      // swiftlint:disable:next unowned_variable_capture
       .map { [unowned self] () -> AnyPublisher<Void, Never> in
         self.controller.biometricSignIn()
           .receive(on: RunLoop.main)

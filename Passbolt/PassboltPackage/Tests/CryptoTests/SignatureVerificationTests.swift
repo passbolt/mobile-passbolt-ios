@@ -28,6 +28,7 @@ import Security
 import TestExtensions
 import XCTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withExistingToken_Succeeds() {

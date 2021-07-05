@@ -30,6 +30,7 @@ import XCTest
 
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class CodeReaderScreenTests: TestCase {
 
   func test_processPayload_passesPayloadToAccountTransfer() {

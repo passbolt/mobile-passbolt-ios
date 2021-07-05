@@ -79,7 +79,8 @@ open class Label: UILabel {
     if let attributedString: AttributedString = attributedString {
       self.attributedText = attributedString.nsAttributedString(in: interfaceStyle)
     }
-    else { /* */
+    else {
+      /* */
     }
   }
 }

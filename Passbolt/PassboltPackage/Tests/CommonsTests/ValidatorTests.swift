@@ -25,7 +25,9 @@ import XCTest
 
 @testable import Commons
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ValidatorTests: XCTestCase {
+
   private let messageKeyInvalid: String = "key.invalid"
 
   func test_nonEmptyValidator_withNonEmptyValue_Succeeds() {

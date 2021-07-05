@@ -54,7 +54,8 @@ extension UI {
       if windows.isEmpty {
         window.isActive = true
       }
-      else { /* */
+      else {
+        /* */
       }
       windows[windowScene.session.persistentIdentifier] = window
 

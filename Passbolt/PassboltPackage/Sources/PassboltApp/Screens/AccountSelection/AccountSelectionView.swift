@@ -27,6 +27,7 @@ import UICommons
 internal final class AccountSelectionView: View {
 
   internal var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> { collectionView.accountTapPublisher }
+  internal var addAccountTapPublisher: AnyPublisher<Void, Never> { collectionView.addAccountPublisher }
   internal var removeTapPublisher: AnyPublisher<Void, Never> { removeContainer.tapPublisher }
   internal var doneTapPublisher: AnyPublisher<Void, Never> { doneButton.tapPublisher }
   internal var removeAccountPublisher: AnyPublisher<AccountSelectionCellItem, Never> {
@@ -167,7 +168,7 @@ internal final class AccountSelectionView: View {
     collectionView.update(data: items)
   }
 
-  internal func update(mode: AccountSelectionMode) {
+  internal func update(mode: AccountSelectionController.ListMode) {
     switch mode {
     case .selection:
       mut(titleLabel) {

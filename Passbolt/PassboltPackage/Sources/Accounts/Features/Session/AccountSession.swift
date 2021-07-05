@@ -30,6 +30,9 @@ public struct AccountSession {
   public var statePublisher: () -> AnyPublisher<State, Never>
   // Used for sign in (including switch to other account) and unlocking whichever is required.
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Void, TheError>
+  // Publishes current account ID each time access to its private key
+  // is required and cannot be handled automatically (passphrase cache is expired)
+  public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account.LocalID, Never>
   // Select account for network requests without authorization (each account can have a unique domain etc)
   #warning("Determine if 'select' can be removed")
   public var select: (Account) -> Void
@@ -65,6 +68,7 @@ extension AccountSession: Feature {
     cancellables: Cancellables
   ) -> AccountSession {
     let time: Time = environment.time
+    let appLifeCycle: AppLifeCycle = environment.appLifeCycle
 
     let diagnostics: Diagnostics = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
@@ -78,6 +82,8 @@ extension AccountSession: Feature {
     let stateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
+
+    let authorizationPromptPresentationSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
     let sessionSubject: CurrentValueSubject<SessionTokens?, Never> = .init(nil)
 
@@ -128,6 +134,24 @@ extension AccountSession: Feature {
       }
       .store(in: cancellables)
 
+    appLifeCycle
+      .lifeCyclePublisher()
+      .compactMap { transition -> Account.LocalID? in
+        guard case .didEnterBackground = transition
+        else { return nil }
+        switch stateSubject.value {
+        case let .authorizationRequired(account), let .authorized(account):
+          return account.localID
+
+        case .none:
+          return nil
+        }
+      }
+      .sink { accountID in
+        authorizationPromptPresentationSubject.send(accountID)
+      }
+      .store(in: cancellables)
+
     // swift-format-ignore: NoLeadingUnderscores
     func _close(using features: FeatureFactory) {
       features.unload(AccountDatabase.self)
@@ -155,8 +179,6 @@ extension AccountSession: Feature {
       case .none:
         break  // do nothing
       }
-
-      sessionSubject.send(nil)
     }
     let closeSession: () -> Void = { [unowned features] in
       _close(using: features)
@@ -215,27 +237,31 @@ extension AccountSession: Feature {
 
       #warning("TODO: Determine if session should be deleted (sessionSubject.send(nil)")
 
-      let method: SignIn.Method
-      if let token: String = sessionSubject.value?.refreshToken {
-        method = .refreshToken(token)
-      }
-      else {
-        method = .challenge
-      }
+      #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
+      let method: SignIn.Method = .challenge
+      //      let method: SignIn.Method
+      //      if let token: String = sessionSubject.value?.refreshToken {
+      //        method = .refreshToken(token)
+      //      }
+      //      else {
+      //        method = .challenge
+      //      }
 
       let tokensPublisher: AnyPublisher<NetworkClient.Tokens?, Never> =
         sessionSubject
         .eraseToAnyPublisher()
         .map { (sessionTokens: SessionTokens?) -> AnyPublisher<SessionTokens?, Never> in
-          let method: SignIn.Method
-
-          switch sessionTokens {
-          case let .some(tokens):
-            method = .refreshToken(tokens.refreshToken)
-
-          case .none:
-            method = .challenge
-          }
+          #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
+          let method: SignIn.Method = .challenge
+          //          let method: SignIn.Method
+          //
+          //          switch sessionTokens {
+          //          case let .some(tokens):
+          //            method = .refreshToken(tokens.refreshToken)
+          //
+          //          case .none:
+          //            method = .challenge
+          //          }
 
           let signInPublisher: AnyPublisher<SessionTokens?, Never> =
             signIn.signIn(
@@ -300,6 +326,10 @@ extension AccountSession: Feature {
       .eraseToAnyPublisher()
     }
 
+    func authorizationPromptPresentationPublisher() -> AnyPublisher<Account.LocalID, Never> {
+      authorizationPromptPresentationSubject.eraseToAnyPublisher()
+    }
+
     func select(account: Account) {
       switch stateSubject.value {
       case .authorizationRequired, .authorized:
@@ -315,6 +345,7 @@ extension AccountSession: Feature {
     return Self(
       statePublisher: stateSubject.removeDuplicates().eraseToAnyPublisher,
       authorize: authorize(account:authorizationMethod:),
+      authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
       select: select(account:),
       close: closeSession
     )
@@ -328,6 +359,7 @@ extension AccountSession {
     Self(
       statePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
+      authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       select: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")
     )

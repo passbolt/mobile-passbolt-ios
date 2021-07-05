@@ -29,6 +29,7 @@ import XCTest
 @testable import Crypto
 @testable import NetworkClient
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SignInTests: TestCase {
 
   var networkClient: NetworkClient!

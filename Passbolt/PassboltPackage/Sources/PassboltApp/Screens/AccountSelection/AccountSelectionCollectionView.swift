@@ -26,14 +26,14 @@ import UICommons
 internal final class AccountSelectionCollectionView: CollectionView<SingleSection, AccountSelectionListItem> {
 
   internal lazy var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
-    tapSubject.eraseToAnyPublisher()
-  internal lazy var addAccountPublisher: AnyPublisher<AccountSelectionAddAccountCellItem, Never> =
+    accountTapSubject.eraseToAnyPublisher()
+  internal lazy var addAccountPublisher: AnyPublisher<Void, Never> =
     addAccountTapSubject.eraseToAnyPublisher()
   internal lazy var removeAccountPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
     removeSubject.eraseToAnyPublisher()
 
-  private let tapSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
-  private let addAccountTapSubject: PassthroughSubject<AccountSelectionAddAccountCellItem, Never> = .init()
+  private let accountTapSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
+  private let addAccountTapSubject: PassthroughSubject<Void, Never> = .init()
   private let removeSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
 
   internal init(layout: UICollectionViewLayout) {
@@ -65,7 +65,7 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
       cell.setup(
         from: accountItem,
         tapAction: { [weak self] in
-          self?.tapSubject.send(accountItem)
+          self?.accountTapSubject.send(accountItem)
         },
         removeAction: { [weak self] in
           self?.removeSubject.send(accountItem)
@@ -84,7 +84,7 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
       cell.setup(
         from: addAccountItem,
         tapAction: { [weak self] in
-          self?.addAccountTapSubject.send(addAccountItem)
+          self?.addAccountTapSubject.send()
         }
       )
 

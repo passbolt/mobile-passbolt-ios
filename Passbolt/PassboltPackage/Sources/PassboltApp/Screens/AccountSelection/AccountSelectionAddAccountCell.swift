@@ -25,7 +25,6 @@ import UICommons
 
 internal final class AccountSelectionAddAccountCell: CollectionViewCell {
 
-  private let icon: ImageView = .init()
   private let titleLabel: Label = .init()
   private var tapAction: (() -> Void)?
 
@@ -33,43 +32,44 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
     super.setup()
 
     mut(self) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .subview(icon, titleLabel)
-      )
+      .backgroundColor(dynamic: .background)
     }
 
+    let icon: ImageView = .init()
     mut(icon) {
       .combined(
         .image(named: .plus, from: .uiCommons),
-        .tintColor(dynamic: .icon),
+        .tintColor(dynamic: .iconAlternative),
         .contentMode(.scaleAspectFit),
-        .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, titleLabel.leadingAnchor, constant: -12),
-        .topAnchor(.equalTo, contentView.topAnchor, constant: 12),
-        .bottomAnchor(.equalTo, contentView.bottomAnchor, constant: -12),
-        .widthAnchor(.equalTo, constant: 40),
-        .heightAnchor(.equalTo, constant: 40)
+        .subview(of: self.contentView),
+        .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 22),
+        .topAnchor(.equalTo, contentView.topAnchor, constant: 22),
+        .bottomAnchor(.equalTo, contentView.bottomAnchor, constant: -22),
+        .widthAnchor(.equalTo, constant: 20),
+        .heightAnchor(.equalTo, constant: 20)
       )
     }
 
     mut(titleLabel) {
       .combined(
+        .numberOfLines(1),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
+        .subview(of: self.contentView),
         .centerYAnchor(.equalTo, icon.centerYAnchor),
-        .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 64),
+        .leadingAnchor(.equalTo, icon.trailingAnchor, constant: 22),
         .trailingAnchor(.equalTo, contentView.trailingAnchor, constant: -12)
       )
     }
 
-    Mutation<Button>.combined(
-      .backgroundColor(.clear),
-      .subview(of: self),
-      .edges(equalTo: self),
-      .action({ [weak self] in self?.tapAction?() })
-    )
-    .instantiate()
+    Mutation<Button>
+      .combined(
+        .backgroundColor(.clear),
+        .subview(of: self.contentView),
+        .edges(equalTo: self.contentView, usingSafeArea: false),
+        .action { [weak self] in self?.tapAction?() }
+      )
+      .instantiate()
   }
 
   internal func setup(

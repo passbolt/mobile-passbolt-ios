@@ -33,6 +33,7 @@ public struct Preferences: EnvironmentElement {
 
   public var load: (Key) -> Any?
   public var save: (Any, Key) -> Void
+  public var delete: (Key) -> Void
 }
 
 extension Preferences {
@@ -73,9 +74,14 @@ extension Preferences {
       defaults.setValue(value, forKey: key.rawValue)
     }
 
+    func delete(for key: Key) {
+      defaults.setValue(nil, forKey: key.rawValue)
+    }
+
     return Self(
       load: load(for:),
-      save: save(value:for:)
+      save: save(value:for:),
+      delete: delete(for:)
     )
   }
 }
@@ -94,6 +100,12 @@ extension Preferences {
     for key: Key
   ) {
     save(value, key)
+  }
+
+  public func deleteValue(
+    for key: Key
+  ) {
+    delete(key)
   }
 
   public func load<Value>(
@@ -178,7 +190,8 @@ extension Preferences {
   public static var placeholder: Self {
     Self(
       load: Commons.placeholder("You have to provide mocks for used methods"),
-      save: Commons.placeholder("You have to provide mocks for used methods")
+      save: Commons.placeholder("You have to provide mocks for used methods"),
+      delete: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

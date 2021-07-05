@@ -62,26 +62,31 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
   }
 
   private func setupSubscriptions() {
-    controller.accountsPublisher()
+    controller
+      .accountsPublisher()
       .receive(on: RunLoop.main)
       .sink(
-        receiveCompletion: { [weak self] _ in
-          self?.replaceWindowRoot(with: WelcomeNavigationViewController.self)
-        },
         receiveValue: { [weak self] items in
-          self?.contentView.update(items: items)
+          if items.isEmpty {
+            self?.replaceWindowRoot(with: WelcomeNavigationViewController.self)
+          }
+          else {
+            self?.contentView.update(items: items)
+          }
         }
       )
       .store(in: cancellables)
 
-    controller.modePublisher()
+    controller
+      .listModePublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] mode in
         self?.contentView.update(mode: mode)
       }
       .store(in: cancellables)
 
-    contentView.accountTapPublisher
+    contentView
+      .accountTapPublisher
       .sink { [weak self] item in
         self?.push(
           AuthorizationViewController.self,
@@ -90,24 +95,27 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       }
       .store(in: cancellables)
 
-    contentView.removeTapPublisher
+    contentView
+      .removeTapPublisher
       .sink { [weak self] _ in
-        self?.controller.changeMode(.removal)
+        self?.controller.toggleMode()
       }
       .store(in: cancellables)
 
-    contentView.doneTapPublisher
+    contentView
+      .doneTapPublisher
       .sink { [weak self] _ in
-        self?.controller.changeMode(.selection)
+        self?.controller.toggleMode()
       }
       .store(in: cancellables)
 
-    contentView.removeAccountPublisher
+    contentView
+      .removeAccountPublisher
       .sink { [weak self] item in
         let removeAccount: () -> Void = { [weak self] in
           guard let self = self else { return }
 
-          self.controller.changeMode(.selection)
+          self.controller.toggleMode()
 
           guard case Result.failure = self.controller.removeAccount(item.localID) else {
             return
@@ -128,6 +136,21 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           RemoveAccountAlertViewController.self,
           in: removeAccount
         )
+      }
+      .store(in: cancellables)
+
+    contentView
+      .addAccountTapPublisher
+      .sink { [weak self] in
+        self?.controller.addAccount()
+      }
+      .store(in: cancellables)
+
+    controller
+      .addAccountPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.push(TransferInfoScreenViewController.self)
       }
       .store(in: cancellables)
   }

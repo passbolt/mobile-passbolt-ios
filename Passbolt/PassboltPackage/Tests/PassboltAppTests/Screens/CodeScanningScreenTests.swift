@@ -30,6 +30,7 @@ import XCTest
 
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class CodeScanningScreenTests: TestCase {
 
   func test_exitConfirmation_isPresented_whenCallingPresent() {

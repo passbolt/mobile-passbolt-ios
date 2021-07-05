@@ -29,6 +29,7 @@ import XCTest
 
 @testable import Accounts
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountsDataStoreTests: TestCase {
 
   var mockPreferencesStore: Dictionary<Preferences.Key, Any>!

@@ -24,79 +24,79 @@
 public func unreachable(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> Never {
-  fatalError("[\(file):\(line)] Unexpected behaviour: " + message)
+  fatalError("Unexpected behaviour: " + message, file: (file), line: line)
 }
 
 public func unreachable<R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> () -> R {
-  { fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1) -> R {
-  { _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2) -> R {
-  { _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, A3, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3) -> R {
-  { _, _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, A3, A4, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4) -> R {
-  { _, _, _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _, _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, A3, A4, A5, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5) -> R {
-  { _, _, _, _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _, _, _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, A3, A4, A5, A6, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6) -> R {
-  { _, _, _, _, _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _, _, _, _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, A3, A4, A5, A6, A7, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6, A7) -> R {
-  { _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _, _, _, _, _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }
 
 public func unreachable<A1, A2, A3, A4, A5, A6, A7, A8, R>(
   _ message: String,
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> R {
-  { _, _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Unexpected behaviour: " + message) }
+  { _, _, _, _, _, _, _, _ in fatalError("Unexpected behaviour: " + message, file: (file), line: line) }
 }

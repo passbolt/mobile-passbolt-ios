@@ -21,10 +21,24 @@
 // @since         v1.0
 //
 
+import Accounts
 import UIComponents
 
-internal struct WindowController {}
+internal struct WindowController {
 
+  internal var screenStateDispositionPublisher: () -> AnyPublisher<ScreenStateDisposition, Never>
+}
+
+extension WindowController {
+
+  internal enum ScreenStateDisposition {
+
+    case useInitialScreenState
+    case useCachedScreenState
+    case authorize(Account.LocalID)
+    case clearCache
+  }
+}
 extension WindowController: UIController {
 
   internal typealias Context = Void
@@ -34,6 +48,56 @@ extension WindowController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    Self()
+    let accountSession: AccountSession = features.instance()
+
+    let screenStateDispositionSubject: CurrentValueSubject<ScreenStateDisposition?, Never> = .init(nil)
+
+    accountSession
+      .statePublisher()
+      .removeDuplicates()
+      .sink { sessionState in
+        switch sessionState {
+        // signed in
+        case let .authorized(account):
+          switch screenStateDispositionSubject.value {
+          case let .authorize(promptedAccountID)
+          where promptedAccountID == account.localID:
+            screenStateDispositionSubject
+              .send(.useCachedScreenState)
+
+          case _:
+            screenStateDispositionSubject
+              .send(.useInitialScreenState)
+          }
+        // signed out
+        case .none:
+          screenStateDispositionSubject
+            .send(.clearCache)
+
+        case _:
+          return
+        }
+        screenStateDispositionSubject
+          .send(.none)
+      }
+      .store(in: cancellables)
+
+    accountSession
+      .authorizationPromptPresentationPublisher()
+      .sink { promptedAccountID in
+        screenStateDispositionSubject
+          .send(.authorize(promptedAccountID))
+      }
+      .store(in: cancellables)
+
+    func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
+      screenStateDispositionSubject
+        .compactMap { $0 }  // remove nils
+        .eraseToAnyPublisher()
+    }
+
+    return Self(
+      screenStateDispositionPublisher: screenStateDispositionPublisher
+    )
   }
 }

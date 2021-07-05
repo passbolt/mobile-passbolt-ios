@@ -17,6 +17,7 @@ import Crypto
 import TestExtensions
 import XCTest
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class PGPTests: XCTestCase {
 
   var pgp: PGP!

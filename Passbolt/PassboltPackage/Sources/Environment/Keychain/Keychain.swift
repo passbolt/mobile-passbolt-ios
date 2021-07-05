@@ -34,7 +34,7 @@ public struct Keychain: EnvironmentElement {
 }
 
 // we would like to ask every time but some methods request it multiple times in a row, so using small timout
-private let keychainBiometricsTimeout: TimeInterval = 5  // 5 sec
+private let keychainBiometricsTimeout: TimeInterval = 0.0  // 0.1 sec
 
 extension Keychain {
 
@@ -366,12 +366,14 @@ private func loadKeychainKeyQuery(
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   }
-  else { /* */
+  else {
+    /* */
   }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
   }
-  else { /* */
+  else {
+    /* */
   }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -379,7 +381,7 @@ private func loadKeychainKeyQuery(
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
         kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-        .userPresence,
+        .biometryCurrentSet,
         &error
       ),
       error == nil
@@ -410,12 +412,14 @@ private func loadKeychainMetaQuery(
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   }
-  else { /* */
+  else {
+    /* */
   }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
   }
-  else { /* */
+  else {
+    /* */
   }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -423,7 +427,7 @@ private func loadKeychainMetaQuery(
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
         kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-        .userPresence,
+        .biometryCurrentSet,
         &error
       ),
       error == nil
@@ -456,12 +460,14 @@ private func saveKeychainKeyQuery(
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   }
-  else { /* */
+  else {
+    /* */
   }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
   }
-  else { /* */
+  else {
+    /* */
   }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -469,7 +475,7 @@ private func saveKeychainKeyQuery(
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
         kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-        .userPresence,
+        .biometryCurrentSet,
         &error
       ),
       error == nil
@@ -497,12 +503,14 @@ private func updateKeychainKeyQuery(
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
   }
-  else { /* */
+  else {
+    /* */
   }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
   }
-  else { /* */
+  else {
+    /* */
   }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
@@ -510,7 +518,7 @@ private func updateKeychainKeyQuery(
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
         kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-        .userPresence,
+        .biometryCurrentSet,
         &error
       ),
       error == nil
@@ -545,7 +553,8 @@ private func deleteKeychainKeyQuery(
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
   }
-  else { /* */
+  else {
+    /* */
   }
   return .success(query as CFDictionary)
 }

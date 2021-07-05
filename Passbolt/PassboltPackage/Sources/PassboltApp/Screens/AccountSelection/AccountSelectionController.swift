@@ -25,20 +25,25 @@ import Accounts
 import NetworkClient
 import UIComponents
 
-internal enum AccountSelectionMode {
-
-  case selection
-  case removal
-}
-
 internal struct AccountSelectionController {
 
   internal var accountsPublisher: () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
-  internal var modePublisher: () -> AnyPublisher<AccountSelectionMode, Never>
-  internal var presentRemoveAccountAlertPublisher: () -> AnyPublisher<Void, Never>
+  internal var listModePublisher: () -> AnyPublisher<ListMode, Never>
+  internal var removeAccountAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var presentRemoveAccountAlert: () -> Void
   internal var removeAccount: (Account.LocalID) -> Result<Void, TheError>
-  internal var changeMode: (AccountSelectionMode) -> Void
+  internal var addAccount: () -> Void
+  internal var addAccountPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var toggleMode: () -> Void
+}
+
+extension AccountSelectionController {
+
+  internal enum ListMode {
+
+    case selection
+    case removal
+  }
 }
 
 extension AccountSelectionController: UIController {
@@ -51,75 +56,107 @@ extension AccountSelectionController: UIController {
     cancellables: Cancellables
   ) -> AccountSelectionController {
     let accounts: Accounts = features.instance()
+    let accountSession: AccountSession = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
 
     let storedAccountSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(accounts.storedAccounts())
-    let modeSubject: CurrentValueSubject<AccountSelectionMode, Never> = .init(.selection)
-    let removeAccountAlertSubject: PassthroughSubject<Void, Never> = .init()
+    let listModeSubject: CurrentValueSubject<ListMode, Never> = .init(.selection)
+    let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let addAccountPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
-    if storedAccountSubject.value.isEmpty {
-      storedAccountSubject.send(completion: .finished)
-    }
-
-    func storedAccounts() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
-      storedAccountSubject.map { accounts -> AnyPublisher<Array<AccountSelectionListItem>, Never> in
-        var items: Array<AccountSelectionListItem> = accounts.map { account in
-          let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
-            networkClient.mediaDownload.make(
-              using: .init(urlString: account.avatarImageURL)
-            )
-            .map { data -> Data? in data }
-            .collectErrorLog(using: diagnostics)
-            .replaceError(with: nil)
+    func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
+      Publishers.CombineLatest(
+        storedAccountSubject,
+        listModeSubject
+      )
+      .map { accounts, mode -> Array<AccountSelectionListItem> in
+        var items: Array<AccountSelectionListItem> =
+          accounts
+          .map { account in
+            let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
+              networkClient.mediaDownload.make(
+                using: .init(urlString: account.avatarImageURL)
+              )
+              .map { data -> Data? in data }
+              .collectErrorLog(using: diagnostics)
+              .replaceError(with: nil)
+              .eraseToAnyPublisher()
+            }
             .eraseToAnyPublisher()
+
+            let item: AccountSelectionCellItem = AccountSelectionCellItem(
+              localID: account.localID,
+              title: "\(account.firstName) \(account.lastName)",
+              subtitle: account.username,
+              imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
+              listModePublisher: listModeSubject.eraseToAnyPublisher()
+            )
+
+            return .account(item)
           }
-          .eraseToAnyPublisher()
 
-          let item: AccountSelectionCellItem = AccountSelectionCellItem(
-            localID: account.localID,
-            title: "\(account.firstName) \(account.lastName)",
-            subtitle: account.username,
-            imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
-            modePublisher: modeSubject.eraseToAnyPublisher()
-          )
-
-          return .account(item)
-        }
-
-        if modeSubject.value == .selection && !items.isEmpty {
+        if mode == .selection && !items.isEmpty {
           items.append(.addAccount(.default))
         }
-        else { /* */
+        else {
+          /* */
         }
 
-        return Just(items).eraseToAnyPublisher()
+        return items
       }
-      .switchToLatest()
       .eraseToAnyPublisher()
+    }
+
+    func listModePublisher() -> AnyPublisher<ListMode, Never> {
+      listModeSubject.eraseToAnyPublisher()
+    }
+
+    func removeAccountAlertPresentationPublisher() -> AnyPublisher<Void, Never> {
+      removeAccountAlertPresentationSubject.eraseToAnyPublisher()
+    }
+
+    func presentRemoveAccountAlert() {
+      removeAccountAlertPresentationSubject.send(Void())
     }
 
     func removeAccount(with id: Account.LocalID) -> Result<Void, TheError> {
       let result: Result<Void, TheError> = accounts.removeAccount(id)
       let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
-      if storedAccounts.isEmpty {
-        storedAccountSubject.send(completion: .finished)
-      }
-      else {
-        storedAccountSubject.send(storedAccounts)
-      }
+      storedAccountSubject.send(storedAccounts)
 
       return result
     }
 
+    func addAccount() {
+      // close current session (if any) when we try to add new account
+      accountSession.close()
+      addAccountPresentationSubject.send(Void())
+    }
+
+    func addAccountPresentationPublisher() -> AnyPublisher<Void, Never> {
+      addAccountPresentationSubject.eraseToAnyPublisher()
+    }
+
+    func toggleMode() {
+      switch listModeSubject.value {
+      case .selection:
+        listModeSubject.send(.removal)
+      case .removal:
+        listModeSubject.send(.selection)
+      }
+    }
+
     return Self(
-      accountsPublisher: storedAccounts,
-      modePublisher: modeSubject.eraseToAnyPublisher,
-      presentRemoveAccountAlertPublisher: removeAccountAlertSubject.eraseToAnyPublisher,
-      presentRemoveAccountAlert: { removeAccountAlertSubject.send(()) },
+      accountsPublisher: accountsPublisher,
+      listModePublisher: listModePublisher,
+      removeAccountAlertPresentationPublisher: removeAccountAlertPresentationPublisher,
+      presentRemoveAccountAlert: presentRemoveAccountAlert,
       removeAccount: removeAccount(with:),
-      changeMode: modeSubject.send(_:)
+      addAccount: addAccount,
+      addAccountPresentationPublisher: addAccountPresentationPublisher,
+      toggleMode: toggleMode
     )
   }
 }

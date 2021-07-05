@@ -88,7 +88,6 @@ public final class AuthorizationView: KeyboardAwareView {
       .combined(
         .subview(of: biometricButtonContainer),
         .contentMode(.scaleAspectFit),
-        .image(symbol: Bool.random() ? .faceId : .touchId),
         .tintColor(dynamic: .primaryBlue),
         .edges(
           equalTo: biometricButtonContainer,
@@ -125,9 +124,9 @@ public final class AuthorizationView: KeyboardAwareView {
         .append(urlLabel),
         .appendSpace(of: 32),
         .append(passwordInput),
-        .appendSpace(of: 24),
+        .appendSpace(of: 16),
         .append(buttonContainer),
-        .appendFiller(minSize: 20),
+        .appendFiller(minSize: 16),
         .append(signInButton),
         .append(forgotButton)
       )

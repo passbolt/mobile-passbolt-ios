@@ -126,7 +126,7 @@ extension UIComponent {
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
-    guard let navigationController = navigationController
+    guard let navigationController = navigationController ?? self as? UINavigationController
     else { unreachable("It is programmer error to push without navigation controller") }
     CATransaction.begin()
     CATransaction.setCompletionBlock(completion)

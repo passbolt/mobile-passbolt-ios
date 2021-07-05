@@ -85,7 +85,7 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       .sink(
         receiveCompletion: { [weak self] _ in
           self?.replaceWindowRoot(
-            with: AccountSelectionNavigationViewController.self,
+            with: AuthorizationNavigationViewController.self,
             in: nil
           )
         },

@@ -26,87 +26,87 @@
 public func placeholder(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> Never {
-  fatalError("[\(file):\(line)] Placeholder: " + message)
+  fatalError("[\(file):\(line)] Placeholder: " + message, file: (file), line: line)
 }
 
 public func placeholder<R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> () -> R {
-  { fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1) -> R {
-  { _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2) -> R {
-  { _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3) -> R {
-  { _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, A4, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4) -> R {
-  { _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, A4, A5, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5) -> R {
-  { _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, A4, A5, A6, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6) -> R {
-  { _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _, _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, A4, A5, A6, A7, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6, A7) -> R {
-  { _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _, _, _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, A4, A5, A6, A7, A8, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> R {
-  { _, _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _, _, _, _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }
 
 public func placeholder<A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #filePath,
-  line: Int = #line
+  line: UInt = #line
 ) -> (A1, A2, A3, A4, A5, A6, A7, A8, A9) -> R {
-  { _, _, _, _, _, _, _, _, _ in fatalError("[\(file):\(line)] Placeholder: " + message) }
+  { _, _, _, _, _, _, _, _, _ in fatalError("Placeholder: " + message, file: (file), line: line) }
 }

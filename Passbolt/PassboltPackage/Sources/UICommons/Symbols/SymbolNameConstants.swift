@@ -26,6 +26,6 @@ import Foundation
 extension SymbolNameConstant {
   public static var eye: Self { "eye" }
   public static var eyeSlash: Self { "eye.slash" }
-  public static var faceId: Self { "faceid" }
-  public static var touchId: Self { "touchid" }
+  public static var faceID: Self { "faceid" }
+  public static var touchID: Self { "touchid" }
 }

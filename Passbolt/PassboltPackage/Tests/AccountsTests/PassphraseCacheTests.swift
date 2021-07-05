@@ -30,6 +30,7 @@ import XCTest
 
 @testable import Accounts
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class PassphraseCacheTests: TestCase {
 
   func test_passphraseIsStored_whenStoreIsCalled() {

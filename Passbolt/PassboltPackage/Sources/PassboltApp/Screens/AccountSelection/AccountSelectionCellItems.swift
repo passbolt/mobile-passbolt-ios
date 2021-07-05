@@ -51,13 +51,14 @@ internal struct AccountSelectionCellItem: Hashable {
   internal var title: String
   internal var subtitle: String
   internal var imagePublisher: AnyPublisher<Data?, Never>?
-  internal var modePublisher: AnyPublisher<AccountSelectionMode, Never>
+  internal var listModePublisher: AnyPublisher<AccountSelectionController.ListMode, Never>
 
   internal static func == (
     lhs: AccountSelectionCellItem,
     rhs: AccountSelectionCellItem
   ) -> Bool {
-    lhs.title == rhs.title && lhs.subtitle == rhs.subtitle
+    lhs.title == rhs.title
+      && lhs.subtitle == rhs.subtitle
       && ((lhs.imagePublisher == nil && rhs.imagePublisher == nil)
         || (lhs.imagePublisher != nil && rhs.imagePublisher != nil))
   }

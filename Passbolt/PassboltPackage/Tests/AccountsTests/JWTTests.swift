@@ -27,6 +27,7 @@ import XCTest
 
 @testable import Crypto
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class JWTTests: XCTestCase {
 
   var features: FeatureFactory!

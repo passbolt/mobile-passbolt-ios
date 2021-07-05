@@ -29,8 +29,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
   private let icon: ImageView = .init()
   private let titleLabel: Label = .init()
   private let subTitleLabel: Label = .init()
-  private let button: Button = .init()
-  private let imageButton: ImageButton = .init()
+  private let deleteButton: Button = .init()
   private let stack: StackView = .init()
   private var tapAction: (() -> Void)?
   private var removeAction: (() -> Void)?
@@ -40,49 +39,18 @@ internal final class AccountSelectionCell: CollectionViewCell {
     super.setup()
 
     mut(self) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .translatesAutoresizingMaskIntoConstraints(false)
-      )
-    }
-
-    mut(contentView) {
-      .subview(icon, stack, button, imageButton)
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .font(.inter(ofSize: 14, weight: .semibold)),
-        .textColor(dynamic: .primaryText)
-      )
-    }
-
-    mut(subTitleLabel) {
-      .combined(
-        .font(.inter(ofSize: 12)),
-        .textColor(dynamic: .secondaryText)
-      )
-    }
-
-    mut(stack) {
-      .combined(
-        .axis(.vertical),
-        .spacing(8),
-        .arrangedSubview(titleLabel, subTitleLabel),
-        .topAnchor(.equalTo, contentView.topAnchor, constant: 8),
-        .bottomAnchor(.equalTo, contentView.bottomAnchor, constant: -8),
-        .leadingAnchor(.equalTo, icon.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, imageButton.leadingAnchor, constant: -12)
-      )
+      .backgroundColor(dynamic: .background)
     }
 
     mut(icon) {
       .combined(
         .image(named: .person, from: .uiCommons),
+        .cornerRadius(20, masksToBounds: true),
+        .border(dynamic: .divider),
         .tintColor(dynamic: .icon),
         .contentMode(.scaleAspectFit),
+        .subview(of: self.contentView),
         .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, stack.leadingAnchor, constant: -12),
         .topAnchor(.equalTo, contentView.topAnchor, constant: 12),
         .bottomAnchor(.equalTo, contentView.bottomAnchor, constant: -12),
         .widthAnchor(.equalTo, constant: 40),
@@ -90,30 +58,62 @@ internal final class AccountSelectionCell: CollectionViewCell {
       )
     }
 
-    mut(button) {
+    mut(titleLabel) {
       .combined(
-        .backgroundColor(.clear),
-        .edges(equalTo: contentView, usingSafeArea: false),
-        .action { [weak self] in
-          self?.tapAction?()
-        }
+        .numberOfLines(1),
+        .font(.inter(ofSize: 14, weight: .semibold)),
+        .textColor(dynamic: .primaryText),
+        .subview(of: self.contentView),
+        .topAnchor(.equalTo, icon.topAnchor),
+        .leadingAnchor(.equalTo, icon.trailingAnchor, constant: 12)
       )
     }
 
-    mut(imageButton) {
+    mut(subTitleLabel) {
       .combined(
-        .centerYAnchor(.equalTo, icon.centerYAnchor),
-        .trailingAnchor(.equalTo, contentView.trailingAnchor, constant: -12),
-        .widthAnchor(.equalTo, constant: 20),
-        .heightAnchor(.equalTo, constant: 20),
-        .contentMode(.scaleAspectFit),
-        .image(named: .trash, from: .uiCommons),
-        .tintColor(dynamic: .icon),
-        .action { [weak self] in
-          self?.removeAction?()
-        }
+        .numberOfLines(1),
+        .font(.inter(ofSize: 12)),
+        .textColor(dynamic: .secondaryText),
+        .subview(of: self.contentView),
+        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 8),
+        .leadingAnchor(.equalTo, titleLabel.leadingAnchor),
+        .trailingAnchor(.equalTo, titleLabel.trailingAnchor)
       )
     }
+
+    Mutation<Button>
+      .combined(
+        .backgroundColor(.clear),
+        .subview(of: contentView),
+        .edges(equalTo: contentView, usingSafeArea: false),
+        .action { [weak self] in self?.tapAction?() }
+      )
+      .instantiate()
+
+    mut(deleteButton) {
+      .combined(
+        .subview(of: self.contentView),
+        .centerYAnchor(.equalTo, icon.centerYAnchor),
+        .leadingAnchor(.equalTo, titleLabel.trailingAnchor, constant: 12),
+        .trailingAnchor(.equalTo, contentView.trailingAnchor, constant: -12),
+        .widthAnchor(.equalTo, constant: 40),
+        .heightAnchor(.equalTo, constant: 40),
+        .action { [weak self] in self?.removeAction?() }
+      )
+    }
+
+    Mutation<ImageView>
+      .combined(
+        .tintColor(dynamic: .icon),
+        .contentMode(.scaleAspectFit),
+        .image(named: .trash, from: .uiCommons),
+        .subview(of: deleteButton),
+        .widthAnchor(.equalTo, constant: 20),
+        .heightAnchor(.equalTo, constant: 20),
+        .centerXAnchor(.equalTo, deleteButton.centerXAnchor),
+        .centerYAnchor(.equalTo, deleteButton.centerYAnchor)
+      )
+      .instantiate()
   }
 
   internal func setup(
@@ -121,35 +121,32 @@ internal final class AccountSelectionCell: CollectionViewCell {
     tapAction: @escaping (() -> Void),
     removeAction: @escaping (() -> Void)
   ) {
-    titleLabel.text = item.title
-    subTitleLabel.text = item.subtitle
+    self.titleLabel.text = item.title
+    self.subTitleLabel.text = item.subtitle
 
     self.tapAction = tapAction
     self.removeAction = removeAction
 
-    item.imagePublisher?
+    item
+      .imagePublisher?
       .receive(on: RunLoop.main)
       .sink(receiveValue: { [weak self] imageData in
-        guard let data: Data = imageData,
+        guard
+          let data: Data = imageData,
           let image: UIImage = .init(data: data)
-        else {
-          return
-        }
+        else { return }
 
         self?.icon.image = image
       })
       .store(in: cancellables)
 
-    item.modePublisher
+    item
+      .listModePublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] mode in
         guard let self = self else { return }
 
-        UIView.animate(withDuration: 0.3) {
-          self.imageButton.alpha = mode == .selection ? 0 : 1
-        }
-
-        mut(self.imageButton) {
+        mut(self.deleteButton) {
           .hidden(mode == .selection)
         }
       }
@@ -159,17 +156,18 @@ internal final class AccountSelectionCell: CollectionViewCell {
   override internal func prepareForReuse() {
     super.prepareForReuse()
 
-    cancellables = .init()
+    self.cancellables = .init()
 
-    mut(icon) {
-      .combined(
-        .image(named: .person, from: .uiCommons)
+    mut(self.icon) {
+      .image(
+        named: .person,
+        from: .uiCommons
       )
     }
 
-    titleLabel.text = nil
-    subTitleLabel.text = nil
-    tapAction = nil
-    removeAction = nil
+    self.titleLabel.text = ""
+    self.subTitleLabel.text = ""
+    self.tapAction = nil
+    self.removeAction = nil
   }
 }

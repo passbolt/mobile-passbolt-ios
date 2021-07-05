@@ -29,6 +29,7 @@ import XCTest
 
 @testable import Accounts
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountsStoreTests: TestCase {
 
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() {

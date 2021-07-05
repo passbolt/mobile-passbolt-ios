@@ -29,6 +29,7 @@ import XCTest
 
 @testable import PassboltApp
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SignInScreenTests: TestCase {
 
   func test_forgotPassword_isPresented_whenCallingPresent() {

@@ -6,6 +6,21 @@
 	objectVersion = 52;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		4205C5172698448400F2434D /* Format&Lint */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 4205C5182698448400F2434D /* Build configuration list for PBXAggregateTarget "Format&Lint" */;
+			buildPhases = (
+				4205C51B2698448E00F2434D /* Run Formatter */,
+				4205C51C269844C400F2434D /* Run Linter */,
+			);
+			dependencies = (
+			);
+			name = "Format&Lint";
+			productName = Formatter;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		424C5B7E26319B2F006B7C9F /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424C5B7D26319B2F006B7C9F /* Application.swift */; };
 		426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */; };
@@ -204,6 +219,9 @@
 				LastSwiftUpdateCheck = 1240;
 				LastUpgradeCheck = 1240;
 				TargetAttributes = {
+					4205C5172698448400F2434D = {
+						CreatedOnToolsVersion = 12.5.1;
+					};
 					DD38F93D261746C400A6C627 = {
 						CreatedOnToolsVersion = 12.4;
 					};
@@ -227,6 +245,7 @@
 			targets = (
 				DD38F93D261746C400A6C627 /* Passbolt */,
 				DD38F95F26174BB700A6C627 /* PassboltAutofill */,
+				4205C5172698448400F2434D /* Format&Lint */,
 			);
 		};
 /* End PBXProject section */
@@ -254,6 +273,42 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		4205C51B2698448E00F2434D /* Run Formatter */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Formatter";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode format --in-place --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+		};
+		4205C51C269844C400F2434D /* Run Linter */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Linter";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+		};
 		DDBB9861261C8851008B178F /* Swift Format */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -270,7 +325,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/zsh;
-			shellScript = "/usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+			shellScript = "# /usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -305,6 +360,22 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		4205C5192698448400F2434D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		4205C51A2698448400F2434D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		DD38F950261746C500A6C627 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -524,6 +595,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		4205C5182698448400F2434D /* Build configuration list for PBXAggregateTarget "Format&Lint" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4205C5192698448400F2434D /* Debug */,
+				4205C51A2698448400F2434D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		DD38F939261746C400A6C627 /* Build configuration list for PBXProject "Passbolt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

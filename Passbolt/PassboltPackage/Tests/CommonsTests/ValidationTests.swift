@@ -25,7 +25,9 @@ import XCTest
 
 @testable import Commons
 
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ValidationTests: XCTestCase {
+
   var testValue: TestValue!
   var testEmbeddedValue: TestEmbeddedValue!
 

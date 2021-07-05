@@ -75,7 +75,8 @@ extension UIViewController {
             if self?._snackbarView === snackbar {
               self?._snackbarView = nil
             }
-            else { /* */
+            else {
+              /* */
             }
             guard completed else { return }
             snackbar.removeFromSuperview()
