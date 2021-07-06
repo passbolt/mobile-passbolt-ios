@@ -28,6 +28,7 @@ internal final class Window {
   private let window: UIWindow
   private let controller: WindowController
   private let cancellables: Cancellables
+  private let maskView: SplashScreenView = .init()
   
   internal init(
     in scene: UIWindowScene,
@@ -53,9 +54,12 @@ extension Window {
     set {
       switch newValue {
       case true:
+        maskView.removeFromSuperview()
         window.makeKeyAndVisible()
         
       case false:
+        maskView.frame = window.bounds
+        window.addSubview(maskView)
         window.resignKey()
       }
     }

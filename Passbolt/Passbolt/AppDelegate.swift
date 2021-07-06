@@ -30,7 +30,8 @@ internal class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    Application.shared.initialize()
+    UIApplication.shared.ignoreSnapshotOnNextApplicationLaunch()
+    return Application.shared.initialize()
   }
   
   internal func application(
