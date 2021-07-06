@@ -25,47 +25,47 @@ import AegithalosCocoa
 import Commons
 
 open class CollectionViewCell: UICollectionViewCell {
-  
+
   public static var reuseIdentifier: String { String(describing: self) }
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  public lazy var dynamicBorderColor: DynamicColor
-  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+
+  public lazy var dynamicBorderColor: DynamicColor = .default(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
     didSet {
       self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
-  
+
   override public convenience init(frame: CGRect) {
     self.init()
   }
-  
+
   public required init() {
     super.init(frame: .zero)
     setup()
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   open func setup() {
     // prepared to override instead of overriding init
   }
-  
+
   override open func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -74,7 +74,7 @@ open class CollectionViewCell: UICollectionViewCell {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
@@ -84,11 +84,11 @@ open class CollectionViewCell: UICollectionViewCell {
 }
 
 extension Mutation where Subject == CollectionViewCell {
-  
+
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
   }
-  
+
   public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
     .custom { (subject: Subject) in
       subject.dynamicBorderColor = color

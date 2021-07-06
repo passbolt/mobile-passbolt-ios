@@ -21,61 +21,59 @@
 // @since         v1.0
 //
 import Combine
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltApp
+
 final class WelcomeScreenTests: TestCase {
-  
+
   func test_noAccountAlertAppears_whenTapped_Succeeds() {
     let controller: WelcomeScreenController = testInstance()
     var result: Bool!
-    
+
     controller.noAccountAlertPresentationPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.presentNoAccountAlert()
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_noAccountAlertDisappears_whenDissmissed_Succeeds() {
     let controller: WelcomeScreenController = testInstance()
     var result: Bool!
-    
+
     controller.noAccountAlertPresentationPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.dismissNoAccountAlert()
-    
+
     XCTAssertFalse(result)
   }
-  
+
   func test_navigateToNextScreen_whenTriggered_Succeeds() {
     let controller: WelcomeScreenController = testInstance()
     var result: Void?
-    
+
     controller.pushTransferInfoPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink {
         result = ()
       }
       .store(in: cancellables)
-    
+
     controller.pushTransferInfo()
-    
+
     XCTAssertNotNil(result)
   }
 }

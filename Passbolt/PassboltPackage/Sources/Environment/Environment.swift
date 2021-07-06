@@ -27,14 +27,14 @@ import Crypto
 public protocol EnvironmentElement {}
 
 extension EnvironmentElement {
-  
+
   fileprivate static var environmentIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }
 
 public struct Environment {
-  
+
   private var environment: Dictionary<ObjectIdentifier, EnvironmentElement> = .init()
-  
+
   public init(_ elements: EnvironmentElement...) {
     var environment: Dictionary<ObjectIdentifier, EnvironmentElement> = .init()
     environment.reserveCapacity(elements.count)
@@ -46,23 +46,24 @@ public struct Environment {
 }
 
 extension Environment {
-  
+
   public func element<E>(
     _ elementType: E.Type = E.self
   ) -> E where E: EnvironmentElement {
     if let element: E = environment[elementType.environmentIdentifier] as? E {
       return element
-    } else {
+    }
+    else {
       unreachable("Trying to use uninitialized environment element: \(E.self)")
     }
   }
-  
+
   public func contains<E>(
     _ elementType: E.Type = E.self
   ) -> Bool where E: EnvironmentElement {
     environment[elementType.environmentIdentifier] is E
   }
-  
+
   public mutating func use<E>(
     _ element: E
   ) where E: EnvironmentElement {

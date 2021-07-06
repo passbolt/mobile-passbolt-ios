@@ -24,9 +24,8 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: ActivityIndicator {
-  
+
   public static func color(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicColor = color }
   }
 }
-

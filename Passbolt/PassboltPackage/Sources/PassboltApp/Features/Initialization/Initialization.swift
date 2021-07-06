@@ -25,43 +25,42 @@ import Accounts
 import Features
 
 public struct Initialization {
-  
+
   public var initialize: () -> Bool
   public var featureUnload: () -> Bool
 }
 
 extension Initialization: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Initialization {
     let diagnostics: Diagnostics = features.instance()
-    
-    
+
+    // swift-format-ignore: NoLeadingUnderscores
     func _initialize(with features: FeatureFactory) -> Bool {
       diagnostics.debugLog("Initializing...")
       defer { diagnostics.debugLog("... initialization completed") }
       defer { features.unload(Initialization.self) }
       // initialize application extension features here
-      return true // true if succeeded
+      return true  // true if succeeded
     }
-    // swiftlint:disable:next unowned_variable_capture
     let initialize: () -> Bool = { [unowned features] in
       _initialize(with: features)
     }
-    
+
     func featureUnload() -> Bool {
-      true // always succeeds
+      true  // always succeeds
     }
-    
+
     return Self(
       initialize: initialize,
       featureUnload: featureUnload
     )
   }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {

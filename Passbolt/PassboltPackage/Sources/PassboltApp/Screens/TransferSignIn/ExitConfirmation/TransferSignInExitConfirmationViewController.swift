@@ -24,10 +24,10 @@
 import AccountSetup
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class TransferSignInExitConfirmationViewController:
-  AlertViewController<TransferSignInExitConfirmationController>, UIComponent {
-  
+  AlertViewController<TransferSignInExitConfirmationController>, UIComponent
+{
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -53,14 +53,14 @@ internal final class TransferSignInExitConfirmationViewController:
 }
 
 internal struct TransferSignInExitConfirmationController {
-  
+
   internal var exit: () -> Void
 }
 
 extension TransferSignInExitConfirmationController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,

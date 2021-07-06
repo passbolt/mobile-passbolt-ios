@@ -23,31 +23,28 @@
 
 import Commons
 import Features
-@testable import NetworkClient
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable force_unwrapping
+@testable import NetworkClient
+
 final class NetworkingDecoratorsTests: XCTestCase {
-  
+
   var diagnostics: Diagnostics!
   var cancellables: Cancellables!
-  
+
   override class func setUp() {
     super.setUp()
     FeatureFactory.autoLoadFeatures = false
   }
-  
+
   override func setUp() {
     super.setUp()
     diagnostics = .placeholder
     diagnostics.uniqueID = { "uniqueID" }
     cancellables = .init()
   }
-  
+
   override func tearDown() {
     diagnostics = nil
     cancellables = nil
@@ -59,7 +56,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
     diagnostics.log = { message in
       result.append(message)
     }
-    
+
     var networking: Networking = .placeholder
     networking.execute = { _, _ in
       Just(
@@ -74,7 +71,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
       .eraseToAnyPublisher()
     }
     networking = networking.withLogs(using: diagnostics)
-    
+
     networking.make(
       HTTPRequest(
         url: URL(string: "https://passbolt.com")!,
@@ -89,29 +86,29 @@ final class NetworkingDecoratorsTests: XCTestCase {
       receiveValue: { _ in }
     )
     .store(in: cancellables)
-    
+
     XCTAssertEqual(
       result,
       [
         "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-        "Received <uniqueID>:\nHTTP/1.1 200\n\n\n\n---"
+        "Received <uniqueID>:\nHTTP/1.1 200\n\n\n\n---",
       ]
     )
   }
-  
+
   func test_withLogs_logsMessagesForRequestAndError() {
     var result: Array<String> = .init()
     diagnostics.log = { message in
       result.append(message)
     }
-    
+
     var networking: Networking = .placeholder
     networking.execute = { _, _ in
       Fail<HTTPResponse, HTTPError>(error: .cannotConnect)
-      .eraseToAnyPublisher()
+        .eraseToAnyPublisher()
     }
     networking = networking.withLogs(using: diagnostics)
-    
+
     networking.make(
       HTTPRequest(
         url: URL(string: "https://passbolt.com")!,
@@ -126,12 +123,12 @@ final class NetworkingDecoratorsTests: XCTestCase {
       receiveValue: { _ in }
     )
     .store(in: cancellables)
-    
+
     XCTAssertEqual(
       result,
       [
         "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-        "Received <uniqueID>:\ncannotConnect\n---"
+        "Received <uniqueID>:\ncannotConnect\n---",
       ]
     )
   }

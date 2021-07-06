@@ -160,7 +160,7 @@
 				DD38F93B261746C400A6C627 /* Frameworks */,
 				DD38F93C261746C400A6C627 /* Resources */,
 				DD38F97226174BB700A6C627 /* Embed App Extensions */,
-				DDBB9861261C8851008B178F /* SwiftLint */,
+				DDBB9861261C8851008B178F /* Swift Format */,
 			);
 			buildRules = (
 			);
@@ -254,7 +254,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		DDBB9861261C8851008B178F /* SwiftLint */ = {
+		DDBB9861261C8851008B178F /* Swift Format */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -263,14 +263,14 @@
 			);
 			inputPaths = (
 			);
-			name = SwiftLint;
+			name = "Swift Format";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/zsh;
-			shellScript = "# Homebrew on M1 Macs require this to use swiftlint\nexport PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which swiftlint >/dev/null; then\n  echo $PWD\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

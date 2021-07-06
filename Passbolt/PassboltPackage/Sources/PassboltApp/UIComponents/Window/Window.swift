@@ -24,12 +24,12 @@
 import UIComponents
 
 internal final class Window {
-  
+
   private let window: UIWindow
   private let controller: WindowController
   private let cancellables: Cancellables
   private let maskView: SplashScreenView = .init()
-  
+
   internal init(
     in scene: UIWindowScene,
     using controller: WindowController,
@@ -39,7 +39,8 @@ internal final class Window {
     self.window = UIWindow(windowScene: scene)
     self.controller = controller
     self.cancellables = cancellables
-    self.window.rootViewController = components
+    self.window.rootViewController =
+      components
       .instance(
         of: SplashScreenViewController.self,
         in: SplashScreenController.Context()
@@ -48,7 +49,7 @@ internal final class Window {
 }
 
 extension Window {
-  
+
   internal var isActive: Bool {
     get { window.isKeyWindow }
     set {
@@ -56,7 +57,7 @@ extension Window {
       case true:
         maskView.removeFromSuperview()
         window.makeKeyAndVisible()
-        
+
       case false:
         maskView.frame = window.bounds
         window.addSubview(maskView)

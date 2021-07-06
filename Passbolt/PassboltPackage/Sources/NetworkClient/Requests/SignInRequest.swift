@@ -28,7 +28,7 @@ import Environment
 public typealias SignInRequest = NetworkRequest<DomainSessionVariable, SignInRequestVariable, SignInResponse>
 
 extension SignInRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
@@ -50,29 +50,29 @@ extension SignInRequest {
 }
 
 public struct SignInRequestVariable: Encodable {
-  
+
   public var userID: String
   public var challenge: ArmoredMessage
-  
+
   public init(userID: String, challenge: ArmoredMessage) {
     self.userID = userID
     self.challenge = challenge
   }
-  
+
   private enum CodingKeys: String, CodingKey {
-    
+
     case userID = "user_id"
     case challenge = "challenge"
   }
 }
 
 public struct SignInRequestChallenge: Encodable {
-  
+
   public var version: String
   public var token: String
   public var domain: String
   public var expiration: Int
-  
+
   public init(
     version: String,
     token: String,
@@ -84,9 +84,9 @@ public struct SignInRequestChallenge: Encodable {
     self.domain = domain
     self.expiration = expiration
   }
-  
+
   private enum CodingKeys: String, CodingKey {
-    
+
     case version = "version"
     case token = "verify_token"
     case domain = "domain"
@@ -97,20 +97,20 @@ public struct SignInRequestChallenge: Encodable {
 public typealias SignInResponse = CommonResponse<SignInResponseBody>
 
 public struct SignInResponseBody: Decodable {
-  
+
   public var challenge: String
 }
 
 public struct Tokens: Codable, Equatable {
-  
+
   public var version: String
   public var domain: String
   public var verificationToken: String
   public var accessToken: String
   public var refreshToken: String
-    
+
   private enum CodingKeys: String, CodingKey {
-    
+
     case version = "version"
     case domain = "domain"
     case verificationToken = "verify_token"

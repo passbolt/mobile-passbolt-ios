@@ -24,10 +24,10 @@ import AVFoundation
 import UIComponents
 
 internal final class AccountTransferFailureViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = ResultView
   internal typealias Controller = AccountTransferFailureController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,12 +37,12 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private var payloadProcessingCancellable: AnyCancellable?
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -51,7 +51,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .hidesBackButton(true)
@@ -60,21 +60,21 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       .applyOn(
         image: .image(dynamic: .failureMark)
       )
-    
+
     switch controller.failureReason() {
     case .canceled:
       contentView
         .applyOn(
           title: .text(localized: "transfer.account.result.canceled.title")
         )
-      
+
     case _:
       contentView
         .applyOn(
           title: .text(localized: "transfer.account.result.error.title")
         )
     }
-    
+
     contentView
       .applyOn(
         button: .combined(
@@ -87,7 +87,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       )
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     controller
       .backPresentationPublisher()

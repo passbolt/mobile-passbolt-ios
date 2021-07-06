@@ -29,10 +29,11 @@ extension NSMutableAttributedString {
     to substring: String
   ) {
     let nsRange: NSRange = mutableString.range(of: substring, options: .literal)
-    
+
     if nsRange.location != NSNotFound {
       addAttributes(attributes, range: nsRange)
-    } else {
+    }
+    else {
       /* */
     }
   }

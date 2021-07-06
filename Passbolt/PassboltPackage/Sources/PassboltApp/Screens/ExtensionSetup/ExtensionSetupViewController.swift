@@ -24,10 +24,10 @@
 import UIComponents
 
 internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = ExtensionSetupView
   internal typealias Controller = ExtensionSetupController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,12 +37,12 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -51,14 +51,14 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .hidesBackButton(true)
     }
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     contentView
       .setupTapPublisher
@@ -83,14 +83,14 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
           .store(in: self.cancellables)
       }
       .store(in: cancellables)
-    
+
     contentView
       .skipTapPublisher
       .sink { [weak self] in
         self?.controller.skipSetup()
       }
       .store(in: cancellables)
-    
+
     controller
       .continueSetupPresentationPublisher()
       .receive(on: RunLoop.main)

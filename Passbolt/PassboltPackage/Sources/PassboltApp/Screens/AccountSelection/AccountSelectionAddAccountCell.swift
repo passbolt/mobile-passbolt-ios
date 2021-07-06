@@ -24,11 +24,11 @@
 import UICommons
 
 internal final class AccountSelectionAddAccountCell: CollectionViewCell {
-  
+
   private let icon: ImageView = .init()
   private let titleLabel: Label = .init()
   private var tapAction: (() -> Void)?
-  
+
   override internal func setup() {
     super.setup()
 
@@ -38,7 +38,7 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
         .subview(icon, titleLabel)
       )
     }
-    
+
     mut(icon) {
       .combined(
         .image(named: .plus, from: .uiCommons),
@@ -52,7 +52,7 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
         .heightAnchor(.equalTo, constant: 40)
       )
     }
-    
+
     mut(titleLabel) {
       .combined(
         .font(.inter(ofSize: 14, weight: .semibold)),
@@ -62,7 +62,7 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
         .trailingAnchor(.equalTo, contentView.trailingAnchor, constant: -12)
       )
     }
-    
+
     Mutation<Button>.combined(
       .backgroundColor(.clear),
       .subview(of: self),
@@ -71,7 +71,7 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
     )
     .instantiate()
   }
-  
+
   internal func setup(
     from item: AccountSelectionAddAccountCellItem,
     tapAction: @escaping (() -> Void)
@@ -79,10 +79,10 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
     self.titleLabel.text = item.title
     self.tapAction = tapAction
   }
-  
+
   override internal func prepareForReuse() {
     super.prepareForReuse()
-    
+
     titleLabel.text = nil
     tapAction = nil
   }

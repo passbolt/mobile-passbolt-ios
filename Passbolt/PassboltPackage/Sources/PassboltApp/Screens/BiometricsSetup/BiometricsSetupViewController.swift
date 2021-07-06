@@ -25,10 +25,10 @@ import AccountSetup
 import UIComponents
 
 internal final class BiometricsSetupViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = BiometricsSetupView
   internal typealias Controller = BiometricsSetupController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,14 +52,14 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .hidesBackButton(true)
     }
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     controller
       .biometricsStatePublisher()
@@ -68,7 +68,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
         self?.contentView.update(for: biometricsState)
       }
       .store(in: cancellables)
-    
+
     contentView
       .setupTapPublisher
       .sink { [weak self] in
@@ -92,7 +92,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
           .store(in: self.cancellables)
       }
       .store(in: cancellables)
-    
+
     contentView
       .skipTapPublisher
       .sink { [weak self] in
@@ -100,7 +100,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
         self.controller.skipSetup()
       }
       .store(in: cancellables)
-    
+
     controller
       .continueSetupPresentationPublisher()
       .receive(on: RunLoop.main)
@@ -110,4 +110,3 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
       .store(in: cancellables)
   }
 }
-

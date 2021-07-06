@@ -26,34 +26,36 @@ import Foundation
 import Security
 
 public struct SignatureVerfication {
-  
+
   // Verify message signature
-  public var verify: (
-    _ input: Data,
-    _ signature: Data,
-    _ key: Data
-  ) -> Result<Void, TheError>
+  public var verify:
+    (
+      _ input: Data,
+      _ signature: Data,
+      _ key: Data
+    ) -> Result<Void, TheError>
 }
 
 extension SignatureVerfication {
-  
-  public static func RSSHA256() -> Self {
+
+  public static func rssha256() -> Self {
     Self { input, signature, key in
       var error: Unmanaged<CFError>?
       let inputData: CFData = input as CFData
       let signatureData: CFData = signature as CFData
-      
-      guard let secKey: SecKey = SecKeyCreateWithData(
-        key as CFData,
-        [
-          kSecAttrType: kSecAttrKeyTypeRSA,
-          kSecAttrKeyClass: kSecAttrKeyClassPublic
-        ] as CFDictionary,
-        &error
-      ),
-      error == nil
+
+      guard
+        let secKey: SecKey = SecKeyCreateWithData(
+          key as CFData,
+          [
+            kSecAttrType: kSecAttrKeyTypeRSA,
+            kSecAttrKeyClass: kSecAttrKeyClassPublic,
+          ] as CFDictionary,
+          &error
+        ),
+        error == nil
       else { return Result.failure(.signatureError(error?.takeRetainedValue())) }
-      
+
       let isValid: Bool = SecKeyVerifySignature(
         secKey,
         .rsaSignatureMessagePKCS1v15SHA256,
@@ -61,11 +63,11 @@ extension SignatureVerfication {
         signatureData,
         &error
       )
-      
+
       guard isValid, error == nil else {
         return Result.failure(.signatureError(error?.takeRetainedValue()))
       }
-      
+
       return .success
     }
   }

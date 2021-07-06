@@ -24,22 +24,21 @@
 public typealias EmptyNetworkSessionVariable = Void
 
 public struct NetworkSessionVariable {
-  
+
   internal var domain: String
-  
+
   public init(domain: String) {
     self.domain = domain
   }
 }
 
 public struct AuthorizedSessionVariable {
-  
+
   internal var domain: String
   internal var authorizationToken: String
 }
 
 public struct DomainSessionVariable {
-  
+
   internal var domain: String
 }
-

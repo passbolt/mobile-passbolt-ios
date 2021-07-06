@@ -60,7 +60,7 @@ let package = Package(
       targets: [
         "Environment"
       ]
-    )
+    ),
   ],
   dependencies: [
     .package(
@@ -84,7 +84,7 @@ let package = Package(
       name: "AccountsTests",
       dependencies: [
         "Accounts",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -101,7 +101,7 @@ let package = Package(
       name: "AccountSetupTests",
       dependencies: [
         "AccountSetup",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -117,14 +117,14 @@ let package = Package(
       name: "CommonsTests",
       dependencies: [
         "Commons",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
       name: "Crypto",
       dependencies: [
         "Commons",
-        "gopenPGP"
+        "gopenPGP",
       ]
     ),
     .testTarget(
@@ -132,7 +132,7 @@ let package = Package(
       dependencies: [
         "Commons",
         "Crypto",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -155,14 +155,14 @@ let package = Package(
         "Commons",
         "Crypto",
         "Features",
-        "Environment"
+        "Environment",
       ]
     ),
     .testTarget(
       name: "NetworkClientTests",
       dependencies: [
         "NetworkClient",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -190,14 +190,14 @@ let package = Package(
         "UIComponents",
         "Features",
         "Resources",
-        "Environment"
+        "Environment",
       ]
     ),
     .testTarget(
       name: "PassboltAppTests",
       dependencies: [
         "PassboltApp",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -209,14 +209,14 @@ let package = Package(
         "UIComponents",
         "Features",
         "Resources",
-        "Environment"
+        "Environment",
       ]
     ),
     .testTarget(
       name: "PassboltExtensionTests",
       dependencies: [
         "PassboltExtension",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -227,7 +227,7 @@ let package = Package(
         "Features",
         "NetworkClient",
         "Settings",
-        "Environment"
+        "Environment",
       ]
     ),
     .target(
@@ -243,14 +243,14 @@ let package = Package(
       dependencies: [
         "Commons",
         "Features",
-        "UIComponents"
+        "UIComponents",
       ]
     ),
     .target(
       name: "UICommons",
       dependencies: [
         "Commons",
-        .product(name: "AegithalosCocoa", package: "Aegithalos")
+        .product(name: "AegithalosCocoa", package: "Aegithalos"),
       ],
       resources: [
         .process("Fonts/Inter-Black.ttf"),
@@ -259,7 +259,7 @@ let package = Package(
         .process("Fonts/Inter-Light.ttf"),
         .process("Fonts/Inter-Medium.ttf"),
         .process("Fonts/Inter-Regular.ttf"),
-        .process("Fonts/Inter-SemiBold.ttf")
+        .process("Fonts/Inter-SemiBold.ttf"),
       ]
     ),
     .target(
@@ -280,6 +280,6 @@ let package = Package(
     .binaryTarget(
       name: "gopenPGP",
       path: "Vendor/Gopenpgp.xcframework"
-    )
+    ),
   ]
 )

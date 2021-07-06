@@ -29,7 +29,7 @@ public typealias ServerJWKSRequest =
   NetworkRequest<DomainSessionVariable, ServerJWKSVariable, ServerJWKSResponse>
 
 extension ServerJWKSRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
@@ -53,6 +53,6 @@ public typealias ServerJWKSVariable = Void
 public typealias ServerJWKSResponse = ServerJWKSResponseBody
 
 public struct ServerJWKSResponseBody: Decodable {
-  
+
   public var keys: Array<JWKS>
 }

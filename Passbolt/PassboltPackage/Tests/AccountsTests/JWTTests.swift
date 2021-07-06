@@ -21,148 +21,136 @@
 // @since         v1.0
 //
 
-@testable import Crypto
 import Features
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable force_try
+@testable import Crypto
 
 final class JWTTests: XCTestCase {
-  
+
   var features: FeatureFactory!
   var cancellables: Cancellables!
-  
+
   override class func setUp() {
     super.setUp()
     FeatureFactory.autoLoadFeatures = false
   }
-  
+
   override func setUp() {
     super.setUp()
     features = .init(environment: testEnvironment())
     cancellables = .init()
   }
-  
+
   override func tearDown() {
     features = nil
     cancellables = nil
     super.tearDown()
   }
-  
+
   func test_decodeValidToken_Succeeds() {
     let jwt: JWT = try! .from(rawValue: validToken).get()
-    
-    XCTAssertEqual(jwt.header.algorithm, .RS256)
+
+    XCTAssertEqual(jwt.header.algorithm, .rs256)
     XCTAssertEqual(jwt.header.type, "JWT")
-    
+
     XCTAssertEqual(jwt.payload.audience, "ios")
     XCTAssertEqual(jwt.payload.expiration, 1_516_239_022)
     XCTAssertEqual(jwt.payload.subject, "1234567890")
   }
-  
+
   func test_decode_withInvalidHeader_Fails() {
     let result: Result<JWT, TheError> = JWT.from(rawValue: tokenWithInvalidHeader)
-    
-    // swiftlint:disable:next explicit_type_interface
+
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
       return
     }
-    
+
     XCTAssertEqual(error.identifier, .jwtError)
   }
-  
+
   func test_decode_withInvalidPayload_Fails() {
     let result: Result<JWT, TheError> = JWT.from(rawValue: tokenWithInvalidPayload)
-    
-    // swiftlint:disable:next explicit_type_interface
+
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
       return
     }
-    
+
     XCTAssertEqual(error.identifier, .jwtError)
   }
-  
+
   func test_decode_withEmptyToken_Fails() {
     let result: Result<JWT, TheError> = JWT.from(rawValue: "")
-    
-    // swiftlint:disable:next explicit_type_interface
+
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
       return
     }
-    
+
     XCTAssertEqual(error.identifier, .jwtError)
   }
-  
+
   func test_decode_withMissingSignature_Fails() {
     let result: Result<JWT, TheError> = JWT.from(rawValue: tokenWithoutSignature)
-    
-    // swiftlint:disable:next explicit_type_interface
+
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
       return
     }
-    
+
     XCTAssertEqual(error.identifier, .jwtError)
   }
-  
+
   func test_decode_withMalformedToken_Fails() {
     let result: Result<JWT, TheError> = JWT.from(rawValue: malformedToken)
-    
-    // swiftlint:disable:next explicit_type_interface
+
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
       return
     }
-  
+
     XCTAssertEqual(error.identifier, .jwtError)
     XCTAssertEqual(error.context, "malformed-token")
   }
-  
+
   func test_tokenIsNotExpired() {
-    let jwt: JWT = try! .from(rawValue: validToken).get() // expiration = 1_516_239_022
+    let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
     XCTAssertFalse(jwt.isExpired(timestamp: 1_516_000_000))
   }
-  
+
   func test_tokenIsExpired() {
-    let jwt: JWT = try! .from(rawValue: validToken).get() // expiration = 1_516_239_022
+    let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
     XCTAssertTrue(jwt.isExpired(timestamp: 2_000_000_000))
   }
 }
 
-// swiftlint:disable line_length
 private let validToken: String = """
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-"""
+  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+  """
 
 private let tokenWithInvalidHeader = """
-invalidHeader.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-"""
+  invalidHeader.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+  """
 
 private let tokenWithInvalidPayload: String = """
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.invalidPayload.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-"""
+  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.invalidPayload.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+  """
 
 private let tokenWithoutSignature: String = """
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ
-"""
+  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ
+  """
 
 private let malformedToken: String = """
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9#eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9,mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-"""
+  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9#eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9,mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+  """
 
 extension JWT: Equatable {
-  
+
   public static func == (lhs: JWT, rhs: JWT) -> Bool {
-    lhs.header == rhs.header &&
-    lhs.payload == rhs.payload &&
-    lhs.signature == rhs.signature &&
-    lhs.rawValue == rhs.rawValue
+    lhs.header == rhs.header && lhs.payload == rhs.payload && lhs.signature == rhs.signature
+      && lhs.rawValue == rhs.rawValue
   }
 }

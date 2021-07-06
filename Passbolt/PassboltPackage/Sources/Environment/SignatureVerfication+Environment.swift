@@ -26,7 +26,7 @@ import Crypto
 extension SignatureVerfication: EnvironmentElement {}
 
 extension Environment {
-  
+
   public var signatureVerfication: SignatureVerfication {
     get { element(SignatureVerfication.self) }
     set { use(newValue) }

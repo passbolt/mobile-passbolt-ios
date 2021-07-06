@@ -22,7 +22,7 @@
 //
 
 extension TheError {
-  
+
   internal static func validationError(
     _ localizationKey: String
   ) -> Self {
@@ -35,6 +35,6 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static var validation: Self { "validation" }
 }

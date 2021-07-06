@@ -22,12 +22,12 @@
 //
 
 public struct DatabaseStatement {
-  
+
   internal let rawString: String
 }
 
 extension DatabaseStatement: ExpressibleByStringLiteral {
-  
+
   public init(stringLiteral value: StaticString) {
     self.init(rawString: value.description)
   }

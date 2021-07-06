@@ -24,23 +24,23 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: TextButton {
-  
+
   public static func textColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTextColor = color }
   }
-  
+
   public static func pressedTextColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicPressedTextColor = color }
   }
-  
+
   public static func disabledTextColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicDisabledTextColor = color }
   }
-  
+
   public static func text(_ text: String) -> Self {
     .custom { (subject: Subject) in subject.text = text }
   }
-  
+
   public static func text(
     localized key: LocalizationKeyConstant,
     fromTable tableName: String? = nil,
@@ -56,7 +56,8 @@ extension Mutation where Subject: TextButton {
       )
       if arguments.isEmpty {
         subject.text = localized
-      } else {
+      }
+      else {
         subject.text = String(
           format: localized,
           arguments: arguments
@@ -64,35 +65,35 @@ extension Mutation where Subject: TextButton {
       }
     }
   }
-  
+
   public static func textColor(_ textColor: UIColor) -> Self {
     .custom { (subject: Subject) in subject.textColor = textColor }
   }
-  
+
   public static func pressedTextColor(_ pressedTextColor: UIColor) -> Self {
     .custom { (subject: Subject) in subject.pressedTextColor = pressedTextColor }
   }
-  
+
   public static func disabledTextColor(_ pressedTextColor: UIColor) -> Self {
     .custom { (subject: Subject) in subject.disabledTextColor = pressedTextColor }
   }
-  
+
   public static func font(_ font: UIFont) -> Self {
     .custom { (subject: Subject) in subject.font = font }
   }
-  
+
   public static func textAlignment(_ textAlignment: NSTextAlignment) -> Self {
     .custom { (subject: Subject) in subject.textAlignment = textAlignment }
   }
-  
+
   public static func textInsets(_ textInsets: NSDirectionalEdgeInsets) -> Self {
     .custom { (subject: Subject) in subject.textInsets = textInsets }
   }
-  
+
   public static func textLineBreakMode(_ lineBreakMode: NSLineBreakMode) -> Self {
     .custom { (subject: Subject) in subject.textLineBreakMode = lineBreakMode }
   }
-  
+
   public static func textNumberOfLines(_ numberOfLines: Int) -> Self {
     .custom { (subject: Subject) in subject.textNumberOfLines = numberOfLines }
   }

@@ -25,22 +25,24 @@ import Commons
 
 #warning("TODO: [PAS-82] Prepare database with environment")
 internal struct DatabaseConnection {
-  
+
   internal var accountID: () -> Account.LocalID
-  internal var execute: (
-    _ statement: DatabaseStatement,
-    _ bindings: Array<DatabaseStatementBindable?>
-  ) -> AnyPublisher<Void, TheError>
-  internal var loadRows: (
-    _ query: DatabaseStatement,
-    _ bindings: Array<DatabaseStatementBindable?>
-  ) -> AnyPublisher<Array<DatabaseRow>, TheError>
+  internal var execute:
+    (
+      _ statement: DatabaseStatement,
+      _ bindings: Array<DatabaseStatementBindable?>
+    ) -> AnyPublisher<Void, TheError>
+  internal var loadRows:
+    (
+      _ query: DatabaseStatement,
+      _ bindings: Array<DatabaseStatementBindable?>
+    ) -> AnyPublisher<Array<DatabaseRow>, TheError>
   internal var close: () -> Void
 }
 
 #warning("FIXME: PAS-82 - this should only be available in DEBUG")
 extension DatabaseConnection {
-  
+
   internal static var placeholder: Self {
     Self(
       accountID: Commons.placeholder("You have to provide mocks for used methods"),

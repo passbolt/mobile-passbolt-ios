@@ -21,27 +21,28 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Combine
 import Features
 import NetworkClient
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
+
+@testable import Accounts
+@testable import PassboltApp
 
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
 final class SplashScreenTests: TestCase {
-  
+
   override func setUp() {
     super.setUp()
-    
+
     features.use(PassphraseCache.placeholder)
     features.use(SignIn.placeholder)
   }
-  
+
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() {
     var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(nil)
@@ -55,19 +56,19 @@ final class SplashScreenTests: TestCase {
     var accounts: Accounts = testInstance()
     accounts.verifyStorageDataIntegrity = always(.failure(.testError()))
     features.use(accounts)
-    
+
     let controller: SplashScreenController = testInstance()
     var result: SplashScreenNavigationDestination!
-    
+
     controller.navigationDestinationPublisher()
       .sink { destination in
         result = destination
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, .diagnostics)
   }
-  
+
   func test_navigateToAccountSetup_whenNoStoredAccounts() {
     var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(nil)
@@ -82,19 +83,19 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([])
     features.use(accounts)
-    
+
     let controller: SplashScreenController = testInstance()
     var result: SplashScreenNavigationDestination!
-    
+
     controller.navigationDestinationPublisher()
       .sink { destination in
         result = destination
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, .accountSetup)
   }
-  
+
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withLastUsedAccount_andNotAuthorized() {
     var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(account)
@@ -109,19 +110,19 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
-    
+
     let controller: SplashScreenController = testInstance()
     var result: SplashScreenNavigationDestination!
-    
+
     controller.navigationDestinationPublisher()
       .sink { destination in
         result = destination
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, .accountSelection(account.localID))
   }
-  
+
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() {
     var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(account)
@@ -136,19 +137,19 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
-    
+
     let controller: SplashScreenController = testInstance()
     var result: SplashScreenNavigationDestination!
-    
+
     controller.navigationDestinationPublisher()
       .sink { destination in
         result = destination
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, .accountSelection(nil))
   }
-  
+
   func test_navigateToHome_whenAuthorized() {
     var accountDataStore: AccountsDataStore = testInstance()
     accountDataStore.loadLastUsedAccount = always(account)
@@ -163,16 +164,16 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
-    
+
     let controller: SplashScreenController = testInstance()
     var result: SplashScreenNavigationDestination!
-    
+
     controller.navigationDestinationPublisher()
       .sink { destination in
         result = destination
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, .home(account))
   }
 }
@@ -196,4 +197,3 @@ private let account: Account = .init(
   userID: accountWithProfile.userID,
   fingerprint: accountWithProfile.fingerprint
 )
-

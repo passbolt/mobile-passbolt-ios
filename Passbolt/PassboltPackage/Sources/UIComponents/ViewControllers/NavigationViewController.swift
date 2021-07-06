@@ -25,58 +25,58 @@ import Commons
 import UIKit
 
 open class NavigationViewController: UINavigationController {
-  
+
   public init() {
     super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
     isModalInPresentation = true
     (self as? AnyUIComponent)?.setup()
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override open var childForStatusBarStyle: UIViewController? {
     presentedViewController ?? visibleViewController
   }
-  
+
   public var lazyView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   public var contentView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   public var navigationBarView: NavigationBar {
     guard let navigationBar = navigationBar as? NavigationBar else {
       unreachable("Invalid navigation bar type, expected: \(NavigationBar.self), received: \(type(of: navigationBar))")
     }
-    
+
     return navigationBar
   }
-  
+
   override open func loadView() {
     super.loadView()
     view.backgroundColor = .white
   }
-  
+
   override open func viewDidLoad() {
     super.viewDidLoad()
     (self as? AnyUIComponent)?.setupView()
   }
-  
+
   override open func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     (self as? AnyUIComponent)?.activate()
   }
-  
+
   override open func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     (self as? AnyUIComponent)?.deactivate()
   }
-  
+
   override open func dismiss(
     animated: Bool,
     completion: (() -> Void)? = nil
@@ -91,4 +91,3 @@ open class NavigationViewController: UINavigationController {
     )
   }
 }
-

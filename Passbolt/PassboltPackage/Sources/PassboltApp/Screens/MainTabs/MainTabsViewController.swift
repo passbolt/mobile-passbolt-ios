@@ -25,9 +25,9 @@ import Commons
 import UIComponents
 
 internal final class MainTabsViewController: TabsViewController, UIComponent {
-  
+
   internal typealias Controller = MainTabsController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,10 +37,10 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
       with: components
     )
   }
-  
+
   internal var components: UIComponentFactory
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -49,12 +49,12 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
     self.components = components
     super.init()
   }
-  
+
   internal func setup() {
     self.initializeTabs()
     self.delegate = self
   }
-  
+
   internal func setupView() {
     // Can't set tab bar font without appearance proxy
     UITabBarItem
@@ -83,7 +83,7 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
 }
 
 extension MainTabsViewController: UITabBarControllerDelegate {
-  
+
   internal func tabBarController(
     _ tabBarController: UITabBarController,
     didSelect viewController: UIViewController
@@ -94,20 +94,20 @@ extension MainTabsViewController: UITabBarControllerDelegate {
   }
 }
 
-private extension MainTabsViewController {
-  
-  func initializeTabs() {
+extension MainTabsViewController {
+
+  fileprivate func initializeTabs() {
     viewControllers = [
       components.instance(of: HomeTabViewController.self),
-      components.instance(of: SettingsTabViewController.self)
+      components.instance(of: SettingsTabViewController.self),
     ]
   }
-  
-  func setupSubscriptions() {
+
+  fileprivate func setupSubscriptions() {
     subscribeToTabsSelection()
   }
-  
-  func subscribeToTabsSelection() {
+
+  fileprivate func subscribeToTabsSelection() {
     controller
       .activeTabPublisher()
       .receive(on: RunLoop.main)
@@ -120,4 +120,3 @@ private extension MainTabsViewController {
       .store(in: cancellables)
   }
 }
-

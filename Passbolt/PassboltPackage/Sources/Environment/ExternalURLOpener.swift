@@ -23,52 +23,62 @@
 
 import Combine
 import Commons
-import struct Foundation.URL
 import UIKit
 
+import struct Foundation.URL
+
 public struct ExternalURLOpener: EnvironmentElement {
-  
+
   public var openLink: (URL) -> AnyPublisher<Bool, Never>
   public var openApp: () -> AnyPublisher<Bool, Never>
   public var openAppSettings: () -> AnyPublisher<Bool, Never>
   public var openSystemSettings: () -> AnyPublisher<Bool, Never>
 }
 
-public extension ExternalURLOpener {
-  
-  static func live() -> Self {
+extension ExternalURLOpener {
+
+  public static func live() -> Self {
     let openUrl: (URL) -> AnyPublisher<Bool, Never> = { (url: URL) -> AnyPublisher<Bool, Never> in
       let openResultSubject: PassthroughSubject<Bool, Never> = .init()
       DispatchQueue.main.async {
         if UIApplication.shared.canOpenURL(url) {
-          UIApplication.shared.open(url, completionHandler: { success in
-            openResultSubject.send(success)
-            openResultSubject.send(completion: .finished)
-          })
-        } else {
+          UIApplication.shared.open(
+            url,
+            completionHandler: { success in
+              openResultSubject.send(success)
+              openResultSubject.send(completion: .finished)
+            }
+          )
+        }
+        else {
           openResultSubject.send(false)
           openResultSubject.send(completion: .finished)
         }
       }
       return openResultSubject.eraseToAnyPublisher()
     }
-    
-    // swiftlint:disable force_unwrapping
+
     return Self(
       openLink: openUrl,
-      openApp: { openUrl(URL(string: "passbolt:")!) },
-      openAppSettings: { openUrl(URL(string: UIApplication.openSettingsURLString)!) },
+      openApp: {
+        // swift-format-ignore: NeverForceUnwrap
+        openUrl(URL(string: "passbolt:")!)
+      },
+      openAppSettings: {
+        // swift-format-ignore: NeverForceUnwrap
+        openUrl(URL(string: UIApplication.openSettingsURLString)!)
+      },
       openSystemSettings: {
         #warning("TODO: there used to be system settings link but it looks like it is unavailable")
+        // swift-format-ignore: NeverForceUnwrap
         return openUrl(URL(string: UIApplication.openSettingsURLString)!)
       }
     )
-    // swiftlint:enable force_unwrapping
   }
 }
 
 extension Environment {
-  
+
   public var externalURLOpener: ExternalURLOpener {
     get { element(ExternalURLOpener.self) }
     set { use(newValue) }
@@ -77,7 +87,7 @@ extension Environment {
 
 #if DEBUG
 extension ExternalURLOpener {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

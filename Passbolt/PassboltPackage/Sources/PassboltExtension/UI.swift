@@ -21,15 +21,16 @@
 // @since         v1.0
 //
 
-import class AuthenticationServices.ASPasswordCredentialIdentity
 import UIComponents
 
+import class AuthenticationServices.ASPasswordCredentialIdentity
+
 public final class UI {
-  
+
   private let rootViewController: UIViewController
   private let features: FeatureFactory
   private let components: UIComponentFactory
-  
+
   public init(
     rootViewController: UIViewController,
     features: FeatureFactory
@@ -41,18 +42,18 @@ public final class UI {
 }
 
 extension UI {
-  
+
   public func prepareCredentialList() {
     #warning("TODO: [PAS-???] to complete")
     let vc: UIViewController = .init()
     vc.view.backgroundColor = .green
     setRootContent(vc)
   }
-  
+
   public func prepareInterfaceForExtensionConfiguration() {
     setRootContent(components.instance(of: ExtensionSetupViewController.self))
   }
-  
+
   private func setRootContent(_ viewController: UIViewController) {
     rootViewController.children.forEach {
       $0.willMove(toParent: nil)

@@ -24,30 +24,30 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: ImageView {
-  
+
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
   }
-  
+
   public static func tintColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTintColor = color }
   }
-  
+
   public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
     .custom { (subject: Subject) in
       subject.dynamicBorderColor = color
       subject.layer.borderWidth = width
     }
   }
-  
+
   public static func image(dynamic image: DynamicImage) -> Self {
     .custom { (subject: Subject) in subject.dynamicImage = image }
   }
-  
+
   public static func image(system name: String) -> Self {
     .custom { (subject: Subject) in subject.image = UIImage(systemName: name) }
   }
-  
+
   public static func image(system name: SymbolNameConstant) -> Self {
     .custom { (subject: Subject) in subject.image = UIImage(systemName: name.rawValue) }
   }

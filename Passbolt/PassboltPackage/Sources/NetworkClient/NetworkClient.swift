@@ -25,7 +25,7 @@ import Commons
 import Features
 
 public struct NetworkClient {
-  
+
   public var accountTransferUpdate: AccountTransferUpdateRequest
   // intended to be used for images download and relatively small blobs (few MB)
   public var mediaDownload: MediaDownloadRequest
@@ -41,7 +41,7 @@ public struct NetworkClient {
 }
 
 extension NetworkClient {
-  
+
   public typealias Tokens = (
     accessToken: String,
     isExpired: () -> Bool,
@@ -50,27 +50,32 @@ extension NetworkClient {
 }
 
 extension NetworkClient: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> NetworkClient {
     let networking: Networking = environment.networking
-    
+
     let sessionSubject: CurrentValueSubject<NetworkSessionVariable?, Never> = .init(nil)
     let tokensSubject: CurrentValueSubject<AnyPublisher<Tokens?, Never>, Never> = .init(Empty().eraseToAnyPublisher())
 
     let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
-    
-    let sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError> = sessionSubject
+
+    let sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError> =
+      sessionSubject
       .combineLatest(tokensSubject.switchToLatest())
-      .map { (session: NetworkSessionVariable?, tokens: NetworkClient.Tokens?) -> AnyPublisher<AuthorizedSessionVariable, TheError> in
+      .map {
+        (session: NetworkSessionVariable?, tokens: NetworkClient.Tokens?) -> AnyPublisher<
+          AuthorizedSessionVariable, TheError
+        > in
         if let session: NetworkSessionVariable = session,
           let authorizationToken: String = tokens?.accessToken,
-           !(tokens?.isExpired() ?? true) {
+          !(tokens?.isExpired() ?? true)
+        {
           return Just(
             AuthorizedSessionVariable(
               domain: session.domain,
@@ -79,7 +84,8 @@ extension NetworkClient: Feature {
           )
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-        } else {
+        }
+        else {
           #warning("TODO - PAS-160 - trigger session refresh if expired or when token is missing")
           return Fail<AuthorizedSessionVariable, TheError>(error: .missingSession())
             .eraseToAnyPublisher()
@@ -95,7 +101,8 @@ extension NetworkClient: Feature {
           return Just(DomainSessionVariable(domain: session.domain))
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
-        } else {
+        }
+        else {
           return Fail<DomainSessionVariable, TheError>(error: .missingSession())
             .eraseToAnyPublisher()
         }
@@ -104,9 +111,9 @@ extension NetworkClient: Feature {
       .eraseToAnyPublisher()
 
     func featureUnload() -> Bool {
-      true // perform cleanup if needed
+      true  // perform cleanup if needed
     }
-    
+
     func setTokens(publisher: AnyPublisher<Tokens?, Never>) {
       tokensSubject.send(publisher)
     }

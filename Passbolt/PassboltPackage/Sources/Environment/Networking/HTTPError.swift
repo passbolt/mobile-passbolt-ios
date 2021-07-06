@@ -22,7 +22,7 @@
 //
 
 public enum HTTPError: Error {
-  
+
   case invalidRequest(HTTPRequest)
   case invalidResponse
   case timeout

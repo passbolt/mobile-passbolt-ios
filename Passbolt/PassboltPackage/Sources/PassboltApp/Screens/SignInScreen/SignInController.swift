@@ -25,7 +25,7 @@ import Commons
 import UIComponents
 
 internal struct SignInController {
-  
+
   internal var updatePassphrase: (String) -> Void
   internal var presentForgotPassphraseAlert: () -> Void
   internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
@@ -33,19 +33,19 @@ internal struct SignInController {
 }
 
 extension SignInController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    
+
     let passphrase: CurrentValueSubject<String, Never> = .init("")
     let presentForgotAlertPublisher: PassthroughSubject<Bool, Never> = .init()
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
-    
+
     return Self(
       updatePassphrase: passphrase.send,
       presentForgotPassphraseAlert: { presentForgotAlertPublisher.send(true) },

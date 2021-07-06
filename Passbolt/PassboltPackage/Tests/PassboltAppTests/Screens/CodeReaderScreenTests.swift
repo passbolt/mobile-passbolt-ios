@@ -24,16 +24,14 @@
 import AccountSetup
 import Combine
 import Features
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltApp
+
 final class CodeReaderScreenTests: TestCase {
-  
+
   func test_processPayload_passesPayloadToAccountTransfer() {
     var accountTransfer: AccountTransfer = .placeholder
     var result: String?
@@ -51,7 +49,7 @@ final class CodeReaderScreenTests: TestCase {
         receiveValue: { _ in }
       )
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, "TEST")
   }
 }

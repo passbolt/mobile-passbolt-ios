@@ -22,30 +22,29 @@
 //
 
 import Features
-@testable import PassboltExtension
 import TestExtensions
 import UIComponents
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltExtension
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ExtensionSetupScreenTests: TestCase {
-  
+
   var linkOpener: LinkOpener!
   var extensionContext: AutofillExtensionContext!
-  
+
   override func setUp() {
     super.setUp()
     linkOpener = .placeholder
     extensionContext = .placeholder
   }
-  
+
   override func tearDown() {
     linkOpener = nil
     extensionContext = nil
     super.tearDown()
   }
-  
+
   func test_closeConfiguration_closesExtension() {
     var result: Void!
     extensionContext.completeExtensionConfiguration = {
@@ -53,14 +52,14 @@ final class ExtensionSetupScreenTests: TestCase {
     }
     features.use(extensionContext)
     features.use(linkOpener)
-    
+
     let controller: ExtensionSetupController = testInstance()
-    
+
     controller.closeConfiguration()
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_goBackToApp_opensApplication() {
     features.use(extensionContext)
     var result: Void!
@@ -69,11 +68,11 @@ final class ExtensionSetupScreenTests: TestCase {
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
-    
+
     let controller: ExtensionSetupController = testInstance()
-    
+
     controller.goBackToApp()
-    
+
     XCTAssertNotNil(result)
   }
 }

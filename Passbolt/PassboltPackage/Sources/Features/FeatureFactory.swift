@@ -22,20 +22,21 @@
 //
 
 import Commons
+
 import class Foundation.NSRecursiveLock
 
 public final class FeatureFactory {
-  
+
   private typealias FeatureInstance = (feature: Any, cancellables: Cancellables)
-  
-  #if DEBUG // debug builds allow change and access to environment for mocking and debug
+
+  #if DEBUG  // debug builds allow change and access to environment for mocking and debug
   public var environment: Environment
-  #else // production builds cannot access environment directly
+  #else  // production builds cannot access environment directly
   private let environment: Environment
   #endif
   private let featuresAccessLock: NSRecursiveLock = .init()
   private var features: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
-  
+
   public init(
     environment: Environment
   ) {
@@ -44,7 +45,7 @@ public final class FeatureFactory {
 }
 
 extension FeatureFactory {
-  
+
   public func instance<F>(
     of feature: F.Type = F.self
   ) -> F
@@ -53,19 +54,21 @@ extension FeatureFactory {
     defer { featuresAccessLock.unlock() }
     if let loaded: F = features[F.featureIdentifier]?.feature as? F {
       return loaded
-    } else {
+    }
+    else {
       #if DEBUG
       guard Self.autoLoadFeatures
-      else { return placeholder(
-        "Failed to load: \(F.self) "
-        + "Auto loading of features is disabled,"
-        + "please ensure you have provided instances of required features"
-        // swiftlint:disable:next force_cast
-        ) as! F // it looks like compiler issue, casting is required regardless of returning Never here
+      else {
+        // swift-format-ignore: NeverForceUnwrap
+        return placeholder(
+          "Failed to load: \(F.self) "
+            + "Auto loading of features is disabled,"
+            + "please ensure you have provided instances of required features"
+        ) as! F  // it looks like compiler issue, casting is required regardless of returning Never here
       }
       #endif
       let featureCancellables: Cancellables = .init()
-      
+
       let loaded: F = .load(
         in: environment,
         using: self,
@@ -78,7 +81,7 @@ extension FeatureFactory {
       return loaded
     }
   }
-  
+
   @discardableResult
   public func unload<F>(
     _ feature: F.Type
@@ -89,7 +92,7 @@ extension FeatureFactory {
     features[F.featureIdentifier] = nil
     return true
   }
-  
+
   public func isLoaded<F>(
     _ feature: F.Type
   ) -> Bool where F: Feature {
@@ -97,7 +100,7 @@ extension FeatureFactory {
     defer { featuresAccessLock.unlock() }
     return features[F.featureIdentifier]?.feature is F
   }
-  
+
   public func use<F>(
     _ feature: F,
     cancellables: Cancellables = .init()
@@ -117,7 +120,7 @@ extension FeatureFactory {
 
 #if DEBUG
 extension FeatureFactory {
-  
+
   public static var autoLoadFeatures: Bool = true
 }
 #endif

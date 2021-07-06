@@ -25,6 +25,6 @@
 @_exported import Commons
 
 extension Bundle {
-  
+
   public static var uiCommons: Bundle { Bundle.module }
 }

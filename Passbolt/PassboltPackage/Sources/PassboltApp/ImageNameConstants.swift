@@ -25,6 +25,6 @@ import AegithalosCocoa
 import UICommons
 
 extension ImageNameConstant {
-  
+
   internal static let welcomeAccounts: Self = "WelcomeAccounts"
 }

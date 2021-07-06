@@ -21,9 +21,8 @@
 // @since         v1.0
 //
 
-@testable import UIComponents
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
+@testable import UIComponents
+
 final class UIComponentsTests: XCTestCase {}

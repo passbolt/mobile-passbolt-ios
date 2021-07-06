@@ -25,20 +25,19 @@ import Commons
 import UICommons
 
 internal final class ExtensionSetupView: ScrolledStackView {
-  
+
   internal var setupTapPublisher: AnyPublisher<Void, Never>
   internal var skipTapPublisher: AnyPublisher<Void, Never>
-  
-  // swiftlint:disable:next function_body_length
+
   internal required init() {
     let setupButton: TextButton = .init()
     let skipButton: TextButton = .init()
-    
+
     self.setupTapPublisher = setupButton.tapPublisher
     self.skipTapPublisher = skipButton.tapPublisher
-    
+
     super.init()
-    
+
     let titleLabel: Label = .init()
     mut(titleLabel) {
       .combined(
@@ -46,7 +45,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         .text(localized: "extension.setup.title")
       )
     }
-    
+
     let settingsStep: StepListItemView = .init()
     mut(settingsStep) {
       .combined(
@@ -67,7 +66,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         )
       )
     }
-    
+
     let keyboardStep: StepListItemView = .init()
     mut(keyboardStep) {
       .combined(
@@ -88,7 +87,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         )
       )
     }
-    
+
     let switchStep: StepListItemView = .init()
     mut(switchStep) {
       .combined(
@@ -109,7 +108,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         )
       )
     }
-    
+
     let keychainStep: StepListItemView = .init()
     mut(keychainStep) {
       .combined(
@@ -130,7 +129,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         )
       )
     }
-    
+
     let passboltStep: StepListItemView = .init()
     mut(passboltStep) {
       .combined(
@@ -151,7 +150,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         )
       )
     }
-    
+
     let stepListView: StepListView = .init()
     mut(stepListView) {
       .steps(
@@ -162,7 +161,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         passboltStep
       )
     }
-    
+
     mut(setupButton) {
       .combined(
         .primaryStyle(),
@@ -170,7 +169,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         .accessibilityIdentifier("extension.setup.setup.button")
       )
     }
-    
+
     mut(skipButton) {
       .combined(
         .linkStyle(),

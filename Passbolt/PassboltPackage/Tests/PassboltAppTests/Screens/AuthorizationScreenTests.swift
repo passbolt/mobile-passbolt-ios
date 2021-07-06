@@ -21,29 +21,30 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Combine
 import Features
 import NetworkClient
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
+
+@testable import Accounts
+@testable import PassboltApp
 
 // swiftlint:disable explicit_acl
 // swiftlint:disable explicit_top_level_acl
 // swiftlint:disable implicitly_unwrapped_optional
 // swiftlint:disable explicit_type_interface
 final class AuthorizationScreenTests: TestCase {
-  
+
   override func setUp() {
     super.setUp()
-    
+
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([account])
     features.use(accounts)
   }
-  
+
   func test_forgotPassword_isPresented_whenCallingPresent() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -53,21 +54,21 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Bool!
-    
+
     controller.presentForgotPassphraseAlertPublisher()
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.presentForgotPassphraseAlert()
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_validation_withCorrectValue_succeedes() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -77,22 +78,22 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Validated<String>!
-    
+
     controller.validatedPassphrasePublisher()
       .sink { validated in
         result = validated
       }
       .store(in: cancellables)
-    
+
     controller.updatePassphrase("SomeSecretPassphrase")
-    
+
     XCTAssertTrue(result.isValid)
     XCTAssertTrue(result.errors.isEmpty)
   }
-  
+
   func test_validation_withInCorrectValue_failsWithValidationError() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -102,22 +103,22 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Validated<String>!
-    
+
     controller.validatedPassphrasePublisher()
       .sink { validated in
         result = validated
       }
       .store(in: cancellables)
-    
+
     controller.updatePassphrase("")
-    
+
     XCTAssertFalse(result.isValid)
     XCTAssertEqual(result.errors.first?.identifier, .validation)
   }
-  
+
   func test_signIn_Succeeds() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -127,10 +128,10 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Void?
-    
+
     controller.updatePassphrase("Secret passphrase")
     controller.signIn()
       .sink { _ in
@@ -138,10 +139,10 @@ final class AuthorizationScreenTests: TestCase {
         result = value
       }
       .store(in: cancellables)
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_signIn_Fails() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -151,17 +152,17 @@ final class AuthorizationScreenTests: TestCase {
       Fail(error: .testError()).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var completionError: TheError?
-    
+
     controller.updatePassphrase("Secret passphrase")
     controller.signIn()
       .sink { completion in
         switch completion {
         case let .failure(error):
           completionError = error
-          
+
         case _:
           break
         }
@@ -171,7 +172,7 @@ final class AuthorizationScreenTests: TestCase {
 
     XCTAssertNotNil(completionError)
   }
-  
+
   func test_biometricSignIn_Succeeds() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -181,10 +182,10 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Void?
-    
+
     controller.updatePassphrase("Secret passphrase")
     controller.biometricSignIn()
       .sink { _ in
@@ -192,10 +193,10 @@ final class AuthorizationScreenTests: TestCase {
         result = value
       }
       .store(in: cancellables)
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_biometricSignIn_Fails() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .respondingWith(.empty)
@@ -205,17 +206,17 @@ final class AuthorizationScreenTests: TestCase {
       Fail(error: .testError()).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var completionError: TheError?
-    
+
     controller.updatePassphrase("Secret passphrase")
     controller.biometricSignIn()
       .sink { completion in
         switch completion {
         case let .failure(error):
           completionError = error
-          
+
         case _:
           break
         }
@@ -225,7 +226,7 @@ final class AuthorizationScreenTests: TestCase {
 
     XCTAssertNotNil(completionError)
   }
-  
+
   func test_avatarPublisher_publishesData_whenNetworkRequest_Succeeds() {
     let testData: Data = .init(repeating: 1, count: 10)
     var networkClient: NetworkClient = .placeholder
@@ -236,19 +237,19 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Data?
-    
+
     controller.accountAvatarPublisher()
       .sink { data in
         result = data
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, testData)
   }
-  
+
   func test_avatarPublisher_publishesNil_whenNetworkRequest_Fails() {
     var networkClient: NetworkClient = .placeholder
     networkClient.mediaDownload = .failingWith(.testError())
@@ -258,16 +259,16 @@ final class AuthorizationScreenTests: TestCase {
       Just(()).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(accountSession)
-    
+
     let controller: AuthorizationController = testInstance(context: account.localID)
     var result: Data?
-    
+
     controller.accountAvatarPublisher()
       .sink { data in
         result = data
       }
       .store(in: cancellables)
-    
+
     XCTAssertNil(result)
   }
 }

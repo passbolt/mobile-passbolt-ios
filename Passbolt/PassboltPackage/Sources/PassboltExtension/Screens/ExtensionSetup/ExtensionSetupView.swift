@@ -24,24 +24,24 @@
 import UICommons
 
 internal final class ExtensionSetupView: ScrolledStackView {
-  
+
   internal var closeTapPublisher: AnyPublisher<Void, Never>
   internal var backToAppTapPublisher: AnyPublisher<Void, Never>
-  
+
   internal required init() {
     let closeButton: TextButton = .init()
     let backToAppButton: TextButton = .init()
-    
+
     self.closeTapPublisher = closeButton.tapPublisher
     self.backToAppTapPublisher = backToAppButton.tapPublisher
-    
+
     super.init()
-    
+
     let imageContainer: View = .init()
     mut(imageContainer) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     let imageView: ImageView = .init()
     mut(imageView) {
       .combined(

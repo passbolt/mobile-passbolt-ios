@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-@testable import UIComponents
 @testable import Crypto
+@testable import UIComponents
 
 public func testEnvironment() -> Environment {
   Environment(

@@ -25,16 +25,16 @@ import Commons
 import LocalAuthentication
 
 public struct Biometrics: EnvironmentElement {
-  
+
   public var checkBiometricsState: () -> State
   public var checkBiometricsPermission: () -> Bool
   public var requestBiometricsPermission: () -> AnyPublisher<Bool, TheError>
 }
 
 extension Biometrics {
-  
+
   public enum State {
-    
+
     case unavailable
     case unconfigured
     case configuredTouchID
@@ -43,59 +43,62 @@ extension Biometrics {
 }
 
 extension Biometrics {
-  
+
   public static var live: Self {
     let context: LAContext = .init()
-    
+
     func checkBiometricsState() -> State {
       var errorPtr: NSError?
-      let result: Bool = context
+      let result: Bool =
+        context
         .canEvaluatePolicy(
           .deviceOwnerAuthenticationWithBiometrics,
           error: &errorPtr
         )
-      
+
       if let laError: LAError = errorPtr as? LAError {
         switch laError.code {
         case .biometryNotAvailable:
           return .unavailable
-          
+
         case .biometryNotEnrolled, .passcodeNotSet:
           return .unconfigured
-          
+
         case _:
           return .unavailable
         }
-      } else {
+      }
+      else {
         switch (context.biometryType, result) {
         case (.none, _):
           return .unavailable
-          
+
         case (_, false):
           return .unconfigured
-          
+
         case (.faceID, true):
           return .configuredFaceID
-          
+
         case (.touchID, true):
           return .configuredFaceID
-          
-        case (_, true): // @unknown
+
+        case (_, true):  // @unknown
           return .unavailable
         }
       }
     }
-    
+
     func checkBiometricsPermission() -> Bool {
       var errorPtr: NSError?
-      let result: Bool = context
+      let result: Bool =
+        context
         .canEvaluatePolicy(
           .deviceOwnerAuthenticationWithBiometrics,
           error: &errorPtr
         )
       return result && errorPtr == nil && context.biometryType != .none
     }
-    
+
     func requestBiometricsPermission() -> AnyPublisher<Bool, TheError> {
       precondition(!isInExtensionContext, "Cannot request permission in app extension.")
       var errorPtr: NSError?
@@ -106,11 +109,13 @@ extension Biometrics {
         )
       if let laError: LAError = errorPtr as? LAError,
         laError.code == .biometryNotAvailable
-        || laError.code == .biometryNotEnrolled
-        || laError.code == .passcodeNotSet {
+          || laError.code == .biometryNotEnrolled
+          || laError.code == .passcodeNotSet
+      {
         return Fail<Bool, TheError>(error: .biometricsUnavailable(underlyingError: laError))
           .eraseToAnyPublisher()
-      } else {
+      }
+      else {
         let completionSubject: PassthroughSubject<Bool, TheError> = .init()
         DispatchQueue.main.async {
           context.evaluatePolicy(
@@ -121,17 +126,19 @@ extension Biometrics {
               completionSubject.send(
                 completion: .failure(.biometricsUnavailable(underlyingError: error))
               )
-            } else {
+            }
+            else {
               completionSubject.send(granted)
               completionSubject.send(completion: .finished)
             }
           }
         }
-        return completionSubject
+        return
+          completionSubject
           .eraseToAnyPublisher()
       }
     }
-    
+
     return Self(
       checkBiometricsState: checkBiometricsState,
       checkBiometricsPermission: checkBiometricsPermission,
@@ -141,7 +148,7 @@ extension Biometrics {
 }
 
 extension Environment {
-  
+
   public var biometrics: Biometrics {
     get { element(Biometrics.self) }
     set { use(newValue) }
@@ -150,7 +157,7 @@ extension Environment {
 
 #if DEBUG
 extension Biometrics {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
@@ -163,7 +170,7 @@ extension Biometrics {
 #endif
 
 extension TheError {
-  
+
   public static func biometricsUnavailable(
     underlyingError: Error? = nil
   ) -> Self {
@@ -176,6 +183,6 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static var biometricsUnavailable: Self { "biometricsUnavailable" }
 }

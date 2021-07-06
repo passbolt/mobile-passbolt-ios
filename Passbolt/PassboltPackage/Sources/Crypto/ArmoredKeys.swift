@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import struct Foundation.Data
 
 public enum ArmoredPrivateKeyTag {}

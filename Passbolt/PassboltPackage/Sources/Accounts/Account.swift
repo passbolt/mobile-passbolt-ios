@@ -28,10 +28,10 @@ import Commons
 // - it will cause data wipe on devices after update.
 // Prepare data migration mechanism before making such changes.
 public struct Account {
-  
+
   public typealias UserID = Tagged<String, Self>
   public typealias LocalID = Tagged<String, UserID>
-  
+
   public let localID: LocalID
   public let domain: String
   public let userID: UserID

@@ -24,14 +24,14 @@
 import Commons
 
 public struct KeychainQuery {
-  
+
   public typealias Key = Tagged<String, Self>
   public typealias Tag = Tagged<String, Key>
-  
+
   public var key: Key
   public var tag: Tag?
   public var requiresBiometrics: Bool
-  
+
   public init(
     key: Key,
     tag: Tag?,

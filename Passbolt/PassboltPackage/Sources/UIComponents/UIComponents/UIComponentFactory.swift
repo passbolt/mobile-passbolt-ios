@@ -25,16 +25,16 @@ import Features
 import ObjectiveC
 
 public struct UIComponentFactory {
-  
+
   private let features: FeatureFactory
-  
+
   public init(features: FeatureFactory) {
     self.features = features
   }
 }
 
 extension UIComponentFactory {
-  
+
   public func instance<Component>(
     of component: Component.Type = Component.self,
     in context: Component.Controller.Context
@@ -52,7 +52,7 @@ extension UIComponentFactory {
     component.cancellables = cancellables
     return component
   }
-  
+
   public func instance<Component>(
     of component: Component.Type = Component.self
   ) -> Component
@@ -71,17 +71,19 @@ extension UIComponentFactory {
 }
 
 extension UIComponent {
-  
+
   public fileprivate(set) var cancellables: Cancellables {
     get {
-      let stored: Cancellables? = objc_getAssociatedObject(
-        self,
-        &cancellablesAssociationKey
-      ) as? Cancellables
-      
+      let stored: Cancellables? =
+        objc_getAssociatedObject(
+          self,
+          &cancellablesAssociationKey
+        ) as? Cancellables
+
       if let stored: Cancellables = stored {
         return stored
-      } else {
+      }
+      else {
         let newValue: Cancellables = .init()
         objc_setAssociatedObject(
           self,
@@ -93,10 +95,11 @@ extension UIComponent {
       }
     }
     set {
-      let stored: Cancellables? = objc_getAssociatedObject(
-        self,
-        &cancellablesAssociationKey
-      ) as? Cancellables
+      let stored: Cancellables? =
+        objc_getAssociatedObject(
+          self,
+          &cancellablesAssociationKey
+        ) as? Cancellables
       if let stored: Cancellables = stored {
         objc_setAssociatedObject(
           self,
@@ -104,7 +107,8 @@ extension UIComponent {
           Cancellables(extend: stored, newValue),
           .OBJC_ASSOCIATION_RETAIN_NONATOMIC
         )
-      } else {
+      }
+      else {
         objc_setAssociatedObject(
           self,
           &cancellablesAssociationKey,

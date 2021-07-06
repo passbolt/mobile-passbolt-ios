@@ -24,17 +24,17 @@
 import AegithalosCocoa
 
 public final class StepListView: View {
-  
+
   public required init() {
     super.init()
-    
+
     mut(self) {
       .backgroundColor(.clear)
     }
   }
-  
+
   public func set(steps: Array<StepListItemView>) {
-    subviews.forEach { $0.removeFromSuperview() } // remove previous views
+    subviews.forEach { $0.removeFromSuperview() }  // remove previous views
     var iterator: Array<StepListItemView>.Iterator = steps.makeIterator()
     var predecessorAnchor: NSLayoutYAxisAnchor = topAnchor
     var currentStep: StepListItemView? = iterator.next()
@@ -62,7 +62,8 @@ public final class StepListView: View {
         }
         predecessorAnchor = divider.bottomAnchor
         currentStep = nextStep
-      } else {
+      }
+      else {
         mut(step) {
           .bottomAnchor(.equalTo, bottomAnchor, constant: -8)
         }
@@ -73,7 +74,7 @@ public final class StepListView: View {
 }
 
 extension Mutation where Subject: StepListView {
-  
+
   public static func steps(_ steps: StepListItemView...) -> Self {
     .custom { (subject: Subject) in
       subject.set(steps: steps)

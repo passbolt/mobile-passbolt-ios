@@ -25,7 +25,7 @@ import Commons
 import Foundation
 
 extension TheError {
-  
+
   internal static func pgpError(
     _ error: NSError?
   ) -> Self {
@@ -35,7 +35,7 @@ extension TheError {
       extensions: [:]
     )
   }
-  
+
   internal static func invalidPassphraseError() -> Self {
     Self(
       identifier: .invalidPassphraseError,
@@ -43,7 +43,7 @@ extension TheError {
       extensions: [:]
     )
   }
-  
+
   internal static func invalidInputDataError() -> Self {
     Self(
       identifier: .invalidInputDataError,
@@ -54,7 +54,7 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static var pgpError: Self { "pgpError" }
   public static var invalidPassphraseError: Self { "invalidPassphraseError" }
   public static var invalidInputDataError: Self { "invalidInputDataError" }

@@ -26,20 +26,21 @@ import UICommons
 internal final class WelcomeScreenView: ScrolledStackView {
   internal var tapAccountPublisher: AnyPublisher<Void, Never> { accountButton.tapPublisher }
   internal var tapNoAccountPublisher: AnyPublisher<Void, Never> { noAccountButton.tapPublisher }
-  
+
   private let logoImageView: ImageView = .init()
   private let accountsImageView: ImageView = .init()
   private let titleLabel: Label = .init()
   private let descriptionLabel: Label = .init()
   private let accountButton: TextButton = .init()
   private let noAccountButton: TextButton = .init()
-    
+
   override internal func setup() {
-    
-    let logoContainer: View = Mutation
+
+    let logoContainer: View =
+      Mutation
       .backgroundColor(dynamic: .background)
       .instantiate()
-    
+
     mut(logoImageView) {
       .combined(
         .subview(of: logoContainer),
@@ -52,11 +53,12 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .accessibilityIdentifier("welcome.app.logo.imageview")
       )
     }
-    
-    let accountsContainer: View = Mutation
+
+    let accountsContainer: View =
+      Mutation
       .backgroundColor(dynamic: .background)
       .instantiate()
-    
+
     mut(accountsImageView) {
       .combined(
         .subview(of: accountsContainer),
@@ -67,7 +69,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .accessibilityIdentifier("welcome.accounts.imageview")
       )
     }
-    
+
     mut(titleLabel) {
       .combined(
         .font(.inter(ofSize: 24, weight: .semibold)),
@@ -77,7 +79,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .accessibilityIdentifier("welcome.title.label")
       )
     }
-    
+
     mut(descriptionLabel) {
       .combined(
         .font(.inter(ofSize: 14)),
@@ -89,7 +91,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .accessibilityIdentifier("welcome.description.label")
       )
     }
-     
+
     mut(accountButton) {
       .combined(
         .primaryStyle(),
@@ -97,7 +99,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .accessibilityIdentifier("welcome.connect.account.button")
       )
     }
-    
+
     mut(noAccountButton) {
       .combined(
         .linkStyle(),
@@ -105,7 +107,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .accessibilityIdentifier("welcome.no.account.button")
       )
     }
-    
+
     mut(self) {
       .combined(
         .axis(.vertical),

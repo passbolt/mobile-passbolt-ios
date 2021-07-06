@@ -21,104 +21,98 @@
 // @since         v1.0
 //
 
-@testable import Commons
 import XCTest
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+
+@testable import Commons
+
 final class ValidationTests: XCTestCase {
   var testValue: TestValue!
   var testEmbeddedValue: TestEmbeddedValue!
-  
+
   private let messageKeyInvalid: String = "key.invalid"
-  
+
   override func setUp() {
     super.setUp()
     testValue = TestValue(answer: "42")
     testEmbeddedValue = TestEmbeddedValue(value: TestValue(answer: "42"))
   }
-  
+
   override func tearDown() {
     testValue = nil
     testEmbeddedValue = nil
     super.tearDown()
   }
-  
+
   func test_valid_producesValidValue() {
-    let validator: Validator<TestValue>
-      = .alwaysValid
+    let validator: Validator<TestValue> = .alwaysValid
     let validated: Validated<TestValue> = validator(testValue)
-    
+
     XCTAssertEqual(validated.value, testValue)
     XCTAssertTrue(validated.isValid)
   }
-  
+
   func test_invalid_producesInvalidValue() {
-    let validator: Validator<TestValue>
-      = .alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
+    let validator: Validator<TestValue> = .alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
     let validated: Validated<TestValue> = validator(testValue)
-    
+
     XCTAssertEqual(validated.value, testValue)
     XCTAssert(validated.errors.first?.identifier == .validation)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 1)
     XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
   }
-  
+
   func test_invalid_producesError() {
-    let validator: Validator<TestValue>
-      = .alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
+    let validator: Validator<TestValue> = .alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
     let validated: Validated<TestValue> = validator(testValue)
-    
+
     XCTAssertEqual(validated.value, testValue)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 1)
-    
+
     XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
   }
-  
+
   func test_contraMapFromValid_producesValidValue() {
-    let validator: Validator<TestEmbeddedValue>
-      = Validator<TestValue>.alwaysValid
+    let validator: Validator<TestEmbeddedValue> = Validator<TestValue>.alwaysValid
       .contraMap(\.value)
     let validated: Validated<TestEmbeddedValue> = validator(testEmbeddedValue)
-    
+
     XCTAssertEqual(validated.value, testEmbeddedValue)
     XCTAssertTrue(validated.isValid)
   }
-  
+
   func test_contraMapFromInvalid_producesInvalidValue() {
-    let validator: Validator<TestEmbeddedValue>
-      = Validator<TestValue>.alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
-      .contraMap(\.value)
+    let validator: Validator<TestEmbeddedValue> = Validator<TestValue>.alwaysInvalid(
+      errorLocalizationKey: messageKeyInvalid
+    )
+    .contraMap(\.value)
     let validated: Validated<TestEmbeddedValue> = validator(testEmbeddedValue)
-    
+
     XCTAssertEqual(validated.value, testEmbeddedValue)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 1)
     XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
   }
-  
+
   func test_zipFromValid_producesValidValue() {
-    let validator: Validator<TestValue>
-      = zip(
-        Validator<TestValue>.alwaysValid,
-        .alwaysValid
-      )
+    let validator: Validator<TestValue> = zip(
+      Validator<TestValue>.alwaysValid,
+      .alwaysValid
+    )
     let validated: Validated<TestValue> = validator(testValue)
-    
+
     XCTAssertEqual(validated.value, testValue)
     XCTAssertTrue(validated.isValid)
   }
-  
+
   func test_zipFromInvalid_producesInvalidValueWithAllErrors() {
-    let validator: Validator<TestValue>
-      = zip(
-        Validator<TestValue>.alwaysInvalid(errorLocalizationKey: messageKeyInvalid),
-        .alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
-      )
+    let validator: Validator<TestValue> = zip(
+      Validator<TestValue>.alwaysInvalid(errorLocalizationKey: messageKeyInvalid),
+      .alwaysInvalid(errorLocalizationKey: messageKeyInvalid)
+    )
     let validated: Validated<TestValue> = validator(testValue)
-    
+
     XCTAssertEqual(validated.value, testValue)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 2)
@@ -127,14 +121,14 @@ final class ValidationTests: XCTestCase {
 }
 
 extension ValidationTests {
-  
+
   struct TestValue: Equatable {
-    
+
     var answer: String
   }
-  
+
   struct TestEmbeddedValue: Equatable {
-    
+
     var value: TestValue
   }
 }

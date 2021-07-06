@@ -23,10 +23,10 @@
 
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class RemoveAccountAlertViewController:
-  AlertViewController<RemoveAccountAlertController>, UIComponent {
-  
+  AlertViewController<RemoveAccountAlertController>, UIComponent
+{
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -52,14 +52,14 @@ internal final class RemoveAccountAlertViewController:
 }
 
 internal struct RemoveAccountAlertController {
-  
+
   internal var removeAccount: () -> Void
 }
 
 extension RemoveAccountAlertController: UIController {
-  
+
   internal typealias Context = () -> Void
-  
+
   internal static func instance(
     in context: @escaping Context,
     with features: FeatureFactory,

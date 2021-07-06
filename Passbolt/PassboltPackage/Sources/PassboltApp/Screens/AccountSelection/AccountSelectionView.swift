@@ -25,7 +25,7 @@ import Commons
 import UICommons
 
 internal final class AccountSelectionView: View {
-  
+
   internal var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> { collectionView.accountTapPublisher }
   internal var removeTapPublisher: AnyPublisher<Void, Never> { removeContainer.tapPublisher }
   internal var doneTapPublisher: AnyPublisher<Void, Never> { doneButton.tapPublisher }
@@ -37,7 +37,7 @@ internal final class AccountSelectionView: View {
   private lazy var collectionView: AccountSelectionCollectionView = .init(
     layout: UICollectionViewCompositionalLayout.accountSelectionLayout()
   )
-  
+
   private let container: View = .init()
   private let titleLabel: Label = .init()
   private let subTitleLabel: Label = .init()
@@ -47,10 +47,10 @@ internal final class AccountSelectionView: View {
   private let removeIcon: ImageView = .init()
   private let removeLabel: Label = .init()
   private let doneButton: TextButton = .init()
-  
+
   internal required init() {
     super.init()
-    
+
     mut(container) {
       .combined(
         .subview(of: self),
@@ -65,7 +65,7 @@ internal final class AccountSelectionView: View {
         )
       )
     }
-    
+
     mut(logoContainer) {
       .combined(
         .backgroundColor(dynamic: .background),
@@ -74,7 +74,7 @@ internal final class AccountSelectionView: View {
         .topAnchor(.equalTo, container.topAnchor)
       )
     }
-    
+
     mut(logoImageView) {
       .combined(
         .subview(of: logoContainer),
@@ -87,7 +87,7 @@ internal final class AccountSelectionView: View {
         .accessibilityIdentifier("account.selection.app.logo.imageview")
       )
     }
-    
+
     mut(titleLabel) {
       .combined(
         .titleStyle(),
@@ -96,7 +96,7 @@ internal final class AccountSelectionView: View {
         .topAnchor(.equalTo, logoContainer.bottomAnchor, constant: 94)
       )
     }
-    
+
     mut(subTitleLabel) {
       .combined(
         .infoStyle(),
@@ -105,7 +105,7 @@ internal final class AccountSelectionView: View {
         .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16)
       )
     }
-    
+
     mut(collectionView) {
       .combined(
         .leadingAnchor(.equalTo, container.leadingAnchor),
@@ -117,11 +117,11 @@ internal final class AccountSelectionView: View {
         }
       )
     }
-    
+
     mut(removeContainer) {
       .subview(removeIcon, removeLabel)
     }
-    
+
     mut(removeIcon) {
       .combined(
         .image(named: .trash, from: .uiCommons),
@@ -132,7 +132,7 @@ internal final class AccountSelectionView: View {
         .bottomAnchor(.equalTo, removeContainer.bottomAnchor)
       )
     }
-    
+
     mut(removeLabel) {
       .combined(
         .text(localized: "account.selection.remove.account.button.title"),
@@ -142,7 +142,7 @@ internal final class AccountSelectionView: View {
         .centerYAnchor(.equalTo, removeContainer.centerYAnchor)
       )
     }
-    
+
     mut(doneButton) {
       .combined(
         .primaryStyle(),
@@ -151,7 +151,7 @@ internal final class AccountSelectionView: View {
         .accessibilityIdentifier("account.selection.done.button")
       )
     }
-    
+
     mut(buttonStack) {
       .combined(
         .axis(.vertical),
@@ -162,47 +162,46 @@ internal final class AccountSelectionView: View {
       )
     }
   }
-  
+
   internal func update(items: Array<AccountSelectionListItem>) {
     collectionView.update(data: items)
   }
-  
+
   internal func update(mode: AccountSelectionMode) {
     switch mode {
     case .selection:
       mut(titleLabel) {
         .text(localized: "account.selection.title")
       }
-      
+
       mut(subTitleLabel) {
         .text(localized: "account.selection.subtitle")
       }
-      
+
       mut(doneButton) {
         .hidden(true)
       }
-      
+
       mut(removeContainer) {
         .hidden(false)
       }
-      
+
     case .removal:
       mut(titleLabel) {
         .text(localized: "account.selection.remove.account.title")
       }
-      
+
       mut(subTitleLabel) {
         .text(localized: "account.selection.remove.account.subtitle")
       }
-      
+
       mut(doneButton) {
         .hidden(false)
       }
-      
+
       mut(removeContainer) {
         .hidden(true)
       }
     }
   }
 }
-

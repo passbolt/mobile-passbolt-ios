@@ -24,46 +24,45 @@
 import Features
 
 public struct AccountDatabase {
-  
-  public var execute: (
-    _ statement: DatabaseStatement,
-    _ bindings: Array<DatabaseStatementBindable?>
-  ) -> AnyPublisher<Void, TheError>
-  public var loadRows: (
-    _ query: DatabaseStatement,
-    _ bindings: Array<DatabaseStatementBindable?>
-  ) -> AnyPublisher<Array<DatabaseRow>, TheError>
+
+  public var execute:
+    (
+      _ statement: DatabaseStatement,
+      _ bindings: Array<DatabaseStatementBindable?>
+    ) -> AnyPublisher<Void, TheError>
+  public var loadRows:
+    (
+      _ query: DatabaseStatement,
+      _ bindings: Array<DatabaseStatementBindable?>
+    ) -> AnyPublisher<Array<DatabaseRow>, TheError>
   public var featureUnload: () -> Bool
 }
 
 extension AccountDatabase: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountDatabase {
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
-    
+
     let diagnostics: Diagnostics = features.instance()
     let accountSession: AccountSession = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
     let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, TheError> = .init(nil)
-    
+
     accountSession
       .statePublisher()
       .compactMap { sessionState -> AnyPublisher<DatabaseConnection?, Never>? in
         switch sessionState {
-        // swiftlint:disable:next explicit_type_interface
         case let .authorized(account):
           if databaseConnectionSubject.value == nil {
             // create database connection
             switch accountsDataStore.accountDatabaseConnection(account.localID) {
-            // swiftlint:disable:next explicit_type_interface
             case let .success(connection):
               return Just(connection)
                 .eraseToAnyPublisher()
-            // swiftlint:disable:next explicit_type_interface
             case let .failure(error):
               diagnostics.debugLog(
                 "Failed to open database for account: \(account.localID)"
@@ -72,22 +71,25 @@ extension AccountDatabase: Feature {
               return Just(nil)
                 .eraseToAnyPublisher()
             }
-          } else if databaseConnectionSubject.value?.accountID() != account.localID {
-            assertionFailure("AccontDatabase has to be unloaded when switching account")
-            return Just(nil) // close current database connection as fallback
-              .eraseToAnyPublisher()
-          } else {
-            return nil // keep current database connection
           }
-          
+          else if databaseConnectionSubject.value?.accountID() != account.localID {
+            assertionFailure("AccontDatabase has to be unloaded when switching account")
+            return Just(nil)  // close current database connection as fallback
+              .eraseToAnyPublisher()
+          }
+          else {
+            return nil  // keep current database connection
+          }
+
         case .authorizationRequired:
           // drop connection only when going to background
-          return appLifeCycle
+          return
+            appLifeCycle
             .lifeCyclePublisher()
             .filter { $0 == .didEnterBackground }
             .map { _ -> DatabaseConnection? in nil }
             .eraseToAnyPublisher()
-          
+
         case .none:
           return Just(nil)
             .eraseToAnyPublisher()
@@ -99,7 +101,7 @@ extension AccountDatabase: Feature {
         databaseConnectionSubject.send(connection)
       }
       .store(in: cancellables)
-    
+
     func execute(
       statement: DatabaseStatement,
       with bindings: Array<DatabaseStatementBindable?>
@@ -108,7 +110,8 @@ extension AccountDatabase: Feature {
         .map { connection -> AnyPublisher<Void, TheError> in
           if let connection: DatabaseConnection = connection {
             return connection.execute(statement, bindings)
-          } else {
+          }
+          else {
             return Fail<Void, TheError>(error: .databaseConnectionClosed())
               .eraseToAnyPublisher()
           }
@@ -116,7 +119,7 @@ extension AccountDatabase: Feature {
         .switchToLatest()
         .eraseToAnyPublisher()
     }
-    
+
     func loadRows(
       matching statement: DatabaseStatement,
       with bindings: Array<DatabaseStatementBindable?>
@@ -125,7 +128,8 @@ extension AccountDatabase: Feature {
         .map { connection -> AnyPublisher<Array<DatabaseRow>, TheError> in
           if let connection: DatabaseConnection = connection {
             return connection.loadRows(statement, bindings)
-          } else {
+          }
+          else {
             return Fail<Array<DatabaseRow>, TheError>(error: .databaseConnectionClosed())
               .eraseToAnyPublisher()
           }
@@ -133,20 +137,20 @@ extension AccountDatabase: Feature {
         .switchToLatest()
         .eraseToAnyPublisher()
     }
-    
+
     func featureUnload() -> Bool {
       databaseConnectionSubject.value?.close()
       databaseConnectionSubject.send(completion: .finished)
       return true
     }
-    
+
     return Self(
       execute: execute(statement:with:),
       loadRows: loadRows(matching:with:),
       featureUnload: featureUnload
     )
   }
-  
+
   #if DEBUG
   public static var placeholder: AccountDatabase {
     Self(

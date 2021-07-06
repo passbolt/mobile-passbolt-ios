@@ -24,14 +24,14 @@ import Accounts
 import UIComponents
 
 internal struct SplashScreenController {
-  
+
   internal var navigationDestinationPublisher: () -> AnyPublisher<SplashScreenNavigationDestination, Never>
 }
 
 extension SplashScreenController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -39,7 +39,7 @@ extension SplashScreenController: UIController {
   ) -> Self {
     let accounts: Accounts = features.instance()
     let accountSession: AccountSession = features.instance()
-    
+
     func destinationPublisher() -> AnyPublisher<SplashScreenNavigationDestination, Never> {
       guard case .success = accounts.verifyStorageDataIntegrity()
       else {
@@ -50,19 +50,18 @@ extension SplashScreenController: UIController {
       if storedAccounts.isEmpty {
         return Just(.accountSetup)
           .eraseToAnyPublisher()
-      } else {
+      }
+      else {
         return accountSession.statePublisher()
           .first()
           .map { state -> SplashScreenNavigationDestination in
             switch state {
-            // swiftlint:disable:next explicit_type_interface
             case let .none(lastUsed: .some(lastUsedAccount)):
               return .accountSelection(lastUsedAccount.localID)
 
-            // swiftlint:disable:next explicit_type_interface
             case let .authorized(account):
               return .home(account)
-              
+
             case _:
               return .accountSelection(nil)
             }
@@ -70,7 +69,7 @@ extension SplashScreenController: UIController {
           .eraseToAnyPublisher()
       }
     }
-    
+
     return Self(
       navigationDestinationPublisher: destinationPublisher
     )

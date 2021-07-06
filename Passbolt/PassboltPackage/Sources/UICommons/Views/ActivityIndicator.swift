@@ -24,14 +24,13 @@
 import UIKit
 
 public final class ActivityIndicator: UIActivityIndicatorView {
-  
-  public lazy var dynamicColor: DynamicColor
-  = .default(self.tintColor) {
+
+  public lazy var dynamicColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.color = dynamicColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -40,7 +39,7 @@ public final class ActivityIndicator: UIActivityIndicatorView {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.color = dynamicColor(in: interfaceStyle)

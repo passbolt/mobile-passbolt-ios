@@ -24,63 +24,63 @@
 import AegithalosCocoa
 
 public final class ImageButton: Button {
-  
-  public lazy var dynamicImage: DynamicImage
-  = .default(self.imageView.image) {
+
+  public lazy var dynamicImage: DynamicImage = .default(self.imageView.image) {
     didSet {
       guard !isPressed && isEnabled else { return }
       self.imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   public var dynamicPressedImage: DynamicImage? {
     didSet {
       guard isPressed && isEnabled else { return }
       self.imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   public var dynamicDisabledImage: DynamicImage? {
     didSet {
       guard !isEnabled else { return }
       self.imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   private let imageView: ImageView = .init()
-  
+
   public required init() {
     super.init()
     setup()
   }
-  
+
   override internal func pressed() {
     super.pressed()
     guard let pressedImage = dynamicPressedImage?(in: traitCollection.userInterfaceStyle) else { return }
     imageView.image = pressedImage
   }
-  
+
   override internal func released() {
     super.released()
     imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
   }
-  
+
   override internal func enabled() {
     super.enabled()
-    
+
     if isPressed {
       imageView.image = dynamicPressedImage?(in: traitCollection.userInterfaceStyle)
-    } else {
+    }
+    else {
       imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   override internal func disabled() {
     super.disabled()
     guard let disabledImage = dynamicDisabledImage?(in: traitCollection.userInterfaceStyle) else { return }
     imageView.image = disabledImage
   }
-  
+
   private func setup() {
     mut(imageView) {
       .combined(
@@ -89,19 +89,19 @@ public final class ImageButton: Button {
       )
     }
   }
-  
+
   override internal func updateColors() {
     super.updateColors()
-    
+
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-    
-    switch(isEnabled, isPressed) {
+
+    switch (isEnabled, isPressed) {
     case (false, false), (false, true):
       imageView.image = dynamicDisabledImage?(in: interfaceStyle) ?? dynamicImage(in: interfaceStyle)
-      
+
     case (true, false):
       imageView.image = dynamicImage(in: interfaceStyle)
-      
+
     case (true, true):
       imageView.image = dynamicPressedImage?(in: interfaceStyle) ?? dynamicImage(in: interfaceStyle)
     }

@@ -25,50 +25,51 @@ import Commons
 import UIKit
 
 open class PlainViewController: UIViewController {
-  
+
   public init() {
     super.init(nibName: nil, bundle: nil)
     navigationItem.backButtonTitle = ""
     isModalInPresentation = true
     (self as? AnyUIComponent)?.setup()
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override public var childForStatusBarStyle: UIViewController? {
     presentedViewController
   }
-  
+
   override public func loadView() {
     if let vc: AnyUIComponent = self as? AnyUIComponent {
       view = vc.lazyView
-      view.frame
-        = view.window?.bounds
+      view.frame =
+        view.window?.bounds
         ?? UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.bounds
         ?? UIScreen.main.bounds
-    } else {
+    }
+    else {
       super.loadView()
     }
   }
-  
+
   override public func viewDidLoad() {
     super.viewDidLoad()
     (self as? AnyUIComponent)?.setupView()
   }
-  
+
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     (self as? AnyUIComponent)?.activate()
   }
-  
+
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     (self as? AnyUIComponent)?.deactivate()
   }
-  
+
   override public func dismiss(
     animated: Bool,
     completion: (() -> Void)? = nil

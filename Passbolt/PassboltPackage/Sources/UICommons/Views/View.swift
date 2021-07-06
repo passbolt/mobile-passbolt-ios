@@ -25,41 +25,41 @@ import Commons
 import UIKit
 
 open class View: UIView {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-    = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  public lazy var dynamicBorderColor: DynamicColor
-  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+
+  public lazy var dynamicBorderColor: DynamicColor = .default(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
     didSet {
       self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
-  
+
   public required init() {
     super.init(frame: .zero)
     setup()
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   open func setup() {
     // prepared to override instead of overriding init
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -68,7 +68,7 @@ open class View: UIView {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)

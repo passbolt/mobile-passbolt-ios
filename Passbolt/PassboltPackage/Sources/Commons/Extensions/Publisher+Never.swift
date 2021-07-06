@@ -24,7 +24,7 @@
 import Combine
 
 extension Publisher where Output == Never {
-  
+
   public func sink(
     receiveCompletion: @escaping (Subscribers.Completion<Self.Failure>) -> Void
   ) -> AnyCancellable {
@@ -36,7 +36,7 @@ extension Publisher where Output == Never {
 }
 
 extension Publisher where Output == Never, Failure == Never {
-  
+
   public func sink(
     receiveCompletion: @escaping () -> Void
   ) -> AnyCancellable {

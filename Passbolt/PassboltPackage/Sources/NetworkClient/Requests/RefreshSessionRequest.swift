@@ -28,7 +28,7 @@ public typealias RefreshSessionRequest =
   NetworkRequest<DomainSessionVariable, RefreshSessionRequestVariable, RefreshSessionResponse>
 
 extension RefreshSessionRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
@@ -50,15 +50,15 @@ extension RefreshSessionRequest {
 }
 
 public struct RefreshSessionRequestVariable: Encodable {
-  
+
   public var userID: String
   public var refreshToken: String
-  
+
   private enum CodingKeys: String, CodingKey {
     case userID = "user_id"
     case refreshToken = "refresh_token"
   }
-  
+
   public init(
     userID: String,
     refreshToken: String

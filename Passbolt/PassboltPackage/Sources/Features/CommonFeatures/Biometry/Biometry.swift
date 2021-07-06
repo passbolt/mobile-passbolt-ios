@@ -25,13 +25,13 @@ import Commons
 import Environment
 
 public struct Biometry {
-  
+
   // publishes current value initially
   public var biometricsStateChangesPublisher: () -> AnyPublisher<Biometrics.State, Never>
 }
 
 extension Biometry: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -39,7 +39,7 @@ extension Biometry: Feature {
   ) -> Self {
     let biometrics: Biometrics = environment.biometrics
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
-    
+
     func biometricsStateChangesPublisher() -> AnyPublisher<Biometrics.State, Never> {
       Publishers.Merge(
         Just(Void()),
@@ -52,25 +52,26 @@ extension Biometry: Feature {
             else { return (nil, prev.1) }
             if prev.1 == .didEnterBackground && next == .didBecomeActive {
               return (Void(), next)
-            } else {
+            }
+            else {
               return (nil, next)
             }
           }
           .compactMap(\.0)
-        )
-        .map {
-          biometrics
-            .checkBiometricsState()
-        }
-        .removeDuplicates()
-        .eraseToAnyPublisher()
+      )
+      .map {
+        biometrics
+          .checkBiometricsState()
+      }
+      .removeDuplicates()
+      .eraseToAnyPublisher()
     }
-    
+
     return Self(
       biometricsStateChangesPublisher: biometricsStateChangesPublisher
     )
   }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
@@ -80,4 +81,3 @@ extension Biometry: Feature {
   }
   #endif
 }
-

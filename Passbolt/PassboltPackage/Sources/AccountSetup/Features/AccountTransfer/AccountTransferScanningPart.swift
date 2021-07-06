@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import struct Foundation.Data
 
 internal struct AccountTransferScanningPart {
@@ -32,13 +33,13 @@ internal struct AccountTransferScanningPart {
 }
 
 extension AccountTransferScanningPart {
-  
+
   internal static func from(
     qrCode string: String
   ) -> Result<Self, TheError> {
     var payloadPart: String = string
     let version: String = String(payloadPart.removeFirst())
-    
+
     guard version == "1"
     else {
       return .failure(
@@ -46,7 +47,7 @@ extension AccountTransferScanningPart {
           .appending(logMessage: "Invalid QRCode or version: \(version)")
       )
     }
-    
+
     // Constructing page number from two first bytes of payload.
     let pageString: String = String([payloadPart.removeFirst(), payloadPart.removeFirst()])
     guard let page: Int = Int(pageString, radix: 16)
@@ -56,7 +57,7 @@ extension AccountTransferScanningPart {
           .appending(logMessage: "Invalid QRCode data page: \(pageString)")
       )
     }
-    
+
     guard let payloadData = payloadPart.data(using: .utf8)
     else {
       return .failure(
@@ -64,7 +65,7 @@ extension AccountTransferScanningPart {
           .appending(logMessage: "Invalid QRCode data encoding")
       )
     }
-    
+
     return .success(
       Self(
         version: version,

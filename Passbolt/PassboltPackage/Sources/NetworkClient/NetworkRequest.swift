@@ -26,12 +26,12 @@ import Commons
 import Environment
 
 public struct NetworkRequest<SessionVariable, Variable, Response> {
-  
+
   public var execute: (Variable) -> AnyPublisher<Response, TheError>
 }
 
 extension NetworkRequest {
-  
+
   internal init(
     template: NetworkRequestTemplate<SessionVariable, Variable>,
     responseDecoder: NetworkResponseDecoding<Response>,
@@ -63,7 +63,7 @@ extension NetworkRequest {
 }
 
 extension NetworkRequest {
-  
+
   public func make(
     using variable: Variable
   ) -> AnyPublisher<Response, TheError> {
@@ -80,7 +80,7 @@ extension NetworkRequest {
       execute: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
-  
+
   public static func respondingWith(
     _ response: Response,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
@@ -94,7 +94,7 @@ extension NetworkRequest {
       }
     )
   }
-  
+
   public static func failingWith(
     _ error: TheError,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil

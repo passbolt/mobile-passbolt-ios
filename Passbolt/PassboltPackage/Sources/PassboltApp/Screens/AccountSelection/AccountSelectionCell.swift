@@ -23,9 +23,9 @@
 
 import Accounts
 import UICommons
- 
+
 internal final class AccountSelectionCell: CollectionViewCell {
-  
+
   private let icon: ImageView = .init()
   private let titleLabel: Label = .init()
   private let subTitleLabel: Label = .init()
@@ -35,35 +35,35 @@ internal final class AccountSelectionCell: CollectionViewCell {
   private var tapAction: (() -> Void)?
   private var removeAction: (() -> Void)?
   private var cancellables: Cancellables = .init()
-  
+
   override internal func setup() {
     super.setup()
-    
+
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background),
         .translatesAutoresizingMaskIntoConstraints(false)
       )
     }
-    
+
     mut(contentView) {
       .subview(icon, stack, button, imageButton)
     }
-    
+
     mut(titleLabel) {
       .combined(
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText)
       )
     }
-    
+
     mut(subTitleLabel) {
       .combined(
         .font(.inter(ofSize: 12)),
         .textColor(dynamic: .secondaryText)
       )
     }
-  
+
     mut(stack) {
       .combined(
         .axis(.vertical),
@@ -75,7 +75,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
         .trailingAnchor(.equalTo, imageButton.leadingAnchor, constant: -12)
       )
     }
-    
+
     mut(icon) {
       .combined(
         .image(named: .person, from: .uiCommons),
@@ -89,7 +89,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
         .heightAnchor(.equalTo, constant: 40)
       )
     }
-    
+
     mut(button) {
       .combined(
         .backgroundColor(.clear),
@@ -99,7 +99,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
         }
       )
     }
-    
+
     mut(imageButton) {
       .combined(
         .centerYAnchor(.equalTo, icon.centerYAnchor),
@@ -115,7 +115,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
       )
     }
   }
-  
+
   internal func setup(
     from item: AccountSelectionCellItem,
     tapAction: @escaping (() -> Void),
@@ -123,49 +123,50 @@ internal final class AccountSelectionCell: CollectionViewCell {
   ) {
     titleLabel.text = item.title
     subTitleLabel.text = item.subtitle
-    
+
     self.tapAction = tapAction
     self.removeAction = removeAction
-    
+
     item.imagePublisher?
       .receive(on: RunLoop.main)
       .sink(receiveValue: { [weak self] imageData in
         guard let data: Data = imageData,
-          let image: UIImage = .init(data: data) else {
+          let image: UIImage = .init(data: data)
+        else {
           return
         }
-        
+
         self?.icon.image = image
       })
       .store(in: cancellables)
-    
+
     item.modePublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] mode in
         guard let self = self else { return }
-        
+
         UIView.animate(withDuration: 0.3) {
           self.imageButton.alpha = mode == .selection ? 0 : 1
         }
-        
+
         mut(self.imageButton) {
           .hidden(mode == .selection)
         }
       }
       .store(in: cancellables)
   }
-  
+
   override internal func prepareForReuse() {
     super.prepareForReuse()
 
     cancellables = .init()
-    
+
     mut(icon) {
       .combined(
         .image(named: .person, from: .uiCommons)
       )
     }
-    
+
     titleLabel.text = nil
     subTitleLabel.text = nil
     tapAction = nil

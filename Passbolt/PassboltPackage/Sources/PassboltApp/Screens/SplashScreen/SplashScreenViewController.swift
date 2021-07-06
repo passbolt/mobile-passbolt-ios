@@ -23,10 +23,10 @@
 import UIComponents
 
 internal final class SplashScreenViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = SplashScreenView
   internal typealias Controller = SplashScreenController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -36,11 +36,11 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: SplashScreenView = .init()
   internal let components: UIComponentFactory
   private let controller: SplashScreenController
-  
+
   internal init(
     using controller: SplashScreenController,
     with components: UIComponentFactory
@@ -49,15 +49,15 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     controller
       .navigationDestinationPublisher()
@@ -68,10 +68,9 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       }
       .store(in: cancellables)
   }
-  
+
   private func navigate(to destination: SplashScreenNavigationDestination) {
     switch destination {
-    // swiftlint:disable:next explicit_type_interface
     case let .accountSelection(lastAccountID):
       replaceWindowRoot(
         with: AccountSelectionNavigationViewController.self,
@@ -83,7 +82,7 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
 
     case .diagnostics:
       Commons.placeholder("TODO: diagnostics screen")
-      
+
     case .home:
       replaceWindowRoot(with: MainTabsViewController.self)
     }

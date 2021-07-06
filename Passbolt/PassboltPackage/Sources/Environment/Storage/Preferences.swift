@@ -22,23 +22,24 @@
 //
 
 import Commons
+
 import struct Foundation.Data
-import class Foundation.UserDefaults
 import struct Foundation.UUID
+import class Foundation.UserDefaults
 
 public struct Preferences: EnvironmentElement {
-  
+
   public typealias Key = Tagged<String, Self>
-  
+
   public var load: (Key) -> Any?
   public var save: (Any, Key) -> Void
 }
 
 extension Preferences {
-  
+
   public static func sharedUserDefaults() -> Self {
-    let defaults: UserDefaults
-      = .init(suiteName: "group.com.passbolt.mobile")
+    let defaults: UserDefaults =
+      .init(suiteName: "group.com.passbolt.mobile")
       ?? .standard
     let supportedTypes: Set<ObjectIdentifier> = [
       ObjectIdentifier(Data.self),
@@ -56,13 +57,13 @@ extension Preferences {
       ObjectIdentifier(Dictionary<String, Int>.self),
       ObjectIdentifier(Dictionary<String, Int>?.self),
       ObjectIdentifier(Dictionary<String, String>.self),
-      ObjectIdentifier(Dictionary<String, String>?.self)
+      ObjectIdentifier(Dictionary<String, String>?.self),
     ]
-    
+
     func load(for key: Key) -> Any? {
       defaults.value(forKey: key.rawValue)
     }
-    
+
     func save(value: Any, for key: Key) {
       let typeOfValue: Any.Type = type(of: value)
       assert(
@@ -71,7 +72,7 @@ extension Preferences {
       )
       defaults.setValue(value, forKey: key.rawValue)
     }
-    
+
     return Self(
       load: load(for:),
       save: save(value:for:)
@@ -80,7 +81,7 @@ extension Preferences {
 }
 
 extension Preferences {
-  
+
   public func load(
     _ type: String.Type = String.self,
     for key: Key
@@ -94,7 +95,7 @@ extension Preferences {
   ) {
     save(value, key)
   }
-  
+
   public func load<Value>(
     _ type: Value.Type = Value.self,
     for key: Key
@@ -102,14 +103,14 @@ extension Preferences {
   where Value: RawRepresentable, Value.RawValue == String {
     load(key).flatMap { $0 as? Value.RawValue }.flatMap(Value.init(rawValue:))
   }
-  
+
   public func save<Value>(
     _ value: Value,
     for key: Key
   ) where Value: RawRepresentable, Value.RawValue == String {
     save(value.rawValue, key)
   }
-  
+
   public func load<Value>(
     _ type: Array<Value>.Type = Array<Value>.self,
     for key: Key
@@ -120,14 +121,14 @@ extension Preferences {
       .map { $0.compactMap(Value.init(rawValue:)) }
       ?? []
   }
-  
+
   public func save<Value>(
     _ value: Array<Value>,
     for key: Key
   ) where Value: RawRepresentable, Value.RawValue == String {
     save(value.map(\.rawValue), key)
   }
-  
+
   public func load<Value>(
     _ type: Value.Type = Value.self,
     for key: Key
@@ -135,14 +136,14 @@ extension Preferences {
   where Value: RawRepresentable, Value.RawValue == Int {
     load(key).flatMap { $0 as? Value.RawValue }.flatMap(Value.init(rawValue:))
   }
-  
+
   public func save<Value>(
     _ value: Value,
     for key: Key
   ) where Value: RawRepresentable, Value.RawValue == Int {
     save(value.rawValue, key)
   }
-  
+
   public func load<Value>(
     _ type: Array<Value>.Type = Array<Value>.self,
     for key: Key
@@ -153,7 +154,7 @@ extension Preferences {
       .map { $0.compactMap(Value.init(rawValue:)) }
       ?? []
   }
-  
+
   public func save<Value>(
     _ value: Array<Value>,
     for key: Key
@@ -163,7 +164,7 @@ extension Preferences {
 }
 
 extension Environment {
-  
+
   public var preferences: Preferences {
     get { element(Preferences.self) }
     set { use(newValue) }
@@ -172,7 +173,7 @@ extension Environment {
 
 #if DEBUG
 extension Preferences {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

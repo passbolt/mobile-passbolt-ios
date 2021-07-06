@@ -25,73 +25,69 @@ import Commons
 import UIKit
 
 open class TabsViewController: UITabBarController {
-  
+
   // Overriding TabBar is almost impossible, we delegate its colors setup to VC
-  public lazy var tabBarDynamicBackgroundColor: DynamicColor
-  = .default(self.tabBar.backgroundColor) {
+  public lazy var tabBarDynamicBackgroundColor: DynamicColor = .default(self.tabBar.backgroundColor) {
     didSet {
       self.tabBar.backgroundColor = tabBarDynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var tabBarDynamicTintColor: DynamicColor
-  = .default(self.tabBar.tintColor) {
+  public lazy var tabBarDynamicTintColor: DynamicColor = .default(self.tabBar.tintColor) {
     didSet {
       self.tabBar.tintColor = tabBarDynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var tabBarDynamicBarTintColor: DynamicColor
-  = .default(self.tabBar.barTintColor) {
+  public lazy var tabBarDynamicBarTintColor: DynamicColor = .default(self.tabBar.barTintColor) {
     didSet {
       self.tabBar.barTintColor = tabBarDynamicBarTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var tabBarDynamicUnselectedItemTintColor: DynamicColor
-  = .default(.black) {
+  public lazy var tabBarDynamicUnselectedItemTintColor: DynamicColor = .default(.black) {
     didSet {
       self.tabBar.unselectedItemTintColor = tabBarDynamicUnselectedItemTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   public init() {
     super.init(nibName: nil, bundle: nil)
     navigationItem.backButtonTitle = ""
     isModalInPresentation = true
     (self as? AnyUIComponent)?.setup()
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   public var lazyView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override open var childForStatusBarStyle: UIViewController? {
     presentedViewController ?? selectedViewController
   }
-  
+
   override open func loadView() {
     super.loadView()
     view.backgroundColor = .white
   }
-  
+
   override open func viewDidLoad() {
     super.viewDidLoad()
     (self as? AnyUIComponent)?.setupView()
   }
-  
+
   override open func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     (self as? AnyUIComponent)?.activate()
   }
-  
+
   override open func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     (self as? AnyUIComponent)?.deactivate()
   }
-  
+
   override open func dismiss(
     animated: Bool,
     completion: (() -> Void)? = nil
@@ -105,7 +101,7 @@ open class TabsViewController: UITabBarController {
       }
     )
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -114,7 +110,7 @@ open class TabsViewController: UITabBarController {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.tabBar.backgroundColor = tabBarDynamicBackgroundColor(in: interfaceStyle)
@@ -123,4 +119,3 @@ open class TabsViewController: UITabBarController {
     self.tabBar.unselectedItemTintColor = tabBarDynamicUnselectedItemTintColor(in: interfaceStyle)
   }
 }
-

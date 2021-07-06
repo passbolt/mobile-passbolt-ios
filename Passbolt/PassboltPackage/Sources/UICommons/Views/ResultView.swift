@@ -24,19 +24,19 @@
 import AegithalosCocoa
 
 public final class ResultView: View {
-  
+
   private lazy var imageView: ImageView = .init()
   private lazy var titleLabel: Label = .init()
   private lazy var messageLabel: Label = .init()
   private lazy var actionButton: TextButton = .init()
-  
+
   override public func setup() {
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background)
       )
     }
-    
+
     mut(imageView) {
       .combined(
         .contentMode(.scaleAspectFit),
@@ -49,7 +49,7 @@ public final class ResultView: View {
         .centerYAnchor(.equalTo, centerYAnchor, constant: -40)
       )
     }
-    
+
     mut(titleLabel) {
       .combined(
         .font(.inter(ofSize: 24, weight: .regular)),
@@ -63,7 +63,7 @@ public final class ResultView: View {
         .topAnchor(.equalTo, imageView.bottomAnchor, constant: 32)
       )
     }
-    
+
     mut(messageLabel) {
       .combined(
         .font(.inter(ofSize: 14, weight: .light)),
@@ -75,7 +75,7 @@ public final class ResultView: View {
         .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: -32)
       )
     }
-    
+
     mut(actionButton) {
       .combined(
         .subview(of: self),
@@ -86,19 +86,19 @@ public final class ResultView: View {
       )
     }
   }
-  
+
   public func applyOn(image mutation: Mutation<ImageView>) {
     mutation.apply(on: imageView)
   }
-  
+
   public func applyOn(title mutation: Mutation<Label>) {
     mutation.apply(on: titleLabel)
   }
-  
+
   public func applyOn(message mutation: Mutation<Label>) {
     mutation.apply(on: messageLabel)
   }
-  
+
   public func applyOn(button mutation: Mutation<TextButton>) {
     mutation.apply(on: actionButton)
   }

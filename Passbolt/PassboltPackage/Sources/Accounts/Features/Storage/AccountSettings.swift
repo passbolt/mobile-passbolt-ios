@@ -25,13 +25,13 @@ import Crypto
 import Features
 
 public struct AccountSettings {
-  
+
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
   public var setBiometricsEnabled: (Bool) -> AnyPublisher<Never, TheError>
 }
 
 extension AccountSettings: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -41,27 +41,25 @@ extension AccountSettings: Feature {
     let accountsDataStore: AccountsDataStore = features.instance()
     let permissions: OSPermissions = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
-    
+
     let biometricsEnabledSubject: CurrentValueSubject<Bool, Never> = .init(false)
-    
+
     accountSession
       .statePublisher()
       .map { (sessionState: AccountSession.State) -> Bool in
         switch sessionState {
-        // swiftlint:disable:next explicit_type_interface
         case let .authorized(account), let .authorizationRequired(account):
-          let profileLoadResult: Result<AccountProfile, TheError>
-            = accountsDataStore
+          let profileLoadResult: Result<AccountProfile, TheError> =
+            accountsDataStore
             .loadAccountProfile(account.localID)
           switch profileLoadResult {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(profile):
             return profile.biometricsEnabled
-            
+
           case .failure:
             return false
           }
-          
+
         case .none:
           return false
         }
@@ -70,7 +68,7 @@ extension AccountSettings: Feature {
         biometricsEnabledSubject.send(enabled)
       }
       .store(in: cancellables)
-        
+
     func biometricsEnabledPublisher() -> AnyPublisher<Bool, Never> {
       biometricsEnabledSubject.eraseToAnyPublisher()
     }
@@ -85,52 +83,53 @@ extension AccountSettings: Feature {
             return Fail<Never, TheError>(error: .permissionRequired().appending(context: "biometrics"))
               .eraseToAnyPublisher()
           }
-          return accountSession
+          return
+            accountSession
             .statePublisher()
             .first()
             .map { (sessionState: AccountSession.State) -> AnyPublisher<Never, TheError> in
-              // swiftlint:disable:next explicit_type_interface
               guard case let .authorized(account) = sessionState
               else {
                 return Fail<Never, TheError>(error: .authorizationRequired())
                   .eraseToAnyPublisher()
               }
               if enabled {
-                return passphraseCache
+                return
+                  passphraseCache
                   .passphrasePublisher(account.localID)
                   .first()
                   .map { passphrase -> AnyPublisher<Never, TheError> in
                     if let passphrase: Passphrase = passphrase {
-                      let passphraseStoreResult: Result<Void, TheError>
-                        = accountsDataStore
+                      let passphraseStoreResult: Result<Void, TheError> =
+                        accountsDataStore
                         .storeAccountPassphrase(account.localID, passphrase)
                       switch passphraseStoreResult {
                       case .success:
                         biometricsEnabledSubject.send(true)
                         return Empty<Never, TheError>()
                           .eraseToAnyPublisher()
-                      // swiftlint:disable:next explicit_type_interface
                       case let .failure(error):
                         return Fail<Never, TheError>(error: error)
                           .eraseToAnyPublisher()
                       }
-                    } else {
+                    }
+                    else {
                       return Fail<Never, TheError>(error: .authorizationRequired())
                         .eraseToAnyPublisher()
                     }
                   }
                   .switchToLatest()
                   .eraseToAnyPublisher()
-              } else {
-                let passphraseDeleteResult: Result<Void, TheError>
-                  = accountsDataStore
+              }
+              else {
+                let passphraseDeleteResult: Result<Void, TheError> =
+                  accountsDataStore
                   .deleteAccountPassphrase(account.localID)
                 switch passphraseDeleteResult {
                 case .success:
                   biometricsEnabledSubject.send(false)
                   return Empty<Never, TheError>()
                     .eraseToAnyPublisher()
-                // swiftlint:disable:next explicit_type_interface
                 case let .failure(error):
                   return Fail<Never, TheError>(error: error)
                     .eraseToAnyPublisher()

@@ -23,7 +23,7 @@
 import UIComponents
 
 internal final class CodeScanningHelpViewController: AlertViewController<CodeScanningHelpController>, UIComponent {
-  
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -44,9 +44,9 @@ internal final class CodeScanningHelpViewController: AlertViewController<CodeSca
 internal struct CodeScanningHelpController {}
 
 extension CodeScanningHelpController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,

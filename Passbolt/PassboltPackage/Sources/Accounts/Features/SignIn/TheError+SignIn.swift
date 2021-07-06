@@ -24,7 +24,7 @@
 import Commons
 
 extension TheError {
-  
+
   public static func signInError(
     underlyingError: Error? = nil
   ) -> Self {
@@ -37,6 +37,6 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static let signInError: Self = "signInError"
 }

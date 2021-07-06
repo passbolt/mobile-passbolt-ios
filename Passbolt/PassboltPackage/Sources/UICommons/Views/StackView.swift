@@ -25,40 +25,38 @@ import Commons
 import UIKit
 
 open class StackView: UIStackView {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   public required init() {
     super.init(frame: .zero)
     setup()
   }
-  
+
   @available(*, unavailable)
   public required init(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   open func setup() {
     // prepared to override instead of overriding init
   }
-  
+
   public func appendSpace(of size: CGFloat) {
     let space: View = .init()
     switch axis {
     case .horizontal:
       space.widthAnchor.constraint(equalToConstant: size).isActive = true
-      
+
     case .vertical:
       space.heightAnchor.constraint(equalToConstant: size).isActive = true
     @unknown default:
@@ -66,22 +64,22 @@ open class StackView: UIStackView {
     }
     addArrangedSubview(space)
   }
-  
+
   public func appendFiller(minSize: CGFloat = 0) {
     let filler: View = .init()
     switch axis {
     case .horizontal:
       filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
-      
+
     case .vertical:
       filler.heightAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
-      
+
     @unknown default:
       fatalError("Unexpected state")
     }
     addArrangedSubview(filler)
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -90,7 +88,7 @@ open class StackView: UIStackView {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)

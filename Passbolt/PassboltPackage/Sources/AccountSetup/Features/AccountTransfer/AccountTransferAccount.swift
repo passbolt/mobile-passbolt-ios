@@ -26,24 +26,26 @@ import Commons
 import Crypto
 import CryptoKit
 import Environment
+
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
 internal struct AccountTransferAccount {
-  
+
   internal var userID: String
   internal var fingerprint: String
   internal var armoredKey: ArmoredPrivateKey
 }
 
 extension AccountTransferAccount {
-  
+
   internal static func from(
     _ parts: Array<AccountTransferScanningPart>,
     verificationHash: String
   ) -> Result<Self, TheError> {
     let joinedDataParts: Data = Data(parts.map(\.payload).joined())
-    let computedHash: String = SHA512
+    let computedHash: String =
+      SHA512
       .hash(data: joinedDataParts)
       .compactMap { String(format: "%02x", $0) }
       .joined()
@@ -65,7 +67,8 @@ extension AccountTransferAccount {
             from: joinedDataParts
           )
       )
-    } catch {
+    }
+    catch {
       return .failure(
         .accountTransferScanningError(context: "account-decoding-invalid-json")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
@@ -75,9 +78,9 @@ extension AccountTransferAccount {
 }
 
 extension AccountTransferAccount: Decodable {
-  
+
   internal enum CodingKeys: String, CodingKey {
-    
+
     case userID = "user_id"
     case fingerprint = "fingerprint"
     case armoredKey = "armored_key"

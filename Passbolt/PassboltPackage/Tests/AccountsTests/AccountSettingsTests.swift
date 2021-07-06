@@ -21,24 +21,21 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Combine
 import Crypto
 import Features
 import TestExtensions
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable explicit_type_interface
-// swiftlint:disable file_length
+@testable import Accounts
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountSettingsTests: TestCase {
-  
+
   var accountSession: AccountSession!
   var accountsDataStore: AccountsDataStore!
   var permissions: OSPermissions!
   var passphraseCache: PassphraseCache!
-  
+
   override func setUp() {
     super.setUp()
     accountSession = .placeholder
@@ -46,7 +43,7 @@ final class AccountSettingsTests: TestCase {
     permissions = .placeholder
     passphraseCache = .placeholder
   }
-  
+
   override func tearDown() {
     accountSession = nil
     accountsDataStore = nil
@@ -54,7 +51,7 @@ final class AccountSettingsTests: TestCase {
     passphraseCache = nil
     super.tearDown()
   }
-  
+
   func test_biometricsEnabledPublisher_publishesProfileValueInitially() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -65,9 +62,9 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: Bool!
     feature
       .biometricsEnabledPublisher()
@@ -75,10 +72,10 @@ final class AccountSettingsTests: TestCase {
         result = enabled
       }
       .store(in: cancellables)
-    
+
     XCTAssertFalse(result)
   }
-  
+
   func test_biometricsEnabledPublisher_publishesTrue_afterEnablingBiometrics() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -92,9 +89,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: Bool!
     feature
       .biometricsEnabledPublisher()
@@ -103,15 +100,15 @@ final class AccountSettingsTests: TestCase {
         result = enabled
       }
       .store(in: cancellables)
-    
+
     feature
       .setBiometricsEnabled(true)
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_biometricsEnabledPublisher_publishesFalse_whenProfileLoadingFails() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -125,9 +122,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: Bool!
     feature
       .biometricsEnabledPublisher()
@@ -135,10 +132,10 @@ final class AccountSettingsTests: TestCase {
         result = enabled
       }
       .store(in: cancellables)
-    
+
     XCTAssertFalse(result)
   }
-  
+
   func test_setBiometricsEnabled_succeedsEnabling_withAllRequirementsFulfilled() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -152,9 +149,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
@@ -163,10 +160,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_setBiometricsEnabled_succeedsDisabling_withAllRequirementsFulfilled() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -180,9 +177,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
@@ -191,10 +188,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_setBiometricsEnabled_failsDisabling_withNoSession() {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: validAccount))
@@ -208,9 +205,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
@@ -219,10 +216,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .authorizationRequired)
   }
-  
+
   func test_setBiometricsEnabled_failsDisabling_withSessionAuthorizationRequired() {
     accountSession.statePublisher = always(
       Just(.authorizationRequired(validAccount))
@@ -236,9 +233,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
@@ -247,10 +244,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .authorizationRequired)
   }
-  
+
   func test_setBiometricsEnabled_failsDisabling_whenPasphraseDeleteFails() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -264,9 +261,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
@@ -275,10 +272,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .testError)
   }
-  
+
   func test_setBiometricsEnabled_failsEnabling_withNoSession() {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: validAccount))
@@ -292,9 +289,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
@@ -303,10 +300,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .authorizationRequired)
   }
-  
+
   func test_setBiometricsEnabled_failsEnabling_withSessionAuthorizationRequired() {
     accountSession.statePublisher = always(
       Just(.authorizationRequired(validAccount))
@@ -320,9 +317,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
@@ -331,10 +328,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .authorizationRequired)
   }
-  
+
   func test_setBiometricsEnabled_failsEnabling_whenProfileSaveFails() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -348,9 +345,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
@@ -359,10 +356,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .testError)
   }
-  
+
   func test_setBiometricsEnabled_failsEnabling_withNoBiometricsPermission() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -376,9 +373,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
@@ -387,10 +384,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .permissionRequired)
   }
-  
+
   func test_setBiometricsEnabled_failsEnabling_withPassphraseMissing() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -404,9 +401,9 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just(nil).eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
@@ -415,10 +412,10 @@ final class AccountSettingsTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .authorizationRequired)
   }
-  
+
   func test_setBiometricsEnabled_savesPassphrase_whenEnabling() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -436,17 +433,17 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     feature
       .setBiometricsEnabled(true)
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, "PASSPHRASE")
   }
-  
+
   func test_setBiometricsEnabled_savesPassphraseForCurrentAccount_whenEnabling() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -464,17 +461,17 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     feature
       .setBiometricsEnabled(true)
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, validAccount.localID)
   }
-  
+
   func test_setBiometricsEnabled_deletesPassphraseForCurrentAccount_whenDisabling() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -492,27 +489,27 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
-    
+
     let feature: AccountSettings = testInstance()
-    
+
     feature
       .setBiometricsEnabled(false)
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, validAccount.localID)
   }
 }
 
 private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.testUUID.uuidString),
+  localID: .init(rawValue: UUID.test.uuidString),
   domain: "https://passbolt.dev",
   userID: "USER_ID",
   fingerprint: "FINGERPRINT"
 )
 
 private let validAccountProfile: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.testUUID.uuidString),
+  accountID: .init(rawValue: UUID.test.uuidString),
   label: "firstName lastName",
   username: "username",
   firstName: "firstName",
@@ -521,14 +518,12 @@ private let validAccountProfile: AccountProfile = .init(
   biometricsEnabled: false
 )
 
+// swift-format-ignore: NeverUseForceTry
 private let validSessionTokens: SessionTokens = .init(
-  // swiftlint:disable force_try
   accessToken: try! JWT.from(rawValue: validToken).get(),
   refreshToken: "REFRESH_TOKEN"
 )
 
-// swiftlint:disable line_length
-private let validToken: String
-= """
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-"""
+private let validToken: String = """
+  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+  """

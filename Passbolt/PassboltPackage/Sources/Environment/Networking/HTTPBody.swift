@@ -26,6 +26,6 @@ import struct Foundation.Data
 public typealias HTTPBody = Data
 
 extension HTTPBody {
-  
+
   public static var empty: HTTPBody { HTTPBody() }
 }

@@ -24,7 +24,7 @@
 import Commons
 
 extension TheError {
-  
+
   public static func duplicateAccount(
     underlyingError: Error? = nil
   ) -> Self {
@@ -34,7 +34,7 @@ extension TheError {
       extensions: .init()
     )
   }
-  
+
   public static func invalidAccount(
     underlyingError: Error? = nil
   ) -> Self {
@@ -44,7 +44,7 @@ extension TheError {
       extensions: .init()
     )
   }
-  
+
   public static func invalidPassphrase(
     underlyingError: Error? = nil
   ) -> Self {
@@ -54,7 +54,7 @@ extension TheError {
       extensions: .init()
     )
   }
-  
+
   public static func biometricsNotAvailable(
     underlyingError: Error? = nil
   ) -> Self {
@@ -67,10 +67,9 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static let duplicateAccount: Self = "duplicateAccount"
   public static let invalidAccount: Self = "invalidAccount"
   public static let invalidPassphrase: Self = "invalidPassphrase"
   public static let biometricsNotAvailable: Self = "biometricsNotAvailable"
 }
-

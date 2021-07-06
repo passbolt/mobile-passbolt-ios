@@ -24,7 +24,7 @@
 import Commons
 
 extension Publisher where Failure == TheError {
-  
+
   public func collectErrorLog(
     using diagnostics: Diagnostics
   ) -> AnyPublisher<Output, Failure> {
@@ -32,11 +32,11 @@ extension Publisher where Failure == TheError {
       switch completion {
       case .finished, .failure(.canceled):
         break
-       
-      // swiftlint:disable:next explicit_type_interface
+
       case let .failure(error):
-        // swiftlint:disable:next line_length
-        diagnostics.diagnosticLog("Error: \(error.identifier) \(error.context.map { "[\($0)] " } ?? "")\(error.logMessage ?? "-")")
+        diagnostics.diagnosticLog(
+          "Error: \(error.identifier) \(error.context.map { "[\($0)] " } ?? "")\(error.logMessage ?? "-")"
+        )
         #if DEBUG
         diagnostics.debugLog(error.debugDescription)
         #endif

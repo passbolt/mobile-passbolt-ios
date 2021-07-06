@@ -28,7 +28,7 @@ public typealias ServerRSAPublicKeyRequest =
   NetworkRequest<DomainSessionVariable, ServerRSAPublicKeyVariable, ServerRSAPublicKeyResponse>
 
 extension ServerRSAPublicKeyRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
@@ -52,9 +52,9 @@ public typealias ServerRSAPublicKeyVariable = Void
 public typealias ServerRSAPublicKeyResponse = CommonResponse<ServerRSAPublicKeyResponseBody>
 
 public struct ServerRSAPublicKeyResponseBody: Decodable {
-  
+
   public var keyData: String
-  
+
   private enum CodingKeys: String, CodingKey {
     case keyData = "keydata"
   }

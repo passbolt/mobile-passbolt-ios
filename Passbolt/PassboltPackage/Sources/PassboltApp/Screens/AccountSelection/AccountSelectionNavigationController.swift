@@ -25,14 +25,14 @@ import Accounts
 import UIComponents
 
 internal struct AccountSelectionNavigationController {
-  
+
   internal var selectedAccountID: Account.LocalID?
 }
 
 extension AccountSelectionNavigationController: UIController {
-  
+
   internal typealias Context = Account.LocalID?
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,

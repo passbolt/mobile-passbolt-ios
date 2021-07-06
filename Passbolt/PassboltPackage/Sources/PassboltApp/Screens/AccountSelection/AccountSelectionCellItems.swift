@@ -28,19 +28,17 @@ internal enum AccountSelectionListItem: Hashable {
 
   case account(AccountSelectionCellItem)
   case addAccount(AccountSelectionAddAccountCellItem)
-  
+
   internal static func == (
     lhs: AccountSelectionListItem,
     rhs: AccountSelectionListItem
   ) -> Bool {
     switch (lhs, rhs) {
-    // swiftlint:disable:next explicit_type_interface
     case let (.account(lhsItem), .account(rhsItem)):
       return lhsItem == rhsItem
-    // swiftlint:disable:next explicit_type_interface
     case let (.addAccount(lhsItem), .addAccount(rhsItem)):
       return lhsItem == rhsItem
-      
+
     case _:
       return false
     }
@@ -54,19 +52,16 @@ internal struct AccountSelectionCellItem: Hashable {
   internal var subtitle: String
   internal var imagePublisher: AnyPublisher<Data?, Never>?
   internal var modePublisher: AnyPublisher<AccountSelectionMode, Never>
-  
+
   internal static func == (
     lhs: AccountSelectionCellItem,
     rhs: AccountSelectionCellItem
   ) -> Bool {
-    lhs.title == rhs.title &&
-    lhs.subtitle == rhs.subtitle &&
-    (
-      (lhs.imagePublisher == nil && rhs.imagePublisher == nil) ||
-      (lhs.imagePublisher != nil && rhs.imagePublisher != nil)
-    )
+    lhs.title == rhs.title && lhs.subtitle == rhs.subtitle
+      && ((lhs.imagePublisher == nil && rhs.imagePublisher == nil)
+        || (lhs.imagePublisher != nil && rhs.imagePublisher != nil))
   }
-  
+
   internal func hash(into hasher: inout Hasher) {
     hasher.combine(localID)
     hasher.combine(title)
@@ -75,23 +70,23 @@ internal struct AccountSelectionCellItem: Hashable {
 }
 
 internal struct AccountSelectionAddAccountCellItem: Hashable {
-  
+
   internal let title: String
-  
+
   internal static func == (
     lhs: AccountSelectionAddAccountCellItem,
     rhs: AccountSelectionAddAccountCellItem
   ) -> Bool {
     lhs.title == rhs.title
   }
-  
+
   internal func hash(into hasher: inout Hasher) {
     hasher.combine(title)
   }
 }
 
 extension AccountSelectionAddAccountCellItem {
-  
+
   internal static let `default`: Self = .init(
     title: NSLocalizedString("account.selection.add.account.footer.title", comment: "")
   )

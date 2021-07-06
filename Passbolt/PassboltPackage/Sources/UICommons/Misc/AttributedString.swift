@@ -24,13 +24,13 @@
 import AegithalosCocoa
 
 public enum AttributedString {
-  
+
   indirect case string(String, attributes: Attributes, tail: AttributedString)
   case terminator
 }
 
 extension AttributedString {
-  
+
   public static func localized(
     _ localizationKey: LocalizationKeyConstant,
     fromTable tableName: String? = nil,
@@ -48,7 +48,7 @@ extension AttributedString {
       ),
       arguments: arguments
     )
-    
+
     return .string(
       localized,
       attributes: Attributes(
@@ -58,7 +58,7 @@ extension AttributedString {
       tail: .terminator
     )
   }
-  
+
   public static func localized(
     _ localizationKey: LocalizationKeyConstant,
     withBoldSubstringLocalized boldLocalizationKey: LocalizationKeyConstant,
@@ -73,7 +73,7 @@ extension AttributedString {
       bundle: bundle,
       comment: ""
     )
-    
+
     let boldSubstring: String = NSLocalizedString(
       boldLocalizationKey.rawValue,
       tableName: tableName,
@@ -92,10 +92,10 @@ extension AttributedString {
         tail: .terminator
       )
     }
-    
+
     let splitedStringHead: String = .init(string[string.startIndex..<substringRange.lowerBound])
     let splitedStringTail: String = .init(string[substringRange.upperBound..<string.endIndex])
-    
+
     return .string(
       splitedStringHead,
       attributes: Attributes(
@@ -122,20 +122,19 @@ extension AttributedString {
 }
 
 extension AttributedString {
-  
+
   public func nsAttributedString(
     in interfaceStyle: UIUserInterfaceStyle
   ) -> NSAttributedString {
     switch self {
     case .terminator:
       return NSAttributedString()
-    // swiftlint:disable:next explicit_type_interface
     case let .string(string, attributes: attributes, tail: tail):
       let mutableString: NSMutableAttributedString = .init(
         string: string,
         attributes: [
           .font: attributes.font,
-          .foregroundColor: attributes.color(in: interfaceStyle)
+          .foregroundColor: attributes.color(in: interfaceStyle),
         ]
       )
       mutableString.append(tail.nsAttributedString(in: interfaceStyle))
@@ -145,12 +144,11 @@ extension AttributedString {
 }
 
 extension AttributedString: CustomStringConvertible {
-  
+
   public var description: String {
     switch self {
     case .terminator:
       return ""
-    // swiftlint:disable:next explicit_type_interface
     case let .string(string, attributes: _, tail: tail):
       return string + tail.description
     }
@@ -158,12 +156,11 @@ extension AttributedString: CustomStringConvertible {
 }
 
 extension AttributedString: CustomDebugStringConvertible {
-  
+
   public var debugDescription: String {
     switch self {
     case .terminator:
       return ""
-    // swiftlint:disable:next explicit_type_interface
     case let .string(string, attributes: attributes, tail: tail):
       return "^[\(attributes)]\(string)" + tail.debugDescription
     }
@@ -171,16 +168,16 @@ extension AttributedString: CustomDebugStringConvertible {
 }
 
 extension AttributedString {
-  
+
   public struct Attributes {
-    
+
     public var font: UIFont
     public var color: DynamicColor
   }
 }
 
 extension AttributedString.Attributes: CustomStringConvertible {
-  
+
   public var description: String {
     "[font: [name:\(font.familyName), size:\(font.pointSize)], color: \(color)]"
   }

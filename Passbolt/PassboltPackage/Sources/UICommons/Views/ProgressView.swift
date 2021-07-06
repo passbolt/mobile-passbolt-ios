@@ -25,7 +25,7 @@ import Commons
 import UIKit
 
 public final class ProgressView: View {
-  
+
   override public var dynamicTintColor: DynamicColor {
     get { super.dynamicTintColor }
     set {
@@ -36,7 +36,7 @@ public final class ProgressView: View {
   override public var intrinsicContentSize: CGSize { UIView.layoutFittingExpandedSize }
   private let progressBar: View = .init()
   private var progressWidthConstraint: NSLayoutConstraint?
-  
+
   override public func setup() {
     mut(self) {
       .combined(
@@ -58,7 +58,7 @@ public final class ProgressView: View {
       )
     }
   }
-  
+
   public func update(
     progress: Double,
     animated: Bool

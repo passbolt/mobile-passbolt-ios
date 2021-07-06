@@ -35,7 +35,7 @@ public struct OSPermissions {
 }
 
 extension OSPermissions: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -44,7 +44,7 @@ extension OSPermissions: Feature {
     let camera: Camera = environment.camera
     let biometrics: Biometrics = environment.biometrics
     let diagnostics: Diagnostics = features.instance()
-    
+
     func ensureCameraPermission() -> AnyPublisher<Bool, Never> {
       camera.checkPermission()
         .map { status -> AnyPublisher<Bool, Never> in
@@ -52,13 +52,14 @@ extension OSPermissions: Feature {
           case .notDetermined:
             if isInExtensionContext {
               return Just(false).eraseToAnyPublisher()
-            } else {
+            }
+            else {
               return camera.requestPermission().eraseToAnyPublisher()
             }
-            
+
           case .denied:
             return Just(false).eraseToAnyPublisher()
-            
+
           case .authorized:
             return Just(true).eraseToAnyPublisher()
           }
@@ -66,7 +67,7 @@ extension OSPermissions: Feature {
         .switchToLatest()
         .eraseToAnyPublisher()
     }
-    
+
     func ensureBiometricsPermission() -> AnyPublisher<Bool, Never> {
       biometrics
         .requestBiometricsPermission()
@@ -74,13 +75,13 @@ extension OSPermissions: Feature {
         .replaceError(with: false)
         .eraseToAnyPublisher()
     }
-    
+
     return Self(
       ensureCameraPermission: ensureCameraPermission,
       ensureBiometricsPermission: ensureBiometricsPermission
     )
   }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {

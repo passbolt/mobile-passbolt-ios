@@ -30,70 +30,70 @@ private let jsonEncoder: JSONEncoder = .init()
 
 public struct JWT: Codable {
   public typealias Signature = String
-  
+
   public var header: Header
   public var payload: Payload
   public var signature: Signature
-  
+
   public let rawValue: String
 }
 
 extension JWT {
-  
+
   public enum Algorithm: String, Codable, CaseIterable {
-    case RS256 = "RS256"
+    case rs256 = "RS256"
   }
-  
+
   public struct Header: Codable, Equatable {
-    
+
     internal var algorithm: Algorithm
     internal var type: String
-    
+
     private enum CodingKeys: String, CodingKey {
       case algorithm = "alg"
       case type = "typ"
     }
   }
-  
+
   public struct Payload: Codable, Equatable {
     // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
     internal var audience: String?
-    internal var expiration: Int // EPOCH
+    internal var expiration: Int  // EPOCH
     internal var issuer: String?
     internal var subject: String?
-    
+
     private enum CodingKeys: String, CodingKey {
-      
+
       case audience = "aud"
       case expiration = "exp"
       case issuer = "iss"
       case subject = "sub"
     }
   }
-  
+
   public var signedPayload: String {
     var components: Array<String> = rawValue.components(separatedBy: ".")
     _ = components.popLast()
-    
+
     return components.joined(separator: ".")
   }
-  
+
   public func isExpired(timestamp: Int) -> Bool {
     timestamp > payload.expiration
   }
 }
 
 extension JWT {
-  
+
   private static func decode(
     _ token: String
   ) -> Result<(header: Header, payload: Payload, signature: String), TheError> {
     var components: Array<String> = token.components(separatedBy: ".")
-    
+
     guard components.count == 3, let signature: Signature = components.popLast() else {
       return .failure(.jwtError().appending(context: "malformed-token"))
     }
-    
+
     return decode(
       type: Payload.self,
       from: components.popLast()
@@ -108,16 +108,17 @@ extension JWT {
       }
     }
   }
-  
+
   private static func decode<T: Decodable>(
     type: T.Type,
     from input: String?
   ) -> Result<T, TheError> {
     guard let value = input,
-      let preprocessed = value.base64DecodeFromURLEncoded(options: .ignoreUnknownCharacters) else {
+      let preprocessed = value.base64DecodeFromURLEncoded(options: .ignoreUnknownCharacters)
+    else {
       return .failure(.jwtError())
     }
-    
+
     return Result(catching: { try jsonDecoder.decode(type, from: preprocessed) })
       .mapError { TheError.jwtError(underlyingError: $0) }
   }

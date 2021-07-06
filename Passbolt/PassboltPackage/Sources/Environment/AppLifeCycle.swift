@@ -25,21 +25,21 @@ import Commons
 import UIKit
 
 public struct AppLifeCycle: EnvironmentElement {
-  
+
   public enum Transition: Equatable {
-    
+
     case didBecomeActive
     case willResignActive
     case didEnterBackground
     case willEnterForeground
     case willTerminate
   }
-  
+
   public var lifeCyclePublisher: () -> AnyPublisher<Transition, Never>
 }
 
 extension AppLifeCycle {
-  
+
   public static func live() -> Self {
     Self(
       lifeCyclePublisher: {

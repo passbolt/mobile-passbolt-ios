@@ -24,9 +24,9 @@
 import UIComponents
 
 internal struct SettingsTabController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Void,
     with features: FeatureFactory,
@@ -35,4 +35,3 @@ internal struct SettingsTabController: UIController {
     Self()
   }
 }
-

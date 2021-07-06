@@ -25,9 +25,8 @@ import Commons
 import Foundation
 import LocalAuthentication
 
-// swiftlint:disable file_length
 public struct Keychain: EnvironmentElement {
-  
+
   public var load: (KeychainQuery) -> Result<Array<Data>, TheError>
   public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, TheError>
   public var save: (Data, KeychainQuery) -> Result<Void, TheError>
@@ -35,14 +34,14 @@ public struct Keychain: EnvironmentElement {
 }
 
 // we would like to ask every time but some methods request it multiple times in a row, so using small timout
-private let keychainBiometricsTimeout: TimeInterval = 5 // 5 sec
+private let keychainBiometricsTimeout: TimeInterval = 5  // 5 sec
 
 extension Keychain {
-  
+
   public static func live() -> Self {
     let biometricsContext: LAContext = .init()
     biometricsContext.touchIDAuthenticationAllowableReuseDuration = keychainBiometricsTimeout
-    
+
     func load(
       matching query: KeychainQuery
     ) -> Result<Array<Data>, TheError> {
@@ -54,7 +53,7 @@ extension Keychain {
           : nil
       )
     }
-    
+
     func loadMeta(
       matching query: KeychainQuery
     ) -> Result<Array<KeychainItemMetadata>, TheError> {
@@ -77,7 +76,7 @@ extension Keychain {
         }
       }
     }
-    
+
     func save(
       _ data: Data,
       for query: KeychainQuery
@@ -91,7 +90,7 @@ extension Keychain {
           : nil
       )
     }
-    
+
     func delete(
       matching query: KeychainQuery
     ) -> Result<Void, TheError> {
@@ -100,7 +99,7 @@ extension Keychain {
         tag: query.tag?.rawValue
       )
     }
-    
+
     return Self(
       load: load(matching:),
       loadMeta: loadMeta(matching:),
@@ -111,7 +110,7 @@ extension Keychain {
 }
 
 extension Keychain {
-  
+
   public func loadAll<Value>(
     _: Value.Type = Value.self,
     matching query: KeychainQuery
@@ -128,7 +127,8 @@ extension Keychain {
               ).v
             }
           )
-        } catch { // if any of values are invalid we treat it as error
+        }
+        catch {  // if any of values are invalid we treat it as error
           return .failure(
             .keychainError(
               errSecInvalidData,
@@ -138,7 +138,7 @@ extension Keychain {
         }
       }
   }
-  
+
   public func loadFirst<Value>(
     _: Value.Type = Value.self,
     matching query: KeychainQuery
@@ -155,7 +155,8 @@ extension Keychain {
               from: firstItem
             ).v
           )
-        } catch { // if any of values are invalid we treat it as error
+        }
+        catch {  // if any of values are invalid we treat it as error
           return .failure(
             .keychainError(
               errSecInvalidData,
@@ -165,13 +166,13 @@ extension Keychain {
         }
       }
   }
-  
+
   public func loadMeta(
     matching query: KeychainQuery
   ) -> Result<Array<KeychainItemMetadata>, TheError> {
     loadMeta(query)
   }
-  
+
   public func save<Value>(
     _ value: Value,
     for query: KeychainQuery
@@ -182,7 +183,8 @@ extension Keychain {
         jsonEncoder.encode(JSONWrapper(value)),
         query
       )
-    } catch {
+    }
+    catch {
       return .failure(
         .keychainError(
           errSecInvalidData,
@@ -191,7 +193,7 @@ extension Keychain {
       )
     }
   }
-  
+
   public func delete(
     matching query: KeychainQuery
   ) -> Result<Void, TheError> {
@@ -202,13 +204,11 @@ extension Keychain {
 private let keychainShareGroupIdentifier: String = "UHX38H22ZT.com.passbolt.mobile"
 
 private struct JSONWrapper<Value: Codable>: Codable {
-  
+
   // data stored in keychain has a size limit,
   // stored data length can be reduced by using short identifier i.e. 'v'
-  // swiftlint:disable identifier_name
   fileprivate var v: Value
-  // swiftlint:enable identifier_name
-  
+
   fileprivate init(_ value: Value) {
     self.v = value
   }
@@ -235,21 +235,22 @@ private func loadKeychainData(
       )
       switch status {
       case errSecSuccess:
-        break // continue
-      
+        break  // continue
+
       case errSecItemNotFound:
         return .success([])
-        
+
       case errSecAuthFailed:
         return .failure(.keychainAuthFailed())
-        
+
       case _:
         return .failure(.keychainError(status))
       }
-      
+
       if let items: Array<Data> = queryResult as? Array<Data> {
         return .success(items)
-      } else {
+      }
+      else {
         return .failure(.keychainError(errSecDataNotAvailable))
       }
     }
@@ -273,21 +274,22 @@ private func loadKeychainMeta(
       )
       switch status {
       case errSecSuccess:
-        break // continue
-      
+        break  // continue
+
       case errSecItemNotFound:
         return .success([])
-        
+
       case errSecAuthFailed:
         return .failure(.keychainAuthFailed())
-        
+
       case _:
         return .failure(.keychainError(status))
       }
-      
+
       if let items: Array<Dictionary<CFString, Any>> = queryResult as? Array<Dictionary<CFString, Any>> {
         return .success(items)
-      } else {
+      }
+      else {
         return .failure(.keychainError(errSecDataNotAvailable))
       }
     }
@@ -304,23 +306,22 @@ private func saveKeychain(
   guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
   else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
   switch loadKeychainData(for: key, tag: tag, in: context) {
-  // swiftlint:disable:next explicit_type_interface
   case let .success(values) where !values.isEmpty:
     return updateKeychainKeyQuery(using: key, tag: tag, in: context)
       .flatMap { query in
         updateKeychainKeyAttributes(for: data)
-        .flatMap { attributes in
-          let status: OSStatus = SecItemUpdate(
-            query,
-            attributes
-          )
-          guard status == errSecSuccess
-          else { return .failure(.keychainError(status)) }
-          return .success
-        }
+          .flatMap { attributes in
+            let status: OSStatus = SecItemUpdate(
+              query,
+              attributes
+            )
+            guard status == errSecSuccess
+            else { return .failure(.keychainError(status)) }
+            return .success
+          }
       }
-    
-  case .failure, .success: // success without values aka errSecItemNotFound
+
+  case .failure, .success:  // success without values aka errSecItemNotFound
     return saveKeychainKeyQuery(for: data, using: key, tag: tag, in: context)
       .flatMap { query in
         let status: OSStatus = SecItemAdd(
@@ -360,14 +361,18 @@ private func loadKeychainKeyQuery(
     kSecMatchLimit: kSecMatchLimitAll,
     kSecReturnAttributes: kCFBooleanFalse as Any,
     kSecReturnData: kCFBooleanTrue as Any,
-    kSecAttrService: key
+    kSecAttrService: key,
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
     guard
@@ -381,7 +386,8 @@ private func loadKeychainKeyQuery(
     else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
-  } else {
+  }
+  else {
     query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
   }
   return .success(query as CFDictionary)
@@ -399,14 +405,18 @@ private func loadKeychainMetaQuery(
     kSecMatchLimit: kSecMatchLimitAll,
     kSecReturnAttributes: kCFBooleanTrue as Any,
     kSecReturnData: kCFBooleanFalse as Any,
-    kSecAttrService: key
+    kSecAttrService: key,
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
     guard
@@ -420,7 +430,8 @@ private func loadKeychainMetaQuery(
     else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
-  } else {
+  }
+  else {
     query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
   }
   return .success(query as CFDictionary)
@@ -435,19 +446,23 @@ private func saveKeychainKeyQuery(
 ) -> Result<CFDictionary, TheError> {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   assert(!data.isEmpty, "Cannot save empty data")
-  
+
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
     kSecAttrIsInvisible: kCFBooleanTrue as Any,
     kSecAttrService: key,
-    kSecValueData: data
+    kSecValueData: data,
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
     guard
@@ -461,7 +476,8 @@ private func saveKeychainKeyQuery(
     else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
-  } else {
+  }
+  else {
     query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
   }
   return .success(query as CFDictionary)
@@ -476,14 +492,18 @@ private func updateKeychainKeyQuery(
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
-    kSecAttrService: key
+    kSecAttrService: key,
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
-  } else { /* */ }
+  }
+  else { /* */
+  }
   if let context: LAContext = context {
     var error: Unmanaged<CFError>?
     guard
@@ -497,7 +517,8 @@ private func updateKeychainKeyQuery(
     else { return .failure(.keychainError(errSecParam)) }
     query[kSecAttrAccessControl] = acl
     query[kSecUseAuthenticationContext] = context
-  } else {
+  }
+  else {
     query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
   }
   return .success(query as CFDictionary)
@@ -519,16 +540,18 @@ private func deleteKeychainKeyQuery(
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
-    kSecAttrService: key
+    kSecAttrService: key,
   ]
   if let tag: String = tag, !tag.isEmpty {
     query[kSecAttrAccount] = tag
-  } else { /* */ }
+  }
+  else { /* */
+  }
   return .success(query as CFDictionary)
 }
 
 extension Environment {
-  
+
   public var keychain: Keychain {
     get { element(Keychain.self) }
     set { use(newValue) }
@@ -537,7 +560,7 @@ extension Environment {
 
 #if DEBUG
 extension Keychain {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

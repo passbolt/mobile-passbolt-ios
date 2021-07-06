@@ -22,15 +22,16 @@
 //
 
 import Commons
-import struct Foundation.Data
 import SQLite3
+
+import struct Foundation.Data
 
 @dynamicMemberLookup
 public struct DatabaseRow {
-  
+
   public var columnNames: Set<String> { Set(values.keys) }
   private let values: Dictionary<String, DatabaseStatementBindable?>
-  
+
   fileprivate init(_ handle: OpaquePointer?) {
     func bindable(at index: Int32) -> DatabaseStatementBindable? {
       switch sqlite3_column_type(handle, index) {
@@ -38,28 +39,29 @@ public struct DatabaseRow {
         if let pointer: UnsafeRawPointer = sqlite3_column_blob(handle, index) {
           let length: Int = Int(sqlite3_column_bytes(handle, index))
           return Data(bytes: pointer, count: length)
-        } else {
+        }
+        else {
           return Data()
         }
-        
+
       case SQLITE_FLOAT:
         return sqlite3_column_double(handle, index)
-        
+
       case SQLITE_INTEGER:
         return sqlite3_column_int64(handle, index)
-        
+
       case SQLITE_NULL:
         return nil
-        
+
       case SQLITE_TEXT:
         return String(cString: UnsafePointer(sqlite3_column_text(handle, index)))
-        
+
       case let type:
         unreachable("Received unsupported column type: \(type)")
       }
     }
     self.values = .init(
-      uniqueKeysWithValues: (0 ..< sqlite3_column_count(handle))
+      uniqueKeysWithValues: (0..<sqlite3_column_count(handle))
         .map {
           (
             key: String(cString: sqlite3_column_name(handle, $0)),
@@ -68,27 +70,27 @@ public struct DatabaseRow {
         }
     )
   }
-  
+
   public subscript(dynamicMember column: String) -> Data? {
     values[column] as? Data
   }
-  
+
   public subscript(dynamicMember column: String) -> String? {
     values[column] as? String
   }
-  
+
   public subscript(dynamicMember column: String) -> Int64? {
     values[column] as? Int64
   }
-  
+
   public subscript(dynamicMember column: String) -> Int? {
     (values[column] as? Int64).map(Int.init)
   }
-  
+
   public subscript(dynamicMember column: String) -> Double? {
     values[column] as? Double
   }
-  
+
   public subscript(dynamicMember column: String) -> Bool? {
     (values[column] as? Int64).map { $0 != 0 }
   }

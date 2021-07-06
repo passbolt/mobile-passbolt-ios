@@ -23,16 +23,16 @@
 import UICommons
 
 internal final class SplashScreenView: View {
-  
+
   private let imageView: ImageView = .init()
-  
+
   internal required init() {
     super.init()
-    
+
     mut(self) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     mut(imageView) {
       .combined(
         .subview(of: self),

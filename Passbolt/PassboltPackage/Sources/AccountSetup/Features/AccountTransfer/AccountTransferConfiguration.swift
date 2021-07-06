@@ -22,12 +22,13 @@
 //
 
 import Commons
+
 import struct Foundation.Data
-import struct Foundation.URLComponents
 import class Foundation.JSONDecoder
+import struct Foundation.URLComponents
 
 internal struct AccountTransferConfiguration {
-  
+
   internal var transferID: String
   internal var pagesCount: Int
   internal var userID: String
@@ -37,31 +38,34 @@ internal struct AccountTransferConfiguration {
 }
 
 extension AccountTransferConfiguration {
-  
+
   internal static func from(
     _ part: AccountTransferScanningPart
   ) -> Result<Self, TheError> {
     let jsonDecoder: JSONDecoder = .init()
     var decoded: Self
     do {
-      decoded = try jsonDecoder
+      decoded =
+        try jsonDecoder
         .decode(
           Self.self,
           from: part.payload
         )
-    } catch {
+    }
+    catch {
       return .failure(
         .accountTransferScanningError(context: "configuration-decoding-invalid-json")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
       )
     }
-    
-    if // here we verify if it is valid url
-      let urlComponents: URLComponents = .init(string: decoded.domain),
-      urlComponents.scheme == "https" // we don't allow http servers since we can't handle it
+
+    if  // here we verify if it is valid url
+    let urlComponents: URLComponents = .init(string: decoded.domain),
+      urlComponents.scheme == "https"  // we don't allow http servers since we can't handle it
     {
       return .success(decoded)
-    } else {
+    }
+    else {
       return .failure(
         .accountTransferScanningError(context: "configuration-decoding-invalid-domain")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration domain")
@@ -71,9 +75,9 @@ extension AccountTransferConfiguration {
 }
 
 extension AccountTransferConfiguration: Decodable {
-  
+
   internal enum CodingKeys: String, CodingKey {
-    
+
     case transferID = "transfer_id"
     case pagesCount = "total_pages"
     case userID = "user_id"

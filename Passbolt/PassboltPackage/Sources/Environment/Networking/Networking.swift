@@ -22,22 +22,24 @@
 //
 
 import Commons
+
 import struct Foundation.Data
 import class Foundation.URLCache
 import struct Foundation.URLError
-import class Foundation.URLSession
-import class Foundation.URLResponse
 import struct Foundation.URLRequest
+import class Foundation.URLResponse
+import class Foundation.URLSession
 
 public struct Networking: EnvironmentElement {
-  
-  public var execute: (
-    _ request: HTTPRequest,
-    _ useCache: Bool
-  ) -> AnyPublisher<HTTPResponse, HTTPError>
-  
+
+  public var execute:
+    (
+      _ request: HTTPRequest,
+      _ useCache: Bool
+    ) -> AnyPublisher<HTTPResponse, HTTPError>
+
   public var clearCache: () -> Void
-  
+
   public init(
     execute: @escaping (
       _ request: HTTPRequest,
@@ -51,7 +53,7 @@ public struct Networking: EnvironmentElement {
 }
 
 extension Networking {
-  
+
   public func make(
     _ request: HTTPRequest,
     useCache: Bool = false
@@ -61,11 +63,11 @@ extension Networking {
 }
 
 extension Networking {
-  
+
   public static func foundation(_ urlSession: URLSession = .init(configuration: .ephemeral)) -> Self {
     let urlCache: URLCache = .init(
-      memoryCapacity: 25_600, // 25 MB ram
-      diskCapacity: 307_200 // 300 MB disk
+      memoryCapacity: 25_600,  // 25 MB ram
+      diskCapacity: 307_200  // 300 MB disk
     )
     urlSession.configuration.urlCache = urlCache
     return Self(
@@ -82,26 +84,27 @@ extension Networking {
           )
           .eraseToAnyPublisher()
         }
-        
+
         func mapURLErrors(
           _ error: URLError
         ) -> HTTPError {
           switch error.code {
           case .cancelled:
             return .canceled
-            
+
           case .notConnectedToInternet, .cannotFindHost:
             return .cannotConnect
-            
+
           case .timedOut:
             return .timeout
-            
-          case _: // fill more errors if needed
+
+          case _:  // fill more errors if needed
             return .other(error)
           }
         }
-        
-        return urlSession
+
+        return
+          urlSession
           .dataTaskPublisher(for: urlRequest)
           .mapError(mapURLErrors)
           .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPError> in
@@ -109,7 +112,8 @@ extension Networking {
               return Just(httpResponse)
                 .setFailureType(to: HTTPError.self)
                 .eraseToAnyPublisher()
-            } else {
+            }
+            else {
               return Fail<HTTPResponse, HTTPError>(
                 error: .invalidResponse
               )
@@ -124,7 +128,7 @@ extension Networking {
 }
 
 extension Environment {
-  
+
   public var networking: Networking {
     get { element(Networking.self) }
     set { use(newValue) }
@@ -133,7 +137,7 @@ extension Environment {
 
 #if DEBUG
 extension Networking {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

@@ -25,35 +25,33 @@ import AccountSetup
 import Combine
 import Environment
 import Features
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltApp
+
 final class TransferInfoScreenTests: TestCase {
-  
+
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {
     var permissions: OSPermissions = .placeholder
     permissions.ensureCameraPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
     let controller: TransferInfoScreenController = testInstance()
     var result: Bool!
-    
+
     controller.presentNoCameraPermissionAlertPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.presentNoCameraPermissionAlert()
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_showSettings_isTriggered_whenCallingShowSettings() {
     var result: Void?
     var linkOpener: LinkOpener = .placeholder
@@ -63,12 +61,12 @@ final class TransferInfoScreenTests: TestCase {
     }
     features.use(linkOpener)
     let controller: TransferInfoCameraRequiredAlertController = testInstance()
-    
+
     controller.showSettings()
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_requestOrNavigatePublisher_requestsCameraPermission() {
     var result: Void?
     var appPermissions: OSPermissions = .placeholder
@@ -78,32 +76,32 @@ final class TransferInfoScreenTests: TestCase {
     }
     features.use(appPermissions)
     let controller: TransferInfoScreenController = testInstance()
-    
+
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { _ in }
       .store(in: cancellables)
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_requestOrNavigatePublisher_passesPermissionState() {
     var appPermissions: OSPermissions = .placeholder
     appPermissions.ensureCameraPermission = always(
       Just(true).eraseToAnyPublisher()
     )
     features.use(appPermissions)
-    
+
     let controller: TransferInfoScreenController = testInstance()
     var result: Bool!
-    
+
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { granted in
         result = granted
       }
       .store(in: cancellables)
-    
+
     XCTAssertTrue(result)
   }
 }

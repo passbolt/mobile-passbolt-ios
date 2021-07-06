@@ -24,10 +24,10 @@ import AVFoundation
 import UIComponents
 
 internal final class CodeScanningSuccessViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = ResultView
   internal typealias Controller = CodeScanningSuccessController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,12 +37,12 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private var payloadProcessingCancellable: AnyCancellable?
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -51,7 +51,7 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .hidesBackButton(true)
@@ -76,7 +76,7 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
       )
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     controller
       .signInPresentationPublisher()

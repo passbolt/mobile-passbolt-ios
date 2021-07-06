@@ -24,10 +24,9 @@
 import struct Foundation.URL
 
 extension URL {
-  
-  public static var testURL: Self {
-    // swiftlint:disable force_unwrapping
-    URL(string: "https://test.com")!
-    // swiftlint:enable force_unwrapping
+
+  public static var test: Self {
+    // swift-format-ignore: NeverForceUnwrap
+    .init(string: "https://test.com")!
   }
 }

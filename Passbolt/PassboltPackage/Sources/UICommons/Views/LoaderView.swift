@@ -5,11 +5,12 @@ public final class LoaderOverlayView: View {
 
   private let activityIndicator: ActivityIndicator = .init(style: .medium)
   private let label: Label = .init()
-  
+
   public required init() {
     super.init()
     dynamicBackgroundColor = .overlayBackground
-    let containerView: View = Mutation
+    let containerView: View =
+      Mutation
       .combined(
         .backgroundColor(dynamic: .divider),
         .cornerRadius(8, masksToBounds: true),
@@ -20,7 +21,7 @@ public final class LoaderOverlayView: View {
         .centerXAnchor(.equalTo, centerXAnchor)
       )
       .instantiate()
-    
+
     Mutation<Label>
       .combined(
         .font(.inter(ofSize: 12, weight: .medium)),
@@ -34,7 +35,7 @@ public final class LoaderOverlayView: View {
         .bottomAnchor(.equalTo, containerView.bottomAnchor, constant: -16)
       )
       .instantiate()
-    
+
     mut(activityIndicator) {
       .combined(
         .color(dynamic: .icon),
@@ -44,14 +45,15 @@ public final class LoaderOverlayView: View {
       )
     }
   }
-  
+
   override public func willMove(
     toWindow newWindow: UIWindow?
   ) {
     super.willMove(toWindow: newWindow)
     if newWindow != nil {
       activityIndicator.startAnimating()
-    } else {
+    }
+    else {
       activityIndicator.stopAnimating()
     }
   }

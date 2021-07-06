@@ -25,14 +25,14 @@ import struct Foundation.OSStatus
 
 // "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them"
 public struct TheError: Error {
-  
+
   public typealias ID = Tagged<String, TheError>
   public typealias Extension = Tagged<String, ID>
-  
+
   public let identifier: ID
   public let underlyingError: Error?
   public var extensions: Dictionary<Extension, Any>
-  
+
   public init(
     identifier: ID,
     underlyingError: Error?,
@@ -45,14 +45,14 @@ public struct TheError: Error {
 }
 
 extension TheError {
-  
+
   public mutating func extend(
     with extension: Extension,
     value: Any
   ) {
     extensions[`extension`] = value
   }
-  
+
   public func extended(
     with extension: Extension,
     value: Any
@@ -61,16 +61,17 @@ extension TheError {
     mutable.extend(with: `extension`, value: value)
     return mutable
   }
-  
+
   public var logMessage: String? { extensions[.logMessage] as? String }
-  
+
   public mutating func append(
     logMessage: String
   ) {
-    extensions[.logMessage] = extensions[.logMessage]
+    extensions[.logMessage] =
+      extensions[.logMessage]
       .map { "\($0)\n\(logMessage)" } ?? logMessage
   }
-  
+
   public func appending(
     logMessage: String
   ) -> Self {
@@ -78,20 +79,21 @@ extension TheError {
     mutable.append(logMessage: logMessage)
     return mutable
   }
-  
+
   #if DEBUG
   public var debugLogMessage: String? { extensions[.debugLogMessage] as? String }
   #endif
-  
+
   public mutating func append(
     debugLogMessage: String
   ) {
     #if DEBUG
-    extensions[.debugLogMessage] = extensions[.debugLogMessage]
+    extensions[.debugLogMessage] =
+      extensions[.debugLogMessage]
       .map { "\($0)\n\(debugLogMessage)" } ?? debugLogMessage
     #endif
   }
-  
+
   public func appending(
     debugLogMessage: String
   ) -> Self {
@@ -103,16 +105,17 @@ extension TheError {
     return self
     #endif
   }
-  
+
   public var context: String? { extensions[.context] as? String }
-  
+
   public mutating func append(
     context: String
   ) {
-    extensions[.context] = extensions[.context]
+    extensions[.context] =
+      extensions[.context]
       .map { "\($0)-\(context)" } ?? context
   }
-  
+
   public func appending(
     context: String
   ) -> Self {
@@ -120,12 +123,12 @@ extension TheError {
     mutable.append(context: context)
     return mutable
   }
-  
+
   public var localizationKey: String? { extensions[.localizationKey] as? String }
 }
 
 extension TheError: CustomStringConvertible {
-  
+
   public var description: String {
     #if DEBUG
     debugDescription
@@ -137,7 +140,7 @@ extension TheError: CustomStringConvertible {
 
 #if DEBUG
 extension TheError: CustomDebugStringConvertible {
-  
+
   public var debugDescription: String {
     """
     -TheError-
@@ -152,7 +155,7 @@ extension TheError: CustomDebugStringConvertible {
 #endif
 
 extension TheError {
-  
+
   public static func ~= (
     _ lhs: TheError.ID,
     _ rhs: TheError
@@ -162,12 +165,12 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static let canceled: Self = "canceled"
 }
 
 extension TheError.Extension {
-  
+
   public static let logMessage: Self = "logMessage"
   #if DEBUG
   public static let debugLogMessage: Self = "debugLogMessage"
@@ -176,7 +179,7 @@ extension TheError.Extension {
 }
 
 extension TheError {
-  
+
   public static let canceled: Self = .init(
     identifier: .canceled,
     underlyingError: nil,
@@ -185,16 +188,16 @@ extension TheError {
 }
 
 extension TheError.Extension {
-  
+
   public static var localizationKey: Self { "localizationKey" }
 }
 
 extension TheError.Extension {
-  
+
   public static var osStatus: Self { "osStatus" }
 }
 
 extension TheError {
-  
+
   public var osStatus: OSStatus? { extensions[.osStatus] as? OSStatus }
 }

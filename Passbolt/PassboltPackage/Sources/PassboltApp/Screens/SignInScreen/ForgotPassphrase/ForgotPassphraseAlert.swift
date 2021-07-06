@@ -23,10 +23,10 @@
 
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class ForgotPassphraseAlertViewController:
-  AlertViewController<ForgotPassphraseAlertController>, UIComponent {
-  
+  AlertViewController<ForgotPassphraseAlertController>, UIComponent
+{
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -43,15 +43,14 @@ internal final class ForgotPassphraseAlertViewController:
     }
   }
 }
- 
-// swiftlint:disable:next convenience_type
+
 internal struct ForgotPassphraseAlertController {
-  
+
   internal typealias Context = Void
 }
 
 extension ForgotPassphraseAlertController: UIController {
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,

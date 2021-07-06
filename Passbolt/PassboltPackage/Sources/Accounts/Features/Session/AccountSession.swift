@@ -41,12 +41,12 @@ public struct AccountSession {
 extension AccountSession {
 
   public enum State: Equatable {
-    
+
     case authorized(Account)
     case authorizationRequired(Account)
     case none(lastUsed: Account?)
   }
-  
+
   public enum AuthorizationMethod {
     // for unstored accounts
     case adHoc(Passphrase, ArmoredPrivateKey)
@@ -59,39 +59,35 @@ extension AccountSession {
 
 extension AccountSession: Feature {
 
-  
-  // swiftlint:disable:next function_body_length
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountSession {
     let time: Time = environment.time
-    
+
     let diagnostics: Diagnostics = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
     let networkClient: NetworkClient = features.instance()
     let signIn: SignIn = features.instance()
     var signOutCancellable: AnyCancellable?
-    
-    _ = signOutCancellable // Silence warning
-    
+
+    _ = signOutCancellable  // Silence warning
+
     let stateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
-    
+
     let sessionSubject: CurrentValueSubject<SessionTokens?, Never> = .init(nil)
-    
+
     stateSubject
       .removeDuplicates()
       .map { state -> NetworkSessionVariable? in
         switch state {
-        // swiftlint:disable:next explicit_type_interface
         case let .authorized(account), let .authorizationRequired(account):
           return NetworkSessionVariable(domain: account.domain)
-        // swiftlint:disable:next explicit_type_interface
-  
+
         case .none:
           return nil
         }
@@ -100,27 +96,27 @@ extension AccountSession: Feature {
         networkClient.updateSession(sessionVariable)
       }
       .store(in: cancellables)
-    
+
     // bind passphrase cache expiration with authorizationRequired state change
     stateSubject
       .removeDuplicates()
       .compactMap { state -> AnyPublisher<State, Never>? in
         switch state {
-        // swiftlint:disable:next explicit_type_interface
         case let .authorized(account):
-          return passphraseCache
+          return
+            passphraseCache
             .passphrasePublisher(account.localID)
             .compactMap { passphrase -> State? in
               switch passphrase {
               case .some:
                 return nil
-                
+
               case .none:
                 return .authorizationRequired(account)
               }
             }
             .eraseToAnyPublisher()
-          
+
         case .authorizationRequired, .none:
           return nil
         }
@@ -131,14 +127,14 @@ extension AccountSession: Feature {
         stateSubject?.send(newState)
       }
       .store(in: cancellables)
-    
+
+    // swift-format-ignore: NoLeadingUnderscores
     func _close(using features: FeatureFactory) {
       features.unload(AccountDatabase.self)
-      
+
       switch stateSubject.value {
-      // swiftlint:disable:next explicit_type_interface
       case let .authorized(account):
-        
+
         if let refreshToken: String = sessionSubject.value?.refreshToken {
           signOutCancellable = networkClient.signOutRequest.make(
             using: .init(
@@ -148,48 +144,42 @@ extension AccountSession: Feature {
           .ignoreOutput()
           .sink { _ in }
         }
-      
+
         stateSubject.send(.none(lastUsed: account))
         sessionSubject.send(nil)
         passphraseCache.clear()
-      // swiftlint:disable:next explicit_type_interface
       case let .authorizationRequired(account):
         stateSubject.send(.none(lastUsed: account))
         sessionSubject.send(nil)
-        
+
       case .none:
-        break // do nothing
+        break  // do nothing
       }
-      
+
       sessionSubject.send(nil)
     }
-    // swiftlint:disable:next unowned_variable_capture
     let closeSession: () -> Void = { [unowned features] in
       _close(using: features)
     }
-    
+
     func authorize(
       account: Account,
       authorizationMethod: AuthorizationMethod
     ) -> AnyPublisher<Void, TheError> {
       #warning("TODO: [PAS-154] verify if token is expired and reuse or use session refresh if needed")
-      
+
       // sign in process
       let passphrase: Passphrase
       let armoredPrivateKey: ArmoredPrivateKey
       switch authorizationMethod {
-      // swiftlint:disable:next explicit_type_interface
       case let .adHoc(pass, privateKey):
         passphrase = pass
         armoredPrivateKey = privateKey
-      // swiftlint:disable:next explicit_type_interface
       case let .passphrase(value):
         passphrase = value
         switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-        // swiftlint:disable:next explicit_type_interface
         case let .success(armoredKey):
           armoredPrivateKey = armoredKey
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.debugLog(
             "Failed to retrieve private key for account: \(account.localID)"
@@ -198,22 +188,18 @@ extension AccountSession: Feature {
           return Fail<Void, TheError>(error: error)
             .eraseToAnyPublisher()
         }
-        
+
       case .biometrics:
         switch accountsDataStore.loadAccountPassphrase(account.localID) {
-        // swiftlint:disable:next explicit_type_interface
         case let .success(value):
           passphrase = value
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           return Fail<Void, TheError>(error: error)
             .eraseToAnyPublisher()
         }
         switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-        // swiftlint:disable:next explicit_type_interface
         case let .success(armoredKey):
           armoredPrivateKey = armoredKey
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.debugLog(
             "Failed to retrieve private key for account: \(account.localID)"
@@ -223,16 +209,17 @@ extension AccountSession: Feature {
             .eraseToAnyPublisher()
         }
       }
-      
+
       // Authorization required for a new / switched account
       stateSubject.send(.authorizationRequired(account))
-      
+
       #warning("TODO: Determine if session should be deleted (sessionSubject.send(nil)")
-      
+
       let method: SignIn.Method
       if let token: String = sessionSubject.value?.refreshToken {
         method = .refreshToken(token)
-      } else {
+      }
+      else {
         method = .challenge
       }
 
@@ -241,18 +228,16 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
         .map { (sessionTokens: SessionTokens?) -> AnyPublisher<SessionTokens?, Never> in
           let method: SignIn.Method
-          
+
           switch sessionTokens {
-          // swiftlint:disable:next explicit_type_interface
           case let .some(tokens):
             method = .refreshToken(tokens.refreshToken)
-            
+
           case .none:
             method = .challenge
           }
-          
+
           let signInPublisher: AnyPublisher<SessionTokens?, Never> =
-            // swiftlint:disable:next array_init
             signIn.signIn(
               account.userID,
               account.domain,
@@ -261,12 +246,12 @@ extension AccountSession: Feature {
               method
             )
             .map { sessionTokens -> SessionTokens? in
-              sessionTokens // switching type to optional
+              sessionTokens  // switching type to optional
             }
             .collectErrorLog(using: diagnostics)
             .replaceError(with: nil)
             .eraseToAnyPublisher()
-          
+
           return signInPublisher
         }
         .switchToLatest()
@@ -274,7 +259,7 @@ extension AccountSession: Feature {
           guard let sessionTokens = sessionTokens else {
             return nil
           }
-          
+
           return NetworkClient.Tokens(
             accessToken: sessionTokens.accessToken.rawValue,
             isExpired: { sessionTokens.accessToken.isExpired(timestamp: time.timestamp()) },
@@ -283,9 +268,9 @@ extension AccountSession: Feature {
         }
         .setFailureType(to: Never.self)
         .eraseToAnyPublisher()
-      
+
       networkClient.setTokensPublisher(tokensPublisher)
-  
+
       return signIn.signIn(
         account.userID,
         account.domain,
@@ -306,7 +291,7 @@ extension AccountSession: Feature {
           )
 
         sessionSubject.send(sessionTokens)
-        
+
         stateSubject.send(
           .authorized(account)
         )
@@ -314,19 +299,19 @@ extension AccountSession: Feature {
       .map { _ in Void() }
       .eraseToAnyPublisher()
     }
-    
+
     func select(account: Account) {
       switch stateSubject.value {
       case .authorizationRequired, .authorized:
         closeSession()
-        
+
       case .none:
         break
       }
-      
+
       stateSubject.send(.authorizationRequired(account))
     }
-    
+
     return Self(
       statePublisher: stateSubject.removeDuplicates().eraseToAnyPublisher,
       authorize: authorize(account:authorizationMethod:),

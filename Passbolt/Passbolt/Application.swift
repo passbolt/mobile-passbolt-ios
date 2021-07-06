@@ -45,7 +45,7 @@ internal struct Application {
       ExternalURLOpener.live(),
       AppLifeCycle.live(),
       PGP.gopenPGP(),
-      SignatureVerfication.RSSHA256(),
+      SignatureVerfication.rssha256(),
       MDMConfig.live
     )
   ) {

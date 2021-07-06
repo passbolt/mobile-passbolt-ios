@@ -26,7 +26,7 @@ import Environment
 import Foundation
 
 public struct LinkOpener {
-  
+
   public var openLink: (URL) -> AnyPublisher<Bool, Never>
   public var openApp: () -> AnyPublisher<Bool, Never>
   public var openAppSettings: () -> AnyPublisher<Bool, Never>
@@ -34,14 +34,14 @@ public struct LinkOpener {
 }
 
 extension LinkOpener: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> LinkOpener {
     let externalURLOpener: ExternalURLOpener = environment.externalURLOpener
-    
+
     return Self(
       openLink: externalURLOpener.openLink,
       openApp: externalURLOpener.openApp,
@@ -49,7 +49,7 @@ extension LinkOpener: Feature {
       openSystemSettings: externalURLOpener.openSystemSettings
     )
   }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {

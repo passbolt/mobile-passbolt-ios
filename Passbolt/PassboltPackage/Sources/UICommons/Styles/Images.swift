@@ -25,21 +25,21 @@ import class UIKit.UIImage
 import enum UIKit.UIUserInterfaceStyle
 
 public struct DynamicImage {
-  
+
   private var image: (UIUserInterfaceStyle) -> UIImage
-  
+
   public init(
     _ image: @escaping (UIUserInterfaceStyle) -> UIImage
   ) {
     self.image = image
   }
-  
+
   public func callAsFunction(
     in interfaceStyle: UIUserInterfaceStyle
   ) -> UIImage {
     image(interfaceStyle)
   }
-  
+
   public static func `default`(_ image: UIImage?) -> Self {
     Self { _ in image ?? .init() }
   }

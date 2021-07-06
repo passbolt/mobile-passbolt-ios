@@ -23,10 +23,10 @@
 import AccountSetup
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class CodeScanningExitConfirmationViewController:
-  AlertViewController<CodeScanningExitConfirmationController>, UIComponent {
-  
+  AlertViewController<CodeScanningExitConfirmationController>, UIComponent
+{
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -52,14 +52,14 @@ internal final class CodeScanningExitConfirmationViewController:
 }
 
 internal struct CodeScanningExitConfirmationController {
-  
+
   internal var exit: () -> Void
 }
 
 extension CodeScanningExitConfirmationController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,

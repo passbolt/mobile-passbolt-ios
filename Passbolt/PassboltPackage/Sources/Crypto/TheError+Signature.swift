@@ -22,11 +22,12 @@
 //
 
 import Commons
+
 import struct Foundation.OSStatus
 import class Security.CFError
 
 extension TheError {
-  
+
   internal static func signatureError(_ error: CFError?) -> Self {
     Self(
       identifier: .signatureError,
@@ -37,6 +38,6 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static let signatureError: Self = "signatureError"
 }

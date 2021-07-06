@@ -23,16 +23,17 @@
 
 import Foundation
 
-public extension Validator where Value: Collection {
-  
-  static func nonEmpty(
+extension Validator where Value: Collection {
+
+  public static func nonEmpty(
     errorIdentifier: TheError.ID = .validation,
     errorLocalizationKey: String
   ) -> Self {
     Self { value in
       if !value.isEmpty {
         return .valid(value)
-      } else {
+      }
+      else {
         return .invalid(
           value,
           errors: TheError(

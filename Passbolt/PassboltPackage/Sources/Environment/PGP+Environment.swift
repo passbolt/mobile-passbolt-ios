@@ -26,7 +26,7 @@ import Crypto
 extension PGP: EnvironmentElement {}
 
 extension Environment {
-  
+
   public var pgp: PGP {
     get { element(PGP.self) }
     set { use(newValue) }

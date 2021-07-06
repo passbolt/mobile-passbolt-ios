@@ -22,9 +22,9 @@
 //
 
 public struct HTTPMethod: RawRepresentable {
-  
+
   public var rawValue: String
-  
+
   public init(rawValue: String) {
     self.rawValue = rawValue
   }
@@ -33,14 +33,14 @@ public struct HTTPMethod: RawRepresentable {
 extension HTTPMethod: Hashable {}
 
 extension HTTPMethod: ExpressibleByStringLiteral {
-  
+
   public init(stringLiteral value: String) {
     self.init(rawValue: value)
   }
 }
 
 extension HTTPMethod {
-  
+
   public static let get: HTTPMethod = "GET"
   public static let put: HTTPMethod = "PUT"
   public static let post: HTTPMethod = "POST"

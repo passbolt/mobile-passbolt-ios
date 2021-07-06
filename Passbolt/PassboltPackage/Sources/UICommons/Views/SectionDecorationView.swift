@@ -22,7 +22,7 @@
 //
 
 public final class SectionDecorationView: CollectionReusableView {
-  
+
   override public func setup() {
     mut(self) {
       .combined(

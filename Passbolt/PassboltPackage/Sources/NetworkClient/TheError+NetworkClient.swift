@@ -25,7 +25,7 @@ import Commons
 import Environment
 
 extension TheError {
-  
+
   internal static func httpError(
     _ error: HTTPError
   ) -> Self {
@@ -35,7 +35,7 @@ extension TheError {
       extensions: [.context: "networking"]
     )
   }
-  
+
   internal static func networkResponseDecodingFailed(
     underlyingError: Error?,
     rawNetworkResponse: HTTPResponse
@@ -45,11 +45,11 @@ extension TheError {
       underlyingError: underlyingError,
       extensions: [
         .context: "networking-decoding",
-        .rawNetworkResponse: rawNetworkResponse
+        .rawNetworkResponse: rawNetworkResponse,
       ]
     )
   }
-  
+
   internal static func missingSession(
     underlyingError: Error? = nil
   ) -> Self {
@@ -62,18 +62,18 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static var httpError: Self { "httpError" }
   public static var networkResponseDecodingFailed: Self { "networkResponseDecodingFailed" }
   public static var missingSession: Self { "missingSession" }
 }
 
 extension TheError.Extension {
-  
+
   public static var rawNetworkResponse: Self { "rawNetworkResponse" }
 }
 
 extension TheError {
-  
+
   public var rawNetworkResponse: HTTPResponse? { extensions[.rawNetworkResponse] as? HTTPResponse }
 }

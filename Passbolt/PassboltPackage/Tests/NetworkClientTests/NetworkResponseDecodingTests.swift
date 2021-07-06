@@ -24,127 +24,132 @@
 import Commons
 import Environment
 import Foundation
-@testable import NetworkClient
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable force_unwrapping
+@testable import NetworkClient
+
 final class NetworkResponseDecodingTests: XCTestCase {
-  
+
   func test_rawBody_passesUnmodifiedData() {
     let decoding: NetworkResponseDecoding<Data> = .rawBody
     let expectedBody: Data = Data([0x65, 0x66, 0x67, 0x68])
-    
-    let decodingResult: Result<Data, TheError> = decoding
+
+    let decodingResult: Result<Data, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 200,
           headers: [:],
           body: expectedBody
         )
       )
-    
+
     XCTAssertSuccessEqual(decodingResult, expectedBody)
   }
-  
+
   func test_bodyAsString_withValidString_decodesString() {
     let decoding: NetworkResponseDecoding<String> = .bodyAsString()
     let expectedBody: String = "abcd"
-    
-    let decodingResult: Result<String, TheError> = decoding
+
+    let decodingResult: Result<String, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 200,
           headers: [:],
           body: expectedBody.data(using: .utf8)!
         )
       )
-    
+
     XCTAssertSuccessEqual(decodingResult, expectedBody)
   }
-  
+
   func test_bodyAsString_withInvalidString_fails() {
     let decoding: NetworkResponseDecoding<String> = .bodyAsString()
-    
-    let decodingResult: Result<String, TheError> = decoding
+
+    let decodingResult: Result<String, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 200,
           headers: [:],
           body: Data([0xff])
         )
       )
-    
+
     XCTAssertFailure(decodingResult)
   }
-  
+
   func test_bodyJSON_withValidJSON_decodesJSON() {
     let decoding: NetworkResponseDecoding<TestCodable> = .bodyAsJSON()
     let expectedBody: TestCodable = .sample
-    
-    let decodingResult: Result<TestCodable, TheError> = decoding
+
+    let decodingResult: Result<TestCodable, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 200,
           headers: [:],
           body: TestCodable.sampleJSONData
         )
       )
-    
+
     XCTAssertSuccessEqual(decodingResult, expectedBody)
   }
-  
+
   func test_bodyJSON_withInvalidJSON_fails() {
     let decoding: NetworkResponseDecoding<TestCodable> = .bodyAsJSON()
-    
-    let decodingResult: Result<TestCodable, TheError> = decoding
+
+    let decodingResult: Result<TestCodable, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 200,
           headers: [:],
           body: "{invalid]".data(using: .utf8)!
         )
       )
-    
+
     XCTAssertFailure(decodingResult)
   }
-  
+
   func test_succeesCodes_withStatusOk_succeeds() {
     let decoding: NetworkResponseDecoding<Void> = .statusCodes(200..<400)
-    
-    let decodingResult: Result<Void, TheError> = decoding
+
+    let decodingResult: Result<Void, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 201,
           headers: [:],
           body: .empty
         )
       )
-    
+
     XCTAssertSuccess(decodingResult)
   }
-  
+
   func test_succeesCodes_withInvalidStatus_fails() {
     let decoding: NetworkResponseDecoding<Void> = .statusCodes(200..<400)
-    
-    let decodingResult: Result<Void, TheError> = decoding
+
+    let decodingResult: Result<Void, TheError> =
+      decoding
       .decode(
         HTTPResponse(
-          url: .testURL,
+          url: .test,
           statusCode: 401,
           headers: [:],
           body: .empty
         )
       )
-    
+
     XCTAssertFailure(decodingResult)
   }
 }

@@ -25,9 +25,9 @@ import UICommons
 import UIComponents
 
 internal final class HomeTabViewController: NavigationViewController, UIComponent {
-  
+
   internal typealias Controller = HomeTabController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,10 +37,10 @@ internal final class HomeTabViewController: NavigationViewController, UIComponen
       with: components
     )
   }
-  
+
   internal let components: UIComponentFactory
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -49,7 +49,7 @@ internal final class HomeTabViewController: NavigationViewController, UIComponen
     self.components = components
     super.init()
   }
-  
+
   internal func setup() {
     mut(navigationBarView) {
       .primaryNavigationStyle()

@@ -26,16 +26,16 @@ import AegithalosCocoa
 #warning("FIXME: let it be only in DEBUG before release, allowing for dev builds now")
 
 public final class PlaceholderView: View {
-  
+
   public required init() {
     super.init()
-    
+
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background)
       )
     }
-    
+
     let label: Label = .init()
     mut(label) {
       .combined(
@@ -51,9 +51,9 @@ public final class PlaceholderView: View {
 public struct PlaceholderController {}
 
 extension PlaceholderController: UIController {
-  
+
   public typealias Context = Void
-  
+
   public static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -67,7 +67,7 @@ public final class PlaceholderViewController: PlainViewController, UIComponent {
 
   public typealias View = PlaceholderView
   public typealias Controller = PlaceholderController
-  
+
   public static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -77,11 +77,11 @@ public final class PlaceholderViewController: PlainViewController, UIComponent {
       with: components
     )
   }
-  
+
   public var components: UIComponentFactory
   private let controller: Controller
   public private(set) lazy var contentView: View = .init()
-  
+
   public init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -90,6 +90,6 @@ public final class PlaceholderViewController: PlainViewController, UIComponent {
     self.components = components
     super.init()
   }
-  
+
   public func setupView() {}
 }

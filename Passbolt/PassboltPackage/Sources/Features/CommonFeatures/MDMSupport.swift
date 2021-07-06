@@ -24,17 +24,17 @@
 import Environment
 
 public struct MDMSupport {
-  
-  #if DEBUG // disabled in prod for now, it might be enabled in future
+
+  #if DEBUG  // disabled in prod for now, it might be enabled in future
   public var transferedAccount: () -> TransferedAccount?
   #endif
 }
 
-#if DEBUG // disabled in prod for now, it might be enabled in future
+#if DEBUG  // disabled in prod for now, it might be enabled in future
 extension MDMSupport {
-  
+
   public struct TransferedAccount: Decodable {
-    
+
     public let userID: String
     public let domain: String
     public let username: String
@@ -48,14 +48,14 @@ extension MDMSupport {
 #endif
 
 extension MDMSupport: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let mdmConfig: MDMConfig = environment.mdmConfig
-    
+
     #if DEBUG
     func transferedAccount() -> TransferedAccount? {
       var config: Dictionary<String, Any> = mdmConfig.loadConfig()
@@ -83,8 +83,8 @@ extension MDMSupport: Feature {
       // "-----END PGP PRIVATE KEY BLOCK-----" suffix
       // additionally we have to replace all newlines (actaully \r\n) with \n explicitly
       // in order to recreate those here
-      let armoredKey: String
-        = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+      let armoredKey: String =
+        "-----BEGIN PGP PRIVATE KEY BLOCK-----"
         + flattenedArmoredKey.replacingOccurrences(of: "\\n", with: "\r\n")
         + "-----END PGP PRIVATE KEY BLOCK-----"
       return TransferedAccount(
@@ -98,7 +98,7 @@ extension MDMSupport: Feature {
         armoredKey: armoredKey
       )
     }
-    
+
     return Self(
       transferedAccount: transferedAccount
     )
@@ -110,7 +110,7 @@ extension MDMSupport: Feature {
 
 #if DEBUG
 extension MDMSupport {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

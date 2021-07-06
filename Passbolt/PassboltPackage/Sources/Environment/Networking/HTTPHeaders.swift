@@ -24,6 +24,6 @@
 public typealias HTTPHeaders = Dictionary<String, String>
 
 extension HTTPHeaders {
-  
+
   public static var empty: HTTPHeaders { HTTPHeaders() }
 }

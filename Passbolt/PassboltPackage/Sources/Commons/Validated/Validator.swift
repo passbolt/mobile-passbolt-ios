@@ -24,23 +24,23 @@
 import Foundation
 
 public struct Validator<Value> {
-  
+
   public var validate: (Value) -> Validated<Value>
-  
+
   public init(validate: @escaping (Value) -> Validated<Value>) {
     self.validate = validate
   }
 }
 
 extension Validator {
-  
+
   public func callAsFunction(_ value: Value) -> Validated<Value> {
     validate(value)
   }
 }
 
 extension Validator {
-  
+
   public func contraMap<MappedValue>(
     _ mapping: @escaping (MappedValue) -> Value
   ) -> Validator<MappedValue> {
@@ -68,13 +68,13 @@ public func zip<Value>(
 }
 
 extension Validator {
-  
+
   public static var alwaysValid: Self {
     Self { value in
       .valid(value)
     }
   }
-  
+
   public static func alwaysInvalid(errorLocalizationKey: String) -> Self {
     Self { value in
       .invalid(

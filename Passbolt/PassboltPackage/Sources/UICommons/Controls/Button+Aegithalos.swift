@@ -24,42 +24,42 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: Button {
-  
+
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
   }
-  
+
   public static func pressedBackgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicPressedBackgroundColor = color }
   }
-  
+
   public static func disabledBackgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicDisabledBackgroundColor = color }
   }
-  
+
   public static func tintColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTintColor = color }
   }
-  
+
   public static func pressedBackgroundColor(_ color: UIColor?) -> Self {
     .custom { (subject: Subject) in subject.pressedBackgroundColor = color }
   }
-  
+
   public static func disabledBackgroundColor(_ color: UIColor?) -> Self {
     .custom { (subject: Subject) in subject.disabledBackgroundColor = color }
   }
-  
+
   public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
     .custom { (subject: Subject) in
       subject.dynamicBorderColor = color
       subject.layer.borderWidth = width
     }
   }
-  
+
   public static func enabled() -> Self {
     .custom { (subject: Subject) in subject.isEnabled = true }
   }
-  
+
   public static func disabled() -> Self {
     .custom { (subject: Subject) in subject.isEnabled = false }
   }

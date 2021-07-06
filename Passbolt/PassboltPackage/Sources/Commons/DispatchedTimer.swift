@@ -23,16 +23,16 @@
 
 import class Foundation.DispatchQueue
 import class Foundation.DispatchSource
-import struct Foundation.DispatchTime
 import protocol Foundation.DispatchSourceTimer
+import struct Foundation.DispatchTime
 import typealias Foundation.DispatchTimeInterval
 import class Foundation.Timer
 
 public final class DispatchedTimer {
-  
+
   internal let timer: DispatchSourceTimer
   internal let queue: DispatchQueue
-  
+
   public init(
     interval: DispatchTimeInterval,
     repeating: DispatchTimeInterval = .never,
@@ -42,22 +42,22 @@ public final class DispatchedTimer {
   ) {
     self.queue = queue
     self.timer = DispatchSource.makeTimerSource(queue: queue)
-    
+
     timer.setEventHandler(handler: handler)
-    
+
     timer.schedule(
       deadline: .now().advanced(by: interval),
       repeating: repeating,
       leeway: leeway
     )
-    
+
     timer.resume()
   }
-  
+
   deinit {
     timer.cancel()
   }
-  
+
   public func cancel() {
     timer.cancel()
   }

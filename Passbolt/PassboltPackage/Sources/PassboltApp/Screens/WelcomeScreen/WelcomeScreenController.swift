@@ -23,7 +23,7 @@
 import UIComponents
 
 internal struct WelcomeScreenController {
-  
+
   internal var presentNoAccountAlert: () -> Void
   internal var noAccountAlertPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var dismissNoAccountAlert: () -> Void
@@ -32,9 +32,9 @@ internal struct WelcomeScreenController {
 }
 
 extension WelcomeScreenController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -42,7 +42,7 @@ extension WelcomeScreenController: UIController {
   ) -> Self {
     let noAccountAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let pushPublisher: PassthroughSubject<Void, Never> = .init()
-    
+
     return Self(
       presentNoAccountAlert: { noAccountAlertPresentationSubject.send(true) },
       noAccountAlertPresentationPublisher: noAccountAlertPresentationSubject.eraseToAnyPublisher,

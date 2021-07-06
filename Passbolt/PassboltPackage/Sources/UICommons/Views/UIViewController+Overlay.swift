@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension UIViewController {
-  
+
   public func present(
     overlay: UIView,
     animated: Bool = true
@@ -49,7 +49,7 @@ extension UIViewController {
       animations: { overlay.alpha = 1 }
     )
   }
-  
+
   public func dismissOverlay(
     animated: Bool = true
   ) {
@@ -68,9 +68,10 @@ extension UIViewController {
   }
 }
 
-fileprivate extension UIViewController {
-  
-  var _overlayView: UIView? {
+extension UIViewController {
+
+  // swift-format-ignore: NoLeadingUnderscores
+  fileprivate var _overlayView: UIView? {
     get {
       objc_getAssociatedObject(
         self,

@@ -25,15 +25,15 @@ import Features
 import UIComponents
 
 internal struct ExtensionSetupController {
-  
+
   internal var closeConfiguration: () -> Void
   internal var goBackToApp: () -> Void
 }
 
 extension ExtensionSetupController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -41,12 +41,12 @@ extension ExtensionSetupController: UIController {
   ) -> Self {
     let linkOpener: LinkOpener = features.instance()
     let autofillExtensionContext: AutofillExtensionContext = features.instance()
-    
-    func closeConfiguration() -> Void {
+
+    func closeConfiguration() {
       autofillExtensionContext.completeExtensionConfiguration()
     }
-    
-    func goBackToApp() -> Void {
+
+    func goBackToApp() {
       linkOpener
         .openApp()
         .ignoreOutput()
@@ -54,11 +54,10 @@ extension ExtensionSetupController: UIController {
         // it will close extension and release all memory, no need for dedicated cancellables
         .store(in: cancellables)
     }
-    
+
     return Self(
       closeConfiguration: closeConfiguration,
       goBackToApp: goBackToApp
     )
   }
 }
-

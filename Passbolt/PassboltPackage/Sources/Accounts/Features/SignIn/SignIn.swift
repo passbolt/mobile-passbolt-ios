@@ -24,25 +24,27 @@
 import Commons
 import Crypto
 import Features
-import class Foundation.JSONEncoder
-import class Foundation.JSONDecoder
-import struct Foundation.Data
 import NetworkClient
 
+import struct Foundation.Data
+import class Foundation.JSONDecoder
+import class Foundation.JSONEncoder
+
 public struct SignIn {
-  
+
   public enum Method {
     case challenge
     case refreshToken(String)
   }
-  
-  public var signIn: (
-    _ userID: Account.UserID,
-    _ domain: String,
-    _ armoredKey: ArmoredPrivateKey,
-    _ passphrase: Passphrase,
-    _ method: Method
-  ) -> AnyPublisher<SessionTokens, TheError>
+
+  public var signIn:
+    (
+      _ userID: Account.UserID,
+      _ domain: String,
+      _ armoredKey: ArmoredPrivateKey,
+      _ passphrase: Passphrase,
+      _ method: Method
+    ) -> AnyPublisher<SessionTokens, TheError>
 }
 
 extension SignIn: Feature {
@@ -56,25 +58,25 @@ extension SignIn: Feature {
     let time: Time = environment.time
     let pgp: PGP = environment.pgp
     let signatureVerification: SignatureVerfication = environment.signatureVerfication
-    
+
     let networkClient: NetworkClient = features.instance()
     let diagnostics: Diagnostics = features.instance()
-    
+
     let encoder: JSONEncoder = .init()
     let decoder: JSONDecoder = .init()
-    
+
     let serverPGPPublicKey: AnyPublisher<ArmoredPublicKey, TheError> =
       networkClient.serverPGPPublicKeyRequest.make(using: ())
       .map { (response: ServerPGPPublicKeyResponse) -> ArmoredPublicKey in
         ArmoredPublicKey(rawValue: response.body.keyData)
       }
       .eraseToAnyPublisher()
-    
+
     let rsaPublicKeyStep: AnyPublisher<String, TheError> =
       networkClient.serverRSAPublicKeyRequest.make(using: ())
       .map(\.body.keyData)
       .eraseToAnyPublisher()
-    
+
     func prepareChallenge(
       for method: Method,
       domain: String,
@@ -84,29 +86,29 @@ extension SignIn: Feature {
       switch method {
       case .challenge:
         let challenge: SignInRequestChallenge = .init(
-          version: "1.0.0", // Protocol version 1.0.0
+          version: "1.0.0",  // Protocol version 1.0.0
           token: verificationToken,
           domain: domain,
           expiration: verificationExpiration
         )
-        
+
         do {
           let challengeData: Data = try encoder.encode(challenge)
-      
+
           guard let encodedChallenge: String = .init(bytes: challengeData, encoding: .utf8) else {
             return .failure(.signInError().appending(context: "Failed to encode challenge to string"))
           }
-          
+
           return .success(encodedChallenge)
-        } catch {
+        }
+        catch {
           return .failure(.signInError(underlyingError: error).appending(context: "Failed to encode challenge"))
         }
-      // swiftlint:disable:next explicit_type_interface
       case let .refreshToken(token):
         return .success(token)
       }
     }
-    
+
     func signIn(
       userID: Account.UserID,
       domain: String,
@@ -115,22 +117,21 @@ extension SignIn: Feature {
       method: Method
     ) -> AnyPublisher<SessionTokens, TheError> {
       let verificationToken: String = uuidGenerator().uuidString
-      let verificationExpiration: Int = time.timestamp() + 120 // 120s is verification token's lifetime
-      
-      let jwtStep: AnyPublisher<String, TheError> = serverPGPPublicKey
+      let verificationExpiration: Int = time.timestamp() + 120  // 120s is verification token's lifetime
+
+      let jwtStep: AnyPublisher<String, TheError> =
+        serverPGPPublicKey
         .map { (serverPublicKey: ArmoredPublicKey) -> AnyPublisher<ArmoredMessage, TheError> in
           let encodedChallenge: String
-          
+
           switch prepareChallenge(
             for: method,
             domain: domain,
             verificationToken: verificationToken,
             verificationExpiration: verificationExpiration
           ) {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(challenge):
             encodedChallenge = challenge
-          // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             return Fail<ArmoredMessage, TheError>(
               error: .signInError(underlyingError: error).appending(logMessage: "JWT: Failed to encode challenge")
@@ -138,13 +139,11 @@ extension SignIn: Feature {
           }
 
           let encryptedAndSigned: String
-          
+
           switch pgp.encryptAndSign(encodedChallenge, passphrase, armoredKey, serverPublicKey) {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(result):
             encryptedAndSigned = result
-          
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             return Fail(error: error.appending(logMessage: "Failed to encrypt and sign"))
               .eraseToAnyPublisher()
@@ -164,7 +163,6 @@ extension SignIn: Feature {
                 challenge: challenge
               )
             )
-          // swiftlint:disable:next explicit_type_interface)
           case let .refreshToken(token):
             return networkClient.refreshSessionRequest.make(
               using: .init(
@@ -179,24 +177,22 @@ extension SignIn: Feature {
           response.body.challenge
         }
         .eraseToAnyPublisher()
-      
+
       let decryptedToken: AnyPublisher<Tokens, TheError> = Publishers.Zip(jwtStep, serverPGPPublicKey)
         .map { encryptedTokenPayload, publicKey -> AnyPublisher<String, TheError> in
           let decrypted: String
-          
+
           switch pgp.decryptAndVerify(encryptedTokenPayload, passphrase, armoredKey, publicKey) {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(result):
             decrypted = result
-            
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             return Fail<String, TheError>(
               error: error.appending(logMessage: "Unable to decrypt and verify")
             )
             .eraseToAnyPublisher()
           }
-          
+
           return Just<String>(decrypted)
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
@@ -205,33 +201,32 @@ extension SignIn: Feature {
         .map { token -> AnyPublisher<Tokens, TheError> in
           let tokenData: Data = token.data(using: .utf8) ?? Data()
           let tokens: Tokens
-          
+
           do {
             tokens = try decoder.decode(Tokens.self, from: tokenData)
-          } catch {
+          }
+          catch {
             return Fail<Tokens, TheError>.init(
               error: .signInError(underlyingError: error)
             )
             .eraseToAnyPublisher()
           }
-          
+
           return Just<Tokens>(tokens)
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
         }
         .switchToLatest()
         .eraseToAnyPublisher()
-    
+
       return Publishers.Zip(rsaPublicKeyStep, decryptedToken)
         .map { (publicKey: String, decryptedToken: Tokens) -> AnyPublisher<SessionTokens, TheError> in
-          
+
           let accessToken: JWT
           switch JWT.from(rawValue: decryptedToken.accessToken) {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(jwt):
             accessToken = jwt
-            
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             return Fail<SessionTokens, TheError>(
               error: .signInError(underlyingError: error)
@@ -239,7 +234,7 @@ extension SignIn: Feature {
             )
             .eraseToAnyPublisher()
           }
-          
+
           guard verificationToken == decryptedToken.verificationToken,
             verificationExpiration > time.timestamp(),
             let key: Data = Data(base64Encoded: publicKey.stripArmoredFormat()),
@@ -251,7 +246,7 @@ extension SignIn: Feature {
             )
             .eraseToAnyPublisher()
           }
-          
+
           switch signatureVerification.verify(signedData, signature, key) {
           case .success:
             return Just(
@@ -259,8 +254,7 @@ extension SignIn: Feature {
             )
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
-            
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             return Fail<SessionTokens, TheError>(
               error: error.appending(logMessage: "Signature verification failed")
@@ -272,14 +266,14 @@ extension SignIn: Feature {
         .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
-    
+
     return Self(signIn: signIn)
   }
 }
 
 #if DEBUG
 extension SignIn {
-  
+
   public static var placeholder: SignIn {
     Self(signIn: Commons.placeholder("You have to provide mocks for used methods"))
   }

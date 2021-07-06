@@ -24,13 +24,13 @@
 import Commons
 
 public struct KeychainItemMetadata {
-  
+
   public typealias Key = Tagged<String, Self>
   public typealias Tag = Tagged<String, Key>
-  
+
   public var key: Key
   public var tag: Tag?
-  
+
   public init(
     key: Key,
     tag: Tag?
@@ -41,7 +41,7 @@ public struct KeychainItemMetadata {
 }
 
 extension KeychainItemMetadata: CustomDebugStringConvertible {
-  
+
   public var debugDescription: String {
     "KeychainItemMetadata(key: \(key.rawValue), tag:\(tag?.rawValue ?? "nil"))"
   }

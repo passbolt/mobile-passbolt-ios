@@ -25,9 +25,8 @@ import Crypto
 import Features
 
 #warning("TODO: [PAS-82] - database")
-// swiftlint:disable file_length
 internal struct AccountsDataStore {
-  
+
   internal var verifyDataIntegrity: () -> Result<Void, TheError>
   internal var loadAccounts: () -> Array<Account>
   internal var loadLastUsedAccount: () -> Account?
@@ -44,8 +43,7 @@ internal struct AccountsDataStore {
 }
 
 extension AccountsDataStore: Feature {
-  
-  // swiftlint:disable:next function_body_length
+
   internal static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -53,36 +51,33 @@ extension AccountsDataStore: Feature {
   ) -> Self {
     let preferences: Preferences = environment.preferences
     let keychain: Keychain = environment.keychain
-    
+
     let diagnostics: Diagnostics = features.instance()
-    
+
     func forceDelete(matching query: KeychainQuery) {
       diagnostics.debugLog("Purging data for \(query.key)")
       switch keychain.delete(matching: query) {
       case .success:
         break
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         fatalError(error.description)
       }
     }
-    // swiftlint:disable:next cyclomatic_complexity function_body_length cyclomatic_complexity
     func ensureDataIntegrity() -> Result<Void, TheError> {
       diagnostics.diagnosticLog("Verifying data integrity...")
       defer { diagnostics.diagnosticLog("...data integrity verification finished") }
-      
+
       // storedAccountsList - user defaults control list
-      let storedAccountsList: Array<Account.LocalID> = preferences
+      let storedAccountsList: Array<Account.LocalID> =
+        preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       diagnostics.debugLog("Stored accounts list: \(storedAccountsList)")
-      
+
       // storedAccounts - keychain accounts
       let storedAccounts: Array<Account.LocalID>
       switch keychain.loadAll(Account.self, matching: .accountsQuery) {
-      // swiftlint:disable:next explicit_type_interface
       case let .success(accounts):
         storedAccounts = accounts.map(\.localID)
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         diagnostics.diagnosticLog(
           "Failed to load accounts data, recovering with empty list"
@@ -92,14 +87,12 @@ extension AccountsDataStore: Feature {
         storedAccounts = .init()
       }
       diagnostics.debugLog("Stored accounts: \(storedAccounts)")
-      
+
       // storedAccountProfiles - keychain accounts metadata
       let storedAccountsProfiles: Array<Account.LocalID>
       switch keychain.loadAll(AccountProfile.self, matching: .accountsProfilesQuery) {
-      // swiftlint:disable:next explicit_type_interface
       case let .success(accounts):
         storedAccountsProfiles = accounts.map(\.accountID)
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         diagnostics.diagnosticLog(
           "Failed to load account profiles data, recovering with empty list"
@@ -109,7 +102,7 @@ extension AccountsDataStore: Feature {
         storedAccountsProfiles = .init()
       }
       diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
-      
+
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
       let armoredKeysQuery: KeychainQuery = .init(
@@ -118,14 +111,13 @@ extension AccountsDataStore: Feature {
         requiresBiometrics: false
       )
       switch keychain.loadMeta(matching: armoredKeysQuery) {
-      // swiftlint:disable:next explicit_type_interface
       case let .success(keysMeta):
-        storedAccountKeys = keysMeta
+        storedAccountKeys =
+          keysMeta
           .compactMap(\.tag)
           .map { tag in
             Account.LocalID(rawValue: tag.rawValue)
           }
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         diagnostics.diagnosticLog(
           "Failed to load armored keys metadata, recovering with empty list"
@@ -135,26 +127,27 @@ extension AccountsDataStore: Feature {
         storedAccountKeys = .init()
       }
       diagnostics.debugLog("Stored account keys: \(storedAccountKeys)")
-      
-      let updatedAccountsList: Array<Account.LocalID> = storedAccountsList
+
+      let updatedAccountsList: Array<Account.LocalID> =
+        storedAccountsList
         .filter {
           storedAccounts.contains($0)
-          && storedAccountsProfiles.contains($0)
-          && storedAccountKeys.contains($0)
+            && storedAccountsProfiles.contains($0)
+            && storedAccountKeys.contains($0)
         }
       environment
         .preferences
         .save(updatedAccountsList, for: .accountsList)
       diagnostics.debugLog("Updated accounts list: \(updatedAccountsList)")
-      
-      let accountsToRemove: Array<Account.LocalID> = storedAccounts
+
+      let accountsToRemove: Array<Account.LocalID> =
+        storedAccounts
         .filter { !updatedAccountsList.contains($0) }
-      
+
       for accountID in accountsToRemove {
         switch keychain.delete(matching: .accountQuery(for: accountID)) {
         case .success:
           continue
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.diagnosticLog(
             "Failed to delete account for accountID: \(accountID)"
@@ -164,15 +157,15 @@ extension AccountsDataStore: Feature {
         }
       }
       diagnostics.debugLog("Deleted accounts: \(accountsToRemove)")
-      
-      let accountProfilesToRemove: Array<Account.LocalID> = storedAccountsProfiles
+
+      let accountProfilesToRemove: Array<Account.LocalID> =
+        storedAccountsProfiles
         .filter { !updatedAccountsList.contains($0) }
-      
+
       for accountID in accountProfilesToRemove {
         switch keychain.delete(matching: .accountProfileQuery(for: accountID)) {
         case .success:
           continue
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.diagnosticLog(
             "Failed to delete account profile for accountID: \(accountID)"
@@ -182,15 +175,15 @@ extension AccountsDataStore: Feature {
         }
       }
       diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
-      
-      let keysToRemove: Array<Account.LocalID> = storedAccountKeys
+
+      let keysToRemove: Array<Account.LocalID> =
+        storedAccountKeys
         .filter { !updatedAccountsList.contains($0) }
-      
+
       for accountID in keysToRemove {
         switch keychain.delete(matching: .accountArmoredKeyQuery(for: accountID)) {
         case .success:
           continue
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.diagnosticLog(
             "Failed to delete account private key for accountID: \(accountID)"
@@ -200,13 +193,12 @@ extension AccountsDataStore: Feature {
         }
       }
       diagnostics.debugLog("Deleted account private keys: \(keysToRemove)")
-      
+
       if updatedAccountsList.isEmpty {
         diagnostics.debugLog("Deleting stored passphrases")
         switch keychain.delete(matching: .accountPassphraseDeletionQuery()) {
         case .success:
           break
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           diagnostics.diagnosticLog(
             "Failed to delete stored passphrases"
@@ -214,17 +206,19 @@ extension AccountsDataStore: Feature {
           diagnostics.debugLog(error.description)
           return .failure(error)
         }
-      } else { /* We can't delete passphrases selectively due to biometrics */ }
-      
+      }
+      else { /* We can't delete passphrases selectively due to biometrics */
+      }
+
       diagnostics.diagnosticLog(
         "Deleted accounts: \(Set(accountsToRemove + accountProfilesToRemove + keysToRemove))"
       )
-      
+
       #warning("TODO: [PAS-82] Verify database files and remove detached")
-      
+
       return .success
     }
-    
+
     func loadAccounts() -> Array<Account> {
       let keychainLoadResult: Result<Array<Account>, TheError> = environment
         .keychain
@@ -233,19 +227,17 @@ extension AccountsDataStore: Feature {
           matching: .accountsQuery
         )
       switch keychainLoadResult {
-      // swiftlint:disable:next explicit_type_interface
       case let .success(accounts):
         return accounts
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         diagnostics.debugLog(
           "Failed to load accounts"
-          + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
         )
         return []
       }
     }
-    
+
     func loadLastUsedAccount() -> Account? {
       environment
         .preferences
@@ -261,24 +253,22 @@ extension AccountsDataStore: Feature {
               matching: .accountQuery(for: accountID)
             )
           switch keychainResult {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(account):
             return account
-          // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             diagnostics.debugLog(
               "Failed to load last used account: \(accountID)"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
             return nil
           }
         }
     }
-    
-    func storeLastUsedAccount(_ accountID: Account.LocalID) -> Void {
+
+    func storeLastUsedAccount(_ accountID: Account.LocalID) {
       preferences.save(accountID, for: .lastUsedAccount)
     }
-    
+
     func store(
       account: Account,
       profile: AccountProfile,
@@ -291,7 +281,7 @@ extension AccountsDataStore: Feature {
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.append(account.localID)
       preferences.save(accountIdentifiers, for: .accountsList)
-      
+
       return environment
         .keychain
         .save(profile, for: .accountProfileQuery(for: account.localID))
@@ -309,7 +299,7 @@ extension AccountsDataStore: Feature {
             }
         }
     }
-    
+
     func loadAccountPrivateKey(
       for accountID: Account.LocalID
     ) -> Result<ArmoredPrivateKey, TheError> {
@@ -322,12 +312,13 @@ extension AccountsDataStore: Feature {
         .flatMap { key in
           if let key: ArmoredPrivateKey = key {
             return .success(key)
-          } else {
+          }
+          else {
             return .failure(.invalidAccount())
           }
         }
     }
-    
+
     func storePassphrase(
       for accountID: Account.LocalID,
       passphrase: Passphrase
@@ -355,12 +346,13 @@ extension AccountsDataStore: Feature {
                     for: .accountPassphraseQuery(for: accountID)
                   )
               }
-          } else {
+          }
+          else {
             return .failure(.invalidAccount())
           }
         }
     }
-    
+
     func loadPassphrase(
       for accountID: Account.LocalID
     ) -> Result<Passphrase, TheError> {
@@ -371,19 +363,20 @@ extension AccountsDataStore: Feature {
         .flatMap { passphrase in
           if let passphrase: Passphrase = passphrase {
             return .success(passphrase)
-          } else {
+          }
+          else {
             return .failure(.invalidPassphrase())
           }
         }
         .mapError { error in
           diagnostics.debugLog(
             "Failed to load passphrase"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
           )
           return .biometricsNotAvailable(underlyingError: error)
         }
     }
-    
+
     func deletePassphrase(
       for accountID: Account.LocalID
     ) -> Result<Void, TheError> {
@@ -407,12 +400,13 @@ extension AccountsDataStore: Feature {
                   .keychain
                   .delete(matching: .accountPassphraseQuery(for: accountID))
               }
-          } else {
+          }
+          else {
             return .failure(.invalidAccount())
           }
         }
     }
-    
+
     func loadAccountProfile(
       for accountID: Account.LocalID
     ) -> Result<AccountProfile, TheError> {
@@ -422,12 +416,13 @@ extension AccountsDataStore: Feature {
         .flatMap { profile in
           if let profile: AccountProfile = profile {
             return .success(profile)
-          } else {
+          }
+          else {
             return .failure(.invalidAccount())
           }
         }
     }
-    
+
     func update(
       accountProfile: AccountProfile
     ) -> Result<Void, TheError> {
@@ -440,11 +435,11 @@ extension AccountsDataStore: Feature {
         .keychain
         .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
     }
-    
+
     func deleteAccount(withID accountID: Account.LocalID) {
       // There is a risk of calling this method with valid session for deleted account,
       // we should assert on that or make it impossible")
-      
+
       // data integrity check performs cleanup in case of partial success
       defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
       #warning("TODO: Consider propagating the error outside of this function")
@@ -465,17 +460,17 @@ extension AccountsDataStore: Feature {
         .load(Array<Account.LocalID>.self, for: .accountsList)
       accountIdentifiers.removeAll(where: { $0 == accountID })
       preferences.save(accountIdentifiers, for: .accountsList)
-      
+
       #warning("TODO: [PAS-82] remove database files")
     }
-    
+
     func prepareDatabaseConnection(
       forAccountWithID accountID: Account.LocalID
     ) -> Result<DatabaseConnection, TheError> {
       #warning("TODO: [PAS-82] prepare connection and files if needed")
       return .success(DatabaseConnection.placeholder)
     }
-    
+
     return Self(
       verifyDataIntegrity: ensureDataIntegrity,
       loadAccounts: loadAccounts,
@@ -492,7 +487,7 @@ extension AccountsDataStore: Feature {
       accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:)
     )
   }
-  
+
   #if DEBUG
   internal static var placeholder: Self {
     Self(
@@ -515,13 +510,13 @@ extension AccountsDataStore: Feature {
 }
 
 extension Preferences.Key {
-  
+
   fileprivate static var accountsList: Self { "accountsList" }
   fileprivate static var lastUsedAccount: Self { "lastUsedAccount" }
 }
 
 extension KeychainQuery {
-  
+
   fileprivate static var accountsQuery: Self {
     Self(
       key: "account",
@@ -529,7 +524,7 @@ extension KeychainQuery {
       requiresBiometrics: false
     )
   }
-  
+
   fileprivate static func accountQuery(
     for identifier: Account.LocalID
   ) -> Self {
@@ -543,7 +538,7 @@ extension KeychainQuery {
       requiresBiometrics: false
     )
   }
-  
+
   fileprivate static var accountsProfilesQuery: Self {
     Self(
       key: "accountProfile",
@@ -551,7 +546,7 @@ extension KeychainQuery {
       requiresBiometrics: false
     )
   }
-  
+
   fileprivate static func accountProfileQuery(
     for identifier: Account.LocalID
   ) -> Self {
@@ -565,7 +560,7 @@ extension KeychainQuery {
       requiresBiometrics: false
     )
   }
-  
+
   fileprivate static func accountArmoredKeyQuery(
     for identifier: Account.LocalID
   ) -> Self {
@@ -579,7 +574,7 @@ extension KeychainQuery {
       requiresBiometrics: false
     )
   }
-  
+
   fileprivate static func accountPassphraseDeletionQuery() -> Self {
     Self(
       key: "accountPassphrase",
@@ -588,7 +583,7 @@ extension KeychainQuery {
       requiresBiometrics: false
     )
   }
-  
+
   fileprivate static func accountPassphraseQuery(
     for identifier: Account.LocalID
   ) -> Self {

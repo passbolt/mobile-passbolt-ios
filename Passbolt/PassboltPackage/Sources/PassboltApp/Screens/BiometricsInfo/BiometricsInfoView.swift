@@ -22,31 +22,32 @@
 //
 
 import Commons
-import struct Environment.Biometrics
 import UICommons
 
+import struct Environment.Biometrics
+
 internal final class BiometricsInfoView: ScrolledStackView {
-  
+
   internal var setupTapPublisher: AnyPublisher<Void, Never>
   internal var skipTapPublisher: AnyPublisher<Void, Never>
-  
+
   private let imageView: ImageView = .init()
   private let titleLabel: Label = .init()
   private let descriptionLabel: Label = .init()
   private let setupButton: TextButton = .init()
-  
+
   internal required init() {
     let skipButton: TextButton = .init()
-    
+
     self.setupTapPublisher = setupButton.tapPublisher
     self.skipTapPublisher = skipButton.tapPublisher
     super.init()
-    
+
     let imageContainer: View = .init()
     mut(imageContainer) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     #warning("TODO: replace image with generic graphic when available")
     mut(imageView) {
       .combined(
@@ -60,7 +61,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
         .accessibilityIdentifier("welcome.accounts.imageview")
       )
     }
-    
+
     mut(titleLabel) {
       .combined(
         .text(localized: "biometrics.info.title"),
@@ -69,7 +70,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.info.title.label")
       )
     }
-    
+
     mut(descriptionLabel) {
       .combined(
         .text(localized: "biometrics.info.description"),
@@ -82,7 +83,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.info.description.label")
       )
     }
-    
+
     mut(setupButton) {
       .combined(
         .primaryStyle(),
@@ -90,7 +91,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.info.setup.button")
       )
     }
-    
+
     mut(skipButton) {
       .combined(
         .text(localized: "biometrics.info.setup.button"),
@@ -99,7 +100,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.info.later.button")
       )
     }
-    
+
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background),

@@ -24,9 +24,9 @@
 import Features
 
 #if DEBUG
-public extension Networking {
-  
-  func withLogs(using diagnostics: Diagnostics) -> Self {
+extension Networking {
+
+  public func withLogs(using diagnostics: Diagnostics) -> Self {
     Self(
       execute: { request, useCache in
         let trackingID: String = diagnostics.uniqueID()

@@ -24,28 +24,28 @@
 import Commons
 
 public struct JWKS: Decodable {
-  
+
   public enum Key {
-    
+
     public enum Kind: String, Decodable {
       // We're supporting only RSA
       case rsa = "RSA"
     }
-    
+
     public enum Purpose: String, Decodable {
       // We're supporting only signature
       case signature = "sig"
     }
   }
-  
+
   public var algorithm: JWT.Algorithm
   public var keyType: Key.Kind
   public var purpose: Key.Purpose
   public var exponent: String
   public var modulus: String
-  
+
   private enum CodingKeys: String, CodingKey {
-    
+
     case algorithm = "alg"
     case keyType = "kty"
     case purpose = "use"

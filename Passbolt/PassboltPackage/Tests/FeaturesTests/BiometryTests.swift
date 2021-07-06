@@ -21,46 +21,46 @@
 // @since         v1.0
 //
 
-@testable import Features
 import TestExtensions
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable explicit_type_interface
+@testable import Features
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class BiometryTests: TestCase {
 
   func test_biometricsStateChangesPublisher_publishesBiometricsState_initially() {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
-    
+
     let feature: Biometry = testInstance()
-    
+
     var result: Biometrics.State!
     feature
       .biometricsStateChangesPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, .configuredTouchID)
   }
-  
-  func test_biometricsStateChangesPublisher_publishesBiometricsStateAgain_afterPickingApplicationFromBackground_whenStateDoesNotChange() {
+
+  func
+    test_biometricsStateChangesPublisher_publishesBiometricsStateAgain_afterPickingApplicationFromBackground_whenStateDoesNotChange()
+  {
     var biometricsState: Biometrics.State = .configuredTouchID
     environment.biometrics.checkBiometricsState = always(biometricsState)
     environment.appLifeCycle.lifeCyclePublisher = always(
       [
         AppLifeCycle.Transition.didEnterBackground,
-        AppLifeCycle.Transition.didBecomeActive
+        AppLifeCycle.Transition.didBecomeActive,
       ]
-        .publisher
-        // lifeCyclePublisher is used in Biometry instance creation
-        // it publishes immediately after creating so delaying for test case
-        .delay(for: 0.1, scheduler: RunLoop.main)
-        .handleEvents(receiveOutput: { _ in biometricsState = .configuredFaceID })
-        .eraseToAnyPublisher()
+      .publisher
+      // lifeCyclePublisher is used in Biometry instance creation
+      // it publishes immediately after creating so delaying for test case
+      .delay(for: 0.1, scheduler: RunLoop.main)
+      .handleEvents(receiveOutput: { _ in biometricsState = .configuredFaceID })
+      .eraseToAnyPublisher()
     )
-    
+
     let feature: Biometry = testInstance()
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
@@ -75,21 +75,23 @@ final class BiometryTests: TestCase {
     wait(for: [expectation], timeout: 0.3)
     XCTAssertEqual(result, [.configuredTouchID, .configuredFaceID])
   }
-  
-  func test_biometricsStateChangesPublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges() {
+
+  func
+    test_biometricsStateChangesPublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges()
+  {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(
       [
         AppLifeCycle.Transition.didEnterBackground,
-        AppLifeCycle.Transition.didBecomeActive
+        AppLifeCycle.Transition.didBecomeActive,
       ]
-        .publisher
-        // lifeCyclePublisher is used in Biometry instance creation
-        // it publishes immediately after creating so delaying for test case
-        .delay(for: 0.1, scheduler: RunLoop.main)
-        .eraseToAnyPublisher()
+      .publisher
+      // lifeCyclePublisher is used in Biometry instance creation
+      // it publishes immediately after creating so delaying for test case
+      .delay(for: 0.1, scheduler: RunLoop.main)
+      .eraseToAnyPublisher()
     )
-    
+
     let feature: Biometry = testInstance()
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
@@ -105,4 +107,3 @@ final class BiometryTests: TestCase {
     XCTAssertEqual(result, [.configuredTouchID])
   }
 }
-

@@ -23,7 +23,7 @@
 
 // Read only composite of Account and AccountProfile for displaying authorization and account list.
 public struct AccountWithProfile {
-  
+
   public let localID: Account.LocalID
   public let userID: Account.UserID
   public let domain: String

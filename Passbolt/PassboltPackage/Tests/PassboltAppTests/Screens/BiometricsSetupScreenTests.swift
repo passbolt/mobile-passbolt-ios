@@ -24,77 +24,75 @@
 import Accounts
 import Combine
 import Features
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable explicit_type_interface
+@testable import PassboltApp
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class BiometricsSetupScreenTests: TestCase {
-  
+
   var accountSettings: AccountSettings!
   var biometry: Biometry!
-  
+
   override func setUp() {
     super.setUp()
     accountSettings = .placeholder
     biometry = .placeholder
   }
-  
+
   override func tearDown() {
     accountSettings = nil
     biometry = nil
     super.tearDown()
   }
-  
+
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
     features.use(accountSettings)
     features.use(biometry)
     let controller: BiometricsSetupController = testInstance()
-    
+
     var result: Void!
     controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_continueSetupPresentationPublisher_publishWhenSkipping() {
     features.use(accountSettings)
     features.use(biometry)
     let controller: BiometricsSetupController = testInstance()
-    
+
     var result: Void!
     controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     controller.skipSetup()
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_continueSetupPresentationPublisher_publishWhenSetupSucceed() {
     accountSettings.setBiometricsEnabled = always(Empty<Never, TheError>().eraseToAnyPublisher())
     features.use(accountSettings)
     features.use(biometry)
     let controller: BiometricsSetupController = testInstance()
-    
+
     var result: Void!
     controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     controller.setupBiometrics()
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_setupBiometrics_setsBiometricsAsEnabled() {
     var result: Bool!
     accountSettings.setBiometricsEnabled = { enabled in
@@ -105,14 +103,14 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     let controller: BiometricsSetupController = testInstance()
-    
+
     controller.setupBiometrics()
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_setupBiometrics_fails_whenBiometricsEnableFails() {
     accountSettings.setBiometricsEnabled = { _ in
       Fail<Never, TheError>(error: .testError())
@@ -121,7 +119,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     let controller: BiometricsSetupController = testInstance()
-    
+
     var result: TheError!
     controller.setupBiometrics()
       .sink(receiveCompletion: { completion in
@@ -129,7 +127,7 @@ final class BiometricsSetupScreenTests: TestCase {
         result = error
       })
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .testError)
   }
 }

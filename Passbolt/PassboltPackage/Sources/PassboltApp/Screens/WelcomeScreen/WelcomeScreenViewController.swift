@@ -24,10 +24,10 @@ import AccountSetup
 import UIComponents
 
 internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = WelcomeScreenView
   internal typealias Controller = WelcomeScreenController
-  
+
   internal static func instance(
     using controller: WelcomeScreenController,
     with components: UIComponentFactory
@@ -37,12 +37,12 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: WelcomeScreenView = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: WelcomeScreenController
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -51,15 +51,15 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     contentView.tapAccountPublisher
       .receive(on: RunLoop.main)
@@ -67,14 +67,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
         self?.controller.pushTransferInfo()
       }
       .store(in: cancellables)
-    
+
     contentView.tapNoAccountPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         self?.controller.presentNoAccountAlert()
       }
       .store(in: cancellables)
-    
+
     controller.noAccountAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
@@ -84,12 +84,13 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
             WelcomeScreenNoAccountAlertViewController.self,
             in: self.controller.dismissNoAccountAlert
           )
-        } else {
+        }
+        else {
           self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
         }
       }
       .store(in: cancellables)
-    
+
     controller.pushTransferInfoPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in

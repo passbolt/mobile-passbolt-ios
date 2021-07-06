@@ -24,11 +24,12 @@
 import Commons
 import Environment
 
-public typealias AccountTransferUpdateRequest
-  = NetworkRequest<EmptyNetworkSessionVariable, AccountTransferUpdateRequestVariable, AccountTransferUpdateResponse>
+public typealias AccountTransferUpdateRequest = NetworkRequest<
+  EmptyNetworkSessionVariable, AccountTransferUpdateRequestVariable, AccountTransferUpdateResponse
+>
 
 extension AccountTransferUpdateRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
@@ -59,14 +60,14 @@ extension AccountTransferUpdateRequest {
 }
 
 public struct AccountTransferUpdateRequestVariable {
-  
+
   public var domain: String
   public var authenticationToken: String
   public var transferID: String
   public var currentPage: Int
   public var status: Status
   public var requestUserProfile: Bool
-  
+
   public init(
     domain: String,
     authenticationToken: String,
@@ -85,22 +86,22 @@ public struct AccountTransferUpdateRequestVariable {
 }
 
 extension AccountTransferUpdateRequestVariable {
-  
+
   public enum Status: String, Encodable {
-    
+
     case inProgress = "in progress"
     case complete = "complete"
     case error = "error"
     case cancel = "cancel"
   }
-  
+
   public struct Body: Encodable {
-    
+
     public var currentPage: Int
     public var status: Status
-    
+
     internal enum CodingKeys: String, CodingKey {
-      
+
       case currentPage = "current_page"
       case status = "status"
     }
@@ -110,29 +111,29 @@ extension AccountTransferUpdateRequestVariable {
 public typealias AccountTransferUpdateResponse = CommonResponse<AccountTransferUpdateResponseBody>
 
 public struct AccountTransferUpdateResponseBody: Decodable {
-  
+
   public var user: User?
 }
 
 extension AccountTransferUpdateResponseBody {
-  
+
   public struct User: Decodable {
-    
+
     public var username: String
     public var profile: Profile
   }
 }
 
 extension AccountTransferUpdateResponseBody.User {
-  
+
   public struct Profile: Decodable {
-    
+
     public var firstName: String
     public var lastName: String
     public var avatar: Avatar
-    
+
     public enum CodingKeys: String, CodingKey {
-      
+
       case firstName = "first_name"
       case lastName = "last_name"
       case avatar = "avatar"
@@ -141,17 +142,17 @@ extension AccountTransferUpdateResponseBody.User {
 }
 
 extension AccountTransferUpdateResponseBody.User.Profile {
-  
+
   public struct Avatar: Decodable {
-    
+
     public var url: Image
   }
 }
 
 extension AccountTransferUpdateResponseBody.User.Profile.Avatar {
-  
+
   public struct Image: Decodable {
-    
+
     public var medium: String
     public var small: String
   }

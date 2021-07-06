@@ -24,23 +24,23 @@
 import UIComponents
 
 internal struct AccountTransferFailureController {
-  
+
   internal var failureReason: () -> TheError
   internal var `continue`: () -> Void
   internal var backPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
 extension AccountTransferFailureController: UIController {
-  
+
   internal typealias Context = TheError
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let backPresentationSubject: PassthroughSubject<Never, Never> = .init()
-    
+
     return Self(
       failureReason: { context },
       continue: { backPresentationSubject.send(completion: .finished) },
@@ -48,4 +48,3 @@ extension AccountTransferFailureController: UIController {
     )
   }
 }
-

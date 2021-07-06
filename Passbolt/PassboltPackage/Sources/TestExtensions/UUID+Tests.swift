@@ -24,9 +24,9 @@
 import struct Foundation.UUID
 
 extension UUID {
-  
-  public static var testUUID: Self {
-    // swiftlint:disable:next force_unwrapping
-    UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+
+  public static var test: Self {
+    // swift-format-ignore: NeverForceUnwrap
+    .init(uuidString: "00000000-0000-0000-0000-000000000001")!
   }
 }

@@ -24,43 +24,44 @@
 import UICommons
 
 internal final class AccountSelectionCollectionView: CollectionView<SingleSection, AccountSelectionListItem> {
-  
-  internal lazy var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> = tapSubject.eraseToAnyPublisher()
+
+  internal lazy var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
+    tapSubject.eraseToAnyPublisher()
   internal lazy var addAccountPublisher: AnyPublisher<AccountSelectionAddAccountCellItem, Never> =
     addAccountTapSubject.eraseToAnyPublisher()
   internal lazy var removeAccountPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
     removeSubject.eraseToAnyPublisher()
-  
+
   private let tapSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
   private let addAccountTapSubject: PassthroughSubject<AccountSelectionAddAccountCellItem, Never> = .init()
   private let removeSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
-  
+
   internal init(layout: UICollectionViewLayout) {
     super.init(
       layout: layout,
       cells: [
         AccountSelectionCell.self,
-        AccountSelectionAddAccountCell.self
+        AccountSelectionAddAccountCell.self,
       ],
       supplementaryViews: [CollectionViewSeparator.self]
     )
     setup()
   }
-  
+
   override internal func setupCell(
     for item: AccountSelectionListItem,
     in section: SingleSection,
     at indexPath: IndexPath
   ) -> CollectionViewCell? {
-    
+
     switch item {
-    // swiftlint:disable:next explicit_type_interface
     case let .account(accountItem):
-      let cell: AccountSelectionCell = dequeueReusableCell(
-        withReuseIdentifier: AccountSelectionCell.reuseIdentifier,
-        for: indexPath
-      ) as? AccountSelectionCell ?? .init()
-      
+      let cell: AccountSelectionCell =
+        dequeueReusableCell(
+          withReuseIdentifier: AccountSelectionCell.reuseIdentifier,
+          for: indexPath
+        ) as? AccountSelectionCell ?? .init()
+
       cell.setup(
         from: accountItem,
         tapAction: { [weak self] in
@@ -70,38 +71,39 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
           self?.removeSubject.send(accountItem)
         }
       )
-      
+
       return cell
-    
-    // swiftlint:disable:next explicit_type_interface
+
     case let .addAccount(addAccountItem):
-      let cell: AccountSelectionAddAccountCell = dequeueReusableCell(
-        withReuseIdentifier: AccountSelectionAddAccountCell.reuseIdentifier,
-        for: indexPath
-      ) as? AccountSelectionAddAccountCell ?? .init()
-      
+      let cell: AccountSelectionAddAccountCell =
+        dequeueReusableCell(
+          withReuseIdentifier: AccountSelectionAddAccountCell.reuseIdentifier,
+          for: indexPath
+        ) as? AccountSelectionAddAccountCell ?? .init()
+
       cell.setup(
         from: addAccountItem,
         tapAction: { [weak self] in
           self?.addAccountTapSubject.send(addAccountItem)
         }
       )
-      
+
       return cell
     }
   }
-  
+
   override internal func setupSupplementaryView(
     _ kind: String,
     for section: SingleSection,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
-    let supplementaryView: CollectionViewSeparator = dequeueReusableSupplementaryView(
-      ofKind: CollectionViewSeparator.reuseIdentifier,
-      withReuseIdentifier: CollectionViewSeparator.reuseIdentifier,
-      for: indexPath
-    ) as? CollectionViewSeparator ?? .init()
-    
+    let supplementaryView: CollectionViewSeparator =
+      dequeueReusableSupplementaryView(
+        ofKind: CollectionViewSeparator.reuseIdentifier,
+        withReuseIdentifier: CollectionViewSeparator.reuseIdentifier,
+        for: indexPath
+      ) as? CollectionViewSeparator ?? .init()
+
     return supplementaryView
   }
 }

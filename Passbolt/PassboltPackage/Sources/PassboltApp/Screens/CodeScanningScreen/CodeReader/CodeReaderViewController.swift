@@ -24,10 +24,10 @@ import AVFoundation
 import UIComponents
 
 internal final class CodeReaderViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = CodeReaderView
   internal typealias Controller = CodeReaderController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,10 +37,10 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init(session: cameraSession)
   internal let components: UIComponentFactory
-  
+
   private let captureMetadataQueue: DispatchQueue = .init(label: "com.passbolt.reader.metadata")
   private lazy var metadataOutput: AVCaptureMetadataOutput = {
     let output: AVCaptureMetadataOutput = .init()
@@ -57,14 +57,14 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     else { return nil }
     session.addInput(input)
     session.addOutput(metadataOutput)
-    
+
     metadataOutput.metadataObjectTypes = [.qr]
     return session
   }()
-  
+
   private let controller: Controller
   private var payloadProcessingCancellable: AnyCancellable?
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -73,13 +73,13 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {}
-  
+
   internal func activate() {
     if let cameraSession: AVCaptureSession = cameraSession {
       cameraSession.startRunning()
@@ -93,7 +93,8 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
           .instantiate(),
         hideAfter: 2
       )
-    } else {
+    }
+    else {
       present(CodeScanningCameraInaccessibleViewController.self)
     }
   }
@@ -105,7 +106,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
 }
 
 extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
-  
+
   internal func metadataOutput(
     _ output: AVCaptureMetadataOutput,
     didOutput metadataObjects: Array<AVMetadataObject>,
@@ -113,14 +114,15 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
   ) {
     dispatchPrecondition(condition: .onQueue(captureMetadataQueue))
     guard
-      payloadProcessingCancellable == nil, // prevent multiple processing at the same time
+      payloadProcessingCancellable == nil,  // prevent multiple processing at the same time
       let metadata: AVMetadataMachineReadableCodeObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
       let payload: String = metadata.stringValue
     else { return }
     // we are ignoring QRCodes which payload is not representable by String (utf8)
     // due to public api limitations, CIQRCodeDescriptor contains raw data but with
     // error correction bytes applied which can't be easily removed (Reed-Solomon encoding)
-    payloadProcessingCancellable = controller
+    payloadProcessingCancellable =
+      controller
       .processPayload(payload)
       .handleEvents(receiveCompletion: { [weak self] completion in
         switch completion {
@@ -128,7 +130,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           self?.captureMetadataQueue.async { [weak self] in
             self?.payloadProcessingCancellable = nil
           }
-          
+
         case .failure:
           // Delay unlocking QRCode processing until message becomes visible for some time.
           // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
@@ -157,17 +159,16 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           switch completion {
           case .finished, .failure(.canceled):
             break
-          // swiftlint:disable:next explicit_type_interface
           case let .failure(error)
           where error.identifier == .accountTransferScanningRecoverableError
-          && error.context?.contains("invalid-version-or-code") ?? false:
+            && error.context?.contains("invalid-version-or-code") ?? false:
             self?.present(
               snackbar: Mutation<UICommons.View>
                 .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
                 .instantiate(),
               hideAfter: 3
             )
-            
+
           case .failure:
             self?.present(
               snackbar: Mutation<UICommons.View>

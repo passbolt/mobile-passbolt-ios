@@ -47,7 +47,7 @@ internal struct ApplicationExtension {
       Biometrics.live,
       ExternalURLOpener.live(),
       PGP.gopenPGP(),
-      SignatureVerfication.RSSHA256(),
+      SignatureVerfication.rssha256(),
       MDMConfig.live
     )
   ) {

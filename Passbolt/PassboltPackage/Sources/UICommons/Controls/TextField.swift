@@ -25,65 +25,64 @@ import Commons
 import UIKit
 
 open class TextField: UITextField {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTextColor: DynamicColor
-  = .default(self.textColor) {
+  public lazy var dynamicTextColor: DynamicColor = .default(self.textColor) {
     didSet {
       self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  public lazy var dynamicBorderColor: DynamicColor
-  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+
+  public lazy var dynamicBorderColor: DynamicColor = .default(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
     didSet {
       self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
 
   public var endEditingOnReturn: Bool = true
-  
+
   public var contentInsets: UIEdgeInsets = .zero {
     didSet { setNeedsLayout() }
   }
-  
+
   public required init() {
     super.init(frame: .zero)
     self.delegate = self
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override open func textRect(forBounds bounds: CGRect) -> CGRect {
     super.textRect(forBounds: bounds.inset(by: contentInsets))
   }
-  
+
   override open func editingRect(forBounds bounds: CGRect) -> CGRect {
     super.editingRect(forBounds: bounds.inset(by: contentInsets))
   }
-  
+
   override open func rightViewRect(forBounds bounds: CGRect) -> CGRect {
     super.rightViewRect(forBounds: bounds.inset(by: contentInsets))
   }
-  
+
   override open func leftViewRect(forBounds bounds: CGRect) -> CGRect {
     super.leftViewRect(forBounds: bounds.inset(by: contentInsets))
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -92,7 +91,7 @@ open class TextField: UITextField {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
@@ -102,12 +101,14 @@ open class TextField: UITextField {
 }
 
 extension TextField: UITextFieldDelegate {
-  
+
   public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     if endEditingOnReturn {
       resignFirstResponder()
-    } else { /* */ }
-    
+    }
+    else { /* */
+    }
+
     return false
   }
 }

@@ -25,30 +25,30 @@ import Features
 import UIComponents
 
 internal struct MainTabsController {
-  
+
   internal var setActiveTab: (MainTab) -> Void
   internal var activeTabPublisher: () -> AnyPublisher<MainTab, Never>
 }
 
 extension MainTabsController: UIController {
- 
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
-    
-    func setActiveTab(_ tab: MainTab) -> Void {
+
+    func setActiveTab(_ tab: MainTab) {
       activeTabSubject.send(tab)
     }
-    
+
     func activeTabPublisher() -> AnyPublisher<MainTab, Never> {
       activeTabSubject.eraseToAnyPublisher()
     }
-    
+
     return Self(
       setActiveTab: setActiveTab,
       activeTabPublisher: activeTabPublisher

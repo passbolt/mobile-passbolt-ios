@@ -25,10 +25,10 @@ import UICommons
 import UIComponents
 
 internal final class AccountSelectionViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = AccountSelectionView
   internal typealias Controller = AccountSelectionController
-  
+
   internal static func instance(
     using controller: AccountSelectionController,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: AccountSelectionView = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,32 +52,35 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     controller.accountsPublisher()
       .receive(on: RunLoop.main)
-      .sink(receiveCompletion: { [weak self] _ in
-        self?.replaceWindowRoot(with: WelcomeNavigationViewController.self)
-      }, receiveValue: { [weak self] items in
-        self?.contentView.update(items: items)
-      })
+      .sink(
+        receiveCompletion: { [weak self] _ in
+          self?.replaceWindowRoot(with: WelcomeNavigationViewController.self)
+        },
+        receiveValue: { [weak self] items in
+          self?.contentView.update(items: items)
+        }
+      )
       .store(in: cancellables)
-    
+
     controller.modePublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] mode in
         self?.contentView.update(mode: mode)
       }
       .store(in: cancellables)
-    
+
     contentView.accountTapPublisher
       .sink { [weak self] item in
         self?.push(
@@ -86,30 +89,30 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
         )
       }
       .store(in: cancellables)
-    
+
     contentView.removeTapPublisher
       .sink { [weak self] _ in
         self?.controller.changeMode(.removal)
       }
       .store(in: cancellables)
-    
+
     contentView.doneTapPublisher
       .sink { [weak self] _ in
         self?.controller.changeMode(.selection)
       }
       .store(in: cancellables)
-    
+
     contentView.removeAccountPublisher
       .sink { [weak self] item in
         let removeAccount: () -> Void = { [weak self] in
           guard let self = self else { return }
 
           self.controller.changeMode(.selection)
-          
+
           guard case Result.failure = self.controller.removeAccount(item.localID) else {
             return
           }
-          
+
           self.present(
             snackbar: Mutation<View>
               .snackBarErrorMessage(
@@ -120,7 +123,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
             hideAfter: 2
           )
         }
-        
+
         self?.present(
           RemoveAccountAlertViewController.self,
           in: removeAccount

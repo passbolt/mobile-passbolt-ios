@@ -25,35 +25,32 @@ import Commons
 import UIKit
 
 open class TextView: UITextView {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTextColor: DynamicColor
-  = .default(self.textColor) {
+  public lazy var dynamicTextColor: DynamicColor = .default(self.textColor) {
     didSet {
       self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   public required init() {
     super.init(frame: .zero, textContainer: nil)
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -62,7 +59,7 @@ open class TextView: UITextView {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)

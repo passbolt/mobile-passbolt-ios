@@ -24,45 +24,40 @@
 import UIKit
 
 public final class NavigationBar: UINavigationBar {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicBarTintColor: DynamicColor
-  = .default(self.barTintColor) {
+  public lazy var dynamicBarTintColor: DynamicColor = .default(self.barTintColor) {
     didSet {
       self.barTintColor = dynamicBarTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTitleColor: DynamicColor
-    = .default(.black) {
+  public lazy var dynamicTitleColor: DynamicColor = .default(.black) {
     didSet {
       self.titleTextAttributes = [
         .foregroundColor: dynamicTitleColor(in: traitCollection.userInterfaceStyle),
-        .font: titleFont
+        .font: titleFont,
       ]
     }
   }
-  
-  public lazy var titleFont: UIFont
-    = .systemFont(ofSize: 14) {
+
+  public lazy var titleFont: UIFont = .systemFont(ofSize: 14) {
     didSet {
       self.titleTextAttributes = [
         .foregroundColor: dynamicTitleColor(in: traitCollection.userInterfaceStyle),
-        .font: titleFont
+        .font: titleFont,
       ]
     }
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -71,7 +66,7 @@ public final class NavigationBar: UINavigationBar {
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
@@ -79,7 +74,7 @@ public final class NavigationBar: UINavigationBar {
     self.barTintColor = dynamicBarTintColor(in: interfaceStyle)
     self.titleTextAttributes = [
       .foregroundColor: dynamicTitleColor(in: interfaceStyle),
-      .font: titleFont
+      .font: titleFont,
     ]
   }
 }

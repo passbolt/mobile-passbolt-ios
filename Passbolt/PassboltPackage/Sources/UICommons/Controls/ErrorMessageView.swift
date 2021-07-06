@@ -24,18 +24,18 @@
 import AegithalosCocoa
 
 internal class ErrorMessageView: View {
-  
+
   private let label: Label = .init()
-  
+
   internal required init() {
     super.init()
     setup()
   }
-  
+
   internal func setText(_ text: String) {
     label.text = text
   }
-  
+
   override internal func setup() {
     Mutation<Label>
       .combined(
@@ -54,7 +54,7 @@ internal class ErrorMessageView: View {
         )
       )
       .apply(on: label)
-    
+
     Mutation<View>
       .combined(
         .accessibilityIdentifier("errorMessage"),
@@ -65,7 +65,7 @@ internal class ErrorMessageView: View {
 }
 
 extension Mutation where Subject: ErrorMessageView {
-  
+
   internal static func text(
     _ text: String
   ) -> Self {
@@ -73,7 +73,7 @@ extension Mutation where Subject: ErrorMessageView {
       subject.setText(text)
     }
   }
-  
+
   internal static func text(
     localized localizationKey: String,
     fromTable tableName: String? = nil,

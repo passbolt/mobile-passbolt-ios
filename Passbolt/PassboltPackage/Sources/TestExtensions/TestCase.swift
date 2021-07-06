@@ -25,34 +25,33 @@ import Features
 import UIComponents
 import XCTest
 
-// swiftlint:disable implicitly_unwrapped_optional
 open class TestCase: XCTestCase {
-  
+
   public var features: FeatureFactory!
   public var cancellables: Cancellables!
   public var environment: Environment {
     get { features.environment }
     set { features.environment = newValue }
   }
-  
+
   override open class func setUp() {
     super.setUp()
     FeatureFactory.autoLoadFeatures = false
   }
-  
+
   override open func setUp() {
     super.setUp()
     features = .init(environment: testEnvironment())
     features.use(Diagnostics.disabled)
     cancellables = .init()
   }
-  
+
   override open func tearDown() {
     features = nil
     cancellables = nil
     super.tearDown()
   }
-  
+
   public func testInstance<Controller: UIController>(
     _ type: Controller.Type = Controller.self,
     context: Controller.Context
@@ -63,7 +62,7 @@ open class TestCase: XCTestCase {
       cancellables: cancellables
     )
   }
-  
+
   public func testInstance<Controller: UIController>(
     _ type: Controller.Type = Controller.self
   ) -> Controller
@@ -74,7 +73,7 @@ open class TestCase: XCTestCase {
       cancellables: cancellables
     )
   }
-  
+
   public func testInstance<F: Feature>(
     _ type: F.Type = F.self
   ) -> F {

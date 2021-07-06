@@ -24,12 +24,12 @@
 import Commons
 
 public struct Logger: EnvironmentElement {
-  
+
   public var consoleLog: (String) -> Void
 }
 
 extension Logger {
-  
+
   public static var live: Self {
     Self(
       consoleLog: { message in print(message) }
@@ -38,7 +38,7 @@ extension Logger {
 }
 
 extension Environment {
-  
+
   public var logger: Logger {
     get { element(Logger.self) }
     set { use(newValue) }
@@ -47,7 +47,7 @@ extension Environment {
 
 #if DEBUG
 extension Logger {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

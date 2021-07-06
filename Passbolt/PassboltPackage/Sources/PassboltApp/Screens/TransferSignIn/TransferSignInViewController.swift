@@ -25,10 +25,10 @@ import UICommons
 import UIComponents
 
 internal final class TransferSignInViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = AuthorizationView
   internal typealias Controller = TransferSignInController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal var components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,7 +52,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .combined(
@@ -70,15 +70,14 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         .title(localized: "sign.in.title")
       )
     }
-    
+
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     setupSubscriptions()
   }
 
-  // swiftlint:disable:next cyclomatic_complexity function_body_length
   private func setupSubscriptions() {
     controller
       .accountProfilePublisher()
@@ -90,20 +89,21 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         self?.contentView.applyOn(biometricButtonContainer: .hidden(true))
       }
       .store(in: cancellables)
-    
+
     controller
       .accountAvatarPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] data in
         guard let imageData = data,
-          let image: UIImage = .init(data: imageData) else {
+          let image: UIImage = .init(data: imageData)
+        else {
           return
         }
-        
+
         self?.contentView.applyOn(image: .image(image))
       }
       .store(in: cancellables)
-    
+
     contentView
       .secureTextPublisher
       .receive(on: RunLoop.main)
@@ -111,13 +111,14 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         self?.controller.updatePassphrase(passphrase)
       }
       .store(in: cancellables)
-    
+
     controller
       .validatedPassphrasePublisher()
-      .first() // skipping error just to update intial value
+      .first()  // skipping error just to update intial value
       .map { Validated.valid($0.value) }
       .merge(
-        with: controller
+        with:
+          controller
           .validatedPassphrasePublisher()
           .dropFirst()
       )
@@ -133,7 +134,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         )
       }
       .store(in: cancellables)
-    
+
     controller
       .validatedPassphrasePublisher()
       .map(\.isValid)
@@ -148,7 +149,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         )
       }
       .store(in: cancellables)
-    
+
     contentView
       .signInTapPublisher
       .receive(on: RunLoop.main)
@@ -170,7 +171,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             switch completion {
             case .finished:
               break
-              
+
             case .failure:
               self?.present(
                 snackbar: Mutation<UICommons.View>
@@ -183,7 +184,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           .store(in: self.cancellables)
       }
       .store(in: cancellables)
-    
+
     contentView
       .forgotTapPublisher
       .receive(on: RunLoop.main)
@@ -191,33 +192,35 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         self?.controller.presentForgotPassphraseAlert()
       }
       .store(in: cancellables)
-    
+
     controller
       .presentForgotPassphraseAlertPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         guard let self = self else { return }
-        
+
         if presented {
           self.present(ForgotPassphraseAlertViewController.self)
-        } else {
+        }
+        else {
           self.dismiss(ForgotPassphraseAlertViewController.self)
         }
       }
       .store(in: cancellables)
-    
+
     controller
       .exitConfirmationPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         if presented {
           self?.present(TransferSignInExitConfirmationViewController.self)
-        } else {
+        }
+        else {
           self?.dismiss(TransferSignInExitConfirmationViewController.self)
         }
       }
       .store(in: cancellables)
-    
+
     controller
       .presentationDestinationPublisher()
       .subscribe(on: RunLoop.main)
@@ -235,11 +238,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           switch completion {
           case .finished:
             break
-            
+
           case .failure(.canceled):
             self?.pop(to: TransferInfoScreenViewController.self)
-            
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             self?.push(
               AccountTransferFailureViewController.self,
@@ -251,10 +253,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           switch destination {
           case .biometryInfo:
             self?.push(BiometricsInfoViewController.self)
-            
+
           case .biometrySetup:
             self?.push(BiometricsSetupViewController.self)
-            
+
           case .extensionSetup:
             self?.push(ExtensionSetupViewController.self)
           }

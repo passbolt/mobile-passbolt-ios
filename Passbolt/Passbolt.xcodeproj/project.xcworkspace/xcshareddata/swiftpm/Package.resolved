@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "aegithalos",
+        "package": "Aegithalos",
         "repositoryURL": "https://github.com/miquido/aegithalos.git",
         "state": {
           "branch": null,

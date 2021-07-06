@@ -25,35 +25,35 @@ import Accounts
 import Features
 
 public struct Initialization {
-  
+
   public var initialize: () -> Void
   public var featureUnload: () -> Bool
 }
 
 extension Initialization: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let diagnostics: Diagnostics = features.instance()
-    
+
+    // swift-format-ignore: NoLeadingUnderscores
     func _initialize(with features: FeatureFactory) {
       diagnostics.debugLog("Initializing...")
       defer { diagnostics.debugLog("... initialization completed") }
       defer { features.unload(Initialization.self) }
       // initialize application extension features here
     }
-    // swiftlint:disable:next unowned_variable_capture
     let initialize: () -> Void = { [unowned features] in
       _initialize(with: features)
     }
-    
+
     func featureUnload() -> Bool {
-      true // always succeeds
+      true  // always succeeds
     }
-    
+
     return Self(
       initialize: initialize,
       featureUnload: featureUnload
@@ -63,7 +63,7 @@ extension Initialization: Feature {
 
 #if DEBUG
 extension Initialization {
-  
+
   public static var placeholder: Self {
     Self(
       initialize: Commons.placeholder("You have to provide mocks for used methods"),
@@ -72,4 +72,3 @@ extension Initialization {
   }
 }
 #endif
-

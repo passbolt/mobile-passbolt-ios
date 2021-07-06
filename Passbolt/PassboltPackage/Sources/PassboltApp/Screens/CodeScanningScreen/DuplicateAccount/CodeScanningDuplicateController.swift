@@ -24,27 +24,26 @@
 import UIComponents
 
 internal struct CodeScanningDuplicateController {
-  
+
   internal var `continue`: () -> Void
   // Since there is only one direction and no way back we only expect finish to navigate further
   internal var accountListPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
 extension CodeScanningDuplicateController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let accountListPresentationSubject: PassthroughSubject<Never, Never> = .init()
-    
+
     return Self(
       continue: { accountListPresentationSubject.send(completion: .finished) },
       accountListPresentationPublisher: accountListPresentationSubject.eraseToAnyPublisher
     )
   }
 }
-

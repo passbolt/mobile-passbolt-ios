@@ -23,13 +23,15 @@
 
 import Commons
 import Environment
+
 import struct Foundation.Data
 
-public typealias MediaDownloadRequest
-  = NetworkRequest<EmptyNetworkSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse>
+public typealias MediaDownloadRequest = NetworkRequest<
+  EmptyNetworkSessionVariable, MediaDownloadRequestVariable, MediaDownloadResponse
+>
 
 extension MediaDownloadRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
@@ -51,7 +53,7 @@ extension MediaDownloadRequest {
 public struct MediaDownloadRequestVariable {
 
   public var urlString: String
-  
+
   public init(urlString: String) {
     self.urlString = urlString
   }

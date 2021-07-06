@@ -23,9 +23,9 @@
 import UIComponents
 
 internal struct WelcomeNavigationController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Void,
     with features: FeatureFactory,

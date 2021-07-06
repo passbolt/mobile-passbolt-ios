@@ -21,18 +21,19 @@
 // @since         v1.0
 //
 
-import struct Foundation.Date
-import struct Foundation.UUID
 import Environment
 
+import struct Foundation.Date
+import struct Foundation.UUID
+
 public struct Diagnostics {
-  
+
   public var log: (String) -> Void
   public var uniqueID: () -> String
 }
 
 extension Diagnostics: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -41,7 +42,7 @@ extension Diagnostics: Feature {
     let time: Time = environment.time
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
     let logger: Logger = environment.logger
-    
+
     return Self(
       log: { message in
         logger
@@ -55,9 +56,13 @@ extension Diagnostics: Feature {
 }
 
 extension Diagnostics {
-  
+
   /// Diagnostics log is persisted on device for support and diagnostics.
-  /// - warning: Keep in mind that it will be visible in prod env
+  ///
+  /// - Parameter message: Message sent to log. It might be visible to users.
+  ///
+  /// - Warning: Keep in mind that it will be visible in prod env.
+  ///
   public func diagnosticLog(_ message: String) {
     #if DEBUG
     log("[DIAG] \(message)")
@@ -65,14 +70,14 @@ extension Diagnostics {
     log(message)
     #endif
   }
-  
+
   /// Debug log is stripped out in release build.
   public func debugLog(_ message: String) {
     #if DEBUG
     log("[DEBUG] \(message)")
     #endif
   }
-  
+
   // drop all diagnostics
   public static var disabled: Self {
     Self(
@@ -84,7 +89,7 @@ extension Diagnostics {
 
 #if DEBUG
 extension Diagnostics {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

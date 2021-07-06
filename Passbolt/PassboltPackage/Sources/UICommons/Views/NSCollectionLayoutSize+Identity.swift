@@ -25,7 +25,7 @@ import Foundation
 import UIKit
 
 extension NSCollectionLayoutSize {
-  
+
   public static var fill: Self {
     .init(
       widthDimension: .fractionalWidth(1.0),

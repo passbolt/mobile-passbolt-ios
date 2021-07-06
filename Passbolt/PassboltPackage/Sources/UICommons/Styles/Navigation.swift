@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: NavigationBar {
-  
+
   public static func primaryNavigationStyle() -> Self {
     .combined(
       .backgroundColor(dynamic: .background),

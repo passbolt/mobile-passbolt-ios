@@ -24,16 +24,16 @@
 import struct Foundation.Data
 import struct Foundation.URL
 import struct Foundation.URLComponents
-import struct Foundation.URLRequest
 import struct Foundation.URLQueryItem
+import struct Foundation.URLRequest
 
 public struct HTTPRequest {
-  
+
   public var method: HTTPMethod
   public var headers: HTTPHeaders
   public var body: HTTPBody
   public var urlComponents: URLComponents
-  
+
   public init(
     url: URL? = .none,
     method: HTTPMethod = .get,
@@ -41,7 +41,8 @@ public struct HTTPRequest {
     body: HTTPBody = .empty
   ) {
     self.method = method
-    self.urlComponents = url
+    self.urlComponents =
+      url
       .flatMap {
         URLComponents(url: $0, resolvingAgainstBaseURL: true)
       }
@@ -52,31 +53,32 @@ public struct HTTPRequest {
 }
 
 extension HTTPRequest {
-  
+
   public var url: URL? {
     get { urlComponents.url }
     set {
-      urlComponents = newValue
+      urlComponents =
+        newValue
         .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
         ?? urlComponents
     }
   }
-  
+
   public var scheme: String? {
     get { urlComponents.scheme }
     set { urlComponents.scheme = newValue }
   }
-  
+
   public var host: String? {
     get { urlComponents.host }
     set { urlComponents.host = newValue }
   }
-  
+
   public var port: Int? {
     get { urlComponents.port }
     set { urlComponents.port = newValue }
   }
-  
+
   public var path: String {
     get { urlComponents.path }
     set { urlComponents.path = newValue }
@@ -89,35 +91,33 @@ extension HTTPRequest {
 }
 
 extension HTTPRequest: CustomStringConvertible {
-  
+
   public var description: String {
-    // swiftlint:disable line_length
     """
     \(method.rawValue) \(urlComponents.percentEncodedPath)\(urlComponents.percentEncodedQuery.map { "?\($0))" } ?? "") HTTP/1.1
     \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
-    
+
     \(String(data: body, encoding: .utf8) ?? "")
     """
   }
-  // swiftlint:enable line_length
 }
 
 extension HTTPRequest: CustomDebugStringConvertible {
-  
+
   public var debugDescription: String {
     description
   }
 }
 
 extension HTTPRequest {
-  
+
   internal func urlRequest(
     cachePolicy: URLRequest.CachePolicy = .reloadIgnoringLocalAndRemoteCacheData
   ) -> URLRequest? {
     guard
       var urlRequest: URLRequest = url.map({ URLRequest(url: $0) })
     else { return nil }
-    
+
     urlRequest.httpMethod = method.rawValue
     urlRequest.httpBody = body
     urlRequest.allHTTPHeaderFields = headers

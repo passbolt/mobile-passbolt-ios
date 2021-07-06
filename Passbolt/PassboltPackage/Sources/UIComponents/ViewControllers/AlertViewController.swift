@@ -28,7 +28,7 @@ import UIKit
 // we avoid overriding its initializer (which does break the things) and instead use existing one
 // and add controller right after initialization (this is reason for imclitly unwrapped optional there).
 open class AlertViewController<Controller: UIController>: UIAlertController {
-  
+
   public static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -43,39 +43,38 @@ open class AlertViewController<Controller: UIController>: UIAlertController {
     (instance as? AnyUIComponent)?.setup()
     return instance
   }
-  
+
   public var components: UIComponentFactory { _components }
-  
-  // swiftlint:disable:next implicitly_unwrapped_optional
+
+  // swift-format-ignore: NoLeadingUnderscores, NeverUseImplicitlyUnwrappedOptionals
   private var _components: UIComponentFactory!
-  
-  // swiftlint:disable:next implicitly_unwrapped_optional
+  // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
   public private(set) var controller: Controller! = nil
-  
+
   override open var preferredStatusBarStyle: UIStatusBarStyle {
     (presentingViewController?.childForStatusBarStyle
       ?? presentingViewController)?.preferredStatusBarStyle ?? .default
   }
-  
+
   public var contentView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override open func viewDidLoad() {
     super.viewDidLoad()
     (self as? AnyUIComponent)?.setupView()
   }
-  
+
   override open func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     (self as? AnyUIComponent)?.activate()
   }
-  
+
   override open func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     (self as? AnyUIComponent)?.deactivate()
   }
-  
+
   override open func dismiss(
     animated: Bool,
     completion: (() -> Void)? = nil
@@ -90,4 +89,3 @@ open class AlertViewController<Controller: UIController>: UIAlertController {
     )
   }
 }
-

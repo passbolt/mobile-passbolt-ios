@@ -21,16 +21,14 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Commons
 import Crypto
 import Features
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import Accounts
+
 final class AccountsStoreTests: TestCase {
 
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() {
@@ -39,11 +37,11 @@ final class AccountsStoreTests: TestCase {
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     features.use(accountsDataStore)
     features.use(AccountSession.placeholder)
-    
+
     let accounts: Accounts = testInstance()
-    
+
     let result: Array<AccountWithProfile> = accounts.storedAccounts()
-    
+
     XCTAssertEqual(result, [validAccountWithProfile])
   }
 
@@ -56,14 +54,14 @@ final class AccountsStoreTests: TestCase {
     }
     features.use(accountsDataStore)
     features.use(AccountSession.placeholder)
-    
+
     let accounts: Accounts = testInstance()
-    
+
     _ = accounts.verifyStorageDataIntegrity()
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_storeTransferedAccount_storesDataInAccountsDataStore() {
     var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPrivateKey)?
     var accountsDataStore: AccountsDataStore = .placeholder
@@ -80,10 +78,10 @@ final class AccountsStoreTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
-    features.environment.uuidGenerator.uuid = always(.testUUID)
-    
+    features.environment.uuidGenerator.uuid = always(.test)
+
     let accounts: Accounts = testInstance()
-    
+
     accounts
       .transferAccount(
         validAccount.domain,
@@ -98,21 +96,21 @@ final class AccountsStoreTests: TestCase {
       )
       .sink(receiveCompletion: { _ in }, receiveValue: {})
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.details, validAccountProfile)
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
-  
+
   func test_storeTransferedAccount_failsWithDuplicateError_whenAccountAlreadyStored() {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
     features.use(accountsDataStore)
     var accountSession: AccountSession = .placeholder
     features.use(AccountSession.placeholder)
-    
+
     let accounts: Accounts = testInstance()
-    
+
     var result: TheError!
     accounts
       .transferAccount(
@@ -128,17 +126,16 @@ final class AccountsStoreTests: TestCase {
       )
       .sink(
         receiveCompletion: { completion in
-          // swiftlint:disable:next explicit_type_interface
           guard case let .failure(error) = completion else { return }
           result = error
         },
         receiveValue: {}
       )
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result.identifier, .duplicateAccount)
   }
-  
+
   func test_removeAccount_removesDataFromAccountsDataStore() {
     var result: Account.LocalID?
     var accountsDataStore: AccountsDataStore = .placeholder
@@ -155,25 +152,25 @@ final class AccountsStoreTests: TestCase {
     )
     accountSession.close = always(Void())
     features.use(accountSession)
-    features.environment.uuidGenerator.uuid = always(.testUUID)
-    
+    features.environment.uuidGenerator.uuid = always(.test)
+
     let accounts: Accounts = testInstance()
-    
+
     _ = accounts.removeAccount(validAccount.localID)
-    
+
     XCTAssertEqual(result, validAccount.localID)
   }
 }
 
 private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.testUUID.uuidString),
+  localID: .init(rawValue: UUID.test.uuidString),
   domain: "https://passbolt.dev",
   userID: "USER_ID",
   fingerprint: "FINGERPRINT"
 )
 
 private let validAccountProfile: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.testUUID.uuidString),
+  accountID: .init(rawValue: UUID.test.uuidString),
   label: "firstName lastName",
   username: "username",
   firstName: "firstName",
@@ -183,7 +180,7 @@ private let validAccountProfile: AccountProfile = .init(
 )
 
 private let validAccountWithProfile: AccountWithProfile = .init(
-  localID: .init(rawValue: UUID.testUUID.uuidString),
+  localID: .init(rawValue: UUID.test.uuidString),
   userID: "USER_ID",
   domain: "https://passbolt.dev",
   label: "firstName lastName",
@@ -200,7 +197,7 @@ private let validPassphrase: Passphrase = "SecretPassphrase"
 private let validPrivateKey: ArmoredPrivateKey =
   """
   -----BEGIN PGP PRIVATE KEY BLOCK-----
-  
+
   lQPGBGCGqHcBCADMbVyAkL2msB1HZyXDdca2vSpLB2YWgzwvPQF5whOxHTmeBY44
   tBttqB/jKXVlKFMuQJvkh2eIRAMzJHFK1Xd2MQHGGlbn9CYcBIdEUGhUh6/8ZGc7
   PkmxWnI0gaxsYENry8cKHbLHGA0hN+g8eHFbDzrbCEez8J1QSvykDr7TWG8sBdGa
@@ -260,9 +257,9 @@ private let validPrivateKey: ArmoredPrivateKey =
   -----END PGP PRIVATE KEY BLOCK-----
   """
 
-// swiftlint:disable line_length
-// swiftlint:disable force_try
-private let validToken: JWT = try! .from(rawValue: """
-  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-  """)
-  .get()
+private let validToken: JWT = try! .from(
+  rawValue: """
+    eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+    """
+)
+.get()

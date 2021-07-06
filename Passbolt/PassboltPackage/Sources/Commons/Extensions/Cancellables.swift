@@ -22,20 +22,21 @@
 //
 
 import Combine
+
 import class Foundation.NSLock
 
 public final class Cancellables {
-  
+
   fileprivate let lock: NSLock = .init()
   fileprivate var cancellables: Array<AnyCancellable>
-  
+
   public init(extend other: Cancellables...) {
     self.cancellables = other.flatMap(\.cancellables)
   }
 }
 
 extension AnyCancellable {
-  
+
   public func store(in cancellables: Cancellables) {
     cancellables.lock.lock()
     cancellables.cancellables.append(self)

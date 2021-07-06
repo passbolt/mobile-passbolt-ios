@@ -24,14 +24,14 @@ import AccountSetup
 import UIComponents
 
 internal struct CodeReaderController {
-  
+
   internal var processPayload: (String) -> AnyPublisher<Never, TheError>
 }
 
 extension CodeReaderController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,

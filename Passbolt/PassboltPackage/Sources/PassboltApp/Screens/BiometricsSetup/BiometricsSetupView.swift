@@ -22,30 +22,31 @@
 //
 
 import Commons
-import struct Environment.Biometrics
 import UICommons
 
+import struct Environment.Biometrics
+
 internal final class BiometricsSetupView: ScrolledStackView {
-  
+
   internal var setupTapPublisher: AnyPublisher<Void, Never>
   internal var skipTapPublisher: AnyPublisher<Void, Never>
-  
+
   private let imageView: ImageView = .init()
   private let titleLabel: Label = .init()
   private let setupButton: TextButton = .init()
-  
+
   internal required init() {
     let skipButton: TextButton = .init()
-    
+
     self.setupTapPublisher = setupButton.tapPublisher
     self.skipTapPublisher = skipButton.tapPublisher
     super.init()
-    
+
     let imageContainer: View = .init()
     mut(imageContainer) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
@@ -58,7 +59,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .accessibilityIdentifier("welcome.accounts.imageview")
       )
     }
-    
+
     mut(titleLabel) {
       .combined(
         .titleStyle(),
@@ -77,7 +78,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.setup.description.label")
       )
     }
-    
+
     mut(setupButton) {
       .combined(
         .primaryStyle(),
@@ -85,7 +86,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.setup.setup..button")
       )
     }
-    
+
     mut(skipButton) {
       .combined(
         .linkStyle(),
@@ -93,7 +94,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .accessibilityIdentifier("biometrics.setup.later.button")
       )
     }
-    
+
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background),
@@ -111,15 +112,15 @@ internal final class BiometricsSetupView: ScrolledStackView {
       )
     }
   }
-  
+
   internal func update(for bimetryState: Biometrics.State) {
     switch bimetryState {
     case .unavailable:
       unreachable("Cannot setup biometrics for devices which does not support it")
-      
+
     case .unconfigured:
       unreachable("Cannot setup biometrics if it is not configured")
-      
+
     case .configuredTouchID:
       mut(imageView) {
         .image(dynamic: .touchIDSetup)
@@ -130,7 +131,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
       mut(setupButton) {
         .text(localized: "biometrics.setup.setup.button.finger")
       }
-      
+
     case .configuredFaceID:
       mut(imageView) {
         .image(dynamic: .faceIDSetup)

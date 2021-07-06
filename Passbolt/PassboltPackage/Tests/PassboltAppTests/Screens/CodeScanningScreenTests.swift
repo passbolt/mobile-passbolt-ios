@@ -24,16 +24,14 @@
 import AccountSetup
 import Combine
 import Features
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltApp
+
 final class CodeScanningScreenTests: TestCase {
-  
+
   func test_exitConfirmation_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
@@ -45,19 +43,19 @@ final class CodeScanningScreenTests: TestCase {
     features.use(accountTransfer)
     let controller: CodeScanningController = testInstance()
     var result: Bool!
-    
+
     controller.exitConfirmationPresentationPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.presentExitConfirmation()
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_help_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
@@ -68,19 +66,19 @@ final class CodeScanningScreenTests: TestCase {
     features.use(accountTransfer)
     let controller: CodeScanningController = testInstance()
     var result: Bool!
-    
+
     controller.helpPresentationPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.presentHelp()
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_initialProgress_isEmpty() {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
@@ -91,15 +89,15 @@ final class CodeScanningScreenTests: TestCase {
     features.use(accountTransfer)
     let controller: CodeScanningController = testInstance()
     var result: Double!
-    
+
     controller.progressPublisher()
-      .replaceError(with: 0) // ignore error but fail test
+      .replaceError(with: 0)  // ignore error but fail test
       .receive(on: ImmediateScheduler.shared)
       .sink { progress in
         result = progress
       }
       .store(in: cancellables)
-    
+
     XCTAssertEqual(result, 0)
     XCTAssertLessThan(result, 1)
   }

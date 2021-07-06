@@ -22,7 +22,7 @@
 //
 
 internal enum MainTab: Int, Equatable, CaseIterable {
-  
+
   case home = 0
   case settings = 1
 }

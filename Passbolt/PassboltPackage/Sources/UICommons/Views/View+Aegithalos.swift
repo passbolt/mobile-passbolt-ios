@@ -24,22 +24,22 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: View {
-  
+
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
   }
-  
+
   public static func tintColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTintColor = color }
   }
-  
+
   public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
     .custom { (subject: Subject) in
       subject.dynamicBorderColor = color
       subject.layer.borderWidth = width
     }
   }
-  
+
   public static func aspectRatio(_ ratio: CGFloat) -> Self {
     .custom { (subject: Subject) in
       subject.heightAnchor.constraint(
@@ -49,7 +49,7 @@ extension Mutation where Subject: View {
       ).isActive = true
     }
   }
-  
+
   public static func isHidden(_ value: Bool) -> Self {
     .custom { (subject: Subject) in
       subject.isHidden = value

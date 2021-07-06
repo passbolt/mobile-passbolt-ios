@@ -9,7 +9,7 @@ lint:
     make lint
   artifacts:
     paths:
-      - lint-report.html
+      - lint-report
     expire_in: 1 week
   only:
     - branches

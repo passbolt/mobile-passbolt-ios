@@ -24,99 +24,96 @@
 import AegithalosCocoa
 
 public class TextButton: Button {
-  
-  public lazy var dynamicTextColor: DynamicColor
-  = .default(self.textColor) {
+
+  public lazy var dynamicTextColor: DynamicColor = .default(self.textColor) {
     didSet {
       self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicPressedTextColor: DynamicColor
-  = .default(self.pressedTextColor) {
+  public lazy var dynamicPressedTextColor: DynamicColor = .default(self.pressedTextColor) {
     didSet {
       self.pressedTextColor = dynamicPressedTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicDisabledTextColor: DynamicColor
-  = .default(self.disabledTextColor) {
+  public lazy var dynamicDisabledTextColor: DynamicColor = .default(self.disabledTextColor) {
     didSet {
       self.disabledTextColor = dynamicDisabledTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
+
   private let label: Label = .init()
-  
+
   public required init() {
     super.init()
     setup()
   }
-  
+
   override internal func pressed() {
     super.pressed()
     label.textColor = pressedTextColor
   }
-  
+
   override internal func released() {
     super.released()
     label.textColor = textColor
   }
-  
+
   override internal func enabled() {
     super.enabled()
     label.textColor = textColor
   }
-  
+
   override internal func disabled() {
     super.disabled()
     label.textColor = disabledTextColor
   }
-  
+
   public var text: String {
     get { label.text ?? "" }
     set { label.text = newValue }
   }
-  
+
   public var textColor: UIColor = .black {
     didSet {
       guard !isPressed, isEnabled else { return }
       label.textColor = textColor
     }
   }
-  
+
   public lazy var pressedTextColor: UIColor = textColor {
     didSet {
       guard isPressed, isEnabled else { return }
       label.textColor = pressedTextColor
     }
   }
-  
+
   public lazy var disabledTextColor: UIColor = textColor {
     didSet {
       guard !isEnabled else { return }
       label.textColor = disabledTextColor
     }
   }
-  
+
   public var font: UIFont {
     get { label.font }
     set { label.font = newValue }
   }
-  
+
   public var textAlignment: NSTextAlignment {
     get { label.textAlignment }
     set { label.textAlignment = newValue }
   }
-  
+
   public var textLineBreakMode: NSLineBreakMode {
     get { label.lineBreakMode }
     set { label.lineBreakMode = newValue }
   }
-  
+
   public var textNumberOfLines: Int {
     get { label.numberOfLines }
     set { label.numberOfLines = newValue }
   }
-  
+
   public var textInsets: NSDirectionalEdgeInsets {
     get {
       NSDirectionalEdgeInsets(
@@ -133,7 +130,7 @@ public class TextButton: Button {
       labelTrailingConstraint?.constant = newValue.trailing
     }
   }
-  
+
   override internal func updateColors() {
     super.updateColors()
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
@@ -141,12 +138,12 @@ public class TextButton: Button {
     self.pressedTextColor = dynamicPressedTextColor(in: interfaceStyle)
     self.disabledTextColor = dynamicDisabledTextColor(in: interfaceStyle)
   }
-  
+
   private var labelTopConstraint: NSLayoutConstraint?
   private var labelLeadingConstraint: NSLayoutConstraint?
   private var labelBottomConstraint: NSLayoutConstraint?
   private var labelTrailingConstraint: NSLayoutConstraint?
-  
+
   private func setup() {
     mut(label) {
       .combined(

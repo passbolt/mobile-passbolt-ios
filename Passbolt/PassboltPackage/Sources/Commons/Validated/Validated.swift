@@ -22,10 +22,10 @@
 //
 
 public struct Validated<Value> {
-  
+
   public let value: Value
   public private(set) var errors: Array<TheError>
-  
+
   public init(
     value: Value,
     errors: Array<TheError>
@@ -33,15 +33,15 @@ public struct Validated<Value> {
     self.value = value
     self.errors = errors
   }
-  
+
   public var isValid: Bool { errors.isEmpty }
-  
+
   public func withError(_ error: TheError) -> Self {
     var copy: Self = self
     copy.errors.append(error)
     return copy
   }
-  
+
   public func withErrors<Errors>(
     _ errors: Errors
   ) -> Self
@@ -52,16 +52,16 @@ public struct Validated<Value> {
   }
 }
 
-public extension Validated {
+extension Validated {
 
-  static func valid(_ value: Value) -> Self {
+  public static func valid(_ value: Value) -> Self {
     Self(
       value: value,
       errors: []
     )
   }
-  
-  static func invalid(
+
+  public static func invalid(
     _ value: Value,
     errors: TheError...
   ) -> Self {

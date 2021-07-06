@@ -25,7 +25,7 @@ import struct Foundation.Data
 import class Foundation.JSONEncoder
 
 public struct TestCodable: Codable, Equatable {
-  
+
   public static let sample: Self = Self(
     string: "answer",
     int: 42,
@@ -38,31 +38,29 @@ public struct TestCodable: Codable, Equatable {
     ]
   )
   public static let sampleJSONString: String = """
-  {
-    "string": "answer",
-    "int": 42,
-    "array": [
-      {
-        "string": "",
-        "int": 0,
-        "array": []
-      }
-    ]
-  }
-  """
-  public static let sampleJSONData: Data
-    = sampleJSONString
-    // swiftlint:disable force_unwrapping
+    {
+      "string": "answer",
+      "int": 42,
+      "array": [
+        {
+          "string": "",
+          "int": 0,
+          "array": []
+        }
+      ]
+    }
+    """
+  // swift-format-ignore: NeverForceUnwrap
+  public static let sampleJSONData: Data =
+    sampleJSONString
     .data(using: .utf8)!
-  // swiftlint:enable force_unwrapping
-  
+
   public var string: String = ""
   public var int: Int = 0
   public var array: Array<TestCodable> = []
-  
+
   public var jsonData: Data {
-    // swiftlint:disable force_try
+    // swift-format-ignore: NeverUseForceTry
     try! JSONEncoder().encode(self)
-    // swiftlint:enable force_try
   }
 }

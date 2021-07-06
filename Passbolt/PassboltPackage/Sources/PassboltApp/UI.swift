@@ -24,11 +24,11 @@
 import UIComponents
 
 public final class UI {
-  
+
   private var windows: Dictionary<String, Window> = .init()
   private let features: FeatureFactory
   private let components: UIComponentFactory
-  
+
   public init(
     features: FeatureFactory
   ) {
@@ -38,7 +38,7 @@ public final class UI {
 }
 
 extension UI {
-  
+
   public func prepare(
     _ scene: UIScene,
     in session: UISceneSession,
@@ -53,22 +53,24 @@ extension UI {
       )
       if windows.isEmpty {
         window.isActive = true
-      } else { /* */ }
+      }
+      else { /* */
+      }
       windows[windowScene.session.persistentIdentifier] = window
-      
+
     case _:
       unreachable("Unsupported scene type")
     }
   }
-  
+
   public func resume(_ scene: UIScene) {
     windows[scene.session.persistentIdentifier]?.isActive = true
   }
-  
+
   public func suspend(_ scene: UIScene) {
     windows[scene.session.persistentIdentifier]?.isActive = false
   }
-  
+
   public func close(_ scene: UIScene) {
     windows[scene.session.persistentIdentifier]?.isActive = false
     windows[scene.session.persistentIdentifier] = nil
@@ -76,7 +78,7 @@ extension UI {
 }
 
 extension UI {
-  
+
   private func prepareWindow(
     for scene: UIWindowScene,
     in session: UISceneSession,

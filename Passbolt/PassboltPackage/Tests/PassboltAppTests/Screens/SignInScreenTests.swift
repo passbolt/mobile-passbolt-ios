@@ -23,62 +23,60 @@
 
 import Combine
 import Features
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltApp
+
 final class SignInScreenTests: TestCase {
-  
+
   func test_forgotPassword_isPresented_whenCallingPresent() {
     let controller: SignInController = testInstance()
     var result: Bool!
-    
+
     controller.presentForgotPassphraseAlertPublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { presented in
         result = presented
       }
       .store(in: cancellables)
-    
+
     controller.presentForgotPassphraseAlert()
-    
+
     XCTAssertTrue(result)
   }
-  
+
   func test_validation_withCorrectValue_succeedes() {
     let controller: SignInController = testInstance()
     var result: Validated<String>!
-    
+
     controller.validatedPassphrasePublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { validated in
         result = validated
       }
       .store(in: cancellables)
-    
+
     controller.updatePassphrase("SomeSecretPassphrase")
-    
+
     XCTAssertTrue(result.isValid)
     XCTAssertTrue(result.errors.isEmpty)
   }
-  
+
   func test_validation_withInCorrectValue_failsWithValidationError() {
     let controller: SignInController = testInstance()
     var result: Validated<String>!
-    
+
     controller.validatedPassphrasePublisher()
       .receive(on: ImmediateScheduler.shared)
       .sink { validated in
         result = validated
       }
       .store(in: cancellables)
-    
+
     controller.updatePassphrase("")
-    
+
     XCTAssertFalse(result.isValid)
     XCTAssertEqual(result.errors.first?.identifier, .validation)
   }

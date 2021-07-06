@@ -24,9 +24,9 @@ import Commons
 import UIKit
 
 public protocol AnyUIComponent: UIViewController {
-  
+
   var lazyView: UIView { get }
-  
+
   func setup()
   func setupView()
   func activate()
@@ -34,23 +34,23 @@ public protocol AnyUIComponent: UIViewController {
 }
 
 public protocol UIComponent: AnyUIComponent {
-  
+
   associatedtype View: UIView
   associatedtype Controller: UIController
-  
+
   static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self
-  
+
   var contentView: View { get }
   var components: UIComponentFactory { get }
 }
 
 extension UIComponent {
-  
+
   public var lazyView: UIView { contentView }
-  
+
   public func setup() {}
   public func activate() {}
   public func deactivate() {}
@@ -59,24 +59,24 @@ extension UIComponent {
 public final class NavigationView: UIView {}
 
 extension UIComponent where Self: UINavigationController {
-  
+
   public var contentView: NavigationView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   public func setupView() {}
 }
 
 extension UIComponent where Self: UITabBarController {
-  
+
   public var contentView: NavigationView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   public func setupView() {}
 }
 
 extension UIComponent where Self: UIAlertController {
-  
+
   public func setupView() {}
 }

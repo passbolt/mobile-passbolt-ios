@@ -25,10 +25,10 @@ import AVFoundation
 import UIComponents
 
 internal final class CodeScanningDuplicateViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = ResultView
   internal typealias Controller = CodeScanningDuplicateController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private var payloadProcessingCancellable: AnyCancellable?
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,7 +52,7 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .hidesBackButton(true)
@@ -77,7 +77,7 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       )
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     controller
       .accountListPresentationPublisher()
@@ -94,4 +94,3 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       .store(in: cancellables)
   }
 }
-

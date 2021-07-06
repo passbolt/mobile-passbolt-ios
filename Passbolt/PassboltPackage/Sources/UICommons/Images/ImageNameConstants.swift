@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension ImageNameConstant {
-  
+
   public static let appLogo: Self = "AppLogo"
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
@@ -37,19 +37,20 @@ extension ImageNameConstant {
 }
 
 extension DynamicImage {
-  
-  // swiftlint:disable force_unwrapping
+
   public static var qrCodeSample: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "QrCodeSample",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "QrCodeSample",
           in: .uiCommons,
@@ -58,18 +59,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var duplicateMark: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "DuplicateMark",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "DuplicateMark",
           in: .uiCommons,
@@ -78,18 +81,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var successMark: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "successMark",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "successMark",
           in: .uiCommons,
@@ -98,18 +103,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var failureMark: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "failureMark",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "failureMark",
           in: .uiCommons,
@@ -118,18 +125,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var biometrics: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "Biometrics",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "Biometrics",
           in: .uiCommons,
@@ -138,18 +147,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var faceIDSetup: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "FaceIDSetup",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "FaceIDSetup",
           in: .uiCommons,
@@ -158,18 +169,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var touchIDSetup: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "TouchIDSetup",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "TouchIDSetup",
           in: .uiCommons,
@@ -178,18 +191,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var keychainIcon: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "KeychainIcon",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "KeychainIcon",
           in: .uiCommons,
@@ -198,18 +213,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var keyboardIcon: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "KeyboardIcon",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "KeyboardIcon",
           in: .uiCommons,
@@ -218,18 +235,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var settingsIcon: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "SettingsIcon",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "SettingsIcon",
           in: .uiCommons,
@@ -238,18 +257,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var switchIcon: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "SwitchIcon",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "SwitchIcon",
           in: .uiCommons,
@@ -258,18 +279,20 @@ extension DynamicImage {
       }
     }
   }
-  
+
   public static var passboltIcon: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "PassboltIcon",
           in: .uiCommons,
           with: nil
         )!
-        
+
       case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "PassboltIcon",
           in: .uiCommons,
@@ -278,5 +301,4 @@ extension DynamicImage {
       }
     }
   }
-  // swiftlint:enable force_unwrapping
 }

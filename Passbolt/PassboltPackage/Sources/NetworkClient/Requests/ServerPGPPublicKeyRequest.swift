@@ -28,7 +28,7 @@ public typealias ServerPGPPublicKeyRequest =
   NetworkRequest<DomainSessionVariable, ServerPGPPublicKeyVariable, ServerPGPPublicKeyResponse>
 
 extension ServerPGPPublicKeyRequest {
-  
+
   internal static func live(
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
@@ -52,10 +52,10 @@ public typealias ServerPGPPublicKeyVariable = Void
 public typealias ServerPGPPublicKeyResponse = CommonResponse<ServerPGPPublicKeyResponseBody>
 
 public struct ServerPGPPublicKeyResponseBody: Decodable {
-  
+
   public var fingerprint: String
   public var keyData: String
-  
+
   private enum CodingKeys: String, CodingKey {
     case fingerprint = "fingerprint"
     case keyData = "keydata"

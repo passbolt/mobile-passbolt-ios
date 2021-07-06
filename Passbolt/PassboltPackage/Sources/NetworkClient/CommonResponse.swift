@@ -22,13 +22,13 @@
 //
 
 public struct CommonResponse<Body: Decodable>: Decodable {
-  
+
   public var header: CommonResponseHeader
   public var body: Body
 }
 
 public struct CommonResponseHeader: Decodable {
-  
+
   public var id: String
   public var message: String
 }

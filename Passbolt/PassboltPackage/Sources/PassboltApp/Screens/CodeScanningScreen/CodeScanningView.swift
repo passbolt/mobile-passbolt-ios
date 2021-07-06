@@ -23,7 +23,7 @@
 import UICommons
 
 internal final class CodeScanningView: View {
-  
+
   internal func set(embeded view: UIView) {
     subviews.forEach { $0.removeFromSuperview() }
     mut(self) {

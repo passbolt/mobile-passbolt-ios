@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: Label {
-  
+
   public static func titleStyle() -> Self {
     .combined(
       .font(.inter(ofSize: 24, weight: .semibold)),
@@ -33,7 +33,7 @@ extension Mutation where Subject: Label {
       .numberOfLines(0)
     )
   }
-  
+
   public static func infoStyle() -> Self {
     .combined(
       .font(.inter(ofSize: 14, weight: .light)),

@@ -22,7 +22,7 @@
 //
 
 public class CollectionViewSeparator: CollectionViewSupplementaryView {
-  
+
   override public func setup() {
     dynamicBackgroundColor = .divider
   }

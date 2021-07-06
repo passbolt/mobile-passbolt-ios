@@ -25,30 +25,30 @@ import AVFoundation
 import Commons
 
 public struct Camera: EnvironmentElement {
-  
+
   public var checkPermission: () -> AnyPublisher<Camera.PermissionStatus, Never>
   public var requestPermission: () -> AnyPublisher<Bool, Never>
 }
 
 extension Camera {
-  
+
   public enum PermissionStatus {
-    
+
     case notDetermined
     case denied
     case authorized
-    
+
     internal static func status(from authorizationStatus: AVAuthorizationStatus) -> Self {
       switch authorizationStatus {
       case .notDetermined:
         return .notDetermined
-        
+
       case .denied, .restricted:
         return .denied
-        
+
       case .authorized:
         return .authorized
-        
+
       @unknown default:
         unreachable("Unexpected state")
       }
@@ -60,18 +60,18 @@ extension Camera {
     Self(
       checkPermission: {
         let checkPermissionSubject: PassthroughSubject<Camera.PermissionStatus, Never> = .init()
-        
+
         DispatchQueue.main.async {
           defer { checkPermissionSubject.send(completion: .finished) }
           let authorizationStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
           checkPermissionSubject.send(.status(from: authorizationStatus))
         }
-        
+
         return checkPermissionSubject.eraseToAnyPublisher()
       },
       requestPermission: {
         let requestPermissionSubject: PassthroughSubject<Bool, Never> = .init()
-        
+
         DispatchQueue.main.async {
           AVCaptureDevice.requestAccess(for: .video) { granted in
             DispatchQueue.main.async {
@@ -80,7 +80,7 @@ extension Camera {
             }
           }
         }
-        
+
         return requestPermissionSubject.eraseToAnyPublisher()
       }
     )
@@ -88,7 +88,7 @@ extension Camera {
 }
 
 extension Environment {
-  
+
   public var camera: Camera {
     get { element(Camera.self) }
     set { use(newValue) }
@@ -97,7 +97,7 @@ extension Environment {
 
 #if DEBUG
 extension Camera {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

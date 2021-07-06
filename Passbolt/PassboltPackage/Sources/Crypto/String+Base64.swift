@@ -26,12 +26,13 @@ import Foundation
 extension String {
   // Decode base64 url encoded
   public func base64DecodeFromURLEncoded(options: Data.Base64DecodingOptions = []) -> Data? {
-    var result: String = self
+    var result: String =
+      self
       .replacingOccurrences(of: "-", with: "+")
       .replacingOccurrences(of: "_", with: "/")
-    
+
     result += String(repeating: "=", count: result.count % 4)
-    
+
     return .init(base64Encoded: result, options: options)
   }
 }

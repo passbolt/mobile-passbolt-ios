@@ -25,33 +25,31 @@ import AegithalosCocoa
 import Commons
 
 public class Button: UIControl {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicPressedBackgroundColor: DynamicColor
-  = .default(self.pressedBackgroundColor) {
+  public lazy var dynamicPressedBackgroundColor: DynamicColor = .default(self.pressedBackgroundColor) {
     didSet {
       self.pressedBackgroundColor = dynamicPressedBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicDisabledBackgroundColor: DynamicColor
-  = .default(self.disabledBackgroundColor) {
+  public lazy var dynamicDisabledBackgroundColor: DynamicColor = .default(self.disabledBackgroundColor) {
     didSet {
       self.disabledBackgroundColor = dynamicDisabledBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicBorderColor: DynamicColor
-  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+  public lazy var dynamicBorderColor: DynamicColor = .default(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
     didSet {
       self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
     }
@@ -70,7 +68,7 @@ public class Button: UIControl {
   private let tapSubject: PassthroughSubject<Void, Never> = .init()
   private let pressLayer: CALayer = .init()
   private let disableLayer: CALayer = .init()
-  
+
   public private(set) var isPressed: Bool = false {
     didSet {
       guard isPressed != oldValue else { return }
@@ -79,7 +77,7 @@ public class Button: UIControl {
         CALayer.performWithoutAnimation {
           pressed()
         }
-        
+
       case false:
         CALayer.performWithoutAnimation {
           released()
@@ -87,46 +85,46 @@ public class Button: UIControl {
       }
     }
   }
-  
+
   override public var isEnabled: Bool {
     didSet {
       guard isEnabled != oldValue else { return }
       switch isEnabled {
       case true:
         enabled()
-        
+
       case false:
         disabled()
       }
     }
   }
-  
+
   public required init() {
     super.init(frame: .zero)
     setup()
   }
-  
+
   @available(*, unavailable)
   public required init?(coder aDecoder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   internal func pressed() {
     pressLayer.opacity = 1
   }
-  
+
   internal func released() {
     pressLayer.opacity = 0
   }
-  
+
   internal func enabled() {
     disableLayer.opacity = 0
   }
-  
+
   internal func disabled() {
     disableLayer.opacity = 1
   }
-  
+
   private func setup() {
     clipsToBounds = true
     layer.masksToBounds = true
@@ -135,19 +133,19 @@ public class Button: UIControl {
     setupDisableEffect()
     setupActions()
   }
-  
+
   private func setupPressEffect() {
     pressLayer.opacity = 0.0
     pressLayer.frame = bounds
     layer.addSublayer(pressLayer)
   }
-  
+
   private func setupDisableEffect() {
     disableLayer.opacity = 0.0
     disableLayer.frame = bounds
     layer.addSublayer(disableLayer)
   }
-  
+
   private func setupActions() {
     addTarget(self, action: #selector(touchDown), for: .touchDown)
     addTarget(self, action: #selector(touchUpInside), for: .touchUpInside)
@@ -156,38 +154,38 @@ public class Button: UIControl {
     addTarget(self, action: #selector(touchDragExit), for: .touchDragExit)
     addTarget(self, action: #selector(touchCancel), for: .touchCancel)
   }
-  
+
   @objc private func touchDown() {
     isPressed = true
   }
-  
+
   @objc private func touchUpInside() {
     isPressed = false
     tapSubject.send()
   }
-  
+
   @objc private func touchDragEnter() {
     isPressed = true
   }
-  
+
   @objc private func touchUpOutside() {
     isPressed = false
   }
-  
+
   @objc private func touchDragExit() {
     isPressed = false
   }
-  
+
   @objc private func touchCancel() {
     isPressed = false
   }
-  
+
   override public func layoutSubviews() {
     super.layoutSubviews()
     pressLayer.frame = bounds
     disableLayer.frame = bounds
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -196,7 +194,7 @@ public class Button: UIControl {
     else { return }
     updateColors()
   }
-  
+
   internal func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)

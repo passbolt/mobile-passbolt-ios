@@ -23,73 +23,72 @@
 
 import Combine
 import Features
-@testable import PassboltApp
 import TestExtensions
 import UIComponents
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import PassboltApp
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ExtensionSetupScreenTests: TestCase {
-  
+
   var linkOpener: LinkOpener!
-  
+
   override func setUp() {
     super.setUp()
     linkOpener = .placeholder
   }
-  
+
   override func tearDown() {
     linkOpener = nil
     super.tearDown()
   }
-  
+
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
     features.use(linkOpener)
     let controller: ExtensionSetupController = testInstance()
-    
+
     var result: Void!
     controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_continueSetupPresentationPublisher_publish_afterSkip() {
     features.use(linkOpener)
-    
+
     let controller: ExtensionSetupController = testInstance()
-    
+
     var result: Void!
     controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     controller.skipSetup()
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_continueSetupPresentationPublisher_publish_afterSetup() {
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
-    
+
     let controller: ExtensionSetupController = testInstance()
-    
+
     var result: Void!
     controller.continueSetupPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
-    
+
     controller
       .setupExtension()
       .sink { _ in }
       .store(in: cancellables)
-    
+
     XCTAssertNotNil(result)
   }
-  
+
   func test_setupExtension_opensSystemSettings() {
     var result: Void!
     linkOpener.openSystemSettings = {
@@ -97,14 +96,14 @@ final class ExtensionSetupScreenTests: TestCase {
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
-    
+
     let controller: ExtensionSetupController = testInstance()
-    
+
     controller
       .setupExtension()
       .sink { _ in }
       .store(in: cancellables)
-    
+
     XCTAssertNotNil(result)
   }
 }

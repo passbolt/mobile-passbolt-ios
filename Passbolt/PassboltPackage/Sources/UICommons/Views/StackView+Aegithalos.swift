@@ -24,11 +24,11 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: StackView {
-  
+
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
   }
-  
+
   public static func bintColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTintColor = color }
   }

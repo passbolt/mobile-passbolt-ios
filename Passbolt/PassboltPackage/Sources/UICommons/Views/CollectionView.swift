@@ -24,30 +24,30 @@
 import AegithalosCocoa
 import Commons
 
-// swiftlint:disable:next colon
 open class CollectionView<Section: Hashable, Item: Hashable>:
-  UICollectionView, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+  UICollectionView, UICollectionViewDragDelegate, UICollectionViewDropDelegate
+{
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  public lazy var dynamicBorderColor: DynamicColor
-  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+
+  public lazy var dynamicBorderColor: DynamicColor = .default(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
     didSet {
       self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
-  
+
   public var emptyStateView: UIView? {
     didSet {
       oldValue?.removeFromSuperview()
@@ -64,9 +64,10 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
       }
     }
   }
-  
+
+  // swift-format-ignore: NoLeadingUnderscores
   private lazy var _dataSource: UICollectionViewDiffableDataSource<Section, Item> = setupDataSource()
-  
+
   public init(
     layout: UICollectionViewLayout,
     cells: Array<CollectionViewCell.Type>,
@@ -102,52 +103,53 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
         withReuseIdentifier: supplementaryView.reuseIdentifier
       )
     }
-    
+
     setup()
   }
-  
+
   @available(*, unavailable)
   public init() {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   open func setup() {
     // prepared to override instead of overriding init
   }
-  
+
   public func update(
     data: Array<(Section, Array<Item>)>,
     animated: Bool = true
   ) {
     var snapshot: NSDiffableDataSourceSnapshot<Section, Item> = .init()
-    
+
     for (section, items) in data {
       snapshot.appendSections([section])
       snapshot.appendItems(items, toSection: section)
     }
-    
+
     _dataSource.apply(
       snapshot,
       animatingDifferences: animated
     )
-    
+
     if data.allSatisfy({ $0.1.isEmpty }) {
       emptyStateView?.isHidden = false
       emptyStateView.map(bringSubviewToFront)
-    } else {
+    }
+    else {
       emptyStateView?.isHidden = true
     }
   }
-  
+
   public func section(at indexPath: IndexPath) -> Section {
     _dataSource.snapshot().sectionIdentifiers[indexPath.section]
   }
-  
+
   open func setupCell(
     for item: Item,
     in section: Section,
@@ -155,7 +157,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
   ) -> CollectionViewCell? {
     unreachable("\(Self.self).\(#function) should be overriden to be used")
   }
-  
+
   open func setupHeader(
     for section: Section,
     at indexPath: IndexPath
@@ -169,7 +171,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
   ) -> CollectionReusableView? {
     unreachable("\(Self.self).\(#function) should be overriden to be used")
   }
-  
+
   open func setupSupplementaryView(
     _ kind: String,
     for section: Section,
@@ -177,13 +179,13 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
   ) -> CollectionReusableView? {
     unreachable("\(Self.self).\(#function) should be overriden to be used")
   }
-  
+
   internal func setReorderingEnabled(_ isEnabled: Bool) {
     self.dragInteractionEnabled = isEnabled
     self.dropDelegate = self
     self.dragDelegate = self
   }
-  
+
   internal func move(
     from sourceSection: Section,
     at sourceIndexPath: IndexPath,
@@ -192,7 +194,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
   ) {
     unreachable("\(Self.self).\(#function) should be overriden to be used")
   }
-  
+
   private func setupDataSource() -> UICollectionViewDiffableDataSource<Section, Item> {
     let dataSource: UICollectionViewDiffableDataSource<Section, Item> = .init(
       collectionView: self,
@@ -210,17 +212,17 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
       switch kind {
       case UICollectionView.elementKindSectionHeader:
         return self.setupHeader(for: self.section(at: indexPath), at: indexPath)
-        
+
       case UICollectionView.elementKindSectionFooter:
         return self.setupFooter(for: self.section(at: indexPath), at: indexPath)
-        
+
       case _:
         return self.setupSupplementaryView(kind, for: self.section(at: indexPath), at: indexPath)
       }
     }
     return dataSource
   }
-  
+
   public func collectionView(
     _ collectionView: UICollectionView,
     performDropWith coordinator: UICollectionViewDropCoordinator
@@ -228,7 +230,8 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     let destinationIndexPath: IndexPath
     if let indexPath: IndexPath = coordinator.destinationIndexPath {
       destinationIndexPath = indexPath
-    } else {
+    }
+    else {
       let section: Int = collectionView.numberOfSections - 1
       let row: Int = collectionView.numberOfItems(inSection: section)
       destinationIndexPath = IndexPath(row: row, section: section)
@@ -239,14 +242,14 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
       collectionView: collectionView
     )
   }
-  
+
   public func collectionView(
     _ collectionView: UICollectionView,
     canHandle session: UIDropSession
   ) -> Bool {
     dragInteractionEnabled
   }
-  
+
   public func collectionView(
     _ collectionView: UICollectionView,
     dropSessionDidUpdate session: UIDropSession,
@@ -257,19 +260,19 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
         operation: .move,
         intent: .insertIntoDestinationIndexPath
       )
-    } else {
+    }
+    else {
       return UICollectionViewDropProposal(operation: .forbidden)
     }
   }
-  
+
   private func reorderItems(
     coordinator: UICollectionViewDropCoordinator,
     destinationIndexPath: IndexPath,
     collectionView: UICollectionView
   ) {
     let items: Array<UICollectionViewDropItem> = coordinator.items
-    if
-      let item: UICollectionViewDropItem = items.first,
+    if let item: UICollectionViewDropItem = items.first,
       let sourceIndexPath: IndexPath = item.sourceIndexPath
     {
       move(
@@ -278,11 +281,12 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
         to: section(at: destinationIndexPath),
         at: destinationIndexPath
       )
-    } else {
+    }
+    else {
       assertionFailure("can't handle more than one item for moving")
     }
   }
-  
+
   public func collectionView(
     _ collectionView: UICollectionView,
     itemsForBeginning session: UIDragSession,
@@ -293,20 +297,19 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     dragItem.localObject = _dataSource.itemIdentifier(for: indexPath)
     return [dragItem]
   }
-  
+
   public func collectionView(
     _ collectionView: UICollectionView,
     itemsForAddingTo session: UIDragSession,
     at indexPath: IndexPath,
     point: CGPoint
   ) -> [UIDragItem] {
-    // swiftlint:disable:next legacy_objc_type
     let itemProvider: NSItemProvider = .init(object: "\(indexPath)" as NSString)
     let dragItem: UIDragItem = .init(itemProvider: itemProvider)
     dragItem.localObject = _dataSource.itemIdentifier(for: indexPath)
     return [dragItem]
   }
-  
+
   override open func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -315,7 +318,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     else { return }
     updateColors()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
@@ -324,14 +327,14 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
 }
 
 public struct SingleSection: Hashable {
-  
+
   public static var section: Self = Self()
-  
+
   private init() {}
 }
 
 extension CollectionView where Section == SingleSection {
-  
+
   public func update(
     data: Array<Item>,
     animated: Bool = true

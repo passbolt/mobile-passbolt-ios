@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Commons
 import Crypto
 import Environment
@@ -29,116 +28,115 @@ import Features
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
+@testable import Accounts
+
 final class PassphraseCacheTests: TestCase {
-  
+
   func test_passphraseIsStored_whenStoreIsCalled() {
     features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
-    
+
     let cache: PassphraseCache = testInstance()
-    
+
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
     var result: Passphrase!
-      
+
     cache.passphrasePublisher(accountID)
       .receive(on: ImmediateScheduler.shared)
       .sink { passphrase in
         result = passphrase
       }
       .store(in: cancellables)
-    
+
     cache.store(passphrase, accountID, .distantFuture)
-    
+
     XCTAssertEqual(passphrase, result)
   }
-  
+
   func test_passphraseIsNotStored_whenStoreIsCalled_withExpirationDateInThePast() {
     features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
-    
+
     let cache: PassphraseCache = testInstance()
-    
+
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
     var result: Passphrase?
-      
+
     cache.passphrasePublisher(accountID)
       .receive(on: ImmediateScheduler.shared)
       .sink { passphrase in
         result = passphrase
       }
       .store(in: cancellables)
-    
+
     cache.store(passphrase, accountID, .distantPast)
-    
+
     XCTAssertNotEqual(passphrase, result)
     XCTAssertNil(result)
   }
-  
+
   func test_alreadyStoredPassphraseIsCleared_whenClearIsCalled() {
     features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       Just(.didBecomeActive).eraseToAnyPublisher()
     }
-    
+
     let cache: PassphraseCache = testInstance()
-    
+
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
     var result: Passphrase?
-      
+
     cache.passphrasePublisher(accountID)
       .receive(on: ImmediateScheduler.shared)
       .sink { passphrase in
         result = passphrase
       }
       .store(in: cancellables)
-    
+
     cache.store(passphrase, accountID, .distantFuture)
-    
+
     XCTAssertEqual(passphrase, result)
-    
+
     cache.clear()
-    
+
     XCTAssertNotEqual(passphrase, result)
     XCTAssertNil(result)
   }
-  
+
   func test_passphraseIsCleared_whenAppIsSentToBackground() {
     let lifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
-    
+
     features.environment.time.timestamp = always(0)
     features.environment.appLifeCycle.lifeCyclePublisher = {
       lifeCycleSubject.eraseToAnyPublisher()
     }
-    
+
     let cache: PassphraseCache = testInstance()
-    
+
     let passphrase: Passphrase = "Passphrase to be stored"
     let accountID: Account.LocalID = "1"
     var result: Passphrase!
-      
+
     cache.passphrasePublisher(accountID)
       .receive(on: ImmediateScheduler.shared)
       .sink { passphrase in
         result = passphrase
       }
       .store(in: cancellables)
-    
+
     cache.store(passphrase, accountID, .distantFuture)
-  
+
     XCTAssertEqual(passphrase, result)
-    
+
     lifeCycleSubject.send(.didEnterBackground)
-    
+
     XCTAssertNil(result)
   }
 }

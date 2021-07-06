@@ -25,16 +25,16 @@ import Combine
 import UICommons
 
 public final class TransferInfoScreenView: ScrolledStackView {
-  
+
   internal var tapButtonPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
-  
+
   private let headerLabel: Label = .init()
   private let stepLabels: Array<Label> = .init()
   private let imageView: ImageView = .init()
   private let button: TextButton = .init()
-  
+
   override public func setup() {
-    
+
     mut(headerLabel) {
       .combined(
         .font(.inter(ofSize: 14)),
@@ -42,7 +42,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .text(localized: "transfer.account.description")
       )
     }
-    
+
     func icon(number: Int) -> Label {
       Mutation<Label>
         .combined(
@@ -57,7 +57,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         )
         .instantiate()
     }
-    
+
     let firstStep: StepListItemView = .init()
     mut(firstStep) {
       .combined(
@@ -76,7 +76,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         )
       )
     }
-    
+
     let secondStep: StepListItemView = .init()
     mut(secondStep) {
       .combined(
@@ -93,7 +93,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         )
       )
     }
-    
+
     let thirdStep: StepListItemView = .init()
     mut(thirdStep) {
       .combined(
@@ -110,7 +110,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         )
       )
     }
-    
+
     let fourthStep: StepListItemView = .init()
     mut(fourthStep) {
       .combined(
@@ -139,13 +139,13 @@ public final class TransferInfoScreenView: ScrolledStackView {
         fourthStep
       )
     }
-    
+
     let imageContainer: View = Mutation<View>
       .combined(
         .backgroundColor(dynamic: .background)
       )
       .instantiate()
-    
+
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
@@ -157,7 +157,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         )
       )
     }
-    
+
     mut(button) {
       .combined(
         .primaryStyle(),
@@ -165,7 +165,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .accessibilityIdentifier("button.transfer.account")
       )
     }
-    
+
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background),

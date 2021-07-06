@@ -28,7 +28,7 @@ internal final class SignInViewController: PlainViewController, UIComponent {
 
   internal typealias View = AuthorizationView
   internal typealias Controller = SignInController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class SignInViewController: PlainViewController, UIComponent {
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal var components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,25 +52,25 @@ internal final class SignInViewController: PlainViewController, UIComponent {
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(self) {
       .title(localized: "sign.in.title")
     }
-    
+
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     #warning("TODO: Fill with proper values when available")
     contentView.applyOn(name: .text("TODO: Provide user name"))
     contentView.applyOn(email: .text("TODO: Provide email"))
     contentView.applyOn(url: .text("TODO: Provide url"))
     contentView.applyOn(passwordDescription: .text(localized: "authorization.passphrase.description.text"))
-    
+
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     contentView.secureTextPublisher
       .receive(on: RunLoop.main)
@@ -78,12 +78,13 @@ internal final class SignInViewController: PlainViewController, UIComponent {
         self?.controller.updatePassphrase(passphrase)
       }
       .store(in: cancellables)
-    
+
     controller.validatedPassphrasePublisher()
-      .first() // skipping error just to update intial value
+      .first()  // skipping error just to update intial value
       .map { Validated.valid($0.value) }
       .merge(
-        with: controller
+        with:
+          controller
           .validatedPassphrasePublisher()
           .dropFirst()
       )
@@ -99,7 +100,7 @@ internal final class SignInViewController: PlainViewController, UIComponent {
         )
       }
       .store(in: cancellables)
-    
+
     controller.validatedPassphrasePublisher()
       .map(\.isValid)
       .receive(on: RunLoop.main)
@@ -113,20 +114,21 @@ internal final class SignInViewController: PlainViewController, UIComponent {
         )
       }
       .store(in: cancellables)
-    
+
     controller.presentForgotPassphraseAlertPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         guard let self = self else { return }
-        
+
         if presented {
           self.present(ForgotPassphraseAlertViewController.self)
-        } else {
+        }
+        else {
           self.dismiss(ForgotPassphraseAlertViewController.self)
         }
       }
       .store(in: cancellables)
-      
+
     contentView.forgotTapPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in

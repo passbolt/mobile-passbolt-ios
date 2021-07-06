@@ -24,21 +24,21 @@
 import UICommons
 
 extension UICollectionViewCompositionalLayout {
-  
+
   internal static func accountSelectionLayout() -> UICollectionViewCompositionalLayout {
     let separator: NSCollectionLayoutSupplementaryItem = .init(
       layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(1.0)),
       elementKind: CollectionViewSeparator.kind,
       containerAnchor: .init(edges: .bottom)
     )
-    
+
     let item: NSCollectionLayoutItem = .init(
       layoutSize: .init(
         widthDimension: .fractionalWidth(1.0),
         heightDimension: .estimated(64)
       )
     )
-  
+
     let group: NSCollectionLayoutGroup = .vertical(
       layoutSize: .init(
         widthDimension: .fractionalWidth(1.0),
@@ -46,29 +46,29 @@ extension UICollectionViewCompositionalLayout {
       ),
       subitems: [item]
     )
-    
+
     group.supplementaryItems = [separator]
-    
+
     let section: NSCollectionLayoutSection = .init(group: group)
     section.decorationItems = [
       .background(elementKind: SectionDecorationView.reuseIdentifier)
     ]
-    
+
     // This section needs to be offset from the top by 1, otherwise it's truncated.
     section.contentInsets = .init(top: 1, leading: 8, bottom: 0, trailing: 8)
-    
+
     let layout: UICollectionViewCompositionalLayout = .init(section: section)
 
     layout.register(
       CollectionViewSeparator.self,
       forDecorationViewOfKind: CollectionViewSeparator.reuseIdentifier
     )
-    
+
     layout.register(
       SectionDecorationView.self,
       forDecorationViewOfKind: SectionDecorationView.reuseIdentifier
     )
-  
+
     return layout
   }
 }

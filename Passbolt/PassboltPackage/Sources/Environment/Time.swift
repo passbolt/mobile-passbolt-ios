@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import func Foundation.time
 
 public struct Time: EnvironmentElement {
@@ -30,7 +31,7 @@ public struct Time: EnvironmentElement {
 }
 
 extension Time {
-  
+
   public static var live: Self {
     Self(
       timestamp: { time(nil) }
@@ -39,7 +40,7 @@ extension Time {
 }
 
 extension Environment {
-  
+
   public var time: Time {
     get { element(Time.self) }
     set { use(newValue) }
@@ -48,7 +49,7 @@ extension Environment {
 
 #if DEBUG
 extension Time {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

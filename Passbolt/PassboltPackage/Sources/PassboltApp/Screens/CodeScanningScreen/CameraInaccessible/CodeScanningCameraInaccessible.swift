@@ -24,10 +24,10 @@
 import AccountSetup
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class CodeScanningCameraInaccessibleViewController:
-  AlertViewController<CodeScanningCameraInaccessibleController>, UIComponent {
-  
+  AlertViewController<CodeScanningCameraInaccessibleController>, UIComponent
+{
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -45,14 +45,14 @@ internal final class CodeScanningCameraInaccessibleViewController:
 }
 
 internal struct CodeScanningCameraInaccessibleController {
-  
+
   internal var exit: () -> Void
 }
 
 extension CodeScanningCameraInaccessibleController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -64,4 +64,3 @@ extension CodeScanningCameraInaccessibleController: UIController {
     )
   }
 }
-

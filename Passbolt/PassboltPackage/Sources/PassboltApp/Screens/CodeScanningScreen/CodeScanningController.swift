@@ -24,7 +24,7 @@ import AccountSetup
 import UIComponents
 
 internal struct CodeScanningController {
-  
+
   internal var progressPublisher: () -> AnyPublisher<Double, Never>
   internal var presentExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
@@ -35,9 +35,9 @@ internal struct CodeScanningController {
 }
 
 extension CodeScanningController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -47,12 +47,11 @@ extension CodeScanningController: UIController {
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let resultPresentationSubject: PassthroughSubject<Never, TheError> = .init()
-    
+
     accountTransfer
       .progressPublisher()
       .sink(
         receiveCompletion: { completion in
-          // swiftlint:disable:next explicit_type_interface
           guard case let .failure(error) = completion
           else { return }
           resultPresentationSubject.send(completion: .failure(error))
@@ -64,48 +63,47 @@ extension CodeScanningController: UIController {
         }
       )
       .store(in: cancellables)
-    
+
     func progressPublisher() -> AnyPublisher<Double, Never> {
       accountTransfer
         .progressPublisher()
         .compactMap { progress -> Double? in
           switch progress {
           case .configuration:
-            return 0 // initial value
-          
-          // swiftlint:disable:next explicit_type_interface
+            return 0  // initial value
+
           case let .scanningProgress(value):
             return value
-            
+
           case .scanningFinished:
-            return 1 // finished aka 100%
+            return 1  // finished aka 100%
           }
         }
-        .replaceError(with: 1) // we break the process on error so it is kind of 100%
+        .replaceError(with: 1)  // we break the process on error so it is kind of 100%
         .removeDuplicates()
         .eraseToAnyPublisher()
     }
-    
-    func presentExitConfirmation() -> Void {
+
+    func presentExitConfirmation() {
       exitConfirmationPresentationSubject.send(true)
     }
-    
+
     func exitConfirmationPresentationPublisher() -> AnyPublisher<Bool, Never> {
       exitConfirmationPresentationSubject.eraseToAnyPublisher()
     }
-    
-    func presentHelp() -> Void {
+
+    func presentHelp() {
       helpPresentationSubject.send(true)
     }
-    
+
     func helpPresentationPublisher() -> AnyPublisher<Bool, Never> {
       helpPresentationSubject.eraseToAnyPublisher()
     }
-    
+
     func resultPresentationPublisher() -> AnyPublisher<Never, TheError> {
       resultPresentationSubject.eraseToAnyPublisher()
     }
-    
+
     return Self(
       progressPublisher: progressPublisher,
       presentExitConfirmation: presentExitConfirmation,

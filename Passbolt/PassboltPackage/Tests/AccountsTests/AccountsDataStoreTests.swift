@@ -21,20 +21,16 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Commons
 import Crypto
 import Features
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable unowned_variable_capture
-// swiftlint:disable file_length
+@testable import Accounts
+
 final class AccountsDataStoreTests: TestCase {
-  
+
   var mockPreferencesStore: Dictionary<Preferences.Key, Any>!
   var mockKeychainStore: Array<(data: Data, query: KeychainQuery)>!
 
@@ -53,10 +49,8 @@ final class AccountsDataStoreTests: TestCase {
         self.mockKeychainStore
           .filter {
             $0.query.key == query.key
-            && (
-              $0.query.tag == query.tag
-              || query.tag == nil
-            )
+              && ($0.query.tag == query.tag
+                || query.tag == nil)
           }
           .map(\.data)
       )
@@ -93,108 +87,108 @@ final class AccountsDataStoreTests: TestCase {
       return .success
     }
   }
-  
+
   override func tearDown() {
     mockPreferencesStore = nil
     mockKeychainStore = nil
     super.tearDown()
   }
-  
+
   func test_loadAccounts_loadsItemsStoredInKeychain() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Array<Account> = dataStore.loadAccounts()
-    
+
     XCTAssertEqual(result, [validAccount])
   }
-  
+
   func test_loadAccounts_loadsEmptyIfKeychainContainsInvalidItems() {
     features.environment.keychain.load = always(.success([Data([65, 66, 67]), validAccountKeychainData]))
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Array<Account> = dataStore.loadAccounts()
-    
+
     XCTAssertEqual(result, [])
   }
-  
+
   func test_loadAccounts_loadsEmptyIfKeychainLoadFails() {
     features.environment.keychain.load = always(.failure(.testError()))
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Array<Account> = dataStore.loadAccounts()
-    
+
     XCTAssertEqual(result, [])
   }
-  
+
   func test_loadLastUsedAccount_loadsStoredLastAccount() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Account? = dataStore.loadLastUsedAccount()
-    
+
     XCTAssertEqual(result, validAccount)
   }
-  
+
   func test_loadLastUsedAccount_loadsNoneIfKeychainDataIsMissing() {
     features.environment.keychain.load = always(.success([]))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Account? = dataStore.loadLastUsedAccount()
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_loadLastUsedAccount_loadsNoneIfKeychainLoadFails() {
     features.environment.keychain.load = always(.failure(.testError()))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Account? = dataStore.loadLastUsedAccount()
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_loadLastUsedAccount_loadsNoneIfNoAccountIDSaved() {
     features.environment.keychain.load = always(.success([validAccountKeychainData]))
     features.environment.preferences.load = always(nil)
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Account? = dataStore.loadLastUsedAccount()
-    
+
     XCTAssertNil(result)
   }
-  
+
   func test_saveLastUsedAccount_savesAccountID() {
     var result: String?
     features.environment.preferences.save = { value, _ in
       result = value as? String
     }
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     dataStore.storeLastUsedAccount(validAccount.localID)
-    
+
     XCTAssertEqual(
       result,
       validAccount.localID.rawValue
     )
   }
-  
+
   func test_storeAccount_savesDataProperly() {
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
-    
+
     XCTAssertSuccess(result)
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -205,24 +199,24 @@ final class AccountsDataStoreTests: TestCase {
       [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
     )
   }
-  
+
   func test_storeAccount_failsIfKeychainSaveFails() {
     features.environment.keychain.save = always(.failure(.testError()))
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
-    
+
     XCTAssertFailure(result)
   }
-  
+
   func test_storeAccount_dataIsNotSavedIfKeychainSaveFails() {
     features.environment.keychain.save = always(.failure(.testError()))
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     _ = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
-    
+
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
       []
@@ -232,7 +226,7 @@ final class AccountsDataStoreTests: TestCase {
       []
     )
   }
-  
+
   func test_deleteAccount_removesAccountData() {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
@@ -251,13 +245,13 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      )
+      ),
     ]
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     dataStore.deleteAccount(validAccount.localID)
-    
+
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
       []
@@ -267,15 +261,15 @@ final class AccountsDataStoreTests: TestCase {
       []
     )
   }
-  
+
   func test_verifyDataIntegrity_succeedsWithNoData() {
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
-    
+
     XCTAssertSuccess(result)
   }
-  
+
   func test_verifyDataIntegrity_succeedsWithValidData() {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
@@ -294,19 +288,19 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      )
+      ),
     ]
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
-    
+
     XCTAssertSuccess(result)
   }
-  
+
   func test_verifyDataIntegrity_doesNotModifyValidData() {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
-      
+
       (
         data: validAccountProfileKeychainData,
         query: .init(
@@ -330,12 +324,12 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      )
+      ),
     ]
     let dataStore: AccountsDataStore = testInstance()
-    
+
     _ = dataStore.verifyDataIntegrity()
-    
+
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
       [validAccount.localID.rawValue]
@@ -345,7 +339,7 @@ final class AccountsDataStoreTests: TestCase {
       [validAccountProfileKeychainData, validAccountKeychainData, validPrivateKeyKeychainData]
     )
   }
-  
+
   func test_verifyDataIntegrity_removesAccountsData_whenAccountIDIsNotInList() {
     mockPreferencesStore["accountsList"] = []
     mockKeychainStore = [
@@ -364,12 +358,12 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      )
+      ),
     ]
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
-    
+
     XCTAssertSuccess(result)
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -380,7 +374,7 @@ final class AccountsDataStoreTests: TestCase {
       []
     )
   }
-  
+
   func test_verifyDataIntegrity_removesAccountsData_whenAccountDataIsNotStored() {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
@@ -393,11 +387,11 @@ final class AccountsDataStoreTests: TestCase {
         )
       )
     ]
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
-    
+
     XCTAssertSuccess(result)
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -408,7 +402,7 @@ final class AccountsDataStoreTests: TestCase {
       []
     )
   }
-  
+
   func test_verifyDataIntegrity_removesAccountsData_whenPrivateKeyIsNotStored() {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
@@ -421,11 +415,11 @@ final class AccountsDataStoreTests: TestCase {
         )
       )
     ]
-    
+
     let dataStore: AccountsDataStore = testInstance()
-    
+
     let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
-    
+
     XCTAssertSuccess(result)
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -439,17 +433,16 @@ final class AccountsDataStoreTests: TestCase {
 }
 
 private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.testUUID.uuidString),
+  localID: .init(rawValue: UUID.test.uuidString),
   domain: "https://passbolt.dev",
   userID: "USER_ID",
   fingerprint: "FINGERPRINT"
 )
 // keychain wrapper encodes values within own structure putting value under "v" key
-// swiftlint:disable:next force_try
 private let validAccountKeychainData: Data = try! JSONEncoder().encode(["v": validAccount])
 
 private let validAccountDetails: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.testUUID.uuidString),
+  accountID: .init(rawValue: UUID.test.uuidString),
   label: "label",
   username: "username",
   firstName: "firstName",
@@ -458,13 +451,12 @@ private let validAccountDetails: AccountProfile = .init(
   biometricsEnabled: false
 )
 // keychain wrapper encodes values within own structure putting value under "v" key
-// swiftlint:disable:next force_try
 private let validAccountProfileKeychainData: Data = try! JSONEncoder().encode(["v": validAccountDetails])
 
 private let validPrivateKey: ArmoredPrivateKey =
   """
   -----BEGIN PGP PRIVATE KEY BLOCK-----
-  
+
   lQPGBGCGqHcBCADMbVyAkL2msB1HZyXDdca2vSpLB2YWgzwvPQF5whOxHTmeBY44
   tBttqB/jKXVlKFMuQJvkh2eIRAMzJHFK1Xd2MQHGGlbn9CYcBIdEUGhUh6/8ZGc7
   PkmxWnI0gaxsYENry8cKHbLHGA0hN+g8eHFbDzrbCEez8J1QSvykDr7TWG8sBdGa
@@ -525,5 +517,4 @@ private let validPrivateKey: ArmoredPrivateKey =
   """
 
 // keychain wrapper encodes values within own structure putting value under "v" key
-// swiftlint:disable:next force_try
 private let validPrivateKeyKeychainData: Data = try! JSONEncoder().encode(["v": validPrivateKey])

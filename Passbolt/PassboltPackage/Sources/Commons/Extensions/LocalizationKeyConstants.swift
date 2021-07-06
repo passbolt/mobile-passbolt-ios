@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension LocalizationKeyConstant {
-  
+
   public static let done: Self = "generic.done"
   public static let yes: Self = "generic.yes"
   public static let cancel: Self = "generic.cancel"

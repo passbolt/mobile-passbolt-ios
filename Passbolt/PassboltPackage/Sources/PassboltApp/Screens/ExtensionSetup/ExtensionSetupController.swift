@@ -24,16 +24,16 @@
 import UIComponents
 
 internal struct ExtensionSetupController {
-  
+
   internal var continueSetupPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var setupExtension: () -> AnyPublisher<Never, TheError>
   internal var skipSetup: () -> Void
 }
 
 extension ExtensionSetupController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -41,11 +41,11 @@ extension ExtensionSetupController: UIController {
   ) -> Self {
     let linkOpener: LinkOpener = features.instance()
     let continueSetupPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    
+
     func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
       continueSetupPresentationSubject.eraseToAnyPublisher()
     }
-    
+
     func setupExtension() -> AnyPublisher<Never, TheError> {
       linkOpener
         .openSystemSettings()
@@ -56,11 +56,11 @@ extension ExtensionSetupController: UIController {
         })
         .eraseToAnyPublisher()
     }
-    
-    func skipSetup() -> Void {
+
+    func skipSetup() {
       continueSetupPresentationSubject.send()
     }
-    
+
     return Self(
       continueSetupPresentationPublisher: continueSetupPresentationPublisher,
       setupExtension: setupExtension,

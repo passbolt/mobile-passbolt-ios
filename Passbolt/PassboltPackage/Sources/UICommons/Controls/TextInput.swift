@@ -26,7 +26,7 @@ import Commons
 import UIKit
 
 public class TextInput: View {
-  
+
   public let textPublisher: AnyPublisher<String, Never>
   public let editingDidBeginPublisher: AnyPublisher<Void, Never>
   public var attributedPlaceholder: NSAttributedString? {
@@ -45,12 +45,12 @@ public class TextInput: View {
     get { textField.keyboardType }
     set { textField.keyboardType = newValue }
   }
-  
+
   public var isRequired: Bool {
     get { !requiredLabel.isHidden }
     set { requiredLabel.isHidden = !newValue }
   }
-  
+
   fileprivate let textField: TextField = .init()
   private var errorMessageLocalizationKey: String? {
     didSet { updatePresentation() }
@@ -59,19 +59,19 @@ public class TextInput: View {
   private let requiredLabel: Label = .init()
   private let errorMessageView: ErrorMessageView = .init()
   private var isValid: Bool { errorMessageLocalizationKey == nil }
-  
+
   public required init() {
     let textSubject: PassthroughSubject<String, Never> = .init()
     let editingDidBeginSubject: PassthroughSubject<Void, Never> = .init()
-    
+
     self.textPublisher = textSubject.eraseToAnyPublisher()
     self.editingDidBeginPublisher = editingDidBeginSubject.eraseToAnyPublisher()
     super.init()
-    
+
     mut(self) {
       .subview(descriptionLabel, requiredLabel)
     }
-    
+
     mut(descriptionLabel) {
       .combined(
         .font(.inter(ofSize: 12, weight: .semibold)),
@@ -91,27 +91,30 @@ public class TextInput: View {
         .bottomAnchor(.equalTo, descriptionLabel.bottomAnchor)
       )
     }
-    
+
     mut(textField) {
       .combined(
         .primaryStyle(),
         .accessibilityIdentifier("input"),
-        .action({ textInput in
-          textSubject.send(textInput.text ?? "")
-        },
-        for: .editingChanged
+        .action(
+          { textInput in
+            textSubject.send(textInput.text ?? "")
+          },
+          for: .editingChanged
         ),
-        .action({ [weak self] _ in
-          editingDidBeginSubject.send(())
-      
-          self?.updatePresentation()
-        },
-        for: .editingDidBegin
+        .action(
+          { [weak self] _ in
+            editingDidBeginSubject.send(())
+
+            self?.updatePresentation()
+          },
+          for: .editingDidBegin
         ),
-        .action({ [weak self] _ in
-          self?.updatePresentation()
-        },
-        for: .editingDidEnd
+        .action(
+          { [weak self] _ in
+            self?.updatePresentation()
+          },
+          for: .editingDidEnd
         ),
         .subview(of: self),
         .topAnchor(.equalTo, descriptionLabel.bottomAnchor, constant: 8),
@@ -120,7 +123,7 @@ public class TextInput: View {
         .bottomAnchor(.equalTo, bottomAnchor, priority: .defaultLow)
       )
     }
-    
+
     mut(errorMessageView) {
       .combined(
         .accessibilityIdentifier("input.error"),
@@ -133,25 +136,26 @@ public class TextInput: View {
       )
     }
   }
-  
+
   public func applyOn(text mutation: Mutation<TextField>) {
     mutation.apply(on: textField)
   }
-  
+
   public func applyOn(description mutation: Mutation<Label>) {
     mutation.apply(on: descriptionLabel)
   }
-  
+
   public func update(from validated: Validated<String>) {
     textField.text = validated.value
-    
+
     if let localizationKey: String = validated.errors.first?.localizationKey {
       errorMessageLocalizationKey = localizationKey
-    } else {
+    }
+    else {
       errorMessageLocalizationKey = nil
     }
   }
-  
+
   private func updatePresentation() {
     if let errorMessageKey: String = errorMessageLocalizationKey {
       mut(errorMessageView) {
@@ -160,22 +164,23 @@ public class TextInput: View {
           .isHidden(false)
         )
       }
-      
+
       mut(textField) {
         .border(dynamic: .secondaryRed)
       }
-      
+
       mut(descriptionLabel) {
         .textColor(dynamic: .secondaryRed)
       }
-    } else {
+    }
+    else {
       mut(errorMessageView) {
         .combined(
           .text(""),
           .isHidden(true)
         )
       }
-      
+
       mut(textField) {
         .when(
           textField.isEditing,
@@ -183,7 +188,7 @@ public class TextInput: View {
           else: .border(dynamic: .divider)
         )
       }
-      
+
       mut(descriptionLabel) {
         .textColor(dynamic: .primaryText)
       }
@@ -192,22 +197,25 @@ public class TextInput: View {
 }
 
 public final class SecureTextInput: TextInput {
-  
+
   private let imageButton: ImageButton = .init()
-  
+
   public required init() {
     super.init()
-    
-    let buttonStyle: Mutation<ImageButton> = .with({ [weak self] in
-      self?.textField.isSecureTextEntry ?? false
-    }, { isSecureTextEntry in
-      .when(
-        isSecureTextEntry,
-        then: .image(symbol: .eye),
-        else: .image(symbol: .eyeSlash)
-      )
-    })
-    
+
+    let buttonStyle: Mutation<ImageButton> = .with(
+      { [weak self] in
+        self?.textField.isSecureTextEntry ?? false
+      },
+      { isSecureTextEntry in
+        .when(
+          isSecureTextEntry,
+          then: .image(symbol: .eye),
+          else: .image(symbol: .eyeSlash)
+        )
+      }
+    )
+
     mut(imageButton) {
       .combined(
         .accessibilityIdentifier("input.secure.button.eye"),
@@ -215,18 +223,18 @@ public final class SecureTextInput: TextInput {
         .action { [weak self] in
           guard let self = self else { return }
           self.textField.isSecureTextEntry.toggle()
-          
+
           buttonStyle.apply(on: self.imageButton)
         }
       )
     }
-    
+
     textField.returnKeyType = .done
     textField.endEditingOnReturn = true
     textField.isSecureTextEntry = true
     textField.rightViewMode = .always
     textField.rightView = imageButton
-    
+
     buttonStyle.apply(on: imageButton)
   }
 }

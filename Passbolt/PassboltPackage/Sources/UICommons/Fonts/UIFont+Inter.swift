@@ -25,7 +25,7 @@ import Commons
 import UIKit
 
 extension UIFont {
-  
+
   public static func inter(
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
@@ -37,56 +37,57 @@ extension UIFont {
         name: "Inter-Black",
         size: fontSize
       )
-      
+
     case .bold:
       font = UIFont(
         name: "Inter Bold",
         size: fontSize
       )
-      
+
     case .semibold:
       font = UIFont(
         name: "Inter SemiBold",
         size: fontSize
       )
-      
+
     case .light:
       font = UIFont(
         name: "Inter Light",
         size: fontSize
       )
-      
+
     case .ultraLight:
       font = UIFont(
         name: "Inter ExtraLight",
         size: fontSize
       )
-      
+
     case .medium:
       font = UIFont(
         name: "Inter Medium",
         size: fontSize
       )
-      
+
     case .regular:
       font = UIFont(
         name: "Inter Regular",
         size: fontSize
       )
-      
+
     case .thin:
       font = UIFont(
         name: "Inter Thin",
         size: fontSize
       )
-      
+
     case _:
       assertionFailure("Unsupported font weight: \(weight)")
       font = nil
     }
-    return font ?? .systemFont(
-      ofSize: fontSize,
-      weight: weight
-    )
+    return font
+      ?? .systemFont(
+        ofSize: fontSize,
+        weight: weight
+      )
   }
 }

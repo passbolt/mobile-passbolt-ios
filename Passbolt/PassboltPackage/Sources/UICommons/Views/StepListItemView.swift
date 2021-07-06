@@ -24,17 +24,17 @@
 import AegithalosCocoa
 
 public final class StepListItemView: View {
-  
+
   private let iconContainer: View = .init()
   private let label: Label = .init()
-  
+
   public required init() {
     super.init()
-    
+
     mut(self) {
       .backgroundColor(.clear)
     }
-    
+
     mut(iconContainer) {
       .combined(
         .backgroundColor(.clear),
@@ -43,7 +43,7 @@ public final class StepListItemView: View {
         .centerYAnchor(.equalTo, centerYAnchor)
       )
     }
-    
+
     mut(label) {
       .combined(
         .backgroundColor(.clear),
@@ -58,11 +58,11 @@ public final class StepListItemView: View {
       )
     }
   }
-  
+
   public func apply(onLabel mutation: Mutation<Label>) {
     mutation.apply(on: label)
   }
-  
+
   public func setIconView(_ view: UIView) {
     mut(view) {
       .combined(
@@ -74,13 +74,13 @@ public final class StepListItemView: View {
 }
 
 extension Mutation where Subject: StepListItemView {
-  
+
   public static func label(mutatation: Mutation<Label>) -> Self {
     .custom { (subject: Subject) in
       subject.apply(onLabel: mutatation)
     }
   }
-  
+
   public static func iconView(_ view: UIView) -> Self {
     .custom { (subject: Subject) in
       subject.setIconView(view)

@@ -21,25 +21,25 @@
 // @since         v1.0
 //
 
-@testable import Commons
 import XCTest
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
+
+@testable import Commons
+
 final class ValidatorTests: XCTestCase {
   private let messageKeyInvalid: String = "key.invalid"
-  
+
   func test_nonEmptyValidator_withNonEmptyValue_Succeeds() {
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: messageKeyInvalid)
     let validated: Validated<String> = validator.validate("NonEmptyString")
-    
+
     XCTAssertTrue(validated.isValid)
     XCTAssertTrue(validated.errors.isEmpty)
   }
-  
+
   func test_nonEmptyValidator_withEmptyValue_Fails() {
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: messageKeyInvalid)
     let validated: Validated<String> = validator.validate("")
-    
+
     XCTAssertFalse(validated.isValid)
     XCTAssertEqual(validated.errors.first?.identifier, .validation)
   }

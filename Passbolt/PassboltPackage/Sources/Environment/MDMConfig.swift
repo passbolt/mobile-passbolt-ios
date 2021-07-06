@@ -22,36 +22,38 @@
 //
 
 import Commons
+
 import class Foundation.UserDefaults
+
 //import Foundation
 
 public struct MDMConfig: EnvironmentElement {
-  
+
   public var loadConfig: () -> Dictionary<String, Any>
   public var updateConfig: (Dictionary<String, Any>) -> Void
 }
 
 extension MDMConfig {
-  
+
   // user defaults key for MDM configuration
   private static let configurationKey: String = "com.apple.configuration.managed"
-  
+
   public static var live: Self {
     let defaults: UserDefaults = .standard
-    
+
     func loadConfig() -> Dictionary<String, Any> {
       defaults.object(
         forKey: MDMConfig.configurationKey
       ) as? [String: Any] ?? [:]
     }
-    
+
     func updateConfig(_ updated: Dictionary<String, Any>) {
       defaults.set(
         updated,
         forKey: MDMConfig.configurationKey
       )
     }
-    
+
     return Self(
       loadConfig: loadConfig,
       updateConfig: updateConfig
@@ -60,7 +62,7 @@ extension MDMConfig {
 }
 
 extension Environment {
-  
+
   public var mdmConfig: MDMConfig {
     get { element(MDMConfig.self) }
     set { use(newValue) }
@@ -69,7 +71,7 @@ extension Environment {
 
 #if DEBUG
 extension MDMConfig {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

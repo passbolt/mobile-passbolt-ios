@@ -28,56 +28,62 @@ import Gopenpgp
 public struct PGP {
   // The following functions accept private & public keys as PGP formatted strings
   // https://pkg.go.dev/github.com/ProtonMail/gopenpgp/v2#readme-documentation
-  
+
   // Encrypt and sign
-  public var encryptAndSign: (
-    _ input: String,
-    _ passphrase: Passphrase,
-    _ privateKey: ArmoredPrivateKey,
-    _ publicKey: ArmoredPublicKey
-  ) -> Result<String, TheError>
+  public var encryptAndSign:
+    (
+      _ input: String,
+      _ passphrase: Passphrase,
+      _ privateKey: ArmoredPrivateKey,
+      _ publicKey: ArmoredPublicKey
+    ) -> Result<String, TheError>
   // Decrypt and verify signature
-  public var decryptAndVerify: (
-    _ input: String,
-    _ passphrase: Passphrase,
-    _ privateKey: ArmoredPrivateKey,
-    _ publicKey: ArmoredPublicKey
-  ) -> Result<String, TheError>
+  public var decryptAndVerify:
+    (
+      _ input: String,
+      _ passphrase: Passphrase,
+      _ privateKey: ArmoredPrivateKey,
+      _ publicKey: ArmoredPublicKey
+    ) -> Result<String, TheError>
   // Encrypt without signing
-  public var encrypt: (
-    _ input: String,
-    _ publicKey: ArmoredPublicKey
-  ) -> Result<String, TheError>
+  public var encrypt:
+    (
+      _ input: String,
+      _ publicKey: ArmoredPublicKey
+    ) -> Result<String, TheError>
   // Decrypt without verifying signature
-  public var decrypt: (
-    _ input: String,
-    _ passphrase: Passphrase,
-    _ privateKey: ArmoredPrivateKey
-  ) -> Result<String, TheError>
+  public var decrypt:
+    (
+      _ input: String,
+      _ passphrase: Passphrase,
+      _ privateKey: ArmoredPrivateKey
+    ) -> Result<String, TheError>
   // Sign cleartext message
-  public var signMessage: (
-    _ input: String,
-    _ passphrase: Passphrase,
-    _ privateKey: ArmoredPrivateKey
-  ) -> Result<String, TheError>
+  public var signMessage:
+    (
+      _ input: String,
+      _ passphrase: Passphrase,
+      _ privateKey: ArmoredPrivateKey
+    ) -> Result<String, TheError>
   // Verify cleartext message
-  public var verifyMessage: (
-    _ input: String,
-    _ publicKey: ArmoredPublicKey,
-    _ verifyTime: Int64
-  ) -> Result<String, TheError>
+  public var verifyMessage:
+    (
+      _ input: String,
+      _ publicKey: ArmoredPublicKey,
+      _ verifyTime: Int64
+    ) -> Result<String, TheError>
   // Verify if passhrase is correct
-  public var verifyPassphrase: (
-    _ privateKey: ArmoredPrivateKey,
-    _ passphrase: Passphrase
-  ) -> Result<Void, TheError>
+  public var verifyPassphrase:
+    (
+      _ privateKey: ArmoredPrivateKey,
+      _ passphrase: Passphrase
+    ) -> Result<Void, TheError>
 }
 
 extension PGP {
-  
-  // swiftlint:disable function_body_length
+
   public static func gopenPGP() -> Self {
-    
+
     func encryptAndSign(
       _ input: String,
       passphrase: Passphrase,
@@ -85,11 +91,11 @@ extension PGP {
       publicKey: ArmoredPublicKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
         return .failure(.invalidPassphraseError())
       }
-      
+
       var error: NSError?
       let result: String = Gopenpgp.HelperEncryptSignMessageArmored(
         publicKey.rawValue,
@@ -98,14 +104,14 @@ extension PGP {
         input,
         &error
       )
-      
+
       guard let nsError: NSError = error else {
         return .success(result)
       }
-      
+
       return .failure(.pgpError(nsError))
     }
-    
+
     func decryptAndVerify(
       _ input: String,
       passphrase: Passphrase,
@@ -113,11 +119,11 @@ extension PGP {
       publicKey: ArmoredPublicKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
         return .failure(.invalidPassphraseError())
       }
-      
+
       var error: NSError?
       let result: String = Gopenpgp.HelperDecryptVerifyMessageArmored(
         publicKey.rawValue,
@@ -126,45 +132,45 @@ extension PGP {
         input,
         &error
       )
-      
+
       guard let nsError: NSError = error else {
         return .success(result)
       }
-      
+
       return .failure(.pgpError(nsError))
     }
-    
+
     func encrypt(
       _ input: String,
       publicKey: ArmoredPublicKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       var error: NSError?
       let result: String = Gopenpgp.HelperEncryptMessageArmored(
         publicKey.rawValue,
         input,
         &error
       )
-      
+
       guard let nsError: NSError = error else {
         return .success(result)
       }
-      
+
       return .failure(.pgpError(nsError))
     }
-    
+
     func decrypt(
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPrivateKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
         return .failure(.invalidPassphraseError())
       }
-      
+
       var error: NSError?
       let result: String = Gopenpgp.HelperDecryptMessageArmored(
         privateKey.rawValue,
@@ -172,25 +178,25 @@ extension PGP {
         input,
         &error
       )
-      
+
       guard let nsError: NSError = error else {
         return .success(result)
       }
-      
+
       return .failure(.pgpError(nsError))
     }
-    
+
     func signMessage(
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPrivateKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
         return .failure(.invalidPassphraseError())
       }
-      
+
       var error: NSError?
       let result: String = Gopenpgp.HelperSignCleartextMessageArmored(
         privateKey.rawValue,
@@ -198,14 +204,14 @@ extension PGP {
         input,
         &error
       )
-      
+
       guard let nsError: NSError = error else {
         return .success(result)
       }
-      
+
       return .failure(.pgpError(nsError))
     }
-    
+
     func verifyMessage(
       _ input: String,
       publicKey: ArmoredPublicKey,
@@ -214,9 +220,9 @@ extension PGP {
       guard !input.isEmpty else {
         return .failure(.invalidInputDataError())
       }
-      
+
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       var error: NSError?
       let result: String = Gopenpgp.HelperVerifyCleartextMessageArmored(
         publicKey.rawValue,
@@ -224,35 +230,36 @@ extension PGP {
         verifyTime,
         &error
       )
-      
+
       guard let nsError: NSError = error else {
         return .success(result)
       }
-      
+
       return .failure(.pgpError(nsError))
     }
-    
+
     func verifyPassphrase(
       privateKey: ArmoredPrivateKey,
       passphrase: Passphrase
     ) -> Result<Void, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       guard
         let cryptoKey: CryptoKey = Gopenpgp.CryptoKey(fromArmored: privateKey.rawValue),
         let passphraseData: Data = passphrase.rawValue.data(using: .utf8)
       else {
         return .failure(.invalidPassphraseError())
       }
-      
+
       do {
         _ = try cryptoKey.unlock(passphraseData)
         return .success(())
-      } catch {
+      }
+      catch {
         return .failure(.invalidPassphraseError())
       }
     }
-    
+
     return Self(
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
       decryptAndVerify: decryptAndVerify(_:passphrase:privateKey:publicKey:),
@@ -267,7 +274,7 @@ extension PGP {
 
 #if DEBUG
 extension PGP {
-  
+
   public static var placeholder: Self {
     Self(
       encryptAndSign: Commons.placeholder("You have to provide mocks for used methods"),

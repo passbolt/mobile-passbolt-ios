@@ -21,11 +21,12 @@
 // @since         v1.0
 //
 
-import struct Foundation.Data
 import SQLite3
 
+import struct Foundation.Data
+
 public protocol DatabaseStatementBindable {
-  
+
   func bind(
     _ handle: OpaquePointer?,
     at index: Int32
@@ -33,11 +34,11 @@ public protocol DatabaseStatementBindable {
 }
 
 // The SQLITE_TRANSIENT value means that the content will likely change in the near future and that SQLite should make its own private copy of the content before returning. https://sqlite.org/c3ref/c_static.html
-// swiftlint:disable:next identifier_name
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 extension Int32: DatabaseStatementBindable {
-  
+
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32
@@ -47,7 +48,7 @@ extension Int32: DatabaseStatementBindable {
 }
 
 extension Int64: DatabaseStatementBindable {
-  
+
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32
@@ -57,7 +58,7 @@ extension Int64: DatabaseStatementBindable {
 }
 
 extension String: DatabaseStatementBindable {
-  
+
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32
@@ -67,7 +68,7 @@ extension String: DatabaseStatementBindable {
 }
 
 extension Bool: DatabaseStatementBindable {
-  
+
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32
@@ -77,7 +78,7 @@ extension Bool: DatabaseStatementBindable {
 }
 
 extension Double: DatabaseStatementBindable {
-  
+
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32
@@ -87,7 +88,7 @@ extension Double: DatabaseStatementBindable {
 }
 
 extension Data: DatabaseStatementBindable {
-  
+
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32

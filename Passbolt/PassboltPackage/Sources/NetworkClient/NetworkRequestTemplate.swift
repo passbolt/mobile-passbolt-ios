@@ -25,10 +25,10 @@ import Aegithalos
 import Environment
 
 internal struct NetworkRequestTemplate<SessionVariable, Variable> {
-  
+
   internal let cacheResponse: Bool
   private var template: (SessionVariable, Variable) -> Mutation<HTTPRequest>
-  
+
   internal init(
     cacheResponse: Bool = false,
     _ template: @escaping (SessionVariable, Variable) -> Mutation<HTTPRequest>
@@ -36,7 +36,7 @@ internal struct NetworkRequestTemplate<SessionVariable, Variable> {
     self.cacheResponse = cacheResponse
     self.template = template
   }
-  
+
   internal func prepareRequest(
     with sessionVariable: SessionVariable,
     and requestVariable: Variable

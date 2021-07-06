@@ -23,6 +23,7 @@
 
 import Aegithalos
 import Commons
+
 import struct Foundation.Data
 import class Foundation.JSONEncoder
 import struct Foundation.URL
@@ -38,7 +39,7 @@ extension Mutation where Subject == HTTPRequest {
       request.scheme = scheme
     }
   }
-  
+
   public static func url(
     _ url: URL
   ) -> Self {
@@ -46,7 +47,7 @@ extension Mutation where Subject == HTTPRequest {
       request.url = url
     }
   }
-  
+
   public static func url(
     string: String
   ) -> Self {
@@ -54,17 +55,16 @@ extension Mutation where Subject == HTTPRequest {
       request.urlComponents = URLComponents(string: string) ?? .init()
     }
   }
-  
+
   public static func url(
     _ urlString: StaticString
   ) -> Self {
     Self { request in
-      // swiftlint:disable force_unwrapping
+      // swift-format-ignore: NeverForceUnwrap
       request.url = URL(string: "\(urlString)")!
-      // swiftlint:enable force_unwrapping
     }
   }
-  
+
   public static func host(
     _ host: String
   ) -> Self {
@@ -72,7 +72,7 @@ extension Mutation where Subject == HTTPRequest {
       request.host = host
     }
   }
-  
+
   public static func port(
     _ port: Int
   ) -> Self {
@@ -80,7 +80,7 @@ extension Mutation where Subject == HTTPRequest {
       request.port = port
     }
   }
-  
+
   public static func method(
     _ method: HTTPMethod
   ) -> Self {
@@ -88,23 +88,26 @@ extension Mutation where Subject == HTTPRequest {
       request.method = method
     }
   }
-  
+
   public static func pathPrefix(
     _ path: String
   ) -> Self {
     Self { request in
       if request.path.hasPrefix("/") && path.hasSuffix("/") {
         request.path = "\(path)\(request.path.dropFirst())"
-      } else if request.path.hasPrefix("/") && !path.hasSuffix("/") {
+      }
+      else if request.path.hasPrefix("/") && !path.hasSuffix("/") {
         request.path = "\(path)\(request.path)"
-      } else if !request.path.hasPrefix("/") && path.hasSuffix("/") {
+      }
+      else if !request.path.hasPrefix("/") && path.hasSuffix("/") {
         request.path = "\(path)\(request.path)"
-      } else {
+      }
+      else {
         request.path = "\(path)/\(request.path)"
       }
     }
   }
-  
+
   public static func path(
     _ path: String
   ) -> Self {
@@ -112,23 +115,26 @@ extension Mutation where Subject == HTTPRequest {
       request.path = path
     }
   }
-  
+
   public static func pathSuffix(
     _ path: String
   ) -> Self {
     Self { request in
       if request.path.hasSuffix("/") && path.hasPrefix("/") {
         request.path = "\(request.path)\(path.dropFirst())"
-      } else if request.path.hasSuffix("/") && !path.hasPrefix("/") {
+      }
+      else if request.path.hasSuffix("/") && !path.hasPrefix("/") {
         request.path.append(path)
-      } else if !request.path.hasSuffix("/") && path.hasPrefix("/") {
+      }
+      else if !request.path.hasSuffix("/") && path.hasPrefix("/") {
         request.path.append(path)
-      } else {
+      }
+      else {
         request.path.append("/\(path)")
       }
     }
   }
-  
+
   public static func queryItem(
     _ itemName: String,
     value: String
@@ -137,7 +143,7 @@ extension Mutation where Subject == HTTPRequest {
       request.urlQuery.append(URLQueryItem(name: itemName, value: value))
     }
   }
-  
+
   public static func header(
     _ headerName: String,
     value: String
@@ -146,7 +152,7 @@ extension Mutation where Subject == HTTPRequest {
       request.headers[headerName] = value
     }
   }
-  
+
   public static func body(
     _ body: Data
   ) -> Self {
@@ -154,7 +160,7 @@ extension Mutation where Subject == HTTPRequest {
       request.body = body
     }
   }
-  
+
   public static func jsonBody<Body>(
     from body: Body,
     using encoder: JSONEncoder = .init()
@@ -164,7 +170,8 @@ extension Mutation where Subject == HTTPRequest {
       #if DEBUG
       do {
         request.body = try JSONEncoder().encode(body)
-      } catch {
+      }
+      catch {
         unreachable("Failing request body encoding - \(error)")
       }
       #else

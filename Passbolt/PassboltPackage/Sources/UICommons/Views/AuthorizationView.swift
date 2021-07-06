@@ -24,12 +24,12 @@
 import Commons
 
 public final class AuthorizationView: KeyboardAwareView {
-  
+
   public var secureTextPublisher: AnyPublisher<String, Never> { passwordInput.textPublisher }
   public var biometricTapPublisher: AnyPublisher<Void, Never> { biometricButton.tapPublisher }
   public var signInTapPublisher: AnyPublisher<Void, Never> { signInButton.tapPublisher }
   public var forgotTapPublisher: AnyPublisher<Void, Never> { forgotButton.tapPublisher }
-  
+
   private let avatar: ImageView = .init()
   private let nameLabel: Label = .init()
   private let emailLabel: Label = .init()
@@ -39,16 +39,16 @@ public final class AuthorizationView: KeyboardAwareView {
   private let biometricButton: ImageButton = .init()
   private let signInButton: TextButton = .init()
   private let forgotButton: TextButton = .init()
-  
+
   public required init() {
     super.init()
-    
+
     let avatarContainer: ContainerView<ImageView> = .init(
       contentView: avatar,
       mutation: .backgroundColor(.clear),
       heightMultiplier: 1
     )
-    
+
     mut(avatar) {
       .combined(
         .image(named: .person, from: .uiCommons),
@@ -60,16 +60,16 @@ public final class AuthorizationView: KeyboardAwareView {
         .heightAnchor(.equalTo, constant: 96)
       )
     }
-    
+
     setupLabels()
-    
+
     let buttonContainer: View = Mutation<View>
       .combined(
         .backgroundColor(dynamic: .background),
         .heightAnchor(.equalTo, constant: 56)
       )
       .instantiate()
-    
+
     mut(biometricButtonContainer) {
       .combined(
         .hidden(true),
@@ -83,7 +83,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .heightAnchor(.equalTo, constant: 56)
       )
     }
-    
+
     mut(biometricButton) {
       .combined(
         .subview(of: biometricButtonContainer),
@@ -96,7 +96,7 @@ public final class AuthorizationView: KeyboardAwareView {
         )
       )
     }
-    
+
     passwordInput.applyOn(
       description: .text(
         localized: "authorization.passphrase.description.text"
@@ -104,7 +104,7 @@ public final class AuthorizationView: KeyboardAwareView {
     )
 
     setupBottomButtons()
-    
+
     Mutation<ScrolledStackView>
       .combined(
         .axis(.vertical),
@@ -133,43 +133,43 @@ public final class AuthorizationView: KeyboardAwareView {
       )
       .instantiate()
   }
-  
+
   public func applyOn(image mutation: Mutation<ImageView>) {
     mutation.apply(on: avatar)
   }
-  
+
   public func applyOn(name mutation: Mutation<Label>) {
     mutation.apply(on: nameLabel)
   }
-  
+
   public func applyOn(email mutation: Mutation<Label>) {
     mutation.apply(on: emailLabel)
   }
-  
+
   public func applyOn(url mutation: Mutation<Label>) {
     mutation.apply(on: urlLabel)
   }
-  
+
   public func applyOn(biometricButton mutation: Mutation<ImageButton>) {
     mutation.apply(on: biometricButton)
   }
-  
+
   public func applyOn(biometricButtonContainer mutation: Mutation<View>) {
     mutation.apply(on: biometricButtonContainer)
   }
-  
+
   public func applyOn(signInButton mutation: Mutation<Button>) {
     mutation.apply(on: signInButton)
   }
-  
+
   public func applyOn(passwordDescription mutation: Mutation<Label>) {
     passwordInput.applyOn(description: mutation)
   }
-  
+
   public func update(from validated: Validated<String>) {
     passwordInput.update(from: validated)
   }
-  
+
   private func setupLabels() {
     mut(nameLabel) {
       .combined(
@@ -178,7 +178,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .textAlignment(.center)
       )
     }
-    
+
     mut(emailLabel) {
       .combined(
         .font(.inter(ofSize: 14)),
@@ -186,7 +186,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .textAlignment(.center)
       )
     }
-    
+
     mut(urlLabel) {
       .combined(
         .font(.inter(ofSize: 12)),
@@ -194,12 +194,12 @@ public final class AuthorizationView: KeyboardAwareView {
         .textAlignment(.center)
       )
     }
-    
+
     mut(passwordInput) {
       .isRequired(true)
     }
   }
-  
+
   private func setupBottomButtons() {
     mut(signInButton) {
       .combined(
@@ -207,7 +207,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .text(localized: "authorization.button.title")
       )
     }
-    
+
     mut(forgotButton) {
       .combined(
         .linkStyle(),

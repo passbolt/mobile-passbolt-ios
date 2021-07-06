@@ -25,10 +25,10 @@ import AccountSetup
 import UIComponents
 
 internal final class BiometricsInfoViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = BiometricsInfoView
   internal typealias Controller = BiometricsInfoController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,14 +52,14 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(navigationItem) {
       .hidesBackButton(true)
     }
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     contentView
       .setupTapPublisher
@@ -68,7 +68,7 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
         self.controller.setupBiometrics()
       }
       .store(in: cancellables)
-    
+
     contentView
       .skipTapPublisher
       .sink { [weak self] in
@@ -76,7 +76,7 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
         self.controller.skipSetup()
       }
       .store(in: cancellables)
-    
+
     controller
       .presentationDestinationPublisher()
       .receive(on: RunLoop.main)
@@ -84,7 +84,7 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
         switch destination {
         case .biometricsSetup:
           self?.push(BiometricsSetupViewController.self)
-          
+
         case .extensionSetup:
           self?.push(ExtensionSetupViewController.self)
         }
@@ -92,4 +92,3 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
       .store(in: cancellables)
   }
 }
-

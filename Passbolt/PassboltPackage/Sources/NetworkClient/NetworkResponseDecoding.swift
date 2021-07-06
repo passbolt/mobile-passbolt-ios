@@ -23,23 +23,25 @@
 
 import Commons
 import Environment
+
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
 internal struct NetworkResponseDecoding<Response> {
-  
+
   internal var decode: (HTTPResponse) -> Result<Response, TheError>
 }
 
 extension NetworkResponseDecoding where Response == Void {
-  
+
   internal static func statusCodes(
     _ statusCodes: Range<HTTPStatusCode>
   ) -> Self {
     Self { response in
       if statusCodes ~= response.statusCode {
         return .success(Void())
-      } else {
+      }
+      else {
         return .failure(.httpError(.invalidResponse))
       }
     }
@@ -47,7 +49,7 @@ extension NetworkResponseDecoding where Response == Void {
 }
 
 extension NetworkResponseDecoding where Response == Data {
-  
+
   internal static var rawBody: Self {
     Self { response in
       .success(response.body)
@@ -56,14 +58,15 @@ extension NetworkResponseDecoding where Response == Data {
 }
 
 extension NetworkResponseDecoding where Response == String {
-  
+
   internal static func bodyAsString(
     withEncoding encoding: String.Encoding = .utf8
   ) -> Self {
     Self { response in
       if let string: String = String(data: response.body, encoding: encoding) {
         return .success(string)
-      } else {
+      }
+      else {
         return .failure(
           .networkResponseDecodingFailed(
             underlyingError: nil,
@@ -76,7 +79,7 @@ extension NetworkResponseDecoding where Response == String {
 }
 
 extension NetworkResponseDecoding where Response: Decodable {
-  
+
   internal static func bodyAsJSON(
     using decoder: JSONDecoder = .init()
   ) -> Self {
@@ -88,7 +91,8 @@ extension NetworkResponseDecoding where Response: Decodable {
             from: response.body
           )
         )
-      } catch {
+      }
+      catch {
         return .failure(
           .networkResponseDecodingFailed(
             underlyingError: error,

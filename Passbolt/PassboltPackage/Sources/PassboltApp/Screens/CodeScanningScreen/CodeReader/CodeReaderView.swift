@@ -25,24 +25,25 @@ import Commons
 import UICommons
 
 internal final class CodeReaderView: View {
-  
+
   private let cameraPreview: AVCaptureVideoPreviewLayer?
-  
+
   internal init(session captureSession: AVCaptureSession?) {
     self.cameraPreview = captureSession.map(AVCaptureVideoPreviewLayer.init(session:))
     super.init()
   }
-  
+
   @available(*, unavailable)
   internal required init() {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   override internal func setup() {
     if let cameraPreview: AVCaptureVideoPreviewLayer = cameraPreview {
       cameraPreview.videoGravity = .resizeAspectFill
       layer.addSublayer(cameraPreview)
-    } else {
+    }
+    else {
       mut(self) {
         .combined(
           .backgroundColor(dynamic: .background)
@@ -63,7 +64,7 @@ internal final class CodeReaderView: View {
         .instantiate()
     }
   }
-  
+
   override internal func layoutSubviews() {
     super.layoutSubviews()
     cameraPreview?.frame = self.bounds

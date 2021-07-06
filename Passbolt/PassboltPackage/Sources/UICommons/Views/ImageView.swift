@@ -25,15 +25,13 @@ import AegithalosCocoa
 import Commons
 
 public class ImageView: UIImageView {
-  
-  public lazy var dynamicBackgroundColor: DynamicColor
-  = .default(self.backgroundColor) {
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor
-  = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
@@ -44,34 +42,36 @@ public class ImageView: UIImageView {
       self.image = dynamicImage(in: traitCollection.userInterfaceStyle)
     }
   }
-  
-  public lazy var dynamicBorderColor: DynamicColor
-  = .default(.init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)) {
+
+  public lazy var dynamicBorderColor: DynamicColor = .default(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
     didSet {
       self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
-  
+
   public init() {
     super.init(frame: .zero)
   }
-  
+
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
     unreachable("\(Self.self).\(#function) should not be used")
   }
-  
+
   public func setup() {
     // prepared to override instead of overriding init
   }
-  
+
   private var scaleConstraint: NSLayoutConstraint? {
     didSet {
       oldValue?.isActive = false
       scaleConstraint?.isActive = true
     }
   }
-  
+
   override public var image: UIImage? {
     get { super.image }
     set {
@@ -79,7 +79,7 @@ public class ImageView: UIImageView {
       updateImageScaleIfNeeded()
     }
   }
-  
+
   override public var contentMode: UIView.ContentMode {
     get { super.contentMode }
     set {
@@ -87,7 +87,7 @@ public class ImageView: UIImageView {
       updateImageScaleIfNeeded()
     }
   }
-  
+
   override public func traitCollectionDidChange(
     _ previousTraitCollection: UITraitCollection?
   ) {
@@ -97,34 +97,35 @@ public class ImageView: UIImageView {
     updateColors()
     updateImages()
   }
-  
+
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
   }
-  
+
   private func updateImages() {
     guard let dynamicImage = dynamicImage else { return }
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.image = dynamicImage(in: interfaceStyle)
   }
-  
+
   private func updateImageScaleIfNeeded() {
-    if
-      let image: UIImage = super.image,
+    if let image: UIImage = super.image,
       contentMode == .scaleAspectFit
     {
       let width: CGFloat = image.size.width
       let height: CGFloat = image.size.height
       guard width > 0 && height > 0
       else { return scaleConstraint = nil }
-      scaleConstraint = widthAnchor
+      scaleConstraint =
+        widthAnchor
         .constraint(
           equalTo: heightAnchor,
           multiplier: width / height
         )
-    } else {
+    }
+    else {
       scaleConstraint = nil
     }
   }

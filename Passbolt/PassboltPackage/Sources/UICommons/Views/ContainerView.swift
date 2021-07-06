@@ -24,9 +24,9 @@
 import AegithalosCocoa
 
 public final class ContainerView<ContentView: UIView>: View {
-  
+
   private let contentView: ContentView
-  
+
   public init(
     contentView: ContentView,
     mutation: Mutation<ContentView> = .none,
@@ -36,7 +36,7 @@ public final class ContainerView<ContentView: UIView>: View {
   ) {
     self.contentView = contentView
     super.init()
-    
+
     mut(contentView) {
       .combined(
         mutation,
@@ -62,7 +62,7 @@ public final class ContainerView<ContentView: UIView>: View {
       )
     }
   }
-  
+
   @available(*, unavailable)
   public required init() {
     unreachable("\(Self.self).\(#function) should not be used")

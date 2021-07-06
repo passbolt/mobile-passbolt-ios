@@ -33,9 +33,9 @@ internal struct BiometricsSetupController {
 }
 
 extension BiometricsSetupController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -44,17 +44,17 @@ extension BiometricsSetupController: UIController {
     let diagnostics: Diagnostics = features.instance()
     let accountSettings: AccountSettings = features.instance()
     let biometry: Biometry = features.instance()
-    
+
     let continueSetupPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    
+
     func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
       continueSetupPresentationSubject.eraseToAnyPublisher()
     }
-    
+
     func biometricsStatePublisher() -> AnyPublisher<Biometrics.State, Never> {
       biometry.biometricsStateChangesPublisher()
     }
-    
+
     func setupBiometrics() -> AnyPublisher<Never, TheError> {
       accountSettings
         .setBiometricsEnabled(true)
@@ -65,11 +65,11 @@ extension BiometricsSetupController: UIController {
         .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
-    
-    func skipSetup() -> Void {
+
+    func skipSetup() {
       continueSetupPresentationSubject.send()
     }
-    
+
     return Self(
       continueSetupPresentationPublisher: continueSetupPresentationPublisher,
       biometricsStatePublisher: biometricsStatePublisher,
@@ -78,4 +78,3 @@ extension BiometricsSetupController: UIController {
     )
   }
 }
-

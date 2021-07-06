@@ -24,7 +24,7 @@
 import Commons
 
 extension TheError {
-  
+
   public static func jwtError(
     underlyingError: Error? = nil
   ) -> Self {
@@ -37,7 +37,6 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static let jwtError: Self = "jwtError"
 }
-

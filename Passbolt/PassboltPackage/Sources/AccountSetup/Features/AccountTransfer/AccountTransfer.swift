@@ -24,14 +24,15 @@
 import Accounts
 import Commons
 import Crypto
+import Features
+import NetworkClient
+
+import struct Foundation.Data
+
 #if DEBUG
 import Dispatch
 #endif
-import Features
-import struct Foundation.Data
-import NetworkClient
 
-// swiftlint:disable file_length
 public struct AccountTransfer {
   // Publishes progess, finishes when process is completed or fails if it becomes interrupted.
   public var progressPublisher: () -> AnyPublisher<Progress, TheError>
@@ -44,9 +45,9 @@ public struct AccountTransfer {
 }
 
 extension AccountTransfer {
-  
+
   public struct AccountDetails {
-    
+
     public let domain: String
     public let label: String
     public let username: String
@@ -54,8 +55,7 @@ extension AccountTransfer {
 }
 
 extension AccountTransfer: Feature {
-  
-  // swiftlint:disable:next function_body_length
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
@@ -69,16 +69,17 @@ extension AccountTransfer: Feature {
     let accounts: Accounts = features.instance()
     let transferState: CurrentValueSubject<AccountTransferState, TheError> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
-    _ = transferCancelationCancellable // silence warning
-    
+    _ = transferCancelationCancellable  // silence warning
+
     #if DEBUG
     if let mdmTransferedAccount: MDMSupport.TransferedAccount = mdmSupport.transferedAccount() {
-      let accountAlreadyStored: Bool = accounts
+      let accountAlreadyStored: Bool =
+        accounts
         .storedAccounts()
         .contains(
           where: { stored in
             stored.userID.rawValue == mdmTransferedAccount.userID
-            && stored.domain == mdmTransferedAccount.domain
+              && stored.domain == mdmTransferedAccount.domain
           }
         )
       if !accountAlreadyStored {
@@ -112,30 +113,35 @@ extension AccountTransfer: Feature {
             )
           )
         }
-      } else {
+      }
+      else {
         diagnostics.debugLog("Skipping account transfer bypass - duplicate account")
       }
-    } else { /* */ }
+    }
+    else { /* */
+    }
     #endif
-    
+
     func progressPublisher() -> AnyPublisher<Progress, TheError> {
       transferState
         .map { state -> Progress in
           if state.scanningFinished {
             return .scanningFinished
-          } else if let configuration: AccountTransferConfiguration = state.configuration {
+          }
+          else if let configuration: AccountTransferConfiguration = state.configuration {
             return .scanningProgress(
               Double(state.nextScanningPage ?? configuration.pagesCount)
                 / Double(configuration.pagesCount)
             )
-          } else {
+          }
+          else {
             return .configuration
           }
         }
         .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
-    
+
     func accountDetailsPublisher() -> AnyPublisher<AccountDetails, TheError> {
       transferState
         .compactMap { state in
@@ -143,7 +149,7 @@ extension AccountTransfer: Feature {
             let config: AccountTransferConfiguration = state.configuration,
             let profile: AccountTransferAccountProfile = state.profile
           else { return nil }
-          
+
           return AccountDetails(
             domain: config.domain,
             label: "\(profile.firstName) \(profile.lastName)",
@@ -152,7 +158,7 @@ extension AccountTransfer: Feature {
         }
         .eraseToAnyPublisher()
     }
-    
+
     func mediaPublisher() -> AnyPublisher<Data, TheError> {
       transferState
         .compactMap { $0.profile }
@@ -160,31 +166,33 @@ extension AccountTransfer: Feature {
         .switchToLatest()
         .eraseToAnyPublisher()
     }
-    
+
+    // swift-format-ignore: NoLeadingUnderscores
     func _processPayload(
       _ payload: String,
       using features: FeatureFactory
     ) -> AnyPublisher<Never, TheError> {
       switch processQRCodePayload(payload, in: transferState.value) {
-      // swiftlint:disable:next explicit_type_interface
       case var .success(updatedState):
         // if we have config we can ask for profile,
         // there is no need to do it every time
         // so doing it once when requesting for the next page first time
         if let configuration: AccountTransferConfiguration = updatedState.configuration,
-          updatedState.profile == nil {
+          updatedState.profile == nil
+        {
           // since we do this once per process (hopefully)
           // and right after reading initial configuration
           // we can verify immediately if we already have the same account stored
-          let accountAlreadyStored: Bool = accounts
+          let accountAlreadyStored: Bool =
+            accounts
             .storedAccounts()
             .contains(
               where: { stored in
                 stored.userID.rawValue == configuration.userID
-                && stored.domain == configuration.domain
+                  && stored.domain == configuration.domain
               }
             )
-          
+
           guard !accountAlreadyStored
           else {
             requestCancelation(
@@ -202,11 +210,11 @@ extension AccountTransfer: Feature {
             .collectErrorLog(using: diagnostics)
             .sink(receiveCompletion: { _ in })
             .store(in: cancellables)
-            
+
             return Fail<Never, TheError>(error: .duplicateAccount())
               .eraseToAnyPublisher()
           }
-          
+
           return requestNextPageWithUserProfile(
             for: updatedState,
             using: networkClient
@@ -228,7 +236,8 @@ extension AccountTransfer: Feature {
           .ignoreOutput()
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
-        } else {
+        }
+        else {
           return requestNextPage(
             for: updatedState,
             using: networkClient
@@ -240,14 +249,12 @@ extension AccountTransfer: Feature {
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
         }
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error)
       where error.identifier == .canceled
-      || error.identifier == .accountTransferScanningRecoverableError:
+        || error.identifier == .accountTransferScanningRecoverableError:
         return Fail<Never, TheError>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         if let configuration: AccountTransferConfiguration = transferState.value.configuration {
           return requestCancelation(
@@ -257,16 +264,16 @@ extension AccountTransfer: Feature {
             causedByError: error
           )
           .handleEvents(receiveCompletion: { completion in
-            // swiftlint:disable:next explicit_type_interface
             guard case let .failure(error) = completion
             else { unreachable("Cannot complete without an error when processing error") }
             transferState.send(completion: .failure(error))
             features.unload(Self.self)
           })
-          .ignoreOutput() // we care only about completion or failure
+          .ignoreOutput()  // we care only about completion or failure
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
-        } else { // we can't cancel if we don't have configuration yet
+        }
+        else {  // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
           features.unload(Self.self)
           return Fail<Never, TheError>(error: error)
@@ -275,12 +282,11 @@ extension AccountTransfer: Feature {
         }
       }
     }
-    
-    // swiftlint:disable:next unowned_variable_capture
+
     let processPayload: (String) -> AnyPublisher<Never, TheError> = { [unowned features] payload in
       _processPayload(payload, using: features)
     }
-    
+
     func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, TheError> {
       guard
         let configuration = transferState.value.configuration,
@@ -294,7 +300,8 @@ extension AccountTransfer: Feature {
         )
         .eraseToAnyPublisher()
       }
-      return accounts
+      return
+        accounts
         .transferAccount(
           configuration.domain,
           account.userID,
@@ -311,11 +318,10 @@ extension AccountTransfer: Feature {
           case .finished:
             transferState.send(completion: .finished)
             features?.unload(Self.self)
-          // swiftlint:disable:next explicit_type_interface
           case let .failure(error) where error.identifier == .duplicateAccount:
             transferState.send(completion: .failure(error))
             features?.unload(Self.self)
-            
+
           case .failure:
             break
           }
@@ -323,10 +329,10 @@ extension AccountTransfer: Feature {
         .ignoreOutput()
         .eraseToAnyPublisher()
     }
-    
-    func _cancelTransfer(using features: FeatureFactory) -> Void {
-      if
-        let configuration: AccountTransferConfiguration = transferState.value.configuration,
+
+    // swift-format-ignore: NoLeadingUnderscores
+    func _cancelTransfer(using features: FeatureFactory) {
+      if let configuration: AccountTransferConfiguration = transferState.value.configuration,
         !transferState.value.scanningFinished
       {
         transferCancelationCancellable = requestCancelation(
@@ -337,7 +343,9 @@ extension AccountTransfer: Feature {
         .collectErrorLog(using: diagnostics)
         // we don't care about response, user exits process anyway
         .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-      } else { /* we can't cancel if we don't have configuration yet */ }
+      }
+      else { /* we can't cancel if we don't have configuration yet */
+      }
       transferState.send(
         completion: .failure(
           .canceled.appending(context: "account-transfer-scanning-cancel")
@@ -345,11 +353,10 @@ extension AccountTransfer: Feature {
       )
       features.unload(Self.self)
     }
-    // swiftlint:disable:next unowned_variable_capture
     let cancelTransfer: () -> Void = { [unowned features] in
       _cancelTransfer(using: features)
     }
-    
+
     func featureUnload() -> Bool {
       #if DEBUG
       _ = progressPublisher()
@@ -361,9 +368,9 @@ extension AccountTransfer: Feature {
           }
         )
       #endif
-      return true // we should unload this feature after use and it always succeeds
+      return true  // we should unload this feature after use and it always succeeds
     }
-    
+
     return Self(
       progressPublisher: progressPublisher,
       accountDetailsPublisher: accountDetailsPublisher,
@@ -374,13 +381,13 @@ extension AccountTransfer: Feature {
       featureUnload: featureUnload
     )
   }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
       progressPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDetailsPublisher:  Commons.placeholder("You have to provide mocks for used methods"),
+      accountDetailsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       processPayload: Commons.placeholder("You have to provide mocks for used methods"),
       completeTransfer: Commons.placeholder("You have to provide mocks for used methods"),
       avatarPublisher: Commons.placeholder("You have to provide mocks for used methods"),
@@ -404,12 +411,10 @@ private func processQRCodePayload(
         .appending(logMessage: "Processing unexpected page - ignored")
     )
   }
-  
+
   switch decodeQRCodePart(rawPayload, expectedPage: expectedPage) {
-  // swiftlint:disable:next explicit_type_interface
   case let .success(part):
     return updated(state: state, with: part)
-  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     return .failure(error)
   }
@@ -420,12 +425,12 @@ private func decodeQRCodePart(
   expectedPage: Int
 ) -> Result<AccountTransferScanningPart, TheError> {
   switch AccountTransferScanningPart.from(qrCode: rawPayload) {
-  // swiftlint:disable:next explicit_type_interface
   case let .success(part):
     // Verify if decoded page number is the same as expected
     if part.page == expectedPage {
       /* continue */
-    } else if part.page == expectedPage - 1 {
+    }
+    else if part.page == expectedPage - 1 {
       // if we still get previous page we ignore it
       return .failure(
         .canceled
@@ -434,7 +439,8 @@ private func decodeQRCodePart(
             logMessage: "Repeated QRCode page number: \(part.page), expected: \(expectedPage)"
           )
       )
-    } else {
+    }
+    else {
       return .failure(
         .accountTransferScanningError(context: "decoding-invalid-page")
           .appending(
@@ -443,7 +449,6 @@ private func decodeQRCodePart(
       )
     }
     return .success(part)
-  // swiftlint:disable:next explicit_type_interface
   case let .failure(error):
     return .failure(error)
   }
@@ -453,21 +458,19 @@ private func updated(
   state: AccountTransferState,
   with part: AccountTransferScanningPart
 ) -> Result<AccountTransferState, TheError> {
-  var state: AccountTransferState = state // make state mutable in scope
+  var state: AccountTransferState = state  // make state mutable in scope
   state.scanningParts.append(part)
-  
+
   switch part.page {
   case 0:
     switch AccountTransferConfiguration.from(part) {
-    // swiftlint:disable:next explicit_type_interface
     case let .success(configuration):
       state.configuration = configuration
       return .success(state)
-    // swiftlint:disable:next explicit_type_interface
     case let .failure(error):
       return .failure(error)
     }
-    
+
   case _:
     if state.nextScanningPage == nil {
       guard let hash = state.configuration?.hash, !hash.isEmpty
@@ -481,15 +484,14 @@ private func updated(
         Array(state.scanningParts[1..<state.scanningParts.count]),
         verificationHash: hash
       ) {
-      // swiftlint:disable:next explicit_type_interface
       case let .success(account):
         state.account = account
         return .success(state)
-      // swiftlint:disable:next explicit_type_interface
       case let .failure(error):
         return .failure(error)
       }
-    } else {
+    }
+    else {
       return .success(state)
     }
   }
@@ -557,7 +559,8 @@ private func requestNextPageWithUserProfile(
         return Just(user)
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-      } else {
+      }
+      else {
         return Fail<AccountTransferUpdateResponseBody.User, TheError>(
           error: .accountTransferScanningError(context: "next-page-request-missing-user-profile")
             .appending(logMessage: "Missing user profile data")
@@ -591,12 +594,15 @@ private func requestCancelation(
     .map { _ in Void() }
     .eraseToAnyPublisher()
   if let error: TheError = error {
-    return responsePublisher
+    return
+      responsePublisher
       .flatMap { _ in Fail<Void, TheError>(error: error) }
       .ignoreOutput()
       .eraseToAnyPublisher()
-  } else {
-    return responsePublisher
+  }
+  else {
+    return
+      responsePublisher
       .ignoreOutput()
       .mapError { error in
         error.appending(context: "account-transfer-scanning-cancelation-request")
@@ -606,9 +612,9 @@ private func requestCancelation(
 }
 
 extension AccountTransfer {
-  
+
   public enum Progress {
-    
+
     case configuration
     case scanningProgress(Double)
     case scanningFinished

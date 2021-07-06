@@ -24,7 +24,7 @@
 import Crypto
 
 public struct SessionTokens {
-  
+
   public var accessToken: JWT
   public var refreshToken: String
 }

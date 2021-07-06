@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: TextField {
-  
+
   public static func primaryStyle() -> Self {
     .combined(
       .contentInsets(.init(top: 4, left: 8, bottom: 4, right: 8)),

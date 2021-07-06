@@ -22,7 +22,7 @@
 //
 
 public struct AccountTransferAccountProfile {
-  
+
   public var username: String
   public var firstName: String
   public var lastName: String

@@ -22,9 +22,9 @@
 //
 
 public struct Tagged<RawValue, Type>: RawRepresentable {
-  
+
   public var rawValue: RawValue
-  
+
   public init(
     rawValue: RawValue
   ) {
@@ -34,7 +34,7 @@ public struct Tagged<RawValue, Type>: RawRepresentable {
 
 extension Tagged: CustomStringConvertible
 where RawValue: CustomStringConvertible {
-  
+
   public var description: String {
     rawValue.description
   }
@@ -42,7 +42,7 @@ where RawValue: CustomStringConvertible {
 
 extension Tagged: LosslessStringConvertible
 where RawValue: LosslessStringConvertible {
-  
+
   public init?(
     _ description: String
   ) {
@@ -54,7 +54,7 @@ where RawValue: LosslessStringConvertible {
 
 extension Tagged: ExpressibleByUnicodeScalarLiteral
 where RawValue: ExpressibleByUnicodeScalarLiteral {
-  
+
   public init(
     unicodeScalarLiteral value: RawValue.UnicodeScalarLiteralType
   ) {
@@ -68,7 +68,7 @@ where RawValue: ExpressibleByUnicodeScalarLiteral {
 
 extension Tagged: ExpressibleByExtendedGraphemeClusterLiteral
 where RawValue: ExpressibleByExtendedGraphemeClusterLiteral {
-  
+
   public init(
     extendedGraphemeClusterLiteral value: RawValue.ExtendedGraphemeClusterLiteralType
   ) {
@@ -82,7 +82,7 @@ where RawValue: ExpressibleByExtendedGraphemeClusterLiteral {
 
 extension Tagged: ExpressibleByStringLiteral
 where RawValue: ExpressibleByStringLiteral {
-  
+
   public init(
     stringLiteral value: RawValue.StringLiteralType
   ) {
@@ -96,7 +96,7 @@ where RawValue: ExpressibleByStringLiteral {
 
 extension Tagged: ExpressibleByStringInterpolation
 where RawValue: ExpressibleByStringInterpolation {
-  
+
   public init(
     stringInterpolation value: RawValue.StringInterpolation
   ) {
@@ -110,7 +110,7 @@ where RawValue: ExpressibleByStringInterpolation {
 
 extension Tagged: ExpressibleByIntegerLiteral
 where RawValue: ExpressibleByIntegerLiteral {
-  
+
   public init(
     integerLiteral value: RawValue.IntegerLiteralType
   ) {
@@ -124,7 +124,7 @@ where RawValue: ExpressibleByIntegerLiteral {
 
 extension Tagged: ExpressibleByFloatLiteral
 where RawValue: ExpressibleByFloatLiteral {
-  
+
   public init(
     floatLiteral value: RawValue.FloatLiteralType
   ) {
@@ -138,7 +138,7 @@ where RawValue: ExpressibleByFloatLiteral {
 
 extension Tagged: ExpressibleByNilLiteral
 where RawValue: ExpressibleByNilLiteral {
-  
+
   public init(
     nilLiteral: Void
   ) {
@@ -152,7 +152,7 @@ where RawValue: ExpressibleByNilLiteral {
 
 extension Tagged: Encodable
 where RawValue: Encodable {
-  
+
   public func encode(to encoder: Encoder) throws {
     try rawValue.encode(to: encoder)
   }
@@ -160,7 +160,7 @@ where RawValue: Encodable {
 
 extension Tagged: Decodable
 where RawValue: Decodable {
-  
+
   public init(from decoder: Decoder) throws {
     self.rawValue = try RawValue(from: decoder)
   }
@@ -168,14 +168,14 @@ where RawValue: Decodable {
 
 extension Tagged: Equatable
 where RawValue: Equatable {
-  
+
   public static func == (
     _ lhs: RawValue,
     _ rhs: Tagged
   ) -> Bool {
     lhs == rhs.rawValue
   }
-  
+
   public static func == (
     _ lhs: Tagged,
     _ rhs: RawValue
@@ -189,7 +189,7 @@ where RawValue: Hashable {}
 
 extension Tagged
 where RawValue: Equatable {
-  
+
   public static func ~= (
     _ lhs: RawValue,
     _ rhs: Tagged

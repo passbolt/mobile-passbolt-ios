@@ -21,15 +21,15 @@
 // @since         v1.0
 //
 
+import Accounts
 import Foundation
 import UIComponents
-import Accounts
 
 internal final class AuthorizationViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = AuthorizationView
   internal typealias Controller = AuthorizationController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -39,12 +39,12 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: AuthorizationView = .init()
   internal var components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -53,26 +53,26 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(self) {
       .title(localized: "authorization.title")
     }
-    
+
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
-    
+
     let accountProfile: AccountWithProfile = controller.accountProfile()
-    
+
     contentView.applyOn(name: .text("\(accountProfile.label)"))
     contentView.applyOn(email: .text(accountProfile.username))
     contentView.applyOn(url: .text(accountProfile.domain))
     contentView.applyOn(biometricButtonContainer: .hidden(!accountProfile.biometricsEnabled))
-    
+
     setupSubscriptions()
   }
-  
+
   // swiftlint:disable:next function_body_length
   private func setupSubscriptions() {
     controller
@@ -83,11 +83,11 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
           let imageData = data,
           let image: UIImage = .init(data: imageData)
         else { return }
-        
+
         self?.contentView.applyOn(image: .image(image))
       }
       .store(in: cancellables)
-    
+
     contentView
       .secureTextPublisher
       .receive(on: RunLoop.main)
@@ -95,13 +95,14 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
         self?.controller.updatePassphrase(passphrase)
       }
       .store(in: cancellables)
-    
+
     controller
       .validatedPassphrasePublisher()
-      .first() // skipping error just to update intial value
+      .first()  // skipping error just to update intial value
       .map { Validated.valid($0.value) }
       .merge(
-        with: controller
+        with:
+          controller
           .validatedPassphrasePublisher()
           .dropFirst()
       )
@@ -117,7 +118,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
         )
       }
       .store(in: cancellables)
-    
+
     controller
       .validatedPassphrasePublisher()
       .map(\.isValid)
@@ -132,7 +133,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
         )
       }
       .store(in: cancellables)
-    
+
     contentView
       .signInTapPublisher
       // swiftlint:disable:next unowned_variable_capture
@@ -158,9 +159,9 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
           .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .sink { /* */ }
+      .sink { /* */  }
       .store(in: cancellables)
-    
+
     contentView
       .biometricTapPublisher
       // swiftlint:disable:next unowned_variable_capture
@@ -186,9 +187,9 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
           .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .sink { /* */ }
+      .sink { /* */  }
       .store(in: cancellables)
-    
+
     contentView
       .forgotTapPublisher
       .receive(on: RunLoop.main)
@@ -196,16 +197,17 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
         self?.controller.presentForgotPassphraseAlert()
       }
       .store(in: cancellables)
-    
+
     controller
       .presentForgotPassphraseAlertPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         guard let self = self else { return }
-        
+
         if presented {
           self.present(ForgotPassphraseAlertViewController.self)
-        } else {
+        }
+        else {
           self.dismiss(ForgotPassphraseAlertViewController.self)
         }
       }

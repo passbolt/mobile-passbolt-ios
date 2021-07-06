@@ -26,13 +26,13 @@ import Commons
 import Environment
 
 public protocol Feature {
-  
+
   static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self
-  
+
   var featureUnload: () -> Bool { get }
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
@@ -41,7 +41,7 @@ public protocol Feature {
 }
 
 extension Feature {
-  
+
   public var featureUnload: () -> Bool {
     {
       assertionFailure("Unloading is not supported by \(Self.self)")
@@ -51,6 +51,6 @@ extension Feature {
 }
 
 extension Feature {
-  
+
   internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }

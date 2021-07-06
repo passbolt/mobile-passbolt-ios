@@ -23,10 +23,10 @@
 
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class TransferInfoCameraRequiredAlertViewController:
-  AlertViewController<TransferInfoCameraRequiredAlertController>, UIComponent {
-  
+  AlertViewController<TransferInfoCameraRequiredAlertController>, UIComponent
+{
+
   internal func setup() {
     mut(self) {
       .combined(
@@ -50,14 +50,14 @@ internal final class TransferInfoCameraRequiredAlertViewController:
 }
 
 internal struct TransferInfoCameraRequiredAlertController {
-  
+
   internal var showSettings: () -> Void
 }
 
 extension TransferInfoCameraRequiredAlertController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -65,8 +65,8 @@ extension TransferInfoCameraRequiredAlertController: UIController {
   ) -> Self {
     let linkOpener: LinkOpener = features.instance()
     var cancellable: AnyCancellable?
-    _ = cancellable // silence warning
-    
+    _ = cancellable  // silence warning
+
     return Self(
       showSettings: { cancellable = linkOpener.openAppSettings().sink { _ in } }
     )

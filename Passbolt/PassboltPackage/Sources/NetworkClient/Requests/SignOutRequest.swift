@@ -49,13 +49,13 @@ extension SignOutRequest {
 }
 
 public struct SignOutRequestVariable: Encodable {
-  
+
   public var refreshToken: String
-  
+
   private enum CodingKeys: String, CodingKey {
     case refreshToken = "refresh_token"
   }
-  
+
   public init(refreshToken: String) {
     self.refreshToken = refreshToken
   }

@@ -26,13 +26,13 @@ import NetworkClient
 import UIComponents
 
 internal enum AccountSelectionMode {
-  
+
   case selection
   case removal
 }
 
 internal struct AccountSelectionController {
-  
+
   internal var accountsPublisher: () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
   internal var modePublisher: () -> AnyPublisher<AccountSelectionMode, Never>
   internal var presentRemoveAccountAlertPublisher: () -> AnyPublisher<Void, Never>
@@ -44,7 +44,7 @@ internal struct AccountSelectionController {
 extension AccountSelectionController: UIController {
 
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -53,20 +53,19 @@ extension AccountSelectionController: UIController {
     let accounts: Accounts = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
-    
+
     let storedAccountSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(accounts.storedAccounts())
     let modeSubject: CurrentValueSubject<AccountSelectionMode, Never> = .init(.selection)
     let removeAccountAlertSubject: PassthroughSubject<Void, Never> = .init()
-    
+
     if storedAccountSubject.value.isEmpty {
       storedAccountSubject.send(completion: .finished)
     }
-    
+
     func storedAccounts() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
       storedAccountSubject.map { accounts -> AnyPublisher<Array<AccountSelectionListItem>, Never> in
         var items: Array<AccountSelectionListItem> = accounts.map { account in
           let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
-            // swiftlint:disable:next array_init
             networkClient.mediaDownload.make(
               using: .init(urlString: account.avatarImageURL)
             )
@@ -76,7 +75,7 @@ extension AccountSelectionController: UIController {
             .eraseToAnyPublisher()
           }
           .eraseToAnyPublisher()
-          
+
           let item: AccountSelectionCellItem = AccountSelectionCellItem(
             localID: account.localID,
             title: "\(account.firstName) \(account.lastName)",
@@ -84,33 +83,36 @@ extension AccountSelectionController: UIController {
             imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
             modePublisher: modeSubject.eraseToAnyPublisher()
           )
-          
+
           return .account(item)
         }
-        
+
         if modeSubject.value == .selection && !items.isEmpty {
           items.append(.addAccount(.default))
-        } else { /* */ }
-        
+        }
+        else { /* */
+        }
+
         return Just(items).eraseToAnyPublisher()
       }
       .switchToLatest()
       .eraseToAnyPublisher()
     }
-    
+
     func removeAccount(with id: Account.LocalID) -> Result<Void, TheError> {
       let result: Result<Void, TheError> = accounts.removeAccount(id)
       let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-      
+
       if storedAccounts.isEmpty {
         storedAccountSubject.send(completion: .finished)
-      } else {
+      }
+      else {
         storedAccountSubject.send(storedAccounts)
       }
-    
+
       return result
     }
-    
+
     return Self(
       accountsPublisher: storedAccounts,
       modePublisher: modeSubject.eraseToAnyPublisher,

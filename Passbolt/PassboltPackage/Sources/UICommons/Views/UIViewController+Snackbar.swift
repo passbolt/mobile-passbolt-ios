@@ -24,12 +24,12 @@
 import AegithalosCocoa
 
 extension UIViewController {
-  
+
   public func present(
     snackbar: UIView,
-    presentationAnchor: UIView? = nil, // bottom of screen is used if no anchor provided
-    hideAfter hideDelay: TimeInterval = 3, // zero is not going to hide automatically
-    replaceCurrent: Bool = true, // presentation will be ignored if set to false and other is presented
+    presentationAnchor: UIView? = nil,  // bottom of screen is used if no anchor provided
+    hideAfter hideDelay: TimeInterval = 3,  // zero is not going to hide automatically
+    replaceCurrent: Bool = true,  // presentation will be ignored if set to false and other is presented
     animated: Bool = true
   ) {
     guard replaceCurrent || _snackbarView == nil else { return }
@@ -74,7 +74,9 @@ extension UIViewController {
           completion: { [weak self] completed in
             if self?._snackbarView === snackbar {
               self?._snackbarView = nil
-            } else { /* */ }
+            }
+            else { /* */
+            }
             guard completed else { return }
             snackbar.removeFromSuperview()
           }
@@ -82,7 +84,7 @@ extension UIViewController {
       }
     )
   }
-  
+
   public func dismissSnackbar(
     animated: Bool = true
   ) {
@@ -101,9 +103,10 @@ extension UIViewController {
   }
 }
 
-fileprivate extension UIViewController {
-  
-  var _snackbarView: UIView? {
+extension UIViewController {
+
+  // swift-format-ignore: NoLeadingUnderscores
+  fileprivate var _snackbarView: UIView? {
     get {
       objc_getAssociatedObject(
         self,

@@ -22,15 +22,16 @@
 //
 
 import Features
+
 import struct Foundation.URL
 
 public struct AutofillExtensionContext {
-  
+
   public var completeWithCredential: (Credential) -> Void
   public var completeWithError: (TheError) -> Void
   public var completeExtensionConfiguration: () -> Void
   public var requestedServiceIdentifiersPublisher: () -> AnyPublisher<Array<ServiceIdentifier>, Never>
-  
+
   public init(
     completeWithCredential: @escaping (Credential) -> Void,
     completeWithError: @escaping (TheError) -> Void,
@@ -45,15 +46,15 @@ public struct AutofillExtensionContext {
 }
 
 extension AutofillExtensionContext {
-  
+
   public enum ServiceIdentifierTag {}
   public typealias ServiceIdentifier = Tagged<String, ServiceIdentifierTag>
-  
+
   public struct Credential {
-    
+
     public let user: String
     public let password: String
-    
+
     public init(
       user: String,
       password: String
@@ -73,14 +74,14 @@ extension AutofillExtensionContext: Feature {
   ) -> Self {
     unreachable(
       "\(Self.self) does not support auto loading,"
-      + " it has to be created manually using root ASCredentialProviderViewController instance."
+        + " it has to be created manually using root ASCredentialProviderViewController instance."
     )
   }
 }
-  
+
 #if DEBUG
 extension AutofillExtensionContext {
-  
+
   public static var placeholder: Self {
     Self(
       completeWithCredential: Commons.placeholder("You have to provide mocks for used methods"),

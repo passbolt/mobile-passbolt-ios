@@ -22,9 +22,9 @@
 
 import UIComponents
 
-// swiftlint:disable:next colon
 internal final class WelcomeScreenNoAccountAlertViewController:
-  AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent {
+  AlertViewController<WelcomeScreenNoAccountAlertController>, UIComponent
+{
 
   internal func setup() {
     mut(self) {
@@ -43,14 +43,14 @@ internal final class WelcomeScreenNoAccountAlertViewController:
 }
 
 internal struct WelcomeScreenNoAccountAlertController {
-  
+
   internal var dismiss: () -> Void
 }
 
 extension WelcomeScreenNoAccountAlertController: UIController {
-  
+
   internal typealias Context = () -> Void
-  
+
   internal static func instance(
     in context: @escaping Context,
     with features: FeatureFactory,

@@ -23,10 +23,10 @@
 import UIComponents
 
 internal final class CodeScanningViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = CodeScanningView
   internal typealias Controller = CodeScanningController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -36,12 +36,12 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private let progressView: ProgressView = .init()
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -50,13 +50,13 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     setupNavigationBar()
     setupCodeReaderView()
     setupSubscriptions()
   }
-  
+
   private func setupNavigationBar() {
     mut(progressView) {
       .combined(
@@ -92,14 +92,14 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       )
     }
   }
-  
+
   private func setupCodeReaderView() {
     let codeReader: CodeReaderViewController = components.instance()
     addChild(codeReader)
     contentView.set(embeded: codeReader.view)
     codeReader.didMove(toParent: self)
   }
-  
+
   private func setupSubscriptions() {
     controller
       .progressPublisher()
@@ -108,31 +108,33 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
         self?.progressView.update(progress: progress, animated: true)
       }
       .store(in: cancellables)
-    
+
     controller
       .exitConfirmationPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         if presented {
           self?.present(CodeScanningExitConfirmationViewController.self)
-        } else {
+        }
+        else {
           self?.dismiss(CodeScanningExitConfirmationViewController.self)
         }
       }
       .store(in: cancellables)
-    
+
     controller
       .helpPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         if presented {
           self?.present(CodeScanningHelpViewController.self)
-        } else {
+        }
+        else {
           self?.dismiss(CodeScanningExitConfirmationViewController.self)
         }
       }
       .store(in: cancellables)
-    
+
     controller
       .resultPresentationPublisher()
       .receive(on: RunLoop.main)
@@ -146,10 +148,10 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                 self?.popAll(Self.self, animated: false)
               }
             )
-            
+
           case .failure(.canceled):
             self?.pop(to: TransferInfoScreenViewController.self)
-            
+
           case .failure(.duplicateAccount):
             self?.push(
               CodeScanningDuplicateViewController.self,
@@ -157,8 +159,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
                 self?.popAll(Self.self, animated: false)
               }
             )
-            
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             self?.push(
               AccountTransferFailureViewController.self,

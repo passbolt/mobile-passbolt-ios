@@ -24,9 +24,9 @@ import UICommons
 import UIComponents
 
 internal final class WelcomeNavigationViewController: NavigationViewController, UIComponent {
-  
+
   internal typealias Controller = WelcomeNavigationController
-  
+
   internal static func instance(
     using controller: WelcomeNavigationController,
     with components: UIComponentFactory
@@ -36,10 +36,10 @@ internal final class WelcomeNavigationViewController: NavigationViewController, 
       with: components
     )
   }
-  
+
   internal let components: UIComponentFactory
   private let controller: WelcomeNavigationController
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -48,11 +48,11 @@ internal final class WelcomeNavigationViewController: NavigationViewController, 
     self.components = components
     super.init()
   }
-  
+
   internal func setup() {
     let welcomeScreen: WelcomeScreenViewController = components.instance()
     setViewControllers([welcomeScreen], animated: false)
-    
+
     mut(navigationBarView) {
       .primaryNavigationStyle()
     }

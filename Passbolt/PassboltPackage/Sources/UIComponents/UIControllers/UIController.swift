@@ -24,9 +24,9 @@
 import Features
 
 public protocol UIController {
-  
+
   associatedtype Context
-  
+
   static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -35,7 +35,7 @@ public protocol UIController {
 }
 
 extension UIController where Context == Void {
-  
+
   public static func instance(
     with features: FeatureFactory,
     cancellables: Cancellables

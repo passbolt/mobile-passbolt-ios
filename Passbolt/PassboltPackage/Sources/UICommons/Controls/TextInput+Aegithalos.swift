@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: TextInput {
-  
+
   public static func isRequired(_ value: Bool) -> Self {
     .custom { (subject: Subject) in subject.isRequired = value }
   }

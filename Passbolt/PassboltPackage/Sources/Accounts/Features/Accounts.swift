@@ -25,49 +25,50 @@ import Crypto
 import Features
 
 public struct Accounts {
-  
+
   public var verifyStorageDataIntegrity: () -> Result<Void, TheError>
   public var storedAccounts: () -> Array<AccountWithProfile>
   // Saves account data if authorization succeeds and creates session.
-  public var transferAccount: (
-    _ domain: String,
-    _ userID: String,
-    _ username: String,
-    _ firstName: String,
-    _ lastName: String,
-    _ avatarImageURL: String,
-    _ fingerprint: String,
-    _ armoredKey: ArmoredPrivateKey,
-    _ passphrase: Passphrase
-  ) -> AnyPublisher<Void, TheError>
+  public var transferAccount:
+    (
+      _ domain: String,
+      _ userID: String,
+      _ username: String,
+      _ firstName: String,
+      _ lastName: String,
+      _ avatarImageURL: String,
+      _ fingerprint: String,
+      _ armoredKey: ArmoredPrivateKey,
+      _ passphrase: Passphrase
+    ) -> AnyPublisher<Void, TheError>
   public var removeAccount: (Account.LocalID) -> Result<Void, TheError>
 }
 
 extension Accounts: Feature {
-  
+
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-    
+
     let diagnostics: Diagnostics = features.instance()
     let session: AccountSession = features.instance()
     let dataStore: AccountsDataStore = features.instance()
-    
+
     func verifyAccountsDataIntegrity() -> Result<Void, TheError> {
       dataStore.verifyDataIntegrity()
     }
-    
+
     func storedAccounts() -> Array<AccountWithProfile> {
       dataStore
         .loadAccounts()
         .compactMap { account -> AccountWithProfile? in
-          let profileLoadResult: Result<AccountProfile, TheError> = dataStore
+          let profileLoadResult: Result<AccountProfile, TheError> =
+            dataStore
             .loadAccountProfile(account.localID)
           switch profileLoadResult {
-          // swiftlint:disable:next explicit_type_interface
           case let .success(profile):
             return AccountWithProfile(
               localID: account.localID,
@@ -81,17 +82,16 @@ extension Accounts: Feature {
               fingerprint: account.fingerprint,
               biometricsEnabled: profile.biometricsEnabled
             )
-          // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             diagnostics.debugLog(
               "Failed to load account profile: \(account.localID)"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
             return nil
           }
         }
     }
-    
+
     func transferAccount(
       domain: String,
       userID: String,
@@ -103,13 +103,14 @@ extension Accounts: Feature {
       armoredKey: ArmoredPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError> {
-    
-      let accountAlreadyStored: Bool = dataStore
+
+      let accountAlreadyStored: Bool =
+        dataStore
         .loadAccounts()
         .contains(
           where: { stored in
             stored.userID.rawValue == userID
-            && stored.domain == domain
+              && stored.domain == domain
           }
         )
       guard !accountAlreadyStored
@@ -117,7 +118,7 @@ extension Accounts: Feature {
         return Fail<Void, TheError>(error: .duplicateAccount())
           .eraseToAnyPublisher()
       }
-      
+
       let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
       let account: Account = .init(
         localID: accountID,
@@ -127,15 +128,16 @@ extension Accounts: Feature {
       )
       let accountProfile: AccountProfile = .init(
         accountID: accountID,
-        label: "\(firstName) \(lastName)", // initial label
+        label: "\(firstName) \(lastName)",  // initial label
         username: username,
         firstName: firstName,
         lastName: lastName,
         avatarImageURL: avatarImageURL,
-        biometricsEnabled: false // it is always disabled initially
+        biometricsEnabled: false  // it is always disabled initially
       )
-      
-      return session
+
+      return
+        session
         .authorize(account, .adHoc(passphrase, armoredKey))
         .map { _ -> AnyPublisher<Void, TheError> in
           switch dataStore.storeAccount(account, accountProfile, armoredKey) {
@@ -143,13 +145,12 @@ extension Accounts: Feature {
             return Just(Void())
               .setFailureType(to: TheError.self)
               .eraseToAnyPublisher()
-          // swiftlint:disable:next explicit_type_interface
           case let .failure(error):
             diagnostics.debugLog(
               "Failed to save account: \(account.localID)"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
-            session.close() // cleanup session
+            session.close()  // cleanup session
             return Fail<Void, TheError>(error: error)
               .eraseToAnyPublisher()
           }
@@ -157,25 +158,23 @@ extension Accounts: Feature {
         .switchToLatest()
         .eraseToAnyPublisher()
     }
-    
+
     func remove(
       accountWithID accountID: Account.LocalID
     ) -> Result<Void, TheError> {
       dataStore.deleteAccount(accountID)
-      _ = session
+      _ =
+        session
         .statePublisher()
         .first()
         .map { sessionState -> Bool in
           switch sessionState {
-          case
-            // swiftlint:disable:next explicit_type_interface
-            let .authorized(account)
+          case let .authorized(account)
           where account.localID == accountID,
-            // swiftlint:disable:next explicit_type_interface
             let .authorizationRequired(account)
           where account.localID == accountID:
             return true
-            
+
           case .authorized, .authorizationRequired, .none:
             return false
           }
@@ -183,20 +182,32 @@ extension Accounts: Feature {
         .sink { signOutRequired in
           if signOutRequired {
             session.close()
-          } else { /* */ }
+          }
+          else { /* */
+          }
         }
-      
+
       return .success
     }
-    
+
     return Self(
       verifyStorageDataIntegrity: verifyAccountsDataIntegrity,
       storedAccounts: storedAccounts,
-      transferAccount: transferAccount(domain:userID:username:firstName:lastName:avatarImageURL:fingerprint:armoredKey:passphrase:),
+      transferAccount: transferAccount(
+        domain:
+        userID:
+        username:
+        firstName:
+        lastName:
+        avatarImageURL:
+        fingerprint:
+        armoredKey:
+        passphrase:
+      ),
       removeAccount: remove(accountWithID:)
     )
   }
-  
+
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {

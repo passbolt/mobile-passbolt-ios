@@ -24,10 +24,10 @@
 import UIComponents
 
 internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = ExtensionSetupView
   internal typealias Controller = ExtensionSetupController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,12 +37,12 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: Controller
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -51,11 +51,11 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     contentView
       .closeTapPublisher
@@ -63,7 +63,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
         self?.controller.closeConfiguration()
       }
       .store(in: cancellables)
-    
+
     contentView
       .backToAppTapPublisher
       .sink { [weak self] in
@@ -72,4 +72,3 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       .store(in: cancellables)
   }
 }
-

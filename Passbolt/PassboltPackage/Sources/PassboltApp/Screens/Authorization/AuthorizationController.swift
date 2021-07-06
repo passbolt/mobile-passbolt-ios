@@ -27,7 +27,7 @@ import NetworkClient
 import UIComponents
 
 internal struct AuthorizationController {
-  
+
   internal var accountProfile: () -> AccountWithProfile
   internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
   internal var updatePassphrase: (String) -> Void
@@ -39,9 +39,9 @@ internal struct AuthorizationController {
 }
 
 extension AuthorizationController: UIController {
-  
+
   internal typealias Context = Account.LocalID
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -51,14 +51,14 @@ extension AuthorizationController: UIController {
     let accountSession: AccountSession = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
-    
+
     guard let accountWithProfile: AccountWithProfile = accounts.storedAccounts().first(where: { $0.localID == context })
     else { unreachable("Cannot select an account that is not stored locally.") }
-    
+
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
-    
+
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
       // swiftlint:disable:next array_init
       networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
@@ -67,17 +67,17 @@ extension AuthorizationController: UIController {
         .replaceError(with: nil)
         .eraseToAnyPublisher()
     }
-    
-    func updatePassphrase(_ passphrase: String) -> Void {
+
+    func updatePassphrase(_ passphrase: String) {
       passphraseSubject.send(passphrase)
     }
-    
+
     func validatedPassphrasePublisher() -> AnyPublisher<Validated<String>, Never> {
       passphraseSubject
         .map(validator.validate)
         .eraseToAnyPublisher()
     }
-    
+
     func performSignIn() -> AnyPublisher<Void, TheError> {
       passphraseSubject
         .first()
@@ -90,22 +90,22 @@ extension AuthorizationController: UIController {
         .switchToLatest()
         .eraseToAnyPublisher()
     }
-    
+
     func performBiometricSignIn() -> AnyPublisher<Void, TheError> {
       accountSession.authorize(
         accountWithProfile.account,
         .biometrics
       )
     }
-    
-    func presentForgotPassphraseAlert() -> Void {
+
+    func presentForgotPassphraseAlert() {
       forgotAlertPresentationSubject.send(true)
     }
-    
+
     func presentForgotPassphraseAlertPublisher() -> AnyPublisher<Bool, Never> {
       forgotAlertPresentationSubject.eraseToAnyPublisher()
     }
-    
+
     return Self(
       accountProfile: { accountWithProfile },
       accountAvatarPublisher: accountAvatarPublisher,

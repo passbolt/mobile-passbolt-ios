@@ -25,10 +25,10 @@ import Environment
 import UIComponents
 
 internal final class TransferInfoScreenViewController: PlainViewController, UIComponent {
-  
+
   internal typealias View = TransferInfoScreenView
   internal typealias Controller = TransferInfoScreenController
-  
+
   internal static func instance(
     using controller: TransferInfoScreenController,
     with components: UIComponentFactory
@@ -38,12 +38,12 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
       with: components
     )
   }
-  
+
   internal private(set) lazy var contentView: TransferInfoScreenView = .init()
   internal let components: UIComponentFactory
-  
+
   private let controller: TransferInfoScreenController
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -52,15 +52,15 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
     self.components = components
     super.init()
   }
-  
+
   internal func setupView() {
     mut(self) {
       .title(localized: "transfer.account.title")
     }
-        
+
     setupSubscriptions()
   }
-  
+
   private func setupSubscriptions() {
     contentView
       .tapButtonPublisher
@@ -71,23 +71,25 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
       .receive(on: RunLoop.main)
       .sink { [weak self] granted in
         guard let self = self else { return }
-        
+
         if granted {
           self.push(CodeScanningViewController.self)
-        } else {
+        }
+        else {
           self.controller.presentNoCameraPermissionAlert()
         }
       }
       .store(in: cancellables)
-    
+
     controller.presentNoCameraPermissionAlertPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         guard let self = self else { return }
-        
+
         if presented {
           self.present(TransferInfoCameraRequiredAlertViewController.self)
-        } else {
+        }
+        else {
           self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
         }
       }

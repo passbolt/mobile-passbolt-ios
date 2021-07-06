@@ -25,25 +25,25 @@ import Accounts
 import UIComponents
 
 internal struct BiometricsInfoController {
-  
+
   internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, Never>
   internal var setupBiometrics: () -> Void
   internal var skipSetup: () -> Void
 }
 
 extension BiometricsInfoController {
-  
+
   internal enum Destination {
-    
+
     case biometricsSetup
     case extensionSetup
   }
 }
 
 extension BiometricsInfoController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -51,30 +51,32 @@ extension BiometricsInfoController: UIController {
   ) -> Self {
     let linkOpener: LinkOpener = features.instance()
     let biometry: Biometry = features.instance()
-    
+
     let presentationDestinationSubject: PassthroughSubject<Destination, Never> = .init()
-    
+
     var setupBiometricsCancellable: AnyCancellable?
-    _ = setupBiometricsCancellable // silence warning
-    
+    _ = setupBiometricsCancellable  // silence warning
+
     func continueSetupPresentationPublisher() -> AnyPublisher<Destination, Never> {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
-      
-    func setupBiometrics() -> Void {
-      setupBiometricsCancellable = linkOpener
+
+    func setupBiometrics() {
+      setupBiometricsCancellable =
+        linkOpener
         .openSystemSettings()
         .map { opened -> AnyPublisher<Bool, Never> in
           guard opened
           else { return Empty().eraseToAnyPublisher() }
-          return biometry
+          return
+            biometry
             .biometricsStateChangesPublisher()
             .dropFirst()
             .map { (state: Biometrics.State) -> Bool in
               switch state {
               case .unavailable, .unconfigured:
                 return false
-                
+
               case .configuredTouchID, .configuredFaceID:
                 return true
               }
@@ -87,11 +89,11 @@ extension BiometricsInfoController: UIController {
           presentationDestinationSubject.send(.biometricsSetup)
         }
     }
-    
-    func skipSetup() -> Void {
+
+    func skipSetup() {
       presentationDestinationSubject.send(.extensionSetup)
     }
-    
+
     return Self(
       presentationDestinationPublisher: continueSetupPresentationPublisher,
       setupBiometrics: setupBiometrics,
@@ -99,4 +101,3 @@ extension BiometricsInfoController: UIController {
     )
   }
 }
-

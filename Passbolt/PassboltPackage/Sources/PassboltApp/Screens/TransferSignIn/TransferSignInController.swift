@@ -21,15 +21,16 @@
 // @since         v1.0
 //
 
-import Accounts
 import AccountSetup
+import Accounts
 import Commons
 import Crypto
-import struct Foundation.Data
 import UIComponents
 
+import struct Foundation.Data
+
 internal struct TransferSignInController {
-  
+
   internal var accountProfilePublisher: () -> AnyPublisher<AccountTransfer.AccountDetails, Never>
   internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
   internal var updatePassphrase: (String) -> Void
@@ -43,9 +44,9 @@ internal struct TransferSignInController {
 }
 
 extension TransferSignInController {
-  
+
   internal enum Destination {
-    
+
     case biometryInfo
     case biometrySetup
     case extensionSetup
@@ -53,9 +54,9 @@ extension TransferSignInController {
 }
 
 extension TransferSignInController: UIController {
-  
+
   internal typealias Context = Void
-  
+
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
@@ -64,15 +65,15 @@ extension TransferSignInController: UIController {
     let accountTransfer: AccountTransfer = features.instance()
     let biometrics: Biometry = features.instance()
     let diagnostics: Diagnostics = features.instance()
-    
+
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
-    
+
     let presentationDestinationSubject: PassthroughSubject<Destination, TheError> = .init()
-    
+
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
-    
+
     accountTransfer
       .progressPublisher()
       .ignoreOutput()
@@ -86,17 +87,16 @@ extension TransferSignInController: UIController {
               switch biometricsState {
               case .unavailable:
                 presentationDestinationSubject.send(.extensionSetup)
-                
+
               case .unconfigured:
                 presentationDestinationSubject.send(.biometryInfo)
-                
+
               case .configuredTouchID, .configuredFaceID:
                 presentationDestinationSubject.send(.biometrySetup)
               }
               presentationDestinationSubject.send(completion: .finished)
             }
             .store(in: cancellables)
-        // swiftlint:disable:next explicit_type_interface
         case let .failure(error):
           presentationDestinationSubject.send(completion: .failure(error))
         }
@@ -104,7 +104,6 @@ extension TransferSignInController: UIController {
       .store(in: cancellables)
 
     func accountProfilePublisher() -> AnyPublisher<AccountTransfer.AccountDetails, Never> {
-      // swiftlint:disable:next array_init
       accountTransfer
         .accountDetailsPublisher()
         .map { details -> AccountTransfer.AccountDetails? in details }
@@ -113,9 +112,8 @@ extension TransferSignInController: UIController {
         .compactMap { $0 }
         .eraseToAnyPublisher()
     }
-    
+
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
-      // swiftlint:disable:next array_init
       accountTransfer
         .avatarPublisher()
         .map { data -> Data? in data }
@@ -123,17 +121,17 @@ extension TransferSignInController: UIController {
         .replaceError(with: nil)
         .eraseToAnyPublisher()
     }
-    
-    func updatePassphrase(_ passphrase: String) -> Void {
+
+    func updatePassphrase(_ passphrase: String) {
       passphraseSubject.send(passphrase)
     }
-    
+
     func validatedPassphrasePublisher() -> AnyPublisher<Validated<String>, Never> {
       passphraseSubject
         .map(validator.validate)
         .eraseToAnyPublisher()
     }
-    
+
     func completeTransfer() -> AnyPublisher<Never, TheError> {
       passphraseSubject
         .map(Passphrase.init(rawValue:))
@@ -142,27 +140,27 @@ extension TransferSignInController: UIController {
         .ignoreOutput()
         .eraseToAnyPublisher()
     }
-    
-    func presentForgotPassphraseAlert() -> Void {
+
+    func presentForgotPassphraseAlert() {
       forgotAlertPresentationSubject.send(true)
     }
-    
+
     func presentForgotPassphraseAlertPublisher() -> AnyPublisher<Bool, Never> {
       forgotAlertPresentationSubject.eraseToAnyPublisher()
     }
-    
-    func presentExitConfirmation() -> Void {
+
+    func presentExitConfirmation() {
       exitConfirmationPresentationSubject.send(true)
     }
-    
+
     func exitConfirmationPresentationPublisher() -> AnyPublisher<Bool, Never> {
       exitConfirmationPresentationSubject.eraseToAnyPublisher()
     }
-    
+
     func presentationDestinationPublisher() -> AnyPublisher<Destination, TheError> {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
-    
+
     return Self(
       accountProfilePublisher: accountProfilePublisher,
       accountAvatarPublisher: accountAvatarPublisher,

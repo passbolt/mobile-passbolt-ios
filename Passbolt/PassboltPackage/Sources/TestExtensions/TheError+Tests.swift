@@ -24,7 +24,7 @@
 import Commons
 
 extension TheError {
-  
+
   public static func testError(
     underlyingError: Error? = nil,
     extensions: Dictionary<Extension, Any> = [:]
@@ -38,6 +38,6 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static var testError: Self { "testError" }
 }

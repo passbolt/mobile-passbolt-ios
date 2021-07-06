@@ -24,7 +24,7 @@
 import Foundation
 
 extension String {
-  
+
   public func stripArmoredFormat() -> Self {
     self.replacingOccurrences(of: "-----BEGIN PUBLIC KEY-----", with: "")
       .replacingOccurrences(of: "-----END PUBLIC KEY-----", with: "")

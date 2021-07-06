@@ -23,28 +23,25 @@
 
 import Commons
 import Environment
-@testable import NetworkClient
 import TestExtensions
 import XCTest
 
-// swiftlint:disable explicit_acl
-// swiftlint:disable explicit_top_level_acl
-// swiftlint:disable implicitly_unwrapped_optional
-// swiftlint:disable private_subject
+@testable import NetworkClient
+
 final class NetworkRequestTests: XCTestCase {
-  
+
   var cancellables: Cancellables!
   var sessionSubject: PassthroughSubject<NetworkSessionVariable, TheError>!
   var networking: Networking!
   var request: NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable>!
-  
+
   override func setUp() {
     super.setUp()
     cancellables = .init()
     sessionSubject = .init()
     networking = .placeholder
   }
-  
+
   override func tearDown() {
     cancellables = nil
     sessionSubject = nil
@@ -52,11 +49,11 @@ final class NetworkRequestTests: XCTestCase {
     request = nil
     super.tearDown()
   }
-  
+
   func test_request_withFinishedSession_isNotExecuted() {
     request = prepareRequest()
     var completed: Bool = false
-    
+
     request
       .make(using: .sample)
       .sink(
@@ -64,7 +61,7 @@ final class NetworkRequestTests: XCTestCase {
           switch completion {
           case .finished:
             completed = true
-            
+
           case .failure:
             XCTFail("Unexpected behaviour")
           }
@@ -74,17 +71,17 @@ final class NetworkRequestTests: XCTestCase {
         }
       )
       .store(in: cancellables)
-    
+
     sessionSubject.send(completion: .finished)
-    
+
     XCTAssertTrue(completed)
   }
-  
+
   func test_request_withSessionError_fails() {
     request = prepareRequest()
     let errorSent: TheError = .testError()
     var completionError: TheError? = nil
-    
+
     request
       .make(using: .sample)
       .sink(
@@ -92,8 +89,7 @@ final class NetworkRequestTests: XCTestCase {
           switch completion {
           case .finished:
             XCTFail("Unexpected behaviour")
-          
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             completionError = error
           }
@@ -103,21 +99,21 @@ final class NetworkRequestTests: XCTestCase {
         }
       )
       .store(in: cancellables)
-    
+
     sessionSubject.send(completion: .failure(errorSent))
-    
+
     XCTAssertEqual(completionError?.identifier, errorSent.identifier)
   }
-  
+
   func test_request_withHTTPError_fails() {
     networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
       Fail<HTTPResponse, HTTPError>(error: .canceled)
         .eraseToAnyPublisher()
     }
-    
+
     request = prepareRequest()
     var completionError: TheError? = nil
-    
+
     request
       .make(using: .sample)
       .sink(
@@ -125,8 +121,7 @@ final class NetworkRequestTests: XCTestCase {
           switch completion {
           case .finished:
             XCTFail("Unexpected behaviour")
-          
-          // swiftlint:disable:next explicit_type_interface
+
           case let .failure(error):
             completionError = error
           }
@@ -136,17 +131,17 @@ final class NetworkRequestTests: XCTestCase {
         }
       )
       .store(in: cancellables)
-    
+
     sessionSubject.send(NetworkSessionVariable(domain: ""))
-    
+
     XCTAssertEqual(completionError?.identifier, .httpError)
   }
-  
+
   func test_requestBodyAndResponseBody_withBodyMirroring_areEqual() {
     networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
       Just(
         HTTPResponse(
-          url: request.url ?? .testURL,
+          url: request.url ?? .test,
           statusCode: 200,
           headers: request.headers,
           body: request.body
@@ -155,11 +150,11 @@ final class NetworkRequestTests: XCTestCase {
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
     }
-    
+
     request = prepareRequest()
     let bodySent: TestCodable = .sample
     var bodyReceived: TestCodable?
-    
+
     request
       .make(using: .sample)
       .sink(
@@ -167,7 +162,7 @@ final class NetworkRequestTests: XCTestCase {
           switch completion {
           case .finished:
             break
-            
+
           case .failure:
             XCTFail("Unexpected behaviour")
           }
@@ -177,12 +172,12 @@ final class NetworkRequestTests: XCTestCase {
         }
       )
       .store(in: cancellables)
-    
+
     sessionSubject.send(NetworkSessionVariable(domain: ""))
-    
+
     XCTAssertEqual(bodySent, bodyReceived)
   }
-  
+
   func prepareRequest() -> NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in

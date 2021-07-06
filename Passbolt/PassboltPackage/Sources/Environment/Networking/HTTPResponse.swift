@@ -22,17 +22,17 @@
 //
 
 import struct Foundation.Data
+import class Foundation.HTTPURLResponse
 import struct Foundation.URL
 import class Foundation.URLResponse
-import class Foundation.HTTPURLResponse
 
 public struct HTTPResponse {
-  
+
   public var url: URL
   public var statusCode: HTTPStatusCode
   public var headers: HTTPHeaders
   public var body: HTTPBody
-  
+
   public init(
     url: URL,
     statusCode: HTTPStatusCode,
@@ -47,7 +47,7 @@ public struct HTTPResponse {
 }
 
 extension HTTPResponse {
-  
+
   internal init?(
     from response: URLResponse,
     with body: Data? = nil
@@ -66,19 +66,19 @@ extension HTTPResponse {
 }
 
 extension HTTPResponse: CustomStringConvertible {
-  
+
   public var description: String {
     """
     HTTP/1.1 \(statusCode)
     \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
-    
+
     \(String(data: body, encoding: .utf8) ?? "")
     """
   }
 }
 
 extension HTTPResponse: CustomDebugStringConvertible {
-  
+
   public var debugDescription: String {
     description
   }

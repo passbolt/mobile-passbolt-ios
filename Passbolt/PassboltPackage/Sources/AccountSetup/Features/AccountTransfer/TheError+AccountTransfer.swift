@@ -24,7 +24,7 @@
 import Commons
 
 extension TheError {
-  
+
   public static func accountTransferScanningError(
     underlyingError: Error? = nil,
     context: String
@@ -35,7 +35,7 @@ extension TheError {
       extensions: [.context: context]
     )
   }
-  
+
   public static func accountTransferScanningRecoverableError(
     underlyingError: Error? = nil,
     context: String
@@ -49,7 +49,7 @@ extension TheError {
 }
 
 extension TheError.ID {
-  
+
   public static let accountTransferScanningError: Self = "accountTransferScanningError"
   public static let accountTransferScanningRecoverableError: Self = "accountTransferScanningRecoverableError"
 }

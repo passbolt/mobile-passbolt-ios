@@ -28,7 +28,7 @@ import Commons
 // - it will cause data wipe on devices after update.
 // Prepare data migration mechanism before making such changes.
 public struct AccountProfile {
-  
+
   public let accountID: Account.LocalID
   public var label: String
   public var username: String

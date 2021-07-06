@@ -26,16 +26,16 @@ import Commons
 import struct Foundation.UUID
 
 public struct UUIDGenerator: EnvironmentElement {
-  
+
   public var uuid: () -> UUID
 }
 
 extension UUIDGenerator {
-  
+
   public func callAsFunction() -> UUID {
     uuid()
   }
-  
+
   public static var live: Self {
     Self(
       uuid: UUID.init
@@ -44,7 +44,7 @@ extension UUIDGenerator {
 }
 
 extension Environment {
-  
+
   public var uuidGenerator: UUIDGenerator {
     get { element(UUIDGenerator.self) }
     set { use(newValue) }
@@ -53,7 +53,7 @@ extension Environment {
 
 #if DEBUG
 extension UUIDGenerator {
-  
+
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(

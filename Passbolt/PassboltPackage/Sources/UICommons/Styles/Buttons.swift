@@ -24,7 +24,7 @@
 import AegithalosCocoa
 
 extension Mutation where Subject: TextButton {
-  
+
   public static func primaryStyle() -> Self {
     .combined(
       .backgroundColor(dynamic: .primaryBlue),
@@ -38,7 +38,7 @@ extension Mutation where Subject: TextButton {
       .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
     )
   }
-  
+
   public static func linkStyle() -> Self {
     .combined(
       .font(.inter(ofSize: 14, weight: .medium)),
@@ -52,14 +52,14 @@ extension Mutation where Subject: TextButton {
 }
 
 extension Mutation where Subject: UIBarButtonItem {
-  
+
   public static func backStyle() -> Self {
     .combined(
       .style(.done),
       .image(named: .arrowLeft, from: .uiCommons)
     )
   }
-  
+
   public static func placeholderStyle() -> Self {
     .combined(
       .style(.plain),

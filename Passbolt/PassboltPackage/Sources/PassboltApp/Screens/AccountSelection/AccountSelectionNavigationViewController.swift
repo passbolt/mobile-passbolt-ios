@@ -25,9 +25,9 @@ import UICommons
 import UIComponents
 
 internal final class AccountSelectionNavigationViewController: NavigationViewController, UIComponent {
-  
+
   internal typealias Controller = AccountSelectionNavigationController
-  
+
   internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
@@ -37,10 +37,10 @@ internal final class AccountSelectionNavigationViewController: NavigationViewCon
       with: components
     )
   }
-  
+
   internal let components: UIComponentFactory
   private let controller: AccountSelectionNavigationController
-  
+
   internal init(
     using controller: Controller,
     with components: UIComponentFactory
@@ -49,11 +49,11 @@ internal final class AccountSelectionNavigationViewController: NavigationViewCon
     self.components = components
     super.init()
   }
-  
+
   internal func setup() {
     let accountSelectionScreen: AccountSelectionViewController = components.instance()
     setViewControllers([accountSelectionScreen], animated: false)
-    
+
     mut(navigationBarView) {
       .primaryNavigationStyle()
     }
