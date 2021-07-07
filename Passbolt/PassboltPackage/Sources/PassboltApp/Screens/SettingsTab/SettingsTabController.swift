@@ -21,14 +21,17 @@
 // @since         v1.0
 //
 
+import Accounts
 import UIComponents
 
-internal struct SettingsTabController: UIController {
+internal struct SettingsTabController {}
+
+extension SettingsTabController: UIController {
 
   internal typealias Context = Void
 
   internal static func instance(
-    in context: Void,
+    in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {

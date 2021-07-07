@@ -72,7 +72,7 @@ extension WindowController: UIController {
         // signed out
         case .none:
           screenStateDispositionSubject
-            .send(.clearCache)
+            .send(.useInitialScreenState)
 
         case _:
           return

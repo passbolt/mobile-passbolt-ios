@@ -40,6 +40,7 @@ internal struct AccountsDataStore {
   internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
   internal var deleteAccount: (Account.LocalID) -> Void
   internal var accountDatabaseConnection: (Account.LocalID) -> Result<DatabaseConnection, TheError>
+  internal var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
 }
 
 extension AccountsDataStore: Feature {
@@ -53,6 +54,8 @@ extension AccountsDataStore: Feature {
     let keychain: Keychain = environment.keychain
 
     let diagnostics: Diagnostics = features.instance()
+
+    let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
     func forceDelete(matching query: KeychainQuery) {
       diagnostics.debugLog("Purging data for \(query.key)")
@@ -210,9 +213,13 @@ extension AccountsDataStore: Feature {
       else { /* We can't delete passphrases selectively due to biometrics */
       }
 
+      let deleted: Set<Account.LocalID> = .init(accountsToRemove + accountProfilesToRemove + keysToRemove)
+
       diagnostics.diagnosticLog(
-        "Deleted accounts: \(Set(accountsToRemove + accountProfilesToRemove + keysToRemove))"
+        "Deleted accounts: \(deleted))"
       )
+
+      deleted.forEach { accountID in updatedAccountIDSubject.send(accountID) }
 
       #warning("TODO: [PAS-82] Verify database files and remove detached")
 
@@ -275,7 +282,10 @@ extension AccountsDataStore: Feature {
       armoredKey: ArmoredPrivateKey
     ) -> Result<Void, TheError> {
       // data integrity check performs cleanup in case of partial success
-      defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
+      defer {
+        ensureDataIntegrity().forceSuccess("Data integrity protection")
+        updatedAccountIDSubject.send(account.localID)
+      }
       var accountIdentifiers: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
@@ -335,16 +345,19 @@ extension AccountsDataStore: Feature {
             return environment
               .keychain
               .save(
-                updatedAccountProfile,
-                for: .accountProfileQuery(for: accountID)
+                passphrase,
+                for: .accountPassphraseQuery(for: accountID)
               )
               .flatMap { _ in
                 environment
-                  .keychain
-                  .save(
-                    passphrase,
-                    for: .accountPassphraseQuery(for: accountID)
-                  )
+                .keychain
+                .save(
+                  updatedAccountProfile,
+                  for: .accountProfileQuery(for: accountID)
+                )
+              }
+              .map {
+                updatedAccountIDSubject.send(accountID)
               }
           }
           else {
@@ -391,14 +404,17 @@ extension AccountsDataStore: Feature {
             updatedAccountProfile.biometricsEnabled = false
             return environment
               .keychain
-              .save(
-                updatedAccountProfile,
-                for: .accountProfileQuery(for: accountID)
-              )
+              .delete(matching: .accountPassphraseDeleteQuery(for: accountID))
               .flatMap { _ in
                 environment
                   .keychain
-                  .delete(matching: .accountPassphraseQuery(for: accountID))
+                  .save(
+                    updatedAccountProfile,
+                    for: .accountProfileQuery(for: accountID)
+                  )
+              }
+              .map {
+                updatedAccountIDSubject.send(accountID)
               }
           }
           else {
@@ -434,6 +450,9 @@ extension AccountsDataStore: Feature {
       return environment
         .keychain
         .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
+        .map {
+          updatedAccountIDSubject.send(accountProfile.accountID)
+        }
     }
 
     func deleteAccount(withID accountID: Account.LocalID) {
@@ -520,7 +539,8 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: loadAccountProfile(for:),
       updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
-      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:)
+      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:),
+      updatedAccountIDsPublisher: updatedAccountIDSubject.eraseToAnyPublisher
     )
   }
 
@@ -539,7 +559,8 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods")
+      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods"),
+      updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
@@ -631,6 +652,20 @@ extension KeychainQuery {
       key: "accountPassphrase",
       tag: .init(rawValue: identifier.rawValue),
       requiresBiometrics: true
+    )
+  }
+
+  fileprivate static func accountPassphraseDeleteQuery(
+    for identifier: Account.LocalID
+  ) -> Self {
+    assert(
+      !identifier.rawValue.isEmpty,
+      "Cannot use empty account identifiers for passphrase keychain operations"
+    )
+    return Self(
+      key: "accountPassphrase",
+      tag: .init(rawValue: identifier.rawValue),
+      requiresBiometrics: false
     )
   }
 }

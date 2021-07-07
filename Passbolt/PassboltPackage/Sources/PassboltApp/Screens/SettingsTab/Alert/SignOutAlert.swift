@@ -22,37 +22,53 @@
 //
 
 import Accounts
-import Features
+import UICommons
 import UIComponents
 
-internal struct MainTabsController {
+internal final class SignOutAlertViewController:
+  AlertViewController<SignOutAlertController>, UIComponent {
 
-  internal var setActiveTab: (MainTab) -> Void
-  internal var activeTabPublisher: () -> AnyPublisher<MainTab, Never>
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "account.settings.alert.title"),
+        .message(localized: "account.settings.signout.alert.message"),
+        .action(
+          localized: .cancel,
+          inBundle: .commons,
+          style: .cancel,
+          handler: {}
+        ),
+        .action(
+          localized: .signOut,
+          inBundle: .commons,
+          style: .destructive,
+          accessibilityIdentifier: "button.close",
+          handler: controller.exit
+        )
+      )
+    }
+  }
 }
 
-extension MainTabsController: UIController {
+internal struct SignOutAlertController {
+
+  internal var exit: () -> Void
+}
+
+extension SignOutAlertController: UIController {
 
   internal typealias Context = Void
 
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
+    cancellables: Cancellables) -> Self {
 
-    func setActiveTab(_ tab: MainTab) {
-      activeTabSubject.send(tab)
-    }
-
-    func activeTabPublisher() -> AnyPublisher<MainTab, Never> {
-      activeTabSubject.eraseToAnyPublisher()
-    }
+    let accountSession: AccountSession = features.instance()
 
     return Self(
-      setActiveTab: setActiveTab,
-      activeTabPublisher: activeTabPublisher
+      exit: accountSession.close
     )
   }
 }

@@ -162,8 +162,8 @@ extension Window {
       return accountSelectionNavigation.isInitialScreenNavigationAllowed
     }
     else {
-      // we allow that only after authorization (but not from adding account)
-      return false
+      // we allow that only after authorization (but not from account selection)
+      return true
     }
   }
 }

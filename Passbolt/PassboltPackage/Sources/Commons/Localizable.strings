@@ -34,3 +34,5 @@
 "generic.got.it" = "Got it";
 "generic.settings" = "Settings";
 "generic.error" = "Something went wrong!";
+"generic.disable" = "Disable";
+"generic.sign.out" = "Sign out";

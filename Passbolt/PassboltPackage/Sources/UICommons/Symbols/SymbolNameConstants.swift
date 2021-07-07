@@ -28,4 +28,5 @@ extension SymbolNameConstant {
   public static var eyeSlash: Self { "eye.slash" }
   public static var faceID: Self { "faceid" }
   public static var touchID: Self { "touchid" }
+  public static var noSign: Self { "nosign" }
 }

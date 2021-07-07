@@ -28,6 +28,7 @@ import TestExtensions
 
 @testable import Accounts
 
+#warning("PAS-181 - add test for accountProfilePublisher")
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountSettingsTests: TestCase {
 
@@ -57,8 +58,10 @@ final class AccountSettingsTests: TestCase {
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorization = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updatedAccountIDsPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
@@ -76,18 +79,18 @@ final class AccountSettingsTests: TestCase {
     XCTAssertFalse(result)
   }
 
-  func test_biometricsEnabledPublisher_publishesTrue_afterEnablingBiometrics() {
+  func test_biometricsEnabledPublisher_publishesTrue_afterBiometricsStateInProfileChangesToTrue() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.storeAccountPassphrase = always(.success)
+    var currentAccount: AccountProfile = validAccountProfile
+    accountsDataStore.loadAccountProfile = always(.success(currentAccount))
+    let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
+    accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
     features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
 
     let feature: AccountSettings = testInstance()
@@ -101,10 +104,8 @@ final class AccountSettingsTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature
-      .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { _ in })
-      .store(in: cancellables)
+    currentAccount.biometricsEnabled = true
+    updatedAccountIDSubject.send(currentAccount.accountID)
 
     XCTAssertTrue(result)
   }
@@ -117,6 +118,8 @@ final class AccountSettingsTests: TestCase {
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.failure(.testError()))
     accountsDataStore.storeAccountPassphrase = always(.success)
+    accountsDataStore.updatedAccountIDsPublisher = always(Just(validAccount.localID).eraseToAnyPublisher())
+
     features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
@@ -197,6 +200,7 @@ final class AccountSettingsTests: TestCase {
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorization = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
@@ -225,6 +229,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorization = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
@@ -281,6 +286,7 @@ final class AccountSettingsTests: TestCase {
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorization = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -309,6 +315,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorization = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -393,6 +400,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorization = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)

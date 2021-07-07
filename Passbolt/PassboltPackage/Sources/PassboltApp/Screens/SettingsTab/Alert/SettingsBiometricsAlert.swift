@@ -22,37 +22,51 @@
 //
 
 import Accounts
-import Features
+import UICommons
 import UIComponents
 
-internal struct MainTabsController {
+internal final class DisableBiometricsAlertViewController:
+  AlertViewController<DisableBiometricsAlertController>, UIComponent {
 
-  internal var setActiveTab: (MainTab) -> Void
-  internal var activeTabPublisher: () -> AnyPublisher<MainTab, Never>
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "account.settings.alert.title"),
+        .message(localized: "account.settings.biometrics.alert.message"),
+        .action(
+          localized: .cancel,
+          inBundle: .commons,
+          style: .cancel,
+          handler: {}
+        ),
+        .action(
+          localized: .disable,
+          inBundle: .commons,
+          style: .destructive,
+          accessibilityIdentifier: "button.close",
+          handler: controller.disable
+        )
+      )
+    }
+  }
 }
 
-extension MainTabsController: UIController {
+internal struct DisableBiometricsAlertController {
 
-  internal typealias Context = Void
+  internal var disable: () -> Void
+}
+
+extension DisableBiometricsAlertController: UIController {
+
+  internal typealias Context = () -> Void
 
   internal static func instance(
-    in context: Context,
+    in context: @escaping Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
-
-    func setActiveTab(_ tab: MainTab) {
-      activeTabSubject.send(tab)
-    }
-
-    func activeTabPublisher() -> AnyPublisher<MainTab, Never> {
-      activeTabSubject.eraseToAnyPublisher()
-    }
-
-    return Self(
-      setActiveTab: setActiveTab,
-      activeTabPublisher: activeTabPublisher
+  ) -> DisableBiometricsAlertController {
+    Self(
+      disable: context
     )
   }
 }

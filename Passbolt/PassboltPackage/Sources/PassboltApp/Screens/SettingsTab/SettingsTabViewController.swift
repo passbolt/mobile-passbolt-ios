@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class SettingsTabViewController: NavigationViewController, UIComponent {
 
-  internal typealias Controller = HomeTabController
+  internal typealias Controller = SettingsTabController
 
   internal static func instance(
     using controller: Controller,
@@ -51,6 +51,9 @@ internal final class SettingsTabViewController: NavigationViewController, UIComp
   }
 
   internal func setup() {
+    let accountSettings: SettingsViewController = components.instance()
+    setViewControllers([accountSettings], animated: false)
+
     mut(navigationBarView) {
       .primaryNavigationStyle()
     }

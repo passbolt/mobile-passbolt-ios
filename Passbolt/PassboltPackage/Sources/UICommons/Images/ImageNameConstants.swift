@@ -34,6 +34,14 @@ extension ImageNameConstant {
   public static var settingsTab: Self { "SettingsTab" }
   public static var trash: Self { "Trash" }
   public static var plus: Self { "Plus" }
+  public static var exit: Self { "Exit" }
+  public static var info: Self { "Info" }
+  public static var key: Self { "Key" }
+  public static var lock: Self { "Lock" }
+  public static var people: Self { "People" }
+  public static var disclosureIndicator: Self { "DisclosureIndicator" }
+  public static var biometricsIcon: Self { "BiometricsIcon" }
+  public static var faceID: Self { "FaceID" }
 }
 
 extension DynamicImage {

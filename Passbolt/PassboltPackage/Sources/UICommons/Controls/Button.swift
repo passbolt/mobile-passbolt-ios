@@ -24,7 +24,7 @@
 import AegithalosCocoa
 import Commons
 
-public class Button: UIControl {
+open class Button: UIControl {
 
   public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
     didSet {

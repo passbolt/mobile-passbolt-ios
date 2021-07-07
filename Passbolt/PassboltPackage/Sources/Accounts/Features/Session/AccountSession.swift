@@ -33,6 +33,8 @@ public struct AccountSession {
   // Publishes current account ID each time access to its private key
   // is required and cannot be handled automatically (passphrase cache is expired)
   public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account.LocalID, Never>
+  // Manual trigger for authorization prompt
+  public var requestAuthorization: () -> Void
   // Select account for network requests without authorization (each account can have a unique domain etc)
   #warning("Determine if 'select' can be removed")
   public var select: (Account) -> Void
@@ -330,6 +332,18 @@ extension AccountSession: Feature {
       authorizationPromptPresentationSubject.eraseToAnyPublisher()
     }
 
+    func requestAuthorization() {
+      switch stateSubject.value {
+      case let .authorized(account):
+        passphraseCache.clear()
+        authorizationPromptPresentationSubject.send(account.localID)
+      case let .authorizationRequired(account):
+        authorizationPromptPresentationSubject.send(account.localID)
+      case .none:
+        break
+      }
+    }
+
     func select(account: Account) {
       switch stateSubject.value {
       case .authorizationRequired, .authorized:
@@ -346,6 +360,7 @@ extension AccountSession: Feature {
       statePublisher: stateSubject.removeDuplicates().eraseToAnyPublisher,
       authorize: authorize(account:authorizationMethod:),
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
+      requestAuthorization: requestAuthorization,
       select: select(account:),
       close: closeSession
     )
@@ -360,6 +375,7 @@ extension AccountSession {
       statePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
       authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      requestAuthorization: Commons.placeholder("You have to provide mocks for used methods"),
       select: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")
     )

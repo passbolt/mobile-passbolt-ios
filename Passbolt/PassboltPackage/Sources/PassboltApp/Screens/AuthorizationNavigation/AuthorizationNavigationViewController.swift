@@ -61,18 +61,26 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
   }
 
   internal var isInitialScreenNavigationAllowed: Bool {
-    !viewControllers
-      .contains(where: { viewController in
-        viewController is AccountTransferFailureViewController
-          || viewController is BiometricsInfoViewController
-          || viewController is BiometricsSetupViewController
-          || viewController is CodeScanningViewController
-          || viewController is CodeScanningSuccessViewController
-          || viewController is CodeScanningDuplicateViewController
-          || viewController is TransferSignInViewController
-          || viewController is TransferInfoScreenViewController
-          || viewController is ExtensionSetupViewController
-      })
+    // Checking for account selection
+    if viewControllers.count == 1 && viewControllers.first is AccountSelectionViewController {
+      return false
+    }
+    else {
+      // Checking wether the user is currently on the account setup
+      return
+        !viewControllers
+        .contains(where: { viewController in
+          viewController is AccountTransferFailureViewController
+            || viewController is BiometricsInfoViewController
+            || viewController is BiometricsSetupViewController
+            || viewController is CodeScanningViewController
+            || viewController is CodeScanningSuccessViewController
+            || viewController is CodeScanningDuplicateViewController
+            || viewController is TransferSignInViewController
+            || viewController is TransferInfoScreenViewController
+            || viewController is ExtensionSetupViewController
+        })
+    }
   }
 
   internal func setup() {
