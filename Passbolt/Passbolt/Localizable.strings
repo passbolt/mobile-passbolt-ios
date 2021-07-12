@@ -33,7 +33,7 @@
 "code.scanning.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
 "code.scanning.help.title" = "Scanning QR codes";
 "code.scanning.help.message" = "You will see a sequence of QR codes. We will scan these codes until the progress bar is full. then you will be able to login!";
-"code.scanning.camera.unavailable" = "Camera unavailable";
+"code.scanning.camera.unavailable" = "Sorry, you need a device with working camera to continue, as the key transfer is done using QR codes.";
 "code.scanning.begin" = "Aim the camera at the QR Codes";
 "code.scanning.processing.in.progress" = "Scanning... keep going!";
 "code.scanning.processing.invalid.code" = "It’s not the Passbolt QR. Try again!";
