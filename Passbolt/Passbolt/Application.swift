@@ -46,7 +46,9 @@ internal struct Application {
       AppLifeCycle.live(),
       PGP.gopenPGP(),
       SignatureVerfication.rssha256(),
-      MDMConfig.live
+      MDMConfig.live,
+      Database.sqlite(),
+      Files.live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

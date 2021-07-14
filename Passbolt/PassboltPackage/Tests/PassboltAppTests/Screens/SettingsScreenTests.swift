@@ -65,7 +65,8 @@ final class SettingsScreenTests: TestCase {
     XCTAssertEqual(result, SettingsController.BiometricsState.none)
   }
 
-  func test_biometricsStatePublisher_publishesStateFaceIDEnabled_whenProfileHasBiometricsEnabled_andBiometricsIsFaceID() {
+  func test_biometricsStatePublisher_publishesStateFaceIDEnabled_whenProfileHasBiometricsEnabled_andBiometricsIsFaceID()
+  {
     var currentAccountProfile: AccountProfile = validAccountProfile
     currentAccountProfile.biometricsEnabled = true
     var accountSettings: AccountSettings = .placeholder
@@ -88,7 +89,9 @@ final class SettingsScreenTests: TestCase {
     XCTAssertEqual(result, SettingsController.BiometricsState.faceID(enabled: true))
   }
 
-  func test_biometricsStatePublisher_publishesStateFaceIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsFaceID() {
+  func
+    test_biometricsStatePublisher_publishesStateFaceIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsFaceID()
+  {
     var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     features.use(accountSettings)
@@ -109,7 +112,9 @@ final class SettingsScreenTests: TestCase {
     XCTAssertEqual(result, SettingsController.BiometricsState.faceID(enabled: false))
   }
 
-  func test_biometricsStatePublisher_publishesStateTouchIDEnabled_whenProfileHasBiometricsEnabled_andBiometricsIsTouchID() {
+  func
+    test_biometricsStatePublisher_publishesStateTouchIDEnabled_whenProfileHasBiometricsEnabled_andBiometricsIsTouchID()
+  {
     var currentAccountProfile: AccountProfile = validAccountProfile
     currentAccountProfile.biometricsEnabled = true
     var accountSettings: AccountSettings = .placeholder
@@ -132,7 +137,9 @@ final class SettingsScreenTests: TestCase {
     XCTAssertEqual(result, SettingsController.BiometricsState.touchID(enabled: true))
   }
 
-  func test_biometricsStatePublisher_publishesStateTouchIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsTouchID() {
+  func
+    test_biometricsStatePublisher_publishesStateTouchIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsTouchID()
+  {
     var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     features.use(accountSettings)

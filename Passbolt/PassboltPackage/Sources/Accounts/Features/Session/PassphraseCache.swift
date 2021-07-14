@@ -71,6 +71,8 @@ extension PassphraseCache: Feature {
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
     let time: Time = environment.time
 
+    let diagnostics: Diagnostics = features.instance()
+
     let currentPassphraseSubject: CurrentValueSubject<Entry?, Never> = .init(nil)
     let lock: NSRecursiveLock = .init()
     var timer: DispatchedTimer?
@@ -104,6 +106,7 @@ extension PassphraseCache: Feature {
       .store(in: cancellables)
 
     func clearCache() {
+      diagnostics.debugLog("Clearing passphrase cache")
       currentPassphraseSubject.send(nil)
     }
 
@@ -137,6 +140,7 @@ extension PassphraseCache: Feature {
       accountID: Account.LocalID,
       expirationDate: Date
     ) {
+      diagnostics.debugLog("Updating passphrase cache, auto expiring at \(expirationDate)")
 
       let passphrase: PassphraseCache.Entry = .init(
         accountID: accountID,
@@ -145,7 +149,7 @@ extension PassphraseCache: Feature {
       )
 
       let interval: DispatchTimeInterval =
-        .seconds(.init(time.timestamp()))
+        .seconds(.init(Int(expirationDate.timeIntervalSince1970) - time.timestamp()))
 
       sychronizedTimer = .init(interval: interval, handler: clearCache)
 

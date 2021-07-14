@@ -38,6 +38,8 @@ public func testEnvironment() -> Environment {
     AppLifeCycle.placeholder,
     PGP.placeholder,
     SignatureVerfication.placeholder,
-    MDMConfig.placeholder
+    MDMConfig.placeholder,
+    Database.placeholder,
+    Files.placeholder
   )
 }

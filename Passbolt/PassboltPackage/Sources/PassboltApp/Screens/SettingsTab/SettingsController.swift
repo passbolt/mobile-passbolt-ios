@@ -88,7 +88,8 @@ extension SettingsController: UIController {
           if enabled {
             presentBiometricsAlertSubject.send()
             return Empty().eraseToAnyPublisher()
-          } else {
+          }
+          else {
             return accountSettings.setBiometricsEnabled(true)
           }
         }

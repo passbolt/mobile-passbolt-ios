@@ -26,7 +26,8 @@ import UICommons
 import UIComponents
 
 internal final class DisableBiometricsAlertViewController:
-  AlertViewController<DisableBiometricsAlertController>, UIComponent {
+  AlertViewController<DisableBiometricsAlertController>, UIComponent
+{
 
   internal func setup() {
     mut(self) {

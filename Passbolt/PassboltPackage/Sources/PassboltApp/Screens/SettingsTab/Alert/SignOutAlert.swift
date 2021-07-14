@@ -26,7 +26,8 @@ import UICommons
 import UIComponents
 
 internal final class SignOutAlertViewController:
-  AlertViewController<SignOutAlertController>, UIComponent {
+  AlertViewController<SignOutAlertController>, UIComponent
+{
 
   internal func setup() {
     mut(self) {
@@ -63,7 +64,8 @@ extension SignOutAlertController: UIController {
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
-    cancellables: Cancellables) -> Self {
+    cancellables: Cancellables
+  ) -> Self {
 
     let accountSession: AccountSession = features.instance()
 

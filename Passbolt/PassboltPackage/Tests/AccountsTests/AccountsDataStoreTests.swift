@@ -87,6 +87,8 @@ final class AccountsDataStoreTests: TestCase {
       )
       return .success
     }
+    features.environment.files.applicationDataDirectory = always(.success(URL(string: "file:///test")!))
+    features.environment.files.contentsOfDirectory = always(.success([]))
   }
 
   override func tearDown() {
@@ -229,6 +231,7 @@ final class AccountsDataStoreTests: TestCase {
   }
 
   func test_deleteAccount_removesAccountData() {
+    features.environment.files.deleteFile = always(.success)
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
       (
@@ -260,6 +263,42 @@ final class AccountsDataStoreTests: TestCase {
     XCTAssertEqual(
       mockKeychainStore.map(\.data),
       []
+    )
+  }
+
+  func test_deleteAccount_removesAccountDatabase() {
+    var result: URL!
+    features.environment.files.deleteFile = { url in
+      result = url
+      return .success
+    }
+    mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
+    mockKeychainStore = [
+      (
+        data: validAccountKeychainData,
+        query: .init(
+          key: "account",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: validPrivateKeyKeychainData,
+        query: .init(
+          key: "accountArmoredKey",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+    ]
+
+    let dataStore: AccountsDataStore = testInstance()
+
+    dataStore.deleteAccount(validAccount.localID)
+
+    XCTAssertEqual(
+      result.lastPathComponent,
+      "\(validAccount.localID).sqlite"
     )
   }
 
@@ -301,7 +340,6 @@ final class AccountsDataStoreTests: TestCase {
   func test_verifyDataIntegrity_doesNotModifyValidData() {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
-
       (
         data: validAccountProfileKeychainData,
         query: .init(
@@ -429,6 +467,42 @@ final class AccountsDataStoreTests: TestCase {
     XCTAssertEqual(
       mockKeychainStore.map(\.data),
       []
+    )
+  }
+
+  func test_verifyDataIntegrity_removesAccountsDatabase_whenAccountIDIsNotInListAndDatabaseFileExists() {
+    features.environment.files.contentsOfDirectory = always(.success(["\(validAccount.localID).sqlite"]))
+    var result: URL!
+    features.environment.files.deleteFile = { url in
+      result = url
+      return .success
+    }
+    mockPreferencesStore["accountsList"] = []
+    mockKeychainStore = [
+      (
+        data: validAccountKeychainData,
+        query: .init(
+          key: "account",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: validPrivateKeyKeychainData,
+        query: .init(
+          key: "accountArmoredKey",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+    ]
+    let dataStore: AccountsDataStore = testInstance()
+
+    _ = dataStore.verifyDataIntegrity()
+
+    XCTAssertEqual(
+      result.lastPathComponent,
+      "\(validAccount.localID).sqlite"
     )
   }
 }

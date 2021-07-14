@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import Accounts
 import UIComponents
 
 internal struct HomeTabController: UIController {
@@ -33,6 +32,6 @@ internal struct HomeTabController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    Self()
+    return Self()
   }
 }

@@ -27,6 +27,7 @@ import Features
 import TestExtensions
 
 @testable import Accounts
+
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountSettingsTests: TestCase {
 
@@ -583,16 +584,19 @@ final class AccountSettingsTests: TestCase {
     var completed: Void!
 
     feature.accountProfilePublisher()
-      .sink(receiveCompletion: { completion in
-        guard case .finished = completion else {
-          XCTFail("Unexpected error")
-          return
-        }
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion else {
+            XCTFail("Unexpected error")
+            return
+          }
 
-        completed = Void()
-      }, receiveValue: { _ in
-        XCTFail("Unexpected value")
-      })
+          completed = Void()
+        },
+        receiveValue: { _ in
+          XCTFail("Unexpected value")
+        }
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(completed)
@@ -625,7 +629,6 @@ private let otherValidAccountProfile: AccountProfile = .init(
   avatarImageURL: "otherAvatarImagePath",
   biometricsEnabled: true
 )
-
 
 // swift-format-ignore: NeverUseForceTry
 private let validSessionTokens: SessionTokens = .init(

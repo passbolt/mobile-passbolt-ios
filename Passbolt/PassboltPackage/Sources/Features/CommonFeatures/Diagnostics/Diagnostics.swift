@@ -25,11 +25,14 @@ import Environment
 
 import struct Foundation.Date
 import struct Foundation.UUID
+import let os.SIGTRAP
+import func os.raise
 
 public struct Diagnostics {
 
   public var log: (String) -> Void
   public var uniqueID: () -> String
+  public var breakpoint: () -> Void
 }
 
 extension Diagnostics: Feature {
@@ -50,7 +53,12 @@ extension Diagnostics: Feature {
             "[\(Date(timeIntervalSince1970: Double(time.timestamp())))] \(message)"
           )
       },
-      uniqueID: { uuidGenerator().uuidString }
+      uniqueID: { uuidGenerator().uuidString },
+      breakpoint: {
+        #if DEBUG
+        raise(SIGTRAP)
+        #endif
+      }
     )
   }
 }
@@ -82,7 +90,8 @@ extension Diagnostics {
   public static var disabled: Self {
     Self(
       log: { _ in },
-      uniqueID: { UUID().uuidString }
+      uniqueID: { UUID().uuidString },
+      breakpoint: {}
     )
   }
 }
@@ -94,7 +103,8 @@ extension Diagnostics {
   public static var placeholder: Self {
     Self(
       log: Commons.placeholder("You have to provide mocks for used methods"),
-      uniqueID: Commons.placeholder("You have to provide mocks for used methods")
+      uniqueID: Commons.placeholder("You have to provide mocks for used methods"),
+      breakpoint: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

@@ -93,13 +93,13 @@ internal final class SettingsItemView: Button {
 
     NSLayoutConstraint.activate([
       accessory.trailingAnchor.constraint(equalTo: accessoryContainer.trailingAnchor, constant: -insets.right),
-      accessory.centerYAnchor.constraint(equalTo: accessoryContainer.centerYAnchor)
+      accessory.centerYAnchor.constraint(equalTo: accessoryContainer.centerYAnchor),
     ])
   }
 
   internal func addDisclosureIndicator() {
     accessoryContainer.subviews.forEach { $0.removeFromSuperview() }
-    
+
     Mutation<ImageView>
       .combined(
         .subview(of: accessoryContainer),

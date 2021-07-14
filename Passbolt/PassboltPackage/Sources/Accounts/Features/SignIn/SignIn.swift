@@ -32,11 +32,6 @@ import class Foundation.JSONEncoder
 
 public struct SignIn {
 
-  public enum Method {
-    case challenge
-    case refreshToken(String)
-  }
-
   public var signIn:
     (
       _ userID: Account.UserID,
@@ -45,6 +40,14 @@ public struct SignIn {
       _ passphrase: Passphrase,
       _ method: Method
     ) -> AnyPublisher<SessionTokens, TheError>
+}
+
+extension SignIn {
+
+  public enum Method {
+    case challenge
+    case refreshToken(String)
+  }
 }
 
 extension SignIn: Feature {

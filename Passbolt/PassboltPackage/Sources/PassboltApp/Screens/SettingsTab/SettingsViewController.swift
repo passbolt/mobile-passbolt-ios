@@ -128,7 +128,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .map { _ in Void() }
       }
       .switchToLatest()
-      .sink { /* */ }
+      .sink { /* */  }
       .store(in: cancellables)
 
     #warning("PAS-83 - use url from feature flags")
@@ -149,7 +149,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .map { _ in Void() }
       }
       .switchToLatest()
-      .sink { /* */ }
+      .sink { /* */  }
       .store(in: cancellables)
 
     contentView

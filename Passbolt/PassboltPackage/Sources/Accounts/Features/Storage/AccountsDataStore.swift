@@ -24,7 +24,8 @@
 import Crypto
 import Features
 
-#warning("TODO: [PAS-82] - database")
+import struct Foundation.URL
+
 internal struct AccountsDataStore {
 
   internal var verifyDataIntegrity: () -> Result<Void, TheError>
@@ -39,8 +40,12 @@ internal struct AccountsDataStore {
   internal var loadAccountProfile: (Account.LocalID) -> Result<AccountProfile, TheError>
   internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
   internal var deleteAccount: (Account.LocalID) -> Void
-  internal var accountDatabaseConnection: (Account.LocalID) -> Result<DatabaseConnection, TheError>
   internal var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
+  internal var accountDatabaseConnection:
+    (
+      _ accountID: Account.LocalID,
+      _ key: String
+    ) -> Result<SQLiteConnection, TheError>
 }
 
 extension AccountsDataStore: Feature {
@@ -50,8 +55,10 @@ extension AccountsDataStore: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let files: Files = environment.files
     let preferences: Preferences = environment.preferences
     let keychain: Keychain = environment.keychain
+    let database: Database = environment.database
 
     let diagnostics: Diagnostics = features.instance()
 
@@ -210,18 +217,88 @@ extension AccountsDataStore: Feature {
           return .failure(error)
         }
       }
-      else { /* We can't delete passphrases selectively due to biometrics */
+      else {
+        /* We can't delete passphrases selectively due to biometrics */
       }
 
-      let deleted: Set<Account.LocalID> = .init(accountsToRemove + accountProfilesToRemove + keysToRemove)
+      let applicationDataDirectory: URL
+      switch files.applicationDataDirectory() {
+      case let .success(url):
+        applicationDataDirectory = url
 
-      diagnostics.diagnosticLog(
-        "Deleted accounts: \(deleted))"
+      case let .failure(error):
+        diagnostics.diagnosticLog(
+          "Failed to access application data directory"
+        )
+        diagnostics.debugLog(error.description)
+        return .failure(error)
+      }
+
+      let storedDatabasesResult: Result<Array<Account.LocalID>, TheError> =
+        files
+        .contentsOfDirectory(applicationDataDirectory)
+        .map { contents -> Array<Account.LocalID> in
+          contents
+            .filter { fileName in
+              fileName.hasSuffix(".sqlite")
+            }
+            .map { fileName -> Account.LocalID in
+              var fileName = fileName
+              fileName.removeLast(".sqlite".count)
+              return .init(rawValue: fileName)
+            }
+        }
+
+      let storedDatabases: Array<Account.LocalID>
+      switch storedDatabasesResult {
+      case let .success(databases):
+        storedDatabases = databases
+
+      case let .failure(error):
+        diagnostics.diagnosticLog(
+          "Failed to check database files"
+        )
+        diagnostics.debugLog(error.description)
+        return .failure(error)
+      }
+      diagnostics.debugLog("Stored databases: \(storedDatabases)")
+
+      let databasesToRemove: Array<Account.LocalID> =
+        storedDatabases
+        .filter { !updatedAccountsList.contains($0) }
+
+      for accountID in databasesToRemove {
+        let fileDeletionResult: Result<Void, TheError> = _databaseURL(
+          forAccountWithID: accountID
+        )
+        .flatMap { url in
+          files.deleteFile(url)
+        }
+        switch fileDeletionResult {
+        case .success:
+          break
+        case let .failure(error):
+          diagnostics.diagnosticLog(
+            "Failed to delete database for accountID: \(accountID)"
+          )
+          diagnostics.debugLog(error.description)
+          return .failure(error)
+        }
+      }
+
+      diagnostics.debugLog("Deleted account databases: \(databasesToRemove)")
+
+      let deleted: Set<Account.LocalID> = .init(
+        accountsToRemove + accountProfilesToRemove + keysToRemove + databasesToRemove
       )
 
-      deleted.forEach { accountID in updatedAccountIDSubject.send(accountID) }
+      diagnostics.diagnosticLog(
+        "Deleted accounts: \(deleted)"
+      )
 
-      #warning("TODO: [PAS-82] Verify database files and remove detached")
+      deleted.forEach { accountID in
+        updatedAccountIDSubject.send(accountID)
+      }
 
       return .success
     }
@@ -350,11 +427,11 @@ extension AccountsDataStore: Feature {
               )
               .flatMap { _ in
                 environment
-                .keychain
-                .save(
-                  updatedAccountProfile,
-                  for: .accountProfileQuery(for: accountID)
-                )
+                  .keychain
+                  .save(
+                    updatedAccountProfile,
+                    for: .accountProfileQuery(for: accountID)
+                  )
               }
               .map {
                 updatedAccountIDSubject.send(accountID)
@@ -462,6 +539,29 @@ extension AccountsDataStore: Feature {
       // data integrity check performs cleanup in case of partial success
       defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
 
+      var accountIdentifiers: Array<Account.LocalID> = environment
+        .preferences
+        .load(Array<Account.LocalID>.self, for: .accountsList)
+
+      accountIdentifiers.removeAll(where: { $0 == accountID })
+      preferences.save(accountIdentifiers, for: .accountsList)
+      let lastUsedAccount: Account.LocalID? = environment
+        .preferences
+        .load(
+          Account.LocalID.self,
+          for: .lastUsedAccount
+        )
+      if lastUsedAccount == accountID {
+        environment
+          .preferences
+          .deleteValue(
+            for: .lastUsedAccount
+          )
+      }
+      else {
+        /* */
+      }
+
       var results: Array<Result<Void, TheError>> = .init()
       results.append(
         environment
@@ -483,6 +583,15 @@ extension AccountsDataStore: Feature {
           .keychain
           .delete(matching: .accountProfileQuery(for: accountID))
       )
+      results.append(
+        _databaseURL(
+          forAccountWithID: accountID
+        )
+        .flatMap { databaseURL in
+          files
+            .deleteFile(databaseURL)
+        }
+      )
 
       do {
         #warning("TODO: Consider propagating errors outside of this function")
@@ -492,38 +601,58 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog("Failed to properly delete account \(accountID)")
         diagnostics.debugLog("\(error)")
       }
+    }
 
-      var accountIdentifiers: Array<Account.LocalID> = environment
-        .preferences
-        .load(Array<Account.LocalID>.self, for: .accountsList)
-
-      accountIdentifiers.removeAll(where: { $0 == accountID })
-      preferences.save(accountIdentifiers, for: .accountsList)
-      let lastUsedAccount: Account.LocalID? = environment
-        .preferences
-        .load(
-          Account.LocalID.self,
-          for: .lastUsedAccount
-        )
-      if lastUsedAccount == accountID {
-        environment
-          .preferences
-          .deleteValue(
-            for: .lastUsedAccount
+    func _databaseURL(
+      forAccountWithID accountID: Account.LocalID
+    ) -> Result<URL, TheError> {
+      files.applicationDataDirectory()
+        .map { dir in
+          dir
+            .appendingPathComponent(accountID.rawValue)
+            .appendingPathExtension("sqlite")
+        }
+        .mapError { error in
+          TheError.databaseConnectionError(
+            underlyingError: error,
+            databaseErrorMessage: "Cannot access database file"
           )
-      }
-      else {
-        Void()
-      }
-
-      #warning("TODO: [PAS-82] remove database files")
+        }
     }
 
     func prepareDatabaseConnection(
-      forAccountWithID accountID: Account.LocalID
-    ) -> Result<DatabaseConnection, TheError> {
-      #warning("TODO: [PAS-82] prepare connection and files if needed")
-      return .success(DatabaseConnection.placeholder)
+      forAccountWithID accountID: Account.LocalID,
+      key: String
+    ) -> Result<SQLiteConnection, TheError> {
+      let databaseURL: URL
+      switch _databaseURL(forAccountWithID: accountID) {
+      case let .success(path):
+        databaseURL = path
+
+      case let .failure(error):
+        return .failure(error)
+      }
+
+      return
+        database
+        .openConnection(
+          databaseURL.absoluteString,
+          key,
+          SQLiteMigration.allCases
+        )
+        .flatMapError { error in
+          diagnostics.diagnosticLog("Failed to open database for accountID \(accountID), cleaning up...")
+          diagnostics.debugLog(error.description)
+          _ = files.deleteFile(databaseURL)
+          // single retry after deleting previous database, fail if it fails
+          return
+            database
+            .openConnection(
+              databaseURL.absoluteString,
+              key,
+              SQLiteMigration.allCases
+            )
+        }
     }
 
     return Self(
@@ -539,8 +668,8 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: loadAccountProfile(for:),
       updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
-      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:),
-      updatedAccountIDsPublisher: updatedAccountIDSubject.eraseToAnyPublisher
+      updatedAccountIDsPublisher: updatedAccountIDSubject.eraseToAnyPublisher,
+      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:key:)
     )
   }
 
@@ -559,8 +688,8 @@ extension AccountsDataStore: Feature {
       loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods"),
-      updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods")
+      updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

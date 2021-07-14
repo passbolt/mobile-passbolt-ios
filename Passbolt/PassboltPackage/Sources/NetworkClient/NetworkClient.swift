@@ -35,7 +35,6 @@ public struct NetworkClient {
   public var signInRequest: SignInRequest
   public var signOutRequest: SignOutRequest
   public var refreshSessionRequest: RefreshSessionRequest
-  public var featureUnload: () -> Bool
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
 }
@@ -110,10 +109,6 @@ extension NetworkClient: Feature {
       .switchToLatest()
       .eraseToAnyPublisher()
 
-    func featureUnload() -> Bool {
-      true  // perform cleanup if needed
-    }
-
     func setTokens(publisher: AnyPublisher<Tokens?, Never>) {
       tokensSubject.send(publisher)
     }
@@ -151,7 +146,6 @@ extension NetworkClient: Feature {
         using: networking,
         with: domainVariablePublisher
       ),
-      featureUnload: featureUnload,
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:)
     )
@@ -169,7 +163,6 @@ extension NetworkClient: Feature {
       signInRequest: .placeholder,
       signOutRequest: .placeholder,
       refreshSessionRequest: .placeholder,
-      featureUnload: Commons.placeholder("You have to provide mocks for used methods"),
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods")
     )

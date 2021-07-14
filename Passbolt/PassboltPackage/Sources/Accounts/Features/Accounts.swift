@@ -27,6 +27,7 @@ import Features
 public struct Accounts {
 
   public var verifyStorageDataIntegrity: () -> Result<Void, TheError>
+  #warning("TODO: change to Account instead of AccountWithProfile")
   public var storedAccounts: () -> Array<AccountWithProfile>
   // Saves account data if authorization succeeds and creates session.
   public var transferAccount:
@@ -163,30 +164,22 @@ extension Accounts: Feature {
       accountWithID accountID: Account.LocalID
     ) -> Result<Void, TheError> {
       dataStore.deleteAccount(accountID)
-      _ =
-        session
+      session
         .statePublisher()
         .first()
-        .map { sessionState -> Bool in
+        .sink { sessionState in
           switch sessionState {
           case let .authorized(account)
           where account.localID == accountID,
             let .authorizationRequired(account)
           where account.localID == accountID:
-            return true
+            session.close()
 
           case .authorized, .authorizationRequired, .none:
-            return false
+            break
           }
         }
-        .sink { signOutRequired in
-          if signOutRequired {
-            session.close()
-          }
-          else {
-            /* */
-          }
-        }
+        .store(in: cancellables)
 
       return .success
     }

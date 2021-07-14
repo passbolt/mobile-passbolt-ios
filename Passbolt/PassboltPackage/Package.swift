@@ -48,6 +48,13 @@ let package = Package(
       targets: ["Settings"]
     ),
     .library(
+      name: "SQLCipher",
+      type: .static,
+      targets: [
+        "SQLCipher"
+      ]
+    ),
+    .library(
       name: "UICommons",
       targets: ["UICommons"]
     ),
@@ -171,6 +178,7 @@ let package = Package(
         .product(name: "Aegithalos", package: "Aegithalos"),
         "Commons",
         "Crypto",
+        "SQLCipher",
       ]
     ),
     .testTarget(
@@ -236,6 +244,28 @@ let package = Package(
         "Commons",
         "Features",
         "Environment",
+      ]
+    ),
+    .target(
+      // SQLCipher is added as preconfigured source file
+      // see: https://www.zetetic.net/sqlcipher/ios-tutorial/#option-1-source-integration
+      // however due to some issuse with SPM (or generated source)
+      // it is currently required to add define for SQLITE_HAS_CODEC in sqlite3.h
+      // it won't be compiled properly otherwise.
+      // It might be updated in future see: https://github.com/sqlcipher/sqlcipher/issues/371
+      name: "SQLCipher",
+      cSettings: [
+        .define("SQLITE_HAS_CODEC"),
+        .define("SQLITE_TEMP_STORE", to: "3"),
+        .define("SQLCIPHER_CRYPTO_CC"),
+        .define("NDEBUG"),
+      ],
+      swiftSettings: [
+        .define("SQLITE_HAS_CODEC")
+      ],
+      linkerSettings: [
+        .linkedFramework("Foundation"),
+        .linkedFramework("Security"),
       ]
     ),
     .target(
