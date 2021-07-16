@@ -259,6 +259,9 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
 
           case .extensionSetup:
             self?.push(ExtensionSetupViewController.self)
+
+          case .finish:
+            self?.replaceWindowRoot(with: MainTabsViewController.self)
           }
         }
       )

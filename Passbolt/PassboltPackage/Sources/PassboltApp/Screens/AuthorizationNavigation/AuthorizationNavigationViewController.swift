@@ -84,7 +84,9 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
   }
 
   internal func setup() {
-    let accountSelectionScreen: AccountSelectionViewController = components.instance()
+    let accountSelectionScreen: AccountSelectionViewController = components.instance(
+      in: .init(value: false)
+    )
     setViewControllers([accountSelectionScreen], animated: false)
 
     mut(navigationBarView) {

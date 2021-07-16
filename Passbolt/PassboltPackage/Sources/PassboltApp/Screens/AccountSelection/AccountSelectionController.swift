@@ -35,6 +35,7 @@ internal struct AccountSelectionController {
   internal var addAccount: () -> Void
   internal var addAccountPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var toggleMode: () -> Void
+  internal var shouldHideTitle: () -> Bool
 }
 
 extension AccountSelectionController {
@@ -46,9 +47,17 @@ extension AccountSelectionController {
   }
 }
 
+extension AccountSelectionController {
+
+  internal struct TitleHidden {
+
+    internal var value: Bool
+  }
+}
+
 extension AccountSelectionController: UIController {
 
-  internal typealias Context = Void
+  internal typealias Context = TitleHidden
 
   internal static func instance(
     in context: Context,
@@ -148,6 +157,10 @@ extension AccountSelectionController: UIController {
       }
     }
 
+    func shouldHideTitle() -> Bool {
+      context.value
+    }
+
     return Self(
       accountsPublisher: accountsPublisher,
       listModePublisher: listModePublisher,
@@ -156,7 +169,8 @@ extension AccountSelectionController: UIController {
       removeAccount: removeAccount(with:),
       addAccount: addAccount,
       addAccountPresentationPublisher: addAccountPresentationPublisher,
-      toggleMode: toggleMode
+      toggleMode: toggleMode,
+      shouldHideTitle: shouldHideTitle
     )
   }
 }

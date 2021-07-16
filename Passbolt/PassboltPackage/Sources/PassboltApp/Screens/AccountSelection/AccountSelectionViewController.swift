@@ -39,7 +39,9 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     )
   }
 
-  internal private(set) lazy var contentView: AccountSelectionView = .init()
+  internal private(set) lazy var contentView: AccountSelectionView = .init(
+    shouldHideTitle: controller.shouldHideTitle()
+  )
   internal let components: UIComponentFactory
 
   private let controller: Controller
@@ -67,7 +69,8 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       .receive(on: RunLoop.main)
       .sink(
         receiveValue: { [weak self] items in
-          if items.isEmpty {
+          // After removing last account window controller takes care of navigation to proper screen when removing current account.
+          if items.isEmpty, self?.view.window != nil {
             self?.replaceWindowRoot(with: WelcomeNavigationViewController.self)
           }
           else {

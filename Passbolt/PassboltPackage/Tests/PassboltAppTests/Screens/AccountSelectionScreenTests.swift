@@ -60,7 +60,7 @@ final class AccountSelectionScreenTests: TestCase {
     networkClient.mediaDownload = .respondingWith(Data())
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -100,7 +100,7 @@ final class AccountSelectionScreenTests: TestCase {
     networkClient.mediaDownload = .failingWith(.testError())
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -138,7 +138,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     controller.toggleMode()
 
     var result: Array<AccountSelectionListItem> = []
@@ -167,7 +167,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     controller.accountsPublisher()
@@ -191,7 +191,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     let removeResult: Result<Void, TheError> = controller.removeAccount(firstAccount.localID)
@@ -226,7 +226,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     _ = controller.removeAccount(firstAccount.localID)
@@ -258,7 +258,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Void?
 
     controller.removeAccountAlertPresentationPublisher()
@@ -283,7 +283,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
 
     controller.addAccount()
 
@@ -298,7 +298,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSession)
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance()
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Void!
 
     controller

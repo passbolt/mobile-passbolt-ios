@@ -49,7 +49,12 @@ internal final class AccountSelectionView: View {
   private let removeLabel: Label = .init()
   private let doneButton: TextButton = .init()
 
+  @available(*, unavailable)
   internal required init() {
+    unreachable("Use init(shouldHideTitle:")
+  }
+
+  internal init(shouldHideTitle: Bool) {
     super.init()
 
     mut(container) {
@@ -59,7 +64,6 @@ internal final class AccountSelectionView: View {
         .backgroundColor(dynamic: .background),
         .subview(
           logoContainer,
-          titleLabel,
           subTitleLabel,
           collectionView,
           buttonStack
@@ -90,11 +94,15 @@ internal final class AccountSelectionView: View {
     }
 
     mut(titleLabel) {
-      .combined(
-        .titleStyle(),
-        .leadingAnchor(.equalTo, container.leadingAnchor),
-        .trailingAnchor(.equalTo, container.trailingAnchor),
-        .topAnchor(.equalTo, logoContainer.bottomAnchor, constant: 94)
+      .when(
+        !shouldHideTitle,
+        then: .combined(
+          .subview(of: container),
+          .titleStyle(),
+          .leadingAnchor(.equalTo, container.leadingAnchor),
+          .trailingAnchor(.equalTo, container.trailingAnchor),
+          .topAnchor(.equalTo, logoContainer.bottomAnchor, constant: 94)
+        )
       )
     }
 
@@ -103,7 +111,11 @@ internal final class AccountSelectionView: View {
         .infoStyle(),
         .leadingAnchor(.equalTo, container.leadingAnchor),
         .trailingAnchor(.equalTo, container.trailingAnchor),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16)
+        .when(
+          shouldHideTitle,
+          then: .topAnchor(.equalTo, logoContainer.bottomAnchor, constant: 94),
+          else: .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16)
+        )
       )
     }
 

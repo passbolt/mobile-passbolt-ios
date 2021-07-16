@@ -27,7 +27,7 @@ import Features
 public struct AccountSettings {
 
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
-  public var setBiometricsEnabled: (Bool) -> AnyPublisher<Never, TheError>
+  public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheError>
   public var accountProfilePublisher: () -> AnyPublisher<AccountProfile, Never>
 }
 
@@ -53,25 +53,25 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
-    func setBiometrics(enabled: Bool) -> AnyPublisher<Never, TheError> {
+    func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheError> {
       permissions
         .ensureBiometricsPermission()
         .setFailureType(to: TheError.self)
-        .map { permissionGranted -> AnyPublisher<Never, TheError> in
+        .map { permissionGranted -> AnyPublisher<Void, TheError> in
           guard permissionGranted
           else {
-            return Fail<Never, TheError>(error: .permissionRequired().appending(context: "biometrics"))
+            return Fail<Void, TheError>(error: .permissionRequired().appending(context: "biometrics"))
               .eraseToAnyPublisher()
           }
           return
             accountSession
             .statePublisher()
             .first()
-            .map { (sessionState: AccountSession.State) -> AnyPublisher<Never, TheError> in
+            .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheError> in
               guard case let .authorized(account) = sessionState
               else {
                 accountSession.requestAuthorization()
-                return Fail<Never, TheError>(error: .authorizationRequired())
+                return Fail<Void, TheError>(error: .authorizationRequired())
                   .eraseToAnyPublisher()
               }
               if enabled {
@@ -79,24 +79,25 @@ extension AccountSettings: Feature {
                   passphraseCache
                   .passphrasePublisher(account.localID)
                   .first()
-                  .map { passphrase -> AnyPublisher<Never, TheError> in
+                  .map { passphrase -> AnyPublisher<Void, TheError> in
                     if let passphrase: Passphrase = passphrase {
                       let passphraseStoreResult: Result<Void, TheError> =
                         accountsDataStore
                         .storeAccountPassphrase(account.localID, passphrase)
                       switch passphraseStoreResult {
                       case .success:
-                        return Empty<Never, TheError>()
+                        return Just(Void())
+                          .setFailureType(to: TheError.self)
                           .eraseToAnyPublisher()
                       case let .failure(error):
-                        return Fail<Never, TheError>(error: error)
+                        return Fail<Void, TheError>(error: error)
                           .eraseToAnyPublisher()
                       }
                     }
                     else {
                       #warning("TODO: determine if waiting for authorization could be implemented here")
                       accountSession.requestAuthorization()
-                      return Fail<Never, TheError>(error: .authorizationRequired())
+                      return Fail<Void, TheError>(error: .authorizationRequired())
                         .eraseToAnyPublisher()
                     }
                   }
@@ -109,10 +110,10 @@ extension AccountSettings: Feature {
                   .deleteAccountPassphrase(account.localID)
                 switch passphraseDeleteResult {
                 case .success:
-                  return Empty<Never, TheError>()
+                  return Just(Void()).setFailureType(to: TheError.self)
                     .eraseToAnyPublisher()
                 case let .failure(error):
-                  return Fail<Never, TheError>(error: error)
+                  return Fail<Void, TheError>(error: error)
                     .eraseToAnyPublisher()
                 }
               }

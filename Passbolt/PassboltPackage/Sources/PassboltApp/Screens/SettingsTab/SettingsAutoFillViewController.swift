@@ -21,13 +21,13 @@
 // @since         v1.0
 //
 
-import AccountSetup
+import UICommons
 import UIComponents
 
-internal final class BiometricsInfoViewController: PlainViewController, UIComponent {
+internal final class SettingsAutoFillViewController: PlainViewController, UIComponent {
 
-  internal typealias View = BiometricsInfoView
-  internal typealias Controller = BiometricsInfoController
+  internal typealias View = ExtensionSetupView
+  internal typealias Controller = SettingsAutoFillController
 
   internal static func instance(
     using controller: Controller,
@@ -39,7 +39,7 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: View = .init(skipHidden: true)
   internal let components: UIComponentFactory
 
   private let controller: Controller
@@ -54,9 +54,6 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
   }
 
   internal func setupView() {
-    mut(navigationItem) {
-      .hidesBackButton(true)
-    }
     setupSubscriptions()
   }
 
@@ -64,33 +61,7 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
     contentView
       .setupTapPublisher
       .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller.setupBiometrics()
-      }
-      .store(in: cancellables)
-
-    contentView
-      .skipTapPublisher
-      .sink { [weak self] in
-        guard let self = self else { return }
-        self.controller.skipSetup()
-      }
-      .store(in: cancellables)
-
-    controller
-      .presentationDestinationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] destination in
-        switch destination {
-        case .biometricsSetup:
-          self?.push(BiometricsSetupViewController.self)
-
-        case .extensionSetup:
-          self?.push(ExtensionSetupViewController.self)
-
-        case .finish:
-          self?.replaceWindowRoot(with: MainTabsViewController.self)
-        }
+        self?.controller.openSystemSettings()
       }
       .store(in: cancellables)
   }

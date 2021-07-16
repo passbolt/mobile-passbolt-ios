@@ -64,6 +64,7 @@ extension AuthorizationController: UIController {
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
 
+    #warning("TODO: pass in account as context")
     guard let accountWithProfile: AccountWithProfile = accounts.storedAccounts().first(where: { $0.localID == context })
     else { unreachable("Cannot select an account that is not stored locally.") }
 
@@ -72,7 +73,7 @@ extension AuthorizationController: UIController {
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
 
     func accountProfilePublisher() -> AnyPublisher<AccountWithProfile, Never> {
-      #warning("TODO: [PAS-180] switch to account settings to provide data - remove context")
+      #warning("TODO: switch to account settings to provide data - remove context")
       return Just(accountWithProfile).eraseToAnyPublisher()
     }
 
@@ -95,7 +96,7 @@ extension AuthorizationController: UIController {
     }
 
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
-      #warning("TODO: [PAS-180] switch to account settings to provide data - remove context")
+      #warning("TODO: switch to account settings to provide data - remove context")
       return Publishers.CombineLatest(
         biometry
           .biometricsStateChangesPublisher(),

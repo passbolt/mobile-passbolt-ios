@@ -23,6 +23,7 @@
 
 import Crypto
 import Features
+import class Foundation.NSRecursiveLock
 
 import struct Foundation.URL
 
@@ -62,6 +63,8 @@ extension AccountsDataStore: Feature {
 
     let diagnostics: Diagnostics = features.instance()
 
+    let lock: NSRecursiveLock = .init()
+
     let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
     func forceDelete(matching query: KeychainQuery) {
@@ -74,8 +77,12 @@ extension AccountsDataStore: Feature {
       }
     }
     func ensureDataIntegrity() -> Result<Void, TheError> {
+      lock.lock()
       diagnostics.diagnosticLog("Verifying data integrity...")
-      defer { diagnostics.diagnosticLog("...data integrity verification finished") }
+      defer {
+        diagnostics.diagnosticLog("...data integrity verification finished")
+        lock.unlock()
+      }
 
       // storedAccountsList - user defaults control list
       let storedAccountsList: Array<Account.LocalID> =
@@ -304,6 +311,9 @@ extension AccountsDataStore: Feature {
     }
 
     func loadAccounts() -> Array<Account> {
+      lock.lock()
+      defer { lock.unlock() }
+
       let keychainLoadResult: Result<Array<Account>, TheError> = environment
         .keychain
         .loadAll(
@@ -323,7 +333,10 @@ extension AccountsDataStore: Feature {
     }
 
     func loadLastUsedAccount() -> Account? {
-      environment
+      lock.lock()
+      defer { lock.unlock() }
+
+      return environment
         .preferences
         .load(
           Account.LocalID.self,
@@ -350,6 +363,9 @@ extension AccountsDataStore: Feature {
     }
 
     func storeLastUsedAccount(_ accountID: Account.LocalID) {
+      lock.lock()
+      defer { lock.unlock() }
+
       preferences.save(accountID, for: .lastUsedAccount)
     }
 
@@ -359,8 +375,10 @@ extension AccountsDataStore: Feature {
       armoredKey: ArmoredPrivateKey
     ) -> Result<Void, TheError> {
       // data integrity check performs cleanup in case of partial success
+      lock.lock()
       defer {
         ensureDataIntegrity().forceSuccess("Data integrity protection")
+        lock.unlock()
         updatedAccountIDSubject.send(account.localID)
       }
       var accountIdentifiers: Array<Account.LocalID> = environment
@@ -390,7 +408,10 @@ extension AccountsDataStore: Feature {
     func loadAccountPrivateKey(
       for accountID: Account.LocalID
     ) -> Result<ArmoredPrivateKey, TheError> {
-      environment
+      lock.lock()
+      defer { lock.unlock() }
+
+      return environment
         .keychain
         .loadFirst(
           ArmoredPrivateKey.self,
@@ -410,7 +431,10 @@ extension AccountsDataStore: Feature {
       for accountID: Account.LocalID,
       passphrase: Passphrase
     ) -> Result<Void, TheError> {
-      environment
+      lock.lock()
+      defer { lock.unlock() }
+
+      return environment
         .keychain
         .loadFirst(
           AccountProfile.self,
@@ -436,6 +460,10 @@ extension AccountsDataStore: Feature {
               .map {
                 updatedAccountIDSubject.send(accountID)
               }
+              .mapError { error in
+                diagnostics.debugLog(error.appending(context: "Failed to store passphrase").debugDescription)
+                return error
+              }
           }
           else {
             return .failure(.invalidAccount())
@@ -447,7 +475,10 @@ extension AccountsDataStore: Feature {
       for accountID: Account.LocalID
     ) -> Result<Passphrase, TheError> {
       // in case of failure we should change flag biometricsEnabled to false and propagate change
-      environment
+      lock.lock()
+      defer { lock.unlock() }
+
+      return environment
         .keychain
         .loadFirst(Passphrase.self, matching: .accountPassphraseQuery(for: accountID))
         .flatMap { passphrase in
@@ -470,7 +501,10 @@ extension AccountsDataStore: Feature {
     func deletePassphrase(
       for accountID: Account.LocalID
     ) -> Result<Void, TheError> {
-      environment
+      lock.lock()
+      defer { lock.unlock() }
+
+      return environment
         .keychain
         .loadFirst(
           AccountProfile.self,
@@ -503,7 +537,10 @@ extension AccountsDataStore: Feature {
     func loadAccountProfile(
       for accountID: Account.LocalID
     ) -> Result<AccountProfile, TheError> {
-      environment
+      lock.lock()
+      defer { lock.unlock() }
+
+      return environment
         .keychain
         .loadFirst(AccountProfile.self, matching: .accountProfileQuery(for: accountID))
         .flatMap { profile in
@@ -519,6 +556,8 @@ extension AccountsDataStore: Feature {
     func update(
       accountProfile: AccountProfile
     ) -> Result<Void, TheError> {
+      lock.lock()
+
       let accountsList: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
@@ -528,7 +567,12 @@ extension AccountsDataStore: Feature {
         .keychain
         .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
         .map {
+          lock.unlock()
           updatedAccountIDSubject.send(accountProfile.accountID)
+        }
+        .mapError { error in
+          lock.unlock()
+          return error
         }
     }
 
@@ -536,8 +580,13 @@ extension AccountsDataStore: Feature {
       // There is a risk of calling this method with valid session for deleted account,
       // we should assert on that or make it impossible")
 
+      lock.lock()
       // data integrity check performs cleanup in case of partial success
-      defer { ensureDataIntegrity().forceSuccess("Data integrity protection") }
+      defer {
+        ensureDataIntegrity().forceSuccess("Data integrity protection")
+        lock.unlock()
+        updatedAccountIDSubject.send(accountID)
+      }
 
       var accountIdentifiers: Array<Account.LocalID> = environment
         .preferences

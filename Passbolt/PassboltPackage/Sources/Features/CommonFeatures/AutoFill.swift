@@ -21,61 +21,54 @@
 // @since         v1.0
 //
 
-import Crypto
 import Combine
-import Features
-import Foundation
-import PassboltApp
+import Environment
 
-internal struct Application {
-  
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: Environment = Environment(
-      Time.live,
-      UUIDGenerator.live,
-      Logger.live,
-      Networking.foundation(),
-      Preferences.sharedUserDefaults(),
-      Keychain.live(),
-      Biometrics.live,
-      Camera.live(),
-      ExternalURLOpener.live(),
-      AppLifeCycle.live(),
-      PGP.gopenPGP(),
-      SignatureVerfication.rssha256(),
-      MDMConfig.live,
-      Database.sqlite(),
-      Files.live,
-      AutoFillExtension.live()
+public struct AutoFill {
+
+  public var isExtensionEnabled: () -> AnyPublisher<Bool, Never>
+}
+
+extension AutoFill: Feature {
+
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> AutoFill {
+    let lifeCycle: AppLifeCycle = environment.appLifeCycle
+    let autoFillExtension: AutoFillExtension = environment.autoFillExtension
+
+    func isExtensionEnabled() -> AnyPublisher<Bool, Never> {
+      Publishers.Merge(
+        lifeCycle.lifeCyclePublisher()
+          .map { event -> AnyPublisher<Bool, Never> in
+            guard case .didBecomeActive = event
+            else {
+              return Empty<Bool, Never>().eraseToAnyPublisher()
+            }
+
+            return autoFillExtension.isEnabled()
+          }
+          .switchToLatest(),
+        autoFillExtension.isEnabled()
+      )
+      .eraseToAnyPublisher()
+    }
+
+    return Self(
+      isExtensionEnabled: isExtensionEnabled
     )
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.use(
-      features
-        .environment
-        .networking
-        .withLogs(using: features.instance())
-    )
-    #endif
-    
-    self.ui = UI(features: features)
-    self.features = features
   }
 }
 
-extension Application {
+#if DEBUG
+extension AutoFill {
   
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
+  public static var placeholder: AutoFill {
+    Self(
+      isExtensionEnabled: Commons.placeholder("You have to provide mocks for used methods")
+    )
   }
 }
-
-extension Application {
-  
-  internal static let shared: Application = .init()
-}
-
+#endif

@@ -21,61 +21,49 @@
 // @since         v1.0
 //
 
-import Crypto
+import AuthenticationServices
+import Commons
 import Combine
-import Features
 import Foundation
-import PassboltApp
 
-internal struct Application {
-  
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: Environment = Environment(
-      Time.live,
-      UUIDGenerator.live,
-      Logger.live,
-      Networking.foundation(),
-      Preferences.sharedUserDefaults(),
-      Keychain.live(),
-      Biometrics.live,
-      Camera.live(),
-      ExternalURLOpener.live(),
-      AppLifeCycle.live(),
-      PGP.gopenPGP(),
-      SignatureVerfication.rssha256(),
-      MDMConfig.live,
-      Database.sqlite(),
-      Files.live,
-      AutoFillExtension.live()
+public struct AutoFillExtension: EnvironmentElement {
+
+  public var isEnabled: () -> AnyPublisher<Bool, Never>
+}
+
+extension AutoFillExtension {
+
+  public static func live() -> Self {
+    let enabledSubject: PassthroughSubject<Bool, Never> = .init()
+
+    func isEnabled() -> AnyPublisher<Bool, Never> {
+      ASCredentialIdentityStore.shared.getState { state in
+        enabledSubject.send(state.isEnabled)
+      }
+
+      return enabledSubject.eraseToAnyPublisher()
+    }
+
+    return Self(
+      isEnabled: isEnabled
     )
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.use(
-      features
-        .environment
-        .networking
-        .withLogs(using: features.instance())
-    )
-    #endif
-    
-    self.ui = UI(features: features)
-    self.features = features
   }
 }
 
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
+extension Environment {
+
+  public var autoFillExtension: AutoFillExtension {
+    get { element(AutoFillExtension.self) }
+    set { use(newValue) }
   }
 }
 
-extension Application {
-  
-  internal static let shared: Application = .init()
-}
 
+#if DEBUG
+extension AutoFillExtension {
+
+  public static var placeholder: Self {
+    Self(isEnabled: Commons.placeholder("You have to provide mocks for used methods"))
+  }
+}
+#endif

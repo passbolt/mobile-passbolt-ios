@@ -32,6 +32,7 @@ internal struct SettingsController {
   internal var openLink: (String) -> AnyPublisher<Bool, Never>
   internal var disableBiometrics: () -> AnyPublisher<Never, TheError>
   internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var autoFillEnabledPublisher: () -> AnyPublisher<Bool, Never>
   internal var presentSignOutAlert: () -> Void
 }
 
@@ -54,6 +55,7 @@ extension SettingsController: UIController {
     cancellables: Cancellables
   ) -> SettingsController {
     let accountSettings: AccountSettings = features.instance()
+    let autoFill: AutoFill = features.instance()
     let biometry: Biometry = features.instance()
     let linkOpener: LinkOpener = features.instance()
 
@@ -88,9 +90,11 @@ extension SettingsController: UIController {
           if enabled {
             presentBiometricsAlertSubject.send()
             return Empty().eraseToAnyPublisher()
-          }
-          else {
-            return accountSettings.setBiometricsEnabled(true)
+          } else {
+            return accountSettings
+              .setBiometricsEnabled(true)
+              .ignoreOutput()
+              .eraseToAnyPublisher()
           }
         }
         .switchToLatest()
@@ -107,10 +111,16 @@ extension SettingsController: UIController {
 
     func disableBiometrics() -> AnyPublisher<Never, TheError> {
       accountSettings.setBiometricsEnabled(false)
+        .ignoreOutput()
+        .eraseToAnyPublisher()
     }
 
     func presentSignOutAlert() {
       presentSignOutAlertSubject.send()
+    }
+
+    func autoFillEnabledPublisher() -> AnyPublisher<Bool, Never> {
+      autoFill.isExtensionEnabled()
     }
 
     return Self(
@@ -120,6 +130,7 @@ extension SettingsController: UIController {
       openLink: openLink(url:),
       disableBiometrics: disableBiometrics,
       signOutAlertPresentationPublisher: presentSignOutAlertSubject.eraseToAnyPublisher,
+      autoFillEnabledPublisher: autoFillEnabledPublisher,
       presentSignOutAlert: presentSignOutAlert
     )
   }

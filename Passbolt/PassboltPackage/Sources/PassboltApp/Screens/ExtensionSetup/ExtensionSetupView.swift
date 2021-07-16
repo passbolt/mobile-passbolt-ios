@@ -29,7 +29,12 @@ internal final class ExtensionSetupView: ScrolledStackView {
   internal var setupTapPublisher: AnyPublisher<Void, Never>
   internal var skipTapPublisher: AnyPublisher<Void, Never>
 
+  @available(*, unavailable)
   internal required init() {
+    unreachable("use init(skipHidden:)")
+  }
+
+  internal init(skipHidden: Bool = false) {
     let setupButton: TextButton = .init()
     let skipButton: TextButton = .init()
 
@@ -187,7 +192,10 @@ internal final class ExtensionSetupView: ScrolledStackView {
         .append(stepListView),
         .appendFiller(minSize: 8),
         .append(setupButton),
-        .append(skipButton)
+        .when(
+          !skipHidden,
+          then: .append(skipButton)
+        )
       )
     }
   }

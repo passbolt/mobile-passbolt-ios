@@ -160,7 +160,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertNil(result)
@@ -188,7 +188,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertNil(result)
@@ -217,7 +217,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -246,7 +246,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -274,7 +274,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .testError)
@@ -303,7 +303,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -332,7 +332,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -360,7 +360,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .testError)
@@ -388,7 +388,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .permissionRequired)
@@ -417,7 +417,7 @@ final class AccountSettingsTests: TestCase {
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }
         result = error
-      })
+      }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -445,7 +445,7 @@ final class AccountSettingsTests: TestCase {
 
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { _ in })
+      .sink(receiveCompletion: { _ in }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result, "PASSPHRASE")
@@ -473,7 +473,7 @@ final class AccountSettingsTests: TestCase {
 
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { _ in })
+      .sink(receiveCompletion: { _ in }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result, validAccount.localID)
@@ -501,7 +501,7 @@ final class AccountSettingsTests: TestCase {
 
     feature
       .setBiometricsEnabled(false)
-      .sink(receiveCompletion: { _ in })
+      .sink(receiveCompletion: { _ in }, receiveValue: {})
       .store(in: cancellables)
 
     XCTAssertEqual(result, validAccount.localID)

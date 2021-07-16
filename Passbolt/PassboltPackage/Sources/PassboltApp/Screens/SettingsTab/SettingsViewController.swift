@@ -53,6 +53,10 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
     super.init()
   }
 
+  internal func setup() {
+    hidesBottomBarWhenPushed = false
+  }
+
   internal func setupView() {
     mut(self) {
       .title(localized: "account.settings.title")
@@ -97,16 +101,22 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
     contentView
       .autofillTapPublisher
       .sink { [weak self] in
-        #warning("PAS-200 - navigate to autofill")
-        self?.push(PlaceholderViewController.self)
+        self?.push(SettingsAutoFillViewController.self)
+      }
+      .store(in: cancellables)
+
+    controller
+      .autoFillEnabledPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] enabled in
+        self?.contentView.setAutoFill(hidden: enabled)
       }
       .store(in: cancellables)
 
     contentView
       .manageAccountsTapPublisher
       .sink { [weak self] in
-        #warning("PAS-200 - navigate to accounts list")
-        self?.push(PlaceholderViewController.self)
+        self?.push(AccountSelectionViewController.self, in: .init(value: true))
       }
       .store(in: cancellables)
 

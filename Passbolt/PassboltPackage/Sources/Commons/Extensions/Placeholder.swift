@@ -28,7 +28,7 @@ public func placeholder(
   file: StaticString = #filePath,
   line: UInt = #line
 ) -> Never {
-  fatalError("[\(file):\(line)] Placeholder: " + message, file: (file), line: line)
+   fatalError("[\(file):\(line)] Placeholder: " + message, file: (file), line: line)
 }
 
 public func placeholder<R>(

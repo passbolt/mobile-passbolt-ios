@@ -21,61 +21,32 @@
 // @since         v1.0
 //
 
-import Crypto
-import Combine
-import Features
-import Foundation
-import PassboltApp
+import UICommons
+import UIComponents
 
-internal struct Application {
-  
-  internal let ui: UI
-  private let features: FeatureFactory
-  
-  internal init(
-    environment: Environment = Environment(
-      Time.live,
-      UUIDGenerator.live,
-      Logger.live,
-      Networking.foundation(),
-      Preferences.sharedUserDefaults(),
-      Keychain.live(),
-      Biometrics.live,
-      Camera.live(),
-      ExternalURLOpener.live(),
-      AppLifeCycle.live(),
-      PGP.gopenPGP(),
-      SignatureVerfication.rssha256(),
-      MDMConfig.live,
-      Database.sqlite(),
-      Files.live,
-      AutoFillExtension.live()
+internal struct SettingsAutoFillController {
+  internal var openSystemSettings: () -> Void
+}
+
+extension SettingsAutoFillController: UIController {
+  internal typealias Context = Void
+
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> SettingsAutoFillController {
+
+    let linkOpener: LinkOpener = features.instance()
+
+    func openSystemSettings() {
+      linkOpener.openSystemSettings()
+        .sink { _ in /* */ }
+        .store(in: cancellables)
+    }
+
+    return Self(
+      openSystemSettings: openSystemSettings
     )
-  ) {
-    let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.use(
-      features
-        .environment
-        .networking
-        .withLogs(using: features.instance())
-    )
-    #endif
-    
-    self.ui = UI(features: features)
-    self.features = features
   }
 }
-
-extension Application {
-  
-  internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
-  }
-}
-
-extension Application {
-  
-  internal static let shared: Application = .init()
-}
-

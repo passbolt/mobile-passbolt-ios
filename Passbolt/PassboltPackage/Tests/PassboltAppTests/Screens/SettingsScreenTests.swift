@@ -52,6 +52,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -76,6 +77,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -99,6 +101,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -124,6 +127,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -147,6 +151,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -177,6 +182,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -202,6 +208,7 @@ final class SettingsScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: Void!
@@ -230,6 +237,7 @@ final class SettingsScreenTests: TestCase {
     var linkOpener: LinkOpener = .placeholder
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: Bool!
@@ -250,10 +258,10 @@ final class SettingsScreenTests: TestCase {
     var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     features.use(biometry)
-
     var linkOpener: LinkOpener = .placeholder
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: Bool!
@@ -275,6 +283,7 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     features.use(biometry)
     features.use(LinkOpener.placeholder)
+    features.use(AutoFill.placeholder)
 
     let controller: SettingsController = testInstance()
     var result: Void!
@@ -288,6 +297,46 @@ final class SettingsScreenTests: TestCase {
     controller.presentSignOutAlert()
 
     XCTAssertNotNil(result)
+  }
+
+  func test_autoFillPublisher_publishesTrue_whenAutoFill_isEnabled() {
+    features.use(AccountSettings.placeholder)
+    features.use(Biometry.placeholder)
+    features.use(LinkOpener.placeholder)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    features.use(autoFill)
+
+    let controller: SettingsController = testInstance()
+    var result: Bool!
+
+    controller.autoFillEnabledPublisher()
+      .sink { enabled in
+        result = enabled
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, true)
+  }
+
+  func test_autoFillPublisher_publishesFalse_whenAutoFill_isDisabled() {
+    features.use(AccountSettings.placeholder)
+    features.use(Biometry.placeholder)
+    features.use(LinkOpener.placeholder)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
+
+    let controller: SettingsController = testInstance()
+    var result: Bool!
+
+    controller.autoFillEnabledPublisher()
+      .sink { enabled in
+        result = enabled
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, false)
   }
 }
 

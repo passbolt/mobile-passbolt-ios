@@ -40,6 +40,7 @@ public func testEnvironment() -> Environment {
     SignatureVerfication.placeholder,
     MDMConfig.placeholder,
     Database.placeholder,
-    Files.placeholder
+    Files.placeholder,
+    AutoFillExtension.placeholder
   )
 }

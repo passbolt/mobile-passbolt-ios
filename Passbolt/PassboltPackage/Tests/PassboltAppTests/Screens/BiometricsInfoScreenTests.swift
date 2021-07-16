@@ -49,6 +49,9 @@ final class BiometricsInfoScreenTests: TestCase {
   func test_presentationDestinationPublisher_doesNotPublishInitially() {
     features.use(linkOpener)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
 
@@ -69,7 +72,9 @@ final class BiometricsInfoScreenTests: TestCase {
     features.use(linkOpener)
     biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     features.use(biometry)
-
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
     let controller: BiometricsInfoController = testInstance()
 
     controller.presentationDestinationPublisher()
@@ -81,9 +86,31 @@ final class BiometricsInfoScreenTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_presentationDestinationPublisher_publishExtensionSetup_afterSkip() {
+  func test_presentationDestinationPublisher_publishExtensionSetup_whenSkipped_andExtensionIsEnabled() {
     features.use(linkOpener)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    features.use(autoFill)
+
+    let controller: BiometricsInfoController = testInstance()
+
+    var result: BiometricsInfoController.Destination!
+    controller.presentationDestinationPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    controller.skipSetup()
+
+    XCTAssertEqual(result, .finish)
+  }
+
+  func test_presentationDestinationPublisher_publishExtensionSetup_whenSkipped_andExtensionIsDisabled() {
+    features.use(linkOpener)
+    features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
 
@@ -105,6 +132,9 @@ final class BiometricsInfoScreenTests: TestCase {
       [.unconfigured, .configuredTouchID].publisher.eraseToAnyPublisher()
     )
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
 
@@ -123,6 +153,9 @@ final class BiometricsInfoScreenTests: TestCase {
     features.use(linkOpener)
     biometry.biometricsStateChangesPublisher = always(Just(.unavailable).eraseToAnyPublisher())
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
 

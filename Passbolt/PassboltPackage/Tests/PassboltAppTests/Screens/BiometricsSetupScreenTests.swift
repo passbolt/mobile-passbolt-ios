@@ -47,42 +47,71 @@ final class BiometricsSetupScreenTests: TestCase {
     super.tearDown()
   }
 
-  func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
+  func test_destinationPresentationPublisher_doesNotPublishInitially() {
     features.use(accountSettings)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
+    var result: BiometricsSetupController.Destination!
+    controller.destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
     XCTAssertNil(result)
   }
 
-  func test_continueSetupPresentationPublisher_publishWhenSkipping() {
+  func test_destinationPresentationPublisher_publishesFinish_WhenSkipping_andExtensionIsEnabled() {
     features.use(accountSettings)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
+    var result: BiometricsSetupController.Destination!
+    controller.destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
     controller.skipSetup()
 
-    XCTAssertNotNil(result)
+    XCTAssertEqual(result, .finish)
   }
 
-  func test_continueSetupPresentationPublisher_publishWhenSetupSucceed() {
-    accountSettings.setBiometricsEnabled = always(Empty<Never, TheError>().eraseToAnyPublisher())
+  func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSkipping_andExtensionIsDisabled() {
     features.use(accountSettings)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
-    var result: Void!
-    controller.continueSetupPresentationPublisher()
+    var result: BiometricsSetupController.Destination!
+    controller.destinationPresentationPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    controller.skipSetup()
+
+    XCTAssertEqual(result, .extensionSetup)
+  }
+
+  func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() {
+    accountSettings.setBiometricsEnabled = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    features.use(autoFill)
+    let controller: BiometricsSetupController = testInstance()
+
+    var result: BiometricsSetupController.Destination!
+    controller.destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
@@ -90,18 +119,44 @@ final class BiometricsSetupScreenTests: TestCase {
       .sink(receiveCompletion: { _ in })
       .store(in: cancellables)
 
-    XCTAssertNotNil(result)
+    XCTAssertEqual(result, .finish)
+  }
+
+  func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSetupSucceed_andExtensionIsDisabled() {
+    accountSettings.setBiometricsEnabled = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
+    let controller: BiometricsSetupController = testInstance()
+
+    var result: BiometricsSetupController.Destination!
+    controller.destinationPresentationPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    controller.setupBiometrics()
+      .sink(receiveCompletion: { _ in })
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .extensionSetup)
   }
 
   func test_setupBiometrics_setsBiometricsAsEnabled() {
     var result: Bool!
     accountSettings.setBiometricsEnabled = { enabled in
       result = enabled
-      return Empty<Never, TheError>()
+      return Just(Void()).setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     }
     features.use(accountSettings)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
     controller.setupBiometrics()
@@ -113,11 +168,14 @@ final class BiometricsSetupScreenTests: TestCase {
 
   func test_setupBiometrics_fails_whenBiometricsEnableFails() {
     accountSettings.setBiometricsEnabled = { _ in
-      Fail<Never, TheError>(error: .testError())
+      Fail<Void, TheError>(error: .testError())
         .eraseToAnyPublisher()
     }
     features.use(accountSettings)
     features.use(biometry)
+    var autoFill: AutoFill = .placeholder
+    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
     var result: TheError!

@@ -29,6 +29,7 @@ import UIComponents
 
 import struct Foundation.Data
 
+#warning("TODO add missing tests")
 internal struct TransferSignInController {
 
   internal var accountProfilePublisher: () -> AnyPublisher<AccountTransfer.AccountDetails, Never>
@@ -50,6 +51,7 @@ extension TransferSignInController {
     case biometryInfo
     case biometrySetup
     case extensionSetup
+    case finish
   }
 }
 
@@ -63,6 +65,7 @@ extension TransferSignInController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
+    let autoFill: AutoFill = features.instance()
     let biometrics: Biometry = features.instance()
     let diagnostics: Diagnostics = features.instance()
 
@@ -86,7 +89,15 @@ extension TransferSignInController: UIController {
             .sink { biometricsState in
               switch biometricsState {
               case .unavailable:
-                presentationDestinationSubject.send(.extensionSetup)
+                autoFill.isExtensionEnabled()
+                  .sink { enabled in
+                    if enabled {
+                      presentationDestinationSubject.send(.extensionSetup)
+                    } else {
+                      presentationDestinationSubject.send(.finish)
+                    }
+                  }
+                  .store(in: cancellables)
 
               case .unconfigured:
                 presentationDestinationSubject.send(.biometryInfo)

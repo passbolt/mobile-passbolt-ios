@@ -37,6 +37,7 @@ extension BiometricsInfoController {
 
     case biometricsSetup
     case extensionSetup
+    case finish
   }
 }
 
@@ -49,6 +50,7 @@ extension BiometricsInfoController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let autoFill: AutoFill = features.instance()
     let linkOpener: LinkOpener = features.instance()
     let biometry: Biometry = features.instance()
 
@@ -57,7 +59,7 @@ extension BiometricsInfoController: UIController {
     var setupBiometricsCancellable: AnyCancellable?
     _ = setupBiometricsCancellable  // silence warning
 
-    func continueSetupPresentationPublisher() -> AnyPublisher<Destination, Never> {
+    func destinationPresentationPublisher() -> AnyPublisher<Destination, Never> {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
 
@@ -91,11 +93,20 @@ extension BiometricsInfoController: UIController {
     }
 
     func skipSetup() {
-      presentationDestinationSubject.send(.extensionSetup)
+      autoFill.isExtensionEnabled()
+        .first()
+        .sink { enabled in
+          if enabled {
+            presentationDestinationSubject.send(.finish)
+          } else {
+            presentationDestinationSubject.send(.extensionSetup)
+          }
+        }
+        .store(in: cancellables)
     }
 
     return Self(
-      presentationDestinationPublisher: continueSetupPresentationPublisher,
+      presentationDestinationPublisher: destinationPresentationPublisher,
       setupBiometrics: setupBiometrics,
       skipSetup: skipSetup
     )
