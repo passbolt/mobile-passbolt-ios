@@ -65,7 +65,7 @@ internal final class SettingsView: ScrolledStackView {
           guard let self = self else { return }
           subject.add(
             accessory: self.biometricsToggle,
-            with: .init(top: 0, left: 18, bottom: 0, right: 18)
+            with: .init(top: 0, left: 0, bottom: 0, right: 18)
           )
         }
       )

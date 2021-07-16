@@ -27,8 +27,6 @@ import Features
 import TestExtensions
 
 @testable import Accounts
-
-#warning("PAS-181 - add test for accountProfilePublisher")
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountSettingsTests: TestCase {
 
@@ -507,6 +505,98 @@ final class AccountSettingsTests: TestCase {
 
     XCTAssertEqual(result, validAccount.localID)
   }
+
+  func test_accountProfilePublisher_publishesInitialProfile() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updatedAccountIDsPublisher = always(
+      Just(validAccountProfile.accountID).eraseToAnyPublisher()
+    )
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+
+    let feature: AccountSettings = testInstance()
+    var result: AccountProfile!
+
+    feature.accountProfilePublisher()
+      .sink { profile in
+        result = profile
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, validAccountProfile)
+  }
+
+  func test_accountProfilePublisher_publishesUpdatedProfile() {
+    var currentAccountProfile: AccountProfile = validAccountProfile
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(currentAccountProfile))
+    let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
+    accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+
+    let feature: AccountSettings = testInstance()
+    var results: Array<AccountProfile> = .init()
+
+    updatedAccountIDSubject.send(currentAccountProfile.accountID)
+
+    feature.accountProfilePublisher()
+      .sink { profile in
+        results.append(profile)
+      }
+      .store(in: cancellables)
+
+    updatedAccountIDSubject.send(currentAccountProfile.accountID)
+    currentAccountProfile = otherValidAccountProfile
+    updatedAccountIDSubject.send(currentAccountProfile.accountID)
+
+    XCTAssertEqual(results.popLast(), otherValidAccountProfile)
+    XCTAssertEqual(results.popLast(), validAccountProfile)
+  }
+
+  func test_accountProfilePublisher_completes_whenLoadingOfProfileFails() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.failure(.testError()))
+    accountsDataStore.updatedAccountIDsPublisher = always(
+      Just(validAccountProfile.accountID).eraseToAnyPublisher()
+    )
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+
+    let feature: AccountSettings = testInstance()
+    var completed: Void!
+
+    feature.accountProfilePublisher()
+      .sink(receiveCompletion: { completion in
+        guard case .finished = completion else {
+          XCTFail("Unexpected error")
+          return
+        }
+
+        completed = Void()
+      }, receiveValue: { _ in
+        XCTFail("Unexpected value")
+      })
+      .store(in: cancellables)
+
+    XCTAssertNotNil(completed)
+  }
 }
 
 private let validAccount: Account = .init(
@@ -525,6 +615,17 @@ private let validAccountProfile: AccountProfile = .init(
   avatarImageURL: "avatarImagePath",
   biometricsEnabled: false
 )
+
+private let otherValidAccountProfile: AccountProfile = .init(
+  accountID: .init(rawValue: UUID.test.uuidString),
+  label: "name lastName",
+  username: "user",
+  firstName: "name",
+  lastName: "lastName",
+  avatarImageURL: "otherAvatarImagePath",
+  biometricsEnabled: true
+)
+
 
 // swift-format-ignore: NeverUseForceTry
 private let validSessionTokens: SessionTokens = .init(

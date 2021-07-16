@@ -110,20 +110,46 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
       }
       .store(in: cancellables)
 
+    #warning("PAS-83 - use url from feature flags")
     contentView
       .termsTapPublisher
-      .sink { [weak self] in
-        #warning("PAS-181 - open terms")
-        self?.push(PlaceholderViewController.self)
+      .map {
+        self.controller.openLink("https://passbolt.com/terms")
+          .receive(on: RunLoop.main)
+          .handleEvents(receiveOutput: { [weak self] value in
+            guard !value else { return }
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarErrorMessage(localized: .genericError)
+                .instantiate(),
+              hideAfter: 2
+            )
+          })
+          .map { _ in Void() }
       }
+      .switchToLatest()
+      .sink { /* */ }
       .store(in: cancellables)
 
+    #warning("PAS-83 - use url from feature flags")
     contentView
       .privacyPolicyTapPublisher
-      .sink { [weak self] in
-        #warning("PAS-181 - open privacy policy")
-        self?.push(PlaceholderViewController.self)
+      .map {
+        self.controller.openLink("https://passbolt.com/privacy")
+          .receive(on: RunLoop.main)
+          .handleEvents(receiveOutput: { [weak self] value in
+            guard !value else { return }
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarErrorMessage(localized: .genericError)
+                .instantiate(),
+              hideAfter: 2
+            )
+          })
+          .map { _ in Void() }
       }
+      .switchToLatest()
+      .sink { /* */ }
       .store(in: cancellables)
 
     contentView

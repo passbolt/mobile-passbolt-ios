@@ -36,7 +36,7 @@ internal final class SettingsItemView: Button {
       .backgroundColor(dynamic: .background)
     }
 
-    let container: ContainerView = .init(
+    let iconContainer: ContainerView = .init(
       contentView: icon,
       mutation: .combined(
         .tintColor(dynamic: .iconAlternative),
@@ -44,7 +44,7 @@ internal final class SettingsItemView: Button {
       )
     )
 
-    mut(container) {
+    mut(iconContainer) {
       .combined(
         .subview(of: self),
         .leadingAnchor(.equalTo, leadingAnchor, constant: 18),
@@ -60,14 +60,14 @@ internal final class SettingsItemView: Button {
         .textColor(dynamic: .primaryText),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .subview(of: self),
-        .centerYAnchor(.equalTo, container.centerYAnchor),
-        .leadingAnchor(.equalTo, container.trailingAnchor, constant: 14)
+        .centerYAnchor(.equalTo, iconContainer.centerYAnchor),
+        .leadingAnchor(.equalTo, iconContainer.trailingAnchor, constant: 14)
       )
     }
 
     mut(accessoryContainer) {
       .combined(
-        .backgroundColor(dynamic: .background),
+        .backgroundColor(.clear),
         .subview(of: self),
         .leadingAnchor(.equalTo, label.trailingAnchor, constant: 14),
         .trailingAnchor(.equalTo, trailingAnchor),
@@ -92,7 +92,6 @@ internal final class SettingsItemView: Button {
     accessory.translatesAutoresizingMaskIntoConstraints = false
 
     NSLayoutConstraint.activate([
-      accessory.leadingAnchor.constraint(equalTo: accessoryContainer.leadingAnchor, constant: insets.left),
       accessory.trailingAnchor.constraint(equalTo: accessoryContainer.trailingAnchor, constant: -insets.right),
       accessory.centerYAnchor.constraint(equalTo: accessoryContainer.centerYAnchor)
     ])
