@@ -461,7 +461,7 @@ extension AccountsDataStore: Feature {
                 updatedAccountIDSubject.send(accountID)
               }
               .mapError { error in
-                diagnostics.debugLog(error.appending(context: "Failed to store passphrase").debugDescription)
+                diagnostics.debugLog(error.appending(context: "Failed to store passphrase").description)
                 return error
               }
           }
