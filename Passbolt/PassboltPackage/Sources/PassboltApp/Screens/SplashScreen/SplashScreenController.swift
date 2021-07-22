@@ -25,7 +25,20 @@ import UIComponents
 
 internal struct SplashScreenController {
 
-  internal var navigationDestinationPublisher: () -> AnyPublisher<SplashScreenNavigationDestination, Never>
+  internal var navigationDestinationPublisher: () -> AnyPublisher<Destination, Never>
+  internal var retryFetchConfiguration: () -> AnyPublisher<Void, TheError>
+}
+
+extension SplashScreenController {
+
+  internal enum Destination: Equatable {
+
+    case accountSetup
+    case accountSelection(Account.LocalID?)
+    case diagnostics
+    case home
+    case featureConfigFetchError
+  }
 }
 
 extension SplashScreenController: UIController {
@@ -39,41 +52,72 @@ extension SplashScreenController: UIController {
   ) -> Self {
     let accounts: Accounts = features.instance()
     let accountSession: AccountSession = features.instance()
+    let featureFlags: FeatureConfig = features.instance()
 
-    func destinationPublisher() -> AnyPublisher<SplashScreenNavigationDestination, Never> {
-      guard case .success = accounts.verifyStorageDataIntegrity()
-      else {
-        return Just(.diagnostics)
-          .eraseToAnyPublisher()
-      }
-      let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
-      if storedAccounts.isEmpty {
-        return Just(.accountSetup)
-          .eraseToAnyPublisher()
-      }
-      else {
-        return
-          accountSession
-          .statePublisher()
-          .first()
-          .map { state -> SplashScreenNavigationDestination in
-            switch state {
-            case let .none(lastUsed: .some(lastUsedAccount)):
-              return .accountSelection(lastUsedAccount.localID)
+    let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-            case let .authorized(account):
-              return .home(account)
+    func fetchConfiguration() -> AnyPublisher<Void, TheError> {
+      featureFlags
+        .fetchIfNeeded()
+        .eraseToAnyPublisher()
+    }
 
-            case _:
-              return .accountSelection(nil)
+    func retryFetchConfiguration() -> AnyPublisher<Void, TheError> {
+      fetchConfiguration()
+        .handleEvents(receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          destinationSubject.send(.home)
+        })
+        .eraseToAnyPublisher()
+    }
+
+    func destinationPublisher() -> AnyPublisher<Destination, Never> {
+      return destinationSubject.handleEvents(receiveSubscription: { _ in
+        guard case .success = accounts.verifyStorageDataIntegrity()
+        else {
+          return destinationSubject.send(.diagnostics)
+        }
+        let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+        if storedAccounts.isEmpty {
+          return destinationSubject.send(.accountSetup)
+        }
+        else {
+          return accountSession.statePublisher()
+            .first()
+            .map { state -> AnyPublisher<Destination, Never> in
+              switch state {
+              case let .none(lastUsed: .some(lastUsedAccount)):
+                return Just(.accountSelection(lastUsedAccount.localID))
+                  .eraseToAnyPublisher()
+
+              case .authorized:
+                return fetchConfiguration()
+                  .map { () -> Destination in
+                    .home
+                  }
+                  .replaceError(with: .featureConfigFetchError)
+                  .eraseToAnyPublisher()
+
+              case _:
+                return Just(.accountSelection(nil))
+                  .eraseToAnyPublisher()
+              }
             }
-          }
-          .eraseToAnyPublisher()
-      }
+            .switchToLatest()
+            .sink { destination in
+              destinationSubject.send(destination)
+            }
+            .store(in: cancellables)
+        }
+      })
+      .compactMap { $0 }  // remove nils
+      .eraseToAnyPublisher()
     }
 
     return Self(
-      navigationDestinationPublisher: destinationPublisher
+      navigationDestinationPublisher: destinationPublisher,
+      retryFetchConfiguration: retryFetchConfiguration
     )
   }
 }

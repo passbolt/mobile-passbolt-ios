@@ -41,7 +41,12 @@ internal final class SettingsView: ScrolledStackView {
   private let privacyPolicyItem: SettingsItemView = .init()
   private let signOutItem: SettingsItemView = .init()
 
+  @available(*, unavailable, message: "Use init(termsHidden:privacyPolicyHidden:)")
   required internal init() {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+
+  internal init(termsHidden: Bool, privacyPolicyHidden: Bool) {
     super.init()
 
     mut(biometricsToggle) {
@@ -134,8 +139,14 @@ internal final class SettingsView: ScrolledStackView {
         .append(biometricsItem),
         .append(autoFillItem),
         .append(manageAccountsItem),
-        .append(termsItem),
-        .append(privacyPolicyItem),
+        .when(
+          !termsHidden,
+          then: .append(termsItem)
+        ),
+        .when(
+          !privacyPolicyHidden,
+          then: .append(privacyPolicyItem)
+        ),
         .append(signOutItem),
         .appendFiller(minSize: 20)
       )

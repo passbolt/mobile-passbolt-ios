@@ -97,7 +97,9 @@ final class WindowTests: TestCase {
     XCTAssertEqual(accountID, validAccount.localID)
   }
 
-  func test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsLoaded() {
+  func
+    test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsLoaded()
+  {
     features.use(AccountTransfer.placeholder)
     let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -154,14 +156,15 @@ final class WindowTests: TestCase {
     else { return XCTFail() }
   }
 
-  func test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedAndAccountTransferIsLoaded() {
+  func
+    test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedAndAccountTransferIsLoaded()
+  {
     features.use(AccountTransfer.placeholder)
     let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
-    accountSession.statePublisher
-      = always(
-        accountSessionStateSubject
-          .eraseToAnyPublisher()
-      )
+    accountSession.statePublisher = always(
+      accountSessionStateSubject
+        .eraseToAnyPublisher()
+    )
     accountSession.authorizationPromptPresentationPublisher = always(
       Empty().eraseToAnyPublisher()
     )
@@ -176,9 +179,9 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-        accountSessionStateSubject.send(.authorized(validAccount))
+    accountSessionStateSubject.send(.authorized(validAccount))
 
-        XCTAssertNil(result)
+    XCTAssertNil(result)
   }
 
   func

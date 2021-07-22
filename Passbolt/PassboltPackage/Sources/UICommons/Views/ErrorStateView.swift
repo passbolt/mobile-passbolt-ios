@@ -21,12 +21,37 @@
 // @since         v1.0
 //
 
-import Accounts
+open class ErrorStateView: ScrolledStackView {
 
-internal enum SplashScreenNavigationDestination: Equatable {
+  internal let titleLabel: Label = .init()
+  internal let imageView: ImageView = .init()
 
-  case accountSetup
-  case accountSelection(Account.LocalID?)
-  case diagnostics
-  case home(Account)
+  public required init() {
+    super.init()
+
+    mut(titleLabel) {
+      .combined(
+        .text(localized: .genericError, inBundle: .commons),
+        .textColor(dynamic: .primaryText),
+        .textAlignment(.center),
+        .font(.inter(ofSize: 20, weight: .semibold))
+      )
+    }
+
+    mut(imageView) {
+      .combined(
+        .image(dynamic: .errorState)
+      )
+    }
+
+    mut(self) {
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .append(titleLabel),
+        .appendSpace(of: 30),
+        .append(imageView),
+        .appendSpace(of: 30)
+      )
+    }
+  }
 }

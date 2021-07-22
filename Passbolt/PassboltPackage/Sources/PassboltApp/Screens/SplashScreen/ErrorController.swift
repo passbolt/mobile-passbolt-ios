@@ -21,19 +21,38 @@
 // @since         v1.0
 //
 
-// Commons
+import UIComponents
 
-"generic.done" = "Done";
-"generic.yes" = "Yes";
-"generic.cancel" = "Cancel";
-"generic.remove" = "Remove";
-"generic.loading" = "Loading...";
-"generic.continue" = "Continue";
-"generic.retry" = "Retry";
-"generic.delete" = "Delete";
-"generic.got.it" = "Got it";
-"generic.settings" = "Settings";
-"generic.error" = "Something went wrong!";
-"generic.disable" = "Disable";
-"generic.sign.out" = "Sign out";
-"generic.refresh" = "Refresh";
+internal struct ErrorController {
+
+  internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var retry: () -> AnyPublisher<Void, TheError>
+  internal var presentSignOut: () -> Void
+}
+
+extension ErrorController: UIController {
+
+  internal typealias Context = () -> AnyPublisher<Void, TheError>
+
+  internal static func instance(
+    in context: @escaping Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> ErrorController {
+    let signOutPresentationSubject: PassthroughSubject<Void, Never> = .init()
+
+    func signOutAlertPresentationPublisher() -> AnyPublisher<Void, Never> {
+      signOutPresentationSubject.eraseToAnyPublisher()
+    }
+
+    func presentSignOut() {
+      signOutPresentationSubject.send()
+    }
+
+    return Self(
+      signOutAlertPresentationPublisher: signOutAlertPresentationPublisher,
+      retry: context,
+      presentSignOut: presentSignOut
+    )
+  }
+}

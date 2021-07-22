@@ -29,10 +29,13 @@ internal struct SettingsController {
   internal var biometricsPublisher: () -> AnyPublisher<BiometricsState, Never>
   internal var biometricsDisableAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var toggleBiometrics: () -> AnyPublisher<Never, TheError>
-  internal var openLink: (String) -> AnyPublisher<Bool, Never>
+  internal var openTerms: () -> AnyPublisher<Bool, Never>
+  internal var openPrivacyPolicy: () -> AnyPublisher<Bool, Never>
   internal var disableBiometrics: () -> AnyPublisher<Never, TheError>
   internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var autoFillEnabledPublisher: () -> AnyPublisher<Bool, Never>
+  internal var termsEnabled: () -> Bool
+  internal var privacyPolicyEnabled: () -> Bool
   internal var presentSignOutAlert: () -> Void
 }
 
@@ -57,7 +60,12 @@ extension SettingsController: UIController {
     let accountSettings: AccountSettings = features.instance()
     let autoFill: AutoFill = features.instance()
     let biometry: Biometry = features.instance()
+    let featureFlags: FeatureConfig = features.instance()
     let linkOpener: LinkOpener = features.instance()
+
+    let legal: FeatureConfig.Legal? = featureFlags.configuration()
+    let termsURL: URL? = (legal?.termsUrl).flatMap(URL.init(string:))
+    let privacyPolicyURL: URL? = (legal?.privacyPolicyUrl).flatMap(URL.init(string:))
 
     let presentBiometricsAlertSubject: PassthroughSubject<Void, Never> = .init()
     let presentSignOutAlertSubject: PassthroughSubject<Void, Never> = .init()
@@ -103,8 +111,20 @@ extension SettingsController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func openLink(url string: String) -> AnyPublisher<Bool, Never> {
-      guard let url: URL = .init(string: string) else {
+    func openTerms() -> AnyPublisher<Bool, Never> {
+      guard
+        let url = termsURL
+      else {
+        return Just(false).eraseToAnyPublisher()
+      }
+
+      return linkOpener.openLink(url)
+    }
+
+    func openPrivacyPolicy() -> AnyPublisher<Bool, Never> {
+      guard
+        let url = privacyPolicyURL
+      else {
         return Just(false).eraseToAnyPublisher()
       }
 
@@ -126,14 +146,25 @@ extension SettingsController: UIController {
       autoFill.extensionEnabledStatePublisher()
     }
 
+    func termsEnabled() -> Bool {
+      termsURL != nil
+    }
+
+    func privacyPolicyEnabled() -> Bool {
+      privacyPolicyURL != nil
+    }
+
     return Self(
       biometricsPublisher: biometricsStatePublisher,
       biometricsDisableAlertPresentationPublisher: presentBiometricsAlertSubject.eraseToAnyPublisher,
       toggleBiometrics: toggleBiometrics,
-      openLink: openLink(url:),
+      openTerms: openTerms,
+      openPrivacyPolicy: openPrivacyPolicy,
       disableBiometrics: disableBiometrics,
       signOutAlertPresentationPublisher: presentSignOutAlertSubject.eraseToAnyPublisher,
       autoFillEnabledPublisher: autoFillEnabledPublisher,
+      termsEnabled: termsEnabled,
+      privacyPolicyEnabled: privacyPolicyEnabled,
       presentSignOutAlert: presentSignOutAlert
     )
   }

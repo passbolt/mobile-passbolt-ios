@@ -34,8 +34,20 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class SettingsScreenTests: TestCase {
 
+  var accountSettings: AccountSettings!
+  var autoFill: AutoFill!
+  var biometry: Biometry!
+  var featureFlags: FeatureConfig!
+  var linkOpener: LinkOpener!
+
   override func setUp() {
     super.setUp()
+
+    accountSettings = .placeholder
+    autoFill = .placeholder
+    biometry = .placeholder
+    featureFlags = .placeholder
+    linkOpener = .placeholder
 
     features.use(AccountSession.placeholder)
   }
@@ -45,14 +57,14 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_biometricsStatePublisher_publishesStateNone_whenProfileHasBiometricsDisabled_andBiometricsIsUnconfigured() {
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(linkOpener)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -70,14 +82,14 @@ final class SettingsScreenTests: TestCase {
   {
     var currentAccountProfile: AccountProfile = validAccountProfile
     currentAccountProfile.biometricsEnabled = true
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(currentAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(featureFlags)
+    features.use(linkOpener)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -94,14 +106,14 @@ final class SettingsScreenTests: TestCase {
   func
     test_biometricsStatePublisher_publishesStateFaceIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsFaceID()
   {
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(linkOpener)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -120,14 +132,14 @@ final class SettingsScreenTests: TestCase {
   {
     var currentAccountProfile: AccountProfile = validAccountProfile
     currentAccountProfile.biometricsEnabled = true
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(currentAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(featureFlags)
+    features.use(linkOpener)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -144,14 +156,14 @@ final class SettingsScreenTests: TestCase {
   func
     test_biometricsStatePublisher_publishesStateTouchIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsTouchID()
   {
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(linkOpener)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -167,7 +179,6 @@ final class SettingsScreenTests: TestCase {
 
   func test_biometricChangeBiometrics_fromDisabled_toEnabled_Succeeds() {
     var currentAccountProfile: AccountProfile = validAccountProfile
-    var accountSettings: AccountSettings = .placeholder
     let accountProfilePublisher: PassthroughSubject<AccountProfile, Never> = .init()
     accountSettings.accountProfilePublisher = always(accountProfilePublisher.eraseToAnyPublisher())
     accountSettings.biometricsEnabledPublisher = always(
@@ -177,12 +188,13 @@ final class SettingsScreenTests: TestCase {
     )
     accountProfilePublisher.send(currentAccountProfile)
     accountSettings.setBiometricsEnabled = always(Empty().eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(linkOpener)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: SettingsController.BiometricsState!
@@ -200,15 +212,15 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_biometricChangeBiometrics_fromEnabled_toDisabled_triggersBiometricsDisableAlertPublisher() {
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.setBiometricsEnabled = always(Empty().eraseToAnyPublisher())
     accountSettings.biometricsEnabledPublisher = always(Just(true).eraseToAnyPublisher())
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: Void!
@@ -226,23 +238,27 @@ final class SettingsScreenTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_openLink_withValidURL_Succeeds() {
-    var accountSettings: AccountSettings = .placeholder
+  func test_openTerms_withValidURL_Succeeds() {
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
-    features.use(biometry)
-
-    var linkOpener: LinkOpener = .placeholder
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "https://passbolt.com/terms",
+        privacyPolicyUrl: "https://passbolt.com/privacy"
+      )
+    )
+
+    features.use(accountSettings)
+    features.use(biometry)
     features.use(linkOpener)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: Bool!
 
-    controller.openLink("https://passbolt.com")
+    controller.openTerms()
       .sink { value in
         result = value
       }
@@ -251,22 +267,84 @@ final class SettingsScreenTests: TestCase {
     XCTAssertTrue(result)
   }
 
-  func test_openLink_withInvalidURL_Fails() {
-    var accountSettings: AccountSettings = .placeholder
+  func test_openTerms_withInvalidURL_Fails() {
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
-    features.use(biometry)
-    var linkOpener: LinkOpener = .placeholder
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "",
+        privacyPolicyUrl: ""
+      )
+    )
+
+    features.use(accountSettings)
+    features.use(biometry)
     features.use(linkOpener)
-    features.use(AutoFill.placeholder)
+    features.use(autoFill)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: Bool!
 
-    controller.openLink("")
+    controller.openTerms()
+      .sink { value in
+        result = value
+      }
+      .store(in: cancellables)
+
+    XCTAssertFalse(result)
+  }
+
+  func test_openPrivacyPolicy_withValidURL_Succeeds() {
+    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
+    linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "",
+        privacyPolicyUrl: "https://passbolt.com/privacy"
+      )
+    )
+
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    var result: Bool!
+
+    controller.openPrivacyPolicy()
+      .sink { value in
+        result = value
+      }
+      .store(in: cancellables)
+
+    XCTAssertTrue(result)
+  }
+
+  func test_openPrivacyPolicy_withInvalidURL_Fails() {
+    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
+    linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "",
+        privacyPolicyUrl: ""
+      )
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    var result: Bool!
+
+    controller.openPrivacyPolicy()
       .sink { value in
         result = value
       }
@@ -276,14 +354,14 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_signOutAlertPresentationPublisherPublishes_whenPresentSignOutAlertCalled() {
-    var accountSettings: AccountSettings = .placeholder
     accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
-    features.use(accountSettings)
-    var biometry: Biometry = .placeholder
     biometry.biometricsStateChangesPublisher = always(Just(.unconfigured).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
     features.use(biometry)
-    features.use(LinkOpener.placeholder)
-    features.use(AutoFill.placeholder)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: Void!
@@ -300,12 +378,13 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_autoFillPublisher_publishesTrue_whenAutoFill_isEnabled() {
-    features.use(AccountSettings.placeholder)
-    features.use(Biometry.placeholder)
-    features.use(LinkOpener.placeholder)
-    var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
     features.use(autoFill)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: Bool!
@@ -320,12 +399,13 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_autoFillPublisher_publishesFalse_whenAutoFill_isDisabled() {
-    features.use(AccountSettings.placeholder)
-    features.use(Biometry.placeholder)
-    features.use(LinkOpener.placeholder)
-    var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
+    featureFlags.config = always(nil)
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
     features.use(autoFill)
+    features.use(featureFlags)
 
     let controller: SettingsController = testInstance()
     var result: Bool!
@@ -335,6 +415,82 @@ final class SettingsScreenTests: TestCase {
         result = enabled
       }
       .store(in: cancellables)
+
+    XCTAssertEqual(result, false)
+  }
+
+  func test_termsEnabled_whenLegalPresent_andContainsValidUrl() {
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "https://passbolt.com/terms",
+        privacyPolicyUrl: ""
+      )
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    let result: Bool = controller.termsEnabled()
+
+    XCTAssertEqual(result, true)
+  }
+
+  func test_privacyPolicyEnabled_whenLegalPresent_andContainsValidUrl() {
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "",
+        privacyPolicyUrl: "https://passbolt.com/privacy"
+      )
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    let result: Bool = controller.privacyPolicyEnabled()
+
+    XCTAssertEqual(result, true)
+  }
+
+  func test_termsDisabled_whenLegalPresent_andContainsInValidUrl() {
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "",
+        privacyPolicyUrl: ""
+      )
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    let result: Bool = controller.termsEnabled()
+
+    XCTAssertEqual(result, false)
+  }
+
+  func test_privacyPolicyDisabled_whenLegalPresent_andContainsInValidUrl() {
+    featureFlags.config = always(
+      FeatureConfig.Legal(
+        termsUrl: "",
+        privacyPolicyUrl: ""
+      )
+    )
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    let result: Bool = controller.privacyPolicyEnabled()
 
     XCTAssertEqual(result, false)
   }

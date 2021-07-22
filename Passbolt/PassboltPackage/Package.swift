@@ -44,10 +44,6 @@ let package = Package(
       targets: ["Resources"]
     ),
     .library(
-      name: "Settings",
-      targets: ["Settings"]
-    ),
-    .library(
       name: "SQLCipher",
       type: .static,
       targets: [
@@ -84,7 +80,6 @@ let package = Package(
         "Crypto",
         "Features",
         "NetworkClient",
-        "Settings",
       ]
     ),
     .testTarget(
@@ -234,15 +229,6 @@ let package = Package(
         "Commons",
         "Features",
         "NetworkClient",
-        "Settings",
-        "Environment",
-      ]
-    ),
-    .target(
-      name: "Settings",
-      dependencies: [
-        "Commons",
-        "Features",
         "Environment",
       ]
     ),

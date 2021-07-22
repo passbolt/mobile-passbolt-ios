@@ -309,4 +309,26 @@ extension DynamicImage {
       }
     }
   }
+
+  public static var errorState: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "ErrorState",
+          in: .uiCommons,
+          with: nil
+        )!
+
+      case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "ErrorState",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
 }

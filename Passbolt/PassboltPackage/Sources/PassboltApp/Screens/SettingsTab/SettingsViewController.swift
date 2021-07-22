@@ -39,7 +39,11 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
     )
   }
 
-  internal private(set) lazy var contentView: SettingsView = .init()
+  internal private(set) lazy var contentView: SettingsView = .init(
+    termsHidden: !controller.termsEnabled(),
+    privacyPolicyHidden: !controller.privacyPolicyEnabled()
+  )
+
   internal var components: UIComponentFactory
 
   private let controller: Controller
@@ -120,11 +124,10 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
       }
       .store(in: cancellables)
 
-    #warning("PAS-83 - use url from feature flags")
     contentView
       .termsTapPublisher
       .map {
-        self.controller.openLink("https://passbolt.com/terms")
+        self.controller.openTerms()
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] value in
             guard !value else { return }
@@ -141,11 +144,10 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
       .sink { /* */  }
       .store(in: cancellables)
 
-    #warning("PAS-83 - use url from feature flags")
     contentView
       .privacyPolicyTapPublisher
       .map {
-        self.controller.openLink("https://passbolt.com/privacy")
+        self.controller.openPrivacyPolicy()
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] value in
             guard !value else { return }

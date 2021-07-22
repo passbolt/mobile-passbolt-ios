@@ -241,8 +241,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
 
           case .failure(.canceled):
             switch self?.navigationController {
-            case
-              .some(_ as WelcomeNavigationViewController),
+            case .some(_ as WelcomeNavigationViewController),
               .some(_ as AuthorizationNavigationViewController):
               self?.popToRoot()
 

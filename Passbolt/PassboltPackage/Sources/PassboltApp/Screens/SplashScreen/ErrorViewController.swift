@@ -19,16 +19,17 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
 import UIComponents
 
-internal final class SplashScreenViewController: PlainViewController, UIComponent {
+final class ErrorViewController: PlainViewController, UIComponent {
 
-  internal typealias View = SplashScreenView
-  internal typealias Controller = SplashScreenController
+  internal typealias View = ErrorView
+  internal typealias Controller = ErrorController
 
   internal static func instance(
-    using controller: Controller,
+    using controller: ErrorController,
     with components: UIComponentFactory
   ) -> Self {
     Self(
@@ -37,12 +38,13 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     )
   }
 
-  internal private(set) lazy var contentView: SplashScreenView = .init()
-  internal let components: UIComponentFactory
-  private let controller: SplashScreenController
+  internal private(set) var contentView: ErrorView = .init()
+  internal var components: UIComponentFactory
+
+  private var controller: Controller
 
   internal init(
-    using controller: SplashScreenController,
+    using controller: Controller,
     with components: UIComponentFactory
   ) {
     self.controller = controller
@@ -51,50 +53,35 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   }
 
   internal func setupView() {
-    mut(contentView) {
-      .backgroundColor(dynamic: .background)
-    }
-
     setupSubscriptions()
   }
 
   private func setupSubscriptions() {
-    controller
-      .navigationDestinationPublisher()
-      .delay(for: 0.3, scheduler: RunLoop.main)
-      .receive(on: RunLoop.main)
-      .sink { [weak self] destination in
-        self?.navigate(to: destination)
+    contentView.refreshTapPublisher
+      .map { [unowned self] in
+        self.controller
+          .retry()
+          .receive(on: RunLoop.main)
+          .handleEvents(
+            receiveSubscription: { [weak self] _ in
+              self?.present(overlay: LoaderOverlayView())
+            },
+            receiveCompletion: { [weak self] completion in
+              self?.dismissOverlay()
+              guard case .failure = completion else { return }
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(localized: .genericError, inBundle: .commons)
+                  .instantiate(),
+                hideAfter: 2
+              )
+            }
+          )
       }
+      .switchToLatest()
+      .replaceError(with: ())
+      .receive(on: RunLoop.main)
+      .sink { /* NOP */  }
       .store(in: cancellables)
-  }
-
-  private func navigate(to destination: Controller.Destination) {
-    switch destination {
-    case let .accountSelection(lastAccountID):
-      replaceWindowRoot(
-        with: AuthorizationNavigationViewController.self,
-        in: lastAccountID
-      )
-
-    case .accountSetup:
-      replaceWindowRoot(with: WelcomeNavigationViewController.self)
-
-    case .diagnostics:
-      Commons.placeholder("TODO: diagnostics screen")
-
-    case .home:
-      replaceWindowRoot(with: MainTabsViewController.self)
-    case .featureConfigFetchError:
-      present(
-        ErrorViewController.self,
-        in: { [weak self] in
-          guard let self = self
-          else { return Empty().eraseToAnyPublisher() }
-
-          return self.controller.retryFetchConfiguration()
-        }
-      )
-    }
   }
 }

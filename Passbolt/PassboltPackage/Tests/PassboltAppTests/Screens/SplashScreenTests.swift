@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Combine
+import Commons
 import Features
 import NetworkClient
 import TestExtensions
@@ -38,6 +38,7 @@ final class SplashScreenTests: TestCase {
   var networkClient: NetworkClient!
   var accounts: Accounts!
   var accountSession: AccountSession!
+  var featureConfig: FeatureConfig!
 
   override func setUp() {
     super.setUp()
@@ -45,6 +46,7 @@ final class SplashScreenTests: TestCase {
     networkClient = .placeholder
     accounts = .placeholder
     accountSession = .placeholder
+    featureConfig = .placeholder
   }
 
   override func tearDown() {
@@ -52,6 +54,7 @@ final class SplashScreenTests: TestCase {
     networkClient = nil
     accounts = nil
     accountSession = nil
+    featureConfig = nil
     super.tearDown()
   }
 
@@ -64,9 +67,13 @@ final class SplashScreenTests: TestCase {
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.failure(.testError()))
     features.use(accounts)
+    featureConfig.fetchIfNeeded = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
 
     let controller: SplashScreenController = testInstance()
-    var result: SplashScreenNavigationDestination!
+    var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
       .sink { destination in
@@ -87,9 +94,13 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([])
     features.use(accounts)
+    featureConfig.fetchIfNeeded = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
 
     let controller: SplashScreenController = testInstance()
-    var result: SplashScreenNavigationDestination!
+    var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
       .sink { destination in
@@ -110,9 +121,13 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
+    featureConfig.fetchIfNeeded = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
 
     let controller: SplashScreenController = testInstance()
-    var result: SplashScreenNavigationDestination!
+    var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
       .sink { destination in
@@ -133,9 +148,13 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.success(()))
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
+    featureConfig.fetchIfNeeded = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
 
     let controller: SplashScreenController = testInstance()
-    var result: SplashScreenNavigationDestination!
+    var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
       .sink { destination in
@@ -146,7 +165,61 @@ final class SplashScreenTests: TestCase {
     XCTAssertEqual(result, .accountSelection(nil))
   }
 
-  func test_navigateToHome_whenAuthorized() {
+  func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() {
+    accountDataStore.loadLastUsedAccount = always(account)
+    features.use(accountDataStore)
+    networkClient.updateSession = { _ in }
+    features.use(networkClient)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
+    features.use(accountSession)
+    accounts.verifyStorageDataIntegrity = always(.success(()))
+    accounts.storedAccounts = always([accountWithProfile])
+    features.use(accounts)
+    featureConfig.fetchIfNeeded = always(
+      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
+
+    let controller: SplashScreenController = testInstance()
+    var result: SplashScreenController.Destination!
+
+    controller.navigationDestinationPublisher()
+      .sink { destination in
+        result = destination
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .home)
+  }
+
+  func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() {
+    accountDataStore.loadLastUsedAccount = always(account)
+    features.use(accountDataStore)
+    networkClient.updateSession = { _ in }
+    features.use(networkClient)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
+    features.use(accountSession)
+    accounts.verifyStorageDataIntegrity = always(.success(()))
+    accounts.storedAccounts = always([accountWithProfile])
+    features.use(accounts)
+    featureConfig.fetchIfNeeded = always(
+      Fail<Void, TheError>(error: .testError()).eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
+
+    let controller: SplashScreenController = testInstance()
+    var result: SplashScreenController.Destination!
+
+    controller.navigationDestinationPublisher()
+      .sink { destination in
+        result = destination
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .featureConfigFetchError)
+  }
+
+  func test_navigationDestinationPublisher_publishesHome_whenRetryFetchConfigurationSucceeds() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     networkClient.updateSession = { _ in }
@@ -157,16 +230,71 @@ final class SplashScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithProfile])
     features.use(accounts)
 
+    var index: Int = 0
+    featureConfig.fetchIfNeeded = {
+      guard index > 0 else {
+        index += 1
+        return Fail(error: .testError()).eraseToAnyPublisher()
+      }
+
+      return Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    }
+
+    features.use(featureConfig)
+
     let controller: SplashScreenController = testInstance()
-    var result: SplashScreenNavigationDestination!
+    var destination: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
-      .sink { destination in
-        result = destination
+      .sink { value in
+        destination = value
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .home(account))
+    controller.retryFetchConfiguration()
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(destination, .home)
+  }
+
+  func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() {
+    accountDataStore.loadLastUsedAccount = always(account)
+    features.use(accountDataStore)
+    networkClient.updateSession = { _ in }
+    features.use(networkClient)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
+    features.use(accountSession)
+    accounts.verifyStorageDataIntegrity = always(.success(()))
+    accounts.storedAccounts = always([accountWithProfile])
+    features.use(accounts)
+
+    featureConfig.fetchIfNeeded = always(
+      Fail(error: .testError()).eraseToAnyPublisher()
+    )
+
+    features.use(featureConfig)
+
+    let controller: SplashScreenController = testInstance()
+    var result: SplashScreenController.Destination!
+
+    controller.navigationDestinationPublisher()
+      .sink { value in
+        result = value
+      }
+      .store(in: cancellables)
+
+    controller.retryFetchConfiguration()
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .featureConfigFetchError)
   }
 }
 

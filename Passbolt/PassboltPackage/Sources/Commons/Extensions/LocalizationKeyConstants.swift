@@ -38,4 +38,5 @@ extension LocalizationKeyConstant {
   public static let genericError: Self = "generic.error"
   public static let disable: Self = "generic.disable"
   public static let signOut: Self = "generic.sign.out"
+  public static let refresh: Self = "generic.refresh"
 }

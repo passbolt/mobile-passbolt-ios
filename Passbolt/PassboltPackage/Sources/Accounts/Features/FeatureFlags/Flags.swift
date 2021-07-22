@@ -20,3 +20,18 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import NetworkClient
+
+#warning("TODO: Add other feature flags: tags & folders")
+
+extension FeatureConfig {
+  public struct Legal {
+
+    public var termsUrl: String
+    public var privacyPolicyUrl: String
+  }
+}
+
+extension FeatureConfig.Legal: FeatureConfigItem {}
+extension FeatureConfig.Legal: Equatable {}
