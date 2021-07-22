@@ -123,50 +123,50 @@ extension AccountTransfer: Feature {
     }
     #endif
 
-    func progressPublisher() -> AnyPublisher<Progress, TheError> {
+    let progressPublisher: AnyPublisher<Progress, TheError> =
       transferState
-        .map { state -> Progress in
-          if state.scanningFinished {
-            return .scanningFinished
-          }
-          else if let configuration: AccountTransferConfiguration = state.configuration {
-            return .scanningProgress(
-              Double(state.nextScanningPage ?? configuration.pagesCount)
-                / Double(configuration.pagesCount)
-            )
-          }
-          else {
-            return .configuration
-          }
+      .map { state -> Progress in
+        if state.scanningFinished {
+          return .scanningFinished
         }
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
-    }
-
-    func accountDetailsPublisher() -> AnyPublisher<AccountDetails, TheError> {
-      transferState
-        .compactMap { state in
-          guard
-            let config: AccountTransferConfiguration = state.configuration,
-            let profile: AccountTransferAccountProfile = state.profile
-          else { return nil }
-
-          return AccountDetails(
-            domain: config.domain,
-            label: "\(profile.firstName) \(profile.lastName)",
-            username: profile.username
+        else if let configuration: AccountTransferConfiguration = state.configuration {
+          return .scanningProgress(
+            Double(state.nextScanningPage ?? configuration.pagesCount)
+              / Double(configuration.pagesCount)
           )
         }
-        .eraseToAnyPublisher()
-    }
+        else {
+          return .configuration
+        }
+      }
+      .collectErrorLog(using: diagnostics)
+      .shareReplay()
+      .eraseToAnyPublisher()
 
-    func mediaPublisher() -> AnyPublisher<Data, TheError> {
+    let accountDetailsPublisher: AnyPublisher<AccountDetails, TheError> =
       transferState
-        .compactMap { $0.profile }
-        .map { networkClient.mediaDownload.make(using: .init(urlString: $0.avatarImageURL)) }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
+      .compactMap { state in
+        guard
+          let config: AccountTransferConfiguration = state.configuration,
+          let profile: AccountTransferAccountProfile = state.profile
+        else { return nil }
+
+        return AccountDetails(
+          domain: config.domain,
+          label: "\(profile.firstName) \(profile.lastName)",
+          username: profile.username
+        )
+      }
+      .shareReplay()
+      .eraseToAnyPublisher()
+
+    let mediaPublisher: AnyPublisher<Data, TheError> =
+      transferState
+      .compactMap { $0.profile }
+      .map { networkClient.mediaDownload.make(using: .init(urlString: $0.avatarImageURL)) }
+      .switchToLatest()
+      .shareReplay()
+      .eraseToAnyPublisher()
 
     // swift-format-ignore: NoLeadingUnderscores
     func _processPayload(
@@ -213,6 +213,21 @@ extension AccountTransfer: Feature {
             .store(in: cancellables)
 
             return Fail<Never, TheError>(error: .duplicateAccount())
+              .eraseToAnyPublisher()
+          }
+
+          guard !updatedState.scanningFinished
+          else {
+            transferState
+              .send(
+                completion: .failure(
+                  .accountTransferScanningError(
+                    context: "account-transfer-complete-missing-profile"
+                  )
+                )
+              )
+            features.unload(Self.self)
+            return Empty<Never, TheError>()
               .eraseToAnyPublisher()
           }
 
@@ -319,7 +334,8 @@ extension AccountTransfer: Feature {
           case .finished:
             transferState.send(completion: .finished)
             features?.unload(Self.self)
-          case let .failure(error) where error.identifier == .duplicateAccount:
+          case let .failure(error)
+          where error.identifier == .duplicateAccount:
             transferState.send(completion: .failure(error))
             features?.unload(Self.self)
 
@@ -360,7 +376,8 @@ extension AccountTransfer: Feature {
 
     func featureUnload() -> Bool {
       #if DEBUG
-      _ = progressPublisher()
+      _ =
+        progressPublisher
         .receive(on: ImmediateScheduler.shared)
         .sink(
           receiveCompletion: { _ in /* expected */ },
@@ -373,11 +390,11 @@ extension AccountTransfer: Feature {
     }
 
     return Self(
-      progressPublisher: progressPublisher,
-      accountDetailsPublisher: accountDetailsPublisher,
+      progressPublisher: { progressPublisher },
+      accountDetailsPublisher: { accountDetailsPublisher },
       processPayload: processPayload,
       completeTransfer: completeTransfer,
-      avatarPublisher: mediaPublisher,
+      avatarPublisher: { mediaPublisher },
       cancelTransfer: cancelTransfer,
       featureUnload: featureUnload
     )

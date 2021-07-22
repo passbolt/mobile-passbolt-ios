@@ -54,7 +54,7 @@ final class AccountSettingsTests: TestCase {
 
   func test_biometricsEnabledPublisher_publishesProfileValueInitially() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
+      CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     accountSession.requestAuthorization = {}
@@ -157,10 +157,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertNil(result)
@@ -185,10 +188,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertNil(result)
@@ -214,10 +220,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -243,10 +252,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -271,10 +283,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(false)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .testError)
@@ -300,10 +315,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -329,10 +347,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -357,10 +378,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .testError)
@@ -385,10 +409,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .permissionRequired)
@@ -414,10 +441,13 @@ final class AccountSettingsTests: TestCase {
     var result: TheError!
     feature
       .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      }, receiveValue: {})
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result.identifier, .authorizationRequired)
@@ -509,7 +539,7 @@ final class AccountSettingsTests: TestCase {
 
   func test_accountProfilePublisher_publishesInitialProfile() {
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
+      CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)

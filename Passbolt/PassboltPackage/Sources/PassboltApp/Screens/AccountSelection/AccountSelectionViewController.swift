@@ -69,9 +69,9 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       .receive(on: RunLoop.main)
       .sink(
         receiveValue: { [weak self] items in
-          // After removing last account window controller takes care of navigation to proper screen when removing current account.
+          // After removing last account, window controller takes care of navigation to proper screen when removing current account.
           if items.isEmpty, self?.view.window != nil {
-            self?.replaceWindowRoot(with: WelcomeNavigationViewController.self)
+            self?.replaceWindowRoot(with: SplashScreenViewController.self)
           }
           else {
             self?.contentView.update(items: items)

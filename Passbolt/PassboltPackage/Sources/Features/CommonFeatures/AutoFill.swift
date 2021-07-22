@@ -26,7 +26,7 @@ import Environment
 
 public struct AutoFill {
 
-  public var isExtensionEnabled: () -> AnyPublisher<Bool, Never>
+  public var extensionEnabledStatePublisher: () -> AnyPublisher<Bool, Never>
 }
 
 extension AutoFill: Feature {
@@ -39,35 +39,35 @@ extension AutoFill: Feature {
     let lifeCycle: AppLifeCycle = environment.appLifeCycle
     let autoFillExtension: AutoFillExtension = environment.autoFillExtension
 
-    func isExtensionEnabled() -> AnyPublisher<Bool, Never> {
-      Publishers.Merge(
-        lifeCycle.lifeCyclePublisher()
-          .map { event -> AnyPublisher<Bool, Never> in
-            guard case .didBecomeActive = event
-            else {
-              return Empty<Bool, Never>().eraseToAnyPublisher()
-            }
-
-            return autoFillExtension.isEnabled()
+    let extensionEnabledStatePublisher: AnyPublisher<Bool, Never> = Publishers.Merge(
+      lifeCycle.lifeCyclePublisher()
+        .map { event -> AnyPublisher<Bool, Never> in
+          guard case .didBecomeActive = event
+          else {
+            return Empty<Bool, Never>()
+              .eraseToAnyPublisher()
           }
-          .switchToLatest(),
-        autoFillExtension.isEnabled()
-      )
-      .eraseToAnyPublisher()
-    }
+
+          return autoFillExtension.isEnabled()
+        }
+        .switchToLatest(),
+      autoFillExtension.isEnabled()
+    )
+    .shareReplay()
+    .eraseToAnyPublisher()
 
     return Self(
-      isExtensionEnabled: isExtensionEnabled
+      extensionEnabledStatePublisher: { extensionEnabledStatePublisher }
     )
   }
 }
 
 #if DEBUG
 extension AutoFill {
-  
+
   public static var placeholder: AutoFill {
     Self(
-      isExtensionEnabled: Commons.placeholder("You have to provide mocks for used methods")
+      extensionEnabledStatePublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

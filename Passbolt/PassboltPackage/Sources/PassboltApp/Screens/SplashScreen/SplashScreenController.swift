@@ -52,7 +52,9 @@ extension SplashScreenController: UIController {
           .eraseToAnyPublisher()
       }
       else {
-        return accountSession.statePublisher()
+        return
+          accountSession
+          .statePublisher()
           .first()
           .map { state -> SplashScreenNavigationDestination in
             switch state {

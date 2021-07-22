@@ -139,9 +139,7 @@ extension AccountSelectionController: UIController {
     }
 
     func addAccount() {
-      // close current session (if any) when we try to add new account
-      accountSession.close()
-      addAccountPresentationSubject.send(Void())
+      addAccountPresentationSubject.send()
     }
 
     func addAccountPresentationPublisher() -> AnyPublisher<Void, Never> {

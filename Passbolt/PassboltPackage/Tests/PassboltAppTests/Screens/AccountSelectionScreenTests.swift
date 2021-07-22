@@ -272,24 +272,6 @@ final class AccountSelectionScreenTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_addAccount_closesSession() {
-    accounts.storedAccounts = always([])
-    accounts.removeAccount = always(.success(()))
-    features.use(accounts)
-    var result: Void!
-    accountSession.close = {
-      result = Void()
-    }
-    features.use(accountSession)
-    features.use(networkClient)
-
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
-
-    controller.addAccount()
-
-    XCTAssertNotNil(result)
-  }
-
   func test_addAccountPresentationPublisher_publishes_whenAddAccountCalled() {
     accounts.storedAccounts = always([])
     accounts.removeAccount = always(.success(()))

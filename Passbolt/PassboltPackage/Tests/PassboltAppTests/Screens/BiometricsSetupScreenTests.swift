@@ -51,7 +51,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
@@ -67,7 +67,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
@@ -85,7 +85,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
@@ -106,7 +106,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
@@ -129,7 +129,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
@@ -155,7 +155,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
@@ -174,7 +174,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(accountSettings)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 

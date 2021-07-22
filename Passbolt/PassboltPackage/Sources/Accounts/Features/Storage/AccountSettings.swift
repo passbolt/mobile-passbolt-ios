@@ -44,14 +44,64 @@ extension AccountSettings: Feature {
     let permissions: OSPermissions = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
 
-    func biometricsEnabledPublisher() -> AnyPublisher<Bool, Never> {
-      _accountProfilePublisher()
-        .map { accountProfile in
-          accountProfile.biometricsEnabled
+    func _accountProfile(for accountID: Account.LocalID) -> Result<AccountProfile, TheError> {
+      accountsDataStore
+        .loadAccountProfile(accountID)
+        .mapError { error in
+          diagnostics.diagnosticLog("Failed to publish updated account profile")
+          diagnostics.debugLog(error.description)
+          return error
         }
-        .replaceError(with: false)
-        .eraseToAnyPublisher()
     }
+
+    let _accountProfilePublisher: AnyPublisher<AccountProfile, TheError> =
+      accountSession
+      .statePublisher()
+      .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountProfile, TheError>? in
+        switch sessionState {
+        case let .authorized(account), let .authorizationRequired(account):
+          let initialProfilePublisher: AnyPublisher<AccountProfile, TheError>
+          switch _accountProfile(for: account.localID) {
+          case let .success(accountProfile):
+            initialProfilePublisher = Just(accountProfile)
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+          case let .failure(error):
+            initialProfilePublisher = Fail(error: error).eraseToAnyPublisher()
+          }
+
+          return Publishers.Merge(
+            accountsDataStore.updatedAccountIDsPublisher()
+              .filter { $0 == account.localID }
+              .compactMap { (accountID: Account.LocalID) -> AnyPublisher<AccountProfile, TheError> in
+                switch _accountProfile(for: accountID) {
+                case let .success(accountProfile):
+                  return Just(accountProfile)
+                    .setFailureType(to: TheError.self)
+                    .eraseToAnyPublisher()
+                case let .failure(error):
+                  return Fail(error: error).eraseToAnyPublisher()
+                }
+              }
+              .switchToLatest(),
+            initialProfilePublisher
+          )
+          .eraseToAnyPublisher()
+        case .none:
+          return nil
+        }
+      }
+      .switchToLatest()
+      .shareReplay()
+      .eraseToAnyPublisher()
+
+    let biometricsEnabledPublisher: AnyPublisher<Bool, Never> =
+      _accountProfilePublisher
+      .map { accountProfile in
+        accountProfile.biometricsEnabled
+      }
+      .replaceError(with: false)
+      .eraseToAnyPublisher()
 
     func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheError> {
       permissions
@@ -125,80 +175,27 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
-    #warning("TODO - find a better solution")
-    func _accountProfilePublisher() -> AnyPublisher<AccountProfile, TheError> {
-      func accountProfile(accountID: Account.LocalID) -> Result<AccountProfile, TheError> {
-        accountsDataStore
-          .loadAccountProfile(accountID)
-          .mapError { error in
-            diagnostics.diagnosticLog("Failed to publish updated account profile")
-            diagnostics.debugLog(error.description)
-            return error
-          }
+    let accountProfilePublisher: AnyPublisher<AccountProfile, Never> =
+      _accountProfilePublisher
+      .map { accountProfile -> AccountProfile? in
+        accountProfile
       }
-
-      return accountSession.statePublisher()
-        .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountProfile, TheError>? in
-          switch sessionState {
-          case let .authorized(account), let .authorizationRequired(account):
-            let initialProfilePublisher: AnyPublisher<AccountProfile, TheError>
-            switch accountProfile(accountID: account.localID) {
-            case let .success(accountProfile):
-              initialProfilePublisher = Just(accountProfile)
-                .setFailureType(to: TheError.self)
-                .eraseToAnyPublisher()
-            case let .failure(error):
-              initialProfilePublisher = Fail(error: error).eraseToAnyPublisher()
-            }
-
-            #warning("TODO - Determine if .multicast could be used here to limit the number of subscriptions")
-            return Publishers.Merge(
-              accountsDataStore.updatedAccountIDsPublisher()
-                .filter { $0 == account.localID }
-                .compactMap { (accountID: Account.LocalID) -> AnyPublisher<AccountProfile, TheError> in
-                  switch accountProfile(accountID: accountID) {
-                  case let .success(accountProfile):
-                    return Just(accountProfile)
-                      .setFailureType(to: TheError.self)
-                      .eraseToAnyPublisher()
-                  case let .failure(error):
-                    return Fail(error: error).eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest(),
-              initialProfilePublisher
-            )
-            .eraseToAnyPublisher()
-          case .none:
-            return nil
-          }
+      .replaceError(with: nil)
+      .compactMap { accountProfile -> AnyPublisher<AccountProfile, Never> in
+        switch accountProfile {
+        case let .some(profile):
+          return Just(profile).eraseToAnyPublisher()
+        case .none:
+          return Empty().eraseToAnyPublisher()
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
-
-    func accountProfilePublisher() -> AnyPublisher<AccountProfile, Never> {
-      _accountProfilePublisher()
-        .map { accountProfile -> AccountProfile? in
-          accountProfile
-        }
-        .replaceError(with: nil)
-        .compactMap { accountProfile -> AnyPublisher<AccountProfile, Never> in
-          switch accountProfile {
-          case let .some(profile):
-            return Just(profile).eraseToAnyPublisher()
-          case .none:
-            return Empty().eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
 
     return Self(
-      biometricsEnabledPublisher: biometricsEnabledPublisher,
+      biometricsEnabledPublisher: { biometricsEnabledPublisher },
       setBiometricsEnabled: setBiometrics(enabled:),
-      accountProfilePublisher: accountProfilePublisher
+      accountProfilePublisher: { accountProfilePublisher }
     )
   }
 }

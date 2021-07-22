@@ -22,10 +22,10 @@
 //
 
 import Commons
-import Features
 import TestExtensions
 import XCTest
 
+@testable import Features
 @testable import NetworkClient
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
@@ -42,6 +42,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
   override func setUp() {
     super.setUp()
     diagnostics = .placeholder
+    diagnostics.measurePerformance = { _ in Diagnostics.TimeMeasurement(event: { _ in }, end: {}) }
     diagnostics.uniqueID = { "uniqueID" }
     cancellables = .init()
   }
@@ -54,7 +55,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
 
   func test_withLogs_logsMessagesForRequestAndResponse() {
     var result: Array<String> = .init()
-    diagnostics.log = { message in
+    diagnostics.debugLog = { message in
       result.append(message)
     }
 
@@ -99,7 +100,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
 
   func test_withLogs_logsMessagesForRequestAndError() {
     var result: Array<String> = .init()
-    diagnostics.log = { message in
+    diagnostics.debugLog = { message in
       result.append(message)
     }
 

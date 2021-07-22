@@ -34,7 +34,7 @@ extension Publisher where Failure == TheError {
         break
 
       case let .failure(error):
-        diagnostics.diagnosticLog(
+        diagnostics.debugLog(
           "Error: \(error.identifier) \(error.context.map { "[\($0)] " } ?? "")\(error.logMessage ?? "-")"
         )
         #if DEBUG

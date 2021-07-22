@@ -240,7 +240,15 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             break
 
           case .failure(.canceled):
-            self?.pop(to: TransferInfoScreenViewController.self)
+            switch self?.navigationController {
+            case
+              .some(_ as WelcomeNavigationViewController),
+              .some(_ as AuthorizationNavigationViewController):
+              self?.popToRoot()
+
+            case .some, .none:
+              self?.replaceWindowRoot(with: SplashScreenViewController.self)
+            }
 
           case let .failure(error):
             self?.push(

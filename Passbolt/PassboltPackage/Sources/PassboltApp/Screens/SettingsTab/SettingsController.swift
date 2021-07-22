@@ -90,8 +90,10 @@ extension SettingsController: UIController {
           if enabled {
             presentBiometricsAlertSubject.send()
             return Empty().eraseToAnyPublisher()
-          } else {
-            return accountSettings
+          }
+          else {
+            return
+              accountSettings
               .setBiometricsEnabled(true)
               .ignoreOutput()
               .eraseToAnyPublisher()
@@ -110,7 +112,8 @@ extension SettingsController: UIController {
     }
 
     func disableBiometrics() -> AnyPublisher<Never, TheError> {
-      accountSettings.setBiometricsEnabled(false)
+      accountSettings
+        .setBiometricsEnabled(false)
         .ignoreOutput()
         .eraseToAnyPublisher()
     }
@@ -120,7 +123,7 @@ extension SettingsController: UIController {
     }
 
     func autoFillEnabledPublisher() -> AnyPublisher<Bool, Never> {
-      autoFill.isExtensionEnabled()
+      autoFill.extensionEnabledStatePublisher()
     }
 
     return Self(

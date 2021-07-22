@@ -23,8 +23,8 @@
 
 import Crypto
 import Features
-import class Foundation.NSRecursiveLock
 
+import class Foundation.NSRecursiveLock
 import struct Foundation.URL
 
 internal struct AccountsDataStore {
@@ -77,6 +77,7 @@ extension AccountsDataStore: Feature {
       }
     }
     func ensureDataIntegrity() -> Result<Void, TheError> {
+      let timeMeasurement: Diagnostics.TimeMeasurement = diagnostics.measurePerformance("Data integrity check")
       lock.lock()
       diagnostics.diagnosticLog("Verifying data integrity...")
       defer {
@@ -84,6 +85,7 @@ extension AccountsDataStore: Feature {
         lock.unlock()
       }
 
+      timeMeasurement.event("Begin")
       // storedAccountsList - user defaults control list
       let storedAccountsList: Array<Account.LocalID> =
         preferences
@@ -104,6 +106,7 @@ extension AccountsDataStore: Feature {
         storedAccounts = .init()
       }
       diagnostics.debugLog("Stored accounts: \(storedAccounts)")
+      timeMeasurement.event("Accounts loaded")
 
       // storedAccountProfiles - keychain accounts metadata
       let storedAccountsProfiles: Array<Account.LocalID>
@@ -119,6 +122,7 @@ extension AccountsDataStore: Feature {
         storedAccountsProfiles = .init()
       }
       diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
+      timeMeasurement.event("Account profiles loaded")
 
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
@@ -144,6 +148,7 @@ extension AccountsDataStore: Feature {
         storedAccountKeys = .init()
       }
       diagnostics.debugLog("Stored account keys: \(storedAccountKeys)")
+      timeMeasurement.event("Account keys loaded")
 
       let updatedAccountsList: Array<Account.LocalID> =
         storedAccountsList
@@ -167,13 +172,14 @@ extension AccountsDataStore: Feature {
           continue
         case let .failure(error):
           diagnostics.diagnosticLog(
-            "Failed to delete account for accountID: \(accountID)"
+            "Failed to delete account"
           )
           diagnostics.debugLog(error.description)
           return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted accounts: \(accountsToRemove)")
+      timeMeasurement.event("Accounts cleaned")
 
       let accountProfilesToRemove: Array<Account.LocalID> =
         storedAccountsProfiles
@@ -185,13 +191,14 @@ extension AccountsDataStore: Feature {
           continue
         case let .failure(error):
           diagnostics.diagnosticLog(
-            "Failed to delete account profile for accountID: \(accountID)"
+            "Failed to delete account profile"
           )
           diagnostics.debugLog(error.description)
           return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
+      timeMeasurement.event("Account profiles cleaned")
 
       let keysToRemove: Array<Account.LocalID> =
         storedAccountKeys
@@ -203,13 +210,14 @@ extension AccountsDataStore: Feature {
           continue
         case let .failure(error):
           diagnostics.diagnosticLog(
-            "Failed to delete account private key for accountID: \(accountID)"
+            "Failed to delete account private key"
           )
           diagnostics.debugLog(error.description)
           return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted account private keys: \(keysToRemove)")
+      timeMeasurement.event("Account keys cleaned")
 
       if updatedAccountsList.isEmpty {
         diagnostics.debugLog("Deleting stored passphrases")
@@ -227,6 +235,7 @@ extension AccountsDataStore: Feature {
       else {
         /* We can't delete passphrases selectively due to biometrics */
       }
+      timeMeasurement.event("Account passphrases cleaned")
 
       let applicationDataDirectory: URL
       switch files.applicationDataDirectory() {
@@ -269,6 +278,7 @@ extension AccountsDataStore: Feature {
         return .failure(error)
       }
       diagnostics.debugLog("Stored databases: \(storedDatabases)")
+      timeMeasurement.event("Account databases loaded")
 
       let databasesToRemove: Array<Account.LocalID> =
         storedDatabases
@@ -286,7 +296,7 @@ extension AccountsDataStore: Feature {
           break
         case let .failure(error):
           diagnostics.diagnosticLog(
-            "Failed to delete database for accountID: \(accountID)"
+            "Failed to delete database"
           )
           diagnostics.debugLog(error.description)
           return .failure(error)
@@ -294,12 +304,13 @@ extension AccountsDataStore: Feature {
       }
 
       diagnostics.debugLog("Deleted account databases: \(databasesToRemove)")
+      timeMeasurement.event("Account databases cleaned")
 
       let deleted: Set<Account.LocalID> = .init(
         accountsToRemove + accountProfilesToRemove + keysToRemove + databasesToRemove
       )
 
-      diagnostics.diagnosticLog(
+      diagnostics.debugLog(
         "Deleted accounts: \(deleted)"
       )
 
@@ -307,6 +318,7 @@ extension AccountsDataStore: Feature {
         updatedAccountIDSubject.send(accountID)
       }
 
+      timeMeasurement.end()
       return .success
     }
 
@@ -647,7 +659,7 @@ extension AccountsDataStore: Feature {
         try results.forEach { try $0.get() }
       }
       catch {
-        diagnostics.diagnosticLog("Failed to properly delete account \(accountID)")
+        diagnostics.diagnosticLog("Failed to properly delete account")
         diagnostics.debugLog("\(error)")
       }
     }
@@ -690,7 +702,7 @@ extension AccountsDataStore: Feature {
           SQLiteMigration.allCases
         )
         .flatMapError { error in
-          diagnostics.diagnosticLog("Failed to open database for accountID \(accountID), cleaning up...")
+          diagnostics.diagnosticLog("Failed to open database for accountID, cleaning up...")
           diagnostics.debugLog(error.description)
           _ = files.deleteFile(databaseURL)
           // single retry after deleting previous database, fail if it fails

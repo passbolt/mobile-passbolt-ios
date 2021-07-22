@@ -35,9 +35,6 @@ public struct AccountSession {
   public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account.LocalID, Never>
   // Manual trigger for authorization prompt
   public var requestAuthorization: () -> Void
-  // Select account for network requests without authorization (each account can have a unique domain etc)
-  #warning("Determine if 'select' can be removed")
-  public var select: (Account) -> Void
   // Closes current session and removes associated temporary data.
   // Not required for account switch, in that case use `authorize` with different account.
   public var close: () -> Void
@@ -84,13 +81,16 @@ extension AccountSession: Feature {
     let stateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
+    let statePublisher: AnyPublisher<State, Never> =
+      stateSubject
+      .removeDuplicates()
+      .eraseToAnyPublisher()
 
     let authorizationPromptPresentationSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
     let sessionSubject: CurrentValueSubject<SessionTokens?, Never> = .init(nil)
 
-    stateSubject
-      .removeDuplicates()
+    statePublisher
       .map { state -> NetworkSessionVariable? in
         switch state {
         case let .authorized(account), let .authorizationRequired(account):
@@ -106,8 +106,7 @@ extension AccountSession: Feature {
       .store(in: cancellables)
 
     // bind passphrase cache expiration with authorizationRequired state change
-    stateSubject
-      .removeDuplicates()
+    statePublisher
       .compactMap { state -> AnyPublisher<State, Never>? in
         switch state {
         case let .authorized(account):
@@ -139,7 +138,7 @@ extension AccountSession: Feature {
     appLifeCycle
       .lifeCyclePublisher()
       .compactMap { transition -> Account.LocalID? in
-        guard case .didEnterBackground = transition
+        guard case .willEnterForeground = transition
         else { return nil }
         switch stateSubject.value {
         case let .authorizationRequired(account), let .authorized(account):
@@ -265,20 +264,19 @@ extension AccountSession: Feature {
           //            method = .challenge
           //          }
 
-          let signInPublisher: AnyPublisher<SessionTokens?, Never> =
-            signIn.signIn(
-              account.userID,
-              account.domain,
-              armoredPrivateKey,
-              passphrase,
-              method
-            )
-            .map { sessionTokens -> SessionTokens? in
-              sessionTokens  // switching type to optional
-            }
-            .collectErrorLog(using: diagnostics)
-            .replaceError(with: nil)
-            .eraseToAnyPublisher()
+          let signInPublisher: AnyPublisher<SessionTokens?, Never> = signIn.signIn(
+            account.userID,
+            account.domain,
+            armoredPrivateKey,
+            passphrase,
+            method
+          )
+          .map { sessionTokens -> SessionTokens? in
+            sessionTokens  // switching type to optional
+          }
+          .collectErrorLog(using: diagnostics)
+          .replaceError(with: nil)
+          .eraseToAnyPublisher()
 
           return signInPublisher
         }
@@ -320,9 +318,10 @@ extension AccountSession: Feature {
 
         sessionSubject.send(sessionTokens)
 
-        stateSubject.send(
-          .authorized(account)
-        )
+        stateSubject
+          .send(
+            .authorized(account)
+          )
       })
       .map { _ in Void() }
       .eraseToAnyPublisher()
@@ -344,24 +343,11 @@ extension AccountSession: Feature {
       }
     }
 
-    func select(account: Account) {
-      switch stateSubject.value {
-      case .authorizationRequired, .authorized:
-        closeSession()
-
-      case .none:
-        break
-      }
-
-      stateSubject.send(.authorizationRequired(account))
-    }
-
     return Self(
-      statePublisher: stateSubject.removeDuplicates().eraseToAnyPublisher,
+      statePublisher: { statePublisher },
       authorize: authorize(account:authorizationMethod:),
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
       requestAuthorization: requestAuthorization,
-      select: select(account:),
       close: closeSession
     )
   }
@@ -376,7 +362,6 @@ extension AccountSession {
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
       authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       requestAuthorization: Commons.placeholder("You have to provide mocks for used methods"),
-      select: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

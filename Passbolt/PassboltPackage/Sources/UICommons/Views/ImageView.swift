@@ -52,6 +52,10 @@ public class ImageView: UIImageView {
     }
   }
 
+  public var useAspectScaleConstraint: Bool = false {
+    didSet { updateConstraintsIfNeeded() }
+  }
+
   public init() {
     super.init(frame: .zero)
   }
@@ -111,7 +115,8 @@ public class ImageView: UIImageView {
   }
 
   private func updateImageScaleIfNeeded() {
-    if let image: UIImage = super.image,
+    if useAspectScaleConstraint,
+      let image: UIImage = super.image,
       contentMode == .scaleAspectFit
     {
       let width: CGFloat = image.size.width

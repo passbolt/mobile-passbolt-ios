@@ -71,6 +71,13 @@ extension NetworkRequest {
   }
 }
 
+extension NetworkRequest where Variable == Void {
+
+  public func make() -> AnyPublisher<Response, TheError> {
+    execute(Void())
+  }
+}
+
 #if DEBUG
 extension NetworkRequest {
 

@@ -304,7 +304,7 @@ final class SettingsScreenTests: TestCase {
     features.use(Biometry.placeholder)
     features.use(LinkOpener.placeholder)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: SettingsController = testInstance()
@@ -324,7 +324,7 @@ final class SettingsScreenTests: TestCase {
     features.use(Biometry.placeholder)
     features.use(LinkOpener.placeholder)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: SettingsController = testInstance()

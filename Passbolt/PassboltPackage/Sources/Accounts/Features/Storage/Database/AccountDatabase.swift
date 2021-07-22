@@ -81,8 +81,7 @@ extension AccountDatabase: Feature {
                 }
                 else {
                   diagnostics.diagnosticLog(
-                    "Failed to open database for account: \(account.localID)"
-                      + "invalid or missing database key"
+                    "Failed to open database for account due to invalid or missing database key"
                   )
                   return nil
                 }
@@ -149,34 +148,32 @@ extension AccountDatabase: Feature {
       }
       .store(in: cancellables)
 
-    func _currentConnection() -> AnyPublisher<SQLiteConnection, TheError> {
+    let currentConnectionPublisher: AnyPublisher<SQLiteConnection, TheError> =
       databaseConnectionSubject
-        .map { connection -> AnyPublisher<SQLiteConnection, TheError> in
-          if let connection: DatabaseConnection = connection {
-            return Just(connection.connection)
-              .setFailureType(to: TheError.self)
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail<SQLiteConnection, TheError>(
-              error: .databaseConnectionClosed(
-                databaseErrorMessage: "There is no active database connection"
-              )
-            )
+      .map { connection -> AnyPublisher<SQLiteConnection, TheError> in
+        if let connection: DatabaseConnection = connection {
+          return Just(connection.connection)
+            .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
-          }
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
-    }
+        else {
+          return Fail<SQLiteConnection, TheError>(
+            error: .databaseConnectionClosed(
+              databaseErrorMessage: "There is no active database connection"
+            )
+          )
+          .eraseToAnyPublisher()
+        }
+      }
+      .switchToLatest()
+      //        .shareReplay() verify usage later on
+      .eraseToAnyPublisher()
 
     func featureUnload() -> Bool {
       // previous connection is automatically closed when dealocating
       databaseConnectionSubject.send(completion: .finished)
       return true
     }
-
-    let currentConnectionPublisher = _currentConnection()
 
     return Self(
       fetchLastUpdate: FetchLastUpdateOperation.using(currentConnectionPublisher),

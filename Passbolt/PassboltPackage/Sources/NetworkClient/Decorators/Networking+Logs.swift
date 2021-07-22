@@ -30,14 +30,17 @@ extension Networking {
     Self(
       execute: { request, useCache in
         let trackingID: String = diagnostics.uniqueID()
-        diagnostics.log("Executing request <\(trackingID)> (useCache: \(useCache)):\n\(request)\n---")
+        let timeMeasurement: Diagnostics.TimeMeasurement = diagnostics.measurePerformance("Network request")
+        diagnostics.debugLog("Executing request <\(trackingID)> (useCache: \(useCache)):\n\(request)\n---")
         return self.execute(request, useCache)
           .map { response in
-            diagnostics.log("Received <\(trackingID)>:\n\(response)\n---")
+            diagnostics.debugLog("Received <\(trackingID)>:\n\(response)\n---")
+            timeMeasurement.end()
             return response
           }
           .mapError { error in
-            diagnostics.log("Received <\(trackingID)>:\n\(error)\n---")
+            diagnostics.debugLog("Received <\(trackingID)>:\n\(error)\n---")
+            timeMeasurement.end()
             return error
           }
           .eraseToAnyPublisher()

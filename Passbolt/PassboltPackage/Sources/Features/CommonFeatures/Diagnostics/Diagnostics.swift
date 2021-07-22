@@ -25,14 +25,28 @@ import Environment
 
 import struct Foundation.Date
 import struct Foundation.UUID
+import class os.OSLog
 import let os.SIGTRAP
+import func os.os_log
+import func os.os_signpost
 import func os.raise
 
 public struct Diagnostics {
 
-  public var log: (String) -> Void
+  public var debugLog: (String) -> Void
+  public var diagnosticLog: (StaticString) -> Void
+  public var measurePerformance: (StaticString) -> TimeMeasurement
   public var uniqueID: () -> String
   public var breakpoint: () -> Void
+}
+
+extension Diagnostics {
+
+  public struct TimeMeasurement {
+
+    public let event: (StaticString) -> Void
+    public let end: () -> Void
+  }
 }
 
 extension Diagnostics: Feature {
@@ -42,16 +56,56 @@ extension Diagnostics: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Diagnostics {
+    #if DEBUG
     let time: Time = environment.time
+    #endif
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-    let logger: Logger = environment.logger
+    let diagnosticLog: OSLog = .init(subsystem: "com.passbolt.mobile", category: "diagnostic")
+    let perfomanceLog: OSLog = .init(subsystem: "com.passbolt.mobile.performance", category: .pointsOfInterest)
 
     return Self(
-      log: { message in
-        logger
-          .consoleLog(
-            "[\(Date(timeIntervalSince1970: Double(time.timestamp())))] \(message)"
-          )
+      debugLog: { message in
+        #if DEBUG
+        print(
+          "[\(Date(timeIntervalSince1970: Double(time.timestamp())))] \(message)"
+        )
+        #endif
+      },
+      diagnosticLog: { message in
+        os_log(.info, log: diagnosticLog, message)
+      },
+      measurePerformance: { name in
+        let id: String = uuidGenerator().uuidString
+
+        os_signpost(
+          .begin,
+          log: perfomanceLog,
+          name: name,
+          "[%{public}s] time measurement start",
+          id
+        )
+
+        return TimeMeasurement(
+          event: { eventName in
+            os_signpost(
+              .event,
+              log: perfomanceLog,
+              name: name,
+              "[%{public}s] %{public}s",
+              id,
+              eventName.description
+            )
+          },
+          end: {
+            os_signpost(
+              .end,
+              log: perfomanceLog,
+              name: name,
+              "[%{public}s] time measurement end",
+              id
+            )
+          }
+        )
       },
       uniqueID: { uuidGenerator().uuidString },
       breakpoint: {
@@ -65,31 +119,14 @@ extension Diagnostics: Feature {
 
 extension Diagnostics {
 
-  /// Diagnostics log is persisted on device for support and diagnostics.
-  ///
-  /// - Parameter message: Message sent to log. It might be visible to users.
-  ///
-  /// - Warning: Keep in mind that it will be visible in prod env.
-  ///
-  public func diagnosticLog(_ message: String) {
-    #if DEBUG
-    log("[DIAG] \(message)")
-    #else
-    log(message)
-    #endif
-  }
-
-  /// Debug log is stripped out in release build.
-  public func debugLog(_ message: String) {
-    #if DEBUG
-    log("[DEBUG] \(message)")
-    #endif
-  }
-
   // drop all diagnostics
   public static var disabled: Self {
     Self(
-      log: { _ in },
+      debugLog: { _ in },
+      diagnosticLog: { _ in },
+      measurePerformance: { _ in
+        TimeMeasurement(event: { _ in }, end: {})
+      },
       uniqueID: { UUID().uuidString },
       breakpoint: {}
     )
@@ -102,7 +139,9 @@ extension Diagnostics {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      log: Commons.placeholder("You have to provide mocks for used methods"),
+      debugLog: Commons.placeholder("You have to provide mocks for used methods"),
+      diagnosticLog: Commons.placeholder("You have to provide mocks for used methods"),
+      measurePerformance: Commons.placeholder("You have to provide mocks for used methods"),
       uniqueID: Commons.placeholder("You have to provide mocks for used methods"),
       breakpoint: Commons.placeholder("You have to provide mocks for used methods")
     )

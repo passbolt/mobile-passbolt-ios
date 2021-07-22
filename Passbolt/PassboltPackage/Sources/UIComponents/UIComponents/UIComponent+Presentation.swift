@@ -142,34 +142,40 @@ extension UIComponent {
     CATransaction.commit()
   }
 
+  @discardableResult
   public func pop<Component>(
     if type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
-  ) where Component: UIComponent {
+  ) -> Bool
+  where Component: UIComponent {
     guard let navigationController = navigationController
     else { unreachable("It is programmer error to pop without navigation controller") }
     guard navigationController.viewControllers.last is Component
-    else { return }  // ignore
+    else { return false }  // ignore
     CATransaction.begin()
     CATransaction.setCompletionBlock(completion)
     navigationController.popViewController(animated: animated)
     CATransaction.commit()
+    return true
   }
 
+  @discardableResult
   public func pop<Component>(
     to type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
-  ) where Component: UIComponent {
+  ) -> Bool
+  where Component: UIComponent {
     guard let navigationController = navigationController
     else { unreachable("It is programmer error to pop without navigation controller") }
     guard let targetViewController = navigationController.viewControllers.last(where: { $0 is Component })
-    else { return }  // ignore
+    else { return false }  // ignore
     CATransaction.begin()
     CATransaction.setCompletionBlock(completion)
     navigationController.popToViewController(targetViewController, animated: animated)
     CATransaction.commit()
+    return true
   }
 
   public func popAll<Component>(
@@ -186,6 +192,18 @@ extension UIComponent {
         navigationController.viewControllers.filter { !($0 is Component) },
         animated: animated && navigationController.viewControllers.last is Component
       )
+    CATransaction.commit()
+  }
+
+  public func popToRoot(
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) {
+    guard let navigationController = navigationController
+    else { unreachable("It is programmer error to pop without navigation controller") }
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    navigationController.popToRootViewController(animated: animated)
     CATransaction.commit()
   }
 }

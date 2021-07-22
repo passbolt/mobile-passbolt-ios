@@ -33,7 +33,10 @@ internal final class SettingsItemView: Button {
     super.init()
 
     mut(self) {
-      .backgroundColor(dynamic: .background)
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .clipsToBounds(false)
+      )
     }
 
     let iconContainer: ContainerView = .init(
@@ -85,7 +88,10 @@ internal final class SettingsItemView: Button {
     mutation.apply(on: label)
   }
 
-  internal func add(accessory: UIView, with insets: UIEdgeInsets = .zero) {
+  internal func add(
+    accessory: UIView,
+    with insets: UIEdgeInsets = .zero
+  ) {
     accessoryContainer.subviews.forEach { $0.removeFromSuperview() }
     accessoryContainer.addSubview(accessory)
 
@@ -102,16 +108,17 @@ internal final class SettingsItemView: Button {
 
     Mutation<ImageView>
       .combined(
+        .contentMode(.scaleAspectFit),
+        .image(named: .disclosureIndicator, from: .uiCommons),
+        .tintColor(dynamic: .icon),
+        .backgroundColor(dynamic: .background),
         .subview(of: accessoryContainer),
         .edges(
           equalTo: accessoryContainer,
           insets: .init(top: -18, left: -18, bottom: -18, right: -18),
           usingSafeArea: false
         ),
-        .contentMode(.scaleAspectFit),
-        .image(named: .disclosureIndicator, from: .uiCommons),
-        .tintColor(dynamic: .icon),
-        .backgroundColor(dynamic: .background)
+        .widthAnchor(.equalTo, constant: 20)
       )
       .instantiate()
   }

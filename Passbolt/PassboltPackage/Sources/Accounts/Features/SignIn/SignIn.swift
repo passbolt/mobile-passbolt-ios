@@ -68,18 +68,6 @@ extension SignIn: Feature {
     let encoder: JSONEncoder = .init()
     let decoder: JSONDecoder = .init()
 
-    let serverPGPPublicKey: AnyPublisher<ArmoredPublicKey, TheError> =
-      networkClient.serverPGPPublicKeyRequest.make(using: ())
-      .map { (response: ServerPGPPublicKeyResponse) -> ArmoredPublicKey in
-        ArmoredPublicKey(rawValue: response.body.keyData)
-      }
-      .eraseToAnyPublisher()
-
-    let rsaPublicKeyStep: AnyPublisher<String, TheError> =
-      networkClient.serverRSAPublicKeyRequest.make(using: ())
-      .map(\.body.keyData)
-      .eraseToAnyPublisher()
-
     func prepareChallenge(
       for method: Method,
       domain: String,
@@ -122,8 +110,22 @@ extension SignIn: Feature {
       let verificationToken: String = uuidGenerator().uuidString
       let verificationExpiration: Int = time.timestamp() + 120  // 120s is verification token's lifetime
 
+      let serverPGPPublicKeyPublisher: AnyPublisher<ArmoredPublicKey, TheError> =
+        networkClient.serverPGPPublicKeyRequest.make()
+        .map { (response: ServerPGPPublicKeyResponse) -> ArmoredPublicKey in
+          ArmoredPublicKey(rawValue: response.body.keyData)
+        }
+        .shareReplay()
+        .eraseToAnyPublisher()
+
+      let rsaPublicKeyPublisher: AnyPublisher<String, TheError> =
+        networkClient.serverRSAPublicKeyRequest.make()
+        .map(\.body.keyData)
+        .shareReplay()
+        .eraseToAnyPublisher()
+
       let jwtStep: AnyPublisher<String, TheError> =
-        serverPGPPublicKey
+        serverPGPPublicKeyPublisher
         .map { (serverPublicKey: ArmoredPublicKey) -> AnyPublisher<ArmoredMessage, TheError> in
           let encodedChallenge: String
 
@@ -181,7 +183,7 @@ extension SignIn: Feature {
         }
         .eraseToAnyPublisher()
 
-      let decryptedToken: AnyPublisher<Tokens, TheError> = Publishers.Zip(jwtStep, serverPGPPublicKey)
+      let decryptedToken: AnyPublisher<Tokens, TheError> = Publishers.Zip(jwtStep, serverPGPPublicKeyPublisher)
         .map { encryptedTokenPayload, publicKey -> AnyPublisher<String, TheError> in
           let decrypted: String
 
@@ -222,7 +224,7 @@ extension SignIn: Feature {
         .switchToLatest()
         .eraseToAnyPublisher()
 
-      return Publishers.Zip(rsaPublicKeyStep, decryptedToken)
+      return Publishers.Zip(rsaPublicKeyPublisher, decryptedToken)
         .map { (publicKey: String, decryptedToken: Tokens) -> AnyPublisher<SessionTokens, TheError> in
 
           let accessToken: JWT

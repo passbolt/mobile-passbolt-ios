@@ -234,7 +234,8 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
     contentView
       .biometricTapPublisher
       .map { [unowned self] () -> AnyPublisher<Void, Never> in
-        self.controller.biometricSignIn()
+        self.controller
+          .biometricSignIn()
           .receive(on: RunLoop.main)
           .handleEvents(
             receiveSubscription: { [weak self] _ in
@@ -242,7 +243,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
             },
             receiveCompletion: { [weak self] completion in
               self?.dismissOverlay()
-              guard case .failure = completion else { return }
+              guard case let .failure(error) = completion, error.identifier != .canceled else { return }
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(localized: "sign.in.error.message")

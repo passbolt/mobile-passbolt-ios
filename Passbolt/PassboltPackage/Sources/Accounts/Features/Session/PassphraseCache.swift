@@ -76,19 +76,6 @@ extension PassphraseCache: Feature {
     let currentPassphraseSubject: CurrentValueSubject<Entry?, Never> = .init(nil)
     let lock: NSRecursiveLock = .init()
     var timer: DispatchedTimer?
-    var sychronizedTimer: DispatchedTimer? {
-      get {
-        lock.lock()
-        defer { lock.unlock() }
-        return timer
-      }
-
-      set {
-        lock.lock()
-        timer = newValue
-        lock.unlock()
-      }
-    }
 
     appLifeCycle
       .lifeCyclePublisher()
@@ -105,33 +92,50 @@ extension PassphraseCache: Feature {
       }
       .store(in: cancellables)
 
+    let currentPassphrasePublisher: AnyPublisher<Entry?, Never> =
+      currentPassphraseSubject
+      .map { passphrase -> Entry? in
+        guard let pass = passphrase
+        else { return nil }
+        guard Int(pass.expirationDate.timeIntervalSince1970) > time.timestamp()
+        else {
+          currentPassphraseSubject.send(nil)
+          return nil
+        }
+
+        return pass
+      }
+      .eraseToAnyPublisher()
+
     func clearCache() {
       diagnostics.debugLog("Clearing passphrase cache")
+      lock.lock()
+      timer?.cancel()
+      timer = nil
+      lock.unlock()
       currentPassphraseSubject.send(nil)
     }
 
     func createPassphrasePublisher(
       accountID: Account.LocalID
     ) -> AnyPublisher<Passphrase?, Never> {
-      if let storedAccountID: Account.LocalID = currentPassphraseSubject.value?.accountID,
-        accountID != storedAccountID
-      {
-        currentPassphraseSubject.send(nil)
-      }
-      else {
-        /* */
-      }
+      currentPassphrasePublisher
+        .map { passphrase -> AnyPublisher<Passphrase?, Never> in
+          guard let pass = passphrase
+          else {
+            return Just(nil)
+              .eraseToAnyPublisher()
+          }
+          guard accountID == pass.accountID
+          else {
+            return Empty()
+              .eraseToAnyPublisher()
+          }
 
-      return
-        currentPassphraseSubject
-        .map { passphrase in
-          guard let pass = passphrase,
-            accountID == pass.accountID,
-            Int(pass.expirationDate.timeIntervalSince1970) > time.timestamp()
-          else { return nil }
-
-          return .init(rawValue: pass.value)
+          return Just(.init(rawValue: pass.value))
+            .eraseToAnyPublisher()
         }
+        .switchToLatest()
         .eraseToAnyPublisher()
     }
 
@@ -151,7 +155,9 @@ extension PassphraseCache: Feature {
       let interval: DispatchTimeInterval =
         .seconds(.init(Int(expirationDate.timeIntervalSince1970) - time.timestamp()))
 
-      sychronizedTimer = .init(interval: interval, handler: clearCache)
+      lock.lock()
+      timer = .init(interval: interval, handler: clearCache)
+      lock.unlock()
 
       currentPassphraseSubject.send(passphrase)
     }

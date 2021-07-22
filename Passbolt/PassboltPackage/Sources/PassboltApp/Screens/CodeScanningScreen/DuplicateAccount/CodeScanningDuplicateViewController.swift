@@ -84,6 +84,8 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
+          guard !(self?.pop(to: AccountSelectionViewController.self) ?? true)
+          else { return }
           self?.replaceWindowRoot(
             with: AuthorizationNavigationViewController.self,
             in: nil

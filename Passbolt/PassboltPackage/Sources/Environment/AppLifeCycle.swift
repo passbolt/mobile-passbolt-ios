@@ -41,38 +41,38 @@ public struct AppLifeCycle: EnvironmentElement {
 extension AppLifeCycle {
 
   public static func live() -> Self {
-    Self(
-      lifeCyclePublisher: {
-        Publishers.MergeMany(
-          NotificationCenter
-            .default
-            .publisher(for: UIApplication.didBecomeActiveNotification)
-            .map { _ in Transition.didBecomeActive }
-            .eraseToAnyPublisher(),
-          NotificationCenter
-            .default
-            .publisher(for: UIApplication.willResignActiveNotification)
-            .map { _ in Transition.willResignActive }
-            .eraseToAnyPublisher(),
-          NotificationCenter
-            .default
-            .publisher(for: UIApplication.didEnterBackgroundNotification)
-            .map { _ in Transition.didEnterBackground }
-            .eraseToAnyPublisher(),
-          NotificationCenter
-            .default
-            .publisher(for: UIApplication.willEnterForegroundNotification)
-            .map { _ in Transition.willEnterForeground }
-            .eraseToAnyPublisher(),
-          NotificationCenter
-            .default
-            .publisher(for: UIApplication.willTerminateNotification)
-            .map { _ in Transition.willTerminate }
-            .eraseToAnyPublisher()
-        )
-        .removeDuplicates()
+    let lifeCyclePublisher: AnyPublisher<Transition, Never> = Publishers.MergeMany(
+      NotificationCenter
+        .default
+        .publisher(for: UIApplication.didBecomeActiveNotification)
+        .map { _ in Transition.didBecomeActive }
+        .eraseToAnyPublisher(),
+      NotificationCenter
+        .default
+        .publisher(for: UIApplication.willResignActiveNotification)
+        .map { _ in Transition.willResignActive }
+        .eraseToAnyPublisher(),
+      NotificationCenter
+        .default
+        .publisher(for: UIApplication.didEnterBackgroundNotification)
+        .map { _ in Transition.didEnterBackground }
+        .eraseToAnyPublisher(),
+      NotificationCenter
+        .default
+        .publisher(for: UIApplication.willEnterForegroundNotification)
+        .map { _ in Transition.willEnterForeground }
+        .eraseToAnyPublisher(),
+      NotificationCenter
+        .default
+        .publisher(for: UIApplication.willTerminateNotification)
+        .map { _ in Transition.willTerminate }
         .eraseToAnyPublisher()
-      }
+    )
+    .removeDuplicates()
+    .share()
+    .eraseToAnyPublisher()
+    return Self(
+      lifeCyclePublisher: { lifeCyclePublisher }
     )
   }
 }

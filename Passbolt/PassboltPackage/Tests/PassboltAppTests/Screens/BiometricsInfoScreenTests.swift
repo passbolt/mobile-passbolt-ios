@@ -50,7 +50,7 @@ final class BiometricsInfoScreenTests: TestCase {
     features.use(linkOpener)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
@@ -73,7 +73,7 @@ final class BiometricsInfoScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
     let controller: BiometricsInfoController = testInstance()
 
@@ -90,7 +90,7 @@ final class BiometricsInfoScreenTests: TestCase {
     features.use(linkOpener)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(true).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
@@ -109,7 +109,7 @@ final class BiometricsInfoScreenTests: TestCase {
     features.use(linkOpener)
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
@@ -133,7 +133,7 @@ final class BiometricsInfoScreenTests: TestCase {
     )
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()
@@ -154,7 +154,7 @@ final class BiometricsInfoScreenTests: TestCase {
     biometry.biometricsStateChangesPublisher = always(Just(.unavailable).eraseToAnyPublisher())
     features.use(biometry)
     var autoFill: AutoFill = .placeholder
-    autoFill.isExtensionEnabled = always(Just(false).eraseToAnyPublisher())
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
     let controller: BiometricsInfoController = testInstance()

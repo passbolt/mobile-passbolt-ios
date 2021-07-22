@@ -22,8 +22,8 @@
 //
 
 import AuthenticationServices
-import Commons
 import Combine
+import Commons
 import Foundation
 
 public struct AutoFillExtension: EnvironmentElement {
@@ -34,11 +34,13 @@ public struct AutoFillExtension: EnvironmentElement {
 extension AutoFillExtension {
 
   public static func live() -> Self {
-    let enabledSubject: PassthroughSubject<Bool, Never> = .init()
 
     func isEnabled() -> AnyPublisher<Bool, Never> {
+      let enabledSubject: PassthroughSubject<Bool, Never> = .init()
+
       ASCredentialIdentityStore.shared.getState { state in
         enabledSubject.send(state.isEnabled)
+        enabledSubject.send(completion: .finished)
       }
 
       return enabledSubject.eraseToAnyPublisher()
@@ -57,7 +59,6 @@ extension Environment {
     set { use(newValue) }
   }
 }
-
 
 #if DEBUG
 extension AutoFillExtension {

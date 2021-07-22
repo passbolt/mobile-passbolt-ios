@@ -67,12 +67,13 @@ extension BiometricsSetupController: UIController {
     func setupBiometrics() -> AnyPublisher<Never, TheError> {
       accountSettings
         .setBiometricsEnabled(true)
-        .map { autoFill.isExtensionEnabled().setFailureType(to: TheError.self) }
+        .map { autoFill.extensionEnabledStatePublisher().setFailureType(to: TheError.self) }
         .switchToLatest()
         .handleEvents(receiveOutput: { enabled in
           if enabled {
             destinationPresentationSubject.send(.finish)
-          } else {
+          }
+          else {
             destinationPresentationSubject.send(.extensionSetup)
           }
         })
@@ -83,12 +84,13 @@ extension BiometricsSetupController: UIController {
 
     func skipSetup() {
       autoFill
-        .isExtensionEnabled()
+        .extensionEnabledStatePublisher()
         .first()
-        .sink { enabled in 
+        .sink { enabled in
           if enabled {
             destinationPresentationSubject.send(.finish)
-          } else {
+          }
+          else {
             destinationPresentationSubject.send(.extensionSetup)
           }
         }

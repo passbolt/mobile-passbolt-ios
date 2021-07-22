@@ -56,11 +56,6 @@ internal final class Window {
         receiveValue: { [weak self] disposition in
           guard let self = self else { return }
           switch disposition {
-          // Just clear cache - "prevents weird behavior on
-          // cached screen when signing out / switching account.
-          case .clearCache:
-            self.screenStateCache = nil
-
           // Use last state for same session after authorization.
           case .useCachedScreenState:
             if let cachedScreen: AnyUIComponent = self.screenStateCache {
@@ -79,8 +74,7 @@ internal final class Window {
           // - account selection (for unauthorized)
           case .useInitialScreenState:
             self.screenStateCache = nil
-            guard
-              self.isInitialScreenNavigationAllowed
+            guard !self.isSplashScreenDisplayed
             else { return }
 
             self.replaceRoot(
@@ -92,25 +86,16 @@ internal final class Window {
 
           // Prompt user with authorization screen if it is not already displayed.
           case let .authorize(accountLocalID):
-            guard
-              self.isAuthorizationPromptAllowed
+            guard !self.isSplashScreenDisplayed
             else { return }
-
-            // we might also ignore configuration download error screen after it becomes available
-            if self.isSplashScreenDisplayed {
-              // cache only if current root is not a splash screen
-
-            }
-            else {
-              self.screenStateCache = nil
-              assert(
-                self.screenStateCache == nil,
-                "Cannot replace screen state cache, it has to be empty"
-              )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = rootComponent
-            }
+            self.screenStateCache = nil
+            assert(
+              self.screenStateCache == nil,
+              "Cannot replace screen state cache, it has to be empty"
+            )
+            guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+            else { unreachable("Window root has to be an instance of UIComponent") }
+            self.screenStateCache = rootComponent
 
             self.replaceRoot(
               with: self.components
@@ -149,22 +134,6 @@ extension Window {
 
   private var isSplashScreenDisplayed: Bool {
     window.rootViewController is SplashScreenViewController
-  }
-
-  private var isAuthorizationPromptAllowed: Bool {
-    guard let accountSelectionNavigation = window.rootViewController as? AuthorizationNavigationViewController
-    else { return true }  // always if we don't display authorization yet
-    return accountSelectionNavigation.isAuthorizationPromptAllowed
-  }
-
-  private var isInitialScreenNavigationAllowed: Bool {
-    if let accountSelectionNavigation = window.rootViewController as? AuthorizationNavigationViewController {
-      return accountSelectionNavigation.isInitialScreenNavigationAllowed
-    }
-    else {
-      // we allow that only after authorization (but not from account selection)
-      return true
-    }
   }
 }
 

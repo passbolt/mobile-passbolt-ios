@@ -40,35 +40,31 @@ extension Biometry: Feature {
     let biometrics: Biometrics = environment.biometrics
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
 
-    func biometricsStateChangesPublisher() -> AnyPublisher<Biometrics.State, Never> {
-      Publishers.Merge(
-        Just(Void()),
-        appLifeCycle
-          .lifeCyclePublisher()
-          // Looking for sequence of didEnterBackground and didBecomeActive which indicates exiting
-          // and goind back to the application, we check biometrics state again if it has changed or not
-          .scan((Optional<Void>.none, AppLifeCycle.Transition.didBecomeActive)) { prev, next in
-            guard next == .didEnterBackground || next == .didBecomeActive
-            else { return (nil, prev.1) }
-            if prev.1 == .didEnterBackground && next == .didBecomeActive {
-              return (Void(), next)
-            }
-            else {
-              return (nil, next)
-            }
+    let biometricsStateChangesPublisher: AnyPublisher<Biometrics.State, Never> = Publishers.Merge(
+      Just(Void()),
+      appLifeCycle
+        .lifeCyclePublisher()
+        // Looking for sequence of didEnterBackground and didBecomeActive which indicates exiting
+        // and goind back to the application, we check biometrics state again if it has changed or not
+        .scan((Optional<Void>.none, AppLifeCycle.Transition.didBecomeActive)) { prev, next in
+          guard next == .didEnterBackground || next == .didBecomeActive
+          else { return (nil, prev.1) }
+          if prev.1 == .didEnterBackground && next == .didBecomeActive {
+            return (Void(), next)
           }
-          .compactMap(\.0)
-      )
-      .map {
-        biometrics
-          .checkBiometricsState()
-      }
-      .removeDuplicates()
-      .eraseToAnyPublisher()
-    }
+          else {
+            return (nil, next)
+          }
+        }
+        .compactMap(\.0)
+    )
+    .map(biometrics.checkBiometricsState)
+    .removeDuplicates()
+    .shareReplay()
+    .eraseToAnyPublisher()
 
     return Self(
-      biometricsStateChangesPublisher: biometricsStateChangesPublisher
+      biometricsStateChangesPublisher: { biometricsStateChangesPublisher }
     )
   }
 

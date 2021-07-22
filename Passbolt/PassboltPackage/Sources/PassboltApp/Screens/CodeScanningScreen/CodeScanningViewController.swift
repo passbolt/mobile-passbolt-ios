@@ -150,7 +150,16 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
             )
 
           case .failure(.canceled):
-            self?.pop(to: TransferInfoScreenViewController.self)
+            switch self?.navigationController {
+            case .some(_ as WelcomeNavigationViewController):
+              self?.popToRoot()
+
+            case .some(_ as AuthorizationNavigationViewController):
+              self?.pop(to: AccountSelectionViewController.self)
+
+            case .some, .none:
+              self?.popToRoot()
+            }
 
           case .failure(.duplicateAccount):
             self?.push(

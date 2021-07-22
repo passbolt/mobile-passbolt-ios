@@ -33,7 +33,7 @@ extension TheError {
       identifier: .databaseConnectionClosed,
       underlyingError: underlyingError,
       extensions: [
-        .databaseErrorMessage: databaseErrorMessage
+        .databaseErrorMessage: databaseErrorMessage as Any
       ]
     )
   }
@@ -46,7 +46,7 @@ extension TheError {
       identifier: .databaseConnectionError,
       underlyingError: underlyingError,
       extensions: [
-        .databaseErrorMessage: databaseErrorMessage
+        .databaseErrorMessage: databaseErrorMessage as Any
       ]
     )
   }
@@ -59,7 +59,7 @@ extension TheError {
       identifier: .databaseStatementError,
       underlyingError: underlyingError,
       extensions: [
-        .databaseErrorMessage: databaseErrorMessage
+        .databaseErrorMessage: databaseErrorMessage as Any
       ]
     )
   }
@@ -72,7 +72,7 @@ extension TheError {
       identifier: .databaseBindingError,
       underlyingError: underlyingError,
       extensions: [
-        .databaseErrorMessage: databaseErrorMessage
+        .databaseErrorMessage: databaseErrorMessage as Any
       ]
     )
   }
@@ -85,7 +85,7 @@ extension TheError {
       identifier: .databaseExecutionError,
       underlyingError: underlyingError,
       extensions: [
-        .databaseErrorMessage: databaseErrorMessage
+        .databaseErrorMessage: databaseErrorMessage as Any
       ]
     )
   }
@@ -98,7 +98,7 @@ extension TheError {
       identifier: .databaseMigrationError,
       underlyingError: underlyingError,
       extensions: [
-        .databaseErrorMessage: databaseErrorMessage
+        .databaseErrorMessage: databaseErrorMessage as Any
       ]
     )
   }

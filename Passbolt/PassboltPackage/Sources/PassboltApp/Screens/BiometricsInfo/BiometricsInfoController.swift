@@ -93,12 +93,14 @@ extension BiometricsInfoController: UIController {
     }
 
     func skipSetup() {
-      autoFill.isExtensionEnabled()
+      autoFill
+        .extensionEnabledStatePublisher()
         .first()
         .sink { enabled in
           if enabled {
             presentationDestinationSubject.send(.finish)
-          } else {
+          }
+          else {
             presentationDestinationSubject.send(.extensionSetup)
           }
         }

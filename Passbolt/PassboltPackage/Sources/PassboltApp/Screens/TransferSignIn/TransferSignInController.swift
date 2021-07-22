@@ -89,11 +89,13 @@ extension TransferSignInController: UIController {
             .sink { biometricsState in
               switch biometricsState {
               case .unavailable:
-                autoFill.isExtensionEnabled()
+                autoFill
+                  .extensionEnabledStatePublisher()
                   .sink { enabled in
                     if enabled {
                       presentationDestinationSubject.send(.extensionSetup)
-                    } else {
+                    }
+                    else {
                       presentationDestinationSubject.send(.finish)
                     }
                   }

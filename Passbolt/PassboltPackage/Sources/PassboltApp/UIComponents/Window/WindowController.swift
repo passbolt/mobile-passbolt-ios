@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import AccountSetup
 import Accounts
 import UIComponents
 
@@ -31,12 +32,11 @@ internal struct WindowController {
 
 extension WindowController {
 
-  internal enum ScreenStateDisposition {
+  internal enum ScreenStateDisposition: Equatable {
 
-    case useInitialScreenState
-    case useCachedScreenState
+    case useInitialScreenState(for: Account.LocalID?)
+    case useCachedScreenState(for: Account.LocalID)
     case authorize(Account.LocalID)
-    case clearCache
   }
 }
 extension WindowController: UIController {
@@ -48,51 +48,73 @@ extension WindowController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+
     let accountSession: AccountSession = features.instance()
 
-    let screenStateDispositionSubject: CurrentValueSubject<ScreenStateDisposition?, Never> = .init(nil)
+    let screenStateDispositionSubject: CurrentValueSubject<ScreenStateDisposition, Never> = .init(
+      .useInitialScreenState(for: .none)
+    )
 
-    accountSession
-      .statePublisher()
-      .removeDuplicates()
-      .sink { sessionState in
-        switch sessionState {
-        // signed in
-        case let .authorized(account):
-          switch screenStateDispositionSubject.value {
-          case let .authorize(promptedAccountID)
+    Publishers.Merge(
+      accountSession
+        .authorizationPromptPresentationPublisher()
+        .map { promptedAccountID -> ScreenStateDisposition in
+          .authorize(promptedAccountID)
+        },
+      accountSession
+        .statePublisher()
+        .removeDuplicates()
+        .dropFirst()
+        .compactMap { sessionState -> ScreenStateDisposition? in
+          switch (sessionState, screenStateDispositionSubject.value) {
+          // signed in
+          case let (.authorized(account), .authorize(promptedAccountID))
           where promptedAccountID == account.localID:
-            screenStateDispositionSubject
-              .send(.useCachedScreenState)
+            return .useCachedScreenState(for: account.localID)
 
-          case _:
-            screenStateDispositionSubject
-              .send(.useInitialScreenState)
+          case let (.authorized(account), .useInitialScreenState(accountID))
+          where accountID == account.localID:
+            return .useInitialScreenState(for: accountID)
+
+          case let (.authorized(account), .useInitialScreenState),
+            let (.authorized(account), .authorize):
+            return .useInitialScreenState(for: account.localID)
+
+          case let (.authorized(account), .useCachedScreenState(accountID))
+          where account.localID == accountID:
+            return .useInitialScreenState(for: accountID)
+
+          case (.authorized, .useCachedScreenState):
+            return .none
+
+          case (.authorizationRequired, _):
+            return .none
+
+          case (.none, .authorize), (.none, .useInitialScreenState(.none)):
+            return .none
+
+          case (.none, .useInitialScreenState(.some)),
+            (.none, .useCachedScreenState):
+            return .useInitialScreenState(for: .none)
           }
-        // signed out
-        case .none:
-          screenStateDispositionSubject
-            .send(.useInitialScreenState)
-
-        case _:
-          return
         }
-        screenStateDispositionSubject
-          .send(.none)
+    )
+    .filter { [unowned features] disposition in
+      switch disposition {
+      case .authorize, .useCachedScreenState:
+        return true
+      case .useInitialScreenState:
+        // We are blocking automatic screen changes while
+        // account transfer is in progress (from QR code scanning
+        // up to successfull authorization)
+        return !features.isLoaded(AccountTransfer.self)
       }
-      .store(in: cancellables)
-
-    accountSession
-      .authorizationPromptPresentationPublisher()
-      .sink { promptedAccountID in
-        screenStateDispositionSubject
-          .send(.authorize(promptedAccountID))
-      }
-      .store(in: cancellables)
+    }
+    .subscribe(screenStateDispositionSubject)
+    .store(in: cancellables)
 
     func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
       screenStateDispositionSubject
-        .compactMap { $0 }  // remove nils
         .eraseToAnyPublisher()
     }
 

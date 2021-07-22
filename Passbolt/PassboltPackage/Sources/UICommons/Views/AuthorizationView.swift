@@ -86,6 +86,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     mut(biometricButton) {
       .combined(
+        .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .subview(of: biometricButtonContainer),
         .contentMode(.scaleAspectFit),
         .tintColor(dynamic: .primaryBlue),
@@ -202,6 +203,7 @@ public final class AuthorizationView: KeyboardAwareView {
   private func setupBottomButtons() {
     mut(signInButton) {
       .combined(
+        .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .primaryStyle(),
         .text(localized: "authorization.button.title")
       )
@@ -209,6 +211,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     mut(forgotButton) {
       .combined(
+        .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .linkStyle(),
         .text(localized: "authorization.forgot.passphrase.button.title")
       )
