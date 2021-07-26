@@ -29,6 +29,7 @@ import struct Foundation.URLError
 import struct Foundation.URLRequest
 import class Foundation.URLResponse
 import class Foundation.URLSession
+import class Foundation.URLSessionConfiguration
 
 public struct Networking: EnvironmentElement {
 
@@ -64,12 +65,32 @@ extension Networking {
 
 extension Networking {
 
-  public static func foundation(_ urlSession: URLSession = .init(configuration: .ephemeral)) -> Self {
+  public static func foundation(
+    _ urlSession: URLSession = {
+      let urlSessionConfiguration: URLSessionConfiguration = .default
+      urlSessionConfiguration.networkServiceType = .responsiveData
+      urlSessionConfiguration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+      urlSessionConfiguration.httpCookieAcceptPolicy = .never
+      urlSessionConfiguration.httpShouldSetCookies = false
+      urlSessionConfiguration.httpCookieStorage = .none
+      urlSessionConfiguration.allowsCellularAccess = true
+      urlSessionConfiguration.allowsConstrainedNetworkAccess = true
+      urlSessionConfiguration.allowsExpensiveNetworkAccess = true
+      urlSessionConfiguration.httpShouldUsePipelining = true
+      urlSessionConfiguration.timeoutIntervalForResource = 10
+      urlSessionConfiguration.timeoutIntervalForRequest = 10
+      urlSessionConfiguration.waitsForConnectivity = true
+      return URLSession(configuration: urlSessionConfiguration)
+    }()
+  ) -> Self {
+
     let urlCache: URLCache = .init(
       memoryCapacity: 25_600,  // 25 MB ram
       diskCapacity: 307_200  // 300 MB disk
     )
+
     urlSession.configuration.urlCache = urlCache
+
     return Self(
       execute: { request, useCache in
         let urlRequest: URLRequest? = request.urlRequest(
