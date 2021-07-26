@@ -99,7 +99,7 @@ extension AuthorizationController: UIController {
       #warning("TODO: switch to account settings to provide data - remove context")
       return Publishers.CombineLatest(
         biometry
-          .biometricsStateChangesPublisher(),
+          .biometricsStatePublisher(),
         Just(accountWithProfile)
       )
       .map { biometricsState, accountWithProfile in

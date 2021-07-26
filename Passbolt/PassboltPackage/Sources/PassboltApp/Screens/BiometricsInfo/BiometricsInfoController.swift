@@ -72,7 +72,7 @@ extension BiometricsInfoController: UIController {
           else { return Empty().eraseToAnyPublisher() }
           return
             biometry
-            .biometricsStateChangesPublisher()
+            .biometricsStatePublisher()
             .dropFirst()
             .map { (state: Biometrics.State) -> Bool in
               switch state {

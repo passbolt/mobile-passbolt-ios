@@ -28,7 +28,7 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class BiometryTests: TestCase {
 
-  func test_biometricsStateChangesPublisher_publishesBiometricsState_initially() {
+  func test_biometricsStatePublisher_publishesBiometricsState_initially() {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
@@ -36,7 +36,7 @@ final class BiometryTests: TestCase {
 
     var result: Biometrics.State!
     feature
-      .biometricsStateChangesPublisher()
+      .biometricsStatePublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
@@ -44,7 +44,7 @@ final class BiometryTests: TestCase {
   }
 
   func
-    test_biometricsStateChangesPublisher_publishesBiometricsStateAgain_afterPickingApplicationFromBackground_whenStateDoesNotChange()
+    test_biometricsStatePublisher_publishesBiometricsStateAgain_afterPickingApplicationFromBackground_whenStateDoesNotChange()
   {
     var biometricsState: Biometrics.State = .configuredTouchID
     environment.biometrics.checkBiometricsState = always(biometricsState)
@@ -65,7 +65,7 @@ final class BiometryTests: TestCase {
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
     feature
-      .biometricsStateChangesPublisher()
+      .biometricsStatePublisher()
       .sink {
         result.append($0)
         guard result.count == 2 else { return }
@@ -77,7 +77,7 @@ final class BiometryTests: TestCase {
   }
 
   func
-    test_biometricsStateChangesPublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges()
+    test_biometricsStatePublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges()
   {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(
@@ -96,7 +96,7 @@ final class BiometryTests: TestCase {
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
     feature
-      .biometricsStateChangesPublisher()
+      .biometricsStatePublisher()
       .sink {
         result.append($0)
         guard result.count == 1 else { return }
@@ -107,7 +107,7 @@ final class BiometryTests: TestCase {
     XCTAssertEqual(result, [.configuredTouchID])
   }
 
-  func test_biometricsStateChangesPublisher_publishesConfiguredTouchID_whenBiometricsStateIsConfiguredTouchID() {
+  func test_biometricsStatePublisher_publishesConfiguredTouchID_whenBiometricsStateIsConfiguredTouchID() {
     environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
@@ -115,14 +115,14 @@ final class BiometryTests: TestCase {
 
     var result: Biometrics.State!
     feature
-      .biometricsStateChangesPublisher()
+      .biometricsStatePublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
     XCTAssertEqual(result, .configuredTouchID)
   }
 
-  func test_biometricsStateChangesPublisher_publishesConfiguredFaceID_whenBiometricsStateIsConfiguredFaceID() {
+  func test_biometricsStatePublisher_publishesConfiguredFaceID_whenBiometricsStateIsConfiguredFaceID() {
     environment.biometrics.checkBiometricsState = always(.configuredFaceID)
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
@@ -130,7 +130,7 @@ final class BiometryTests: TestCase {
 
     var result: Biometrics.State!
     feature
-      .biometricsStateChangesPublisher()
+      .biometricsStatePublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 

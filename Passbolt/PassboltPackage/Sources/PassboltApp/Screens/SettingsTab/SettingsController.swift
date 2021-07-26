@@ -72,7 +72,7 @@ extension SettingsController: UIController {
 
     func biometricsStatePublisher() -> AnyPublisher<BiometricsState, Never> {
       Publishers.CombineLatest(
-        biometry.biometricsStateChangesPublisher(),
+        biometry.biometricsStatePublisher(),
         accountSettings.accountProfilePublisher()
       )
       .map { biometryState, accountProfile -> BiometricsState in

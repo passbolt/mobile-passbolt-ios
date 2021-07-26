@@ -140,7 +140,6 @@ extension AccountTransfer: Feature {
         }
       }
       .collectErrorLog(using: diagnostics)
-      .shareReplay()
       .eraseToAnyPublisher()
 
     let accountDetailsPublisher: AnyPublisher<AccountDetails, TheError> =
@@ -160,10 +159,18 @@ extension AccountTransfer: Feature {
       .shareReplay()
       .eraseToAnyPublisher()
 
-    let mediaPublisher: AnyPublisher<Data, TheError> =
-      transferState
+    let mediaPublisher: AnyPublisher<Data, TheError>
+      = transferState
       .compactMap { $0.profile }
-      .map { networkClient.mediaDownload.make(using: .init(urlString: $0.avatarImageURL)) }
+      .map {
+        networkClient
+          .mediaDownload
+          .make(
+            using: .init(
+              urlString: $0.avatarImageURL
+            )
+          )
+      }
       .switchToLatest()
       .shareReplay()
       .eraseToAnyPublisher()

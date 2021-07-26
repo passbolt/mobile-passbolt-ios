@@ -288,7 +288,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry])
     features.use(accounts)
     features.use(accountSession)
-    biometry.biometricsStateChangesPublisher = always(Just(.unavailable).eraseToAnyPublisher())
+    biometry.biometricsStatePublisher = always(Just(.unavailable).eraseToAnyPublisher())
     features.use(biometry)
 
     let controller: AuthorizationController = testInstance(
@@ -311,7 +311,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithoutBiometry])
     features.use(accounts)
     features.use(accountSession)
-    biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
 
     let controller: AuthorizationController = testInstance(
@@ -334,7 +334,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry])
     features.use(accounts)
     features.use(accountSession)
-    biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
 
     let controller: AuthorizationController = testInstance(
@@ -357,7 +357,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry])
     features.use(accounts)
     features.use(accountSession)
-    biometry.biometricsStateChangesPublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
+    biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
 
     let controller: AuthorizationController = testInstance(

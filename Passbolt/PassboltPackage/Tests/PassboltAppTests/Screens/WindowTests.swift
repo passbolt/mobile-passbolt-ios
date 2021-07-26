@@ -46,9 +46,8 @@ final class WindowTests: TestCase {
   }
 
   func test_screenStateDispositionPublisher_publishesInitialScreen_initially() {
-    let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
-      accountSessionStateSubject
+      CurrentValueSubject<AccountSession.State, Never>(.none(lastUsed: .none))
         .eraseToAnyPublisher()
     )
     accountSession.authorizationPromptPresentationPublisher = always(
@@ -70,9 +69,8 @@ final class WindowTests: TestCase {
   }
 
   func test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishes() {
-    let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
-      accountSessionStateSubject
+      Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
     )
     let authorizationPromptPresentationSubject: PassthroughSubject<Account.LocalID, Never> = .init()
@@ -101,9 +99,8 @@ final class WindowTests: TestCase {
     test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsLoaded()
   {
     features.use(AccountTransfer.placeholder)
-    let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
-      accountSessionStateSubject
+      Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
     )
     let authorizationPromptPresentationSubject: PassthroughSubject<Account.LocalID, Never> = .init()

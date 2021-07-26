@@ -84,7 +84,7 @@ extension TransferSignInController: UIController {
         switch completion {
         case .finished:
           biometrics
-            .biometricsStateChangesPublisher()
+            .biometricsStatePublisher()
             .first()
             .sink { biometricsState in
               switch biometricsState {
