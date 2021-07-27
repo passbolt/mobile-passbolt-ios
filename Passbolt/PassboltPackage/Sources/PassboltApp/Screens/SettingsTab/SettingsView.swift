@@ -59,7 +59,10 @@ internal final class SettingsView: ScrolledStackView {
       .combined(
         .userInteractionEnabled(false),
         .subview(of: biometricsToggle),
-        .edges(equalTo: biometricsToggle)
+        .edges(
+          equalTo: biometricsToggle,
+          insets: .init(top: 0, left: 0, bottom: 0, right: -3)
+        )
       )
     }
 
