@@ -21,18 +21,11 @@
 // @since         v1.0
 //
 
-import Commons
+import NetworkClient
 
-import struct Foundation.Data
+extension CommonResponseHeader {
 
-public enum ArmoredPGPPrivateKeyTag {}
-public typealias ArmoredPGPPrivateKey = Tagged<String, ArmoredPGPPrivateKeyTag>
-
-public enum ArmoredPGPPublicKeyTag {}
-public typealias ArmoredPGPPublicKey = Tagged<String, ArmoredPGPPublicKeyTag>
-
-public enum ArmoredPGPMessageTag {}
-public typealias ArmoredPGPMessage = Tagged<String, ArmoredPGPMessageTag>
-
-public enum ArmoredRSAPublicKeyTag {}
-public typealias ArmoredRSAPublicKey = Tagged<String, ArmoredRSAPublicKeyTag>
+  public static func mock(message: String = "") -> Self {
+    .init(id: UUID().uuidString, message: "")
+  }
+}

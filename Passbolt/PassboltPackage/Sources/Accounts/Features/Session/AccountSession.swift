@@ -25,6 +25,8 @@ import Crypto
 import Features
 import NetworkClient
 
+import class Foundation.NSRecursiveLock
+
 public struct AccountSession {
   // Publishes current account and associated network session token.
   public var statePublisher: () -> AnyPublisher<State, Never>
@@ -34,7 +36,7 @@ public struct AccountSession {
   // is required and cannot be handled automatically (passphrase cache is expired)
   public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account.LocalID, Never>
   // Manual trigger for authorization prompt
-  public var requestAuthorization: () -> Void
+  public var requestAuthorizationPrompt: () -> Void
   // Closes current session and removes associated temporary data.
   // Not required for account switch, in that case use `authorize` with different account.
   public var close: () -> Void
@@ -51,7 +53,7 @@ extension AccountSession {
 
   public enum AuthorizationMethod {
     // for unstored accounts
-    case adHoc(Passphrase, ArmoredPrivateKey)
+    case adHoc(Passphrase, ArmoredPGPPrivateKey)
     // for stored account
     case passphrase(Passphrase)
     // for account stored with passphrase
@@ -73,24 +75,52 @@ extension AccountSession: Feature {
     let passphraseCache: PassphraseCache = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
     let networkClient: NetworkClient = features.instance()
-    let signIn: SignIn = features.instance()
-    var signOutCancellable: AnyCancellable?
+    let networkSession: NetworkSession = features.instance()
 
-    _ = signOutCancellable  // Silence warning
+    let authorizationCancellableLock: NSRecursiveLock = .init()
+    // swift-format-ignore: NoLeadingUnderscores
+    var _authorizationCancellable: AnyCancellable?
+    var authorizationCancellable: AnyCancellable? {
+      get {
+        authorizationCancellableLock.lock()
+        defer { authorizationCancellableLock.unlock() }
+        return _authorizationCancellable
+      }
+      set {
+        authorizationCancellableLock.lock()
+        _authorizationCancellable = newValue
+        authorizationCancellableLock.unlock()
+      }
+    }
+    let signOutCancellableLock: NSRecursiveLock = .init()
+    // swift-format-ignore: NoLeadingUnderscores
+    var _signOutCancellable: AnyCancellable?
+    var signOutCancellable: AnyCancellable? {
+      get {
+        signOutCancellableLock.lock()
+        defer { signOutCancellableLock.unlock() }
+        return _signOutCancellable
+      }
+      set {
+        signOutCancellableLock.lock()
+        _signOutCancellable = newValue
+        signOutCancellableLock.unlock()
+      }
+    }
 
-    let stateSubject: CurrentValueSubject<State, Never> = .init(
+    let sessionStateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
-    let statePublisher: AnyPublisher<State, Never> =
-      stateSubject
+    let sessionStatePublisher: AnyPublisher<State, Never> =
+      sessionStateSubject
       .removeDuplicates()
       .eraseToAnyPublisher()
 
     let authorizationPromptPresentationSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
-    let sessionSubject: CurrentValueSubject<SessionTokens?, Never> = .init(nil)
-
-    statePublisher
+    // connect current account base url / domain with network client
+    // to perform requests in correct contexts
+    sessionStatePublisher
       .map { state -> NetworkSessionVariable? in
         switch state {
         case let .authorized(account), let .authorizationRequired(account):
@@ -106,7 +136,7 @@ extension AccountSession: Feature {
       .store(in: cancellables)
 
     // bind passphrase cache expiration with authorizationRequired state change
-    statePublisher
+    sessionStatePublisher
       .compactMap { state -> AnyPublisher<State, Never>? in
         switch state {
         case let .authorized(account):
@@ -129,23 +159,36 @@ extension AccountSession: Feature {
         }
       }
       .switchToLatest()
-      .sink { [weak stateSubject] newState in
+      .sink { [weak sessionStateSubject] newState in
         // it will only publish authorizationRequired state
-        stateSubject?.send(newState)
+        sessionStateSubject?.send(newState)
       }
       .store(in: cancellables)
 
+    // request authorization prompt when going back to the application
+    // from the background with active session (includes authorizationRequired)
+    // when going to background cancel ongoing authorization if any
     appLifeCycle
       .lifeCyclePublisher()
       .compactMap { transition -> Account.LocalID? in
-        guard case .willEnterForeground = transition
-        else { return nil }
-        switch stateSubject.value {
-        case let .authorizationRequired(account), let .authorized(account):
-          return account.localID
+        switch transition {
+        case .willEnterForeground:
+          switch sessionStateSubject.value {
+          case let .authorizationRequired(account), let .authorized(account):
+            return account.localID  // request authorization prompt for that account
 
-        case .none:
-          return nil
+          case .none:
+            return nil  // do nothing
+          }
+
+        case .didEnterBackground:
+          // cancel previous authorization if any
+          // we should not authorize in background
+          authorizationCancellable = nil
+          return nil  // do nothing
+
+        case _:
+          return nil  // do nothing
         }
       }
       .sink { accountID in
@@ -153,47 +196,55 @@ extension AccountSession: Feature {
       }
       .store(in: cancellables)
 
+    // Clear current session data without changing session state
+    // as preparation for other session relates event (sign out or account switch)
+    // We are doing it separately from closeSession to avoid
+    // session state change triggers.
     // swift-format-ignore: NoLeadingUnderscores
-    func _close(using features: FeatureFactory) {
+    let _clearCurrentSession: () -> Void = { [unowned features] in
+      passphraseCache.clear()
       features.unload(AccountDatabase.self)
 
-      switch stateSubject.value {
-      case let .authorized(account):
-
-        if let refreshToken: String = sessionSubject.value?.refreshToken {
-          signOutCancellable = networkClient.signOutRequest.make(
-            using: .init(
-              refreshToken: refreshToken
-            )
-          )
+      switch sessionStateSubject.value {
+      case .authorized, .authorizationRequired:
+        signOutCancellable =
+          networkSession
+          .closeSession()
+          .collectErrorLog(using: diagnostics)
           .ignoreOutput()
-          .sink { _ in }
-        }
-
-        stateSubject.send(.none(lastUsed: account))
-        sessionSubject.send(nil)
-        passphraseCache.clear()
-      case let .authorizationRequired(account):
-        stateSubject.send(.none(lastUsed: account))
-        sessionSubject.send(nil)
+          .sinkDrop()
 
       case .none:
         break  // do nothing
       }
     }
-    let closeSession: () -> Void = { [unowned features] in
-      _close(using: features)
+    // Close current session and change session state (sign out)
+    let closeSession: () -> Void = {
+      _clearCurrentSession()
+
+      // we provide none for last used to avoid skipping
+      // account list for given account
+      // when navigating to initial screen again
+      // that account will be still used as last used
+      // when launching application again anyway
+      sessionStateSubject.send(.none(lastUsed: .none))
     }
 
     func authorize(
       account: Account,
       authorizationMethod: AuthorizationMethod
     ) -> AnyPublisher<Void, TheError> {
+      // cancel previous authorization if any
+      // there can't be more than a single ongoing authorization
+      authorizationCancellable = nil
       #warning("TODO: [PAS-154] verify if token is expired and reuse or use session refresh if needed")
+      #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
 
       // sign in process
+
+      // prepare passphrase and armored private key
       let passphrase: Passphrase
-      let armoredPrivateKey: ArmoredPrivateKey
+      let armoredPrivateKey: ArmoredPGPPrivateKey
       switch authorizationMethod {
       case let .adHoc(pass, privateKey):
         passphrase = pass
@@ -233,106 +284,77 @@ extension AccountSession: Feature {
         }
       }
 
-      // Authorization required for a new / switched account
-      stateSubject.send(.authorizationRequired(account))
+      switch sessionStateSubject.value {
+      case let .authorized(currentAccount)
+      where currentAccount.localID != account.localID,
+        let .authorizationRequired(currentAccount)
+      where currentAccount.localID != account.localID:
+        diagnostics.debugLog("Signing out \(currentAccount.localID)")
+        // signout from current account on switching accounts
+        _clearCurrentSession()
+      case _:
+        break
+      }
 
-      #warning("TODO: Determine if session should be deleted (sessionSubject.send(nil)")
+      diagnostics.debugLog("Signing in \(account.localID)")
 
-      #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
-      let method: SignIn.Method = .challenge
-      //      let method: SignIn.Method
-      //      if let token: String = sessionSubject.value?.refreshToken {
-      //        method = .refreshToken(token)
-      //      }
-      //      else {
-      //        method = .challenge
-      //      }
+      // since we are trying to sign in we change current session state
+      // to a new one with authorizationRequired state to indicate
+      // that we are signing in and to change network client base url / domain
+      sessionStateSubject.send(.authorizationRequired(account))
 
-      let tokensPublisher: AnyPublisher<NetworkClient.Tokens?, Never> =
-        sessionSubject
-        .eraseToAnyPublisher()
-        .map { (sessionTokens: SessionTokens?) -> AnyPublisher<SessionTokens?, Never> in
-          #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
-          let method: SignIn.Method = .challenge
-          //          let method: SignIn.Method
-          //
-          //          switch sessionTokens {
-          //          case let .some(tokens):
-          //            method = .refreshToken(tokens.refreshToken)
-          //
-          //          case .none:
-          //            method = .challenge
-          //          }
+      // to ensure that only single authorization is in progress
+      // we delegate result to the additional subject
+      // and control cancellation internally
+      let signInResultSubject: PassthroughSubject<Void, TheError> = .init()
 
-          let signInPublisher: AnyPublisher<SessionTokens?, Never> = signIn.signIn(
-            account.userID,
-            account.domain,
-            armoredPrivateKey,
-            passphrase,
-            method
-          )
-          .map { sessionTokens -> SessionTokens? in
-            sessionTokens  // switching type to optional
+      authorizationCancellable =
+        networkSession
+        .createSession(
+          account.userID,
+          account.domain,
+          armoredPrivateKey,
+          passphrase
+        )
+        .handleEvents(
+          receiveOutput: { sessionTokens in
+            accountsDataStore.storeLastUsedAccount(account.localID)
+            passphraseCache
+              .store(
+                passphrase,
+                account.localID,
+                .init(
+                  timeIntervalSince1970: .init(time.timestamp())
+                    + PassphraseCache.defaultExpirationTimeInterval
+                )
+              )
+
+            sessionStateSubject
+              .send(
+                .authorized(account)
+              )
           }
-          .collectErrorLog(using: diagnostics)
-          .replaceError(with: nil)
-          .eraseToAnyPublisher()
+        )
+        .mapToVoid()
+        .subscribe(signInResultSubject)
 
-          return signInPublisher
-        }
-        .switchToLatest()
-        .map { (sessionTokens: SessionTokens?) -> NetworkClient.Tokens? in
-          guard let sessionTokens = sessionTokens else {
-            return nil
-          }
-
-          return NetworkClient.Tokens(
-            accessToken: sessionTokens.accessToken.rawValue,
-            isExpired: { sessionTokens.accessToken.isExpired(timestamp: time.timestamp()) },
-            refreshToken: sessionTokens.refreshToken
-          )
-        }
-        .setFailureType(to: Never.self)
+      return
+        signInResultSubject
+        .handleEvents(receiveCancel: {
+          // When we cancel authorization we have to
+          // cancel internal authorization publisher as well
+          authorizationCancellable = nil
+        })
         .eraseToAnyPublisher()
-
-      networkClient.setTokensPublisher(tokensPublisher)
-
-      return signIn.signIn(
-        account.userID,
-        account.domain,
-        armoredPrivateKey,
-        passphrase,
-        method
-      )
-      .handleEvents(receiveOutput: { sessionTokens in
-        accountsDataStore.storeLastUsedAccount(account.localID)
-        passphraseCache
-          .store(
-            passphrase,
-            account.localID,
-            .init(
-              timeIntervalSince1970: .init(time.timestamp())
-                + PassphraseCache.defaultExpirationTimeInterval
-            )
-          )
-
-        sessionSubject.send(sessionTokens)
-
-        stateSubject
-          .send(
-            .authorized(account)
-          )
-      })
-      .map { _ in Void() }
-      .eraseToAnyPublisher()
     }
 
     func authorizationPromptPresentationPublisher() -> AnyPublisher<Account.LocalID, Never> {
-      authorizationPromptPresentationSubject.eraseToAnyPublisher()
+      authorizationPromptPresentationSubject
+        .eraseToAnyPublisher()
     }
 
     func requestAuthorization() {
-      switch stateSubject.value {
+      switch sessionStateSubject.value {
       case let .authorized(account):
         passphraseCache.clear()
         authorizationPromptPresentationSubject.send(account.localID)
@@ -344,10 +366,10 @@ extension AccountSession: Feature {
     }
 
     return Self(
-      statePublisher: { statePublisher },
+      statePublisher: { sessionStatePublisher },
       authorize: authorize(account:authorizationMethod:),
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
-      requestAuthorization: requestAuthorization,
+      requestAuthorizationPrompt: requestAuthorization,
       close: closeSession
     )
   }
@@ -361,7 +383,7 @@ extension AccountSession {
       statePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
       authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      requestAuthorization: Commons.placeholder("You have to provide mocks for used methods"),
+      requestAuthorizationPrompt: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

@@ -86,7 +86,12 @@ extension NetworkClient: Feature {
           .eraseToAnyPublisher()
         }
         else {
-          #warning("TODO - PAS-160 - trigger session refresh if expired or when token is missing")
+          #warning("""
+          TODO: [PAS-160]
+          - trigger session refresh if expired or when token is missing
+          we might however react on specific error
+          in order to trigger it from given context - to verify
+          """)
           return Fail<AuthorizedSessionVariable, TheError>(error: .missingSession())
             .eraseToAnyPublisher()
         }

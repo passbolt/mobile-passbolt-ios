@@ -34,7 +34,7 @@ internal struct AccountTransferAccount {
 
   internal var userID: String
   internal var fingerprint: String
-  internal var armoredKey: ArmoredPrivateKey
+  internal var armoredKey: ArmoredPGPPrivateKey
 }
 
 extension AccountTransferAccount {
@@ -52,10 +52,12 @@ extension AccountTransferAccount {
     guard verificationHash == computedHash
     else {
       return .failure(
-        .accountTransferScanningError(context: "account-decoding-invalid-hash")
-          .appending(
-            logMessage: "Data validation fail - invalid account data hash: \(computedHash)"
-          )
+        .accountTransferScanningError(
+          context: "account-decoding-invalid-hash"
+        )
+        .appending(
+          logMessage: "Data validation fail - invalid account data hash"
+        )
       )
     }
     let jsonDecoder: JSONDecoder = .init()

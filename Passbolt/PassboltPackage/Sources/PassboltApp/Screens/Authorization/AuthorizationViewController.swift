@@ -44,6 +44,11 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
   internal var components: UIComponentFactory
 
   private let controller: Controller
+  // sign in can be made only if it is nil
+  private var signInCancellable: AnyCancellable?
+    // initial value prevents sign in until setup completes
+    = .init { /* NOP */ }
+  private let autoLoginPromptSubject: PassthroughSubject<Never, Never> = .init()
 
   internal init(
     using controller: Controller,
@@ -67,83 +72,79 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
   }
 
   func activate() {
-    // If biometrics auth is available prompt it on screen presentation.
-    controller
-      .biometricStatePublisher()
-      .first()
-      .delay(for: 1, scheduler: RunLoop.main)
-      .receive(on: RunLoop.main)
-      .map { [unowned self] state -> AnyPublisher<Void, Never> in
-        switch state {
-        case .unavailable:
-          return Empty<Void, Never>()
-            .eraseToAnyPublisher()
-
-        case .faceID, .touchID:
-          return self.controller
-            .biometricSignIn()
-            .receive(on: RunLoop.main)
-            .handleEvents(
-              receiveSubscription: { [weak self] _ in
-                self?.present(overlay: LoaderOverlayView())
-              },
-              receiveCompletion: { [weak self] completion in
-                self?.dismissOverlay()
-                guard case .failure = completion else { return }
-                self?.present(
-                  snackbar: Mutation<UICommons.View>
-                    .snackBarErrorMessage(localized: "sign.in.error.message")
-                    .instantiate(),
-                  hideAfter: 2
-                )
-              }
-            )
-            .replaceError(with: Void())
-            .eraseToAnyPublisher()
-        }
-      }
-      .switchToLatest()
-      .sink { /* */  }
+    autoLoginPromptSubject
+      .delay(for: 0.05, scheduler: RunLoop.main)
+      .sink(receiveCompletion: { [unowned self]  _ in
+        guard signInCancellable == nil
+        else { return }
+        self.signInCancellable
+          = self.controller
+          .biometricSignIn()
+          .receive(on: RunLoop.main)
+          .handleEvents(
+            receiveSubscription: { [weak self] _ in
+              self?.present(overlay: LoaderOverlayView())
+            },
+            receiveCompletion: { [weak self] completion in
+              defer { self?.signInCancellable = nil }
+              self?.dismissOverlay()
+              guard case let .failure(error) = completion, error.identifier != .canceled
+              else { return }
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(localized: "sign.in.error.message")
+                  .instantiate(),
+                hideAfter: 2
+              )
+            }
+          )
+          .sinkDrop()
+      })
       .store(in: cancellables)
   }
 
-  private func setupSubscriptions() {
-    controller
-      .accountProfilePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] accountProfile in
-        self?.contentView.applyOn(name: .text("\(accountProfile.label)"))
-        self?.contentView.applyOn(email: .text(accountProfile.username))
-        self?.contentView.applyOn(url: .text(accountProfile.domain))
-      }
-      .store(in: cancellables)
+  func deactivate() {
+    signInCancellable = nil
+  }
 
-    controller
-      .biometricStatePublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] state in
-        switch state {
-        case .unavailable:
-          self?.contentView.applyOn(
-            biometricButtonContainer: .hidden(true)
-          )
-        case .faceID:
-          self?.contentView.applyOn(
-            biometricButton: .image(symbol: .faceID)
-          )
-          self?.contentView.applyOn(
-            biometricButtonContainer: .hidden(false)
-          )
-        case .touchID:
-          self?.contentView.applyOn(
-            biometricButton: .image(symbol: .touchID)
-          )
-          self?.contentView.applyOn(
-            biometricButtonContainer: .hidden(false)
-          )
-        }
+  private func setupSubscriptions() {
+    Publishers.CombineLatest(
+      controller
+        .accountProfilePublisher(),
+      controller
+        .biometricStatePublisher()
+    )
+    .first()
+    .receive(on: RunLoop.main)
+    .sink { [weak self] accountProfile, biometricsState in
+      self?.contentView.applyOn(name: .text("\(accountProfile.label)"))
+      self?.contentView.applyOn(email: .text(accountProfile.username))
+      self?.contentView.applyOn(url: .text(accountProfile.domain))
+      switch biometricsState {
+      case .unavailable:
+        self?.contentView.applyOn(
+          biometricButtonContainer: .hidden(true)
+        )
+      case .faceID:
+        self?.contentView.applyOn(
+          biometricButton: .image(symbol: .faceID)
+        )
+        self?.contentView.applyOn(
+          biometricButtonContainer: .hidden(false)
+        )
+        self?.autoLoginPromptSubject.send(completion: .finished)
+      case .touchID:
+        self?.contentView.applyOn(
+          biometricButton: .image(symbol: .touchID)
+        )
+        self?.contentView.applyOn(
+          biometricButtonContainer: .hidden(false)
+        )
+        self?.autoLoginPromptSubject.send(completion: .finished)
       }
-      .store(in: cancellables)
+      self?.signInCancellable = nil // unlock sign in
+    }
+    .store(in: cancellables)
 
     controller
       .accountAvatarPublisher()
@@ -206,16 +207,22 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
 
     contentView
       .signInTapPublisher
-      .map { [unowned self] () -> AnyPublisher<Void, Never> in
-        self.controller.signIn()
+      .sink { [unowned self] in
+        guard signInCancellable == nil
+        else { return }
+        self.signInCancellable
+          = self.controller
+          .signIn()
           .receive(on: RunLoop.main)
           .handleEvents(
             receiveSubscription: { [weak self] _ in
               self?.present(overlay: LoaderOverlayView())
             },
             receiveCompletion: { [weak self] completion in
+              defer { self?.signInCancellable = nil }
               self?.dismissOverlay()
-              guard case .failure = completion else { return }
+              guard case let .failure(error) = completion, error.identifier != .canceled
+              else { return }
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(localized: "sign.in.error.message")
@@ -224,17 +231,17 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               )
             }
           )
-          .replaceError(with: Void())
-          .eraseToAnyPublisher()
+          .sinkDrop()
       }
-      .switchToLatest()
-      .sink { /* */  }
       .store(in: cancellables)
 
     contentView
       .biometricTapPublisher
-      .map { [unowned self] () -> AnyPublisher<Void, Never> in
-        self.controller
+      .sink { [unowned self] in
+        guard signInCancellable == nil
+        else { return }
+        self.signInCancellable
+          = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
           .handleEvents(
@@ -242,8 +249,10 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               self?.present(overlay: LoaderOverlayView())
             },
             receiveCompletion: { [weak self] completion in
+              defer { self?.signInCancellable = nil }
               self?.dismissOverlay()
-              guard case let .failure(error) = completion, error.identifier != .canceled else { return }
+              guard case let .failure(error) = completion, error.identifier != .canceled
+              else { return }
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(localized: "sign.in.error.message")
@@ -252,18 +261,16 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               )
             }
           )
-          .replaceError(with: Void())
-          .eraseToAnyPublisher()
+          .sinkDrop()
       }
-      .switchToLatest()
-      .sink { /* */  }
       .store(in: cancellables)
 
     contentView
       .forgotTapPublisher
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.controller.presentForgotPassphraseAlert()
+        self?.controller
+          .presentForgotPassphraseAlert()
       }
       .store(in: cancellables)
 

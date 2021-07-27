@@ -54,7 +54,8 @@ extension FeatureConfig: Feature {
     var all: Dictionary<ObjectIdentifier, FeatureConfigItem> = .init()
     let lock: NSRecursiveLock = .init()
 
-    accountSession.statePublisher()
+    accountSession
+      .statePublisher()
       .sink { state in
         lock.lock()
         defer { lock.unlock() }

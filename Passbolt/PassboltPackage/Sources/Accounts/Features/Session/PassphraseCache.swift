@@ -56,7 +56,7 @@ extension PassphraseCache {
   internal struct Entry {
 
     internal var accountID: Account.LocalID
-    internal var value: String
+    internal var value: Passphrase
     internal var expirationDate: Date
   }
 }
@@ -73,7 +73,7 @@ extension PassphraseCache: Feature {
 
     let diagnostics: Diagnostics = features.instance()
 
-    let currentPassphraseSubject: CurrentValueSubject<Entry?, Never> = .init(nil)
+    let currentPassphraseEntrySubject: CurrentValueSubject<Entry?, Never> = .init(nil)
     let lock: NSRecursiveLock = .init()
     var timer: DispatchedTimer?
 
@@ -92,50 +92,44 @@ extension PassphraseCache: Feature {
       }
       .store(in: cancellables)
 
-    let currentPassphrasePublisher: AnyPublisher<Entry?, Never> =
-      currentPassphraseSubject
-      .map { passphrase -> Entry? in
-        guard let pass = passphrase
-        else { return nil }
-        guard Int(pass.expirationDate.timeIntervalSince1970) > time.timestamp()
-        else {
-          currentPassphraseSubject.send(nil)
-          return nil
-        }
-
-        return pass
-      }
-      .eraseToAnyPublisher()
-
     func clearCache() {
       diagnostics.debugLog("Clearing passphrase cache")
       lock.lock()
       timer?.cancel()
       timer = nil
       lock.unlock()
-      currentPassphraseSubject.send(nil)
+      currentPassphraseEntrySubject.send(nil)
     }
 
-    func createPassphrasePublisher(
-      accountID: Account.LocalID
+    func passphrasePublisher(
+      for accountID: Account.LocalID
     ) -> AnyPublisher<Passphrase?, Never> {
-      currentPassphrasePublisher
+      currentPassphraseEntrySubject
         .map { passphrase -> AnyPublisher<Passphrase?, Never> in
-          guard let pass = passphrase
+          guard let passphrase = passphrase
           else {
             return Just(nil)
               .eraseToAnyPublisher()
           }
-          guard accountID == pass.accountID
+
+          guard Int(passphrase.expirationDate.timeIntervalSince1970) > time.timestamp()
+          else {
+            currentPassphraseEntrySubject.send(nil)
+            return Just(nil)
+              .eraseToAnyPublisher()
+          }
+
+          guard accountID == passphrase.accountID
           else {
             return Empty()
               .eraseToAnyPublisher()
           }
 
-          return Just(.init(rawValue: pass.value))
+          return Just(passphrase.value)
             .eraseToAnyPublisher()
         }
         .switchToLatest()
+        .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
@@ -144,11 +138,11 @@ extension PassphraseCache: Feature {
       accountID: Account.LocalID,
       expirationDate: Date
     ) {
-      diagnostics.debugLog("Updating passphrase cache, auto expiring at \(expirationDate)")
+      diagnostics.debugLog("Updating passphrase cache for \(accountID), auto expiring at \(expirationDate)")
 
-      let passphrase: PassphraseCache.Entry = .init(
+      let cacheEntry: PassphraseCache.Entry = .init(
         accountID: accountID,
-        value: .init(passphrase),
+        value: passphrase,
         expirationDate: expirationDate
       )
 
@@ -159,11 +153,11 @@ extension PassphraseCache: Feature {
       timer = .init(interval: interval, handler: clearCache)
       lock.unlock()
 
-      currentPassphraseSubject.send(passphrase)
+      currentPassphraseEntrySubject.send(cacheEntry)
     }
 
     return Self(
-      passphrasePublisher: createPassphrasePublisher(accountID:),
+      passphrasePublisher: passphrasePublisher(for:),
       store: setPassphrase(passphrase:accountID:expirationDate:),
       clear: clearCache
     )

@@ -34,48 +34,48 @@ public struct PGP {
     (
       _ input: String,
       _ passphrase: Passphrase,
-      _ privateKey: ArmoredPrivateKey,
-      _ publicKey: ArmoredPublicKey
+      _ privateKey: ArmoredPGPPrivateKey,
+      _ publicKey: ArmoredPGPPublicKey
     ) -> Result<String, TheError>
   // Decrypt and verify signature
   public var decryptAndVerify:
     (
       _ input: String,
       _ passphrase: Passphrase,
-      _ privateKey: ArmoredPrivateKey,
-      _ publicKey: ArmoredPublicKey
+      _ privateKey: ArmoredPGPPrivateKey,
+      _ publicKey: ArmoredPGPPublicKey
     ) -> Result<String, TheError>
   // Encrypt without signing
   public var encrypt:
     (
       _ input: String,
-      _ publicKey: ArmoredPublicKey
+      _ publicKey: ArmoredPGPPublicKey
     ) -> Result<String, TheError>
   // Decrypt without verifying signature
   public var decrypt:
     (
       _ input: String,
       _ passphrase: Passphrase,
-      _ privateKey: ArmoredPrivateKey
+      _ privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, TheError>
   // Sign cleartext message
   public var signMessage:
     (
       _ input: String,
       _ passphrase: Passphrase,
-      _ privateKey: ArmoredPrivateKey
+      _ privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, TheError>
   // Verify cleartext message
   public var verifyMessage:
     (
       _ input: String,
-      _ publicKey: ArmoredPublicKey,
+      _ publicKey: ArmoredPGPPublicKey,
       _ verifyTime: Int64
     ) -> Result<String, TheError>
   // Verify if passhrase is correct
   public var verifyPassphrase:
     (
-      _ privateKey: ArmoredPrivateKey,
+      _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<Void, TheError>
 }
@@ -87,8 +87,8 @@ extension PGP {
     func encryptAndSign(
       _ input: String,
       passphrase: Passphrase,
-      privateKey: ArmoredPrivateKey,
-      publicKey: ArmoredPublicKey
+      privateKey: ArmoredPGPPrivateKey,
+      publicKey: ArmoredPGPPublicKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
@@ -115,8 +115,8 @@ extension PGP {
     func decryptAndVerify(
       _ input: String,
       passphrase: Passphrase,
-      privateKey: ArmoredPrivateKey,
-      publicKey: ArmoredPublicKey
+      privateKey: ArmoredPGPPrivateKey,
+      publicKey: ArmoredPGPPublicKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
@@ -142,7 +142,7 @@ extension PGP {
 
     func encrypt(
       _ input: String,
-      publicKey: ArmoredPublicKey
+      publicKey: ArmoredPGPPublicKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
@@ -163,7 +163,7 @@ extension PGP {
     func decrypt(
       _ input: String,
       passphrase: Passphrase,
-      privateKey: ArmoredPrivateKey
+      privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
@@ -189,7 +189,7 @@ extension PGP {
     func signMessage(
       _ input: String,
       passphrase: Passphrase,
-      privateKey: ArmoredPrivateKey
+      privateKey: ArmoredPGPPrivateKey
     ) -> Result<String, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
@@ -214,7 +214,7 @@ extension PGP {
 
     func verifyMessage(
       _ input: String,
-      publicKey: ArmoredPublicKey,
+      publicKey: ArmoredPGPPublicKey,
       verifyTime: Int64
     ) -> Result<String, TheError> {
       guard !input.isEmpty else {
@@ -239,7 +239,7 @@ extension PGP {
     }
 
     func verifyPassphrase(
-      privateKey: ArmoredPrivateKey,
+      privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> Result<Void, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }

@@ -69,9 +69,8 @@ extension ExternalURLOpener {
         openUrl(URL(string: UIApplication.openSettingsURLString)!)
       },
       openSystemSettings: {
-        #warning("TODO: there used to be system settings link but it looks like it is unavailable")
         // swift-format-ignore: NeverForceUnwrap
-        return openUrl(URL(string: UIApplication.openSettingsURLString)!)
+        openUrl(URL(string: "App-prefs:")!)
       }
     )
   }

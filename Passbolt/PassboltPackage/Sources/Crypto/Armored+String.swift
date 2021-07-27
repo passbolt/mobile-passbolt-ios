@@ -23,10 +23,25 @@
 
 import Foundation
 
-extension String {
+extension ArmoredPGPPublicKey {
 
-  public func stripArmoredFormat() -> Self {
-    self.replacingOccurrences(of: "-----BEGIN PUBLIC KEY-----", with: "")
+  public func stripArmoredFormat() -> String {
+    self
+      .rawValue
+      .replacingOccurrences(of: "-----BEGIN PGP PUBLIC KEY-----", with: "")
+      .replacingOccurrences(of: "-----END PGP PUBLIC KEY-----", with: "")
+      .replacingOccurrences(of: "\r", with: "")
+      .replacingOccurrences(of: "\n", with: "")
+      .replacingOccurrences(of: " ", with: "")
+  }
+}
+
+extension ArmoredRSAPublicKey {
+
+  public func stripArmoredFormat() -> String {
+    self
+      .rawValue
+      .replacingOccurrences(of: "-----BEGIN PUBLIC KEY-----", with: "")
       .replacingOccurrences(of: "-----END PUBLIC KEY-----", with: "")
       .replacingOccurrences(of: "\r", with: "")
       .replacingOccurrences(of: "\n", with: "")

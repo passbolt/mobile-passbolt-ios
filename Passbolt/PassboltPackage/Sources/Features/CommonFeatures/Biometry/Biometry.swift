@@ -40,8 +40,7 @@ extension Biometry: Feature {
     let biometrics: Biometrics = environment.biometrics
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
 
-    let biometricsStateSubject: CurrentValueSubject<Biometrics.State, Never>
-      = .init(biometrics.checkBiometricsState())
+    let biometricsStateSubject: CurrentValueSubject<Biometrics.State, Never> = .init(biometrics.checkBiometricsState())
 
     appLifeCycle
       .lifeCyclePublisher()
@@ -64,8 +63,8 @@ extension Biometry: Feature {
       }
       .store(in: cancellables)
 
-    let biometricsStatePublisher: AnyPublisher<Biometrics.State, Never>
-      = biometricsStateSubject
+    let biometricsStatePublisher: AnyPublisher<Biometrics.State, Never> =
+      biometricsStateSubject
       .removeDuplicates()
       .eraseToAnyPublisher()
 

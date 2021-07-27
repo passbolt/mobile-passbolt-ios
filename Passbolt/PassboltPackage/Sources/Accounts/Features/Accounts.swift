@@ -39,7 +39,7 @@ public struct Accounts {
       _ lastName: String,
       _ avatarImageURL: String,
       _ fingerprint: String,
-      _ armoredKey: ArmoredPrivateKey,
+      _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError>
   public var removeAccount: (Account.LocalID) -> Result<Void, TheError>
@@ -101,7 +101,7 @@ extension Accounts: Feature {
       lastName: String,
       avatarImageURL: String,
       fingerprint: String,
-      armoredKey: ArmoredPrivateKey,
+      armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError> {
 

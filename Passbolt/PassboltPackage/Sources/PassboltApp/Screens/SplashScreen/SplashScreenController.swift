@@ -111,7 +111,7 @@ extension SplashScreenController: UIController {
             .store(in: cancellables)
         }
       })
-      .compactMap { $0 }  // remove nils
+      .filterMapOptional()
       .eraseToAnyPublisher()
     }
 

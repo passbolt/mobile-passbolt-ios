@@ -62,18 +62,25 @@ extension TheError {
     return mutable
   }
 
-  public var logMessage: String? { extensions[.logMessage] as? String }
+  public var logMessage: String? {
+    (extensions[.logMessage] as? Array<StaticString>)?
+      .map(\.description)
+      .joined(separator: "\n")
+  }
 
   public mutating func append(
-    logMessage: String
+    logMessage: StaticString
   ) {
-    extensions[.logMessage] =
+    var messages: Array<StaticString> =
       extensions[.logMessage]
-      .map { "\($0)\n\(logMessage)" } ?? logMessage
+      as? Array<StaticString>
+      ?? .init()
+    messages.append(logMessage)
+    extensions[.logMessage] = messages
   }
 
   public func appending(
-    logMessage: String
+    logMessage: StaticString
   ) -> Self {
     var mutable: Self = self
     mutable.append(logMessage: logMessage)

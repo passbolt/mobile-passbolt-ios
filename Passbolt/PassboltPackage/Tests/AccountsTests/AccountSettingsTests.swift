@@ -57,7 +57,7 @@ final class AccountSettingsTests: TestCase {
       CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorization = {}
+    accountSession.requestAuthorizationPrompt = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty().eraseToAnyPublisher())
@@ -205,7 +205,7 @@ final class AccountSettingsTests: TestCase {
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorization = {}
+    accountSession.requestAuthorizationPrompt = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
@@ -237,7 +237,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorization = {}
+    accountSession.requestAuthorizationPrompt = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
@@ -300,7 +300,7 @@ final class AccountSettingsTests: TestCase {
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorization = {}
+    accountSession.requestAuthorizationPrompt = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -332,7 +332,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorization = {}
+    accountSession.requestAuthorizationPrompt = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -426,7 +426,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorization = {}
+    accountSession.requestAuthorizationPrompt = {}
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -661,7 +661,7 @@ private let otherValidAccountProfile: AccountProfile = .init(
 )
 
 // swift-format-ignore: NeverUseForceTry
-private let validSessionTokens: SessionTokens = .init(
+private let validSessionTokens: NetworkSessionTokens = .init(
   accessToken: try! JWT.from(rawValue: validToken).get(),
   refreshToken: "REFRESH_TOKEN"
 )

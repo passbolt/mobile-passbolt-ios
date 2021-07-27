@@ -134,7 +134,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
               hideAfter: 2
             )
           })
-          .map { _ in Void() }
+          .mapToVoid()
       }
       .switchToLatest()
       .sink { /* */  }
@@ -154,7 +154,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
               hideAfter: 2
             )
           })
-          .map { _ in Void() }
+          .mapToVoid()
       }
       .switchToLatest()
       .sink { /* */  }

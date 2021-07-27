@@ -23,6 +23,7 @@
 
 import Environment
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 extension SQLiteMigration {
 
   internal static var migration_0: Self {

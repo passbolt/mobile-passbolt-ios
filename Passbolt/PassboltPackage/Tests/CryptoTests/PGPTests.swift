@@ -265,7 +265,7 @@ final class PGPTests: XCTestCase {
 
   // MARK: Test data
 
-  private let publicKey: ArmoredPublicKey =
+  private let publicKey: ArmoredPGPPublicKey =
     """
     -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -299,7 +299,7 @@ final class PGPTests: XCTestCase {
     -----END PGP PUBLIC KEY BLOCK-----
     """
 
-  private let privateKey: ArmoredPrivateKey =
+  private let privateKey: ArmoredPGPPrivateKey =
     """
     -----BEGIN PGP PRIVATE KEY BLOCK-----
 

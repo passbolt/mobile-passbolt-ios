@@ -25,10 +25,26 @@ public struct CommonResponse<Body: Decodable>: Decodable {
 
   public var header: CommonResponseHeader
   public var body: Body
+
+  public init(
+    header: CommonResponseHeader,
+    body: Body
+  ) {
+    self.header = header
+    self.body = body
+  }
 }
 
 public struct CommonResponseHeader: Decodable {
 
   public var id: String
   public var message: String
+
+  public init(
+    id: String,
+    message: String
+  ) {
+    self.id = id
+    self.message = message
+  }
 }

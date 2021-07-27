@@ -528,7 +528,7 @@ private let validAccountDetails: AccountProfile = .init(
 // keychain wrapper encodes values within own structure putting value under "v" key
 private let validAccountProfileKeychainData: Data = try! JSONEncoder().encode(["v": validAccountDetails])
 
-private let validPrivateKey: ArmoredPrivateKey =
+private let validPrivateKey: ArmoredPGPPrivateKey =
   """
   -----BEGIN PGP PRIVATE KEY BLOCK-----
 

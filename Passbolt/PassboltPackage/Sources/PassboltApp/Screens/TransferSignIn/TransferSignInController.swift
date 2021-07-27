@@ -122,7 +122,7 @@ extension TransferSignInController: UIController {
         .map { details -> AccountTransfer.AccountDetails? in details }
         .collectErrorLog(using: diagnostics)
         .replaceError(with: nil)
-        .compactMap { $0 }
+        .filterMapOptional()
         .eraseToAnyPublisher()
     }
 

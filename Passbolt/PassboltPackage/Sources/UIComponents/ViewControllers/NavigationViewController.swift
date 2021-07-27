@@ -95,8 +95,9 @@ open class NavigationViewController: UINavigationController {
     CATransaction.begin()
     CATransaction.setCompletionBlock({ [weak self] in
       if self?.viewControllers.count ?? 0 > 1,
-         let tabBar = self?.tabBarController?.tabBar,
-         !tabBar.isHidden {
+        let tabBar = self?.tabBarController?.tabBar,
+        !tabBar.isHidden
+      {
         tabBar.isHidden = true
         tabBar.isTranslucent = true
       }
@@ -112,8 +113,9 @@ open class NavigationViewController: UINavigationController {
     CATransaction.begin()
     CATransaction.setCompletionBlock({ [weak self] in
       if self?.viewControllers.count == 1,
-         let tabBar = self?.tabBarController?.tabBar,
-         tabBar.isHidden {
+        let tabBar = self?.tabBarController?.tabBar,
+        tabBar.isHidden
+      {
         tabBar.isHidden = false
         tabBar.isTranslucent = false
       }
@@ -130,14 +132,16 @@ open class NavigationViewController: UINavigationController {
     CATransaction.begin()
     CATransaction.setCompletionBlock({ [weak self] in
       if self?.viewControllers.count == 1,
-         let tabBar = self?.tabBarController?.tabBar,
-         tabBar.isHidden {
+        let tabBar = self?.tabBarController?.tabBar,
+        tabBar.isHidden
+      {
         tabBar.isHidden = false
         tabBar.isTranslucent = false
       }
       else if self?.viewControllers.count ?? 0 > 1,
-              let tabBar = self?.tabBarController?.tabBar,
-              !tabBar.isHidden {
+        let tabBar = self?.tabBarController?.tabBar,
+        !tabBar.isHidden
+      {
         tabBar.isHidden = true
         tabBar.isTranslucent = true
       }
@@ -153,8 +157,9 @@ open class NavigationViewController: UINavigationController {
     CATransaction.begin()
     CATransaction.setCompletionBlock({ [weak self] in
       if self?.viewControllers.count == 1,
-         let tabBar = self?.tabBarController?.tabBar,
-         tabBar.isHidden {
+        let tabBar = self?.tabBarController?.tabBar,
+        tabBar.isHidden
+      {
         tabBar.isHidden = false
         tabBar.isTranslucent = false
       }

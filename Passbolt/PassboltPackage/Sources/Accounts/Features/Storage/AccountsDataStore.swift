@@ -33,8 +33,8 @@ internal struct AccountsDataStore {
   internal var loadAccounts: () -> Array<Account>
   internal var loadLastUsedAccount: () -> Account?
   internal var storeLastUsedAccount: (Account.LocalID) -> Void
-  internal var storeAccount: (Account, AccountProfile, ArmoredPrivateKey) -> Result<Void, TheError>
-  internal var loadAccountPrivateKey: (Account.LocalID) -> Result<ArmoredPrivateKey, TheError>
+  internal var storeAccount: (Account, AccountProfile, ArmoredPGPPrivateKey) -> Result<Void, TheError>
+  internal var loadAccountPrivateKey: (Account.LocalID) -> Result<ArmoredPGPPrivateKey, TheError>
   internal var storeAccountPassphrase: (Account.LocalID, Passphrase) -> Result<Void, TheError>
   internal var loadAccountPassphrase: (Account.LocalID) -> Result<Passphrase, TheError>
   internal var deleteAccountPassphrase: (Account.LocalID) -> Result<Void, TheError>
@@ -384,7 +384,7 @@ extension AccountsDataStore: Feature {
     func store(
       account: Account,
       profile: AccountProfile,
-      armoredKey: ArmoredPrivateKey
+      armoredKey: ArmoredPGPPrivateKey
     ) -> Result<Void, TheError> {
       // data integrity check performs cleanup in case of partial success
       lock.lock()
@@ -419,18 +419,18 @@ extension AccountsDataStore: Feature {
 
     func loadAccountPrivateKey(
       for accountID: Account.LocalID
-    ) -> Result<ArmoredPrivateKey, TheError> {
+    ) -> Result<ArmoredPGPPrivateKey, TheError> {
       lock.lock()
       defer { lock.unlock() }
 
       return environment
         .keychain
         .loadFirst(
-          ArmoredPrivateKey.self,
+          ArmoredPGPPrivateKey.self,
           matching: .accountArmoredKeyQuery(for: accountID)
         )
         .flatMap { key in
-          if let key: ArmoredPrivateKey = key {
+          if let key: ArmoredPGPPrivateKey = key {
             return .success(key)
           }
           else {
@@ -664,6 +664,7 @@ extension AccountsDataStore: Feature {
       }
     }
 
+    // swift-format-ignore: NoLeadingUnderscores
     func _databaseURL(
       forAccountWithID accountID: Account.LocalID
     ) -> Result<URL, TheError> {

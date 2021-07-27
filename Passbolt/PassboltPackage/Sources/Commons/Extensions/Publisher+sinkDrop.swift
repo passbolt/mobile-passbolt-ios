@@ -21,10 +21,14 @@
 // @since         v1.0
 //
 
-import Crypto
+import Combine
 
-public struct SessionTokens {
+extension Publisher {
 
-  public var accessToken: JWT
-  public var refreshToken: String
+  public func sinkDrop() -> AnyCancellable {
+    self.sink(
+      receiveCompletion: { _ in },
+      receiveValue: { _ in }
+    )
+  }
 }

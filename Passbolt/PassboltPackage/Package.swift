@@ -260,6 +260,7 @@ let package = Package(
         "Commons",
         "Features",
         "UIComponents",
+        "NetworkClient",
       ]
     ),
     .target(

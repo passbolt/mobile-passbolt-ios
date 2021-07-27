@@ -22,17 +22,13 @@
 //
 
 import Commons
+import Crypto
 
-import struct Foundation.Data
+public struct NetworkSessionTokens {
 
-public enum ArmoredPGPPrivateKeyTag {}
-public typealias ArmoredPGPPrivateKey = Tagged<String, ArmoredPGPPrivateKeyTag>
+  public typealias AccessToken = JWT
+  public typealias RefreshToken = Tagged<String, Self>
 
-public enum ArmoredPGPPublicKeyTag {}
-public typealias ArmoredPGPPublicKey = Tagged<String, ArmoredPGPPublicKeyTag>
-
-public enum ArmoredPGPMessageTag {}
-public typealias ArmoredPGPMessage = Tagged<String, ArmoredPGPMessageTag>
-
-public enum ArmoredRSAPublicKeyTag {}
-public typealias ArmoredRSAPublicKey = Tagged<String, ArmoredRSAPublicKeyTag>
+  public var accessToken: AccessToken
+  public var refreshToken: RefreshToken
+}

@@ -22,6 +22,7 @@
 //
 
 import Combine
+
 import class Foundation.NSRecursiveLock
 
 extension Publisher {
@@ -52,7 +53,8 @@ extension Publishers {
       upstream: Upstream,
       bufferSize: Int
     ) {
-      self.downstream = upstream
+      self.downstream =
+        upstream
         .multicast {
           ReplaySubject<Upstream.Output, Upstream.Failure>(
             bufferSize: bufferSize
@@ -90,19 +92,17 @@ extension Publishers.ShareReplay {
     fileprivate func receive<S>(
       subscriber: S
     ) where S: Subscriber, Failure == S.Failure, Output == S.Input {
-      let subscriberIdentifier: CombineIdentifier
-        = subscriber.combineIdentifier
-      let subscription: Inner
-        = .init(
-          downstream: subscriber,
-          bufferSize: self.bufferSize,
-          cleanup: { [weak self] in
-            guard let self = self else { return }
-            self.lock.lock()
-            self.subscriptions.removeValue(forKey: subscriberIdentifier)
-            self.lock.unlock()
-          }
-        )
+      let subscriberIdentifier: CombineIdentifier = subscriber.combineIdentifier
+      let subscription: Inner = .init(
+        downstream: subscriber,
+        bufferSize: self.bufferSize,
+        cleanup: { [weak self] in
+          guard let self = self else { return }
+          self.lock.lock()
+          self.subscriptions.removeValue(forKey: subscriberIdentifier)
+          self.lock.unlock()
+        }
+      )
 
       self.lock.lock()
       defer { self.lock.unlock() }

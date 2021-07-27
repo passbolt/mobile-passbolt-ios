@@ -101,7 +101,7 @@ extension AccountTransfer: Feature {
               account: AccountTransferAccount(
                 userID: mdmTransferedAccount.userID,
                 fingerprint: mdmTransferedAccount.fingerprint,
-                armoredKey: ArmoredPrivateKey(rawValue: mdmTransferedAccount.armoredKey)
+                armoredKey: ArmoredPGPPrivateKey(rawValue: mdmTransferedAccount.armoredKey)
               ),
               profile: AccountTransferAccountProfile(
                 username: mdmTransferedAccount.username,
@@ -159,8 +159,8 @@ extension AccountTransfer: Feature {
       .shareReplay()
       .eraseToAnyPublisher()
 
-    let mediaPublisher: AnyPublisher<Data, TheError>
-      = transferState
+    let mediaPublisher: AnyPublisher<Data, TheError> =
+      transferState
       .compactMap { $0.profile }
       .map {
         networkClient
@@ -459,18 +459,22 @@ private func decodeQRCodePart(
       // if we still get previous page we ignore it
       return .failure(
         .canceled
-          .appending(context: "account-transfer-scanning-repeated-page")
           .appending(
-            logMessage: "Repeated QRCode page number: \(part.page), expected: \(expectedPage)"
+            context: "account-transfer-scanning-repeated-page"
+          )
+          .appending(
+            logMessage: "Repeated QRCode page number"
           )
       )
     }
     else {
       return .failure(
-        .accountTransferScanningError(context: "decoding-invalid-page")
-          .appending(
-            logMessage: "Invalid QRCode page: \(part.page), expected: \(expectedPage)"
-          )
+        .accountTransferScanningError(
+          context: "decoding-invalid-page"
+        )
+        .appending(
+          logMessage: "Invalid QRCode page"
+        )
       )
     }
     return .success(part)
@@ -616,7 +620,7 @@ private func requestCancelation(
         requestUserProfile: false
       )
     )
-    .map { _ in Void() }
+    .mapToVoid()
     .eraseToAnyPublisher()
   if let error: TheError = error {
     return

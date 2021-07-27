@@ -52,9 +52,9 @@ extension SignInRequest {
 public struct SignInRequestVariable: Encodable {
 
   public var userID: String
-  public var challenge: ArmoredMessage
+  public var challenge: ArmoredPGPMessage
 
-  public init(userID: String, challenge: ArmoredMessage) {
+  public init(userID: String, challenge: ArmoredPGPMessage) {
     self.userID = userID
     self.challenge = challenge
   }

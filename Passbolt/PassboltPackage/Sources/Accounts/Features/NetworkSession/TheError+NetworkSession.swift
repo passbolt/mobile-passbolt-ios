@@ -34,9 +34,20 @@ extension TheError {
       extensions: .init()
     )
   }
+
+  public static func missingSessionError(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .missingSessionError,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
 }
 
 extension TheError.ID {
 
   public static let signInError: Self = "signInError"
+  public static let missingSessionError: Self = "missingSessionError"
 }

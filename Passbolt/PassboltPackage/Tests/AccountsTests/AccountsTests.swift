@@ -64,7 +64,7 @@ final class AccountsStoreTests: TestCase {
   }
 
   func test_storeTransferedAccount_storesDataInAccountsDataStore() {
-    var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPrivateKey)?
+    var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)?
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.storeAccount = { account, details, key in
       result = (account: account, details: details, armoredKey: key)
@@ -195,7 +195,7 @@ private let validAccountWithProfile: AccountWithProfile = .init(
 
 private let validPassphrase: Passphrase = "SecretPassphrase"
 
-private let validPrivateKey: ArmoredPrivateKey =
+private let validPrivateKey: ArmoredPGPPrivateKey =
   """
   -----BEGIN PGP PRIVATE KEY BLOCK-----
 

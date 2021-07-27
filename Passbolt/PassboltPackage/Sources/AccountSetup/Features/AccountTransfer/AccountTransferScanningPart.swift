@@ -43,8 +43,12 @@ extension AccountTransferScanningPart {
     guard version == "1"
     else {
       return .failure(
-        .accountTransferScanningRecoverableError(context: "part-decoding-invalid-version-or-code")
-          .appending(logMessage: "Invalid QRCode or version: \(version)")
+        .accountTransferScanningRecoverableError(
+          context: "part-decoding-invalid-version-or-code"
+        )
+        .appending(
+          logMessage: "Invalid QRCode or version"
+        )
       )
     }
 
@@ -53,16 +57,24 @@ extension AccountTransferScanningPart {
     guard let page: Int = Int(pageString, radix: 16)
     else {
       return .failure(
-        .accountTransferScanningError(context: "part-decoding-invalid-page")
-          .appending(logMessage: "Invalid QRCode data page: \(pageString)")
+        .accountTransferScanningError(
+          context: "part-decoding-invalid-page"
+        )
+        .appending(
+          logMessage: "Invalid QRCode data page"
+        )
       )
     }
 
     guard let payloadData = payloadPart.data(using: .utf8)
     else {
       return .failure(
-        .accountTransferScanningError(context: "part-decoding-invalid-encoding")
-          .appending(logMessage: "Invalid QRCode data encoding")
+        .accountTransferScanningError(
+          context: "part-decoding-invalid-encoding"
+        )
+        .appending(
+          logMessage: "Invalid QRCode data encoding"
+        )
       )
     }
 
