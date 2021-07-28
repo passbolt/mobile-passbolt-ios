@@ -30,7 +30,6 @@ open class PlainViewController: UIViewController {
     super.init(nibName: nil, bundle: nil)
     navigationItem.backButtonTitle = ""
     isModalInPresentation = true
-    hidesBottomBarWhenPushed = true
     (self as? AnyUIComponent)?.setup()
   }
 

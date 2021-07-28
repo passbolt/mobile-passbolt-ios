@@ -90,4 +90,79 @@ open class NavigationViewController: UINavigationController {
       }
     )
   }
+
+  open override func pushViewController(_ viewController: UIViewController, animated: Bool) {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock({ [weak self] in
+      if self?.viewControllers.count ?? 0 > 1,
+         let tabBar = self?.tabBarController?.tabBar,
+         !tabBar.isHidden {
+        tabBar.isHidden = true
+        tabBar.isTranslucent = true
+      }
+      else {
+        /* NOP */
+      }
+    })
+    super.pushViewController(viewController, animated: animated)
+    CATransaction.commit()
+  }
+
+  open override func popViewController(animated: Bool) -> UIViewController? {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock({ [weak self] in
+      if self?.viewControllers.count == 1,
+         let tabBar = self?.tabBarController?.tabBar,
+         tabBar.isHidden {
+        tabBar.isHidden = false
+        tabBar.isTranslucent = false
+      }
+      else {
+        /* NOP */
+      }
+    })
+
+    defer { CATransaction.commit() }
+    return super.popViewController(animated: animated)
+  }
+
+  open override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock({ [weak self] in
+      if self?.viewControllers.count == 1,
+         let tabBar = self?.tabBarController?.tabBar,
+         tabBar.isHidden {
+        tabBar.isHidden = false
+        tabBar.isTranslucent = false
+      }
+      else if self?.viewControllers.count ?? 0 > 1,
+              let tabBar = self?.tabBarController?.tabBar,
+              !tabBar.isHidden {
+        tabBar.isHidden = true
+        tabBar.isTranslucent = true
+      }
+      else {
+        /* NOP */
+      }
+    })
+    super.setViewControllers(viewControllers, animated: animated)
+    CATransaction.commit()
+  }
+
+  open override func popToRootViewController(animated: Bool) -> [UIViewController]? {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock({ [weak self] in
+      if self?.viewControllers.count == 1,
+         let tabBar = self?.tabBarController?.tabBar,
+         tabBar.isHidden {
+        tabBar.isHidden = false
+        tabBar.isTranslucent = false
+      }
+      else {
+        /* NOP */
+      }
+    })
+    defer { CATransaction.commit() }
+    return super.popToRootViewController(animated: animated)
+  }
 }

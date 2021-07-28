@@ -57,10 +57,6 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
     super.init()
   }
 
-  internal func setup() {
-    hidesBottomBarWhenPushed = false
-  }
-
   internal func setupView() {
     mut(self) {
       .title(localized: "account.settings.title")

@@ -65,7 +65,6 @@ extension AccountSelectionController: UIController {
     cancellables: Cancellables
   ) -> AccountSelectionController {
     let accounts: Accounts = features.instance()
-    let accountSession: AccountSession = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
 
