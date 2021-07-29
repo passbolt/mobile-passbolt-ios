@@ -85,7 +85,7 @@ internal final class Window {
             )
 
           // Prompt user with authorization screen if it is not already displayed.
-          case let .authorize(accountLocalID):
+          case let .authorize(account):
             guard !self.isSplashScreenDisplayed
             else { return }
             self.screenStateCache = nil
@@ -101,7 +101,7 @@ internal final class Window {
               with: self.components
                 .instance(
                   of: AuthorizationNavigationViewController.self,
-                  in: accountLocalID
+                  in: account
                 )
             )
           }

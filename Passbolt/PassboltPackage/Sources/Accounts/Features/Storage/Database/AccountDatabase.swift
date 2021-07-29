@@ -166,7 +166,6 @@ extension AccountDatabase: Feature {
         }
       }
       .switchToLatest()
-      // .shareReplay() verify usage later on
       .eraseToAnyPublisher()
 
     func featureUnload() -> Bool {

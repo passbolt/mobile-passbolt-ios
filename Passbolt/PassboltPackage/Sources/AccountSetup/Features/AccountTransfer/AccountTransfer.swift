@@ -156,7 +156,6 @@ extension AccountTransfer: Feature {
           username: profile.username
         )
       }
-      .shareReplay()
       .eraseToAnyPublisher()
 
     let mediaPublisher: AnyPublisher<Data, TheError> =
@@ -172,7 +171,6 @@ extension AccountTransfer: Feature {
           )
       }
       .switchToLatest()
-      .shareReplay()
       .eraseToAnyPublisher()
 
     // swift-format-ignore: NoLeadingUnderscores

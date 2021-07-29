@@ -757,7 +757,7 @@ final class AccountTransferTests: TestCase {
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([validAccountWithProfile])
+    accounts.storedAccounts = always([validAccount])
     features.use(accounts)
     let accountTransfer: AccountTransfer = testInstance()
     var result: TheError?
@@ -787,7 +787,7 @@ final class AccountTransferTests: TestCase {
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([validAccountWithProfile])
+    accounts.storedAccounts = always([validAccount])
     features.use(accounts)
     let accountTransfer: AccountTransfer = testInstance()
 
@@ -803,7 +803,7 @@ final class AccountTransferTests: TestCase {
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([validAccountWithProfile])
+    accounts.storedAccounts = always([validAccount])
     features.use(accounts)
     let accountTransfer: AccountTransfer = testInstance()
 
@@ -862,6 +862,13 @@ private let accountTransferUpdateResponse: AccountTransferUpdateResponse = .init
       )
     )
   )
+)
+
+private let validAccount: Account = .init(
+  localID: .init(rawValue: UUID.test.uuidString),
+  domain: "https://localhost:8443",
+  userID: "f848277c-5398-58f8-a82a-72397af2d450",
+  fingerprint: "FINGERPRINT"
 )
 
 private let validAccountWithProfile: AccountWithProfile = .init(

@@ -71,10 +71,10 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
 
   private func navigate(to destination: Controller.Destination) {
     switch destination {
-    case let .accountSelection(lastAccountID):
+    case let .accountSelection(lastAccount):
       replaceWindowRoot(
         with: AuthorizationNavigationViewController.self,
-        in: lastAccountID
+        in: lastAccount
       )
 
     case .accountSetup:

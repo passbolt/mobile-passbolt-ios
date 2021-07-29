@@ -34,6 +34,30 @@ public struct AccountWithProfile {
   public let avatarImageURL: String
   public let fingerprint: String
   public let biometricsEnabled: Bool
+
+  public init(
+    localID: Account.LocalID,
+    userID: Account.UserID,
+    domain: String,
+    label: String,
+    username: String,
+    firstName: String,
+    lastName: String,
+    avatarImageURL: String,
+    fingerprint: String,
+    biometricsEnabled: Bool
+  ) {
+    self.localID = localID
+    self.userID = userID
+    self.domain = domain
+    self.label = label
+    self.username = username
+    self.firstName = firstName
+    self.lastName = lastName
+    self.avatarImageURL = avatarImageURL
+    self.fingerprint = fingerprint
+    self.biometricsEnabled = biometricsEnabled
+  }
 }
 
 extension AccountWithProfile {

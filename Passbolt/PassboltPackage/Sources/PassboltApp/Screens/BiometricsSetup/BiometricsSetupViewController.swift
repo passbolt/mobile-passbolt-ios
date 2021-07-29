@@ -109,7 +109,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
         case .extensionSetup:
           self?.push(ExtensionSetupViewController.self)
         case .finish:
-          self?.replaceWindowRoot(with: MainTabsViewController.self)
+          self?.replaceWindowRoot(with: SplashScreenViewController.self)
         }
       }
       .store(in: cancellables)

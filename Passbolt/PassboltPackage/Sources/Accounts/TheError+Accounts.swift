@@ -45,11 +45,11 @@ extension TheError {
     )
   }
 
-  public static func invalidPassphrase(
+  public static func missingPassphrase(
     underlyingError: Error? = nil
   ) -> Self {
     .init(
-      identifier: .invalidPassphrase,
+      identifier: .missingPassphrase,
       underlyingError: underlyingError,
       extensions: .init()
     )
@@ -64,12 +64,23 @@ extension TheError {
       extensions: .init()
     )
   }
+
+  public static func biometricsChanged(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .biometricsChanged,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
 }
 
 extension TheError.ID {
 
   public static let duplicateAccount: Self = "duplicateAccount"
   public static let invalidAccount: Self = "invalidAccount"
-  public static let invalidPassphrase: Self = "invalidPassphrase"
+  public static let missingPassphrase: Self = "missingPassphrase"
   public static let biometricsNotAvailable: Self = "biometricsNotAvailable"
+  public static let biometricsChanged: Self = "biometricsChanged"
 }

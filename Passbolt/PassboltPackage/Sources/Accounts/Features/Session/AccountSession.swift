@@ -34,7 +34,7 @@ public struct AccountSession {
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Void, TheError>
   // Publishes current account ID each time access to its private key
   // is required and cannot be handled automatically (passphrase cache is expired)
-  public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account.LocalID, Never>
+  public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account, Never>
   // Manual trigger for authorization prompt
   public var requestAuthorizationPrompt: () -> Void
   // Closes current session and removes associated temporary data.
@@ -116,7 +116,7 @@ extension AccountSession: Feature {
       .removeDuplicates()
       .eraseToAnyPublisher()
 
-    let authorizationPromptPresentationSubject: PassthroughSubject<Account.LocalID, Never> = .init()
+    let authorizationPromptPresentationSubject: PassthroughSubject<Account, Never> = .init()
 
     // connect current account base url / domain with network client
     // to perform requests in correct contexts
@@ -170,12 +170,12 @@ extension AccountSession: Feature {
     // when going to background cancel ongoing authorization if any
     appLifeCycle
       .lifeCyclePublisher()
-      .compactMap { transition -> Account.LocalID? in
+      .compactMap { transition -> Account? in
         switch transition {
         case .willEnterForeground:
           switch sessionStateSubject.value {
           case let .authorizationRequired(account), let .authorized(account):
-            return account.localID  // request authorization prompt for that account
+            return account  // request authorization prompt for that account
 
           case .none:
             return nil  // do nothing
@@ -237,6 +237,24 @@ extension AccountSession: Feature {
       // cancel previous authorization if any
       // there can't be more than a single ongoing authorization
       authorizationCancellable = nil
+
+      switch sessionStateSubject.value {
+      case let .authorized(currentAccount) where currentAccount.localID != account.localID,
+           let .authorizationRequired(currentAccount) where currentAccount.localID != account.localID:
+        diagnostics.debugLog("Signing out \(currentAccount.localID)")
+        // signout from current account on switching accounts
+        _clearCurrentSession()
+      case _:
+        break
+      }
+
+      diagnostics.debugLog("Signing in \(account.localID)")
+
+      // since we are trying to sign in we change current session state
+      // to a new one with authorizationRequired state to indicate
+      // that we are signing in and to change network client base url / domain
+      sessionStateSubject.send(.authorizationRequired(account))
+
       #warning("TODO: [PAS-154] verify if token is expired and reuse or use session refresh if needed")
       #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
 
@@ -284,25 +302,6 @@ extension AccountSession: Feature {
         }
       }
 
-      switch sessionStateSubject.value {
-      case let .authorized(currentAccount)
-      where currentAccount.localID != account.localID,
-        let .authorizationRequired(currentAccount)
-      where currentAccount.localID != account.localID:
-        diagnostics.debugLog("Signing out \(currentAccount.localID)")
-        // signout from current account on switching accounts
-        _clearCurrentSession()
-      case _:
-        break
-      }
-
-      diagnostics.debugLog("Signing in \(account.localID)")
-
-      // since we are trying to sign in we change current session state
-      // to a new one with authorizationRequired state to indicate
-      // that we are signing in and to change network client base url / domain
-      sessionStateSubject.send(.authorizationRequired(account))
-
       // to ensure that only single authorization is in progress
       // we delegate result to the additional subject
       // and control cancellation internally
@@ -348,7 +347,7 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
     }
 
-    func authorizationPromptPresentationPublisher() -> AnyPublisher<Account.LocalID, Never> {
+    func authorizationPromptPresentationPublisher() -> AnyPublisher<Account, Never> {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     }
@@ -357,9 +356,9 @@ extension AccountSession: Feature {
       switch sessionStateSubject.value {
       case let .authorized(account):
         passphraseCache.clear()
-        authorizationPromptPresentationSubject.send(account.localID)
+        authorizationPromptPresentationSubject.send(account)
       case let .authorizationRequired(account):
-        authorizationPromptPresentationSubject.send(account.localID)
+        authorizationPromptPresentationSubject.send(account)
       case .none:
         break
       }

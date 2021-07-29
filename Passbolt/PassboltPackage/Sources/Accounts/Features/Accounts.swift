@@ -27,8 +27,7 @@ import Features
 public struct Accounts {
 
   public var verifyStorageDataIntegrity: () -> Result<Void, TheError>
-  #warning("TODO: change to Account instead of AccountWithProfile")
-  public var storedAccounts: () -> Array<AccountWithProfile>
+  public var storedAccounts: () -> Array<Account>
   // Saves account data if authorization succeeds and creates session.
   public var transferAccount:
     (
@@ -42,7 +41,7 @@ public struct Accounts {
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError>
-  public var removeAccount: (Account.LocalID) -> Result<Void, TheError>
+  public var removeAccount: (Account) -> Result<Void, TheError>
 }
 
 extension Accounts: Feature {
@@ -62,35 +61,8 @@ extension Accounts: Feature {
       dataStore.verifyDataIntegrity()
     }
 
-    func storedAccounts() -> Array<AccountWithProfile> {
-      dataStore
-        .loadAccounts()
-        .compactMap { account -> AccountWithProfile? in
-          let profileLoadResult: Result<AccountProfile, TheError> =
-            dataStore
-            .loadAccountProfile(account.localID)
-          switch profileLoadResult {
-          case let .success(profile):
-            return AccountWithProfile(
-              localID: account.localID,
-              userID: account.userID,
-              domain: account.domain,
-              label: profile.label,
-              username: profile.username,
-              firstName: profile.firstName,
-              lastName: profile.lastName,
-              avatarImageURL: profile.avatarImageURL,
-              fingerprint: account.fingerprint,
-              biometricsEnabled: profile.biometricsEnabled
-            )
-          case let .failure(error):
-            diagnostics.debugLog(
-              "Failed to load account profile: \(account.localID)"
-                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-            )
-            return nil
-          }
-        }
+    func storedAccounts() -> Array<Account> {
+      dataStore.loadAccounts()
     }
 
     func transferAccount(
@@ -161,18 +133,16 @@ extension Accounts: Feature {
     }
 
     func remove(
-      accountWithID accountID: Account.LocalID
+      account: Account
     ) -> Result<Void, TheError> {
-      dataStore.deleteAccount(accountID)
+      dataStore.deleteAccount(account.localID)
       session
         .statePublisher()
         .first()
         .sink { sessionState in
           switch sessionState {
-          case let .authorized(account)
-          where account.localID == accountID,
-            let .authorizationRequired(account)
-          where account.localID == accountID:
+          case let .authorized(currentAccount) where currentAccount.localID == account.localID,
+               let .authorizationRequired(currentAccount) where currentAccount.localID == account.localID:
             session.close()
 
           case .authorized, .authorizationRequired, .none:
@@ -198,7 +168,7 @@ extension Accounts: Feature {
         armoredKey:
         passphrase:
       ),
-      removeAccount: remove(accountWithID:)
+      removeAccount: remove(account:)
     )
   }
 

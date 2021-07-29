@@ -34,7 +34,7 @@ public struct Keychain: EnvironmentElement {
 }
 
 // we would like to ask every time but some methods request it multiple times in a row, so using small timout
-private let keychainBiometricsTimeout: TimeInterval = 0.1  // 0.1 sec
+private let keychainBiometricsTimeout: TimeInterval = 0.3  // 0.3 sec
 
 extension Keychain {
 
@@ -246,6 +246,9 @@ private func loadKeychainData(
       case errSecAuthFailed:
         return .failure(.keychainAuthFailed())
 
+      case errSecUserCanceled:
+        return .failure(.canceled)
+
       case _:
         return .failure(.keychainError(status))
       }
@@ -284,6 +287,9 @@ private func loadKeychainMeta(
 
       case errSecAuthFailed:
         return .failure(.keychainAuthFailed())
+
+      case errSecUserCanceled:
+        return .failure(.canceled)
 
       case _:
         return .failure(.keychainError(status))

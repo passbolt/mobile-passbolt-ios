@@ -119,7 +119,7 @@ final class SplashScreenTests: TestCase {
     accountSession.statePublisher = always(Just(.none(lastUsed: account)).eraseToAnyPublisher())
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([accountWithProfile])
+    accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
       Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
@@ -135,7 +135,7 @@ final class SplashScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .accountSelection(account.localID))
+    XCTAssertEqual(result, .accountSelection(account))
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() {
@@ -146,7 +146,7 @@ final class SplashScreenTests: TestCase {
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([accountWithProfile])
+    accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
       Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
@@ -173,7 +173,7 @@ final class SplashScreenTests: TestCase {
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([accountWithProfile])
+    accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
       Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
@@ -200,7 +200,7 @@ final class SplashScreenTests: TestCase {
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([accountWithProfile])
+    accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
       Fail<Void, TheError>(error: .testError()).eraseToAnyPublisher()
@@ -227,7 +227,7 @@ final class SplashScreenTests: TestCase {
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([accountWithProfile])
+    accounts.storedAccounts = always([account])
     features.use(accounts)
 
     var index: Int = 0
@@ -269,7 +269,7 @@ final class SplashScreenTests: TestCase {
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([accountWithProfile])
+    accounts.storedAccounts = always([account])
     features.use(accounts)
 
     featureConfig.fetchIfNeeded = always(

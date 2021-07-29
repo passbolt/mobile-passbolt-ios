@@ -28,7 +28,9 @@ public struct AccountSettings {
 
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
   public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheError>
-  public var accountProfilePublisher: () -> AnyPublisher<AccountProfile, Never>
+  public var accountWithProfile: (Account) -> AccountWithProfile
+  public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
+  public var currentAccountProfilePublisher: () -> AnyPublisher<AccountProfile, Never>
 }
 
 extension AccountSettings: Feature {
@@ -44,9 +46,10 @@ extension AccountSettings: Feature {
     let permissions: OSPermissions = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
 
-    // swift-format-ignore: NoLeadingUnderscores
-    let _currentAccountProfilePublisher: AnyPublisher<AccountProfile?, Never> =
-      accountSession
+    let currentAccountProfileSubject: CurrentValueSubject<AccountProfile?, Never>
+      = .init(nil)
+
+    accountSession
       .statePublisher()
       .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountProfile?, Never>? in
         switch sessionState {
@@ -95,14 +98,18 @@ extension AccountSettings: Feature {
         }
       }
       .switchToLatest()
-      .shareReplay()
-      .eraseToAnyPublisher()
+      .removeDuplicates()
+      .sink { accountProfile in
+        currentAccountProfileSubject.send(accountProfile)
+      }
+      .store(in: cancellables)
 
-    let biometricsEnabledPublisher: AnyPublisher<Bool, Never> =
-      _currentAccountProfilePublisher
+    let biometricsEnabledPublisher: AnyPublisher<Bool, Never>
+      = currentAccountProfileSubject
       .map { accountProfile in
         accountProfile?.biometricsEnabled ?? false
       }
+      .removeDuplicates()
       .eraseToAnyPublisher()
 
     func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheError> {
@@ -177,15 +184,45 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
+
+    func accountWithProfile(
+      for account: Account
+    ) -> AccountWithProfile {
+      switch accountsDataStore.loadAccountProfile(account.localID) {
+        case let .success(accountProfile):
+          return AccountWithProfile(
+            localID: account.localID,
+            userID: account.userID,
+            domain: account.domain,
+            label: accountProfile.label,
+            username: accountProfile.username,
+            firstName: accountProfile.firstName,
+            lastName: accountProfile.lastName,
+            avatarImageURL: accountProfile.avatarImageURL,
+            fingerprint: account.fingerprint,
+            biometricsEnabled: accountProfile.biometricsEnabled
+          )
+
+        case let .failure(error):
+          diagnostics.diagnosticLog("Failed to load account profile")
+          diagnostics.debugLog(error.description)
+          fatalError("Internal inconsistency - invalid data storage state")
+        }
+    }
+
     let accountProfilePublisher: AnyPublisher<AccountProfile, Never>
-      = _currentAccountProfilePublisher
+      = currentAccountProfileSubject
       .filterMapOptional()
+      .removeDuplicates()
       .eraseToAnyPublisher()
 
     return Self(
       biometricsEnabledPublisher: { biometricsEnabledPublisher },
       setBiometricsEnabled: setBiometrics(enabled:),
-      accountProfilePublisher: { accountProfilePublisher }
+      accountWithProfile: accountWithProfile(for:),
+      updatedAccountIDsPublisher: accountsDataStore
+        .updatedAccountIDsPublisher,
+      currentAccountProfilePublisher: { accountProfilePublisher }
     )
   }
 }
@@ -196,7 +233,9 @@ extension AccountSettings {
     Self(
       biometricsEnabledPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setBiometricsEnabled: Commons.placeholder("You have to provide mocks for used methods"),
-      accountProfilePublisher: Commons.placeholder("You have to provide mocks for used methods")
+      accountWithProfile: Commons.placeholder("You have to provide mocks for used methods"),
+      updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      currentAccountProfilePublisher: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif

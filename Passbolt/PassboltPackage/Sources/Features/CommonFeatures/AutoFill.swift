@@ -39,7 +39,9 @@ extension AutoFill: Feature {
     let lifeCycle: AppLifeCycle = environment.appLifeCycle
     let autoFillExtension: AutoFillExtension = environment.autoFillExtension
 
-    let extensionEnabledStatePublisher: AnyPublisher<Bool, Never> = Publishers.Merge(
+    let extensionEnabledStateSubject: CurrentValueSubject<Bool?, Never> = .init(nil)
+
+    Publishers.Merge(
       lifeCycle.lifeCyclePublisher()
         .map { event -> AnyPublisher<Bool, Never> in
           guard case .didBecomeActive = event
@@ -53,11 +55,15 @@ extension AutoFill: Feature {
         .switchToLatest(),
       autoFillExtension.isEnabled()
     )
-    .shareReplay()
-    .eraseToAnyPublisher()
+    .sink { enabled in
+      extensionEnabledStateSubject.send(enabled)
+    }
+    .store(in: cancellables)
 
     return Self(
-      extensionEnabledStatePublisher: { extensionEnabledStatePublisher }
+      extensionEnabledStatePublisher: extensionEnabledStateSubject
+        .filterMapOptional()
+        .eraseToAnyPublisher
     )
   }
 }

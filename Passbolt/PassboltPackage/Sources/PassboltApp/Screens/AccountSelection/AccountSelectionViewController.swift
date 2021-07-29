@@ -93,7 +93,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       .sink { [weak self] item in
         self?.push(
           AuthorizationViewController.self,
-          in: item.localID
+          in: item.account
         )
       }
       .store(in: cancellables)
@@ -120,7 +120,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
 
           self.controller.toggleMode()
 
-          guard case Result.failure = self.controller.removeAccount(item.localID) else {
+          guard case Result.failure = self.controller.removeAccount(item.account) else {
             return
           }
 

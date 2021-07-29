@@ -26,12 +26,12 @@ import UIComponents
 
 internal struct AuthorizationNavigationController {
 
-  internal var selectedAccountID: Account.LocalID?
+  internal var selectedAccount: Account?
 }
 
 extension AuthorizationNavigationController: UIController {
 
-  internal typealias Context = Account.LocalID?
+  internal typealias Context = Account?
 
   internal static func instance(
     in context: Context,
@@ -39,14 +39,15 @@ extension AuthorizationNavigationController: UIController {
     cancellables: Cancellables
   ) -> Self {
     let accounts: Accounts = features.instance()
-    if accounts.storedAccounts().contains(where: { $0.localID == context }) {
+
+    if let account = context, accounts.storedAccounts().contains(account) {
       return Self(
-        selectedAccountID: context
+        selectedAccount: context
       )
     }
     else {
       return Self(
-        selectedAccountID: nil
+        selectedAccount: nil
       )
     }
   }

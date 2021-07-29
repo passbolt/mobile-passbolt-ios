@@ -47,7 +47,7 @@ internal enum AccountSelectionListItem: Hashable {
 
 internal struct AccountSelectionCellItem: Hashable {
 
-  internal var localID: Account.LocalID
+  internal var account: Account
   internal var title: String
   internal var subtitle: String
   internal var imagePublisher: AnyPublisher<Data?, Never>?
@@ -64,7 +64,7 @@ internal struct AccountSelectionCellItem: Hashable {
   }
 
   internal func hash(into hasher: inout Hasher) {
-    hasher.combine(localID)
+    hasher.combine(account)
     hasher.combine(title)
     hasher.combine(subtitle)
   }

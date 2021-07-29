@@ -34,7 +34,7 @@ extension SplashScreenController {
   internal enum Destination: Equatable {
 
     case accountSetup
-    case accountSelection(Account.LocalID?)
+    case accountSelection(Account?)
     case diagnostics
     case home
     case featureConfigFetchError
@@ -78,7 +78,7 @@ extension SplashScreenController: UIController {
         else {
           return destinationSubject.send(.diagnostics)
         }
-        let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+        let storedAccounts: Array<Account> = accounts.storedAccounts()
         if storedAccounts.isEmpty {
           return destinationSubject.send(.accountSetup)
         }
@@ -88,7 +88,7 @@ extension SplashScreenController: UIController {
             .map { state -> AnyPublisher<Destination, Never> in
               switch state {
               case let .none(lastUsed: .some(lastUsedAccount)):
-                return Just(.accountSelection(lastUsedAccount.localID))
+                return Just(.accountSelection(lastUsedAccount))
                   .eraseToAnyPublisher()
 
               case .authorized:

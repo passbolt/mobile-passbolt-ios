@@ -95,7 +95,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       .continueSetupPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.replaceWindowRoot(with: MainTabsViewController.self)
+        self?.replaceWindowRoot(with: SplashScreenViewController.self)
       }
       .store(in: cancellables)
   }

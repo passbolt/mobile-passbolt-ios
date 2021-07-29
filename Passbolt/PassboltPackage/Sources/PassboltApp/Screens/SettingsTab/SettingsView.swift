@@ -168,6 +168,10 @@ internal final class SettingsView: ScrolledStackView {
     mutation.apply(on: biometricsSwitch)
   }
 
+  internal func applyOn(biometricsToggle mutation: Mutation<Button>) {
+    mutation.apply(on: biometricsToggle)
+  }
+
   internal func setAutoFill(hidden: Bool) {
     mut(autoFillItem) {
       .hidden(hidden)

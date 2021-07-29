@@ -35,15 +35,14 @@ final class AccountsStoreTests: TestCase {
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     features.use(accountsDataStore)
     features.use(AccountSession.placeholder)
 
     let accounts: Accounts = testInstance()
 
-    let result: Array<AccountWithProfile> = accounts.storedAccounts()
+    let result: Array<Account> = accounts.storedAccounts()
 
-    XCTAssertEqual(result, [validAccountWithProfile])
+    XCTAssertEqual(result, [validAccount])
   }
 
   func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() {
@@ -107,7 +106,6 @@ final class AccountsStoreTests: TestCase {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
     features.use(accountsDataStore)
-    var accountSession: AccountSession = .placeholder
     features.use(AccountSession.placeholder)
 
     let accounts: Accounts = testInstance()
@@ -157,7 +155,7 @@ final class AccountsStoreTests: TestCase {
 
     let accounts: Accounts = testInstance()
 
-    _ = accounts.removeAccount(validAccount.localID)
+    _ = accounts.removeAccount(validAccount)
 
     XCTAssertEqual(result, validAccount.localID)
   }

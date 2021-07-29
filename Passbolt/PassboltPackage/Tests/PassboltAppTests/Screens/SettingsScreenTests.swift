@@ -57,7 +57,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_biometricsStatePublisher_publishesStateNone_whenProfileHasBiometricsDisabled_andBiometricsIsUnconfigured() {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     featureFlags.config = always(nil)
     features.use(accountSettings)
@@ -82,7 +82,7 @@ final class SettingsScreenTests: TestCase {
   {
     var currentAccountProfile: AccountProfile = validAccountProfile
     currentAccountProfile.biometricsEnabled = true
-    accountSettings.accountProfilePublisher = always(Just(currentAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(currentAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     featureFlags.config = always(nil)
     features.use(accountSettings)
@@ -106,7 +106,7 @@ final class SettingsScreenTests: TestCase {
   func
     test_biometricsStatePublisher_publishesStateFaceIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsFaceID()
   {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     featureFlags.config = always(nil)
     features.use(accountSettings)
@@ -132,7 +132,7 @@ final class SettingsScreenTests: TestCase {
   {
     var currentAccountProfile: AccountProfile = validAccountProfile
     currentAccountProfile.biometricsEnabled = true
-    accountSettings.accountProfilePublisher = always(Just(currentAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(currentAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     featureFlags.config = always(nil)
     features.use(accountSettings)
@@ -156,7 +156,7 @@ final class SettingsScreenTests: TestCase {
   func
     test_biometricsStatePublisher_publishesStateTouchIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsTouchID()
   {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
     featureFlags.config = always(nil)
     features.use(accountSettings)
@@ -180,7 +180,7 @@ final class SettingsScreenTests: TestCase {
   func test_biometricChangeBiometrics_fromDisabled_toEnabled_Succeeds() {
     var currentAccountProfile: AccountProfile = validAccountProfile
     let accountProfilePublisher: PassthroughSubject<AccountProfile, Never> = .init()
-    accountSettings.accountProfilePublisher = always(accountProfilePublisher.eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(accountProfilePublisher.eraseToAnyPublisher())
     accountSettings.biometricsEnabledPublisher = always(
       accountProfilePublisher
         .map(\.biometricsEnabled)
@@ -239,7 +239,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_openTerms_withValidURL_Succeeds() {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(
@@ -268,7 +268,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_openTerms_withInvalidURL_Fails() {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(
@@ -297,7 +297,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_openPrivacyPolicy_withValidURL_Succeeds() {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(
@@ -326,7 +326,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_openPrivacyPolicy_withInvalidURL_Fails() {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(
@@ -354,7 +354,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_signOutAlertPresentationPublisherPublishes_whenPresentSignOutAlertCalled() {
-    accountSettings.accountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
+    accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     featureFlags.config = always(nil)
     features.use(accountSettings)

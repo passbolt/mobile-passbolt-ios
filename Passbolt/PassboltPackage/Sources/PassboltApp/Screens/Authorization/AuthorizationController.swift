@@ -28,7 +28,7 @@ import UIComponents
 
 internal struct AuthorizationController {
 
-  internal var accountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
+  internal var accountWithProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
   internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
   internal var updatePassphrase: (String) -> Void
   internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
@@ -51,37 +51,52 @@ extension AuthorizationController {
 
 extension AuthorizationController: UIController {
 
-  internal typealias Context = Account.LocalID
+  internal typealias Context = Account
 
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let accounts: Accounts = features.instance()
+    let accountSettings: AccountSettings = features.instance()
     let accountSession: AccountSession = features.instance()
     let biometry: Biometry = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
 
-    #warning("TODO: pass in account as context")
-    guard let accountWithProfile: AccountWithProfile = accounts.storedAccounts().first(where: { $0.localID == context })
-    else { unreachable("Cannot select an account that is not stored locally.") }
-
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
 
-    func accountProfilePublisher() -> AnyPublisher<AccountWithProfile, Never> {
-      #warning("TODO: switch to account settings to provide data - remove context")
-      return Just(accountWithProfile).eraseToAnyPublisher()
+    let account: Account = context
+    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never>
+      = .init(accountSettings.accountWithProfile(account))
+
+    accountSettings
+      .updatedAccountIDsPublisher()
+      .filter { $0 == account.localID }
+      .sink { _ in
+        accountWithProfileSubject
+          .send(
+            accountSettings
+              .accountWithProfile(account)
+          )
+      }
+      .store(in: cancellables)
+
+    func accountWithProfilePublisher() -> AnyPublisher<AccountWithProfile, Never> {
+      accountWithProfileSubject.eraseToAnyPublisher()
     }
 
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
-      networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
-        .collectErrorLog(using: diagnostics)
-        .map { data -> Data? in data }
-        .replaceError(with: nil)
+      accountWithProfileSubject
+        .map { accountWithProfile in
+          networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
+            .collectErrorLog(using: diagnostics)
+            .map { data -> Data? in data }
+            .replaceError(with: nil)
+        }
+        .switchToLatest()
         .eraseToAnyPublisher()
     }
 
@@ -100,7 +115,7 @@ extension AuthorizationController: UIController {
       return Publishers.CombineLatest(
         biometry
           .biometricsStatePublisher(),
-        Just(accountWithProfile)
+        accountWithProfileSubject
       )
       .map { biometricsState, accountWithProfile in
         switch (biometricsState, accountWithProfile.biometricsEnabled) {
@@ -122,7 +137,7 @@ extension AuthorizationController: UIController {
         .first()
         .map { passphrase in
           accountSession.authorize(
-            accountWithProfile.account,
+            account,
             .passphrase(.init(rawValue: passphrase))
           )
         }
@@ -133,7 +148,7 @@ extension AuthorizationController: UIController {
     func performBiometricSignIn() -> AnyPublisher<Void, TheError> {
       accountSession
         .authorize(
-          accountWithProfile.account,
+          account,
           .biometrics
         )
     }
@@ -147,7 +162,7 @@ extension AuthorizationController: UIController {
     }
 
     return Self(
-      accountProfilePublisher: accountProfilePublisher,
+      accountWithProfilePublisher: accountWithProfilePublisher,
       accountAvatarPublisher: accountAvatarPublisher,
       updatePassphrase: updatePassphrase,
       validatedPassphrasePublisher: validatedPassphrasePublisher,

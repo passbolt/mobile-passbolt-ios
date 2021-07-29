@@ -26,6 +26,7 @@ import Features
 
 import class Foundation.NSRecursiveLock
 import struct Foundation.URL
+import let LocalAuthentication.errSecAuthFailed
 
 internal struct AccountsDataStore {
 
@@ -454,6 +455,8 @@ extension AccountsDataStore: Feature {
         )
         .flatMap { accountProfile in
           if var updatedAccountProfile: AccountProfile = accountProfile {
+            guard !updatedAccountProfile.biometricsEnabled
+            else { return .success }
             updatedAccountProfile.biometricsEnabled = true
             return environment
               .keychain
@@ -492,21 +495,56 @@ extension AccountsDataStore: Feature {
 
       return environment
         .keychain
-        .loadFirst(Passphrase.self, matching: .accountPassphraseQuery(for: accountID))
+        .loadFirst(
+          Passphrase.self,
+          matching: .accountPassphraseQuery(for: accountID)
+        )
         .flatMap { passphrase in
           if let passphrase: Passphrase = passphrase {
             return .success(passphrase)
           }
           else {
-            return .failure(.invalidPassphrase())
+            return .failure(.missingPassphrase())
           }
         }
         .mapError { error in
-          diagnostics.debugLog(
-            "Failed to load passphrase"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-          )
-          return .biometricsNotAvailable(underlyingError: error)
+          diagnostics.diagnosticLog("Failed to load passphrase from keychain")
+          diagnostics.debugLog(error.description)
+          guard
+            error.identifier == .missingPassphrase
+            // this error occurs for biometry change
+            // not on failure for authentication failure
+            || error.osStatus == errSecAuthFailed
+          else { return .biometricsNotAvailable(underlyingError: error) }
+          // Ensure that account profile has biometrics disabled
+          // when passphrase is unavailable
+          _ = environment
+            .keychain
+            .loadFirst(
+              AccountProfile.self,
+              matching: .accountProfileQuery(for: accountID)
+            )
+            .flatMap { (accountProfile: AccountProfile?) -> Result<Void, TheError> in
+              if var updatedAccountProfile: AccountProfile = accountProfile {
+                guard updatedAccountProfile.biometricsEnabled
+                else { return .success }
+                updatedAccountProfile.biometricsEnabled = false
+                return environment
+                  .keychain
+                  .save(
+                    updatedAccountProfile,
+                    for: .accountProfileQuery(for: accountID)
+                  )
+                  .map {
+                    updatedAccountIDSubject.send(accountID)
+                  }
+              }
+              else {
+                return .failure(.invalidAccount())
+              }
+            }
+
+          return .biometricsChanged()
         }
     }
 
@@ -524,6 +562,8 @@ extension AccountsDataStore: Feature {
         )
         .flatMap { accountProfile in
           if var updatedAccountProfile: AccountProfile = accountProfile {
+            guard updatedAccountProfile.biometricsEnabled
+            else { return .success }
             updatedAccountProfile.biometricsEnabled = false
             return environment
               .keychain

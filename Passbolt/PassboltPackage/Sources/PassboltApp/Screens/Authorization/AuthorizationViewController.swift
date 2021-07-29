@@ -46,8 +46,6 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
   private let controller: Controller
   // sign in can be made only if it is nil
   private var signInCancellable: AnyCancellable?
-    // initial value prevents sign in until setup completes
-    = .init { /* NOP */ }
   private let autoLoginPromptSubject: PassthroughSubject<Never, Never> = .init()
 
   internal init(
@@ -90,12 +88,24 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               self?.dismissOverlay()
               guard case let .failure(error) = completion, error.identifier != .canceled
               else { return }
-              self?.present(
-                snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(localized: "sign.in.error.message")
-                  .instantiate(),
-                hideAfter: 2
-              )
+              if error.identifier == .biometricsChanged {
+                self?.present(
+                  snackbar: Mutation<UICommons.View>
+                    .snackBarErrorMessage(localized: "sign.in.error.biometrics.changed.message")
+                    .instantiate(),
+                  hideAfter: 5
+                )
+              } else {
+                self?.present(
+                  snackbar: Mutation<UICommons.View>
+                    .snackBarErrorMessage(localized: "sign.in.error.message")
+                    .instantiate(),
+                  hideAfter: 2
+                )
+              }
+            },
+            receiveCancel: { [weak self] in
+              self?.dismissOverlay()
             }
           )
           .sinkDrop()
@@ -110,16 +120,15 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
   private func setupSubscriptions() {
     Publishers.CombineLatest(
       controller
-        .accountProfilePublisher(),
+        .accountWithProfilePublisher(),
       controller
         .biometricStatePublisher()
     )
-    .first()
     .receive(on: RunLoop.main)
-    .sink { [weak self] accountProfile, biometricsState in
-      self?.contentView.applyOn(name: .text("\(accountProfile.label)"))
-      self?.contentView.applyOn(email: .text(accountProfile.username))
-      self?.contentView.applyOn(url: .text(accountProfile.domain))
+    .sink { [weak self] accountWithProfile, biometricsState in
+      self?.contentView.applyOn(name: .text("\(accountWithProfile.label)"))
+      self?.contentView.applyOn(email: .text(accountWithProfile.username))
+      self?.contentView.applyOn(url: .text(accountWithProfile.domain))
       switch biometricsState {
       case .unavailable:
         self?.contentView.applyOn(
@@ -142,7 +151,6 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
         )
         self?.autoLoginPromptSubject.send(completion: .finished)
       }
-      self?.signInCancellable = nil // unlock sign in
     }
     .store(in: cancellables)
 
@@ -229,6 +237,9 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
                   .instantiate(),
                 hideAfter: 2
               )
+            },
+            receiveCancel: { [weak self] in
+              self?.dismissOverlay()
             }
           )
           .sinkDrop()
@@ -259,6 +270,9 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
                   .instantiate(),
                 hideAfter: 2
               )
+            },
+            receiveCancel: { [weak self] in
+              self?.dismissOverlay()
             }
           )
           .sinkDrop()

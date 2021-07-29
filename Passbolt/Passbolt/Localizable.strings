@@ -56,6 +56,7 @@
 "transfer.account.result.error.title" = "Something went wrong!";
 "sign.in.title" = "Enter your passphrase";
 "sign.in.error.message" = "Sign in failed";
+"sign.in.error.biometrics.changed.message" = "It seems that your device biometrics has changed. Please, enter your passphrase and configure biometrics again";
 "authorization.button.title" = "Sign In";
 "authorization.forgot.passphrase.button.title" = "I forgot my passphrase";
 "authorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";

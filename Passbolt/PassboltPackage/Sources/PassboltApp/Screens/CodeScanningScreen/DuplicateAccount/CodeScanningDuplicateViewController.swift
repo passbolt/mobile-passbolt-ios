@@ -89,6 +89,8 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
           self?.replaceWindowRoot(
             with: AuthorizationNavigationViewController.self,
             in: nil
+            // there might be an account ID (local) used here to go
+            // straight to authorization for that account
           )
         },
         receiveValue: { _ in }

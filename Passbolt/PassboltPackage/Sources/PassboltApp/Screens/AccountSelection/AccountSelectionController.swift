@@ -31,7 +31,7 @@ internal struct AccountSelectionController {
   internal var listModePublisher: () -> AnyPublisher<ListMode, Never>
   internal var removeAccountAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var presentRemoveAccountAlert: () -> Void
-  internal var removeAccount: (Account.LocalID) -> Result<Void, TheError>
+  internal var removeAccount: (Account) -> Result<Void, TheError>
   internal var addAccount: () -> Void
   internal var addAccountPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var toggleMode: () -> Void
@@ -65,26 +65,32 @@ extension AccountSelectionController: UIController {
     cancellables: Cancellables
   ) -> AccountSelectionController {
     let accounts: Accounts = features.instance()
+    let accountSettings: AccountSettings = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
 
-    let storedAccountSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(accounts.storedAccounts())
+    let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
+      accounts
+        .storedAccounts()
+        .compactMap(accountSettings.accountWithProfile)
+    )
+
     let listModeSubject: CurrentValueSubject<ListMode, Never> = .init(.selection)
     let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let addAccountPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
       Publishers.CombineLatest(
-        storedAccountSubject,
+        storedAccountsWithProfilesSubject,
         listModeSubject
       )
-      .map { accounts, mode -> Array<AccountSelectionListItem> in
+      .map { accountsWithProfiles, mode -> Array<AccountSelectionListItem> in
         var items: Array<AccountSelectionListItem> =
-          accounts
-          .map { account in
+          accountsWithProfiles
+          .map { accountWithProfile in
             let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
               networkClient.mediaDownload.make(
-                using: .init(urlString: account.avatarImageURL)
+                using: .init(urlString: accountWithProfile.avatarImageURL)
               )
               .map { data -> Data? in data }
               .collectErrorLog(using: diagnostics)
@@ -94,9 +100,9 @@ extension AccountSelectionController: UIController {
             .eraseToAnyPublisher()
 
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
-              localID: account.localID,
-              title: "\(account.firstName) \(account.lastName)",
-              subtitle: account.username,
+              account: accountWithProfile.account,
+              title: "\(accountWithProfile.firstName) \(accountWithProfile.lastName)",
+              subtitle: accountWithProfile.username,
               imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
               listModePublisher: listModeSubject.eraseToAnyPublisher()
             )
@@ -128,11 +134,14 @@ extension AccountSelectionController: UIController {
       removeAccountAlertPresentationSubject.send(Void())
     }
 
-    func removeAccount(with id: Account.LocalID) -> Result<Void, TheError> {
-      let result: Result<Void, TheError> = accounts.removeAccount(id)
-      let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+    func removeAccount(_ account: Account) -> Result<Void, TheError> {
+      let result: Result<Void, TheError> = accounts.removeAccount(account)
+      let storedAccounts: Array<AccountWithProfile>
+        = accounts
+        .storedAccounts()
+        .compactMap(accountSettings.accountWithProfile)
 
-      storedAccountSubject.send(storedAccounts)
+      storedAccountsWithProfilesSubject.send(storedAccounts)
 
       return result
     }
@@ -163,7 +172,7 @@ extension AccountSelectionController: UIController {
       listModePublisher: listModePublisher,
       removeAccountAlertPresentationPublisher: removeAccountAlertPresentationPublisher,
       presentRemoveAccountAlert: presentRemoveAccountAlert,
-      removeAccount: removeAccount(with:),
+      removeAccount: removeAccount,
       addAccount: addAccount,
       addAccountPresentationPublisher: addAccountPresentationPublisher,
       toggleMode: toggleMode,

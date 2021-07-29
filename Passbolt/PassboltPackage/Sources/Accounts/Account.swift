@@ -38,5 +38,5 @@ public struct Account {
   public let fingerprint: String
 }
 
-extension Account: Equatable {}
+extension Account: Hashable {}
 extension Account: Codable {}

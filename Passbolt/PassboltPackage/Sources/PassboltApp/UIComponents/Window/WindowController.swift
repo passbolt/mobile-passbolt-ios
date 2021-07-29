@@ -34,9 +34,9 @@ extension WindowController {
 
   internal enum ScreenStateDisposition: Equatable {
 
-    case useInitialScreenState(for: Account.LocalID?)
-    case useCachedScreenState(for: Account.LocalID)
-    case authorize(Account.LocalID)
+    case useInitialScreenState(for: Account?)
+    case useCachedScreenState(for: Account)
+    case authorize(Account)
   }
 }
 extension WindowController: UIController {
@@ -58,8 +58,8 @@ extension WindowController: UIController {
     Publishers.Merge(
       accountSession
         .authorizationPromptPresentationPublisher()
-        .map { promptedAccountID -> ScreenStateDisposition in
-          .authorize(promptedAccountID)
+        .map { promptedAccount -> ScreenStateDisposition in
+          .authorize(promptedAccount)
         },
       accountSession
         .statePublisher()
@@ -67,54 +67,61 @@ extension WindowController: UIController {
         .dropFirst()
         .compactMap { sessionState -> ScreenStateDisposition? in
           switch (sessionState, screenStateDispositionSubject.value) {
-          // signed in
-          case let (.authorized(account), .authorize(promptedAccountID))
-          where promptedAccountID == account.localID:
-            return .useCachedScreenState(for: account.localID)
+          // authorized after prompting (from signed in state)
+          case let (.authorized(account), .authorize(promptedAccount))
+          where promptedAccount == account:
+            return .useCachedScreenState(for: account)
 
-          case let (.authorized(account), .useInitialScreenState(accountID))
-          where accountID == account.localID:
-            return .useInitialScreenState(for: accountID)
+          // switched to same account (from signed in state)
+          case let (.authorized(account), .useInitialScreenState(previousAccount))
+          where account == previousAccount:
+            return .useInitialScreenState(for: account)
 
+          // switched to same account (from signed in state)
+          case let (.authorized(account), .useCachedScreenState(previousAccount))
+                where account == previousAccount:
+            return .useInitialScreenState(for: account)
+
+          // initially authorized (from signed out state)
           case let (.authorized(account), .useInitialScreenState),
             let (.authorized(account), .authorize):
-            return .useInitialScreenState(for: account.localID)
+            return .useInitialScreenState(for: account)
 
-          case let (.authorized(account), .useCachedScreenState(accountID))
-          where account.localID == accountID:
-            return .useInitialScreenState(for: accountID)
+          // switched to other account (from signed in state)
+          case let (.authorized(account), .useCachedScreenState):
+            return .useInitialScreenState(for: account)
 
-          case (.authorized, .useCachedScreenState):
-            return .none
-
+          // passphrase cache cleared or started authorization for other account
           case (.authorizationRequired, _):
             return .none
 
+          // no change at all (authorization screen displayed without session)
           case (.none, .authorize), (.none, .useInitialScreenState(.none)):
             return .none
 
+          // signed out
           case (.none, .useInitialScreenState(.some)),
             (.none, .useCachedScreenState):
             return .useInitialScreenState(for: .none)
           }
         }
     )
-    .filter { [unowned features] disposition in
-      switch disposition {
-      case .authorize, .useCachedScreenState:
-        return true
-      case .useInitialScreenState:
-        // We are blocking automatic screen changes while
-        // account transfer is in progress (from QR code scanning
-        // up to successfull authorization)
-        return !features.isLoaded(AccountTransfer.self)
-      }
-    }
     .subscribe(screenStateDispositionSubject)
     .store(in: cancellables)
 
     func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
       screenStateDispositionSubject
+        .filter { [unowned features] disposition in
+          switch disposition {
+          case .authorize, .useCachedScreenState:
+            return true
+          case .useInitialScreenState:
+            // We are blocking automatic screen changes while
+            // account transfer is in progress (from QR code scanning
+            // up to successfull authorization)
+            return !features.isLoaded(AccountTransfer.self)
+          }
+        }
         .eraseToAnyPublisher()
     }
 

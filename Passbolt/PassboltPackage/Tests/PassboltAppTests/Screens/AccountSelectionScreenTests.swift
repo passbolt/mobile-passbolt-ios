@@ -36,26 +36,37 @@ final class AccountSelectionScreenTests: TestCase {
 
   var accounts: Accounts!
   var accountSession: AccountSession!
+  var accountSettings: AccountSettings!
   var networkClient: NetworkClient!
 
   override func setUp() {
     super.setUp()
     accounts = .placeholder
     networkClient = .placeholder
+    accountSettings = .placeholder
     accountSession = .placeholder
   }
 
   override func tearDown() {
     accounts = nil
     accountSession = nil
+    accountSettings = nil
     networkClient = nil
     super.tearDown()
   }
 
   func test_loadStoredAccounts_andPrepareCellItemsWithImage_inSelectionMode() {
-    accounts.storedAccounts = always([firstAccount, secondAccount])
+    accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
     features.use(accountSession)
+    accountSettings.accountWithProfile = { account in
+      if account.localID == firstAccount.localID {
+        return firstAccount
+      } else if account.localID == secondAccount.localID {
+        return secondAccount
+      } else { fatalError() }
+    }
+    features.use(accountSettings)
 
     networkClient.mediaDownload = .respondingWith(Data())
     features.use(networkClient)
@@ -84,18 +95,26 @@ final class AccountSelectionScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    let accountIDs: Array<Account.LocalID> = accountItems.map(\.localID)
+    let accounts: Array<Account> = accountItems.map(\.account)
 
-    XCTAssertTrue(accountIDs.contains(firstAccount.localID))
-    XCTAssertTrue(accountIDs.contains(secondAccount.localID))
+    XCTAssertTrue(accounts.contains(firstAccount.account))
+    XCTAssertTrue(accounts.contains(secondAccount.account))
     XCTAssertTrue(result.contains(.addAccount(.default)))
     XCTAssertNotNil(imageData)
   }
 
   func test_loadStoredAccounts_andPrepareCellItemsWithoutImage_inSelectionMode() {
-    accounts.storedAccounts = always([firstAccount, secondAccount])
+    accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
     features.use(accountSession)
+    accountSettings.accountWithProfile = { account in
+      if account.localID == firstAccount.localID {
+        return firstAccount
+      } else if account.localID == secondAccount.localID {
+        return secondAccount
+      } else { fatalError() }
+    }
+    features.use(accountSettings)
 
     networkClient.mediaDownload = .failingWith(.testError())
     features.use(networkClient)
@@ -124,19 +143,27 @@ final class AccountSelectionScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    let accountIDs: Array<Account.LocalID> = accountItems.map(\.localID)
+    let accounts: Array<Account> = accountItems.map(\.account)
 
-    XCTAssertTrue(accountIDs.contains(firstAccount.localID))
-    XCTAssertTrue(accountIDs.contains(secondAccount.localID))
+    XCTAssertTrue(accounts.contains(firstAccount.account))
+    XCTAssertTrue(accounts.contains(secondAccount.account))
     XCTAssertTrue(result.contains(.addAccount(.default)))
     XCTAssertNil(imageData)
   }
 
   func test_loadStoredAccounts_andPrepareCellItems_withoutAddAccountItem_inRemovalMode() {
-    accounts.storedAccounts = always([firstAccount, secondAccount])
+    accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
     features.use(accountSession)
     features.use(networkClient)
+    accountSettings.accountWithProfile = { account in
+      if account.localID == firstAccount.localID {
+        return firstAccount
+      } else if account.localID == secondAccount.localID {
+        return secondAccount
+      } else { fatalError() }
+    }
+    features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     controller.toggleMode()
@@ -149,15 +176,15 @@ final class AccountSelectionScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    let accountIDs: Array<Account.LocalID> = result.compactMap {
+    let accounts: Array<Account> = result.compactMap {
       guard case let .account(cellItem) = $0 else {
         return nil
       }
-      return cellItem.localID
+      return cellItem.account
     }
 
-    XCTAssertTrue(accountIDs.contains(firstAccount.localID))
-    XCTAssertTrue(accountIDs.contains(secondAccount.localID))
+    XCTAssertTrue(accounts.contains(firstAccount.account))
+    XCTAssertTrue(accounts.contains(secondAccount.account))
     XCTAssertFalse(result.contains(.addAccount(.default)))
   }
 
@@ -166,6 +193,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accounts)
     features.use(accountSession)
     features.use(networkClient)
+    features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
@@ -180,21 +208,30 @@ final class AccountSelectionScreenTests: TestCase {
   }
 
   func test_removeStoredAccount_Succeeds() {
-    var storedAccounts: Array<AccountWithProfile> = [firstAccount, secondAccount]
+    var storedAccounts: Array<Account>
+      = [firstAccount.account, secondAccount.account]
     accounts.storedAccounts = always(storedAccounts)
-    accounts.removeAccount = { localID in
-      storedAccounts.removeAll { $0.localID == localID }
+    accounts.removeAccount = { account in
+      storedAccounts.removeAll { $0 == account }
       return .success(())
     }
     features.use(accounts)
     accountSession.close = always(Void())
     features.use(accountSession)
     features.use(networkClient)
+    accountSettings.accountWithProfile = { account in
+      if account.localID == firstAccount.localID {
+        return firstAccount
+      } else if account.localID == secondAccount.localID {
+        return secondAccount
+      } else { fatalError() }
+    }
+    features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
-    let removeResult: Result<Void, TheError> = controller.removeAccount(firstAccount.localID)
+    let removeResult: Result<Void, TheError> = controller.removeAccount(firstAccount.account)
 
     controller.accountsPublisher()
       .sink { items in
@@ -202,34 +239,43 @@ final class AccountSelectionScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    let accountIDs: Array<Account.LocalID> = result.compactMap {
+    let accounts: Array<Account> = result.compactMap {
       guard case let .account(cellItem) = $0 else {
         return nil
       }
-      return cellItem.localID
+      return cellItem.account
     }
 
     XCTAssertSuccess(removeResult)
-    XCTAssertFalse(accountIDs.contains(firstAccount.localID))
-    XCTAssertTrue(accountIDs.contains(secondAccount.localID))
+    XCTAssertFalse(accounts.contains(firstAccount.account))
+    XCTAssertTrue(accounts.contains(secondAccount.account))
     XCTAssertTrue(result.contains(.addAccount(.default)))
   }
 
   func test_removeStoredAccount_updatesAccountsList() {
-    var storedAccounts: Array<AccountWithProfile> = [firstAccount, secondAccount]
+    var storedAccounts: Array<Account>
+      = [firstAccount.account, secondAccount.account]
     accounts.storedAccounts = always(storedAccounts)
-    accounts.removeAccount = { localID in
-      storedAccounts.removeAll { $0.localID == localID }
+    accounts.removeAccount = { account in
+      storedAccounts.removeAll { $0 == account }
       return .success(())
     }
     features.use(accounts)
     features.use(accountSession)
     features.use(networkClient)
+    accountSettings.accountWithProfile = { account in
+      if account.localID == firstAccount.localID {
+        return firstAccount
+      } else if account.localID == secondAccount.localID {
+        return secondAccount
+      } else { fatalError() }
+    }
+    features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
-    _ = controller.removeAccount(firstAccount.localID)
+    _ = controller.removeAccount(firstAccount.account)
 
     controller
       .accountsPublisher()
@@ -245,9 +291,9 @@ final class AccountSelectionScreenTests: TestCase {
       result.compactMap {
         guard case let .account(accountItem) = $0
         else { return nil }
-        return accountItem.localID
+        return accountItem.account
       },
-      [secondAccount.localID]
+      [secondAccount.account]
     )
   }
 
@@ -257,6 +303,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accounts)
     features.use(accountSession)
     features.use(networkClient)
+    features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Void?
@@ -279,6 +326,7 @@ final class AccountSelectionScreenTests: TestCase {
     accountSession.close = always(Void())
     features.use(accountSession)
     features.use(networkClient)
+    features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Void!

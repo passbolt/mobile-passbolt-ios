@@ -36,6 +36,7 @@ final class AuthorizationScreenTests: TestCase {
 
   var accounts: Accounts!
   var accountSession: AccountSession!
+  var accountSettings: AccountSettings!
   var networkClient: NetworkClient!
   var biometry: Biometry!
 
@@ -45,6 +46,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts = .placeholder
     accountSession = .placeholder
     networkClient = .placeholder
+    accountSettings = .placeholder
     biometry = .placeholder
   }
 
@@ -52,19 +54,23 @@ final class AuthorizationScreenTests: TestCase {
     accounts = nil
     accountSession = nil
     networkClient = nil
+    accountSettings = nil
     biometry = nil
     super.tearDown()
   }
 
   func test_presentForgotPassphraseAlertPublisher_publishesTrue_whenPresentForgotPassphraseAlertCalled() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: Bool!
 
@@ -82,13 +88,16 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_validatedPassphrasePublisher_publishesValidatedPassphrase_whenUpdatePassphraseCalled() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: Validated<String>!
 
@@ -106,7 +115,7 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_signIn_succeeds_whenAuthorizationSucceeds() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
       Just(())
@@ -115,9 +124,12 @@ final class AuthorizationScreenTests: TestCase {
     )
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: Void!
 
@@ -136,7 +148,7 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_signIn_fails_whenAuthorizationFails() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
       Fail(error: .testError())
@@ -144,9 +156,12 @@ final class AuthorizationScreenTests: TestCase {
     )
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: TheError!
 
@@ -167,7 +182,7 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_biometricSignIn_succeeds_whenAuthorizationSucceeds() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
       Just(())
@@ -176,9 +191,12 @@ final class AuthorizationScreenTests: TestCase {
     )
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: Void!
 
@@ -197,7 +215,7 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_biometricSignIn_fails_whenAuthorizationFails() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
       Fail(error: .testError())
@@ -205,9 +223,12 @@ final class AuthorizationScreenTests: TestCase {
     )
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: TheError!
 
@@ -230,7 +251,7 @@ final class AuthorizationScreenTests: TestCase {
     let testData: Data = .init([0x01, 0x02])
     networkClient.mediaDownload = .respondingWith(testData)
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
       Just(())
@@ -239,9 +260,12 @@ final class AuthorizationScreenTests: TestCase {
     )
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: Data!
 
@@ -258,7 +282,7 @@ final class AuthorizationScreenTests: TestCase {
   func test_avatarPublisher_publishesNil_whenNetworkRequestFails() {
     networkClient.mediaDownload = .failingWith(.testError())
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
       Just(())
@@ -267,9 +291,12 @@ final class AuthorizationScreenTests: TestCase {
     )
     features.use(accountSession)
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: Data!
 
@@ -285,14 +312,17 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsUnavailable() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.unavailable).eraseToAnyPublisher())
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
 
@@ -308,14 +338,17 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsAvailableAndAccountDoesNotUseIt() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithoutBiometry])
+    accounts.storedAccounts = always([accountWithoutBiometry.account])
     features.use(accounts)
     features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithoutBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithoutBiometry.localID
+      context: accountWithoutBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
 
@@ -331,14 +364,17 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_biometricStatePublisher_publishesFaceID_whenAvailableBiometricsIsFaceIDAndAccountUsesIt() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
 
@@ -354,14 +390,17 @@ final class AuthorizationScreenTests: TestCase {
 
   func test_biometricStatePublisher_publishesTouchID_whenAvailableBiometricsIsTouchIDAndAccountUsesIt() {
     features.use(networkClient)
-    accounts.storedAccounts = always([accountWithBiometry])
+    accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
     features.use(biometry)
+    accountSettings.accountWithProfile = always(accountWithBiometry)
+    accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountSettings)
 
     let controller: AuthorizationController = testInstance(
-      context: accountWithBiometry.localID
+      context: accountWithBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
 

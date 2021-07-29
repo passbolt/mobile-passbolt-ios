@@ -61,10 +61,10 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
       .primaryNavigationStyle()
     }
 
-    if let selectedAccountID: Account.LocalID = controller.selectedAccountID {
+    if let selectedAccount: Account = controller.selectedAccount {
       push(
         AuthorizationViewController.self,
-        in: selectedAccountID
+        in: selectedAccount
       )
     }
     else {
