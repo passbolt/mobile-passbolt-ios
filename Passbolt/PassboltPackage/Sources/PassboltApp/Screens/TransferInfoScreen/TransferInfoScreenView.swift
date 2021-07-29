@@ -170,11 +170,11 @@ public final class TransferInfoScreenView: ScrolledStackView {
       .combined(
         .backgroundColor(dynamic: .background),
         .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 24, left: 16, bottom: 8, right: 16)),
+        .contentInset(.init(top: 24, left: 16, bottom: 16, right: 16)),
         .append(headerLabel),
         .appendSpace(of: 24),
         .append(stepListView),
-        .appendSpace(of: 80),
+        .appendSpace(of: 60),
         .append(imageContainer),
         .appendFiller(minSize: 0),
         .append(button)
@@ -182,3 +182,4 @@ public final class TransferInfoScreenView: ScrolledStackView {
     }
   }
 }
+
