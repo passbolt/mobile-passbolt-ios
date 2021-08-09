@@ -125,7 +125,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .append(urlLabel),
         .appendSpace(of: 32),
         .append(passwordInput),
-        .appendSpace(of: 16),
+        .appendSpace(of: 8),
         .append(buttonContainer),
         .appendFiller(minSize: 16),
         .append(signInButton),

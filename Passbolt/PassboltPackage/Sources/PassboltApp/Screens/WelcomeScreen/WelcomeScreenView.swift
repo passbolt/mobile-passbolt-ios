@@ -36,39 +36,28 @@ internal final class WelcomeScreenView: ScrolledStackView {
 
   override internal func setup() {
 
-    let logoContainer: View =
-      Mutation
-      .backgroundColor(dynamic: .background)
-      .instantiate()
-
-    mut(logoImageView) {
-      .combined(
-        .subview(of: logoContainer),
+    let logoContainer: ContainerView = .init(
+      contentView: logoImageView,
+      mutation: .combined(
         .image(named: .appLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit),
-        .topAnchor(.equalTo, logoContainer.topAnchor),
-        .bottomAnchor(.equalTo, logoContainer.bottomAnchor),
-        .centerXAnchor(.equalTo, logoContainer.centerXAnchor),
-        .widthAnchor(.equalTo, constant: 118),
         .accessibilityIdentifier("welcome.app.logo.imageview")
-      )
-    }
+      ),
+      widthMultiplier: 0.4,
+      heightMultiplier: 1
+    )
 
-    let accountsContainer: View =
-      Mutation
-      .backgroundColor(dynamic: .background)
-      .instantiate()
-
-    mut(accountsImageView) {
-      .combined(
-        .subview(of: accountsContainer),
+    let accountsContainer: ContainerView = .init(
+      contentView: accountsImageView,
+      mutation: .combined(
         .image(named: .welcomeAccounts),
-        .topAnchor(.equalTo, accountsContainer.topAnchor),
-        .bottomAnchor(.equalTo, accountsContainer.bottomAnchor),
-        .centerXAnchor(.equalTo, accountsContainer.centerXAnchor),
+        .contentMode(.scaleAspectFit),
+        .widthAnchor(.equalTo, accountsImageView.heightAnchor),
         .accessibilityIdentifier("welcome.accounts.imageview")
-      )
-    }
+      ),
+      widthMultiplier: 0.7,
+      heightMultiplier: 1
+    )
 
     mut(titleLabel) {
       .combined(
@@ -112,15 +101,15 @@ internal final class WelcomeScreenView: ScrolledStackView {
       .combined(
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 8, left: 16, bottom: 8, right: 16)),
+        .contentInset(.init(top: 0, left: 16, bottom: 8, right: 16)),
         .append(logoContainer),
-        .appendSpace(of: 62),
+        .appendSpace(of: 24),
         .append(accountsContainer),
-        .appendSpace(of: 56),
+        .appendSpace(of: 24),
         .append(titleLabel),
         .appendSpace(of: 16),
         .append(descriptionLabel),
-        .appendFiller(minSize: 8),
+        .appendFiller(minSize: 16),
         .append(accountButton),
         .append(noAccountButton)
       )

@@ -140,23 +140,16 @@ public final class TransferInfoScreenView: ScrolledStackView {
       )
     }
 
-    let imageContainer: View = Mutation<View>
-      .combined(
-        .backgroundColor(dynamic: .background)
-      )
-      .instantiate()
-
-    mut(imageView) {
-      .combined(
-        .subview(of: imageContainer),
+    let imageContainer: ContainerView = .init(
+      contentView: imageView,
+      mutation: .combined(
         .image(dynamic: .qrCodeSample),
         .contentMode(.scaleAspectFit),
-        .edges(
-          equalTo: imageContainer,
-          insets: .init(top: 0, left: -80, bottom: 0, right: -80)
-        )
-      )
-    }
+        .widthAnchor(.equalTo, imageView.heightAnchor)
+      ),
+      widthMultiplier: 0.6,
+      heightMultiplier: 1
+    )
 
     mut(button) {
       .combined(
@@ -174,9 +167,9 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .append(headerLabel),
         .appendSpace(of: 24),
         .append(stepListView),
-        .appendSpace(of: 60),
+        .appendSpace(of: 16),
         .append(imageContainer),
-        .appendFiller(minSize: 0),
+        .appendFiller(minSize: 16),
         .append(button)
       )
     }
