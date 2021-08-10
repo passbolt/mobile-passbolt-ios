@@ -58,6 +58,7 @@ final class AccountSelectionScreenTests: TestCase {
   func test_loadStoredAccounts_andPrepareCellItemsWithImage_inSelectionMode() {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
@@ -106,6 +107,7 @@ final class AccountSelectionScreenTests: TestCase {
   func test_loadStoredAccounts_andPrepareCellItemsWithoutImage_inSelectionMode() {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
@@ -154,6 +156,7 @@ final class AccountSelectionScreenTests: TestCase {
   func test_loadStoredAccounts_andPrepareCellItems_withoutAddAccountItem_inRemovalMode() {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     features.use(networkClient)
     accountSettings.accountWithProfile = { account in
@@ -191,6 +194,7 @@ final class AccountSelectionScreenTests: TestCase {
   func test_loadStoredAccounts_andPrepareNoCellItems_whenAccountsEmpty() {
     accounts.storedAccounts = always([])
     features.use(accounts)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     features.use(networkClient)
     features.use(accountSettings)
@@ -216,6 +220,7 @@ final class AccountSelectionScreenTests: TestCase {
       return .success(())
     }
     features.use(accounts)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     accountSession.close = always(Void())
     features.use(accountSession)
     features.use(networkClient)
@@ -261,6 +266,7 @@ final class AccountSelectionScreenTests: TestCase {
       return .success(())
     }
     features.use(accounts)
+    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
     features.use(networkClient)
     accountSettings.accountWithProfile = { account in
@@ -368,4 +374,11 @@ private let secondAccount: AccountWithProfile = .init(
   avatarImageURL: "",
   fingerprint: "FINGERPRINT2",
   biometricsEnabled: false
+)
+
+private let account: Account = .init(
+  localID: firstAccount.localID,
+  domain: firstAccount.domain,
+  userID: firstAccount.userID,
+  fingerprint: firstAccount.fingerprint
 )

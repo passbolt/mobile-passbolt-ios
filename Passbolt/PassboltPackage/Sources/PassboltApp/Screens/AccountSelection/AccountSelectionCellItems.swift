@@ -50,6 +50,7 @@ internal struct AccountSelectionCellItem: Hashable {
   internal var account: Account
   internal var title: String
   internal var subtitle: String
+  internal var isCurrentAccount: Bool
   internal var imagePublisher: AnyPublisher<Data?, Never>?
   internal var listModePublisher: AnyPublisher<AccountSelectionController.ListMode, Never>
 
@@ -59,6 +60,7 @@ internal struct AccountSelectionCellItem: Hashable {
   ) -> Bool {
     lhs.title == rhs.title
       && lhs.subtitle == rhs.subtitle
+      && lhs.isCurrentAccount == rhs.isCurrentAccount
       && ((lhs.imagePublisher == nil && rhs.imagePublisher == nil)
         || (lhs.imagePublisher != nil && rhs.imagePublisher != nil))
   }
@@ -67,6 +69,7 @@ internal struct AccountSelectionCellItem: Hashable {
     hasher.combine(account)
     hasher.combine(title)
     hasher.combine(subtitle)
+    hasher.combine(isCurrentAccount)
   }
 }
 

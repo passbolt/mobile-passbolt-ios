@@ -31,6 +31,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
   private let subTitleLabel: Label = .init()
   private let deleteButton: Button = .init()
   private let stack: StackView = .init()
+  private let indicator: View = .init()
   private var tapAction: (() -> Void)?
   private var removeAction: (() -> Void)?
   private var cancellables: Cancellables = .init()
@@ -49,12 +50,25 @@ internal final class AccountSelectionCell: CollectionViewCell {
         .border(dynamic: .divider),
         .tintColor(dynamic: .icon),
         .contentMode(.scaleAspectFit),
-        .subview(of: self.contentView),
+        .subview(of: contentView),
         .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 12),
         .topAnchor(.equalTo, contentView.topAnchor, constant: 12),
         .bottomAnchor(.equalTo, contentView.bottomAnchor, constant: -12),
         .widthAnchor(.equalTo, constant: 40),
         .heightAnchor(.equalTo, constant: 40)
+      )
+    }
+
+    mut(indicator) {
+      .combined(
+        .subview(of: contentView),
+        .topAnchor(.equalTo, contentView.topAnchor, constant: 12),
+        .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 40),
+        .backgroundColor(dynamic: .secondaryGreen),
+        .widthAnchor(.equalTo, constant: 12),
+        .heightAnchor(.equalTo, constant: 12),
+        .cornerRadius(6, masksToBounds: true),
+        .hidden(true)
       )
     }
 
@@ -124,6 +138,8 @@ internal final class AccountSelectionCell: CollectionViewCell {
     self.titleLabel.text = item.title
     self.subTitleLabel.text = item.subtitle
 
+    self.indicator.isHidden = !item.isCurrentAccount
+
     self.tapAction = tapAction
     self.removeAction = removeAction
 
@@ -167,6 +183,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
 
     self.titleLabel.text = ""
     self.subTitleLabel.text = ""
+    self.indicator.isHidden = true
     self.tapAction = nil
     self.removeAction = nil
   }

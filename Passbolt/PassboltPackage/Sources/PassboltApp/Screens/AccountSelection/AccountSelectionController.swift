@@ -65,6 +65,7 @@ extension AccountSelectionController: UIController {
     cancellables: Cancellables
   ) -> AccountSelectionController {
     let accounts: Accounts = features.instance()
+    let accountSession: AccountSession = features.instance()
     let accountSettings: AccountSettings = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
@@ -80,11 +81,12 @@ extension AccountSelectionController: UIController {
     let addAccountPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
-      Publishers.CombineLatest(
+      Publishers.CombineLatest3(
         storedAccountsWithProfilesSubject,
-        listModeSubject
+        listModeSubject,
+        accountSession.statePublisher()
       )
-      .map { accountsWithProfiles, mode -> Array<AccountSelectionListItem> in
+      .map { accountsWithProfiles, mode, sessionState -> Array<AccountSelectionListItem> in
         var items: Array<AccountSelectionListItem> =
           accountsWithProfiles
           .map { accountWithProfile in
@@ -99,10 +101,21 @@ extension AccountSelectionController: UIController {
             }
             .eraseToAnyPublisher()
 
+            func isCurrentAccount() -> Bool {
+              switch sessionState {
+              case let .authorized(account) where account.localID == accountWithProfile.localID,
+                   let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
+                return true
+              case _:
+                return false
+              }
+            }
+
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
               account: accountWithProfile.account,
               title: "\(accountWithProfile.firstName) \(accountWithProfile.lastName)",
               subtitle: accountWithProfile.username,
+              isCurrentAccount: isCurrentAccount(),
               imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
               listModePublisher: listModeSubject.eraseToAnyPublisher()
             )
