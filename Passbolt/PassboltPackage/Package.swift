@@ -232,12 +232,28 @@ let package = Package(
         "Environment",
       ]
     ),
+    .testTarget(
+      name: "ResourcesTests",
+      dependencies: [
+        "Resources",
+        "TestExtensions",
+      ]
+    ),
     .target(
       // SQLCipher is added as preconfigured source file
       // see: https://www.zetetic.net/sqlcipher/ios-tutorial/#option-1-source-integration
       // however due to some issuse with SPM (or generated source)
       // it is currently required to add define for SQLITE_HAS_CODEC in sqlite3.h
       // it won't be compiled properly otherwise.
+      //
+      // Put it after:
+      // "Provide the ability to override linkage features of the interface."
+      // comment, around line ~70.
+      //
+      // #ifndef SQLITE_HAS_CODEC
+      // # define SQLITE_HAS_CODEC
+      // #endif
+      //
       // It might be updated in future see: https://github.com/sqlcipher/sqlcipher/issues/371
       name: "SQLCipher",
       cSettings: [

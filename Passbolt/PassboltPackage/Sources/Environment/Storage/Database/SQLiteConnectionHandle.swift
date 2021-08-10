@@ -78,10 +78,14 @@ internal final class SQLiteConnectionHandle {
 
     return
       connectionHandle
-      .execute("PRAGMA key")
+      .execute("PRAGMA key;")
       .flatMap {
         connectionHandle
           .execute("PRAGMA foreign_keys = ON;")
+      }
+      .flatMap {
+        connectionHandle
+          .execute("PRAGMA journal_mode = WAL;")
       }
       .map {
         connectionHandle

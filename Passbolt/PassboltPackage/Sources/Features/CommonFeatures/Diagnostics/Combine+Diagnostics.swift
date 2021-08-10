@@ -26,22 +26,58 @@ import Commons
 extension Publisher where Failure == TheError {
 
   public func collectErrorLog(
+    withPrefix prefix: StaticString = "",
     using diagnostics: Diagnostics
   ) -> AnyPublisher<Output, Failure> {
+    #if DEBUG
     handleEvents(receiveCompletion: { completion in
       switch completion {
       case .finished, .failure(.canceled):
         break
 
       case let .failure(error):
-        diagnostics.debugLog(
-          "Error: \(error.identifier) \(error.context.map { "[\($0)] " } ?? "")\(error.logMessage ?? "-")"
-        )
-        #if DEBUG
-        diagnostics.debugLog(error.debugDescription)
-        #endif
+        diagnostics.debugLog("\(prefix)\(error.debugDescription)")
       }
     })
     .eraseToAnyPublisher()
+    #else
+    #warning("TODO: we might need to store some information in regular diagnostic log")
+    return eraseToAnyPublisher()
+    #endif
+  }
+}
+
+extension Publisher {
+
+  public func collectValueLog(
+    withPrefix prefix: StaticString = "Received:",
+    using diagnostics: Diagnostics
+  ) -> AnyPublisher<Output, Failure> {
+    #if DEBUG
+    handleEvents(receiveOutput: { output in
+      diagnostics.debugLog("\(prefix)\(output)")
+    })
+    .eraseToAnyPublisher()
+    #else
+    eraseToAnyPublisher()
+    #endif
+  }
+}
+
+extension Publisher {
+
+  public func collectCancelationLog(
+    withPrefix prefix: StaticString = "Canceled",
+    using diagnostics: Diagnostics
+  ) -> AnyPublisher<Output, Failure> {
+    #if DEBUG
+    handleEvents(receiveCancel: {
+
+      diagnostics.debugLog("\(prefix)")
+    })
+    .eraseToAnyPublisher()
+    #else
+    eraseToAnyPublisher()
+    #endif
   }
 }

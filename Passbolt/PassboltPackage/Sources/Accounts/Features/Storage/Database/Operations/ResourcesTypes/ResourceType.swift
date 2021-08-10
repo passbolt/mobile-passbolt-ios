@@ -23,50 +23,21 @@
 
 import Commons
 
-import struct Foundation.Date
-import func Foundation.time
+public struct ResourceType {
 
-public struct Time: EnvironmentElement {
-  // Number of seconds from beginning of epoch (1/1/1970)
-  public var timestamp: () -> Int
-}
+  public typealias ID = Tagged<String, Self>
 
-extension Time {
+  public var id: ID
+  public var name: String
+  public var fields: Array<ResourceField>
 
-  public static var live: Self {
-    Self(
-      timestamp: { time(nil) }
-    )
+  public init(
+    id: ID,
+    name: String,
+    fields: Array<ResourceField>
+  ) {
+    self.id = id
+    self.name = name
+    self.fields = fields
   }
 }
-
-extension Time {
-
-  public func dateNow() -> Date {
-    Date(
-      timeIntervalSince1970: .init(
-        timestamp()
-      )
-    )
-  }
-}
-
-extension Environment {
-
-  public var time: Time {
-    get { element(Time.self) }
-    set { use(newValue) }
-  }
-}
-
-#if DEBUG
-extension Time {
-
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      timestamp: Commons.placeholder("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif

@@ -90,6 +90,13 @@
         "identifier" : "FeaturesTests",
         "name" : "FeaturesTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "ResourcesTests",
+        "name" : "ResourcesTests"
+      }
     }
   ],
   "version" : 1

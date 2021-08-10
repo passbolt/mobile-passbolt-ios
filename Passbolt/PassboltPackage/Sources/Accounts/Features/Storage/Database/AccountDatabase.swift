@@ -32,6 +32,11 @@ public struct AccountDatabase {
   public var fetchLastUpdate: FetchLastUpdateOperation
   public var saveLastUpdate: SaveLastUpdateOperation
 
+  public var storeResources: StoreResourcesOperation
+  public var storeResourcesTypes: StoreResourcesTypesOperation
+  public var fetchListViewResources: FetchListViewResourcesOperation
+  public var fetchDetailsViewResources: FetchDetailsViewResourcesOperation
+
   public var featureUnload: () -> Bool
 }
 
@@ -177,6 +182,10 @@ extension AccountDatabase: Feature {
     return Self(
       fetchLastUpdate: FetchLastUpdateOperation.using(currentConnectionPublisher),
       saveLastUpdate: SaveLastUpdateOperation.using(currentConnectionPublisher),
+      storeResources: StoreResourcesOperation.using(currentConnectionPublisher),
+      storeResourcesTypes: StoreResourcesTypesOperation.using(currentConnectionPublisher),
+      fetchListViewResources: FetchListViewResourcesOperation.using(currentConnectionPublisher),
+      fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentConnectionPublisher),
       featureUnload: featureUnload
     )
   }
@@ -186,6 +195,10 @@ extension AccountDatabase: Feature {
     Self(
       fetchLastUpdate: .placeholder,
       saveLastUpdate: .placeholder,
+      storeResources: .placeholder,
+      storeResourcesTypes: .placeholder,
+      fetchListViewResources: .placeholder,
+      fetchDetailsViewResources: .placeholder,
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

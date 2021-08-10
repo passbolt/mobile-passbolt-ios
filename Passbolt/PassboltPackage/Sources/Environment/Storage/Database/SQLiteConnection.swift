@@ -162,6 +162,19 @@ extension SQLiteConnection {
     .flatMap(mapping)
   }
 
+  @inline(__always)
+  public func fetch<Value>(
+    _ statement: SQLiteStatement,
+    with parameters: Array<SQLiteBindable?>,
+    mapping: (Array<SQLiteRow>) -> Result<Value, TheError>
+  ) -> Result<Value, TheError> {
+    fetch(
+      statement,
+      parameters
+    )
+    .flatMap(mapping)
+  }
+
   @inlinable
   public func withQueue<Value>(
     _ operation: @escaping (Self) -> Result<Value, TheError>

@@ -21,52 +21,30 @@
 // @since         v1.0
 //
 
-import Commons
+public struct ResourcesFilter {
 
-import struct Foundation.Date
-import func Foundation.time
+  // text search, includes multiple fields
+  public var text: String?
+  // name search only
+  public var name: String?
+  // url search only
+  public var url: String?
 
-public struct Time: EnvironmentElement {
-  // Number of seconds from beginning of epoch (1/1/1970)
-  public var timestamp: () -> Int
-}
+  public init(
+    text: String? = nil,
+    name: String? = nil,
+    url: String? = nil
+  ) {
+    self.text = text
+    self.name = name
+    self.url = url
+  }
 
-extension Time {
-
-  public static var live: Self {
-    Self(
-      timestamp: { time(nil) }
-    )
+  public var isEmpty: Bool {
+    (text?.isEmpty ?? true)
+      && (name?.isEmpty ?? true)
+      && (url?.isEmpty ?? true)
   }
 }
 
-extension Time {
-
-  public func dateNow() -> Date {
-    Date(
-      timeIntervalSince1970: .init(
-        timestamp()
-      )
-    )
-  }
-}
-
-extension Environment {
-
-  public var time: Time {
-    get { element(Time.self) }
-    set { use(newValue) }
-  }
-}
-
-#if DEBUG
-extension Time {
-
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      timestamp: Commons.placeholder("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif
+extension ResourcesFilter: Equatable {}

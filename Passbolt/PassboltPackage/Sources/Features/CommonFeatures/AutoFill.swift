@@ -61,7 +61,8 @@ extension AutoFill: Feature {
     .store(in: cancellables)
 
     return Self(
-      extensionEnabledStatePublisher: extensionEnabledStateSubject
+      extensionEnabledStatePublisher:
+        extensionEnabledStateSubject
         .filterMapOptional()
         .eraseToAnyPublisher
     )

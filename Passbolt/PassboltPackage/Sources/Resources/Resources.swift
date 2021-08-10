@@ -20,3 +20,242 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import Accounts
+import Features
+import NetworkClient
+
+import struct Foundation.Date
+
+public struct Resources {
+
+  public var refreshIfNeeded: () -> AnyPublisher<Never, TheError>
+  public var filteredResourcesListPublisher:
+    (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
+  public var featureUnload: () -> Bool
+}
+
+extension Resources: Feature {
+
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let time: Time = environment.time
+
+    let diagnostics: Diagnostics = features.instance()
+    let accountSession: AccountSession = features.instance()
+    let accountDatabase: AccountDatabase = features.instance()
+    let networkClient: NetworkClient = features.instance()
+
+    let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
+
+    accountSession
+      .statePublisher()
+      .scan(
+        (
+          last: Optional<Account.LocalID>.none,
+          current: Optional<Account.LocalID>.none
+        )
+      ) { changes, sessionState in
+        switch sessionState {
+        case let .authorized(account):
+          return (last: changes.current, current: account.localID)
+        case let .authorizationRequired(account):
+          return (last: changes.current, current: account.localID)
+        case .none:
+          return (last: changes.current, current: nil)
+        }
+      }
+      .filter { /* TODO: verify later $0.last != .none && */ $0.last != $0.current }
+      .mapToVoid()
+      .sink { [unowned features] in
+        features.unload(Resources.self)
+      }
+      .store(in: cancellables)
+
+    func refreshIfNeeded() -> AnyPublisher<Never, TheError> {
+      accountDatabase
+        // get info about last successful update
+        .fetchLastUpdate()
+        .compactMap { lastUpdate -> Date? in
+          // since initial application version does not use diff api yet
+          // to prevent too many requests (which downloads all resources each time)
+          // we are skipping requests that are more frequent than one minute apart
+          // so in result you can actually update only once per minute
+          // the value will be used with diff api so last used value after update
+          // containing diff implementation will be a valid one and immediately used
+          //
+          // implement diff request here instead when available
+          if lastUpdate.distance(to: time.dateNow()) > 60 {
+            return lastUpdate
+          }
+          else {
+            return nil
+          }
+        }
+        .map { _ -> AnyPublisher<Void, TheError> in
+          // refresh resources types
+          networkClient
+            .resourcesTypesRequest
+            .make()
+            .map { (response: ResourcesTypesRequestResponse) -> Array<ResourceType> in
+              response.body
+                .map { (type: ResourcesTypesRequestResponseBodyItem) -> ResourceType in
+                  let fields: Array<ResourceField> = type
+                    .definition
+                    .resourceProperties
+                    .map { property -> ResourceField in
+                      switch property {
+                      case let .string(name, isOptional, maxLength):
+                        return .string(
+                          name: name,
+                          required: !isOptional,
+                          encrypted: false,
+                          maxLength: maxLength
+                        )
+                      }
+                    }
+
+                  let secretFields: Array<ResourceField> = type
+                    .definition
+                    .secretProperties
+                    .map { property -> ResourceField in
+                      switch property {
+                      case let .string(name, isOptional, maxLength):
+                        return .string(
+                          name: name,
+                          required: !isOptional,
+                          encrypted: true,
+                          maxLength: maxLength
+                        )
+                      }
+                    }
+
+                  return ResourceType(
+                    id: .init(rawValue: type.id),
+                    name: type.name,
+                    fields: fields + secretFields
+                  )
+                }
+            }
+            .map { (resourceTypes: Array<ResourceType>) -> AnyPublisher<Void, TheError> in
+              accountDatabase.storeResourcesTypes(resourceTypes)
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .map { _ -> AnyPublisher<Void, TheError> in
+          // refresh resources
+          networkClient
+            .resourcesRequest
+            .make()
+            .map { (response: ResourcesRequestResponse) -> Array<Resource> in
+              response
+                .body
+                .map { (resource: ResourcesRequestResponseBodyItem) -> Resource in
+                  let permission: ResourcePermission = {
+                    switch resource.permission {
+                    case .read:
+                      return .read
+
+                    case .write:
+                      return .write
+
+                    case .owner:
+                      return .owner
+                    }
+                  }()
+                  return Resource(
+                    id: .init(rawValue: resource.id),
+                    typeID: .init(rawValue: resource.resourceTypeID),
+                    name: resource.name,
+                    url: resource.url,
+                    username: resource.username,
+                    description: resource.description,
+                    permission: permission
+                  )
+                }
+            }
+            .map { (resources: Array<Resource>) -> AnyPublisher<Void, TheError> in
+              accountDatabase
+                .storeResources(resources)
+                .map { _ -> AnyPublisher<Void, TheError> in
+                  accountDatabase
+                    .saveLastUpdate(time.dateNow())
+                    .collectErrorLog(using: diagnostics)
+                    // if we fail to save last update timestamp the next update
+                    // will contain the same changes but it does not affect
+                    // final result so no need to propagate that error further
+                    .replaceError(with: Void())
+                    .setFailureType(to: TheError.self)
+                    .eraseToAnyPublisher()
+                }
+                .switchToLatest()
+                .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .handleEvents(receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          resourcesUpdateSubject.send()
+        })
+        .ignoreOutput()
+        .collectErrorLog(using: diagnostics)
+        .eraseToAnyPublisher()
+    }
+
+    func filteredResourcesListPublisher(
+      _ filterPublisher: AnyPublisher<ResourcesFilter, Never>
+    ) -> AnyPublisher<Array<ListViewResource>, Never> {
+      filterPublisher
+        .removeDuplicates()
+        .map { filter -> AnyPublisher<Array<ListViewResource>, Never> in
+          // trigger refresh on data updates, publishes initailly on subscription
+          resourcesUpdateSubject
+            .map { () -> AnyPublisher<Array<ListViewResource>, Never> in
+              accountDatabase
+                .fetchListViewResources(filter)
+                .replaceError(with: Array<ListViewResource>())
+                .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
+
+    func featureUnload() -> Bool {
+      // prevent from publishing values after unload
+      resourcesUpdateSubject.send(completion: .finished)
+      return true
+    }
+
+    return Self(
+      refreshIfNeeded: refreshIfNeeded,
+      filteredResourcesListPublisher: filteredResourcesListPublisher,
+      featureUnload: featureUnload
+    )
+  }
+}
+
+#if DEBUG
+
+extension Resources {
+
+  public static var placeholder: Resources {
+    Self(
+      refreshIfNeeded: Commons.placeholder("You have to provide mocks for used methods"),
+      filteredResourcesListPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif

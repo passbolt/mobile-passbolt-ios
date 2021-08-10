@@ -72,11 +72,10 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
   func activate() {
     autoLoginPromptSubject
       .delay(for: 0.05, scheduler: RunLoop.main)
-      .sink(receiveCompletion: { [unowned self]  _ in
+      .sink(receiveCompletion: { [unowned self] _ in
         guard signInCancellable == nil
         else { return }
-        self.signInCancellable
-          = self.controller
+        self.signInCancellable = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
           .handleEvents(
@@ -95,7 +94,8 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
                     .instantiate(),
                   hideAfter: 5
                 )
-              } else {
+              }
+              else {
                 self?.present(
                   snackbar: Mutation<UICommons.View>
                     .snackBarErrorMessage(localized: "sign.in.error.message")
@@ -218,8 +218,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
       .sink { [unowned self] in
         guard signInCancellable == nil
         else { return }
-        self.signInCancellable
-          = self.controller
+        self.signInCancellable = self.controller
           .signIn()
           .receive(on: RunLoop.main)
           .handleEvents(
@@ -251,8 +250,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
       .sink { [unowned self] in
         guard signInCancellable == nil
         else { return }
-        self.signInCancellable
-          = self.controller
+        self.signInCancellable = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
           .handleEvents(

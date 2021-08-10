@@ -142,7 +142,7 @@ extension Accounts: Feature {
         .sink { sessionState in
           switch sessionState {
           case let .authorized(currentAccount) where currentAccount.localID == account.localID,
-               let .authorizationRequired(currentAccount) where currentAccount.localID == account.localID:
+            let .authorizationRequired(currentAccount) where currentAccount.localID == account.localID:
             session.close()
 
           case .authorized, .authorizationRequired, .none:

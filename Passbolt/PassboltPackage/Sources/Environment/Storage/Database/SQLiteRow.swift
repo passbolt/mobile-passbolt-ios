@@ -155,9 +155,12 @@ public struct SQLiteRow {
   }
 }
 
-extension SQLiteRow: CustomStringConvertible {
+// WARNING: Do not ever conform to CustomStringConvertible
+// it will conflict with dymamic member lookup
+// for table column 'description' of resource
+extension SQLiteRow: CustomDebugStringConvertible {
 
-  public var description: String {
+  public var debugDescription: String {
     """
     ---
     SQLiteRow

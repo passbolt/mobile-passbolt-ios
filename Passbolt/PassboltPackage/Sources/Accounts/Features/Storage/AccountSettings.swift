@@ -46,8 +46,7 @@ extension AccountSettings: Feature {
     let permissions: OSPermissions = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
 
-    let currentAccountProfileSubject: CurrentValueSubject<AccountProfile?, Never>
-      = .init(nil)
+    let currentAccountProfileSubject: CurrentValueSubject<AccountProfile?, Never> = .init(nil)
 
     accountSession
       .statePublisher()
@@ -104,8 +103,8 @@ extension AccountSettings: Feature {
       }
       .store(in: cancellables)
 
-    let biometricsEnabledPublisher: AnyPublisher<Bool, Never>
-      = currentAccountProfileSubject
+    let biometricsEnabledPublisher: AnyPublisher<Bool, Never> =
+      currentAccountProfileSubject
       .map { accountProfile in
         accountProfile?.biometricsEnabled ?? false
       }
@@ -184,34 +183,33 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
-
     func accountWithProfile(
       for account: Account
     ) -> AccountWithProfile {
       switch accountsDataStore.loadAccountProfile(account.localID) {
-        case let .success(accountProfile):
-          return AccountWithProfile(
-            localID: account.localID,
-            userID: account.userID,
-            domain: account.domain,
-            label: accountProfile.label,
-            username: accountProfile.username,
-            firstName: accountProfile.firstName,
-            lastName: accountProfile.lastName,
-            avatarImageURL: accountProfile.avatarImageURL,
-            fingerprint: account.fingerprint,
-            biometricsEnabled: accountProfile.biometricsEnabled
-          )
+      case let .success(accountProfile):
+        return AccountWithProfile(
+          localID: account.localID,
+          userID: account.userID,
+          domain: account.domain,
+          label: accountProfile.label,
+          username: accountProfile.username,
+          firstName: accountProfile.firstName,
+          lastName: accountProfile.lastName,
+          avatarImageURL: accountProfile.avatarImageURL,
+          fingerprint: account.fingerprint,
+          biometricsEnabled: accountProfile.biometricsEnabled
+        )
 
-        case let .failure(error):
-          diagnostics.diagnosticLog("Failed to load account profile")
-          diagnostics.debugLog(error.description)
-          fatalError("Internal inconsistency - invalid data storage state")
-        }
+      case let .failure(error):
+        diagnostics.diagnosticLog("Failed to load account profile")
+        diagnostics.debugLog(error.description)
+        fatalError("Internal inconsistency - invalid data storage state")
+      }
     }
 
-    let accountProfilePublisher: AnyPublisher<AccountProfile, Never>
-      = currentAccountProfileSubject
+    let accountProfilePublisher: AnyPublisher<AccountProfile, Never> =
+      currentAccountProfileSubject
       .filterMapOptional()
       .removeDuplicates()
       .eraseToAnyPublisher()

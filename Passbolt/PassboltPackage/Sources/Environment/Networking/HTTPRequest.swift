@@ -55,7 +55,9 @@ public struct HTTPRequest {
 extension HTTPRequest {
 
   public var url: URL? {
-    get { urlComponents.url }
+    get {
+      urlComponents.url
+    }
     set {
       urlComponents =
         newValue
@@ -94,7 +96,7 @@ extension HTTPRequest: CustomStringConvertible {
 
   public var description: String {
     """
-    \(method.rawValue) \(urlComponents.percentEncodedPath)\(urlComponents.percentEncodedQuery.map { "?\($0))" } ?? "") HTTP/1.1
+    \(method.rawValue) \(urlComponents.percentEncodedPath)\(urlComponents.percentEncodedQuery.map { "?\($0)" } ?? "") HTTP/1.1
     \(headers.map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
 
     \(String(data: body, encoding: .utf8) ?? "")

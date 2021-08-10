@@ -512,9 +512,9 @@ extension AccountsDataStore: Feature {
           diagnostics.debugLog(error.description)
           guard
             error.identifier == .missingPassphrase
-            // this error occurs for biometry change
-            // not on failure for authentication failure
-            || error.osStatus == errSecAuthFailed
+              // this error occurs for biometry change
+              // not on failure for authentication failure
+              || error.osStatus == errSecAuthFailed
           else { return .biometricsNotAvailable(underlyingError: error) }
           // Ensure that account profile has biometrics disabled
           // when passphrase is unavailable

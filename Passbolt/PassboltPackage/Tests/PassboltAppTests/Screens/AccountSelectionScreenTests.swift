@@ -63,9 +63,13 @@ final class AccountSelectionScreenTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 
@@ -112,9 +116,13 @@ final class AccountSelectionScreenTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 
@@ -162,9 +170,13 @@ final class AccountSelectionScreenTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 
@@ -212,8 +224,7 @@ final class AccountSelectionScreenTests: TestCase {
   }
 
   func test_removeStoredAccount_Succeeds() {
-    var storedAccounts: Array<Account>
-      = [firstAccount.account, secondAccount.account]
+    var storedAccounts: Array<Account> = [firstAccount.account, secondAccount.account]
     accounts.storedAccounts = always(storedAccounts)
     accounts.removeAccount = { account in
       storedAccounts.removeAll { $0 == account }
@@ -227,9 +238,13 @@ final class AccountSelectionScreenTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 
@@ -258,8 +273,7 @@ final class AccountSelectionScreenTests: TestCase {
   }
 
   func test_removeStoredAccount_updatesAccountsList() {
-    var storedAccounts: Array<Account>
-      = [firstAccount.account, secondAccount.account]
+    var storedAccounts: Array<Account> = [firstAccount.account, secondAccount.account]
     accounts.storedAccounts = always(storedAccounts)
     accounts.removeAccount = { account in
       storedAccounts.removeAll { $0 == account }
@@ -272,9 +286,13 @@ final class AccountSelectionScreenTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 

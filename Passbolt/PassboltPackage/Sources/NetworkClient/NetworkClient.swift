@@ -36,6 +36,8 @@ public struct NetworkClient {
   public var signOutRequest: SignOutRequest
   public var refreshSessionRequest: RefreshSessionRequest
   public var configRequest: ConfigRequest
+  public var resourcesRequest: ResourcesRequest
+  public var resourcesTypesRequest: ResourcesTypesRequest
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
 }
@@ -156,6 +158,14 @@ extension NetworkClient: Feature {
         using: networking,
         with: domainVariablePublisher
       ),
+      resourcesRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      ),
+      resourcesTypesRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      ),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:)
     )
@@ -174,6 +184,8 @@ extension NetworkClient: Feature {
       signOutRequest: .placeholder,
       refreshSessionRequest: .placeholder,
       configRequest: .placeholder,
+      resourcesRequest: .placeholder,
+      resourcesTypesRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods")
     )

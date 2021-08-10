@@ -240,7 +240,7 @@ extension AccountSession: Feature {
 
       switch sessionStateSubject.value {
       case let .authorized(currentAccount) where currentAccount.localID != account.localID,
-           let .authorizationRequired(currentAccount) where currentAccount.localID != account.localID:
+        let .authorizationRequired(currentAccount) where currentAccount.localID != account.localID:
         diagnostics.debugLog("Signing out \(currentAccount.localID)")
         // signout from current account on switching accounts
         _clearCurrentSession()

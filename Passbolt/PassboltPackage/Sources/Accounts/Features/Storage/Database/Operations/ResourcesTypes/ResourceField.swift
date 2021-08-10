@@ -21,52 +21,70 @@
 // @since         v1.0
 //
 
-import Commons
+public enum ResourceField {
 
-import struct Foundation.Date
-import func Foundation.time
+  case string(name: String, required: Bool, encrypted: Bool, maxLength: Int?)
 
-public struct Time: EnvironmentElement {
-  // Number of seconds from beginning of epoch (1/1/1970)
-  public var timestamp: () -> Int
-}
-
-extension Time {
-
-  public static var live: Self {
-    Self(
-      timestamp: { time(nil) }
-    )
-  }
-}
-
-extension Time {
-
-  public func dateNow() -> Date {
-    Date(
-      timeIntervalSince1970: .init(
-        timestamp()
+  // for database use
+  internal init?(
+    typeString: String,
+    name: String,
+    required: Bool,
+    encrypted: Bool,
+    maxLength: Int?
+  ) {
+    switch typeString {
+    case "string":
+      self = .string(
+        name: name,
+        required: required,
+        encrypted: encrypted,
+        maxLength: maxLength
       )
-    )
+
+    case _:
+      return nil
+    }
+
+  }
+
+  // for database use
+  internal var typeString: String {
+    switch self {
+    case .string:
+      return "string"
+    }
+  }
+
+  // for database use
+  internal var name: String {
+    switch self {
+    case let .string(name, _, _, _):
+      return name
+    }
+  }
+
+  // for database use
+  internal var required: Bool {
+    switch self {
+    case let .string(_, required, _, _):
+      return required
+    }
+  }
+
+  // for database use
+  internal var encrypted: Bool {
+    switch self {
+    case let .string(_, _, encrypted, _):
+      return encrypted
+    }
+  }
+
+  // for database use
+  internal var maxLength: Int? {
+    switch self {
+    case let .string(_, _, _, maxLength):
+      return maxLength
+    }
   }
 }
-
-extension Environment {
-
-  public var time: Time {
-    get { element(Time.self) }
-    set { use(newValue) }
-  }
-}
-
-#if DEBUG
-extension Time {
-
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      timestamp: Commons.placeholder("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif

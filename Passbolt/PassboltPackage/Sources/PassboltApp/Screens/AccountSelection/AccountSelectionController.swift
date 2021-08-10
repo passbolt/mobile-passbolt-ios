@@ -104,7 +104,7 @@ extension AccountSelectionController: UIController {
             func isCurrentAccount() -> Bool {
               switch sessionState {
               case let .authorized(account) where account.localID == accountWithProfile.localID,
-                   let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
+                let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
                 return true
               case _:
                 return false
@@ -149,8 +149,8 @@ extension AccountSelectionController: UIController {
 
     func removeAccount(_ account: Account) -> Result<Void, TheError> {
       let result: Result<Void, TheError> = accounts.removeAccount(account)
-      let storedAccounts: Array<AccountWithProfile>
-        = accounts
+      let storedAccounts: Array<AccountWithProfile> =
+        accounts
         .storedAccounts()
         .compactMap(accountSettings.accountWithProfile)
 

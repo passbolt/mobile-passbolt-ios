@@ -28,9 +28,6 @@ extension SQLiteMigration {
 
   internal static var migration_0: Self {
     [
-      """
-      PRAGMA journal_mode = WAL; -- persistent mode
-      """,
       // - resources - //
       """
       CREATE TABLE
@@ -41,44 +38,45 @@ extension SQLiteMigration {
         permission TEXT NOT NULL, -- one of [read, write, owner]
         url TEXT,
         username TEXT,
-        secretTypeID TEXT NOT NULL,
+        resourceTypeID TEXT NOT NULL,
         description TEXT, -- might be NULL if secret type contains description
         parentFolderID TEXT,
-        FOREIGN KEY(secretTypeID) REFERENCES secretTypes(id) ON DELETE RESTRICT,
+        FOREIGN KEY(resourceTypeID) REFERENCES resourceTypes(id) ON DELETE RESTRICT,
         FOREIGN KEY(parentFolderID) REFERENCES folders(id) ON DELETE RESTRICT
       );
       """,
       // - secretTypes - //
       """
       CREATE TABLE
-        secretTypes
+        resourceTypes
       (
-        id INT UNIQUE NOT NULL PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL -- name of secret type i.e. simplePassword
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL -- name of secret type i.e. simplePassword
       );
       """,
       // - secretFields - //
       """
       CREATE TABLE
-        secretFields
+        resourceFields
       (
-        id INT UNIQUE NOT NULL PRIMARY KEY,
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL, -- name of field
         type TEXT NOT NULL, -- type of field - one or more of [string, int] separated with pipe i.e. string|int
         required BOOL NOT NULL,
+        encrypted BOOL NOT NULL, -- determines if field is part of secret
         maxLength INTEGER -- maximum number of characters for string
       );
       """,
       // - secretTypesFields - //
       """
       CREATE TABLE
-        secretTypesFields
+        resourceTypesFields
       (
-        secretTypeID INT NOT NULL,
-        secretFieldID INT NOT NULL,
-        FOREIGN KEY(secretTypeID) REFERENCES secretTypes(id) ON DELETE CASCADE,
-        FOREIGN KEY(secretFieldID) REFERENCES secretFields(id) ON DELETE CASCADE,
-        UNIQUE(secretTypeID, secretFieldID)
+        resourceTypeID TEXT NOT NULL,
+        resourceFieldID INTEGER NOT NULL,
+        FOREIGN KEY(resourceTypeID) REFERENCES resourceTypes(id) ON DELETE CASCADE,
+        FOREIGN KEY(resourceFieldID) REFERENCES resourceFields(id) ON DELETE CASCADE,
+        UNIQUE(resourceTypeID, resourceFieldID)
       );
       """,
       // - folders - //
@@ -98,7 +96,7 @@ extension SQLiteMigration {
       CREATE TABLE
         updates
       (
-        lastUpdateTimestamp INT UNIQUE NOT NULL -- epoch timestamp, intended to be a single record
+        lastUpdateTimestamp INTEGER UNIQUE NOT NULL -- epoch timestamp, intended to be a single record
       );
       """,
       """
@@ -143,28 +141,30 @@ extension SQLiteMigration {
         (
           SELECT
             group_concat(
-              secretFields.name
+              resourceFields.name
               || ":"
-              || secretFields.type
+              || resourceFields.type
               || ";required="
-              || secretFields.required
+              || resourceFields.required
+              || ";encrypted="
+              || resourceFields.encrypted
               || ";maxLength="
-              || secretFields.maxLength
+              || resourceFields.maxLength
             )
           FROM
-            secretFields
+            resourceFields
           JOIN
-            secretTypesFields
+            resourceTypesFields
           ON
-            secretFields.id == secretTypesFields.secretFieldID
+            resourceFields.id == resourceTypesFields.resourceFieldID
           JOIN
-            secretTypes
+            resourceTypes
           ON
-            secretTypes.id == secretTypesFields.secretTypeID
+            resourceTypes.id == resourceTypesFields.resourceTypeID
           WHERE
-            resources.secretTypeID == secretTypes.id
+            resources.resourceTypeID == resourceTypes.id
         )
-        AS secretFields
+        AS resourceFields
       FROM
         resources;
       """,

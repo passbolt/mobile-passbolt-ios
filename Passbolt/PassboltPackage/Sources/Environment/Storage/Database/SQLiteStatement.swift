@@ -23,7 +23,31 @@
 
 public struct SQLiteStatement {
 
-  internal let rawString: String
+  internal private(set) var rawString: String
+}
+
+extension SQLiteStatement {
+
+  public mutating func append(
+    _ other: SQLiteStatement?
+  ) {
+    rawString.append((other?.rawString ?? ""))
+  }
+
+  public func appending(
+    _ other: SQLiteStatement?
+  ) -> SQLiteStatement {
+    SQLiteStatement(
+      rawString: rawString.appending(other?.rawString ?? "")
+    )
+  }
+
+  public static func + (
+    _ lhs: SQLiteStatement,
+    _ rhs: SQLiteStatement
+  ) -> SQLiteStatement {
+    lhs.appending(rhs)
+  }
 }
 
 extension SQLiteStatement: ExpressibleByStringLiteral {
@@ -33,4 +57,9 @@ extension SQLiteStatement: ExpressibleByStringLiteral {
   ) {
     self.init(rawString: value.description)
   }
+}
+
+extension SQLiteStatement: CustomStringConvertible {
+
+  public var description: String { rawString }
 }

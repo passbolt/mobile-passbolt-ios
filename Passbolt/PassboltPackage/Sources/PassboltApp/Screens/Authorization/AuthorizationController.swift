@@ -69,8 +69,9 @@ extension AuthorizationController: UIController {
     let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
 
     let account: Account = context
-    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never>
-      = .init(accountSettings.accountWithProfile(account))
+    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = .init(
+      accountSettings.accountWithProfile(account)
+    )
 
     accountSettings
       .updatedAccountIDsPublisher()

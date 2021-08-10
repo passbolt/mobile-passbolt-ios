@@ -79,7 +79,7 @@ extension WindowController: UIController {
 
           // switched to same account (from signed in state)
           case let (.authorized(account), .useCachedScreenState(previousAccount))
-                where account == previousAccount:
+          where account == previousAccount:
             return .useInitialScreenState(for: account)
 
           // initially authorized (from signed out state)
