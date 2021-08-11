@@ -21,17 +21,42 @@
 // @since         v1.0
 //
 
-// Passbolt autofill extension
+import Accounts
+import UIComponents
 
-"extension.setup.title" = "Passbolt Autofill enabled!";
-"extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
-"extension.setup.button.close" = "";
-"extension.setup.button.back.to.app" = "Go to the app";
+internal struct AuthorizationNavigationController {
 
-"account.selection.switch.account.title" = "Switch the account";
-"account.selection.switch.account.subtitle" = "Select an account to switch!";
-"account.selection.sign.in.title" = "You are not logged in";
-"account.selection.sign.in.subtitle" = "Select an account to sign in!";
+  internal var selectedAccount: Account?
+  internal var mode: AccountSelectionController.Mode
+  internal var hasAccounts: Bool
+}
 
-"no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials aftwards.";
+extension AuthorizationNavigationController: UIController {
+
+  internal typealias Context = (account: Account?, mode: AccountSelectionController.Mode)
+
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let accounts: Accounts = features.instance()
+
+    let storedAccounts: Array<Account> = accounts.storedAccounts()
+
+    if let account = context.account, storedAccounts.contains(account) {
+      return Self(
+        selectedAccount: context.account,
+        mode: context.mode,
+        hasAccounts: true
+      )
+    }
+    else {
+      return Self(
+        selectedAccount: nil,
+        mode: context.mode,
+        hasAccounts: !storedAccounts.isEmpty
+      )
+    }
+  }
+}

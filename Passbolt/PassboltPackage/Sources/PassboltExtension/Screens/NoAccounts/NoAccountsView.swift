@@ -23,16 +23,12 @@
 import Combine
 import UICommons
 
-internal final class WelcomeScreenView: ScrolledStackView {
-  internal var tapAccountPublisher: AnyPublisher<Void, Never> { accountButton.tapPublisher }
-  internal var tapNoAccountPublisher: AnyPublisher<Void, Never> { noAccountButton.tapPublisher }
+internal final class NoAccountsView: ScrolledStackView {
 
   private let logoImageView: ImageView = .init()
   private let accountsImageView: ImageView = .init()
   private let titleLabel: Label = .init()
   private let descriptionLabel: Label = .init()
-  private let accountButton: TextButton = .init()
-  private let noAccountButton: TextButton = .init()
 
   override internal func setup() {
 
@@ -41,7 +37,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
       mutation: .combined(
         .image(named: .appLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit),
-        .accessibilityIdentifier("welcome.app.logo.imageview")
+        .accessibilityIdentifier("no.accounts.logo.imageview")
       ),
       widthMultiplier: 0.4,
       heightMultiplier: 1
@@ -53,7 +49,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .image(dynamic: .accountsSkeleton),
         .contentMode(.scaleAspectFit),
         .widthAnchor(.equalTo, accountsImageView.heightAnchor),
-        .accessibilityIdentifier("welcome.accounts.imageview")
+        .accessibilityIdentifier("no.accounts.imageview")
       ),
       widthMultiplier: 0.7,
       heightMultiplier: 1
@@ -64,8 +60,8 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
-        .text(localized: "welcome.title"),
-        .accessibilityIdentifier("welcome.title.label")
+        .text(localized: "no.accounts.title"),
+        .accessibilityIdentifier("no.accounts.title.label")
       )
     }
 
@@ -76,24 +72,8 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
-        .text(localized: "welcome.description"),
-        .accessibilityIdentifier("welcome.description.label")
-      )
-    }
-
-    mut(accountButton) {
-      .combined(
-        .primaryStyle(),
-        .text(localized: "welcome.connect.to.account"),
-        .accessibilityIdentifier("welcome.connect.account.button")
-      )
-    }
-
-    mut(noAccountButton) {
-      .combined(
-        .linkStyle(),
-        .text(localized: "welcome.no.account"),
-        .accessibilityIdentifier("welcome.no.account.button")
+        .text(localized: "no.accounts.description"),
+        .accessibilityIdentifier("no.accounts.description.label")
       )
     }
 
@@ -101,7 +81,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
       .combined(
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 0, left: 16, bottom: 8, right: 16)),
+        .contentInset(.init(top: 60, left: 16, bottom: 8, right: 16)),
         .append(logoContainer),
         .appendSpace(of: 24),
         .append(accountsContainer),
@@ -109,10 +89,9 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .append(titleLabel),
         .appendSpace(of: 16),
         .append(descriptionLabel),
-        .appendFiller(minSize: 16),
-        .append(accountButton),
-        .append(noAccountButton)
+        .appendFiller(minSize: 16)
       )
     }
   }
 }
+

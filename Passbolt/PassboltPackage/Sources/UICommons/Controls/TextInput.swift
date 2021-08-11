@@ -52,13 +52,14 @@ public class TextInput: View {
   }
 
   fileprivate let textField: TextField = .init()
-  private var errorMessageLocalizationKey: String? {
+  private var errorMessage: (localizationKey: String, bundle: Bundle)? {
     didSet { updatePresentation() }
   }
+
   private let descriptionLabel: Label = .init()
   private let requiredLabel: Label = .init()
   private let errorMessageView: ErrorMessageView = .init()
-  private var isValid: Bool { errorMessageLocalizationKey == nil }
+  private var isValid: Bool { errorMessage == nil }
 
   public required init() {
     let textSubject: PassthroughSubject<String, Never> = .init()
@@ -148,19 +149,23 @@ public class TextInput: View {
   public func update(from validated: Validated<String>) {
     textField.text = validated.value
 
-    if let localizationKey: String = validated.errors.first?.localizationKey {
-      errorMessageLocalizationKey = localizationKey
+    if let localizationKey: String = validated.errors.first?.localizationKey,
+       let localizationBundle: Bundle = validated.errors.first?.localizationBundle {
+      errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
     }
     else {
-      errorMessageLocalizationKey = nil
+      errorMessage = nil
     }
   }
 
   private func updatePresentation() {
-    if let errorMessageKey: String = errorMessageLocalizationKey {
+    if let (localizationKey, bundle): (String, Bundle) = errorMessage {
       mut(errorMessageView) {
         .combined(
-          .text(localized: errorMessageKey),
+          .text(
+            localized: localizationKey,
+            inBundle: bundle
+          ),
           .isHidden(false)
         )
       }

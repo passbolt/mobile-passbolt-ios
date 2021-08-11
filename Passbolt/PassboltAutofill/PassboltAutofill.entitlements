@@ -9,6 +9,8 @@
 		<string>group.com.passbolt.mobile</string>
 	</array>
 	<key>keychain-access-groups</key>
-	<array/>
+	<array>
+		<string>$(AppIdentifierPrefix)com.passbolt.mobile</string>
+	</array>
 </dict>
 </plist>

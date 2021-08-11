@@ -40,7 +40,7 @@ public struct AppLifeCycle: EnvironmentElement {
 
 extension AppLifeCycle {
 
-  public static func live() -> Self {
+  public static func application() -> Self {
     let lifeCyclePublisher: AnyPublisher<Transition, Never> = Publishers.MergeMany(
       NotificationCenter
         .default
@@ -68,6 +68,17 @@ extension AppLifeCycle {
     .eraseToAnyPublisher()
     return Self(
       lifeCyclePublisher: { lifeCyclePublisher }
+    )
+  }
+}
+
+extension AppLifeCycle {
+
+  // Autofill extension empty lifecycle - there's currently no way
+  // of determining the actual state of the app extension.
+  public static func autoFillExtension() -> Self {
+    Self(
+      lifeCyclePublisher: Empty<Transition, Never>().eraseToAnyPublisher
     )
   }
 }

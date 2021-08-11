@@ -50,7 +50,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
-        .image(named: .welcomeAccounts),
+        .image(dynamic: .accountsSkeleton),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),
         .bottomAnchor(.equalTo, imageContainer.bottomAnchor),

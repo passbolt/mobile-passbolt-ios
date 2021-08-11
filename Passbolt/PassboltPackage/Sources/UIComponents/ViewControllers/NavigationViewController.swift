@@ -93,6 +93,9 @@ open class NavigationViewController: UINavigationController {
 
   open override func pushViewController(_ viewController: UIViewController, animated: Bool) {
     CATransaction.begin()
+
+    (viewController as? CustomPresentableUIComponent)?.customPresentationSetup()
+
     CATransaction.setCompletionBlock({ [weak self] in
       if self?.viewControllers.count ?? 0 > 1,
         let tabBar = self?.tabBarController?.tabBar,
@@ -130,6 +133,7 @@ open class NavigationViewController: UINavigationController {
 
   open override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
     CATransaction.begin()
+    viewControllers.forEach { ($0 as? CustomPresentableUIComponent)?.customPresentationSetup() }
     CATransaction.setCompletionBlock({ [weak self] in
       if self?.viewControllers.count == 1,
         let tabBar = self?.tabBarController?.tabBar,

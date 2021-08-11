@@ -99,7 +99,8 @@ public final class AuthorizationView: KeyboardAwareView {
 
     passwordInput.applyOn(
       description: .text(
-        localized: "authorization.passphrase.description.text"
+        localized: "authorization.passphrase.description.text",
+        inBundle: .commons
       )
     )
 
@@ -205,7 +206,10 @@ public final class AuthorizationView: KeyboardAwareView {
       .combined(
         .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .primaryStyle(),
-        .text(localized: "authorization.button.title")
+        .text(
+          localized: "authorization.button.title",
+          inBundle: .commons
+        )
       )
     }
 
@@ -213,7 +217,10 @@ public final class AuthorizationView: KeyboardAwareView {
       .combined(
         .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .linkStyle(),
-        .text(localized: "authorization.forgot.passphrase.button.title")
+        .text(
+          localized: "authorization.forgot.passphrase.button.title",
+          inBundle: .commons
+        )
       )
     }
   }

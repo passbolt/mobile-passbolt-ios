@@ -21,17 +21,46 @@
 // @since         v1.0
 //
 
-// Passbolt autofill extension
+import UICommons
+import UIComponents
 
-"extension.setup.title" = "Passbolt Autofill enabled!";
-"extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
-"extension.setup.button.close" = "";
-"extension.setup.button.back.to.app" = "Go to the app";
+internal final class NoAccountsViewController: PlainViewController, UIComponent, CustomPresentableUIComponent  {
 
-"account.selection.switch.account.title" = "Switch the account";
-"account.selection.switch.account.subtitle" = "Select an account to switch!";
-"account.selection.sign.in.title" = "You are not logged in";
-"account.selection.sign.in.subtitle" = "Select an account to sign in!";
+  internal typealias View = NoAccountsView
+  internal typealias Controller = NoAccountsController
 
-"no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials aftwards.";
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
+    )
+  }
+
+  internal private(set) var contentView: View = .init()
+  internal var components: UIComponentFactory
+
+  private let controller: Controller
+
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+
+  internal func setupView() {
+    customPresentationSetup()
+
+    mut(contentView) {
+      .backgroundColor(dynamic: .background)
+    }
+
+    #warning("TODO: PAS-270 Determine if it's possible to open the app by opening a url")
+  }
+}
+

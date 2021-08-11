@@ -24,12 +24,12 @@
 import Accounts
 import UICommons
 
-internal enum AccountSelectionListItem: Hashable {
+public enum AccountSelectionListItem: Hashable {
 
   case account(AccountSelectionCellItem)
   case addAccount(AccountSelectionAddAccountCellItem)
 
-  internal static func == (
+  public static func == (
     lhs: AccountSelectionListItem,
     rhs: AccountSelectionListItem
   ) -> Bool {
@@ -45,16 +45,32 @@ internal enum AccountSelectionListItem: Hashable {
   }
 }
 
-internal struct AccountSelectionCellItem: Hashable {
+public struct AccountSelectionCellItem: Hashable {
 
-  internal var account: Account
-  internal var title: String
-  internal var subtitle: String
-  internal var isCurrentAccount: Bool
-  internal var imagePublisher: AnyPublisher<Data?, Never>?
-  internal var listModePublisher: AnyPublisher<AccountSelectionController.ListMode, Never>
+  public var account: Account
+  public var title: String
+  public var subtitle: String
+  public var isCurrentAccount: Bool
+  public var imagePublisher: AnyPublisher<Data?, Never>?
+  public var listModePublisher: AnyPublisher<AccountSelectionListMode, Never>
 
-  internal static func == (
+  public init(
+    account: Account,
+    title: String,
+    subtitle: String,
+    isCurrentAccount: Bool,
+    imagePublisher: AnyPublisher<Data?, Never>?,
+    listModePublisher: AnyPublisher<AccountSelectionListMode, Never>
+  ) {
+    self.account = account
+    self.title = title
+    self.subtitle = subtitle
+    self.isCurrentAccount = isCurrentAccount
+    self.imagePublisher = imagePublisher
+    self.listModePublisher = listModePublisher
+  }
+
+  public static func == (
     lhs: AccountSelectionCellItem,
     rhs: AccountSelectionCellItem
   ) -> Bool {
@@ -65,7 +81,7 @@ internal struct AccountSelectionCellItem: Hashable {
         || (lhs.imagePublisher != nil && rhs.imagePublisher != nil))
   }
 
-  internal func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hasher.combine(account)
     hasher.combine(title)
     hasher.combine(subtitle)
@@ -73,25 +89,29 @@ internal struct AccountSelectionCellItem: Hashable {
   }
 }
 
-internal struct AccountSelectionAddAccountCellItem: Hashable {
+public struct AccountSelectionAddAccountCellItem: Hashable {
 
   internal let title: String
 
-  internal static func == (
+  public static func == (
     lhs: AccountSelectionAddAccountCellItem,
     rhs: AccountSelectionAddAccountCellItem
   ) -> Bool {
     lhs.title == rhs.title
   }
 
-  internal func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hasher.combine(title)
   }
 }
 
 extension AccountSelectionAddAccountCellItem {
 
-  internal static let `default`: Self = .init(
-    title: NSLocalizedString("account.selection.add.account.footer.title", comment: "")
+  public static let `default`: Self = .init(
+    title: NSLocalizedString(
+      "account.selection.add.account.footer.title",
+      bundle: .commons,
+      comment: ""
+    )
   )
 }

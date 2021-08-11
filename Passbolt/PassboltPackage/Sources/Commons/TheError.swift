@@ -22,6 +22,7 @@
 //
 
 import struct Foundation.OSStatus
+import class Foundation.Bundle
 
 // "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them"
 public struct TheError: Error {
@@ -132,6 +133,7 @@ extension TheError {
   }
 
   public var localizationKey: String? { extensions[.localizationKey] as? String }
+  public var localizationBundle: Bundle? { extensions[.localizationBundle] as? Bundle }
 }
 
 extension TheError: CustomStringConvertible {
@@ -197,6 +199,7 @@ extension TheError {
 extension TheError.Extension {
 
   public static var localizationKey: Self { "localizationKey" }
+  public static var localizationBundle: Self { "localizationBundle" }
 }
 
 extension TheError.Extension {

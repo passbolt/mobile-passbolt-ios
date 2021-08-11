@@ -21,10 +21,4 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-import UICommons
-
-extension ImageNameConstant {
-
-  internal static let welcomeAccounts: Self = "WelcomeAccounts"
-}
+@_exported import UIComponents

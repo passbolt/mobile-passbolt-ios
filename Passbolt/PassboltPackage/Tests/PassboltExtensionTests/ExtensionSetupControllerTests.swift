@@ -28,7 +28,7 @@ import UIComponents
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ExtensionSetupScreenTests: TestCase {
+final class ExtensionSetupControllerTests: TestCase {
 
   var linkOpener: LinkOpener!
   var extensionContext: AutofillExtensionContext!

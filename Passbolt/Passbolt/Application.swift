@@ -43,7 +43,7 @@ internal struct Application {
       Biometrics.live,
       Camera.live(),
       ExternalURLOpener.live(),
-      AppLifeCycle.live(),
+      AppLifeCycle.application(),
       PGP.gopenPGP(),
       SignatureVerfication.rssha256(),
       MDMConfig.live,

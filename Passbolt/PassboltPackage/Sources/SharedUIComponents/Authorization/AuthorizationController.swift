@@ -26,22 +26,22 @@ import Crypto
 import NetworkClient
 import UIComponents
 
-internal struct AuthorizationController {
+public struct AuthorizationController {
 
-  internal var accountWithProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
-  internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
-  internal var updatePassphrase: (String) -> Void
-  internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
-  internal var biometricStatePublisher: () -> AnyPublisher<BiometricsState, Never>
-  internal var signIn: () -> AnyPublisher<Void, TheError>
-  internal var biometricSignIn: () -> AnyPublisher<Void, TheError>
-  internal var presentForgotPassphraseAlert: () -> Void
-  internal var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
+  public var accountWithProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
+  public var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
+  public var updatePassphrase: (String) -> Void
+  public var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
+  public var biometricStatePublisher: () -> AnyPublisher<BiometricsState, Never>
+  public var signIn: () -> AnyPublisher<Void, TheError>
+  public var biometricSignIn: () -> AnyPublisher<Void, TheError>
+  public var presentForgotPassphraseAlert: () -> Void
+  public var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
 }
 
 extension AuthorizationController {
 
-  internal enum BiometricsState {
+  public enum BiometricsState {
 
     case unavailable
     case faceID
@@ -51,9 +51,9 @@ extension AuthorizationController {
 
 extension AuthorizationController: UIController {
 
-  internal typealias Context = Account
+  public typealias Context = Account
 
-  internal static func instance(
+  public static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
@@ -66,7 +66,10 @@ extension AuthorizationController: UIController {
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
-    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: "authorization.passphrase.error")
+    let validator: Validator<String> = .nonEmpty(
+      errorLocalizationKey: "authorization.passphrase.error",
+      bundle: .commons
+    )
 
     let account: Account = context
     let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = .init(

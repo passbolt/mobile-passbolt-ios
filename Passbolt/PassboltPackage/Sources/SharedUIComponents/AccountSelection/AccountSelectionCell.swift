@@ -107,6 +107,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
     mut(deleteButton) {
       .combined(
         .subview(of: self.contentView),
+        .hidden(true),
         .centerYAnchor(.equalTo, icon.centerYAnchor),
         .leadingAnchor(.equalTo, titleLabel.trailingAnchor, constant: 12),
         .trailingAnchor(.equalTo, contentView.trailingAnchor, constant: -12),

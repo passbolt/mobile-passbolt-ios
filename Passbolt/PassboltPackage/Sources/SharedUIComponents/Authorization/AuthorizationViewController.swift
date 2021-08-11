@@ -25,12 +25,12 @@ import Accounts
 import Foundation
 import UIComponents
 
-internal final class AuthorizationViewController: PlainViewController, UIComponent {
+public final class AuthorizationViewController: PlainViewController, UIComponent {
 
-  internal typealias View = AuthorizationView
-  internal typealias Controller = AuthorizationController
+  public typealias View = AuthorizationView
+  public typealias Controller = AuthorizationController
 
-  internal static func instance(
+  public static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
@@ -40,8 +40,8 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
     )
   }
 
-  internal private(set) lazy var contentView: AuthorizationView = .init()
-  internal var components: UIComponentFactory
+  public private(set) lazy var contentView: AuthorizationView = .init()
+  public var components: UIComponentFactory
 
   private let controller: Controller
   // sign in can be made only if it is nil
@@ -57,9 +57,12 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
     super.init()
   }
 
-  internal func setupView() {
+  public func setupView() {
     mut(self) {
-      .title(localized: "authorization.title")
+      .title(
+        localized: "authorization.title",
+        inBundle: .commons
+      )
     }
 
     mut(contentView) {
@@ -69,7 +72,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
     setupSubscriptions()
   }
 
-  func activate() {
+  public func activate() {
     autoLoginPromptSubject
       .delay(for: 0.05, scheduler: RunLoop.main)
       .sink(receiveCompletion: { [unowned self] _ in
@@ -90,7 +93,10 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               if error.identifier == .biometricsChanged {
                 self?.present(
                   snackbar: Mutation<UICommons.View>
-                    .snackBarErrorMessage(localized: "sign.in.error.biometrics.changed.message")
+                    .snackBarErrorMessage(
+                      localized: "sign.in.error.biometrics.changed.message",
+                      inBundle: .commons
+                    )
                     .instantiate(),
                   hideAfter: 5
                 )
@@ -98,7 +104,10 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               else {
                 self?.present(
                   snackbar: Mutation<UICommons.View>
-                    .snackBarErrorMessage(localized: "sign.in.error.message")
+                    .snackBarErrorMessage(
+                      localized: "sign.in.error.message",
+                      inBundle: .commons
+                    )
                     .instantiate(),
                   hideAfter: 2
                 )
@@ -113,7 +122,7 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
       .store(in: cancellables)
   }
 
-  func deactivate() {
+  public func deactivate() {
     signInCancellable = nil
   }
 
@@ -232,7 +241,10 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               else { return }
               self?.present(
                 snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(localized: "sign.in.error.message")
+                  .snackBarErrorMessage(
+                    localized: "sign.in.error.message",
+                    inBundle: .commons
+                  )
                   .instantiate(),
                 hideAfter: 2
               )
@@ -264,7 +276,10 @@ internal final class AuthorizationViewController: PlainViewController, UICompone
               else { return }
               self?.present(
                 snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(localized: "sign.in.error.message")
+                  .snackBarErrorMessage(
+                    localized: "sign.in.error.message",
+                    inBundle: .commons
+                  )
                   .instantiate(),
                 hideAfter: 2
               )

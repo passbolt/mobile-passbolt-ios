@@ -46,12 +46,13 @@ internal struct ApplicationExtension {
       Preferences.sharedUserDefaults(),
       Keychain.live(),
       Biometrics.live,
-      ExternalURLOpener.live(),
       PGP.gopenPGP(),
       SignatureVerfication.rssha256(),
       MDMConfig.live,
       Database.sqlite(),
-      Files.live
+      Files.live,
+      AppLifeCycle.autoFillExtension(),
+      Camera.live()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
@@ -63,7 +64,7 @@ internal struct ApplicationExtension {
         .withLogs(using: features.instance())
     )
     #endif
-    
+
     features.use(
       AutofillExtensionContext(
         completeWithCredential: { credential in

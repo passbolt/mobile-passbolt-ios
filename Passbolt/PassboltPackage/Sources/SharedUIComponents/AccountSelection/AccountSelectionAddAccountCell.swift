@@ -23,12 +23,12 @@
 
 import UICommons
 
-internal final class AccountSelectionAddAccountCell: CollectionViewCell {
+public final class AccountSelectionAddAccountCell: CollectionViewCell {
 
   private let titleLabel: Label = .init()
   private var tapAction: (() -> Void)?
 
-  override internal func setup() {
+  override public func setup() {
     super.setup()
 
     mut(self) {
@@ -80,7 +80,7 @@ internal final class AccountSelectionAddAccountCell: CollectionViewCell {
     self.tapAction = tapAction
   }
 
-  override internal func prepareForReuse() {
+  override public func prepareForReuse() {
     super.prepareForReuse()
 
     titleLabel.text = nil

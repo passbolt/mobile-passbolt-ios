@@ -43,6 +43,7 @@ extension ImageNameConstant {
   public static var biometricsIcon: Self { "BiometricsIcon" }
   public static var faceID: Self { "FaceID" }
   public static var more: Self { "More" }
+  public static var close: Self { "Close" }
 }
 
 extension DynamicImage {
@@ -348,6 +349,28 @@ extension DynamicImage {
         // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "EmptyState",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+
+  public static var accountsSkeleton: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "AccountsSkeleton",
+          in: .uiCommons,
+          with: nil
+        )!
+
+      case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "AccountsSkeleton",
           in: .uiCommons,
           with: nil
         )!

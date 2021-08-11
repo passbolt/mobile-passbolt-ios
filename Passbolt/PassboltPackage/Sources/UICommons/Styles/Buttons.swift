@@ -67,4 +67,11 @@ extension Mutation where Subject: UIBarButtonItem {
       .tintColor(.clear)
     )
   }
+
+  public static func closeStyle() -> Self {
+    .combined(
+      .style(.plain),
+      .image(named: .close, from: .uiCommons)
+    )
+  }
 }

@@ -23,20 +23,20 @@
 
 import UICommons
 
-internal final class AccountSelectionCollectionView: CollectionView<SingleSection, AccountSelectionListItem> {
+public final class AccountSelectionCollectionView: CollectionView<SingleSection, AccountSelectionListItem> {
 
-  internal lazy var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
+  public lazy var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
     accountTapSubject.eraseToAnyPublisher()
-  internal lazy var addAccountPublisher: AnyPublisher<Void, Never> =
+  public lazy var addAccountPublisher: AnyPublisher<Void, Never> =
     addAccountTapSubject.eraseToAnyPublisher()
-  internal lazy var removeAccountPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
+  public lazy var removeAccountPublisher: AnyPublisher<AccountSelectionCellItem, Never> =
     removeSubject.eraseToAnyPublisher()
 
   private let accountTapSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
   private let addAccountTapSubject: PassthroughSubject<Void, Never> = .init()
   private let removeSubject: PassthroughSubject<AccountSelectionCellItem, Never> = .init()
 
-  internal init(layout: UICollectionViewLayout) {
+  public init(layout: UICollectionViewLayout) {
     super.init(
       layout: layout,
       cells: [
@@ -47,7 +47,7 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
     )
   }
 
-  override internal func setupCell(
+  override public func setupCell(
     for item: AccountSelectionListItem,
     in section: SingleSection,
     at indexPath: IndexPath
@@ -83,7 +83,7 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
     }
   }
 
-  override internal func setupSupplementaryView(
+  override public func setupSupplementaryView(
     _ kind: String,
     for section: SingleSection,
     at indexPath: IndexPath

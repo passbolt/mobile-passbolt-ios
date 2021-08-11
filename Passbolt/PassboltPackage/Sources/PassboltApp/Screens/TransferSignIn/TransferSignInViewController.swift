@@ -23,6 +23,7 @@
 
 import UICommons
 import UIComponents
+import SharedUIComponents
 
 internal final class TransferSignInViewController: PlainViewController, UIComponent {
 
@@ -67,7 +68,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             )
             .instantiate()
         ),
-        .title(localized: "sign.in.title")
+        .title(
+          localized: "sign.in.title",
+          inBundle: .commons
+        )
       )
     }
 
@@ -175,7 +179,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             case .failure:
               self?.present(
                 snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(localized: "sign.in.error.message")
+                  .snackBarErrorMessage(
+                    localized: "sign.in.error.message",
+                    inBundle: .commons
+                  )
                   .instantiate(),
                 hideAfter: 2
               )

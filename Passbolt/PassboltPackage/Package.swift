@@ -44,6 +44,12 @@ let package = Package(
       targets: ["Resources"]
     ),
     .library(
+      name: "SharedUIComponents",
+      targets: [
+        "SharedUIComponents"
+      ]
+    ),
+    .library(
       name: "SQLCipher",
       type: .static,
       targets: [
@@ -194,6 +200,7 @@ let package = Package(
         "Features",
         "Resources",
         "Environment",
+        "SharedUIComponents"
       ]
     ),
     .testTarget(
@@ -213,6 +220,7 @@ let package = Package(
         "Features",
         "Resources",
         "Environment",
+        "SharedUIComponents"
       ]
     ),
     .testTarget(
@@ -237,6 +245,13 @@ let package = Package(
       dependencies: [
         "Resources",
         "TestExtensions",
+      ]
+    ),
+    .target(
+      name: "SharedUIComponents",
+      dependencies: [
+        "Accounts",
+        "UIComponents"
       ]
     ),
     .target(

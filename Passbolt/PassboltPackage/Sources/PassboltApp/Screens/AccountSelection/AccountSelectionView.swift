@@ -23,6 +23,7 @@
 
 import Commons
 import UICommons
+import SharedUIComponents
 
 internal final class AccountSelectionView: View {
 
@@ -56,6 +57,10 @@ internal final class AccountSelectionView: View {
 
   internal init(shouldHideTitle: Bool) {
     super.init()
+
+    mut(self) {
+      .backgroundColor(dynamic: .background)
+    }
 
     mut(container) {
       .combined(
@@ -148,7 +153,7 @@ internal final class AccountSelectionView: View {
 
     mut(removeLabel) {
       .combined(
-        .text(localized: "account.selection.remove.account.button.title"),
+        .text(localized: "account.selection.remove.account.button.title", inBundle: .commons),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .trailingAnchor(.lessThanOrEqualTo, removeContainer.trailingAnchor, constant: -40),
@@ -180,15 +185,21 @@ internal final class AccountSelectionView: View {
     collectionView.update(data: items)
   }
 
-  internal func update(mode: AccountSelectionController.ListMode) {
+  internal func update(mode: AccountSelectionListMode) {
     switch mode {
     case .selection:
       mut(titleLabel) {
-        .text(localized: "account.selection.title")
+        .text(
+          localized: "account.selection.title",
+          inBundle: .commons
+        )
       }
 
       mut(subTitleLabel) {
-        .text(localized: "account.selection.subtitle")
+        .text(
+          localized: "account.selection.subtitle",
+          inBundle: .commons
+        )
       }
 
       mut(doneButton) {
@@ -201,11 +212,17 @@ internal final class AccountSelectionView: View {
 
     case .removal:
       mut(titleLabel) {
-        .text(localized: "account.selection.remove.account.title")
+        .text(
+          localized: "account.selection.remove.account.title",
+          inBundle: .commons
+        )
       }
 
       mut(subTitleLabel) {
-        .text(localized: "account.selection.remove.account.subtitle")
+        .text(
+          localized: "account.selection.remove.account.subtitle",
+          inBundle: .commons
+        )
       }
 
       mut(doneButton) {

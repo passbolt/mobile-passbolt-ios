@@ -27,7 +27,8 @@ extension Validator where Value: Collection {
 
   public static func nonEmpty(
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: String
+    errorLocalizationKey: String,
+    bundle: Bundle
   ) -> Self {
     Self { value in
       if !value.isEmpty {
@@ -39,7 +40,10 @@ extension Validator where Value: Collection {
           errors: TheError(
             identifier: errorIdentifier,
             underlyingError: nil,
-            extensions: [.localizationKey: errorLocalizationKey]
+            extensions: [
+              .localizationKey: errorLocalizationKey,
+              .localizationBundle: bundle
+            ]
           )
         )
       }

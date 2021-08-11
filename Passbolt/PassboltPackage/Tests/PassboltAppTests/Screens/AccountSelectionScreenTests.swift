@@ -26,6 +26,7 @@ import Features
 import NetworkClient
 import TestExtensions
 import UIComponents
+import SharedUIComponents
 import XCTest
 
 @testable import Accounts
@@ -55,7 +56,7 @@ final class AccountSelectionScreenTests: TestCase {
     super.tearDown()
   }
 
-  func test_loadStoredAccounts_andPrepareCellItemsWithImage_inSelectionMode() {
+  func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
@@ -108,7 +109,7 @@ final class AccountSelectionScreenTests: TestCase {
     XCTAssertNotNil(imageData)
   }
 
-  func test_loadStoredAccounts_andPrepareCellItemsWithoutImage_inSelectionMode() {
+  func test_accountsPublisher_publishesItemsWithoutImage_inSelectionMode() {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
@@ -161,7 +162,7 @@ final class AccountSelectionScreenTests: TestCase {
     XCTAssertNil(imageData)
   }
 
-  func test_loadStoredAccounts_andPrepareCellItems_withoutAddAccountItem_inRemovalMode() {
+  func test_accountsPublisher_publishes_withoutAddAccountItem_inRemovalMode() {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
     features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
@@ -203,7 +204,7 @@ final class AccountSelectionScreenTests: TestCase {
     XCTAssertFalse(result.contains(.addAccount(.default)))
   }
 
-  func test_loadStoredAccounts_andPrepareNoCellItems_whenAccountsEmpty() {
+  func test_accountsPublisher_publishesEmptyList_whenAccountsEmpty() {
     accounts.storedAccounts = always([])
     features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())

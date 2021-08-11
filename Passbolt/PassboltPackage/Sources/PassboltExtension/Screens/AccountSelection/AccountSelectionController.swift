@@ -29,27 +29,21 @@ import SharedUIComponents
 internal struct AccountSelectionController {
 
   internal var accountsPublisher: () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
-  internal var listModePublisher: () -> AnyPublisher<AccountSelectionListMode, Never>
-  internal var removeAccountAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var presentRemoveAccountAlert: () -> Void
-  internal var removeAccount: (Account) -> Result<Void, TheError>
-  internal var addAccount: () -> Void
-  internal var addAccountPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var toggleMode: () -> Void
-  internal var shouldHideTitle: () -> Bool
+  internal var screenMode: () -> AccountSelectionController.Mode
 }
 
 extension AccountSelectionController {
 
-  internal struct TitleHidden {
+  internal enum Mode {
 
-    internal var value: Bool
+    case switchAccount
+    case signIn
   }
 }
 
 extension AccountSelectionController: UIController {
 
-  internal typealias Context = TitleHidden
+  internal typealias Context = AccountSelectionController.Mode
 
   internal static func instance(
     in context: Context,
@@ -68,18 +62,12 @@ extension AccountSelectionController: UIController {
         .compactMap(accountSettings.accountWithProfile)
     )
 
-    let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
-    let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    let addAccountPresentationSubject: PassthroughSubject<Void, Never> = .init()
-
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
-      Publishers.CombineLatest3(
+      Publishers.CombineLatest(
         storedAccountsWithProfilesSubject,
-        listModeSubject,
         accountSession.statePublisher()
       )
-      .map { accountsWithProfiles, mode, sessionState -> Array<AccountSelectionListItem> in
-        var items: Array<AccountSelectionListItem> =
+      .map { accountsWithProfiles, sessionState -> Array<AccountSelectionListItem> in
           accountsWithProfiles
           .map { accountWithProfile in
             let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
@@ -96,7 +84,7 @@ extension AccountSelectionController: UIController {
             func isCurrentAccount() -> Bool {
               switch sessionState {
               case let .authorized(account) where account.localID == accountWithProfile.localID,
-                let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
+                   let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
                 return true
               case _:
                 return false
@@ -109,79 +97,22 @@ extension AccountSelectionController: UIController {
               subtitle: accountWithProfile.username,
               isCurrentAccount: isCurrentAccount(),
               imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
-              listModePublisher: listModeSubject.eraseToAnyPublisher()
+              listModePublisher: Empty().eraseToAnyPublisher()
             )
 
             return .account(item)
           }
-
-        if mode == .selection && !items.isEmpty {
-          items.append(.addAccount(.default))
-        }
-        else {
-          /* */
-        }
-
-        return items
       }
       .eraseToAnyPublisher()
     }
 
-    func listModePublisher() -> AnyPublisher<AccountSelectionListMode, Never> {
-      listModeSubject.eraseToAnyPublisher()
-    }
-
-    func removeAccountAlertPresentationPublisher() -> AnyPublisher<Void, Never> {
-      removeAccountAlertPresentationSubject.eraseToAnyPublisher()
-    }
-
-    func presentRemoveAccountAlert() {
-      removeAccountAlertPresentationSubject.send(Void())
-    }
-
-    func removeAccount(_ account: Account) -> Result<Void, TheError> {
-      let result: Result<Void, TheError> = accounts.removeAccount(account)
-      let storedAccounts: Array<AccountWithProfile> =
-        accounts
-        .storedAccounts()
-        .compactMap(accountSettings.accountWithProfile)
-
-      storedAccountsWithProfilesSubject.send(storedAccounts)
-
-      return result
-    }
-
-    func addAccount() {
-      addAccountPresentationSubject.send()
-    }
-
-    func addAccountPresentationPublisher() -> AnyPublisher<Void, Never> {
-      addAccountPresentationSubject.eraseToAnyPublisher()
-    }
-
-    func toggleMode() {
-      switch listModeSubject.value {
-      case .selection:
-        listModeSubject.send(.removal)
-      case .removal:
-        listModeSubject.send(.selection)
-      }
-    }
-
-    func shouldHideTitle() -> Bool {
-      context.value
+    func screenMode() -> AccountSelectionController.Mode {
+      context
     }
 
     return Self(
       accountsPublisher: accountsPublisher,
-      listModePublisher: listModePublisher,
-      removeAccountAlertPresentationPublisher: removeAccountAlertPresentationPublisher,
-      presentRemoveAccountAlert: presentRemoveAccountAlert,
-      removeAccount: removeAccount,
-      addAccount: addAccount,
-      addAccountPresentationPublisher: addAccountPresentationPublisher,
-      toggleMode: toggleMode,
-      shouldHideTitle: shouldHideTitle
+      screenMode: screenMode
     )
   }
 }

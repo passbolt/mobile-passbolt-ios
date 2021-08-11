@@ -25,7 +25,7 @@ import UICommons
 
 extension UICollectionViewCompositionalLayout {
 
-  internal static func accountSelectionLayout() -> UICollectionViewCompositionalLayout {
+  public static func accountSelectionLayout() -> UICollectionViewCompositionalLayout {
 
     let item: NSCollectionLayoutItem = .init(
       layoutSize: .init(

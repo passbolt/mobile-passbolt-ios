@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import UIComponents
 
 import class AuthenticationServices.ASPasswordCredentialIdentity
@@ -44,10 +45,7 @@ public final class UI {
 extension UI {
 
   public func prepareCredentialList() {
-    #warning("TODO: [PAS-???] to complete")
-    let vc: UIViewController = .init()
-    vc.view.backgroundColor = .green
-    setRootContent(vc)
+    setRootContent(components.instance(of: ExtensionViewController.self))
   }
 
   public func prepareInterfaceForExtensionConfiguration() {

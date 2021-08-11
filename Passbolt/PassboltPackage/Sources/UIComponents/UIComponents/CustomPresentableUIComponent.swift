@@ -21,41 +21,9 @@
 // @since         v1.0
 //
 
-import UIComponents
+import class UIKit.UIViewController
 
-internal final class ForgotPassphraseAlertViewController:
-  AlertViewController<ForgotPassphraseAlertController>, UIComponent
-{
+public protocol CustomPresentableUIComponent: AnyUIComponent {
 
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(localized: "authorization.forgot.passphrase.alert.title"),
-        .message(localized: "authorization.forgot.passphrase.alert.message"),
-        .action(
-          localized: .gotIt,
-          inBundle: .commons,
-          style: .cancel,
-          accessibilityIdentifier: "button.close",
-          handler: {}
-        )
-      )
-    }
-  }
-}
-
-internal struct ForgotPassphraseAlertController {
-
-  internal typealias Context = Void
-}
-
-extension ForgotPassphraseAlertController: UIController {
-
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> ForgotPassphraseAlertController {
-    Self()
-  }
+  func customPresentationSetup()
 }

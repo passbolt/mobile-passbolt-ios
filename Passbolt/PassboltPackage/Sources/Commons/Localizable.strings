@@ -39,3 +39,24 @@
 "generic.refresh" = "Refresh";
 "generic.create" = "Create";
 "generic.empty.list" = "There are no results";
+
+"account.selection.title" = "Welcome back!";
+"account.selection.subtitle" = "Choose an account to sign in!";
+"account.selection.remove.account.button.title" = "Remove an account from this device";
+"account.selection.add.account.footer.title" = "Add new account";
+"account.selection.remove.account.title" = "Unlink an account";
+"account.selection.remove.account.subtitle" = "Choose an account to unlink.";
+"account.selection.remove.alert.title" = "Are you sure ?";
+"account.selection.remove.alert.message" = "This will remove your account from this device. Your passwords will not be deleted.";
+
+"authorization.button.title" = "Sign In";
+"authorization.forgot.passphrase.button.title" = "I forgot my passphrase";
+"authorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";
+"authorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
+"authorization.passphrase.description.text" = "Passphrase";
+"authorization.passphrase.error" = "Passphrase is wrong!";
+"authorization.title" = "Enter your passphrase";
+
+"sign.in.title" = "Enter your passphrase";
+"sign.in.error.message" = "Sign in failed";
+"sign.in.error.biometrics.changed.message" = "It seems that your device biometrics has changed. Please, enter your passphrase and configure biometrics again";
