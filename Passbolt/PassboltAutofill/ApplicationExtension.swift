@@ -40,6 +40,7 @@ internal struct ApplicationExtension {
     rootViewController: ASCredentialProviderViewController,
     environment: Environment = Environment(
       Time.live,
+      UUIDGenerator.live,
       Logger.live,
       Networking.foundation(),
       Preferences.sharedUserDefaults(),
