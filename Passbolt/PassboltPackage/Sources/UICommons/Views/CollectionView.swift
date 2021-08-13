@@ -28,18 +28,18 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
   UICollectionView, UICollectionViewDragDelegate, UICollectionViewDropDelegate
 {
 
-  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
+  public lazy var dynamicBackgroundColor: DynamicColor = .always(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
 
-  public lazy var dynamicBorderColor: DynamicColor = .default(
+  public lazy var dynamicBorderColor: DynamicColor = .always(
     .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
   )
   {
@@ -56,10 +56,10 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
       mut(view) {
         .combined(
           .hidden(wasHidden),
+          .subview(of: self),
           .centerYAnchor(.equalTo, centerYAnchor),
           .centerXAnchor(.equalTo, centerXAnchor),
-          .leadingAnchor(.greaterThanOrEqualTo, leadingAnchor, constant: 16),
-          .trailingAnchor(.lessThanOrEqualTo, trailingAnchor, constant: -16)
+          .widthAnchor(.equalTo, self.widthAnchor, constant: -32)
         )
       }
     }
@@ -148,6 +148,16 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
 
   public func section(at indexPath: IndexPath) -> Section {
     _dataSource.snapshot().sectionIdentifiers[indexPath.section]
+  }
+
+  public func dequeueOrMakeReusableCell<Cell: CollectionViewCell>(
+    for: Cell.Type = Cell.self,
+    at indexPath: IndexPath
+  ) -> Cell {
+    dequeueReusableCell(
+      withReuseIdentifier: Cell.reuseIdentifier,
+      for: indexPath
+    ) as? Cell ?? .init()
   }
 
   open func setupCell(
@@ -323,6 +333,42 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+  }
+
+  public var pullToRefreshPublisher: AnyPublisher<Void, Never> {
+    if self.refreshControl == nil {
+      let refreshControl: UIRefreshControl = .init()
+      mut(refreshControl) {
+        .action(
+          { [unowned self] in
+            self.pullToRefreshSubject.send()
+          },
+          for: .valueChanged
+        )
+      }
+      self.refreshControl = refreshControl
+    }
+    else {
+      /* NOP */
+    }
+    return pullToRefreshSubject.eraseToAnyPublisher()
+  }
+  private let pullToRefreshSubject: PassthroughSubject<Void, Never> = .init()
+
+  public func startDataRefresh() {
+    assert(
+      self.refreshControl != nil,
+      "Cannot trigger data refresh without refresh control"
+    )
+    self.refreshControl?.beginRefreshing()
+  }
+
+  public func finishDataRefresh() {
+    assert(
+      self.refreshControl != nil,
+      "Cannot finish data refresh without refresh control"
+    )
+    self.refreshControl?.endRefreshing()
   }
 }
 

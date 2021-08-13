@@ -45,7 +45,6 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
       ],
       supplementaryViews: [CollectionViewSeparator.self]
     )
-    setup()
   }
 
   override internal func setupCell(
@@ -56,11 +55,7 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
 
     switch item {
     case let .account(accountItem):
-      let cell: AccountSelectionCell =
-        dequeueReusableCell(
-          withReuseIdentifier: AccountSelectionCell.reuseIdentifier,
-          for: indexPath
-        ) as? AccountSelectionCell ?? .init()
+      let cell: AccountSelectionCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(
         from: accountItem,
@@ -75,11 +70,7 @@ internal final class AccountSelectionCollectionView: CollectionView<SingleSectio
       return cell
 
     case let .addAccount(addAccountItem):
-      let cell: AccountSelectionAddAccountCell =
-        dequeueReusableCell(
-          withReuseIdentifier: AccountSelectionAddAccountCell.reuseIdentifier,
-          for: indexPath
-        ) as? AccountSelectionAddAccountCell ?? .init()
+      let cell: AccountSelectionAddAccountCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(
         from: addAccountItem,

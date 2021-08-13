@@ -26,18 +26,18 @@ import UIKit
 
 open class View: UIView {
 
-  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
+  public lazy var dynamicBackgroundColor: DynamicColor = .always(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
 
-  public lazy var dynamicBorderColor: DynamicColor = .default(
+  public lazy var dynamicBorderColor: DynamicColor = .always(
     .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
   )
   {

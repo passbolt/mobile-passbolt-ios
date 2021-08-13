@@ -37,3 +37,5 @@
 "generic.disable" = "Disable";
 "generic.sign.out" = "Sign out";
 "generic.refresh" = "Refresh";
+"generic.create" = "Create";
+"generic.empty.list" = "There are no results";

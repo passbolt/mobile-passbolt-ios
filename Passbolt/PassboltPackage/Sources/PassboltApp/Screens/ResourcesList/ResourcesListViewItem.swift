@@ -21,27 +21,10 @@
 // @since         v1.0
 //
 
-import UIKit
+import Accounts
 
-public final class ActivityIndicator: UIActivityIndicatorView {
+internal enum ResourcesListViewItem: Hashable {
 
-  public lazy var dynamicColor: DynamicColor = .always(self.tintColor) {
-    didSet {
-      self.color = dynamicColor(in: traitCollection.userInterfaceStyle)
-    }
-  }
-
-  override public func traitCollectionDidChange(
-    _ previousTraitCollection: UITraitCollection?
-  ) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    guard traitCollection != previousTraitCollection
-    else { return }
-    updateColors()
-  }
-
-  private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-    self.color = dynamicColor(in: interfaceStyle)
-  }
+  case add
+  case resource(ListViewResource)
 }

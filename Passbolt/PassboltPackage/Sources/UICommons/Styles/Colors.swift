@@ -34,14 +34,49 @@ public struct DynamicColor {
     self.color = color
   }
 
+  public func withAlpha(_ value: CGFloat) -> Self {
+    Self { userInterfaceStyle in
+      self.color(userInterfaceStyle).withAlphaComponent(value)
+    }
+  }
+
   public func callAsFunction(
     in interfaceStyle: UIUserInterfaceStyle
   ) -> UIColor {
     color(interfaceStyle)
   }
 
-  public static func `default`(_ color: UIColor?) -> Self {
+  public static func always(_ colorRGB: Int32) -> Self {
+    always(UIColor(colorRGB))
+  }
+
+  public static func always(_ color: UIColor?) -> Self {
     Self { _ in color ?? .clear }
+  }
+
+  public static func either(
+    light lightColorRGB: Int32,
+    orDark darkColorRGB: Int32
+  ) -> Self {
+    either(
+      light: UIColor(lightColorRGB),
+      orDark: UIColor(darkColorRGB)
+    )
+  }
+
+  public static func either(
+    light lightColor: UIColor?,
+    orDark darkColor: UIColor?
+  ) -> Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return darkColor ?? .clear
+
+      case .light, _:
+        return lightColor ?? .clear
+      }
+    }
   }
 
   /// Default/Light: #2A9CEB Dark: #2A9CEB
@@ -295,11 +330,11 @@ public struct DynamicColor {
 extension UIColor {
 
   public convenience init(
-    _ rgb: Int
+    _ rgb: Int32
   ) {
-    let red: Int = (rgb >> 16) & 0xFF
-    let green: Int = (rgb >> 8) & 0xFF
-    let blue: Int = rgb & 0xFF
+    let red: Int32 = (rgb >> 16) & 0xFF
+    let green: Int32 = (rgb >> 8) & 0xFF
+    let blue: Int32 = rgb & 0xFF
     self.init(
       red: CGFloat(red) / 255.0,
       green: CGFloat(green) / 255.0,

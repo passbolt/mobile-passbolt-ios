@@ -25,17 +25,17 @@ import AegithalosCocoa
 
 public class TextButton: Button {
 
-  public lazy var dynamicTextColor: DynamicColor = .default(self.textColor) {
+  public lazy var dynamicTextColor: DynamicColor = .always(self.textColor) {
     didSet {
       self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicPressedTextColor: DynamicColor = .default(self.pressedTextColor) {
+  public lazy var dynamicPressedTextColor: DynamicColor = .always(self.pressedTextColor) {
     didSet {
       self.pressedTextColor = dynamicPressedTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicDisabledTextColor: DynamicColor = .default(self.disabledTextColor) {
+  public lazy var dynamicDisabledTextColor: DynamicColor = .always(self.disabledTextColor) {
     didSet {
       self.disabledTextColor = dynamicDisabledTextColor(in: traitCollection.userInterfaceStyle)
     }

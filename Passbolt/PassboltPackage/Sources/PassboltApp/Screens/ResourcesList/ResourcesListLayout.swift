@@ -21,27 +21,30 @@
 // @since         v1.0
 //
 
-import UIKit
+import UICommons
 
-public final class ActivityIndicator: UIActivityIndicatorView {
+extension UICollectionViewLayout {
 
-  public lazy var dynamicColor: DynamicColor = .always(self.tintColor) {
-    didSet {
-      self.color = dynamicColor(in: traitCollection.userInterfaceStyle)
-    }
-  }
+  internal static func resourcesList() -> UICollectionViewCompositionalLayout {
 
-  override public func traitCollectionDidChange(
-    _ previousTraitCollection: UITraitCollection?
-  ) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    guard traitCollection != previousTraitCollection
-    else { return }
-    updateColors()
-  }
+    let item: NSCollectionLayoutItem = .init(
+      layoutSize: .init(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .estimated(64)
+      )
+    )
 
-  private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-    self.color = dynamicColor(in: interfaceStyle)
+    let group: NSCollectionLayoutGroup = .vertical(
+      layoutSize: .init(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .estimated(64)
+      ),
+      subitems: [item]
+    )
+
+    let section: NSCollectionLayoutSection = .init(group: group)
+
+    return UICollectionViewCompositionalLayout(section: section)
   }
 }
+

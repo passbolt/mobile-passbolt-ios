@@ -27,22 +27,22 @@ import UIKit
 open class TabsViewController: UITabBarController {
 
   // Overriding TabBar is almost impossible, we delegate its colors setup to VC
-  public lazy var tabBarDynamicBackgroundColor: DynamicColor = .default(self.tabBar.backgroundColor) {
+  public lazy var tabBarDynamicBackgroundColor: DynamicColor = .always(self.tabBar.backgroundColor) {
     didSet {
       self.tabBar.backgroundColor = tabBarDynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var tabBarDynamicTintColor: DynamicColor = .default(self.tabBar.tintColor) {
+  public lazy var tabBarDynamicTintColor: DynamicColor = .always(self.tabBar.tintColor) {
     didSet {
       self.tabBar.tintColor = tabBarDynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var tabBarDynamicBarTintColor: DynamicColor = .default(self.tabBar.barTintColor) {
+  public lazy var tabBarDynamicBarTintColor: DynamicColor = .always(self.tabBar.barTintColor) {
     didSet {
       self.tabBar.barTintColor = tabBarDynamicBarTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var tabBarDynamicUnselectedItemTintColor: DynamicColor = .default(.black) {
+  public lazy var tabBarDynamicUnselectedItemTintColor: DynamicColor = .always(.black) {
     didSet {
       self.tabBar.unselectedItemTintColor = tabBarDynamicUnselectedItemTintColor(in: traitCollection.userInterfaceStyle)
     }

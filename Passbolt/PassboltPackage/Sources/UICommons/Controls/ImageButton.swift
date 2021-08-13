@@ -46,7 +46,23 @@ public final class ImageButton: Button {
     }
   }
 
+  public var imageInsets: UIEdgeInsets = .zero {
+    didSet {
+      self.topImageConstraint?.constant = imageInsets.top
+      self.leftImageConstraint?.constant = imageInsets.left
+      self.rightImageConstraint?.constant = imageInsets.right
+      self.bottomImageConstraint?.constant = imageInsets.bottom
+    }
+  }
+  public var imageContentMode: ContentMode {
+    get { imageView.contentMode }
+    set { imageView.contentMode = newValue }
+  }
   private let imageView: ImageView = .init()
+  private var topImageConstraint: NSLayoutConstraint?
+  private var leftImageConstraint: NSLayoutConstraint?
+  private var rightImageConstraint: NSLayoutConstraint?
+  private var bottomImageConstraint: NSLayoutConstraint?
 
   public required init() {
     super.init()
@@ -85,7 +101,10 @@ public final class ImageButton: Button {
     mut(imageView) {
       .combined(
         .subview(of: self),
-        .edges(equalTo: self, usingSafeArea: false)
+        .topAnchor(.equalTo, self.topAnchor, referenceOutput: &self.topImageConstraint),
+        .leftAnchor(.equalTo, self.leftAnchor, referenceOutput: &self.leftImageConstraint),
+        .rightAnchor(.equalTo, self.rightAnchor, referenceOutput: &self.rightImageConstraint),
+        .bottomAnchor(.equalTo, self.bottomAnchor, referenceOutput: &self.bottomImageConstraint)
       )
     }
   }

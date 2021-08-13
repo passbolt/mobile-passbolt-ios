@@ -60,5 +60,11 @@ internal final class HomeTabViewController: NavigationViewController, UIComponen
         .image(named: .homeTab, from: .uiCommons)
       )
     }
+
+    #warning("TODO: [PAS-183] - Temporary solution to display list")
+    let accountSelectionScreen: ResourcesListViewController = components.instance(
+      in: Just(.init()).eraseToAnyPublisher()
+    )
+    setViewControllers([accountSelectionScreen], animated: false)
   }
 }

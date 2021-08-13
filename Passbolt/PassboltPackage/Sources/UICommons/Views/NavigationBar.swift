@@ -25,22 +25,22 @@ import UIKit
 
 public final class NavigationBar: UINavigationBar {
 
-  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
+  public lazy var dynamicBackgroundColor: DynamicColor = .always(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicBarTintColor: DynamicColor = .default(self.barTintColor) {
+  public lazy var dynamicBarTintColor: DynamicColor = .always(self.barTintColor) {
     didSet {
       self.barTintColor = dynamicBarTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTitleColor: DynamicColor = .default(.black) {
+  public lazy var dynamicTitleColor: DynamicColor = .always(.black) {
     didSet {
       self.titleTextAttributes = [
         .foregroundColor: dynamicTitleColor(in: traitCollection.userInterfaceStyle),

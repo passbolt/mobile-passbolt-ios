@@ -58,4 +58,21 @@ extension Mutation where Subject: ImageButton {
       subject.dynamicImage = .default(image)
     }
   }
+
+  public static func imageInsets(
+    _ value: UIEdgeInsets
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.imageInsets = value
+    }
+  }
+
+  public static func imageContentMode(
+    _ value: UIView.ContentMode
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.imageContentMode = value
+    }
+  }
+
 }

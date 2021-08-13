@@ -42,6 +42,7 @@ extension ImageNameConstant {
   public static var disclosureIndicator: Self { "DisclosureIndicator" }
   public static var biometricsIcon: Self { "BiometricsIcon" }
   public static var faceID: Self { "FaceID" }
+  public static var more: Self { "More" }
 }
 
 extension DynamicImage {
@@ -325,6 +326,28 @@ extension DynamicImage {
         // swift-format-ignore: NeverForceUnwrap
         return UIImage(
           named: "ErrorState",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+
+  public static var emptyState: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "EmptyState",
+          in: .uiCommons,
+          with: nil
+        )!
+
+      case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "EmptyState",
           in: .uiCommons,
           with: nil
         )!

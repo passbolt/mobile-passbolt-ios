@@ -26,12 +26,12 @@ import UIKit
 
 open class StackView: UIStackView {
 
-  public lazy var dynamicBackgroundColor: DynamicColor = .default(self.backgroundColor) {
+  public lazy var dynamicBackgroundColor: DynamicColor = .always(self.backgroundColor) {
     didSet {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .default(self.tintColor) {
+  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
     didSet {
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }

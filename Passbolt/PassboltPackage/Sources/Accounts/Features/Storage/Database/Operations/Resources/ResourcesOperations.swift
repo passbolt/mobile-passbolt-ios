@@ -35,6 +35,30 @@ extension StoreResourcesOperation {
     withConnection(
       using: connectionPublisher
     ) { conn, input in
+      // We have to remove all previously stored resources before updating
+      // due to lack of ability to get information about deleted resources.
+      // Until data diffing endpoint becomes implemented we are replacing
+      // whole data set with the new one as an update.
+      // We are getting all possible results anyway until diffing becomes implemented.
+      // Please remove later on when diffing becomes available or other method of
+      // deleting records selecively becomes implemented.
+      //
+      // Delete currently stored resources
+      let deletionResult: Result<Void, TheError>
+        = conn
+        .execute(
+          "DELETE FROM resources;"
+        )
+
+      switch deletionResult {
+      case .success:
+        break
+
+      case let .failure(error):
+        return .failure(error)
+      }
+
+      // Insert or update all new resource
       for resource in input {
         let result: Result<Void, TheError> =
           conn
