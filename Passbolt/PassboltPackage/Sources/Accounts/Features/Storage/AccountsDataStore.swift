@@ -510,11 +510,7 @@ extension AccountsDataStore: Feature {
         .mapError { error in
           diagnostics.diagnosticLog("Failed to load passphrase from keychain")
           diagnostics.debugLog(error.description)
-          guard
-            error.identifier == .missingPassphrase
-              // this error occurs for biometry change
-              // not on failure for authentication failure
-              || error.osStatus == errSecAuthFailed
+          guard error.identifier == .missingPassphrase
           else { return .biometricsNotAvailable(underlyingError: error) }
           // Ensure that account profile has biometrics disabled
           // when passphrase is unavailable
