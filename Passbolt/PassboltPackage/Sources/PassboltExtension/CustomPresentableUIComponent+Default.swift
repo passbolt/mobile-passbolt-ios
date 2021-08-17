@@ -25,7 +25,7 @@ import AuthenticationServices
 import UIComponents
 
 extension CustomPresentableUIComponent {
-  
+
   public func customPresentationSetup() {
     mut(navigationItem) {
       .combined(

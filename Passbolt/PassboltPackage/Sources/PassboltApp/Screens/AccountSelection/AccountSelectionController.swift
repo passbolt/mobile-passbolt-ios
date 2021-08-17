@@ -23,8 +23,8 @@
 
 import Accounts
 import NetworkClient
-import UIComponents
 import SharedUIComponents
+import UIComponents
 
 internal struct AccountSelectionController {
 

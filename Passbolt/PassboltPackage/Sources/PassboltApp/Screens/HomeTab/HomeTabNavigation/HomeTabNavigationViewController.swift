@@ -22,29 +22,48 @@
 //
 
 import UICommons
+import UIComponents
 
-extension UICollectionViewLayout {
+internal final class HomeTabNavigationViewController: NavigationViewController, UIComponent {
 
-  internal static func resourcesList() -> UICollectionViewCompositionalLayout {
+  internal typealias Controller = HomeTabNavigationController
 
-    let item: NSCollectionLayoutItem = .init(
-      layoutSize: .init(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(64)
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
+    )
+  }
+
+  internal let components: UIComponentFactory
+  private let controller: Controller
+
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+
+  internal func setup() {
+    mut(navigationBarView) {
+      .primaryNavigationStyle()
+    }
+    mut(tabBarItem) {
+      .combined(
+        .title(localized: "tab.home"),
+        .image(named: .homeTab, from: .uiCommons)
       )
+    }
+
+    setViewControllers(
+      [components.instance(of: HomeFilterViewController.self)],
+      animated: false
     )
-
-    let group: NSCollectionLayoutGroup = .vertical(
-      layoutSize: .init(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(64)
-      ),
-      subitems: [item]
-    )
-
-    let section: NSCollectionLayoutSection = .init(group: group)
-
-    return UICollectionViewCompositionalLayout(section: section)
   }
 }
-

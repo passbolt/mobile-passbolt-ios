@@ -70,14 +70,21 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
         for: .selected
       )
     mut(self) {
-      .custom { (subject: MainTabsViewController) in
-        subject.tabBarDynamicTintColor = .primaryBlue
-        subject.tabBarDynamicBackgroundColor = .background
-        subject.tabBarDynamicBarTintColor = .background
-        subject.tabBarDynamicUnselectedItemTintColor = .icon
-        subject.tabBar.isTranslucent = false
-      }
+      .combined(
+        .set(\.tabBarDynamicTintColor, to: .primaryBlue),
+        .set(\.tabBarDynamicBackgroundColor, to: .background),
+        .set(\.tabBarDynamicBarTintColor, to: .background),
+        .set(\.tabBarDynamicUnselectedItemTintColor, to: .icon)
+      )
     }
+    Mutation<UITabBar>
+      .combined(
+        .set(\.isTranslucent, to: false),
+        .set(\.backgroundImage, to: UIImage()),
+        .set(\.shadowImage, to: UIImage()),
+        .shadow(color: .black, opacity: 0.2, offset: .init(width: 0, height: 10), radius: 12)
+      )
+      .apply(on: self.tabBar)
     setupSubscriptions()
   }
 }
@@ -98,7 +105,7 @@ extension MainTabsViewController {
 
   fileprivate func initializeTabs() {
     viewControllers = [
-      components.instance(of: HomeTabViewController.self),
+      components.instance(of: HomeTabNavigationViewController.self),
       components.instance(of: SettingsTabViewController.self),
     ]
   }

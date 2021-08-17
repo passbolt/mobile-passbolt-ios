@@ -44,6 +44,7 @@ extension ImageNameConstant {
   public static var faceID: Self { "FaceID" }
   public static var more: Self { "More" }
   public static var close: Self { "Close" }
+  public static var search: Self { "Search" }
 }
 
 extension DynamicImage {

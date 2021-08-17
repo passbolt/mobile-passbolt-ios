@@ -24,9 +24,9 @@
 import Combine
 import Features
 import NetworkClient
+import SharedUIComponents
 import TestExtensions
 import UIComponents
-import SharedUIComponents
 import XCTest
 
 @testable import Accounts

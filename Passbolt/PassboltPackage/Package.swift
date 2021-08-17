@@ -200,7 +200,7 @@ let package = Package(
         "Features",
         "Resources",
         "Environment",
-        "SharedUIComponents"
+        "SharedUIComponents",
       ]
     ),
     .testTarget(
@@ -220,7 +220,7 @@ let package = Package(
         "Features",
         "Resources",
         "Environment",
-        "SharedUIComponents"
+        "SharedUIComponents",
       ]
     ),
     .testTarget(
@@ -251,7 +251,7 @@ let package = Package(
       name: "SharedUIComponents",
       dependencies: [
         "Accounts",
-        "UIComponents"
+        "UIComponents",
       ]
     ),
     .target(

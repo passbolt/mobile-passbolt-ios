@@ -94,4 +94,3 @@ internal final class NoAccountsView: ScrolledStackView {
     }
   }
 }
-

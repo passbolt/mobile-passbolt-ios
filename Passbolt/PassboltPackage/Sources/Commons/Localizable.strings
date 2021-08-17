@@ -40,6 +40,8 @@
 "generic.create" = "Create";
 "generic.empty.list" = "There are no results";
 
+"search.placeholder" = "Search name, user, url...";
+
 "account.selection.title" = "Welcome back!";
 "account.selection.subtitle" = "Choose an account to sign in!";
 "account.selection.remove.account.button.title" = "Remove an account from this device";

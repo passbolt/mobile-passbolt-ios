@@ -23,7 +23,7 @@
 
 import UIComponents
 
-internal struct HomeTabController: UIController {
+internal struct HomeTabNavigationController: UIController {
 
   internal typealias Context = Void
 

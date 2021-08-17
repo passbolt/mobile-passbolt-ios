@@ -22,9 +22,9 @@
 //
 
 import Accounts
+import SharedUIComponents
 import UICommons
 import UIComponents
-import SharedUIComponents
 
 internal final class AuthorizationNavigationViewController: NavigationViewController, UIComponent {
 

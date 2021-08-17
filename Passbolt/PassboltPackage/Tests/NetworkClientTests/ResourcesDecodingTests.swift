@@ -31,63 +31,65 @@ final class ResourcesDecodingTests: XCTestCase {
 
   func test_resourceTypesDecoding_withLegacySecret() {
     let rawJSON: Data = """
-    {
-      "id": "669f8c64-242a-59fb-92fc-81f660975fd3",
-      "name": "Simple password",
-      "definition": {
-        "resource": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-            "name": {
-              "type": "string",
-              "maxLength": 64
-            },
-            "username": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 64
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "uri": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 1024
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "description": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 10000
-                },
-                {
-                  "type": "null"
-                }
-              ]
+      {
+        "id": "669f8c64-242a-59fb-92fc-81f660975fd3",
+        "name": "Simple password",
+        "definition": {
+          "resource": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "username": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "uri": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
+          },
+          "secret": {
+            "type": "string",
+            "maxLength": 4064
           }
-        },
-        "secret": {
-          "type": "string",
-          "maxLength": 4064
         }
       }
-    }
-    """.data(using: .utf8)!
+      """.data(using: .utf8)!
 
-    let decodedData: ResourcesTypesRequestResponseBodyItem?
-      = try? JSONDecoder().decode(ResourcesTypesRequestResponseBodyItem.self, from: rawJSON)
+    let decodedData: ResourcesTypesRequestResponseBodyItem? = try? JSONDecoder().decode(
+      ResourcesTypesRequestResponseBodyItem.self,
+      from: rawJSON
+    )
 
     XCTAssertEqual(decodedData?.id, "669f8c64-242a-59fb-92fc-81f660975fd3")
     XCTAssertEqual(decodedData?.name, "Simple password")
@@ -145,82 +147,84 @@ final class ResourcesDecodingTests: XCTestCase {
 
   func test_resourceTypesDecoding_withSecretContainingDescription() {
     let rawJSON: Data = """
-    {
-      "id": "669f8c64-242a-59fb-92fc-81f660975fd3",
-      "name": "Simple password",
-      "definition": {
-        "resource": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-            "name": {
-              "type": "string",
-              "maxLength": 64
-            },
-            "username": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 64
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "uri": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 1024
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "description": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 10000
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          }
-        },
-        "secret": {
+      {
+        "id": "669f8c64-242a-59fb-92fc-81f660975fd3",
+        "name": "Simple password",
+        "definition": {
+          "resource": {
           "type": "object",
-          "required": [
-            "password"
-          ],
+          "required": ["name"],
           "properties": {
-            "password": {
-               "type": "string",
-               "maxLength": 4096
-             },
-             "description": {
-               "anyOf": [
-                 {
-                   "type": "string",
-                   "maxLength": 10000
-                 },
-                 {
-                   "type": "null"
-                 }
-               ]
+              "name": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "username": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "uri": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "secret": {
+            "type": "object",
+            "required": [
+              "password"
+            ],
+            "properties": {
+              "password": {
+                 "type": "string",
+                 "maxLength": 4096
+               },
+               "description": {
+                 "anyOf": [
+                   {
+                     "type": "string",
+                     "maxLength": 10000
+                   },
+                   {
+                     "type": "null"
+                   }
+                 ]
+               }
              }
            }
-         }
+        }
       }
-    }
-    """.data(using: .utf8)!
+      """.data(using: .utf8)!
 
-    let decodedData: ResourcesTypesRequestResponseBodyItem?
-      = try? JSONDecoder().decode(ResourcesTypesRequestResponseBodyItem.self, from: rawJSON)
+    let decodedData: ResourcesTypesRequestResponseBodyItem? = try? JSONDecoder().decode(
+      ResourcesTypesRequestResponseBodyItem.self,
+      from: rawJSON
+    )
 
     XCTAssertEqual(decodedData?.id, "669f8c64-242a-59fb-92fc-81f660975fd3")
     XCTAssertEqual(decodedData?.name, "Simple password")
@@ -278,21 +282,23 @@ final class ResourcesDecodingTests: XCTestCase {
 
   func test_resourcesDecoding() {
     let rawJSON: Data = """
-    {
-      "id": "daaf057e-7fc3-5537-a8a9-e8c151890878",
-      "name": "cakephp",
-      "username": "cake",
-      "uri": "cakephp.org",
-      "description": "The rapid and tasty php development framework",
-      "resource_type_id": "e2aa01a9-84ec-55f8-aaed-24ee23259339",
-      "permission": {
-        "type": 15
+      {
+        "id": "daaf057e-7fc3-5537-a8a9-e8c151890878",
+        "name": "cakephp",
+        "username": "cake",
+        "uri": "cakephp.org",
+        "description": "The rapid and tasty php development framework",
+        "resource_type_id": "e2aa01a9-84ec-55f8-aaed-24ee23259339",
+        "permission": {
+          "type": 15
+        }
       }
-    }
-    """.data(using: .utf8)!
+      """.data(using: .utf8)!
 
-    let decodedData: ResourcesRequestResponseBodyItem?
-      = try? JSONDecoder().decode(ResourcesRequestResponseBodyItem.self, from: rawJSON)
+    let decodedData: ResourcesRequestResponseBodyItem? = try? JSONDecoder().decode(
+      ResourcesRequestResponseBodyItem.self,
+      from: rawJSON
+    )
 
     XCTAssertEqual(decodedData?.id, "daaf057e-7fc3-5537-a8a9-e8c151890878")
     XCTAssertEqual(decodedData?.name, "cakephp")

@@ -54,15 +54,15 @@ extension ResourcesListController: UIController {
       resources.filteredResourcesListPublisher(context)
     }
 
-    func addResource() -> Void {
+    func addResource() {
       // TODO: out of MVP scope
     }
 
-    func presentResourceDetails(_ resource: ListViewResource) -> Void {
+    func presentResourceDetails(_ resource: ListViewResource) {
       #warning("TODO: [PAS-186]")
     }
 
-    func presentResourceMenu(_ resource: ListViewResource) -> Void {
+    func presentResourceMenu(_ resource: ListViewResource) {
       #warning("TODO: [PAS-185]")
     }
 

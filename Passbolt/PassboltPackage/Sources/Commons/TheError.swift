@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import struct Foundation.OSStatus
 import class Foundation.Bundle
+import struct Foundation.OSStatus
 
 // "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them"
 public struct TheError: Error {

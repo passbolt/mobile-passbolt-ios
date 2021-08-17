@@ -142,4 +142,3 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
     self.menuTapAction = nil
   }
 }
-

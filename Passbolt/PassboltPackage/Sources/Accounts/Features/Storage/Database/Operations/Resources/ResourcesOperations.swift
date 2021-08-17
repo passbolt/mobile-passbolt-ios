@@ -44,8 +44,8 @@ extension StoreResourcesOperation {
       // deleting records selecively becomes implemented.
       //
       // Delete currently stored resources
-      let deletionResult: Result<Void, TheError>
-        = conn
+      let deletionResult: Result<Void, TheError> =
+        conn
         .execute(
           "DELETE FROM resources;"
         )

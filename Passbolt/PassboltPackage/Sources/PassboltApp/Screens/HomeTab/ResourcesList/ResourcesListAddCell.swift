@@ -38,27 +38,27 @@ internal final class ResourcesListAddCell: CollectionViewCell {
     mut(contentButton) {
       .combined(
         .backgroundColor(.clear),
-        .subview(of: self.contentView),
+        .subview(of: contentView),
         .heightAnchor(.equalTo, constant: 64),
-        .edges(equalTo: self.contentView, usingSafeArea: false),
+        .edges(equalTo: contentView, usingSafeArea: false),
         .action { [weak self] in self?.tapAction?() }
       )
     }
 
     let iconContainer: ContainerView<ImageView> = .init(
-        contentView: .init(),
-        mutation: .combined(
-          .image(named: .plus, from: .uiCommons),
-          .tintColor(dynamic: .background),
-          .contentMode(.scaleAspectFit)
-        ),
-        edges: UIEdgeInsets(
-          top: 8,
-          left: 8,
-          bottom: -8,
-          right: -8
-        )
+      contentView: .init(),
+      mutation: .combined(
+        .image(named: .plus, from: .uiCommons),
+        .tintColor(dynamic: .background),
+        .contentMode(.scaleAspectFit)
+      ),
+      edges: UIEdgeInsets(
+        top: 8,
+        left: 8,
+        bottom: -8,
+        right: -8
       )
+    )
     mut(iconContainer) {
       .combined(
         .backgroundColor(dynamic: .primaryBlue),
@@ -85,7 +85,6 @@ internal final class ResourcesListAddCell: CollectionViewCell {
       )
     }
 
-
   }
 
   internal func setup(
@@ -100,5 +99,3 @@ internal final class ResourcesListAddCell: CollectionViewCell {
     self.tapAction = nil
   }
 }
-
-

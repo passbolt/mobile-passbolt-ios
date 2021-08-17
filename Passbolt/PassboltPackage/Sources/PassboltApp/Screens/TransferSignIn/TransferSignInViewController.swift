@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
+import SharedUIComponents
 import UICommons
 import UIComponents
-import SharedUIComponents
 
 internal final class TransferSignInViewController: PlainViewController, UIComponent {
 

@@ -53,7 +53,8 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
   override internal func setup() {
     mut(self) {
       .combined(
-        .set(\.dynamicBackgroundColor, to: .background)
+        .set(\.dynamicBackgroundColor, to: .background),
+        .set(\.keyboardDismissMode, to: .onDrag)
       )
     }
 

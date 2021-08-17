@@ -24,7 +24,7 @@
 import UICommons
 import UIComponents
 
-internal final class NoAccountsViewController: PlainViewController, UIComponent, CustomPresentableUIComponent  {
+internal final class NoAccountsViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
 
   internal typealias View = NoAccountsView
   internal typealias Controller = NoAccountsController
@@ -63,4 +63,3 @@ internal final class NoAccountsViewController: PlainViewController, UIComponent,
     #warning("TODO: PAS-270 Determine if it's possible to open the app by opening a url")
   }
 }
-

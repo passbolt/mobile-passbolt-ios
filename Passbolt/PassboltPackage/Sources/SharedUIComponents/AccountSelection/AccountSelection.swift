@@ -23,6 +23,6 @@
 
 public enum AccountSelectionListMode {
 
-    case selection
-    case removal
+  case selection
+  case removal
 }

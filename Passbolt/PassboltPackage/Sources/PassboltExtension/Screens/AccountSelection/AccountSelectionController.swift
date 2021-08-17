@@ -23,8 +23,8 @@
 
 import Accounts
 import NetworkClient
-import UIComponents
 import SharedUIComponents
+import UIComponents
 
 internal struct AccountSelectionController {
 
@@ -68,7 +68,7 @@ extension AccountSelectionController: UIController {
         accountSession.statePublisher()
       )
       .map { accountsWithProfiles, sessionState -> Array<AccountSelectionListItem> in
-          accountsWithProfiles
+        accountsWithProfiles
           .map { accountWithProfile in
             let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
               networkClient.mediaDownload.make(
@@ -84,7 +84,7 @@ extension AccountSelectionController: UIController {
             func isCurrentAccount() -> Bool {
               switch sessionState {
               case let .authorized(account) where account.localID == accountWithProfile.localID,
-                   let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
+                let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
                 return true
               case _:
                 return false

@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import TestExtensions
 import UIComponents
 
+@testable import Accounts
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals

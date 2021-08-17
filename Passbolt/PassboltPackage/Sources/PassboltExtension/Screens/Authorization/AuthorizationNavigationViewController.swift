@@ -22,9 +22,9 @@
 //
 
 import Accounts
+import SharedUIComponents
 import UICommons
 import UIComponents
-import SharedUIComponents
 
 internal final class AuthorizationNavigationViewController: NavigationViewController, UIComponent {
 
@@ -59,7 +59,8 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
 
     if controller.hasAccounts {
       accountSelectionSetup()
-    } else {
+    }
+    else {
       noAccountsSetup()
     }
   }

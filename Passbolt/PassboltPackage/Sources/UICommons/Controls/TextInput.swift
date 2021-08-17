@@ -150,7 +150,8 @@ public class TextInput: View {
     textField.text = validated.value
 
     if let localizationKey: String = validated.errors.first?.localizationKey,
-       let localizationBundle: Bundle = validated.errors.first?.localizationBundle {
+      let localizationBundle: Bundle = validated.errors.first?.localizationBundle
+    {
       errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
     }
     else {

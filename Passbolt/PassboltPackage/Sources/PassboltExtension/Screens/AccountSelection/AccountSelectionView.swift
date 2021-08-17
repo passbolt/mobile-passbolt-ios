@@ -22,8 +22,8 @@
 //
 
 import Commons
-import UICommons
 import SharedUIComponents
+import UICommons
 
 internal final class AccountSelectionView: View {
 

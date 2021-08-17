@@ -21,14 +21,15 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Features
 import NetworkClient
-@testable import PassboltExtension
 import SharedUIComponents
 import TestExtensions
 import UIComponents
 import XCTest
+
+@testable import Accounts
+@testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountSelectionControllerTests: TestCase {
@@ -62,9 +63,13 @@ final class AccountSelectionControllerTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 
@@ -110,9 +115,13 @@ final class AccountSelectionControllerTests: TestCase {
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
-      } else if account.localID == secondAccount.localID {
+      }
+      else if account.localID == secondAccount.localID {
         return secondAccount
-      } else { fatalError() }
+      }
+      else {
+        fatalError()
+      }
     }
     features.use(accountSettings)
 

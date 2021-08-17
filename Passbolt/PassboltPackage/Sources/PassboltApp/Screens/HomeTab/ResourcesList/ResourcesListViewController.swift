@@ -85,8 +85,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .resourcesListPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] resources in
-        let items: Array<ResourcesListViewItem>
-          = resources.map { .resource($0) }
+        let items: Array<ResourcesListViewItem> = resources.map { .resource($0) }
         // TODO: Add button is out of MVP scope
         // replace line above with lines below
         // to present create password button.

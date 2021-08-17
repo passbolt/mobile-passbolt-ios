@@ -42,7 +42,7 @@ extension Validator where Value: Collection {
             underlyingError: nil,
             extensions: [
               .localizationKey: errorLocalizationKey,
-              .localizationBundle: bundle
+              .localizationBundle: bundle,
             ]
           )
         )

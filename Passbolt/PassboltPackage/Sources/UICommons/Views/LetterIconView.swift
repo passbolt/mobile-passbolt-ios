@@ -46,8 +46,8 @@ public final class LetterIconView: View {
     from text: String
   ) {
     // First letters of first two words uppercased
-    let letters: String
-      = text
+    let letters: String =
+      text
       .split(separator: " ")
       .prefix(2)
       .compactMap { $0.first?.uppercased() }
@@ -82,5 +82,5 @@ private let colors: Array<DynamicColor> = [
   .always(0xffd54f),
   .always(0xffb74d),
   .always(0xa1887f),
-  .always(0x90a4ae)
+  .always(0x90a4ae),
 ]
