@@ -173,14 +173,55 @@ public typealias FetchDetailsViewResourcesOperation = DatabaseOperation<Resource
 
 extension FetchDetailsViewResourcesOperation {
 
-  #warning("TODO: complete in [PAS-186]")
   static func using(
     _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
   ) -> Self {
     withConnection(
       using: connectionPublisher
     ) { conn, input in
-      fatalError("Not implemented yet")
+      let statement: SQLiteStatement = """
+      SELECT
+        *
+      FROM
+        resourceDetailsView
+      WHERE
+        id == ?1
+      LIMIT
+        1;
+      """
+      return conn.fetch(
+        statement,
+        with: [input.rawValue]
+      ) { rows -> Result<DetailsViewResource, TheError> in
+        rows
+          .first
+          .map { row -> Result<DetailsViewResource, TheError> in
+            guard
+              let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
+              let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
+              let name: String = row.name,
+              let rawFields: String = row.resourceFields
+
+            else { return .failure(.databaseFetchError(databaseErrorMessage: "Failed to unwrap values")) }
+
+            let url: String? = row.url
+            let username: String? = row.url
+            let description: String? = row.description
+            let fields: Array<ResourceField> = ResourceField.arrayFrom(rawString: rawFields)
+
+            return .success(
+              DetailsViewResource(
+                id: id,
+                permission: permission,
+                name: name,
+                url: url,
+                username: username,
+                description: description,
+                fields: fields
+              )
+            )
+          } ?? .failure(.databaseFetchError(databaseErrorMessage: "No value"))
+      }
     }
   }
 }

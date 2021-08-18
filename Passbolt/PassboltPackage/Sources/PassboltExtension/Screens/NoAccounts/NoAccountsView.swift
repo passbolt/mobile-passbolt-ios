@@ -31,6 +31,9 @@ internal final class NoAccountsView: ScrolledStackView {
   private let descriptionLabel: Label = .init()
 
   override internal func setup() {
+    mut(self) {
+      .backgroundColor(dynamic: .background)
+    }
 
     let logoContainer: ContainerView = .init(
       contentView: logoImageView,

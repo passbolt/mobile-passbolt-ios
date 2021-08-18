@@ -130,12 +130,21 @@ extension AttributedString {
     case .terminator:
       return NSAttributedString()
     case let .string(string, attributes: attributes, tail: tail):
+      var stringAttributes: Dictionary<NSAttributedString.Key, Any>? = [
+        .font: attributes.font,
+        .foregroundColor: attributes.color(in: interfaceStyle),
+      ]
+
+      if attributes.isLink {
+        stringAttributes?[.link] = string
+      }
+      else {
+        /* NOP */
+      }
+
       let mutableString: NSMutableAttributedString = .init(
         string: string,
-        attributes: [
-          .font: attributes.font,
-          .foregroundColor: attributes.color(in: interfaceStyle),
-        ]
+        attributes: stringAttributes
       )
       mutableString.append(tail.nsAttributedString(in: interfaceStyle))
       return mutableString
@@ -173,6 +182,17 @@ extension AttributedString {
 
     public var font: UIFont
     public var color: DynamicColor
+    public var isLink: Bool
+
+    public init(
+      font: UIFont,
+      color: DynamicColor,
+      isLink: Bool = false
+    ) {
+      self.font = font
+      self.color = color
+      self.isLink = isLink
+    }
   }
 }
 

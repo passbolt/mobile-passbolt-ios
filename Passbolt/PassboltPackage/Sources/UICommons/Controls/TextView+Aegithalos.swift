@@ -36,4 +36,10 @@ extension Mutation where Subject: TextView {
   public static func textColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTextColor = color }
   }
+
+  public static func attributedString(
+    _ attributedString: AttributedString
+  ) -> Self {
+    .custom { (subject: Subject) in subject.attributedString = attributedString }
+  }
 }

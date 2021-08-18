@@ -75,7 +75,7 @@ let package = Package(
     .package(
       name: "Aegithalos",
       url: "https://github.com/miquido/aegithalos.git",
-      .upToNextMajor(from: "2.2.0")
+      .upToNextMajor(from: "2.3.0")
     )
   ],
   targets: [
@@ -301,6 +301,7 @@ let package = Package(
         .product(name: "AegithalosCocoa", package: "Aegithalos"),
       ],
       resources: [
+        .process("Fonts/AnonymousPro-Bold.ttf"),
         .process("Fonts/Inter-Black.ttf"),
         .process("Fonts/Inter-Bold.ttf"),
         .process("Fonts/Inter-ExtraLight.ttf"),

@@ -88,3 +88,36 @@ public enum ResourceField {
     }
   }
 }
+
+extension ResourceField {
+
+  internal static func arrayFrom(
+    rawString: String
+  ) -> Array<Self> {
+    rawString.components(separatedBy: ",").compactMap(from(string:))
+  }
+
+  internal static func from(
+    string: String
+  ) -> Self? {
+    var fields = string.components(separatedBy: ";")
+
+    let maxLength: Int? = fields.popLast()?.components(separatedBy: "=").last.flatMap { Int($0) }
+
+    guard
+      let encrypted: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
+      let required: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
+      var nameAndTypeString: Array<String> = fields.popLast()?.components(separatedBy: ":"),
+      let typeString: String = nameAndTypeString.popLast(),
+      let name: String = nameAndTypeString.popLast()
+    else { return nil }
+
+    return .init(
+      typeString: typeString,
+      name: name,
+      required: required,
+      encrypted: encrypted,
+      maxLength: maxLength
+    )
+  }
+}

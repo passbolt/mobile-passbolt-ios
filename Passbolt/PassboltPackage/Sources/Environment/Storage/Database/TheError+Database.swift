@@ -102,6 +102,19 @@ extension TheError {
       ]
     )
   }
+
+  public static func databaseFetchError(
+    underlyingError: Error? = nil,
+    databaseErrorMessage: String?
+  ) -> Self {
+    .init(
+      identifier: .databaseFetchError,
+      underlyingError: underlyingError,
+      extensions: [
+        .databaseErrorMessage: databaseErrorMessage as Any
+      ]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -112,6 +125,7 @@ extension TheError.ID {
   public static let databaseBindingError: Self = "databaseBindingError"
   public static let databaseExecutionError: Self = "databaseExecutionError"
   public static let databaseMigrationError: Self = "databaseMigrationError"
+  public static let databaseFetchError: Self = "databaseFetchError"
 }
 
 extension TheError.Extension {

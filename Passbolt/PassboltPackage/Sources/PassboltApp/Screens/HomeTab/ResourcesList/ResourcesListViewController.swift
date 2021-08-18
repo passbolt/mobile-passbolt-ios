@@ -129,5 +129,15 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         self?.contentView.finishDataRefresh()
       })
       .store(in: self.cancellables)
+
+    controller.resourceDetailsPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] resourceId in
+        self?.push(
+          ResourceDetailsViewController.self,
+          in: resourceId
+        )
+      }
+      .store(in: cancellables)
   }
 }

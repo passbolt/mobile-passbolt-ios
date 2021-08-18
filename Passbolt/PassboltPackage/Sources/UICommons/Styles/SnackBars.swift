@@ -39,6 +39,8 @@ extension Mutation where Subject: View {
 
   public static func snackBarMessage(
     localized localizationKey: LocalizationKeyConstant,
+    arguments: CVarArg...,
+    tableName: String? = nil,
     inBundle bundle: Bundle = .main,
     backgroundColor: DynamicColor,
     textColor: DynamicColor
@@ -54,7 +56,6 @@ extension Mutation where Subject: View {
             .font(.inter(ofSize: 14, weight: .regular)),
             .textColor(dynamic: textColor),
             .textAlignment(.center),
-            .text(localized: localizationKey, inBundle: bundle),
             .subview(of: subject),
             .edges(
               equalTo: subject,
@@ -65,7 +66,23 @@ extension Mutation where Subject: View {
                 right: -16
               ),
               usingSafeArea: false
-            )
+            ),
+            .custom { (subject: Label) in
+              let localized = NSLocalizedString(
+                localizationKey.rawValue,
+                tableName: tableName,
+                bundle: bundle,
+                comment: ""
+              )
+              if arguments.isEmpty {
+                subject.text = localized
+              } else {
+                subject.text = String(
+                  format: localized,
+                  arguments: arguments
+                )
+              }
+            }
           )
           .instantiate()
       }

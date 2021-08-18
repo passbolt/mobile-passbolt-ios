@@ -42,8 +42,16 @@ open class TextView: UITextView {
     }
   }
 
+  // Conflicts with `attributedText` property, never use both at the same time.
+  public var attributedString: AttributedString? {
+    didSet {
+      self.attributedText = attributedString?.nsAttributedString(in: traitCollection.userInterfaceStyle)
+    }
+  }
+
   public required init() {
     super.init(frame: .zero, textContainer: nil)
+    backgroundColor = .clear
   }
 
   @available(*, unavailable)
@@ -65,5 +73,6 @@ open class TextView: UITextView {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
+    self.attributedText = attributedString?.nsAttributedString(in: interfaceStyle)
   }
 }

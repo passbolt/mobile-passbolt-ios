@@ -27,8 +27,8 @@ public final class ImageButton: Button {
 
   public lazy var dynamicImage: DynamicImage = .default(self.imageView.image) {
     didSet {
-      guard !isPressed && isEnabled else { return }
-      self.imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
+      guard (!isPressed || dynamicPressedImage == nil) && isEnabled else { return }
+      self.imageView.dynamicImage = dynamicImage
     }
   }
 

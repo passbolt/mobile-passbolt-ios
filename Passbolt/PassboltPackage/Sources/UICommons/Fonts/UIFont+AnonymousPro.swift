@@ -21,40 +21,31 @@
 // @since         v1.0
 //
 
-import UICommons
-import UIComponents
+import Commons
+import UIKit
 
-internal final class NoAccountsViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
+extension UIFont {
 
-  internal typealias View = NoAccountsView
-  internal typealias Controller = NoAccountsController
+  public static func anonymousPro(
+    ofSize fontSize: CGFloat,
+    weight: UIFont.Weight = .regular
+  ) -> UIFont {
+    let font: UIFont?
+    switch weight {
+    case .bold:
+      font = UIFont(
+        name: "AnonymousPro Bold",
+        size: fontSize
+      )
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components
-    )
-  }
-
-  internal private(set) var contentView: View = .init()
-  internal var components: UIComponentFactory
-
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory
-  ) {
-    self.controller = controller
-    self.components = components
-    super.init()
-  }
-
-  internal func setupView() {
-    customPresentationSetup()
-    #warning("TODO: PAS-270 Determine if it's possible to open the app by opening a url")
+    case _:
+      assertionFailure("Unsupported font weight: \(weight)")
+      font = nil
+    }
+    return font
+      ?? .systemFont(
+        ofSize: fontSize,
+        weight: weight
+      )
   }
 }
