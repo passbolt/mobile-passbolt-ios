@@ -33,39 +33,43 @@ public struct Keychain: EnvironmentElement {
   public var delete: (KeychainQuery) -> Result<Void, TheError>
 }
 
-// we would like to ask every time but some methods request it multiple times in a row, so using small timout
-private let keychainBiometricsTimeout: TimeInterval = 0.3  // 0.3 sec
-
 extension Keychain {
 
   public static func live() -> Self {
     let biometricsContext: () -> LAContext = {
       let context: LAContext = .init()
-      context.touchIDAuthenticationAllowableReuseDuration = keychainBiometricsTimeout
       return context
     }
 
     func load(
       matching query: KeychainQuery
     ) -> Result<Array<Data>, TheError> {
-      loadKeychainData(
+      let context: LAContext?
+        = query.requiresBiometrics
+        ? biometricsContext()
+        : nil
+      defer { context?.invalidate() }
+
+      return loadKeychainData(
         for: query.key.rawValue,
         tag: query.tag?.rawValue,
-        in: query.requiresBiometrics
-          ? biometricsContext()
-          : nil
+        in: context
       )
     }
 
     func loadMeta(
       matching query: KeychainQuery
     ) -> Result<Array<KeychainItemMetadata>, TheError> {
-      loadKeychainMeta(
+      let context: LAContext?
+        = query.requiresBiometrics
+        ? biometricsContext()
+        : nil
+      defer { context?.invalidate() }
+
+      return loadKeychainMeta(
         for: query.key.rawValue,
         tag: query.tag?.rawValue,
-        in: query.requiresBiometrics
-          ? biometricsContext()
-          : nil
+        in: context
       )
       .map { results in
         results.compactMap { result in
@@ -84,13 +88,17 @@ extension Keychain {
       _ data: Data,
       for query: KeychainQuery
     ) -> Result<Void, TheError> {
-      saveKeychain(
+      let context: LAContext?
+        = query.requiresBiometrics
+        ? biometricsContext()
+        : nil
+      defer { context?.invalidate() }
+
+      return saveKeychain(
         data: data,
         for: query.key.rawValue,
         tag: query.tag?.rawValue,
-        in: query.requiresBiometrics
-          ? biometricsContext()
-          : nil
+        in: context
       )
     }
 
@@ -389,7 +397,7 @@ private func loadKeychainKeyQuery(
     guard
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
-        kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         .biometryCurrentSet,
         &error
       ),
@@ -399,7 +407,7 @@ private func loadKeychainKeyQuery(
     query[kSecUseAuthenticationContext] = context
   }
   else {
-    query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+    query[kSecAttrAccessible] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
   }
   return .success(query as CFDictionary)
 }
@@ -435,7 +443,7 @@ private func loadKeychainMetaQuery(
     guard
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
-        kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         .biometryCurrentSet,
         &error
       ),
@@ -445,7 +453,7 @@ private func loadKeychainMetaQuery(
     query[kSecUseAuthenticationContext] = context
   }
   else {
-    query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+    query[kSecAttrAccessible] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
   }
   return .success(query as CFDictionary)
 }
@@ -483,7 +491,7 @@ private func saveKeychainKeyQuery(
     guard
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
-        kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         .biometryCurrentSet,
         &error
       ),
@@ -493,7 +501,7 @@ private func saveKeychainKeyQuery(
     query[kSecUseAuthenticationContext] = context
   }
   else {
-    query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+    query[kSecAttrAccessible] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
   }
   return .success(query as CFDictionary)
 }
@@ -526,7 +534,7 @@ private func updateKeychainKeyQuery(
     guard
       let acl = SecAccessControlCreateWithFlags(
         kCFAllocatorDefault,
-        kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         .biometryCurrentSet,
         &error
       ),
@@ -536,7 +544,7 @@ private func updateKeychainKeyQuery(
     query[kSecUseAuthenticationContext] = context
   }
   else {
-    query[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+    query[kSecAttrAccessible] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
   }
   return .success(query as CFDictionary)
 }
