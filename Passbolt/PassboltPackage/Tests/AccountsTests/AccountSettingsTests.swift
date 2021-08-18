@@ -57,7 +57,7 @@ final class AccountSettingsTests: TestCase {
       CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorizationPrompt = {}
+    accountSession.requestAuthorizationPrompt = { _ in }
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty().eraseToAnyPublisher())
@@ -207,7 +207,7 @@ final class AccountSettingsTests: TestCase {
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorizationPrompt = {}
+    accountSession.requestAuthorizationPrompt = { _ in }
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
@@ -239,7 +239,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorizationPrompt = {}
+    accountSession.requestAuthorizationPrompt = { _ in }
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
@@ -304,7 +304,7 @@ final class AccountSettingsTests: TestCase {
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorizationPrompt = {}
+    accountSession.requestAuthorizationPrompt = { _ in }
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -336,7 +336,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorizationPrompt = {}
+    accountSession.requestAuthorizationPrompt = { _ in }
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
@@ -433,7 +433,7 @@ final class AccountSettingsTests: TestCase {
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    accountSession.requestAuthorizationPrompt = {}
+    accountSession.requestAuthorizationPrompt = { _ in }
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)

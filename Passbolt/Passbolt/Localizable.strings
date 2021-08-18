@@ -99,3 +99,6 @@
 "account.settings.alert.title" = "Are you sure?";
 "account.settings.biometrics.alert.message" = "After disabling Face ID you will need to login by using your passphrase.";
 "account.settings.signout.alert.message" = "If you sign out you will need to set up your account again on this device.";
+
+"authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
+"authorization.prompt.biometrics.set.reason" = "Please authenticate to enable biometrics.";

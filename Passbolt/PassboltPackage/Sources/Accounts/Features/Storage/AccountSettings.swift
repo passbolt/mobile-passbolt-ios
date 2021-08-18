@@ -128,7 +128,9 @@ extension AccountSettings: Feature {
             .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheError> in
               guard case let .authorized(account) = sessionState
               else {
-                accountSession.requestAuthorizationPrompt()
+                accountSession.requestAuthorizationPrompt(
+                  .init(key: "authorization.prompt.biometrics.set.reason", bundle: .main)
+                )
                 return Fail<Void, TheError>(error: .authorizationRequired())
                   .eraseToAnyPublisher()
               }
@@ -154,7 +156,9 @@ extension AccountSettings: Feature {
                     }
                     else {
                       #warning("TODO: determine if waiting for authorization could be implemented here")
-                      accountSession.requestAuthorizationPrompt()
+                      accountSession.requestAuthorizationPrompt(
+                        .init(key: "authorization.prompt.biometrics.set.reason", bundle: .main)
+                      )
                       return Fail<Void, TheError>(error: .authorizationRequired())
                         .eraseToAnyPublisher()
                     }

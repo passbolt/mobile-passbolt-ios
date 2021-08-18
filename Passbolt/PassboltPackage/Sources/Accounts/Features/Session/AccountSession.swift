@@ -27,6 +27,12 @@ import NetworkClient
 
 import class Foundation.NSRecursiveLock
 
+public struct AuthorizationPromptRequest {
+
+  public var account: Account
+  public var message: LocalizedMessage?
+}
+
 public struct AccountSession {
   // Publishes current account and associated network session token.
   public var statePublisher: () -> AnyPublisher<State, Never>
@@ -34,9 +40,9 @@ public struct AccountSession {
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Void, TheError>
   // Publishes current account ID each time access to its private key
   // is required and cannot be handled automatically (passphrase cache is expired)
-  public var authorizationPromptPresentationPublisher: () -> AnyPublisher<Account, Never>
+  public var authorizationPromptPresentationPublisher: () -> AnyPublisher<AuthorizationPromptRequest, Never>
   // Manual trigger for authorization prompt
-  public var requestAuthorizationPrompt: () -> Void
+  public var requestAuthorizationPrompt: (LocalizedMessage?) -> Void
   // Closes current session and removes associated temporary data.
   // Not required for account switch, in that case use `authorize` with different account.
   public var close: () -> Void
@@ -116,7 +122,16 @@ extension AccountSession: Feature {
       .removeDuplicates()
       .eraseToAnyPublisher()
 
-    let authorizationPromptPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+
+    networkClient.setAuthorizationRequest({
+      requestAuthorization(
+        message: .init(
+          key: "authorization.prompt.refresh.session.reason",
+          bundle: .main
+        )
+      )
+    })
 
     // connect current account base url / domain with network client
     // to perform requests in correct contexts
@@ -170,12 +185,12 @@ extension AccountSession: Feature {
     // when going to background cancel ongoing authorization if any
     appLifeCycle
       .lifeCyclePublisher()
-      .compactMap { transition -> Account? in
+      .compactMap { transition -> AuthorizationPromptRequest? in
         switch transition {
         case .willEnterForeground:
           switch sessionStateSubject.value {
           case let .authorizationRequired(account), let .authorized(account):
-            return account  // request authorization prompt for that account
+            return .init(account: account, message: nil)  // request authorization prompt for that account
 
           case .none:
             return nil  // do nothing
@@ -347,18 +362,22 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
     }
 
-    func authorizationPromptPresentationPublisher() -> AnyPublisher<Account, Never> {
+    func authorizationPromptPresentationPublisher() -> AnyPublisher<AuthorizationPromptRequest, Never> {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     }
 
-    func requestAuthorization() {
+    func requestAuthorization(message: LocalizedMessage?) {
       switch sessionStateSubject.value {
       case let .authorized(account):
         passphraseCache.clear()
-        authorizationPromptPresentationSubject.send(account)
+        authorizationPromptPresentationSubject.send(
+          .init(account: account, message: message)
+        )
       case let .authorizationRequired(account):
-        authorizationPromptPresentationSubject.send(account)
+        authorizationPromptPresentationSubject.send(
+          .init(account: account, message: message)
+        )
       case .none:
         break
       }

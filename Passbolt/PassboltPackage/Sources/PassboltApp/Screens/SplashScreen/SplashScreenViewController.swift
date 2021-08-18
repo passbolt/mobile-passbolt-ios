@@ -74,7 +74,7 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     case let .accountSelection(lastAccount):
       replaceWindowRoot(
         with: AuthorizationNavigationViewController.self,
-        in: lastAccount
+        in: (account: lastAccount, message: nil)
       )
 
     case .accountSetup:

@@ -51,7 +51,7 @@ final class WindowTests: TestCase {
         .eraseToAnyPublisher()
     )
     accountSession.authorizationPromptPresentationPublisher = always(
-      Empty<Account, Never>()
+      Empty<AuthorizationPromptRequest, Never>()
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -73,7 +73,7 @@ final class WindowTests: TestCase {
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
     )
-    let authorizationPromptPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
     accountSession.authorizationPromptPresentationPublisher = always(
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
@@ -88,11 +88,14 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-    authorizationPromptPresentationSubject.send(validAccount)
+    authorizationPromptPresentationSubject.send(
+      .init(account: validAccount, message: .testMessage())
+    )
 
-    guard case let .some(.authorize(account)) = result
+    guard case let .some(.authorize(account, message)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
+    XCTAssertEqual(message, .testMessage())
   }
 
   func
@@ -103,7 +106,7 @@ final class WindowTests: TestCase {
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
     )
-    let authorizationPromptPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
     accountSession.authorizationPromptPresentationPublisher = always(
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
@@ -118,11 +121,14 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-    authorizationPromptPresentationSubject.send(validAccount)
+    authorizationPromptPresentationSubject.send(
+      .init(account: validAccount, message: nil)
+    )
 
-    guard case let .some(.authorize(account)) = result
+    guard case let .some(.authorize(account, message)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
+    XCTAssertNil(message)
   }
 
   func test_screenStateDispositionPublisher_publishesUseInitialScreenState_whenAccountSessionStateChangesToAuthorized()
@@ -132,7 +138,7 @@ final class WindowTests: TestCase {
       accountSessionStateSubject
         .eraseToAnyPublisher()
     )
-    let authorizationPromptPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
     accountSession.authorizationPromptPresentationPublisher = always(
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
@@ -189,7 +195,7 @@ final class WindowTests: TestCase {
       accountSessionStateSubject
         .eraseToAnyPublisher()
     )
-    let authorizationPromptPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
     accountSession.authorizationPromptPresentationPublisher = always(
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
@@ -204,7 +210,7 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-    authorizationPromptPresentationSubject.send(validAccount)
+    authorizationPromptPresentationSubject.send(.init(account: validAccount, message: nil))
     accountSessionStateSubject.send(.authorized(validAccount))
 
     guard case .some(.useCachedScreenState) = result

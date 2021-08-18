@@ -41,6 +41,9 @@ extension NetworkResponseDecoding where Response == Void {
       if statusCodes ~= response.statusCode {
         return .success(Void())
       }
+      else if response.statusCode == 401 {
+        return .failure(.missingSession())
+      }
       else {
         return .failure(.httpError(.invalidResponse))
       }
@@ -83,7 +86,11 @@ extension NetworkResponseDecoding where Response: Decodable {
   internal static func bodyAsJSON(
     using decoder: JSONDecoder = .init()
   ) -> Self {
+
     Self { response in
+      guard response.statusCode != 401
+      else { return .failure(.missingSession()) }
+
       do {
         return .success(
           try decoder.decode(

@@ -21,37 +21,28 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import Commons
+import Environment
 
-internal struct AuthorizationNavigationController {
+extension NetworkRequest {
 
-  internal var selectedAccount: Account?
-  internal var message: LocalizedMessage?
-}
-
-extension AuthorizationNavigationController: UIController {
-
-  internal typealias Context = (account: Account?, message: LocalizedMessage?)
-
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
+  public func withUnauthorized(
+    authorizationRequest: @escaping () -> Void
   ) -> Self {
-    let accounts: Accounts = features.instance()
+    Self(
+      execute: { variable in
+        self.execute(variable).mapError { (error: TheError) -> TheError in
+          if error.identifier == .missingSession {
+            authorizationRequest()
+          }
+          else {
+            /* NOP */
+          }
 
-    if let account = context.account, accounts.storedAccounts().contains(account) {
-      return Self(
-        selectedAccount: context.account,
-        message: context.message
-      )
-    }
-    else {
-      return Self(
-        selectedAccount: nil,
-        message: context.message
-      )
-    }
+          return error
+        }
+        .eraseToAnyPublisher()
+      }
+    )
   }
 }

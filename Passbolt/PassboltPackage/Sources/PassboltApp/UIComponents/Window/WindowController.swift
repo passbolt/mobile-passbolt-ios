@@ -36,7 +36,7 @@ extension WindowController {
 
     case useInitialScreenState(for: Account?)
     case useCachedScreenState(for: Account)
-    case authorize(Account)
+    case authorize(Account, message: LocalizedMessage?)
   }
 }
 extension WindowController: UIController {
@@ -58,8 +58,8 @@ extension WindowController: UIController {
     Publishers.Merge(
       accountSession
         .authorizationPromptPresentationPublisher()
-        .map { promptedAccount -> ScreenStateDisposition in
-          .authorize(promptedAccount)
+        .map { (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition in
+          .authorize(promptRequest.account, message: promptRequest.message)
         },
       accountSession
         .statePublisher()
@@ -68,7 +68,7 @@ extension WindowController: UIController {
         .compactMap { sessionState -> ScreenStateDisposition? in
           switch (sessionState, screenStateDispositionSubject.value) {
           // authorized after prompting (from signed in state)
-          case let (.authorized(account), .authorize(promptedAccount))
+          case let (.authorized(account), .authorize(promptedAccount, _))
           where promptedAccount == account:
             return .useCachedScreenState(for: account)
 

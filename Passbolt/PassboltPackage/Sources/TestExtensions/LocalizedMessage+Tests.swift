@@ -21,37 +21,17 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import Commons
 
-internal struct AuthorizationNavigationController {
+extension LocalizedMessage {
 
-  internal var selectedAccount: Account?
-  internal var message: LocalizedMessage?
-}
-
-extension AuthorizationNavigationController: UIController {
-
-  internal typealias Context = (account: Account?, message: LocalizedMessage?)
-
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
+  public static func testMessage(
+    key: StaticString = "testLocalizationKey",
+    bundle: Bundle = .commons
   ) -> Self {
-    let accounts: Accounts = features.instance()
-
-    if let account = context.account, accounts.storedAccounts().contains(account) {
-      return Self(
-        selectedAccount: context.account,
-        message: context.message
-      )
-    }
-    else {
-      return Self(
-        selectedAccount: nil,
-        message: context.message
-      )
-    }
+    .init(
+      key: .init(stringLiteral: key),
+      bundle: bundle
+    )
   }
 }

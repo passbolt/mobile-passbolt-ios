@@ -21,37 +21,27 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import AegithalosCocoa
+import class Foundation.Bundle
 
-internal struct AuthorizationNavigationController {
+public struct LocalizedMessage: Equatable {
 
-  internal var selectedAccount: Account?
-  internal var message: LocalizedMessage?
+  public var key: LocalizationKeyConstant
+  public var bundle: Bundle
+
+  public init(
+    key: LocalizationKeyConstant,
+    bundle: Bundle
+  ) {
+    self.key = key
+    self.bundle = bundle
+  }
 }
 
-extension AuthorizationNavigationController: UIController {
-
-  internal typealias Context = (account: Account?, message: LocalizedMessage?)
-
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    let accounts: Accounts = features.instance()
-
-    if let account = context.account, accounts.storedAccounts().contains(account) {
-      return Self(
-        selectedAccount: context.account,
-        message: context.message
-      )
-    }
-    else {
-      return Self(
-        selectedAccount: nil,
-        message: context.message
-      )
-    }
-  }
+public func == (
+  lhs: LocalizedMessage,
+  rhs: LocalizedMessage
+) -> Bool {
+  lhs.key.rawValue == rhs.key.rawValue
+    && lhs.bundle == rhs.bundle
 }

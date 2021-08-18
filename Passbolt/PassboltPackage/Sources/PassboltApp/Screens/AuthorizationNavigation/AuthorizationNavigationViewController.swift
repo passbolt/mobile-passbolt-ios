@@ -72,4 +72,22 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
       /* */
     }
   }
+
+  public func activate() {
+    if let message = controller.message {
+      present(
+        snackbar: Mutation<UICommons.View>
+          .snackBarMessage(
+            localized: message.key,
+            inBundle: message.bundle,
+            backgroundColor: .primaryText,
+            textColor: .primaryTextAlternative
+          )
+          .instantiate()
+      )
+    }
+    else {
+      /* NOP */
+    }
+  }
 }

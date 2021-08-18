@@ -40,6 +40,7 @@ public struct NetworkClient {
   public var resourcesTypesRequest: ResourcesTypesRequest
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
+  public var setAuthorizationRequest: (@escaping () -> Void) -> Void
 }
 
 extension NetworkClient {
@@ -62,6 +63,8 @@ extension NetworkClient: Feature {
 
     let sessionSubject: CurrentValueSubject<NetworkSessionVariable?, Never> = .init(nil)
     let tokensSubject: CurrentValueSubject<AnyPublisher<Tokens?, Never>, Never> = .init(Empty().eraseToAnyPublisher())
+
+    var authorizationRequest: (() -> Void) = unreachable("Authorization request has to be assigned before use.")
 
     let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
       .setFailureType(to: TheError.self)
@@ -94,6 +97,9 @@ extension NetworkClient: Feature {
           we might however react on specific error
           in order to trigger it from given context - to verify
           """)
+
+          // Currently there's no session refresh
+          authorizationRequest()
           return Fail<AuthorizedSessionVariable, TheError>(error: .missingSession())
             .eraseToAnyPublisher()
         }
@@ -119,6 +125,14 @@ extension NetworkClient: Feature {
 
     func setTokens(publisher: AnyPublisher<Tokens?, Never>) {
       tokensSubject.send(publisher)
+    }
+
+    func setAuthorizationRequest(_ request: @escaping () -> Void) {
+      authorizationRequest = request
+    }
+
+    func requestAuthorization() {
+      authorizationRequest()
     }
 
     return Self(
@@ -161,13 +175,16 @@ extension NetworkClient: Feature {
       resourcesRequest: .live(
         using: networking,
         with: sessionVariablePublisher
-      ),
+      )
+      .withUnauthorized(authorizationRequest: requestAuthorization),
       resourcesTypesRequest: .live(
         using: networking,
         with: sessionVariablePublisher
-      ),
+      )
+      .withUnauthorized(authorizationRequest: requestAuthorization),
       updateSession: sessionSubject.send(_:),
-      setTokensPublisher: setTokens(publisher:)
+      setTokensPublisher: setTokens(publisher:),
+      setAuthorizationRequest: setAuthorizationRequest(_:)
     )
   }
 
@@ -187,7 +204,8 @@ extension NetworkClient: Feature {
       resourcesRequest: .placeholder,
       resourcesTypesRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
-      setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods")
+      setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
