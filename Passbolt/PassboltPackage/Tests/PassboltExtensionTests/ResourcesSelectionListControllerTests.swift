@@ -29,26 +29,30 @@ import TestExtensions
 import UIComponents
 import XCTest
 
-@testable import PassboltApp
+@testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceListControllerTests: TestCase {
+final class ResourcesSelectionListControllerTests: TestCase {
 
   var resources: Resources!
+  var autofillContext: AutofillExtensionContext!
 
   override func setUp() {
     super.setUp()
 
     resources = .placeholder
+    autofillContext = .placeholder
   }
 
   override func tearDown() {
     super.tearDown()
 
     resources = nil
+    autofillContext = nil
   }
 
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() {
+    features.use(autofillContext)
     resources.refreshIfNeeded = always(
       Empty<Never, TheError>(completeImmediately: true)
         .eraseToAnyPublisher()
@@ -57,7 +61,7 @@ final class ResourceListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
     var result: Void?
     controller
@@ -73,6 +77,7 @@ final class ResourceListControllerTests: TestCase {
   }
 
   func test_refreshResources_fails_whenResourcesRefreshFails() {
+    features.use(autofillContext)
     resources.refreshIfNeeded = always(
       Fail<Never, TheError>(error: .testError())
         .eraseToAnyPublisher()
@@ -81,7 +86,7 @@ final class ResourceListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
     var result: TheError?
     controller
@@ -97,6 +102,12 @@ final class ResourceListControllerTests: TestCase {
   }
 
   func test_resourcesListPublisher_publishesResourcesListFromResources() {
+    autofillContext.requestedServiceIdentifiersPublisher
+      = always(
+        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
+          .eraseToAnyPublisher()
+      )
+    features.use(autofillContext)
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
@@ -121,9 +132,9 @@ final class ResourceListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: Array<ResourcesListViewResourceItem>?
+    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -132,10 +143,17 @@ final class ResourceListControllerTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, resourcesList.map(ResourcesListViewResourceItem.init(from:)))
+    XCTAssertEqual(result?.suggested, Array<ResourcesSelectionListViewResourceItem>())
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() {
+    autofillContext.requestedServiceIdentifiersPublisher
+      = always(
+        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
+          .eraseToAnyPublisher()
+      )
+    features.use(autofillContext)
     var result: ResourcesFilter?
     resources.filteredResourcesListPublisher = { filterPublisher in
       filterPublisher.map { filter in
@@ -148,7 +166,7 @@ final class ResourceListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(text: "1"))
 
-    let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
     controller
       .resourcesListPublisher()
@@ -156,5 +174,51 @@ final class ResourceListControllerTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertEqual(result, ResourcesFilter(text: "1"))
+  }
+
+  func test_resourcesListPublisher_publishesSuggestedResourcesListFromResources_usingRequestedServiceIdentifiers() {
+    autofillContext.requestedServiceIdentifiersPublisher
+      = always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")])
+          .eraseToAnyPublisher()
+      )
+    features.use(autofillContext)
+    let resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+      ListViewResource(
+        id: "resource_2",
+        permission: .read,
+        name: "Resoure 2",
+        url: "alterpassbolt.com",
+        username: "test"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+
+    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+
+    controller
+      .resourcesListPublisher()
+      .sink { values in
+        result = values
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[1]).suggestionCopy])
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
 }

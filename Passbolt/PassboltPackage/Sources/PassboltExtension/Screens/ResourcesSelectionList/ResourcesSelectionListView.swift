@@ -24,28 +24,27 @@
 import Accounts
 import UICommons
 
-internal final class ResourcesListView: CollectionView<SingleSection, ResourcesListViewItem> {
+internal final class ResourcesSelectionListView: CollectionView<ResourcesSelectionListSection, ResourcesSelectionListViewItem> {
 
   internal var addTapPublisher: AnyPublisher<Void, Never> {
     addTapSubject.eraseToAnyPublisher()
   }
-  internal var itemTapPublisher: AnyPublisher<ResourcesListViewResourceItem, Never> {
+  internal var itemTapPublisher: AnyPublisher<ResourcesSelectionListViewResourceItem, Never> {
     itemTapSubject.eraseToAnyPublisher()
-  }
-  internal var itemMenuTapPublisher: AnyPublisher<ResourcesListViewResourceItem, Never> {
-    itemMenuTapSubject.eraseToAnyPublisher()
   }
 
   private let addTapSubject: PassthroughSubject<Void, Never> = .init()
-  private var itemTapSubject: PassthroughSubject<ResourcesListViewResourceItem, Never> = .init()
-  private var itemMenuTapSubject: PassthroughSubject<ResourcesListViewResourceItem, Never> = .init()
+  private var itemTapSubject: PassthroughSubject<ResourcesSelectionListViewResourceItem, Never> = .init()
 
   internal init() {
     super.init(
-      layout: .resourcesList(),
+      layout: .resourcesSelectionList(),
       cells: [
-        ResourcesListAddCell.self,
-        ResourcesListResourceCell.self,
+        ResourcesSelectionListAddCell.self,
+        ResourcesSelectionListResourceCell.self,
+      ],
+      headers: [
+        ResourcesSelectionListSectionHeader.self
       ]
     )
   }
@@ -63,13 +62,13 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
   }
 
   override internal func setupCell(
-    for item: ResourcesListViewItem,
-    in section: SingleSection,
+    for item: ResourcesSelectionListViewItem,
+    in section: ResourcesSelectionListSection,
     at indexPath: IndexPath
   ) -> CollectionViewCell? {
     switch item {
     case .add:
-      let cell: ResourcesListAddCell = dequeueOrMakeReusableCell(at: indexPath)
+      let cell: ResourcesSelectionListAddCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(
         tapAction: { [weak self] in
@@ -80,19 +79,41 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
       return cell
 
     case let .resource(resource):
-      let cell: ResourcesListResourceCell = dequeueOrMakeReusableCell(at: indexPath)
+      let cell: ResourcesSelectionListResourceCell = dequeueOrMakeReusableCell(at: indexPath)
 
       cell.setup(
         from: resource,
         tapAction: { [weak self] in
           self?.itemTapSubject.send(resource)
-        },
-        menuTapAction: { [weak self] in
-          self?.itemMenuTapSubject.send(resource)
         }
       )
 
       return cell
     }
   }
+
+  override func setupHeader(
+    for section: ResourcesSelectionListSection,
+    at indexPath: IndexPath
+  ) -> CollectionReusableView? {
+    let header: ResourcesSelectionListSectionHeader? = dequeueReusableSupplementaryView(
+      ofKind: UICollectionView.elementKindSectionHeader,
+      withReuseIdentifier: ResourcesSelectionListSectionHeader.reuseIdentifier,
+      for: indexPath
+    ) as? ResourcesSelectionListSectionHeader
+    switch section {
+    case .add:
+      header?.setTitle(localized: nil)
+      return header
+
+    case .suggested:
+      header?.setTitle(localized: "resource.list.section.suggested.title")
+      return header
+
+    case .all:
+      header?.setTitle(localized: "resource.list.section.all.title")
+      return header
+    }
+  }
 }
+

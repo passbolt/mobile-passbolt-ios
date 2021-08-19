@@ -21,23 +21,38 @@
 // @since         v1.0
 //
 
-// Passbolt autofill extension
+import UICommons
 
-"extension.setup.title" = "Passbolt Autofill enabled!";
-"extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
-"extension.setup.button.close" = "";
-"extension.setup.button.back.to.app" = "Go to the app";
+extension UICollectionViewLayout {
 
-"account.selection.switch.account.title" = "Switch the account";
-"account.selection.switch.account.subtitle" = "Select an account to switch!";
-"account.selection.sign.in.title" = "You are not logged in";
-"account.selection.sign.in.subtitle" = "Select an account to sign in!";
+  internal static func resourcesSelectionList() -> UICollectionViewCompositionalLayout {
 
-"no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials aftwards.";
+    let item: NSCollectionLayoutItem = .init(
+      layoutSize: .init(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .estimated(64)
+      )
+    )
 
-"resource.list.title" = "Choose password";
-"resource.list.section.suggested.title" = "Suggested passwords";
-"resource.list.section.all.title" = "Other passwords";
+    let group: NSCollectionLayoutGroup = .vertical(
+      layoutSize: .init(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .estimated(64)
+      ),
+      subitems: [item]
+    )
 
-"resources.search.placeholder" = "Search in passbolt...";
+    let section: NSCollectionLayoutSection = .init(group: group)
+
+    let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
+      layoutSize: NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .estimated(44)
+      ),
+      elementKind: UICollectionView.elementKindSectionHeader,
+      alignment: .top
+    )
+    section.boundarySupplementaryItems = [sectionHeader]
+    return UICollectionViewCompositionalLayout(section: section)
+  }
+}

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import struct Accounts.ListViewResource
 import Features
 
 import struct Foundation.URL
@@ -92,3 +93,13 @@ extension AutofillExtensionContext {
   }
 }
 #endif
+
+extension Array where Element == AutofillExtensionContext.ServiceIdentifier {
+
+  internal func matches(_ resource: ListViewResource) -> Bool {
+    contains { identifier in
+      resource.url?.contains(identifier.rawValue) ?? false
+        || resource.url?.contains(URL(string: identifier.rawValue)?.host ?? "") ?? false
+    }
+  }
+}

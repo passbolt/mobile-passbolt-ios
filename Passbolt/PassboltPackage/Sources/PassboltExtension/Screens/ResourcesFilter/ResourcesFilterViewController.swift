@@ -24,12 +24,12 @@
 import UICommons
 import UIComponents
 
-internal final class ExtensionViewController: PlainViewController, UIComponent {
+internal final class ResourcesFilterViewController: PlainViewController, UIComponent {
 
-  internal typealias View = UICommons.View
-  internal typealias Controller = ExtensionController
+  internal typealias View = ResourcesFilterView
+  internal typealias Controller = ResourcesFilterController
 
-  static func instance(
+  internal static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
@@ -40,9 +40,7 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
   }
 
   internal private(set) lazy var contentView: View = .init()
-
   internal let components: UIComponentFactory
-
   private let controller: Controller
 
   internal init(
@@ -55,50 +53,64 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
   }
 
   internal func setupView() {
-    controller.destinationPublisher()
+    setupNavigationView()
+    setupFiltersView()
+    setupResourcesListView()
+  }
+
+  private func setupNavigationView() {
+    mut(self.navigationItem) {
+      .title(localized: "resource.list.title", inBundle: .main)
+    }
+  }
+
+  private func setupFiltersView() {
+    contentView
+      .searchTextPublisher
+      .removeDuplicates()
+      .debounce(for: 0.3, scheduler: RunLoop.main)
+      .sink { [weak self] text in
+        self?.controller.updateSearchText(text)
+      }
+      .store(in: cancellables)
+
+    contentView
+      .avatarTapPublisher
+      .sink { [weak self] in
+        self?.controller.switchAccount()
+      }
+      .store(in: cancellables)
+
+    controller
+      .searchTextPublisher()
       .receive(on: RunLoop.main)
-      .sink { [unowned self] destination in
-        children.forEach {
-          $0.willMove(toParent: nil)
-          $0.view.removeFromSuperview()
-          $0.removeFromParent()
-        }
+      .sink { [weak self] text in
+        self?.contentView.setSearchText(text)
+      }
+      .store(in: cancellables)
 
-        switch destination {
-        case let .authorization(account):
-          let navigationViewController: AuthorizationNavigationViewController = self.components.instance(
-            in: (account: account, mode: .signIn)
-          )
+    controller
+      .avatarImagePublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] imageData in
+        guard
+          let data: Data = imageData,
+          let image: UIImage = .init(data: data)
+        else { return }
 
-          replaceContent(with: navigationViewController)
-
-        case let .accountSelection(.some(lastUsedAccount)):
-          let navigationViewController: AuthorizationNavigationViewController = self.components.instance(
-            in: (account: lastUsedAccount, mode: .switchAccount)
-          )
-
-          replaceContent(with: navigationViewController)
-
-        case .accountSelection(.none):
-          let navigationViewController: AuthorizationNavigationViewController = self.components.instance(
-            in: (account: nil, mode: .signIn)
-          )
-
-          replaceContent(with: navigationViewController)
-
-        case .home:
-          replaceContent(with: components.instance(of: ResourcesNavigationViewController.self))
-        }
+        self?.contentView.setAvatarImage(image)
       }
       .store(in: cancellables)
   }
-}
 
-extension ExtensionViewController {
-
-  internal func replaceContent(with content: UIViewController) {
-    addChild(content)
-    view.addSubview(content.view)
-    content.didMove(toParent: self)
+  private func setupResourcesListView() {
+    let resourcesList: ResourcesSelectionListViewController =
+      components
+      .instance(in: controller.resourcesFilterPublisher())
+    addChild(resourcesList)
+    contentView.setResourcesView(resourcesList.view)
+    resourcesList.didMove(toParent: self)
   }
 }
+
+extension ResourcesFilterViewController: CustomPresentableUIComponent {}

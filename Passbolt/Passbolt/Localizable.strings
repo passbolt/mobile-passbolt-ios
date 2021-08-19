@@ -102,3 +102,5 @@
 
 "authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
 "authorization.prompt.biometrics.set.reason" = "Please authenticate to enable biometrics.";
+
+"resources.search.placeholder" = "Search name, user, url...";

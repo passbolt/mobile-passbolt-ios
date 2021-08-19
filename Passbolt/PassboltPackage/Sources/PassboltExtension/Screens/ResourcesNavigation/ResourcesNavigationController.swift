@@ -21,23 +21,20 @@
 // @since         v1.0
 //
 
-// Passbolt autofill extension
+import Accounts
+import UIComponents
 
-"extension.setup.title" = "Passbolt Autofill enabled!";
-"extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
-"extension.setup.button.close" = "";
-"extension.setup.button.back.to.app" = "Go to the app";
+internal struct ResourcesNavigationController {}
 
-"account.selection.switch.account.title" = "Switch the account";
-"account.selection.switch.account.subtitle" = "Select an account to switch!";
-"account.selection.sign.in.title" = "You are not logged in";
-"account.selection.sign.in.subtitle" = "Select an account to sign in!";
+extension ResourcesNavigationController: UIController {
 
-"no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials aftwards.";
+  internal typealias Context = Void
 
-"resource.list.title" = "Choose password";
-"resource.list.section.suggested.title" = "Suggested passwords";
-"resource.list.section.all.title" = "Other passwords";
-
-"resources.search.placeholder" = "Search in passbolt...";
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    Self()
+  }
+}

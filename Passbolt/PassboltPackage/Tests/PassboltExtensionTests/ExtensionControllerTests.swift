@@ -72,7 +72,7 @@ final class ExtensionControllerTests: TestCase {
     XCTAssertEqual(result, .home(firstAccount))
   }
 
-  func testDestinationPublisher_publishesAuthorization_whenAccounts_arePresent_andNotAuthorized() {
+  func testDestinationPublisher_doesNotPublish_whenSessionAuthorizationRequired() {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([firstAccount, secondAccount])
     features.use(accounts)
@@ -90,7 +90,7 @@ final class ExtensionControllerTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .authorization(secondAccount))
+    XCTAssertNil(result)
   }
 
   func testDestinationPublisher_publishesAccountSelection_whenLastUsedAccount_isPresent_andNotAuthorized() {

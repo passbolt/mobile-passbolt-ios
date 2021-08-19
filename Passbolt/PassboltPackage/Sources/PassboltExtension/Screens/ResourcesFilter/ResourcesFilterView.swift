@@ -24,17 +24,23 @@
 import AegithalosCocoa
 import UICommons
 
-internal final class HomeFilterView: View {
+internal final class ResourcesFilterView: View {
 
-  // filters are out of MVP scope
-  // but its view should be located above the resourcesListContainer
-  // and it is used to provide shadow drop on list below
-  // replace it with proper filters when needed
-  private let filtersPlaceholder: View = .init()
+  internal var searchTextPublisher: AnyPublisher<String, Never> {
+    searchBar.textPublisher
+  }
+  internal var avatarTapPublisher: AnyPublisher<Void, Never>
+  private let avatarButton: ImageButton
+  private let searchBar: TextSearchView
   private let resourcesListContainer: View = .init()
 
-  override func setup() {
-    super.setup()
+  required init() {
+    let avatarTapSubject: PassthroughSubject<Void, Never> = .init()
+    self.avatarTapPublisher = avatarTapSubject.eraseToAnyPublisher()
+    let avatarButton: ImageButton = .init()
+    self.avatarButton = avatarButton
+    self.searchBar = .init(accesoryView: avatarButton)
+    super.init()
 
     mut(self) {
       .combined(
@@ -42,30 +48,68 @@ internal final class HomeFilterView: View {
       )
     }
 
-    mut(filtersPlaceholder) {
+    let filtersContainer: View = .init()
+    mut(filtersContainer) {
       .combined(
         .backgroundColor(dynamic: .background),
         .shadow(color: .black, opacity: 0.2, offset: .init(width: 0, height: -10), radius: 12),
         .clipsToBounds(false),
         .subview(of: self),
-        .heightAnchor(.equalTo, constant: 12),
         .topAnchor(.equalTo, topAnchor),
         .leftAnchor(.equalTo, leftAnchor),
         .rightAnchor(.equalTo, rightAnchor)
       )
     }
 
+    mut(avatarButton) {
+      .combined(
+        .action(avatarTapSubject.send),
+        .image(named: .person, from: .uiCommons),
+        .contentMode(.scaleAspectFit),
+        .backgroundColor(dynamic: .background),
+        .border(dynamic: .divider),
+        .cornerRadius(14, masksToBounds: true),
+        .widthAnchor(.equalTo, constant: 28),
+        .heightAnchor(.equalTo, constant: 28)
+      )
+    }
+
+    mut(searchBar) {
+      .combined(
+        .subview(of: filtersContainer),
+        .heightAnchor(.equalTo, constant: 48),
+        .edges(
+          equalTo: filtersContainer,
+          insets: .init(
+            top: 0,
+            left: -16,
+            bottom: -8,
+            right: -16
+          ),
+          usingSafeArea: false
+        )
+      )
+    }
+
     mut(resourcesListContainer) {
       .combined(
         .subview(of: self),
-        .topAnchor(.equalTo, filtersPlaceholder.bottomAnchor),
+        .topAnchor(.equalTo, filtersContainer.bottomAnchor),
         .leftAnchor(.equalTo, leftAnchor),
         .rightAnchor(.equalTo, rightAnchor),
         .bottomAnchor(.equalTo, bottomAnchor)
       )
     }
 
-    bringSubviewToFront(filtersPlaceholder)
+    bringSubviewToFront(filtersContainer)
+  }
+
+  internal func setSearchText(_ text: String) {
+    searchBar.setText(text)
+  }
+
+  internal func setAvatarImage(_ image: UIImage) {
+    avatarButton.dynamicImage = .default(image)
   }
 
   internal func setResourcesView(_ view: UIView) {
@@ -77,3 +121,4 @@ internal final class HomeFilterView: View {
     }
   }
 }
+

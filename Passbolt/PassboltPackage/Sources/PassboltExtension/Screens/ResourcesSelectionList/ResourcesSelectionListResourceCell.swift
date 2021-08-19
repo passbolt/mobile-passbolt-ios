@@ -24,13 +24,12 @@
 import Accounts
 import UICommons
 
-internal final class ResourcesListResourceCell: CollectionViewCell {
+internal final class ResourcesSelectionListResourceCell: CollectionViewCell {
 
   private let iconView: LetterIconView = .init()
   private let titleLabel: Label = .init()
   private let subtitleLabel: Label = .init()
   private var tapAction: (() -> Void)?
-  private var menuTapAction: (() -> Void)?
   private var titleCenterConstraint: NSLayoutConstraint?
 
   override internal func setup() {
@@ -49,6 +48,7 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
         .leadingAnchor(.equalTo, self.contentView.leadingAnchor),
         .topAnchor(.equalTo, self.contentView.topAnchor),
         .bottomAnchor(.equalTo, self.contentView.bottomAnchor),
+        .trailingAnchor(.equalTo, self.contentView.trailingAnchor),
         .heightAnchor(.equalTo, constant: 64),
         .action { [weak self] in self?.tapAction?() }
       )
@@ -99,37 +99,17 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
         .trailingAnchor(.equalTo, contentButton.trailingAnchor, constant: -12)
       )
     }
-
-    let menuButton: ImageButton = .init()
-    mut(menuButton) {
-      .combined(
-        .image(named: .more, from: .uiCommons),
-        .imageContentMode(.scaleAspectFit),
-        .imageInsets(.init(top: 24, left: 0, bottom: -24, right: -16)),
-        .tintColor(dynamic: .iconAlternative),
-        .backgroundColor(.clear),
-        .subview(of: self.contentView),
-        .leadingAnchor(.equalTo, contentButton.trailingAnchor),
-        .trailingAnchor(.equalTo, self.contentView.trailingAnchor),
-        .topAnchor(.equalTo, self.contentView.topAnchor),
-        .bottomAnchor(.equalTo, self.contentView.bottomAnchor),
-        .widthAnchor(.equalTo, constant: 40),
-        .action { [weak self] in self?.menuTapAction?() }
-      )
-    }
   }
 
   internal func setup(
-    from item: ResourcesListViewResourceItem,
-    tapAction: @escaping (() -> Void),
-    menuTapAction: @escaping (() -> Void)
+    from item: ResourcesSelectionListViewResourceItem,
+    tapAction: @escaping (() -> Void)
   ) {
     self.iconView.update(from: item.name)
     self.titleLabel.text = item.name
     self.subtitleLabel.text = item.username
     self.titleCenterConstraint?.constant = (item.username?.isEmpty ?? true) ? 0 : -10
     self.tapAction = tapAction
-    self.menuTapAction = menuTapAction
   }
 
   override internal func prepareForReuse() {
@@ -139,6 +119,5 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
     self.titleLabel.text = nil
     self.subtitleLabel.text = nil
     self.tapAction = nil
-    self.menuTapAction = nil
   }
 }

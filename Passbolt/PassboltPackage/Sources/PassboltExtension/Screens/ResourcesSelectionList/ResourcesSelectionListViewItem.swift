@@ -23,15 +23,15 @@
 
 import Accounts
 
-internal enum ResourcesListViewItem {
+internal enum ResourcesSelectionListViewItem {
 
   case add
-  case resource(ResourcesListViewResourceItem)
+  case resource(ResourcesSelectionListViewResourceItem)
 }
 
-extension ResourcesListViewItem: Hashable {}
+extension ResourcesSelectionListViewItem: Hashable {}
 
-internal struct ResourcesListViewResourceItem {
+internal struct ResourcesSelectionListViewResourceItem {
 
   public typealias ID = Resource.ID
 
@@ -40,6 +40,8 @@ internal struct ResourcesListViewResourceItem {
   public var name: String
   public var url: String?
   public var username: String?
+  // used to allow duplicate entries in list of resources with suggestions
+  private let suggestionTag: Bool
 
   public init(
     from resource: ListViewResource
@@ -60,12 +62,42 @@ internal struct ResourcesListViewResourceItem {
     url: String?,
     username: String?
   ) {
+    self.init(
+      id: id,
+      permission: permission,
+      name: name,
+      url: url,
+      username: username,
+      suggestionTag: false
+    )
+  }
+
+  private init(
+    id: ID,
+    permission: ResourcePermission,
+    name: String,
+    url: String?,
+    username: String?,
+    suggestionTag: Bool
+  ) {
     self.id = id
     self.permission = permission
     self.name = name
     self.url = url
     self.username = username
+    self.suggestionTag = suggestionTag
+  }
+
+  public var suggestionCopy: Self {
+    Self(
+      id: id,
+      permission: permission,
+      name: name,
+      url: url,
+      username: username,
+      suggestionTag: true
+    )
   }
 }
 
-extension ResourcesListViewResourceItem: Hashable {}
+extension ResourcesSelectionListViewResourceItem: Hashable {}

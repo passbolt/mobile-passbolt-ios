@@ -21,23 +21,45 @@
 // @since         v1.0
 //
 
-// Passbolt autofill extension
+import Accounts
+import SharedUIComponents
+import UICommons
+import UIComponents
 
-"extension.setup.title" = "Passbolt Autofill enabled!";
-"extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
-"extension.setup.button.close" = "";
-"extension.setup.button.back.to.app" = "Go to the app";
+internal final class ResourcesNavigationViewController: NavigationViewController, UIComponent {
 
-"account.selection.switch.account.title" = "Switch the account";
-"account.selection.switch.account.subtitle" = "Select an account to switch!";
-"account.selection.sign.in.title" = "You are not logged in";
-"account.selection.sign.in.subtitle" = "Select an account to sign in!";
+  internal typealias Controller = ResourcesNavigationController
 
-"no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials aftwards.";
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
+    )
+  }
 
-"resource.list.title" = "Choose password";
-"resource.list.section.suggested.title" = "Suggested passwords";
-"resource.list.section.all.title" = "Other passwords";
+  internal let components: UIComponentFactory
+  private let controller: Controller
 
-"resources.search.placeholder" = "Search in passbolt...";
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+
+  internal func setup() {
+    mut(navigationBarView) {
+      .primaryNavigationStyle()
+    }
+
+    setViewControllers(
+      [components.instance(of: ResourcesFilterViewController.self)],
+      animated: false
+    )
+  }
+}

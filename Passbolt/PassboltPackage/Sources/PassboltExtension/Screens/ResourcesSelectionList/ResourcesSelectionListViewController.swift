@@ -24,10 +24,10 @@
 import UICommons
 import UIComponents
 
-internal final class ResourcesListViewController: PlainViewController, UIComponent {
+internal final class ResourcesSelectionListViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourcesListView
-  internal typealias Controller = ResourcesListController
+  internal typealias View = ResourcesSelectionListView
+  internal typealias Controller = ResourcesSelectionListController
 
   internal static func instance(
     using controller: Controller,
@@ -85,13 +85,25 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .resourcesListPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] resources in
-        let items: Array<ResourcesListViewItem> = resources.map { .resource($0) }
-        // TODO: Add button is out of MVP scope
-        // replace line above with lines below
-        // to present create password button.
-        //
-        // = [.add]
-        // + resources.map { .resource($0) }
+        var items: Array<(ResourcesSelectionListSection, Array<ResourcesSelectionListViewItem>)>
+        = [
+          // TODO: Add button is out of MVP scope
+          // uncommend line below
+          // to present create password button.
+          // (.add, [.add])
+        ]
+        if !resources.suggested.isEmpty {
+          items.append((.suggested, resources.suggested.map { .resource($0) }))
+        }
+        else {
+          /* NOP */
+        }
+        if !resources.all.isEmpty {
+          items.append((.all, resources.all.map { .resource($0) }))
+        }
+        else {
+          /* NOP */
+        }
 
         self?.contentView.update(data: items)
       }
@@ -106,16 +118,28 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
 
     contentView
       .itemTapPublisher
-      .sink { [weak self] item in
-        self?.controller.presentResourceDetails(item)
+      .compactMap { [unowned self] item -> AnyPublisher<Void, Never>? in
+        self.controller
+          .selectResource(item)
+          .handleEvents(receiveCompletion: { [weak self] completion in
+            guard case .failure = completion
+            else { return }
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarErrorMessage(
+                  localized: .genericError,
+                  inBundle: .commons
+                )
+                .instantiate(),
+              hideAfter: 2
+            )
+          })
+          .mapToVoid()
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
       }
-      .store(in: self.cancellables)
-
-    contentView
-      .itemMenuTapPublisher
-      .sink { [weak self] item in
-        self?.controller.presentResourceMenu(item)
-      }
+      .switchToLatest()
+      .sinkDrop()
       .store(in: self.cancellables)
 
     // Initially refresh resources (ignoring errors)
@@ -131,3 +155,4 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .store(in: self.cancellables)
   }
 }
+

@@ -78,7 +78,7 @@ public final class TextSearchView: View {
         .set(\.rightViewMode, to: .unlessEditing),
         .set(\.clearButtonMode, to: .whileEditing),
         .set(\.returnKeyType, to: .done),
-        .placeholder(localized: "search.placeholder", inBundle: .commons),
+        .placeholder(localized: "resources.search.placeholder", inBundle: .main),
         .subview(of: self),
         .leadingAnchor(.equalTo, self.leadingAnchor, constant: 12),
         .topAnchor(.equalTo, self.topAnchor, constant: 12),

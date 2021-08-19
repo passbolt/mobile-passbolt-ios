@@ -53,33 +53,29 @@ extension ExtensionController: UIController {
     let accountSession: AccountSession = features.instance()
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
-      accountSession.statePublisher()
-        .map { state -> Destination in
+      accountSession
+        .statePublisher()
+        .compactMap { state -> Destination? in
           switch state {
           case let .authorized(account):
             return .home(account)
 
-          case let .authorizationRequired(account):
-            return .authorization(account)
+          case .authorizationRequired:
+            return .none // ignored
 
           case let .none(lastUsedAccount):
-            let account: Account? = {
-              if let lastUsedAccount = lastUsedAccount {
-                return lastUsedAccount
+            if let lastUsedAccount = lastUsedAccount {
+              return .accountSelection(lastUsedAccount: lastUsedAccount)
+            }
+            else {
+              let storedAccounts: Array<Account> = accounts.storedAccounts()
+              if storedAccounts.count == 1 {
+                return .accountSelection(lastUsedAccount: storedAccounts.first)
               }
               else {
-                let storedAccounts: Array<Account> = accounts.storedAccounts()
-
-                if storedAccounts.count == 1 {
-                  return storedAccounts.first
-                }
-                else {
-                  return nil
-                }
+                return .accountSelection(lastUsedAccount: nil)
               }
-            }()
-
-            return .accountSelection(lastUsedAccount: lastUsedAccount)
+            }
           }
         }
         .eraseToAnyPublisher()

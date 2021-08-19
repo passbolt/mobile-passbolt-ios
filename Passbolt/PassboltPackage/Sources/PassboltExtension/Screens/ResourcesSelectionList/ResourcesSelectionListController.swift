@@ -25,16 +25,15 @@ import Accounts
 import Resources
 import UIComponents
 
-internal struct ResourcesListController {
+internal struct ResourcesSelectionListController {
 
   internal var refreshResources: () -> AnyPublisher<Never, TheError>
-  internal var resourcesListPublisher: () -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never>
+  internal var resourcesListPublisher: () -> AnyPublisher<(suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>), Never>
   internal var addResource: () -> Void
-  internal var presentResourceDetails: (ResourcesListViewResourceItem) -> Void
-  internal var presentResourceMenu: (ResourcesListViewResourceItem) -> Void
+  internal var selectResource: (ResourcesSelectionListViewResourceItem) -> AnyPublisher<Void, TheError>
 }
 
-extension ResourcesListController: UIController {
+extension ResourcesSelectionListController: UIController {
 
   internal typealias Context = AnyPublisher<ResourcesFilter, Never>
 
@@ -43,38 +42,61 @@ extension ResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-
+    let autofillContext: AutofillExtensionContext = features.instance()
     let resources: Resources = features.instance()
 
     func refreshResources() -> AnyPublisher<Never, TheError> {
       resources.refreshIfNeeded()
     }
 
-    func resourcesListPublisher() -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never> {
-      resources
-        .filteredResourcesListPublisher(context)
-        .map { $0.map(ResourcesListViewResourceItem.init(from:)) }
-        .eraseToAnyPublisher()
+    func resourcesListPublisher() -> AnyPublisher<(suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>), Never> {
+      Publishers.CombineLatest(
+        resources
+          .filteredResourcesListPublisher(context),
+        autofillContext.requestedServiceIdentifiersPublisher()
+      )
+      .map { resources, requested in
+        (
+          suggested: resources
+            .filter { resource in
+              requested.matches(resource)
+            }
+            .map(ResourcesSelectionListViewResourceItem.init(from:))
+            .map(\.suggestionCopy),
+          all: resources.map(ResourcesSelectionListViewResourceItem.init(from:))
+        )
+      }
+      .eraseToAnyPublisher()
     }
 
     func addResource() {
       // TODO: out of MVP scope
     }
 
-    func presentResourceDetails(_ resource: ResourcesListViewResourceItem) {
-      #warning("TODO: [PAS-186]")
-    }
-
-    func presentResourceMenu(_ resource: ResourcesListViewResourceItem) {
-      #warning("TODO: [PAS-185]")
+    func selectResource(_ resource: ResourcesSelectionListViewResourceItem) -> AnyPublisher<Void, TheError> {
+      #warning("TODO: [PAS-224] add resource secret decryption and fill in proper password")
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .handleEvents(receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          autofillContext
+            .completeWithCredential(
+              AutofillExtensionContext.Credential(
+                user: resource.username ?? "",
+                password: "TODO: PASSWORD"
+              )
+            )
+        })
+        .eraseToAnyPublisher()
     }
 
     return Self(
       refreshResources: refreshResources,
       resourcesListPublisher: resourcesListPublisher,
       addResource: addResource,
-      presentResourceDetails: presentResourceDetails,
-      presentResourceMenu: presentResourceMenu
+      selectResource: selectResource
     )
   }
 }
+
