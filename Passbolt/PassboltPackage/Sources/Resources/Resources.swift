@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Crypto
 import Features
 import NetworkClient
 
@@ -32,6 +33,7 @@ public struct Resources {
   public var refreshIfNeeded: () -> AnyPublisher<Never, TheError>
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
+  public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheError>
   public var featureUnload: () -> Bool
 }
 
@@ -232,6 +234,36 @@ extension Resources: Feature {
         .eraseToAnyPublisher()
     }
 
+    func loadResourceSecret(
+      _ resourceID: Resource.ID
+    ) -> AnyPublisher<ResourceSecret, TheError> {
+      networkClient
+        .resourceSecretRequest
+        .make(using: .init(resourceID: resourceID.rawValue))
+        .map { response -> AnyPublisher<ResourceSecret, TheError> in
+          accountSession
+            // We are not using public key yet since we are not
+            // managing other users data yet, for now skipping public key
+            // for signature verification.
+            .decryptMessage(response.body.data, nil)
+            .map { decryptedMessage -> AnyPublisher<ResourceSecret, TheError> in
+              if let secret: ResourceSecret = .from(decrypted: decryptedMessage) {
+                return Just(secret)
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+              }
+              else {
+                return Fail<ResourceSecret, TheError>(error: .invalidResourceSecret())
+                  .eraseToAnyPublisher()
+              }
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     func featureUnload() -> Bool {
       // prevent from publishing values after unload
       resourcesUpdateSubject.send(completion: .finished)
@@ -241,6 +273,7 @@ extension Resources: Feature {
     return Self(
       refreshIfNeeded: refreshIfNeeded,
       filteredResourcesListPublisher: filteredResourcesListPublisher,
+      loadResourceSecret: loadResourceSecret,
       featureUnload: featureUnload
     )
   }
@@ -254,6 +287,7 @@ extension Resources {
     Self(
       refreshIfNeeded: Commons.placeholder("You have to provide mocks for used methods"),
       filteredResourcesListPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      loadResourceSecret: Commons.placeholder("You have to provide mocks for used methods"),
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

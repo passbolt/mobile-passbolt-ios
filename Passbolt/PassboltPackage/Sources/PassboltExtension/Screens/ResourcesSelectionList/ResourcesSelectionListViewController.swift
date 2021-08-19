@@ -121,9 +121,11 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .compactMap { [unowned self] item -> AnyPublisher<Void, Never>? in
         self.controller
           .selectResource(item)
+          .receive(on: RunLoop.main)
           .handleEvents(receiveCompletion: { [weak self] completion in
-            guard case .failure = completion
+            guard case let .failure(error) = completion
             else { return }
+            print(error)
             self?.present(
               snackbar: Mutation<UICommons.View>
                 .snackBarErrorMessage(

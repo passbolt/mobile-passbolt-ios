@@ -38,6 +38,7 @@ public struct NetworkClient {
   public var configRequest: ConfigRequest
   public var resourcesRequest: ResourcesRequest
   public var resourcesTypesRequest: ResourcesTypesRequest
+  public var resourceSecretRequest: ResourceSecretRequest
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
@@ -182,6 +183,11 @@ extension NetworkClient: Feature {
         with: sessionVariablePublisher
       )
       .withUnauthorized(authorizationRequest: requestAuthorization),
+      resourceSecretRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      )
+      .withUnauthorized(authorizationRequest: requestAuthorization),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:),
       setAuthorizationRequest: setAuthorizationRequest(_:)
@@ -203,6 +209,7 @@ extension NetworkClient: Feature {
       configRequest: .placeholder,
       resourcesRequest: .placeholder,
       resourcesTypesRequest: .placeholder,
+      resourceSecretRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods")

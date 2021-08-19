@@ -42,6 +42,7 @@ extension ResourcesSelectionListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let diagnostics: Diagnostics = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
     let resources: Resources = features.instance()
 
@@ -74,20 +75,31 @@ extension ResourcesSelectionListController: UIController {
     }
 
     func selectResource(_ resource: ResourcesSelectionListViewResourceItem) -> AnyPublisher<Void, TheError> {
-      #warning("TODO: [PAS-224] add resource secret decryption and fill in proper password")
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .handleEvents(receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
+      resources
+        .loadResourceSecret(resource.id)
+        .map { resourceSecret -> AnyPublisher<String, TheError> in
+          if let password: String = resourceSecret.password {
+            return Just(password)
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+          }
+          else {
+            return Fail<String, TheError>(error: .invalidResourceSecret())
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .handleEvents(receiveOutput: { password in
           autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
                 user: resource.username ?? "",
-                password: "TODO: PASSWORD"
+                password: password
               )
             )
         })
+        .mapToVoid()
+        .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
 

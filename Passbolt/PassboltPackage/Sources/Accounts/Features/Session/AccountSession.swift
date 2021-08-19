@@ -38,6 +38,8 @@ public struct AccountSession {
   public var statePublisher: () -> AnyPublisher<State, Never>
   // Used for sign in (including switch to other account) and unlocking whichever is required.
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Void, TheError>
+  // Decrypt message with current session context if any. Optionally verify signature if public key was provided.
+  public var decryptMessage: (String, ArmoredPGPPublicKey?) -> AnyPublisher<String, TheError>
   // Publishes current account ID each time access to its private key
   // is required and cannot be handled automatically (passphrase cache is expired)
   public var authorizationPromptPresentationPublisher: () -> AnyPublisher<AuthorizationPromptRequest, Never>
@@ -74,6 +76,7 @@ extension AccountSession: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountSession {
+    let pgp: PGP = environment.pgp
     let time: Time = environment.time
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
 
@@ -362,6 +365,82 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
     }
 
+    func decryptMessage(
+      _ encryptedMessage: String,
+      publicKey: ArmoredPGPPublicKey?
+    ) -> AnyPublisher<String, TheError> {
+      sessionStatePublisher
+        .map { sessionState -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
+          switch sessionState {
+          case let .authorized(account):
+            switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+            case let .success(armoredKey):
+              return passphraseCache
+                .passphrasePublisher(account.localID)
+                .setFailureType(to: TheError.self)
+                .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
+                  guard let passphrase: Passphrase = passphrase
+                  else {
+                    requestAuthorization(message: nil)
+                    return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
+                      .eraseToAnyPublisher()
+                  }
+                  return Just((armoredKey, passphrase))
+                    .setFailureType(to: TheError.self)
+                    .eraseToAnyPublisher()
+                }
+                .switchToLatest()
+                .eraseToAnyPublisher()
+
+            case let .failure(error):
+              diagnostics.debugLog(
+                "Failed to retrieve private key for account: \(account.localID)"
+                  + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+              )
+              return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: error)
+                .eraseToAnyPublisher()
+            }
+
+          case .authorizationRequired, .none:
+            requestAuthorization(message: nil)
+            return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .map { armoredPrivateKey, passphrase -> AnyPublisher<String, TheError> in
+          let decryptionResult: Result<String, TheError>
+          if let publicKey: ArmoredPGPPublicKey = publicKey {
+            decryptionResult = pgp.decryptAndVerify(
+              encryptedMessage,
+              passphrase,
+              armoredPrivateKey,
+              publicKey
+            )
+          }
+          else {
+            decryptionResult = pgp.decrypt(
+              encryptedMessage,
+              passphrase,
+              armoredPrivateKey
+            )
+          }
+
+          switch decryptionResult {
+          case let .success(decrypted):
+            return Just(decrypted)
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+
+          case let .failure(error):
+            return Fail<String, TheError>(error: error)
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     func authorizationPromptPresentationPublisher() -> AnyPublisher<AuthorizationPromptRequest, Never> {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
@@ -386,6 +465,7 @@ extension AccountSession: Feature {
     return Self(
       statePublisher: { sessionStatePublisher },
       authorize: authorize(account:authorizationMethod:),
+      decryptMessage: decryptMessage,
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
       requestAuthorizationPrompt: requestAuthorization,
       close: closeSession
@@ -400,6 +480,7 @@ extension AccountSession {
     Self(
       statePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
+      decryptMessage: Commons.placeholder("You have to provide mocks for used methods"),
       authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       requestAuthorizationPrompt: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")
