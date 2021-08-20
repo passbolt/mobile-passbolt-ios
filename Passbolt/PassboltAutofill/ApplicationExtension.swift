@@ -52,7 +52,8 @@ internal struct ApplicationExtension {
       Database.sqlite(),
       Files.live,
       AppLifeCycle.autoFillExtension(),
-      Camera.live()
+      Camera.live(),
+      ExternalURLOpener.live()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
