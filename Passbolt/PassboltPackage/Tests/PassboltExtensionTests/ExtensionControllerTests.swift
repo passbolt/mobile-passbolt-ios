@@ -30,13 +30,27 @@ import UIComponents
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ExtensionControllerTests: TestCase {
 
-  func testDestinationPublisher_publishesAccountSelection_whenNoAccounts_arePresent_andNotAuthorized() {
-    var accounts: Accounts = .placeholder
+  var accounts: Accounts! = .placeholder
+  var accountSession: AccountSession! = .placeholder
+
+  override func setUp() {
+    super.setUp()
+    accounts = .placeholder
+    accountSession = .placeholder
+  }
+
+  override func tearDown() {
+    accounts = nil
+    accountSession = nil
+    super.tearDown()
+  }
+
+  func test_destinationPublisher_publishesAccountSelection_whenNoAccounts_arePresent_andNotAuthorized() {
     accounts.storedAccounts = always([])
     features.use(accounts)
 
-    var accountSession: AccountSession = .placeholder
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
+    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
     let controller: ExtensionController = testInstance()
@@ -51,13 +65,12 @@ final class ExtensionControllerTests: TestCase {
     XCTAssertEqual(result, .accountSelection(lastUsedAccount: nil))
   }
 
-  func testDestinationPublisher_publishesHome_whenAccount_isPresent_andAuthorized() {
-    var accounts: Accounts = .placeholder
+  func test_destinationPublisher_publishesHome_whenAccount_isPresent_andAuthorized() {
     accounts.storedAccounts = always([firstAccount])
     features.use(accounts)
 
-    var accountSession: AccountSession = .placeholder
     accountSession.statePublisher = always(Just(.authorized(firstAccount)).eraseToAnyPublisher())
+    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
     let controller: ExtensionController = testInstance()
@@ -72,13 +85,12 @@ final class ExtensionControllerTests: TestCase {
     XCTAssertEqual(result, .home(firstAccount))
   }
 
-  func testDestinationPublisher_doesNotPublish_whenSessionAuthorizationRequired() {
-    var accounts: Accounts = .placeholder
+  func test_destinationPublisher_doesNotPublish_whenSessionAuthorizationRequired() {
     accounts.storedAccounts = always([firstAccount, secondAccount])
     features.use(accounts)
 
-    var accountSession: AccountSession = .placeholder
     accountSession.statePublisher = always(Just(.authorizationRequired(secondAccount)).eraseToAnyPublisher())
+    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
     let controller: ExtensionController = testInstance()
@@ -93,13 +105,12 @@ final class ExtensionControllerTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func testDestinationPublisher_publishesAccountSelection_whenLastUsedAccount_isPresent_andNotAuthorized() {
-    var accounts: Accounts = .placeholder
+  func test_destinationPublisher_publishesAccountSelection_whenLastUsedAccount_isPresent_andNotAuthorized() {
     accounts.storedAccounts = always([firstAccount, secondAccount])
     features.use(accounts)
 
-    var accountSession: AccountSession = .placeholder
     accountSession.statePublisher = always(Just(.none(lastUsed: secondAccount)).eraseToAnyPublisher())
+    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
     let controller: ExtensionController = testInstance()
@@ -112,6 +123,31 @@ final class ExtensionControllerTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertEqual(result, .accountSelection(lastUsedAccount: secondAccount))
+  }
+
+  func test_sessionCloses_whenAuthorizationPromptIsRequired() {
+    features.use(accounts)
+
+    var result: Void?
+    accountSession.close = {
+      result = Void()
+    }
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+    accountSession.authorizationPromptPresentationPublisher = always(authorizationPromptPresentationSubject.eraseToAnyPublisher())
+    features.use(accountSession)
+
+    let controller: ExtensionController = testInstance()
+    _ = controller // silence warning
+
+    authorizationPromptPresentationSubject
+      .send(
+        AuthorizationPromptRequest(
+          account: firstAccount,
+          message: nil
+        )
+      )
+
+    XCTAssertNotNil(result)
   }
 }
 

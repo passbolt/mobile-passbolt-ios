@@ -52,6 +52,17 @@ extension ExtensionController: UIController {
     let accounts: Accounts = features.instance()
     let accountSession: AccountSession = features.instance()
 
+    accountSession
+      .authorizationPromptPresentationPublisher()
+      .sink { _ in
+        // We are not using authorization prompt in extension,
+        // Instead when authorization would be required we treat it as logout.
+        // Typical use of extension is to select password (and search for it if there is none)
+        // while session (and passphrase cache) lasts for 5 minutes.
+        accountSession.close()
+      }
+      .store(in: cancellables)
+
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
       accountSession
         .statePublisher()
