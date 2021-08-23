@@ -38,6 +38,11 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
       self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
     }
   }
+  public lazy var dynamicRefreshControlColor: DynamicColor = .icon {
+    didSet {
+      self.refreshControl?.tintColor = dynamicRefreshControlColor(in: traitCollection.userInterfaceStyle)
+    }
+  }
 
   public lazy var dynamicBorderColor: DynamicColor = .always(
     .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
@@ -333,11 +338,13 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.refreshControl?.tintColor = dynamicRefreshControlColor(in: interfaceStyle)
   }
 
   public var pullToRefreshPublisher: AnyPublisher<Void, Never> {
     if self.refreshControl == nil {
       let refreshControl: UIRefreshControl = .init()
+      self.refreshControl?.tintColor = dynamicRefreshControlColor(in: traitCollection.userInterfaceStyle)
       mut(refreshControl) {
         .action(
           { [unowned self] in

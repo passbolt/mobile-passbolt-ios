@@ -51,6 +51,13 @@ open class TextField: UITextField {
     }
   }
 
+  // Conflicts with `attributedPlaceholder` property, never use both at the same time.
+  public var attributedPlaceholderString: AttributedString? {
+    didSet {
+      self.attributedPlaceholder = attributedPlaceholderString?.nsAttributedString(in: traitCollection.userInterfaceStyle)
+    }
+  }
+
   public var endEditingOnReturn: Bool = true
 
   public var contentInsets: UIEdgeInsets = .zero {
@@ -97,6 +104,7 @@ open class TextField: UITextField {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
+    self.attributedPlaceholder = attributedPlaceholderString?.nsAttributedString(in: interfaceStyle)
   }
 }
 

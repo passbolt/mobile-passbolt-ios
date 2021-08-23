@@ -65,8 +65,11 @@ open class TabsViewController: UITabBarController {
   }
 
   override open var childForStatusBarStyle: UIViewController? {
-    presentedViewController ?? selectedViewController
+    (presentedViewController ?? selectedViewController) as? AnyUIComponent
   }
+
+  // we are not supporting dark mode yet, forcing to use always darkContent
+  override open var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
 
   override open func loadView() {
     super.loadView()

@@ -51,7 +51,7 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
     self.components = components
     super.init()
   }
-
+  
   internal func setup() {
     let accountSelectionScreen: AccountSelectionViewController = components.instance(
       in: .init(value: false)

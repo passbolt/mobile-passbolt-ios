@@ -47,4 +47,10 @@ extension Mutation where Subject: TextField {
   public static func contentInsets(_ insets: UIEdgeInsets) -> Self {
     .custom { (subject: Subject) in subject.contentInsets = insets }
   }
+
+  public static func attributedPlaceholderString(
+    _ attributedString: AttributedString
+  ) -> Self {
+    .custom { (subject: Subject) in subject.attributedPlaceholderString = attributedString }
+  }
 }

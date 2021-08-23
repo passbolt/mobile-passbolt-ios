@@ -39,8 +39,11 @@ open class PlainViewController: UIViewController {
   }
 
   override public var childForStatusBarStyle: UIViewController? {
-    presentedViewController
+    presentedViewController as? AnyUIComponent
   }
+
+  // we are not supporting dark mode yet, forcing to use always darkContent
+  override open var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
 
   override public func loadView() {
     if let vc: AnyUIComponent = self as? AnyUIComponent {

@@ -38,8 +38,11 @@ open class NavigationViewController: UINavigationController {
   }
 
   override open var childForStatusBarStyle: UIViewController? {
-    presentedViewController ?? visibleViewController
+    (presentedViewController ?? visibleViewController) as? AnyUIComponent
   }
+
+  // we are not supporting dark mode yet, forcing to use always darkContent
+  override open var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
 
   public var lazyView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")

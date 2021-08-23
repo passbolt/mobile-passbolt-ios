@@ -53,7 +53,7 @@ open class AlertViewController<Controller: UIController>: UIAlertController {
 
   override open var preferredStatusBarStyle: UIStatusBarStyle {
     (presentingViewController?.childForStatusBarStyle
-      ?? presentingViewController)?.preferredStatusBarStyle ?? .default
+      ?? presentingViewController as? AnyUIComponent)?.preferredStatusBarStyle ?? .default
   }
 
   public var contentView: UIView {
