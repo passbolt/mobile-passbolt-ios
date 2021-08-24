@@ -25,10 +25,13 @@ import UICommons
 
 internal final class NoAccountsView: ScrolledStackView {
 
+  internal var buttonTapPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
+
   private let logoImageView: ImageView = .init()
   private let accountsImageView: ImageView = .init()
   private let titleLabel: Label = .init()
   private let descriptionLabel: Label = .init()
+  private let button: TextButton = .init()
 
   override internal func setup() {
     mut(self) {
@@ -80,11 +83,18 @@ internal final class NoAccountsView: ScrolledStackView {
       )
     }
 
+    mut(button) {
+      .combined(
+        .primaryStyle(),
+        .text(localized: "no.accounts.open.app")
+      )
+    }
+
     mut(self) {
       .combined(
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 60, left: 16, bottom: 8, right: 16)),
+        .contentInset(.init(top: 60, left: 16, bottom: 16, right: 16)),
         .append(logoContainer),
         .appendSpace(of: 24),
         .append(accountsContainer),
@@ -92,7 +102,8 @@ internal final class NoAccountsView: ScrolledStackView {
         .append(titleLabel),
         .appendSpace(of: 16),
         .append(descriptionLabel),
-        .appendFiller(minSize: 16)
+        .appendFiller(minSize: 8),
+        .append(button)
       )
     }
   }

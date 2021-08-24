@@ -55,6 +55,26 @@ internal final class NoAccountsViewController: PlainViewController, UIComponent,
 
   internal func setupView() {
     customPresentationSetup()
-    #warning("TODO: PAS-270 Determine if it's possible to open the app by opening a url")
+
+    contentView.buttonTapPublisher
+      .map { [unowned self] _ -> AnyPublisher<Bool, Never> in
+        self.controller.openApp()
+          .handleEvents(receiveOutput: { didOpen in
+            guard !didOpen
+            else { return }
+
+            self.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarErrorMessage(
+                  localized: "no.accounts.open.app.error"
+                )
+                .instantiate()
+            )
+          })
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .sinkDrop()
+      .store(in: cancellables)
   }
 }

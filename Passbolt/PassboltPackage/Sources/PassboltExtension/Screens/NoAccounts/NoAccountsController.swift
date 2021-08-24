@@ -23,7 +23,10 @@
 
 import UIComponents
 
-internal struct NoAccountsController {}
+internal struct NoAccountsController {
+
+  internal var openApp: () -> AnyPublisher<Bool, Never>
+}
 
 extension NoAccountsController: UIController {
 
@@ -34,6 +37,15 @@ extension NoAccountsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    Self()
+
+    let linkOpener: LinkOpener = features.instance()
+
+    func openApp() -> AnyPublisher<Bool, Never> {
+      linkOpener.openApp()
+    }
+
+    return Self(
+      openApp: openApp
+    )
   }
 }
