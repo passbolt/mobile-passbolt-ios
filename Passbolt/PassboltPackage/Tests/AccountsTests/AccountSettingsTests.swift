@@ -576,13 +576,23 @@ final class AccountSettingsTests: TestCase {
   }
 
   func test_currentAccountProfilePublisher_publishesUpdatedProfile() {
-    var currentAccountProfile: AccountProfile = validAccountProfile
+    let accountSessionAccountSubject: CurrentValueSubject<Account, Never> = .init(validAccount)
     accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
+      accountSessionAccountSubject
+        .map(AccountSession.State.authorized)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(currentAccountProfile))
+    accountsDataStore.loadAccountProfile = {
+      switch $0 {
+      case validAccountProfile.accountID:
+        return .success(validAccountProfile)
+      case otherValidAccountProfile.accountID:
+        return .success(otherValidAccountProfile)
+      case _:
+        fatalError()
+      }
+    }
     let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
     accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
     features.use(accountsDataStore)
@@ -592,8 +602,6 @@ final class AccountSettingsTests: TestCase {
     let feature: AccountSettings = testInstance()
     var results: Array<AccountProfile> = .init()
 
-    updatedAccountIDSubject.send(currentAccountProfile.accountID)
-
     feature
       .currentAccountProfilePublisher()
       .sink { profile in
@@ -601,9 +609,7 @@ final class AccountSettingsTests: TestCase {
       }
       .store(in: cancellables)
 
-    updatedAccountIDSubject.send(currentAccountProfile.accountID)
-    currentAccountProfile = otherValidAccountProfile
-    updatedAccountIDSubject.send(currentAccountProfile.accountID)
+    accountSessionAccountSubject.value = validAccountAlternative
 
     XCTAssertEqual(results.popLast(), otherValidAccountProfile)
     XCTAssertEqual(results.popLast(), validAccountProfile)
@@ -646,6 +652,13 @@ private let validAccount: Account = .init(
   fingerprint: "FINGERPRINT"
 )
 
+private let validAccountAlternative: Account = .init(
+  localID: .init(rawValue: UUID.testAlt.uuidString),
+  domain: "https://passbolt.dev",
+  userID: "USER_ID_ALT",
+  fingerprint: "FINGERPRINT_ALT"
+)
+
 private let validAccountProfile: AccountProfile = .init(
   accountID: .init(rawValue: UUID.test.uuidString),
   label: "firstName lastName",
@@ -657,7 +670,7 @@ private let validAccountProfile: AccountProfile = .init(
 )
 
 private let otherValidAccountProfile: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.test.uuidString),
+  accountID: .init(rawValue: UUID.testAlt.uuidString),
   label: "name lastName",
   username: "user",
   firstName: "name",

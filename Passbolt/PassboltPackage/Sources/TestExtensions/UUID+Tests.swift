@@ -29,4 +29,9 @@ extension UUID {
     // swift-format-ignore: NeverForceUnwrap
     .init(uuidString: "00000000-0000-0000-0000-000000000001")!
   }
+
+  public static var testAlt: Self {
+    // swift-format-ignore: NeverForceUnwrap
+    .init(uuidString: "00000000-0000-0000-0000-000000000002")!
+  }
 }
