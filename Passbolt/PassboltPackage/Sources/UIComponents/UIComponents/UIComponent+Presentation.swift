@@ -96,6 +96,27 @@ extension UIComponent {
     )
   }
 
+  public func presentSheet<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true,
+    insets: UIEdgeInsets = .zero,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    var presentedLeaf: UIViewController = self
+    while let next: UIViewController = presentedLeaf.presentedViewController {
+      presentedLeaf = next
+    }
+
+    let sheet: SheetViewController<Component> = components.instance(in: context)
+
+    presentedLeaf.present(
+      sheet,
+      animated: animated,
+      completion: completion
+    )
+  }
+
   public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -104,12 +125,17 @@ extension UIComponent {
     var presentedLeaf: UIViewController = self
     while let next: UIViewController = presentedLeaf.presentedViewController {
       if next is Component {
-        return presentedLeaf.dismiss(animated: animated, completion: completion)
+        break
       }
       else {
         presentedLeaf = next
       }
     }
+
+    presentedLeaf.presentingViewController?.dismiss(
+      animated: animated,
+      completion: completion
+    )
   }
 
   public func push<Component>(

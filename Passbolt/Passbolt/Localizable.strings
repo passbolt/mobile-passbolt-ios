@@ -104,3 +104,11 @@
 "authorization.prompt.biometrics.set.reason" = "Please authenticate to enable biometrics.";
 
 "resources.search.placeholder" = "Search name, user, url...";
+
+"resource.menu.item.open.url" = "Launch website";
+"resource.menu.item.copy.url" = "Copy URL";
+"resource.menu.item.copy.password" = "Copy password";
+"resource.menu.item.password" = "Password";
+"resource.menu.item.url" = "URL";
+"resource.menu.item.field.copied" = "%@ copied!";
+"resource.menu.action.failed" = "%@ failed!";

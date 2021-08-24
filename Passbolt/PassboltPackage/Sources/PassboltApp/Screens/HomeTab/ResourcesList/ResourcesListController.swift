@@ -33,6 +33,7 @@ internal struct ResourcesListController {
   internal var presentResourceDetails: (ResourcesListViewResourceItem) -> Void
   internal var presentResourceMenu: (ResourcesListViewResourceItem) -> Void
   internal var resourceDetailsPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
 }
 
 extension ResourcesListController: UIController {
@@ -48,6 +49,7 @@ extension ResourcesListController: UIController {
     let resources: Resources = features.instance()
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
+    let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
     func refreshResources() -> AnyPublisher<Never, TheError> {
       resources.refreshIfNeeded()
@@ -69,11 +71,15 @@ extension ResourcesListController: UIController {
     }
 
     func presentResourceMenu(_ resource: ResourcesListViewResourceItem) {
-      #warning("TODO: [PAS-185]")
+      resourceMenuIDSubject.send(resource.id)
     }
 
     func resourceDetailsPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
       resourceDetailsIDSubject.eraseToAnyPublisher()
+    }
+
+    func resourceMenuPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
+      resourceMenuIDSubject.eraseToAnyPublisher()
     }
 
     return Self(
@@ -82,7 +88,8 @@ extension ResourcesListController: UIController {
       addResource: addResource,
       presentResourceDetails: presentResourceDetails,
       presentResourceMenu: presentResourceMenu,
-      resourceDetailsPresentationPublisher: resourceDetailsPresentationPublisher
+      resourceDetailsPresentationPublisher: resourceDetailsPresentationPublisher,
+      resourceMenuPresentationPublisher: resourceMenuPresentationPublisher
     )
   }
 }

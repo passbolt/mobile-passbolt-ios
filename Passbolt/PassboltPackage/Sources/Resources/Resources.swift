@@ -34,6 +34,7 @@ public struct Resources {
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
   public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheError>
+  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, TheError>
   public var featureUnload: () -> Bool
 }
 
@@ -218,7 +219,7 @@ extension Resources: Feature {
       filterPublisher
         .removeDuplicates()
         .map { filter -> AnyPublisher<Array<ListViewResource>, Never> in
-          // trigger refresh on data updates, publishes initailly on subscription
+          // trigger refresh on data updates, publishes initially on subscription
           resourcesUpdateSubject
             .map { () -> AnyPublisher<Array<ListViewResource>, Never> in
               accountDatabase
@@ -264,6 +265,14 @@ extension Resources: Feature {
         .eraseToAnyPublisher()
     }
 
+    func resourceDetailsPublisher(resourceID: Resource.ID) -> AnyPublisher<DetailsViewResource, TheError> {
+      resourcesUpdateSubject.map {
+        accountDatabase.fetchDetailsViewResources(resourceID)
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
+    }
+
     func featureUnload() -> Bool {
       // prevent from publishing values after unload
       resourcesUpdateSubject.send(completion: .finished)
@@ -274,6 +283,7 @@ extension Resources: Feature {
       refreshIfNeeded: refreshIfNeeded,
       filteredResourcesListPublisher: filteredResourcesListPublisher,
       loadResourceSecret: loadResourceSecret,
+      resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
       featureUnload: featureUnload
     )
   }
@@ -288,6 +298,7 @@ extension Resources {
       refreshIfNeeded: Commons.placeholder("You have to provide mocks for used methods"),
       filteredResourcesListPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       loadResourceSecret: Commons.placeholder("You have to provide mocks for used methods"),
+      resourceDetailsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

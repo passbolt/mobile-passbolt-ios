@@ -139,5 +139,18 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         )
       }
       .store(in: cancellables)
+
+    controller.resourceMenuPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] resourceId in
+        guard let self = self
+        else { return }
+
+        self.presentSheet(
+          ResourceMenuViewController.self,
+          in: (id: resourceId, source: .resourceList)
+        )
+      }
+      .store(in: cancellables)
   }
 }

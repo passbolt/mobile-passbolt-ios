@@ -31,7 +31,7 @@ extension ResourceDetailsController {
 
 extension ResourceDetailsController {
 
-  internal struct ResourceDetails {
+  internal struct ResourceDetails: Equatable {
 
     internal enum Permission: String {
 
@@ -50,7 +50,7 @@ extension ResourceDetailsController {
       }
     }
 
-    internal enum Field: Comparable {
+    internal enum Field: Comparable, Hashable {
 
       case username(required: Bool, encrypted: Bool, maxLength: Int?)
       case password(required: Bool, encrypted: Bool, maxLength: Int?)
@@ -70,6 +70,19 @@ extension ResourceDetailsController {
           return .description(required: required, encrypted: encrypted, maxLength: maxLength)
         case _:
           return nil
+        }
+      }
+
+      internal func name() -> FieldName {
+        switch self {
+        case .username:
+          return "username"
+        case .password:
+          return "password"
+        case .uri:
+          return "uri"
+        case .description:
+          return "description"
         }
       }
 

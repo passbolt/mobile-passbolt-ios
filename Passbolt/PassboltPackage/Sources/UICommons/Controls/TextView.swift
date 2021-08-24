@@ -73,6 +73,12 @@ open class TextView: UITextView {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
-    self.attributedText = attributedString?.nsAttributedString(in: interfaceStyle)
+
+    if let attributedString = attributedString?.nsAttributedString(in: interfaceStyle) {
+      self.attributedText = attributedString
+    }
+    else {
+      /* NOP */
+    }
   }
 }

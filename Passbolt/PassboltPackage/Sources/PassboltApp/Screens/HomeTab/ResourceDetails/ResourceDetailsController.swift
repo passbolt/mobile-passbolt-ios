@@ -27,8 +27,11 @@ import UIComponents
 
 internal struct ResourceDetailsController {
 
-  internal var loadResourceDetails: () -> AnyPublisher<ResourceDetails, TheError>
-  internal var toggleDecrypt: (FieldName) -> AnyPublisher<String?, TheError>
+  internal var resourceDetailsPublisher: () -> AnyPublisher<ResourceDetails, TheError>
+  internal var toggleDecrypt: (ResourceDetails.Field) -> AnyPublisher<String?, TheError>
+  internal var presentResourceMenu: () -> Void
+  internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
+  internal var copyFieldValue: (ResourceDetails.Field) -> Void
 }
 
 extension ResourceDetailsController: UIController {
@@ -41,49 +44,102 @@ extension ResourceDetailsController: UIController {
     cancellables: Cancellables
   ) -> Self {
 
-    let accountDatabase: AccountDatabase = features.instance()
     let resources: Resources = features.instance()
+    let pasteboard: Pasteboard = features.instance()
 
     let lock: NSRecursiveLock = .init()
-    var revealedFields: Set<FieldName> = .init()
+    var revealedFields: Set<ResourceDetails.Field> = .init()
 
-    func loadResourceDetails() -> AnyPublisher<ResourceDetails, TheError> {
-      accountDatabase.fetchDetailsViewResources(context)
-        .map(ResourceDetails.from(detailsViewResource:))
+    let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
+
+    let currentDetailsSubject: CurrentValueSubject<ResourceDetailsController.ResourceDetails?, TheError> = .init(nil)
+
+      resources.resourceDetailsPublisher(context)
+        .map(ResourceDetailsController.ResourceDetails.from(detailsViewResource:))
+        .sink(
+          receiveCompletion: { completion in
+            guard case let .failure(error) = completion
+            else { return }
+
+            currentDetailsSubject.send(completion: .failure(error))
+          },
+          receiveValue: { resourceDetails in
+            currentDetailsSubject.send(resourceDetails)
+          }
+        )
+        .store(in: cancellables)
+
+    func resourceDetailsPublisher() -> AnyPublisher<ResourceDetails, TheError> {
+      currentDetailsSubject
+        .filterMapOptional()
+        .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
-    func toggleDecrypt(fieldName: FieldName) -> AnyPublisher<String?, TheError> {
+    func toggleDecrypt(field: ResourceDetails.Field) -> AnyPublisher<String?, TheError> {
       lock.lock()
       defer { lock.unlock() }
 
-      if revealedFields.contains(fieldName) {
+      if revealedFields.contains(field) {
         return Just(nil)
         .setFailureType(to: TheError.self)
         .handleEvents(receiveOutput: { _ in
           lock.lock()
-          revealedFields.remove(fieldName)
+          revealedFields.remove(field)
           lock.unlock()
         })
         .eraseToAnyPublisher()
       }
       else {
         return resources.loadResourceSecret(context)
-          .map { resourceSecret in
-            resourceSecret[dynamicMember: fieldName.rawValue] as String? ?? ""
+          .map { resourceSecret -> AnyPublisher<String?, TheError> in
+            guard let secret: String = resourceSecret[dynamicMember: field.name().rawValue]
+            else { return Fail<String?, TheError>(error: TheError.invalidResourceSecret()).eraseToAnyPublisher() }
+
+            return Just(secret)
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
           }
+          .switchToLatest()
           .handleEvents(receiveOutput: { _ in
             lock.lock()
-            revealedFields.insert(fieldName)
+            revealedFields.insert(field)
             lock.unlock()
           })
           .eraseToAnyPublisher()
       }
     }
 
+    func presentResourceMenu() {
+      resourceMenuPresentationSubject.send(context)
+    }
+
+    func resourceMenuPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
+      resourceMenuPresentationSubject.eraseToAnyPublisher()
+    }
+
+    func copyField(_ field: ResourceDetails.Field) {
+      let value: String? = {
+        switch field {
+        case .username:
+          return currentDetailsSubject.value?.username
+        case .uri:
+          return currentDetailsSubject.value?.url
+        case _:
+          assertionFailure("Invalid case")
+          return nil
+        }
+      }()
+      
+      pasteboard.put(value)
+    }
+
     return Self(
-      loadResourceDetails: loadResourceDetails,
-      toggleDecrypt: toggleDecrypt(fieldName:)
+      resourceDetailsPublisher: resourceDetailsPublisher,
+      toggleDecrypt: toggleDecrypt(field:),
+      presentResourceMenu: presentResourceMenu,
+      resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
+      copyFieldValue: copyField(_:)
     )
   }
 }

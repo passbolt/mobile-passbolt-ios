@@ -34,36 +34,36 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceDetailsControllerTests: TestCase {
 
-  var accountDatabase: AccountDatabase!
   var resources: Resources!
+  var pasteboard: Pasteboard!
 
   override func setUp() {
     super.setUp()
 
-    accountDatabase = .placeholder
     resources = .placeholder
+    pasteboard = .placeholder
   }
 
   override func tearDown() {
     super.tearDown()
 
-    accountDatabase = nil
     resources = nil
   }
 
   func test_loadResourceDetails_succeeds_whenAvailable() {
-    accountDatabase.fetchDetailsViewResources = FetchDetailsViewResourcesOperation(execute: { _ in
-      Just(detailsViewResource).setFailureType(to: TheError.self).eraseToAnyPublisher()
-    })
-
-    features.use(accountDatabase)
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(resources)
+    features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
     var result: ResourceDetailsController.ResourceDetails!
 
-    controller.loadResourceDetails()
+    controller.resourceDetailsPublisher()
       .sink(receiveCompletion: { completion in
         guard case .finished = completion
         else {
@@ -80,14 +80,15 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() {
-    accountDatabase.fetchDetailsViewResources = FetchDetailsViewResourcesOperation(execute: { _ in
+    resources.resourceDetailsPublisher = { _ in
       var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
       detailsViewResourceWithReorderedFields.fields.reverse()
-      return Just(detailsViewResourceWithReorderedFields).setFailureType(to: TheError.self).eraseToAnyPublisher()
-    })
-
-    features.use(accountDatabase)
+      return Just(detailsViewResourceWithReorderedFields)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
     features.use(resources)
+    features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
@@ -101,7 +102,7 @@ final class ResourceDetailsControllerTests: TestCase {
 
     var result: ResourceDetailsController.ResourceDetails!
 
-    controller.loadResourceDetails()
+    controller.resourceDetailsPublisher()
       .sink(receiveCompletion: { completion in
         guard case .finished = completion
         else {
@@ -119,18 +120,17 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() {
-    accountDatabase.fetchDetailsViewResources = FetchDetailsViewResourcesOperation(execute: { _ in
+    resources.resourceDetailsPublisher = always(
       Fail(error: .testError()).eraseToAnyPublisher()
-    })
-
-    features.use(accountDatabase)
+    )
     features.use(resources)
+    features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
     var result: TheError!
 
-    controller.loadResourceDetails()
+    controller.resourceDetailsPublisher()
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion
         else {
@@ -147,18 +147,27 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_toggleDecrypt_publishes_whenResourceFetch_succeeds() {
+    resources.resourceDetailsPublisher = always(
+      Empty().eraseToAnyPublisher()
+    )
     resources.loadResourceSecret = always(
       Just(resourceSecret).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(resources)
-
-    features.use(accountDatabase)
+    features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
     var result: String!
 
-    controller.toggleDecrypt("password")
+    controller
+      .toggleDecrypt(
+        .password(
+          required: true,
+          encrypted: true,
+          maxLength: nil
+        )
+      )
       .sink { completion in
         guard case .finished = completion
         else {
@@ -174,18 +183,27 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_toggleDecrypt_publishesError_whenResourceFetch_fails() {
+    resources.resourceDetailsPublisher = always(
+      Empty().eraseToAnyPublisher()
+    )
     resources.loadResourceSecret = always(
       Fail(error: .testError()).eraseToAnyPublisher()
     )
     features.use(resources)
-
-    features.use(accountDatabase)
+    features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
     var result: TheError!
 
-    controller.toggleDecrypt("password")
+    controller
+      .toggleDecrypt(
+        .password(
+          required: true,
+          encrypted: true,
+          maxLength: nil
+        )
+      )
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion
         else {
@@ -202,22 +220,38 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_toggleDecrypt_publishesNil_whenTryingToDecryptAlreadyDecrypted() {
+    resources.resourceDetailsPublisher = always(
+      Empty().eraseToAnyPublisher()
+    )
     resources.loadResourceSecret = always(
       Just(resourceSecret).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(resources)
-
-    features.use(accountDatabase)
+    features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
     var result: String!
 
-    controller.toggleDecrypt("password")
+    controller
+      .toggleDecrypt(
+        .password(
+          required: true,
+          encrypted: true,
+          maxLength: nil
+        )
+      )
       .sinkDrop()
       .store(in: cancellables)
 
-    controller.toggleDecrypt("password")
+    controller
+      .toggleDecrypt(
+        .password(
+          required: true,
+          encrypted: true,
+          maxLength: nil
+        )
+      )
       .sink { completion in
         guard case .finished = completion
         else {
@@ -230,6 +264,81 @@ final class ResourceDetailsControllerTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertNil(result)
+  }
+
+  func test_resourceMenuPresentationPublisher_publishesResourceID_whenPresentResourceMenuCalled() {
+    resources.resourceDetailsPublisher = always(
+      Empty().eraseToAnyPublisher()
+    )
+    resources.loadResourceSecret = always(
+      Empty().eraseToAnyPublisher()
+    )
+    features.use(resources)
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+    var result: Resource.ID!
+
+    controller.resourceMenuPresentationPublisher()
+      .sink { resourceID in
+        result = resourceID
+      }
+      .store(in: cancellables)
+
+    controller.presentResourceMenu()
+
+    XCTAssertEqual(result, context)
+  }
+
+  func test_copyFieldUsername_succeeds() {
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var pasteboardContent: String? = nil
+
+    pasteboard.put = { string in
+      pasteboardContent = string
+    }
+
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+
+    controller.copyFieldValue(.username(required: true, encrypted: false, maxLength: nil))
+
+    XCTAssertNotNil(pasteboardContent)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.username)
+  }
+
+  func test_copyFieldURI_succeeds() {
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var pasteboardContent: String? = nil
+
+    pasteboard.put = { string in
+      pasteboardContent = string
+    }
+
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+
+    controller.copyFieldValue(.uri(required: true, encrypted: false, maxLength: 0))
+
+    XCTAssertNotNil(pasteboardContent)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.url)
   }
 }
 

@@ -104,7 +104,12 @@ open class TextField: UITextField {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
-    self.attributedPlaceholder = attributedPlaceholderString?.nsAttributedString(in: interfaceStyle)
+    if let attributedPlaceholderString = attributedPlaceholderString?.nsAttributedString(in: interfaceStyle) {
+      self.attributedPlaceholder = attributedPlaceholderString
+    }
+    else {
+      /* NOP */
+    }
   }
 }
 

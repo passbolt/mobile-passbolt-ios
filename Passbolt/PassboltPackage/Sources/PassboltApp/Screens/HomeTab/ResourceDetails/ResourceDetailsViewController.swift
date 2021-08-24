@@ -54,38 +54,52 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
   }
 
   internal func setupView() {
+    mut(navigationItem) {
+      .rightBarButtonItem(
+        Mutation<UIBarButtonItem>.combined(
+          .style(.done),
+          .image(named: .more, from: .uiCommons),
+          .action { [weak self] in
+            self?.controller.presentResourceMenu()
+          }
+        )
+        .instantiate()
+      )
+    }
+
     setupSubscriptions()
   }
 
   private func setupSubscriptions() {
-    controller.loadResourceDetails()
+    controller.resourceDetailsPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] completion in
         guard case .failure = completion
         else { return }
-        self?.navigationController?.present(
-          snackbar: Mutation<UICommons.View>
-            .snackBarErrorMessage(
-              localized: .genericError,
-              inBundle: .commons
-            )
-            .instantiate(),
-          hideAfter: 2
-        )
+        self?.navigationController?.presentErrorSnackbar()
         self?.pop(if: Self.self)
       } receiveValue: { [ weak self] detailViewResource in
         self?.contentView.update(from: detailViewResource)
       }
       .store(in: cancellables)
 
+    controller.resourceMenuPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] resourceId in
+        self?.presentSheet(
+          ResourceMenuViewController.self,
+          in: (id: resourceId, source: .resourceDetails)
+        )
+      }
+      .store(in: cancellables)
 
     contentView.toggleEncryptedFieldTapPublisher
-      .map { [unowned self] fieldName in
-        self.controller.toggleDecrypt(fieldName)
+      .map { [unowned self] field in
+        self.controller.toggleDecrypt(field)
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] value in
             self?.contentView.applyOn(
-              name: fieldName,
+              field: field,
               buttonMutation: .combined(.when(
                 value != nil,
                 then: .image(symbol: .eyeSlash),
@@ -125,12 +139,13 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .store(in: cancellables)
 
     contentView.copyFieldNameTapPublisher
-      .sink { [weak self] copiedFieldName in
+      .sink { [weak self] copiedField in
+        self?.controller.copyFieldValue(copiedField)
         let localizedField: String = {
-          switch copiedFieldName {
-          case "username":
+          switch copiedField {
+          case .username:
             return NSLocalizedString("resource.detail.field.username", bundle: .commons, comment: "")
-          case "uri":
+          case .uri:
             return NSLocalizedString("resource.detail.field.uri", bundle: .commons, comment: "")
           default:
             return NSLocalizedString("resource.details.value", bundle: .commons, comment: "")
@@ -141,7 +156,9 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           snackbar: Mutation<UICommons.View>
             .snackBarMessage(
               localized: "resource.details.copied",
-              arguments: localizedField,
+              arguments: [
+                localizedField
+              ],
               inBundle: .commons,
               backgroundColor: .primaryText,
               textColor: .primaryTextAlternative

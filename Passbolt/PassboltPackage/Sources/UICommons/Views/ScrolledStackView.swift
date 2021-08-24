@@ -92,16 +92,18 @@ open class ScrolledStackView: UIScrollView {
     stackView.insertArrangedSubview(view, at: index)
   }
 
-  public func appendSpace(of size: CGFloat) {
-    stackView.appendSpace(of: size)
+  public func appendSpace(of size: CGFloat, tag: Int? = nil) {
+    stackView.appendSpace(of: size, tag: tag)
   }
 
   public func appendFiller(minSize: CGFloat = 0) {
     stackView.appendFiller(minSize: minSize)
   }
 
-  public func removeAllArrangedSubviews() {
-    stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+  public func removeAllArrangedSubviews(withTag: Int? = nil) {
+    stackView.arrangedSubviews
+      .filter { subview in withTag.map { subview.tag == $0 } ?? true }
+      .forEach { $0.removeFromSuperview() }
   }
 
   private func contentSetup() {

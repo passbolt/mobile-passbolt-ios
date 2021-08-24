@@ -25,6 +25,41 @@ import AegithalosCocoa
 
 extension UIViewController {
 
+  public func presentErrorSnackbar(
+    localizableKey: LocalizationKeyConstant = .genericError,
+    inBundle: Bundle = .commons,
+    arguments: Array<CVarArg> = [],
+    hideAfter: TimeInterval = 2
+  ) {
+    present(
+      snackbar: Mutation<UICommons.View>
+        .snackBarErrorMessage(
+          localized: localizableKey,
+          inBundle: inBundle,
+          arguments: arguments
+        )
+        .instantiate(),
+      hideAfter: hideAfter
+    )
+  }
+
+  public func presentInfoSnackbar(
+    localizableKey: LocalizationKeyConstant = .genericError,
+    inBundle: Bundle = .commons,
+    arguments: Array<CVarArg> = []
+  ) {
+    present(
+      snackbar: Mutation<UICommons.View>
+        .snackBarMessage(
+          localized: localizableKey,
+          arguments: arguments,
+          backgroundColor: .primaryText,
+          textColor: .primaryTextAlternative
+        )
+        .instantiate()
+    )
+  }
+
   public func present(
     snackbar: UIView,
     presentationAnchor: UIView? = nil,  // bottom of screen is used if no anchor provided

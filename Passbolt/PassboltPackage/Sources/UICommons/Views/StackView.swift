@@ -51,8 +51,15 @@ open class StackView: UIStackView {
     // prepared to override instead of overriding init
   }
 
-  public func appendSpace(of size: CGFloat) {
+  public func appendSpace(of size: CGFloat, tag: Int? = nil) {
     let space: View = .init()
+
+    if let tag = tag {
+      space.tag = tag
+    }
+    else {
+      /* NOP */
+    }
     switch axis {
     case .horizontal:
       space.widthAnchor.constraint(equalToConstant: size).isActive = true

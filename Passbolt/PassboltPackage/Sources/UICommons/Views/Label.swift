@@ -80,7 +80,7 @@ open class Label: UILabel {
       self.attributedText = attributedString.nsAttributedString(in: interfaceStyle)
     }
     else {
-      /* */
+      /* NOP */
     }
   }
 }

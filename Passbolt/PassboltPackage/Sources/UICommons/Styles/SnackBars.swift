@@ -27,10 +27,12 @@ extension Mutation where Subject: View {
 
   public static func snackBarErrorMessage(
     localized localizationKey: LocalizationKeyConstant,
-    inBundle bundle: Bundle = .main
+    inBundle bundle: Bundle = .main,
+    arguments: Array<CVarArg> = []
   ) -> Self {
     snackBarMessage(
       localized: localizationKey,
+      arguments: arguments,
       inBundle: bundle,
       backgroundColor: .secondaryRed,
       textColor: .primaryTextAlternative
@@ -39,7 +41,7 @@ extension Mutation where Subject: View {
 
   public static func snackBarMessage(
     localized localizationKey: LocalizationKeyConstant,
-    arguments: CVarArg...,
+    arguments: Array<CVarArg> = [],
     tableName: String? = nil,
     inBundle bundle: Bundle = .main,
     backgroundColor: DynamicColor,

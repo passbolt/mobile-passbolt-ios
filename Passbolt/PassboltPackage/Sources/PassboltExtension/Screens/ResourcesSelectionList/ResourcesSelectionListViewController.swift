@@ -123,9 +123,8 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
           .selectResource(item)
           .receive(on: RunLoop.main)
           .handleEvents(receiveCompletion: { [weak self] completion in
-            guard case let .failure(error) = completion
+            guard case .failure = completion
             else { return }
-            print(error)
             self?.present(
               snackbar: Mutation<UICommons.View>
                 .snackBarErrorMessage(

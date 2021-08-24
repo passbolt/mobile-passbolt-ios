@@ -205,7 +205,7 @@ extension FetchDetailsViewResourcesOperation {
             else { return .failure(.databaseFetchError(databaseErrorMessage: "Failed to unwrap values")) }
 
             let url: String? = row.url
-            let username: String? = row.url
+            let username: String? = row.username
             let description: String? = row.description
             let fields: Array<ResourceField> = ResourceField.arrayFrom(rawString: rawFields)
 
