@@ -34,8 +34,8 @@
 "account.selection.sign.in.subtitle" = "Select an account to sign in!";
 
 "no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials aftwards.";
-"no.accounts.open.app" = "Go to Passbolt App";
+"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials afterwards.";
+"no.accounts.open.app" = "Open Passbolt App";
 "no.accounts.open.app.error" = "Failed to open the Passbolt App";
 
 "resource.list.title" = "Choose password";

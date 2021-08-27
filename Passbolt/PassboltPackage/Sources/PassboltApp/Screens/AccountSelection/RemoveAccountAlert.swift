@@ -30,8 +30,14 @@ internal final class RemoveAccountAlertViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "account.selection.remove.alert.title"),
-        .message(localized: "account.selection.remove.alert.message"),
+        .title(
+          localized: "account.selection.remove.alert.title",
+          inBundle: .commons
+        ),
+        .message(
+          localized: "account.selection.remove.alert.message",
+          inBundle: .commons
+        ),
         .action(
           localized: .cancel,
           inBundle: .commons,
