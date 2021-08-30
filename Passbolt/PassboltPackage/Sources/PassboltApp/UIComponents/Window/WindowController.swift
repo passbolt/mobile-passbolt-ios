@@ -58,8 +58,13 @@ extension WindowController: UIController {
     Publishers.Merge(
       accountSession
         .authorizationPromptPresentationPublisher()
-        .map { (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition in
-          .authorize(promptRequest.account, message: promptRequest.message)
+        .compactMap { (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition? in
+          switch screenStateDispositionSubject.value {
+          case .authorize:
+            return .none
+          case .useCachedScreenState , .useInitialScreenState:
+              return .authorize(promptRequest.account, message: promptRequest.message)
+          }
         },
       accountSession
         .statePublisher()

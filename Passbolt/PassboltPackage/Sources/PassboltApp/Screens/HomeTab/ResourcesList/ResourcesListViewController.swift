@@ -59,20 +59,18 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         self.controller
           .refreshResources()
           .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { [weak self] completion in
+          .handleEnd { [weak self] in
             self?.contentView.finishDataRefresh()
-            guard case let .failure(error) = completion, error.identifier != .canceled
-            else { return }
-            self?.present(
-              snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(
-                  localized: .genericError,
-                  inBundle: .commons
-                )
-                .instantiate(),
-              hideAfter: 2
-            )
-          })
+          }
+          .handleErrors(
+            (
+              [.canceled, .authorizationRequired, .missingSession],
+              handler: { /* NOP */ }
+            ),
+            defaultHandler: { [weak self] in
+              self?.presentErrorSnackbar()
+            }
+          )
           .mapToVoid()
           .replaceError(with: Void())
           .eraseToAnyPublisher()
