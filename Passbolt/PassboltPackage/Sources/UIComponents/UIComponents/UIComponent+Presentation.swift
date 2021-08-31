@@ -232,4 +232,51 @@ extension UIComponent {
     navigationController.popToRootViewController(animated: animated)
     CATransaction.commit()
   }
+
+  @discardableResult
+  public func replaceLast<Replaced, Replacement>(
+    _ replaced: Replaced.Type,
+    with replacement: Replacement.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) -> Bool
+  where Replaced: UIComponent, Replacement: UIComponent, Replacement.Controller.Context == Void {
+    replaceLast(
+      replaced,
+      with: replacement,
+      in: Void(),
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @discardableResult
+  public func replaceLast<Replaced, Replacement>(
+    _ replaced: Replaced.Type,
+    with replacement: Replacement.Type,
+    in context: Replacement.Controller.Context,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) -> Bool
+  where Replaced: UIComponent, Replacement: UIComponent {
+    guard let navigationController = navigationController
+    else { unreachable("It is programmer error to replace without navigation controller") }
+    guard let targetIndex = navigationController.viewControllers.lastIndex(where: { $0 is Replaced })
+    else { return false }  // ignore
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    var updatedViewControllers: Array<UIViewController> = navigationController.viewControllers
+    updatedViewControllers[targetIndex] = components
+      .instance(
+        of: Replacement.self,
+        in: context
+      )
+    navigationController
+      .setViewControllers(
+        updatedViewControllers,
+        animated: animated && updatedViewControllers.last is Replacement
+      )
+    CATransaction.commit()
+    return true
+  }
 }

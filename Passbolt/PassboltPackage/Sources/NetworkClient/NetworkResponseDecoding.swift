@@ -91,6 +91,11 @@ extension NetworkResponseDecoding where Response: Decodable {
       guard response.statusCode != 401
       else { return .failure(.missingSession()) }
 
+      guard response.statusCode != 404
+      else { return .failure(.notFound()) }
+
+      #warning("TODO: MFA will respond with 403 and specific message")
+
       do {
         return .success(
           try decoder.decode(

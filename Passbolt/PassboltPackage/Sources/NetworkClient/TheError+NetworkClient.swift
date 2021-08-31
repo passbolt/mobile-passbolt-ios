@@ -59,6 +59,16 @@ extension TheError {
       extensions: [:]
     )
   }
+
+  internal static func notFound(
+    underlyingError: Error? = nil
+  ) -> Self {
+    Self(
+      identifier: .notFound,
+      underlyingError: underlyingError,
+      extensions: [:]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -66,6 +76,7 @@ extension TheError.ID {
   public static var httpError: Self { "httpError" }
   public static var networkResponseDecodingFailed: Self { "networkResponseDecodingFailed" }
   public static var missingSession: Self { "missingSession" }
+  public static var notFound: Self { "notFound" }
 }
 
 extension TheError.Extension {

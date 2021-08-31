@@ -81,40 +81,29 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self.signInCancellable = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
-          .handleEvents(
-            receiveSubscription: { [weak self] _ in
-              self?.present(overlay: LoaderOverlayView())
-            },
-            receiveCompletion: { [weak self] completion in
-              defer { self?.signInCancellable = nil }
-              self?.dismissOverlay()
-              guard case let .failure(error) = completion, error.identifier != .canceled
-              else { return }
-              if error.identifier == .biometricsChanged {
-                self?.present(
-                  snackbar: Mutation<UICommons.View>
-                    .snackBarErrorMessage(
-                      localized: "sign.in.error.biometrics.changed.message",
-                      inBundle: .commons
-                    )
-                    .instantiate(),
-                  hideAfter: 5
-                )
-              }
-              else {
-                self?.present(
-                  snackbar: Mutation<UICommons.View>
-                    .snackBarErrorMessage(
-                      localized: "sign.in.error.message",
-                      inBundle: .commons
-                    )
-                    .instantiate(),
-                  hideAfter: 2
-                )
-              }
-            },
-            receiveCancel: { [weak self] in
-              self?.dismissOverlay()
+          .handleStart { [weak self] in
+            self?.present(overlay: LoaderOverlayView())
+          }
+          .handleEnd { [weak self] canceled in
+            if !canceled {
+              self?.signInCancellable = nil
+            }
+            else {
+              /* NOP */
+            }
+            self?.dismissOverlay()
+          }
+          .handleErrors(
+            ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.biometricsChanged], handler: { [weak self] in
+              self?.presentErrorSnackbar(
+                localizableKey: "sign.in.error.biometrics.changed.message",
+                inBundle: .commons,
+                hideAfter: 5
+              )
+            }),
+            defaultHandler: { [weak self] in
+              self?.presentErrorSnackbar()
             }
           )
           .sinkDrop()
@@ -230,27 +219,29 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self.signInCancellable = self.controller
           .signIn()
           .receive(on: RunLoop.main)
-          .handleEvents(
-            receiveSubscription: { [weak self] _ in
-              self?.present(overlay: LoaderOverlayView())
-            },
-            receiveCompletion: { [weak self] completion in
-              defer { self?.signInCancellable = nil }
-              self?.dismissOverlay()
-              guard case let .failure(error) = completion, error.identifier != .canceled
-              else { return }
-              self?.present(
-                snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(
-                    localized: "sign.in.error.message",
-                    inBundle: .commons
-                  )
-                  .instantiate(),
-                hideAfter: 2
+          .handleStart { [weak self] in
+            self?.present(overlay: LoaderOverlayView())
+          }
+          .handleEnd { [weak self] canceled in
+            if !canceled {
+              self?.signInCancellable = nil
+            }
+            else {
+              /* NOP */
+            }
+            self?.dismissOverlay()
+          }
+          .handleErrors(
+            ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.biometricsChanged], handler: { [weak self] in
+              self?.presentErrorSnackbar(
+                localizableKey: "sign.in.error.biometrics.changed.message",
+                inBundle: .commons,
+                hideAfter: 5
               )
-            },
-            receiveCancel: { [weak self] in
-              self?.dismissOverlay()
+            }),
+            defaultHandler: { [weak self] in
+              self?.presentErrorSnackbar()
             }
           )
           .sinkDrop()
@@ -265,27 +256,29 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self.signInCancellable = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
-          .handleEvents(
-            receiveSubscription: { [weak self] _ in
-              self?.present(overlay: LoaderOverlayView())
-            },
-            receiveCompletion: { [weak self] completion in
-              defer { self?.signInCancellable = nil }
-              self?.dismissOverlay()
-              guard case let .failure(error) = completion, error.identifier != .canceled
-              else { return }
-              self?.present(
-                snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(
-                    localized: "sign.in.error.message",
-                    inBundle: .commons
-                  )
-                  .instantiate(),
-                hideAfter: 2
+          .handleStart { [weak self] in
+            self?.present(overlay: LoaderOverlayView())
+          }
+          .handleEnd { [weak self] canceled in
+            if !canceled {
+              self?.signInCancellable = nil
+            }
+            else {
+              /* NOP */
+            }
+            self?.dismissOverlay()
+          }
+          .handleErrors(
+            ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.biometricsChanged], handler: { [weak self] in
+              self?.presentErrorSnackbar(
+                localizableKey: "sign.in.error.biometrics.changed.message",
+                inBundle: .commons,
+                hideAfter: 5
               )
-            },
-            receiveCancel: { [weak self] in
-              self?.dismissOverlay()
+            }),
+            defaultHandler: { [weak self] in
+              self?.presentErrorSnackbar()
             }
           )
           .sinkDrop()
@@ -313,6 +306,18 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         else {
           self.dismiss(ForgotPassphraseAlertViewController.self)
         }
+      }
+      .store(in: cancellables)
+
+    controller
+      .accountNotFoundScreenPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] account in
+        self?.replaceLast(
+          Self.self,
+          with: AccountNotFoundViewController.self,
+          in: account
+        )
       }
       .store(in: cancellables)
   }

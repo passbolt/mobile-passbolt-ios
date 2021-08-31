@@ -24,13 +24,12 @@
 import Combine
 import Features
 import NetworkClient
-import SharedUIComponents
 import TestExtensions
 import UIComponents
 import XCTest
 
 @testable import Accounts
-@testable import PassboltApp
+@testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AuthorizationScreenTests: TestCase {

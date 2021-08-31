@@ -59,7 +59,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         self.controller
           .refreshResources()
           .receive(on: RunLoop.main)
-          .handleEnd { [weak self] in
+          .handleEnd { [weak self] _ in
             self?.contentView.finishDataRefresh()
           }
           .handleErrors(

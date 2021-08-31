@@ -25,15 +25,12 @@ import Combine
 
 extension Publisher {
 
-  public func handleEnd(
-    _ handler: @escaping (Bool) -> Void
+  public func handleStart(
+    _ handler: @escaping () -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(
-      receiveCompletion: { completion in
-        handler(false)
-      },
-      receiveCancel: {
-        handler(true)
+      receiveSubscription: { _ in
+        handler()
       }
     )
   }

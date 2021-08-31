@@ -252,6 +252,16 @@ let package = Package(
       dependencies: [
         "Accounts",
         "UIComponents",
+      ],
+      resources: [
+        .process("Localizable.strings")
+      ]
+    ),
+    .testTarget(
+      name: "SharedUIComponentsTests",
+      dependencies: [
+        "SharedUIComponents",
+        "TestExtensions",
       ]
     ),
     .target(

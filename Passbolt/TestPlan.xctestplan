@@ -97,6 +97,13 @@
         "identifier" : "ResourcesTests",
         "name" : "ResourcesTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "SharedUIComponentsTests",
+        "name" : "SharedUIComponentsTests"
+      }
     }
   ],
   "version" : 1

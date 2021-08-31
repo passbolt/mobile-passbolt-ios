@@ -21,20 +21,8 @@
 // @since         v1.0
 //
 
-import Combine
+// SharedUIComponents
 
-extension Publisher {
-
-  public func handleEnd(
-    _ handler: @escaping (Bool) -> Void
-  ) -> Publishers.HandleEvents<Self> {
-    self.handleEvents(
-      receiveCompletion: { completion in
-        handler(false)
-      },
-      receiveCancel: {
-        handler(true)
-      }
-    )
-  }
-}
+"account.not.found.title.label" = "The account doesn’t exist";
+"account.not.found.message.label" = "The account has been deleted";
+"account.not.found.action.button.title" = "Connect to an existing account";

@@ -19,22 +19,47 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
-//
 
-import Combine
+import UIComponents
+import Accounts
 
-extension Publisher {
+internal struct AccountNotFoundController {
 
-  public func handleEnd(
-    _ handler: @escaping (Bool) -> Void
-  ) -> Publishers.HandleEvents<Self> {
-    self.handleEvents(
-      receiveCompletion: { completion in
-        handler(false)
-      },
-      receiveCancel: {
-        handler(true)
-      }
+  internal var accountWithProfile: () -> AccountWithProfile
+  internal var navigateBack: () -> Void
+  internal var backNavigationPresentationPublisher: () -> AnyPublisher<Void, Never>
+}
+
+extension AccountNotFoundController: UIController {
+
+  internal typealias Context = Account
+
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let accountSettings: AccountSettings = features.instance()
+
+    let backNavigationPresentationSubject: PassthroughSubject<Void, Never> = .init()
+
+    func accountWithProfile() -> AccountWithProfile {
+      accountSettings.accountWithProfile(context)
+    }
+
+    func navigateBack() -> Void {
+      backNavigationPresentationSubject.send()
+    }
+
+    func backNavigationPresentationPublisher() -> AnyPublisher<Void, Never> {
+      backNavigationPresentationSubject.eraseToAnyPublisher()
+    }
+
+
+    return Self(
+      accountWithProfile: accountWithProfile,
+      navigateBack: navigateBack,
+      backNavigationPresentationPublisher: backNavigationPresentationPublisher
     )
   }
 }

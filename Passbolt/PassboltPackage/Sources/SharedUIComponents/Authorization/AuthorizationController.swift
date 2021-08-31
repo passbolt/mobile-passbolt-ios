@@ -37,6 +37,7 @@ public struct AuthorizationController {
   public var biometricSignIn: () -> AnyPublisher<Void, TheError>
   public var presentForgotPassphraseAlert: () -> Void
   public var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
+  public var accountNotFoundScreenPresentationPublisher: () -> AnyPublisher<Account, Never>
 }
 
 extension AuthorizationController {
@@ -66,6 +67,7 @@ extension AuthorizationController: UIController {
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
+    let accountNotFoundScreenPresentationSubject: PassthroughSubject<Account, Never> = .init()
     let validator: Validator<String> = .nonEmpty(
       errorLocalizationKey: "authorization.passphrase.error",
       bundle: .commons
@@ -155,6 +157,13 @@ extension AuthorizationController: UIController {
           account,
           .biometrics
         )
+        .handleErrors(
+          ([.notFound], handler: {
+            accountNotFoundScreenPresentationSubject.send(context)
+          }),
+          defaultHandler: { /* NOP */ }
+        )
+        .eraseToAnyPublisher()
     }
 
     func presentForgotPassphraseAlert() {
@@ -163,6 +172,10 @@ extension AuthorizationController: UIController {
 
     func presentForgotPassphraseAlertPublisher() -> AnyPublisher<Bool, Never> {
       forgotAlertPresentationSubject.eraseToAnyPublisher()
+    }
+
+    func accountNotFoundScreenPresentationPublisher() -> AnyPublisher<Account, Never> {
+      accountNotFoundScreenPresentationSubject.eraseToAnyPublisher()
     }
 
     return Self(
@@ -174,7 +187,8 @@ extension AuthorizationController: UIController {
       signIn: performSignIn,
       biometricSignIn: performBiometricSignIn,
       presentForgotPassphraseAlert: presentForgotPassphraseAlert,
-      presentForgotPassphraseAlertPublisher: presentForgotPassphraseAlertPublisher
+      presentForgotPassphraseAlertPublisher: presentForgotPassphraseAlertPublisher,
+      accountNotFoundScreenPresentationPublisher: accountNotFoundScreenPresentationPublisher
     )
   }
 }
