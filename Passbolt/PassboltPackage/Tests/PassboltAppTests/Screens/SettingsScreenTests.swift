@@ -243,9 +243,9 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "https://passbolt.com/terms",
-        privacyPolicyUrl: "https://passbolt.com/privacy"
+      FeatureConfig.Legal.both(
+        termsURL: .init(string: "https://passbolt.com/terms")!,
+        privacyPolicyURL: .init(string: "https://passbolt.com/privacy")!
       )
     )
 
@@ -271,12 +271,7 @@ final class SettingsScreenTests: TestCase {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
-    featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "",
-        privacyPolicyUrl: ""
-      )
-    )
+    featureFlags.config = always(FeatureConfig.Legal.none)
 
     features.use(accountSettings)
     features.use(biometry)
@@ -301,9 +296,8 @@ final class SettingsScreenTests: TestCase {
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "",
-        privacyPolicyUrl: "https://passbolt.com/privacy"
+      FeatureConfig.Legal.privacyPolicy(
+        .init(string: "https://passbolt.com/privacy")!
       )
     )
 
@@ -329,12 +323,7 @@ final class SettingsScreenTests: TestCase {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
-    featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "",
-        privacyPolicyUrl: ""
-      )
-    )
+    featureFlags.config = always(FeatureConfig.Legal.none)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)
@@ -421,10 +410,7 @@ final class SettingsScreenTests: TestCase {
 
   func test_termsEnabled_whenLegalPresent_andContainsValidUrl() {
     featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "https://passbolt.com/terms",
-        privacyPolicyUrl: ""
-      )
+      FeatureConfig.Legal.terms(.init(string: "https://passbolt.com/terms")!)
     )
     features.use(accountSettings)
     features.use(biometry)
@@ -440,10 +426,7 @@ final class SettingsScreenTests: TestCase {
 
   func test_privacyPolicyEnabled_whenLegalPresent_andContainsValidUrl() {
     featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "",
-        privacyPolicyUrl: "https://passbolt.com/privacy"
-      )
+      FeatureConfig.Legal.privacyPolicy(.init(string: "https://passbolt.com/privacy")!)
     )
     features.use(accountSettings)
     features.use(biometry)
@@ -458,12 +441,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_termsDisabled_whenLegalPresent_andContainsInValidUrl() {
-    featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "",
-        privacyPolicyUrl: ""
-      )
-    )
+    featureFlags.config = always(FeatureConfig.Legal.none)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)
@@ -477,12 +455,7 @@ final class SettingsScreenTests: TestCase {
   }
 
   func test_privacyPolicyDisabled_whenLegalPresent_andContainsInValidUrl() {
-    featureFlags.config = always(
-      FeatureConfig.Legal(
-        termsUrl: "",
-        privacyPolicyUrl: ""
-      )
-    )
+    featureFlags.config = always(FeatureConfig.Legal.none)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)

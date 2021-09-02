@@ -63,9 +63,22 @@ extension SettingsController: UIController {
     let featureFlags: FeatureConfig = features.instance()
     let linkOpener: LinkOpener = features.instance()
 
-    let legal: FeatureConfig.Legal? = featureFlags.configuration()
-    let termsURL: URL? = (legal?.termsUrl).flatMap(URL.init(string:))
-    let privacyPolicyURL: URL? = (legal?.privacyPolicyUrl).flatMap(URL.init(string:))
+    let legal: FeatureConfig.Legal = featureFlags.configuration()
+    var termsURL: URL?
+    var privacyPolicyURL: URL?
+
+    (termsURL, privacyPolicyURL) = {
+      switch legal {
+      case .none:
+        return (.none, .none)
+      case let .terms(url):
+        return (url, .none)
+      case let .privacyPolicy(url):
+        return (.none, url)
+      case let .both(termsURL, privacyPolicyURL):
+        return (termsURL, privacyPolicyURL)
+      }
+    }()
 
     let presentBiometricsAlertSubject: PassthroughSubject<Void, Never> = .init()
     let presentSignOutAlertSubject: PassthroughSubject<Void, Never> = .init()

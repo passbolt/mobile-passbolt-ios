@@ -22,11 +22,15 @@
 //
 
 import Features
+import struct Foundation.URL
 import NetworkClient
 
 import class Foundation.NSRecursiveLock
 
-public protocol FeatureConfigItem {}
+public protocol FeatureConfigItem {
+
+  static var `default`: Self { get }
+}
 
 extension FeatureConfigItem {
 
@@ -73,22 +77,66 @@ extension FeatureConfig: Feature {
       }
       .store(in: cancellables)
 
-    func config(for featureType: FeatureConfigItem.Type) -> FeatureConfigItem? {
+    func config(for featureType: FeatureConfigItem.Type) -> FeatureConfigItem {
       lock.lock()
       defer { lock.unlock() }
 
-      return all[featureType.featureFlagIdentifier]
+      return all[featureType.featureFlagIdentifier] ?? featureType.default
     }
 
     func handle(response: ConfigResponse) {
       lock.lock()
       defer { lock.unlock() }
 
-      if let legal = response.body.config.legal {
-        all[Legal.featureFlagIdentifier] = Legal(
-          termsUrl: legal.terms.url,
-          privacyPolicyUrl: legal.privacyPolicy.url
-        )
+      let config: Config = response.body.config
+
+      if let legal: Config.Legal = config.legal {
+        all[Legal.featureFlagIdentifier] = { () -> FeatureConfig.Legal in
+          let termsURL: URL? = .init(string: legal.terms.url)
+          let privacyPolicyURL: URL? = .init(string: legal.privacyPolicy.url)
+
+          switch (termsURL, privacyPolicyURL) {
+          case (.none, .none):
+            return .none
+          case let (.some(termsURL), .none):
+            return .terms(termsURL)
+          case let (.none, .some(privacyPolicyURL)):
+            return .privacyPolicy(privacyPolicyURL)
+          case let (.some(termsURL), .some(privacyPolicyURL)):
+            return .both(termsURL: termsURL, privacyPolicyURL: privacyPolicyURL)
+          }
+        }()
+      }
+      else {
+        all[Legal.featureFlagIdentifier] = FeatureConfig.Legal.default
+      }
+
+      if let folders: Config.Folders = config.plugins.firstElementOfType(), folders.enabled {
+        all[Folders.featureFlagIdentifier] = FeatureConfig.Folders.enabled(version: folders.version)
+      }
+      else {
+        all[Folders.featureFlagIdentifier] = FeatureConfig.Folders.default
+      }
+
+      if let previewPassword: Config.PreviewPassword = config.plugins.firstElementOfType() {
+        all[PreviewPassword.featureFlagIdentifier] = { () -> FeatureConfig.PreviewPassword in
+          if previewPassword.enabled {
+            return .enabled
+          }
+          else {
+            return .disabled
+          }
+        }()
+      }
+      else {
+        all[PreviewPassword.featureFlagIdentifier] = FeatureConfig.PreviewPassword.default
+      }
+
+      if let tags: Config.Tags  = config.plugins.firstElementOfType(), tags.enabled {
+        all[Tags.featureFlagIdentifier] = FeatureConfig.Tags.enabled
+      }
+      else {
+        all[Tags.featureFlagIdentifier] = FeatureConfig.Tags.default
       }
     }
 
@@ -124,8 +172,15 @@ extension FeatureConfig {
 
   public func configuration<F: FeatureConfigItem>(
     for featureFlagType: F.Type = F.self
-  ) -> F? {
-    config(featureFlagType) as? F
+  ) -> F {
+    config(featureFlagType) as? F ?? .default
+  }
+}
+
+fileprivate extension Array where Element == Plugin {
+
+  func firstElementOfType<T>(_ ofType: T.Type = T.self) -> T? {
+    first { $0 is T } as? T
   }
 }
 

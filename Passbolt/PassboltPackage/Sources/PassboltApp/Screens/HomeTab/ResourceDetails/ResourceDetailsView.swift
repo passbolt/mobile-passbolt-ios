@@ -89,9 +89,11 @@ internal final class ResourceDetailsView: ScrolledStackView {
     }
   }
 
-  internal func update(from resourceDetails: ResourceDetailsController.ResourceDetails) {
+  internal func update(with config: ResourceDetailsController.ResourceDetailsWithConfig) {
     removeAllArrangedSubviews(withTag: Self.formItemTag)
     fieldUpdates.removeAll()
+
+    let resourceDetails: ResourceDetailsController.ResourceDetails = config.resourceDetails
 
     iconView.update(from: resourceDetails.name)
     titleLabel.text = resourceDetails.name
@@ -121,7 +123,6 @@ internal final class ResourceDetailsView: ScrolledStackView {
         )
 
       case let .password(_, encrypted, _):
-        #warning("PAS-240 - toggle reveal - use feature flags")
         titleMutation = .text(localized: "resource.detail.field.passphrase", inBundle: .commons)
         valueMutation = .combined(
           .when(
@@ -130,18 +131,22 @@ internal final class ResourceDetailsView: ScrolledStackView {
             else: .text(""))
         )
 
-        buttonMutation = .when(
-          encrypted,
-          then:
-            .combined(
-              .image(symbol: .eye),
-              .action { [weak self] in
-                self?.toggleEncryptedFieldTapSubject.send(field)
-              }
-            ),
-          else: .hidden(true)
-        )
-
+        if config.revealPasswordEnabled {
+          buttonMutation = .when(
+            encrypted,
+            then:
+              .combined(
+                .image(symbol: .eye),
+                .action { [weak self] in
+                  self?.toggleEncryptedFieldTapSubject.send(field)
+                }
+              ),
+            else: .hidden(true)
+          )
+        }
+        else {
+          buttonMutation = .hidden(true)
+        }
       case let .uri(_, encrypted, _):
         titleMutation = .text(localized: "resource.detail.field.uri", inBundle: .commons)
         valueMutation = .combined(

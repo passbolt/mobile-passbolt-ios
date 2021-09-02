@@ -34,12 +34,14 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceDetailsControllerTests: TestCase {
 
+  var featureConfig: FeatureConfig!
   var resources: Resources!
   var pasteboard: Pasteboard!
 
   override func setUp() {
     super.setUp()
 
+    featureConfig = .placeholder
     resources = .placeholder
     pasteboard = .placeholder
   }
@@ -51,35 +53,38 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_loadResourceDetails_succeeds_whenAvailable() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
-    var result: ResourceDetailsController.ResourceDetails!
+    var result: ResourceDetailsController.ResourceDetailsWithConfig!
 
-    controller.resourceDetailsPublisher()
+    controller.resourceDetailsWithConfigPublisher()
       .sink(receiveCompletion: { completion in
         guard case .finished = completion
         else {
           XCTFail("Unexpected failure")
           return
         }
-      }, receiveValue: { resourceDetails in
-        result = resourceDetails
+      }, receiveValue: { resourceDetailsConfig in
+        result = resourceDetailsConfig
       })
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(result.id.rawValue, context.rawValue)
+    XCTAssertEqual(result.resourceDetails.id.rawValue, context.rawValue)
   }
 
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = { _ in
       var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
       detailsViewResourceWithReorderedFields.fields.reverse()
@@ -87,6 +92,7 @@ final class ResourceDetailsControllerTests: TestCase {
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     }
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
@@ -100,29 +106,30 @@ final class ResourceDetailsControllerTests: TestCase {
       .description(required: true, encrypted: false, maxLength: nil)
     ]
 
-    var result: ResourceDetailsController.ResourceDetails!
+    var result: ResourceDetailsController.ResourceDetailsWithConfig!
 
-    controller.resourceDetailsPublisher()
+    controller.resourceDetailsWithConfigPublisher()
       .sink(receiveCompletion: { completion in
         guard case .finished = completion
         else {
           XCTFail("Unexpected failure")
           return
         }
-      }, receiveValue: { resourceDetails in
-        result = resourceDetails
+      }, receiveValue: { resourceDetailsConfig in
+        result = resourceDetailsConfig
       })
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(result.id.rawValue, context.rawValue)
-    XCTAssertEqual(result.fields, expectedOrderedFields)
+    XCTAssertEqual(result.resourceDetails.id.rawValue, context.rawValue)
+    XCTAssertEqual(result.resourceDetails.fields, expectedOrderedFields)
   }
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() {
     resources.resourceDetailsPublisher = always(
       Fail(error: .testError()).eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
@@ -130,7 +137,7 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
     var result: TheError!
 
-    controller.resourceDetailsPublisher()
+    controller.resourceDetailsWithConfigPublisher()
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion
         else {
@@ -153,6 +160,7 @@ final class ResourceDetailsControllerTests: TestCase {
     resources.loadResourceSecret = always(
       Just(resourceSecret).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
@@ -189,6 +197,7 @@ final class ResourceDetailsControllerTests: TestCase {
     resources.loadResourceSecret = always(
       Fail(error: .testError()).eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
@@ -226,6 +235,7 @@ final class ResourceDetailsControllerTests: TestCase {
     resources.loadResourceSecret = always(
       Just(resourceSecret).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
@@ -273,6 +283,7 @@ final class ResourceDetailsControllerTests: TestCase {
     resources.loadResourceSecret = always(
       Empty().eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
     features.use(pasteboard)
 
@@ -292,11 +303,13 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldUsername_succeeds() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
 
     var pasteboardContent: String? = nil
@@ -317,11 +330,13 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldURI_succeeds() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
+    features.use(featureConfig)
     features.use(resources)
 
     var pasteboardContent: String? = nil

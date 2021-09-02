@@ -21,12 +21,12 @@
 // @since         v1.0
 //
 
+@testable import Accounts
 import Commons
+@testable import NetworkClient
 import TestExtensions
 import XCTest
 
-@testable import Accounts
-@testable import NetworkClient
 
 final class FeatureConfigTests: TestCase {
 
@@ -46,12 +46,13 @@ final class FeatureConfigTests: TestCase {
     super.tearDown()
   }
 
-  func test_fetchAndStoreFeatureConfigLegal_Succeeds() {
+  func test_fetchAndStoreFeatureConfigLegal_succeeds() {
     let config: Config = .init(
       legal: .init(
         privacyPolicy: .init(url: "https://passbolt.com/privacy"),
         terms: .init(url: "https://passbolt.com/terms")
-      )
+      ),
+      plugins: []
     )
 
     networkClient.configRequest = .respondingWith(
@@ -68,19 +69,17 @@ final class FeatureConfigTests: TestCase {
     let featureConfig: FeatureConfig = testInstance()
 
     featureConfig.fetchIfNeeded()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
+      .sinkDrop()
       .store(in: cancellables)
 
-    let result: FeatureConfig.Legal! = featureConfig.configuration()
+    let result: FeatureConfig.Legal = featureConfig.configuration()
+    let expectedTermsURL: URL! = .init(string: config.legal!.terms.url)
+    let expectedPrivacyPolicyURL: URL! = .init(string: config.legal!.privacyPolicy.url)
 
-    XCTAssertEqual(result.privacyPolicyUrl, config.legal!.privacyPolicy.url)
-    XCTAssertEqual(result.termsUrl, config.legal!.terms.url)
+    XCTAssertEqual(result, .both(termsURL: expectedTermsURL, privacyPolicyURL: expectedPrivacyPolicyURL))
   }
 
-  func test_fetchAndStoreFeatureConfigLegal_Fails() {
+  func test_fetchAndStoreFeatureConfigLegal_recoversWithDefault_whenfetchFails() {
     networkClient.configRequest = .failingWith(.testError())
 
     accountSession.statePublisher = always(
@@ -93,23 +92,21 @@ final class FeatureConfigTests: TestCase {
     let featureFlags: FeatureConfig = testInstance()
 
     featureFlags.fetchIfNeeded()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
+      .sinkDrop()
       .store(in: cancellables)
 
-    let result: FeatureConfig.Legal! = featureFlags.configuration()
+    let result: FeatureConfig.Legal = featureFlags.configuration()
 
-    XCTAssertNil(result)
+    XCTAssertEqual(result, .default)
   }
 
-  func test_clearStoredFeatureConfig_whenAccountSession_becomesNone() {
+  func test_clearStoredFeatureConfig_whenAccountSession_becomesDefault() {
     let config: Config = .init(
       legal: .init(
         privacyPolicy: .init(url: "https://passbolt.com/privacy"),
         terms: .init(url: "https://passbolt.com/terms")
-      )
+      ),
+      plugins: []
     )
 
     networkClient.configRequest = .respondingWith(
@@ -128,17 +125,14 @@ final class FeatureConfigTests: TestCase {
     let featureConfig: FeatureConfig = testInstance()
 
     featureConfig.fetchIfNeeded()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
+      .sinkDrop()
       .store(in: cancellables)
 
     accountStatePublisher.send(.none(lastUsed: validAccount))
 
-    let result: FeatureConfig.Legal! = featureConfig.configuration()
+    let result: FeatureConfig.Legal = featureConfig.configuration()
 
-    XCTAssertNil(result)
+    XCTAssertEqual(result, .default)
   }
 
   func
@@ -148,7 +142,8 @@ final class FeatureConfigTests: TestCase {
       legal: .init(
         privacyPolicy: .init(url: "https://passbolt.com/privacy"),
         terms: .init(url: "https://passbolt.com/terms")
-      )
+      ),
+      plugins: []
     )
 
     networkClient.configRequest = .respondingWith(
@@ -167,18 +162,85 @@ final class FeatureConfigTests: TestCase {
     let featureConfig: FeatureConfig = testInstance()
 
     featureConfig.fetchIfNeeded()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
+      .sinkDrop()
       .store(in: cancellables)
 
     accountStatePublisher.send(.authorizationRequired(validAccount))
 
-    let result: FeatureConfig.Legal! = featureConfig.configuration()
+    let result: FeatureConfig.Legal = featureConfig.configuration()
 
-    XCTAssertEqual(result.privacyPolicyUrl, config.legal!.privacyPolicy.url)
-    XCTAssertEqual(result.termsUrl, config.legal!.terms.url)
+    let expectedTermsURL: URL! = .init(string: config.legal!.terms.url)
+    let expectedPrivacyPolicyURL: URL! = .init(string: config.legal!.privacyPolicy.url)
+
+    XCTAssertEqual(result, .both(termsURL: expectedTermsURL, privacyPolicyURL: expectedPrivacyPolicyURL))
+  }
+
+  func test_fetchAndStoreFeatureConfigWithAllPluginsEnabled_succeeds() {
+    let config: Config = .init(
+      legal: nil,
+      plugins: [
+        Config.Folders(enabled: true, version: "1.0.2"),
+        Config.PreviewPassword(enabled: true),
+        Config.Tags(enabled: true, version: "1.0.1")
+      ]
+    )
+
+    networkClient.configRequest = .respondingWith(
+      .init(header: .mock(), body: .init(config: config))
+    )
+
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount)).eraseToAnyPublisher()
+    )
+
+    features.use(accountSession)
+    features.use(networkClient)
+
+    let featureConfig: FeatureConfig = testInstance()
+
+    featureConfig.fetchIfNeeded()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let folders: FeatureConfig.Folders = featureConfig.configuration()
+    let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
+    let tags: FeatureConfig.Tags = featureConfig.configuration()
+
+    XCTAssertEqual(folders, .enabled(version: "1.0.2"))
+    XCTAssertEqual(previewPassword, .enabled)
+    XCTAssertEqual(tags, .enabled)
+  }
+
+  func test_fetchAndStoreFeatureConfigWithNoPlugins_succeeds_withDefaultValues() {
+    let config: Config = .init(
+      legal: nil,
+      plugins: []
+    )
+
+    networkClient.configRequest = .respondingWith(
+      .init(header: .mock(), body: .init(config: config))
+    )
+
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount)).eraseToAnyPublisher()
+    )
+
+    features.use(accountSession)
+    features.use(networkClient)
+
+    let featureConfig: FeatureConfig = testInstance()
+
+    featureConfig.fetchIfNeeded()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let folders: FeatureConfig.Folders = featureConfig.configuration()
+    let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
+    let tags: FeatureConfig.Tags = featureConfig.configuration()
+
+    XCTAssertEqual(folders, .default)
+    XCTAssertEqual(previewPassword, .default)
+    XCTAssertEqual(tags, .default)
   }
 }
 

@@ -27,11 +27,21 @@ import UIComponents
 
 internal struct ResourceDetailsController {
 
-  internal var resourceDetailsPublisher: () -> AnyPublisher<ResourceDetails, TheError>
+  internal var resourceDetailsWithConfigPublisher: () -> AnyPublisher<ResourceDetailsWithConfig, TheError>
   internal var toggleDecrypt: (ResourceDetails.Field) -> AnyPublisher<String?, TheError>
   internal var presentResourceMenu: () -> Void
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var copyFieldValue: (ResourceDetails.Field) -> Void
+}
+
+
+extension ResourceDetailsController {
+
+  internal struct ResourceDetailsWithConfig: Equatable {
+
+    internal var resourceDetails: ResourceDetailsController.ResourceDetails
+    internal var revealPasswordEnabled: Bool
+  }
 }
 
 extension ResourceDetailsController: UIController {
@@ -46,16 +56,33 @@ extension ResourceDetailsController: UIController {
 
     let resources: Resources = features.instance()
     let pasteboard: Pasteboard = features.instance()
+    let featureConfig: FeatureConfig = features.instance()
 
     let lock: NSRecursiveLock = .init()
     var revealedFields: Set<ResourceDetails.Field> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
-    let currentDetailsSubject: CurrentValueSubject<ResourceDetailsController.ResourceDetails?, TheError> = .init(nil)
+    let currentDetailsSubject: CurrentValueSubject<ResourceDetailsWithConfig?, TheError> = .init(nil)
 
       resources.resourceDetailsPublisher(context)
-        .map(ResourceDetailsController.ResourceDetails.from(detailsViewResource:))
+        .map {
+          let resourceDetails: ResourceDetailsController.ResourceDetails = .from(detailsViewResource: $0)
+          let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
+          let previewPasswordEnabled: Bool = {
+            switch previewPassword {
+            case .enabled:
+              return true
+            case .disabled:
+              return false
+            }
+          }()
+
+          return .init(
+            resourceDetails: resourceDetails,
+            revealPasswordEnabled: previewPasswordEnabled
+          )
+        }
         .sink(
           receiveCompletion: { completion in
             guard case let .failure(error) = completion
@@ -69,7 +96,7 @@ extension ResourceDetailsController: UIController {
         )
         .store(in: cancellables)
 
-    func resourceDetailsPublisher() -> AnyPublisher<ResourceDetails, TheError> {
+    func resourceDetailsWithConfigPublisher() -> AnyPublisher<ResourceDetailsWithConfig, TheError> {
       currentDetailsSubject
         .filterMapOptional()
         .removeDuplicates()
@@ -122,9 +149,9 @@ extension ResourceDetailsController: UIController {
       let value: String? = {
         switch field {
         case .username:
-          return currentDetailsSubject.value?.username
+          return currentDetailsSubject.value?.resourceDetails.username
         case .uri:
-          return currentDetailsSubject.value?.url
+          return currentDetailsSubject.value?.resourceDetails.url
         case _:
           assertionFailure("Invalid case")
           return nil
@@ -135,7 +162,7 @@ extension ResourceDetailsController: UIController {
     }
 
     return Self(
-      resourceDetailsPublisher: resourceDetailsPublisher,
+      resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
       toggleDecrypt: toggleDecrypt(field:),
       presentResourceMenu: presentResourceMenu,
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,

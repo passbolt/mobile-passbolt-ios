@@ -174,20 +174,6 @@ extension ResourcesTypesRequestResponseBodyItem {
 
       case properties = "properties"
     }
-
-    fileprivate struct AnyCodingKey: CodingKey {
-
-      fileprivate var stringValue: String
-      fileprivate var intValue: Int?
-
-      fileprivate init?(stringValue: String) {
-        self.stringValue = stringValue
-      }
-
-      fileprivate init?(intValue: Int) {
-        nil
-      }
-    }
   }
 }
 

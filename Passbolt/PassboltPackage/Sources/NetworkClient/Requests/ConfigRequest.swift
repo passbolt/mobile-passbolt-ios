@@ -23,6 +23,7 @@
 
 import Commons
 import Environment
+import struct Foundation.URL
 
 public typealias ConfigRequest =
   NetworkRequest<DomainSessionVariable, ConfigRequestVariable, ConfigResponse>
@@ -54,9 +55,64 @@ public typealias ConfigResponse = CommonResponse<ConfigResponseBody>
 
 public struct Config: Decodable {
 
-  public struct Legal: Decodable {
+  public var legal: Legal?
+  public var plugins: Array<Plugin>
 
-    public struct Item: Decodable {
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    let plugins = try container.nestedContainer(keyedBy: AnyCodingKey.self, forKey: CodingKeys.plugins)
+
+    self.plugins = []
+    self.legal = try container.decode(Legal?.self, forKey: CodingKeys.legal)
+
+    if let folders: Folders = try plugins.decodeIfPresent(
+        Folders.self, forKey: "folders"
+    ) {
+      self.plugins.append(folders)
+    }
+    else {
+      /* NOP */
+    }
+
+    if let previewPassword: PreviewPassword = try plugins.decodeIfPresent(
+        PreviewPassword.self, forKey: "previewPassword"
+    ) {
+      self.plugins.append(previewPassword)
+    }
+    else {
+      /* NOP */
+    }
+
+    if let tags: Tags = try plugins.decodeIfPresent(
+        Tags.self, forKey: "tags"
+    ) {
+      self.plugins.append(tags)
+    }
+    else {
+      /* NOP */
+    }
+  }
+
+  internal init(
+    legal: Legal?,
+    plugins: Array<Plugin>
+  ) {
+    self.legal = legal
+    self.plugins = plugins
+  }
+
+  private enum CodingKeys: String, CodingKey {
+
+    case legal = "legal"
+    case plugins = "plugins"
+  }
+}
+
+extension Config {
+
+  public struct Legal: Decodable, Equatable {
+
+    public struct Item: Decodable, Equatable {
 
       public var url: String
     }
@@ -70,8 +126,28 @@ public struct Config: Decodable {
       case terms = "terms"
     }
   }
+}
 
-  public var legal: Legal?
+public protocol Plugin {}
+
+extension Config {
+
+  public struct PreviewPassword: Decodable, Equatable, Plugin {
+
+    public var enabled: Bool
+  }
+
+  public struct Folders: Decodable, Equatable, Plugin {
+
+    public var enabled: Bool
+    public var version: String
+  }
+
+  public struct Tags: Decodable, Equatable, Plugin {
+
+    public var enabled: Bool
+    public var version: String
+  }
 }
 
 public struct ConfigResponseBody: Decodable {

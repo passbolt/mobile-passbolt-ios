@@ -71,15 +71,15 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
   }
 
   private func setupSubscriptions() {
-    controller.resourceDetailsPublisher()
+    controller.resourceDetailsWithConfigPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] completion in
         guard case .failure = completion
         else { return }
         self?.navigationController?.presentErrorSnackbar()
         self?.pop(if: Self.self)
-      } receiveValue: { [ weak self] detailViewResource in
-        self?.contentView.update(from: detailViewResource)
+      } receiveValue: { [ weak self] resourceDetailsWithConfig in
+        self?.contentView.update(with: resourceDetailsWithConfig)
       }
       .store(in: cancellables)
 
