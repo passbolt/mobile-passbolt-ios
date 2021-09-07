@@ -21,39 +21,25 @@
 // @since         v1.0
 //
 
-public struct CommonResponse<Body: Decodable>: Decodable {
+public typealias MFARequiredResponse = CommonResponse<MFARequiredResponseBody>
 
-  public var header: CommonResponseHeader
-  public var body: Body
+public enum MFAProvider: String, Decodable {
 
-  public init(
-    header: CommonResponseHeader,
-    body: Body
-  ) {
-    self.header = header
-    self.body = body
-  }
+  case totp = "totp"
+  case yubikey = "yubikey"
 }
 
-public struct CommonResponseHeader: Decodable {
+public struct MFARequiredResponseBody: Decodable {
 
-  public var id: String
-  public var message: String
+  public var mfaProviders: Array<MFAProvider>
 
-  public init(
-    id: String,
-    message: String
-  ) {
-    self.id = id
-    self.message = message
+  private enum CodingKeys: String, CodingKey {
+
+    case mfaProviders = "mfa_providers"
   }
 }
-
-public struct EmptyBody: Decodable {}
 
 #if DEBUG
-extension CommonResponse: Encodable where Body: Encodable {}
-extension CommonResponse: Equatable where Body: Equatable {}
-extension CommonResponseHeader: Encodable, Equatable {}
-extension EmptyBody: Encodable {}
+extension MFAProvider: Encodable, Equatable {}
+extension MFARequiredResponseBody: Encodable, Equatable {}
 #endif

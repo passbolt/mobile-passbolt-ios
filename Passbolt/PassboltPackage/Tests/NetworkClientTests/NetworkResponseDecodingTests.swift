@@ -153,4 +153,96 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     XCTAssertFailure(decodingResult)
   }
+
+  func test_mfaErrorDecodingUsingCorrectData_resultsInMfaRequiredError() {
+    let decoding: NetworkResponseDecoding<MFARequiredResponse> = .bodyAsJSON()
+    let body: MFARequiredResponseBody = .init(mfaProviders: [.yubikey, .totp])
+    let response: CommonResponse<MFARequiredResponseBody> =
+      CommonResponse(
+        header: CommonResponseHeader(
+          id: "1",
+          message: "MFA authentication is required."
+        ),
+        body: body
+      )
+
+    let httpBody: Data = try! JSONEncoder().encode(response)
+
+    let decodingResult: Result<MFARequiredResponse, TheError> =
+      decoding
+      .decode(
+        HTTPResponse(
+          url: .test,
+          statusCode: 403,
+          headers: [:],
+          body: httpBody
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else {
+      XCTFail("Unexpected success")
+      return
+    }
+
+    XCTAssertEqual(error.identifier, .mfaRequired)
+    XCTAssertEqual(error.mfaRequiredProviders, [MFAProvider.yubikey, MFAProvider.totp])
+  }
+
+  func test_mfaErrorDecodingUsingCorrectData_andEmptyProviders_resultsInForbiddenError() {
+    let decoding: NetworkResponseDecoding<MFARequiredResponse> = .bodyAsJSON()
+    let body: MFARequiredResponseBody = .init(mfaProviders: [])
+    let response: CommonResponse<MFARequiredResponseBody> =
+      CommonResponse(
+        header: CommonResponseHeader(
+          id: "1",
+          message: "MFA authentication is required."
+        ),
+        body: body
+      )
+
+    let httpBody: Data = try! JSONEncoder().encode(response)
+
+    let decodingResult: Result<MFARequiredResponse, TheError> =
+      decoding
+      .decode(
+        HTTPResponse(
+          url: .test,
+          statusCode: 403,
+          headers: [:],
+          body: httpBody
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else {
+      XCTFail("Unexpected success")
+      return
+    }
+
+    XCTAssertEqual(error.identifier, .forbidden)
+  }
+
+  func test_mfaErrorDecodingUsingCorruptedData_resultsInForbiddenError() {
+    let decoding: NetworkResponseDecoding<MFARequiredResponse> = .bodyAsJSON()
+
+    let decodingResult: Result<MFARequiredResponse, TheError> =
+      decoding
+      .decode(
+        HTTPResponse(
+          url: .test,
+          statusCode: 403,
+          headers: [:],
+          body: Data([0x01, 0x02, 0x03])
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else {
+      XCTFail("Unexpected success")
+      return
+    }
+
+    XCTAssertEqual(error.identifier, .forbidden)
+  }
 }

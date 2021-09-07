@@ -69,6 +69,27 @@ extension TheError {
       extensions: [:]
     )
   }
+
+  internal static func mfaRequired(
+    underlyingError: Error? = nil,
+    mfaProviders: Array<MFAProvider>
+  ) -> Self {
+    Self(
+      identifier: .mfaRequired,
+      underlyingError: underlyingError,
+      extensions: [.mfaProviders: mfaProviders]
+    )
+  }
+
+  internal static func forbidden(
+    underlyingError: Error? = nil
+  ) -> Self {
+    Self(
+      identifier: .forbidden,
+      underlyingError: underlyingError,
+      extensions: [:]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -77,6 +98,8 @@ extension TheError.ID {
   public static var networkResponseDecodingFailed: Self { "networkResponseDecodingFailed" }
   public static var missingSession: Self { "missingSession" }
   public static var notFound: Self { "notFound" }
+  public static var forbidden: Self { "forbidden" }
+  public static var mfaRequired: Self { "mfaRequired" }
 }
 
 extension TheError.Extension {
@@ -84,7 +107,17 @@ extension TheError.Extension {
   public static var rawNetworkResponse: Self { "rawNetworkResponse" }
 }
 
+extension TheError.Extension {
+
+  public static var mfaProviders: Self { "mfaProviders" }
+}
+
 extension TheError {
 
   public var rawNetworkResponse: HTTPResponse? { extensions[.rawNetworkResponse] as? HTTPResponse }
+}
+
+extension TheError {
+
+  public var mfaRequiredProviders: Array<MFAProvider> { extensions[.mfaProviders] as? Array<MFAProvider> ?? [] }
 }

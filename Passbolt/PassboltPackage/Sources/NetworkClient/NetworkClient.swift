@@ -42,6 +42,7 @@ public struct NetworkClient {
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
+  public var setMFARequest: (@escaping (Array<MFAProvider>) -> Void) -> Void
 }
 
 extension NetworkClient {
@@ -190,7 +191,8 @@ extension NetworkClient: Feature {
       .withUnauthorized(authorizationRequest: requestAuthorization),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:),
-      setAuthorizationRequest: setAuthorizationRequest(_:)
+      setAuthorizationRequest: setAuthorizationRequest(_:),
+      setMFARequest: { _ in unreachable("PAS-319 - TODO") }
     )
   }
 
@@ -212,7 +214,8 @@ extension NetworkClient: Feature {
       resourceSecretRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods")
+      setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"), 
+      setMFARequest: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
