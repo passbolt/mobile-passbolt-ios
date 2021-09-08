@@ -29,6 +29,7 @@ open class NavigationViewController: UINavigationController {
   public init() {
     super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
     isModalInPresentation = true
+    delegate = self
     (self as? AnyUIComponent)?.setup()
   }
 
@@ -63,6 +64,7 @@ open class NavigationViewController: UINavigationController {
   override open func loadView() {
     super.loadView()
     view.backgroundColor = .white
+    interactivePopGestureRecognizer?.isEnabled = false
   }
 
   override open func viewDidLoad() {
@@ -95,86 +97,153 @@ open class NavigationViewController: UINavigationController {
   }
 
   open override func pushViewController(_ viewController: UIViewController, animated: Bool) {
-    CATransaction.begin()
-
     (viewController as? CustomPresentableUIComponent)?.customPresentationSetup()
-
-    CATransaction.setCompletionBlock({ [weak self] in
-      if self?.viewControllers.count ?? 0 > 1,
-        let tabBar = self?.tabBarController?.tabBar,
-        !tabBar.isHidden
-      {
-        tabBar.isHidden = true
-        tabBar.isTranslucent = true
+    if let tabBarController = self.tabBarController, self.viewControllers.count > 0 {
+      viewController.extendedLayoutIncludesOpaqueBars = true
+      viewController.edgesForExtendedLayout = viewController.edgesForExtendedLayout.union([.bottom])
+      if !tabBarController.tabBar.isHidden {
+        UIView.animate(
+          withDuration: animated ? 0.25 : 0,
+          delay: 0,
+          options: [.allowUserInteraction, .beginFromCurrentState],
+          animations: {
+            tabBarController.tabBar.frame.origin.x = -tabBarController.tabBar.frame.width
+          },
+          completion: { _ in
+            tabBarController.tabBar.isHidden = true
+          }
+        )
       }
-      else {
-        /* NOP */
-      }
-    })
+    }
+    else {
+      /* NOP */
+    }
+    CATransaction.begin()
+    CATransaction.setCompletionBlock {
+      (viewController.navigationItem.backBarButtonItem?.menu = UIMenu(title: "TEST", image: nil, identifier: nil, options: [], children: []))
+    }
     super.pushViewController(viewController, animated: animated)
     CATransaction.commit()
   }
 
   open override func popViewController(animated: Bool) -> UIViewController? {
-    CATransaction.begin()
-    CATransaction.setCompletionBlock({ [weak self] in
-      if self?.viewControllers.count == 1,
-        let tabBar = self?.tabBarController?.tabBar,
-        tabBar.isHidden
+      if
+        let tabBarController = tabBarController,
+        tabBarController.tabBar.isHidden,
+        viewControllers.count <= 2
       {
-        tabBar.isHidden = false
-        tabBar.isTranslucent = false
+        tabBarController.tabBar.isHidden = false
+        UIView.animate(
+          withDuration: animated ? 0.25 : 0,
+          delay: 0,
+          options: [.allowUserInteraction, .beginFromCurrentState],
+          animations: {
+            tabBarController.tabBar.frame.origin.x = 0
+          }
+        )
       }
       else {
         /* NOP */
       }
-    })
 
-    defer { CATransaction.commit() }
     return super.popViewController(animated: animated)
   }
 
+  open override var viewControllers: [UIViewController] {
+    didSet { print(viewControllers) }
+  }
+
+
   open override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
-    CATransaction.begin()
-    viewControllers.forEach { ($0 as? CustomPresentableUIComponent)?.customPresentationSetup() }
-    CATransaction.setCompletionBlock({ [weak self] in
-      if self?.viewControllers.count == 1,
-        let tabBar = self?.tabBarController?.tabBar,
-        tabBar.isHidden
-      {
-        tabBar.isHidden = false
-        tabBar.isTranslucent = false
+    viewControllers.forEach { viewController in
+      (viewController as? CustomPresentableUIComponent)?.customPresentationSetup()
+    }
+
+    if let tabBarController = tabBarController {
+      viewControllers[1...].forEach { viewController in
+        viewController.extendedLayoutIncludesOpaqueBars = true
+        viewController.edgesForExtendedLayout = viewController.edgesForExtendedLayout.union([.bottom])
       }
-      else if self?.viewControllers.count ?? 0 > 1,
-        let tabBar = self?.tabBarController?.tabBar,
-        !tabBar.isHidden
-      {
-        tabBar.isHidden = true
-        tabBar.isTranslucent = true
+      if tabBarController.tabBar.isHidden, viewControllers.count <= 1 {
+        tabBarController.tabBar.isHidden = false
+        UIView.animate(
+          withDuration: animated ? 0.25 : 0,
+          delay: 0,
+          options: [.allowUserInteraction, .beginFromCurrentState],
+          animations: {
+            tabBarController.tabBar.frame.origin.x = 0
+          }
+        )
+      }
+      else if !tabBarController.tabBar.isHidden, viewControllers.count > 1 {
+        UIView.animate(
+          withDuration: animated ? 0.25 : 0,
+          delay: 0,
+          options: [.allowUserInteraction, .beginFromCurrentState],
+          animations: {
+            tabBarController.tabBar.frame.origin.x = -tabBarController.tabBar.frame.width
+          },
+          completion: { _ in
+            tabBarController.tabBar.isHidden = true
+          }
+        )
       }
       else {
         /* NOP */
       }
-    })
+    }
+    else {
+      /* NOP */
+    }
+
     super.setViewControllers(viewControllers, animated: animated)
-    CATransaction.commit()
   }
 
   open override func popToRootViewController(animated: Bool) -> [UIViewController]? {
-    CATransaction.begin()
-    CATransaction.setCompletionBlock({ [weak self] in
-      if self?.viewControllers.count == 1,
-        let tabBar = self?.tabBarController?.tabBar,
-        tabBar.isHidden
-      {
-        tabBar.isHidden = false
-        tabBar.isTranslucent = false
-      }
-      else {
-        /* NOP */
-      }
-    })
-    defer { CATransaction.commit() }
+    if
+      let tabBarController = tabBarController,
+      tabBarController.tabBar.isHidden
+    {
+      tabBarController.tabBar.isHidden = false
+      UIView.animate(
+        withDuration: animated ? 0.25 : 0,
+        delay: 0,
+        options: [.allowUserInteraction, .beginFromCurrentState],
+        animations: {
+          tabBarController.tabBar.frame.origin.x = 0
+        }
+      )
+    }
+    else {
+      /* NOP */
+    }
     return super.popToRootViewController(animated: animated)
+  }
+}
+
+// Disables contextual menu on back button, it cannot be disabled otherwise.
+// https://developer.apple.com/forums/thread/653913?answerId=621184022#621184022
+private final class BackBarButtonItem: UIBarButtonItem {
+
+  override var menu: UIMenu? {
+    set { /* NOP */ }
+    get { return nil }
+  }
+}
+
+extension NavigationViewController: UINavigationControllerDelegate {
+
+  public func navigationController(
+    _ navigationController: UINavigationController,
+    willShow viewController: UIViewController,
+    animated: Bool
+  ) {
+    viewController.navigationItem.backBarButtonItem
+    = BackBarButtonItem(
+      title: "",
+      style: .plain,
+      target: nil,
+      action: nil
+    )
   }
 }
