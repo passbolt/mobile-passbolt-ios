@@ -46,7 +46,7 @@ extension UIComponent {
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
     guard let window: UIWindow = view.window
-    else { unreachable("Cannot replace window root without window") }
+    else { return assertionFailure("Cannot replace window root without window") }
 
     let currentView: UIView? = window.rootViewController?.view
     window.rootViewController =

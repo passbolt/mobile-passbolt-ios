@@ -99,9 +99,8 @@ final class WindowTests: TestCase {
   }
 
   func
-    test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsLoaded()
+    test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsNotLoaded()
   {
-    features.use(AccountTransfer.placeholder)
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -129,6 +128,36 @@ final class WindowTests: TestCase {
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
     XCTAssertNil(message)
+  }
+
+  func
+  test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsLoaded()
+  {
+    features.use(AccountTransfer.placeholder)
+    accountSession.statePublisher = always(
+      Just(.none(lastUsed: .none))
+        .eraseToAnyPublisher()
+    )
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+    accountSession.authorizationPromptPresentationPublisher = always(
+      authorizationPromptPresentationSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition?
+
+    controller
+      .screenStateDispositionPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    authorizationPromptPresentationSubject.send(
+      .init(account: validAccount, message: nil)
+    )
+
+    XCTAssertNil(result)
   }
 
   func test_screenStateDispositionPublisher_publishesUseInitialScreenState_whenAccountSessionStateChangesToAuthorized()
