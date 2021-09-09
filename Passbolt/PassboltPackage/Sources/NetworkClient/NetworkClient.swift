@@ -66,7 +66,10 @@ extension NetworkClient: Feature {
     let sessionSubject: CurrentValueSubject<NetworkSessionVariable?, Never> = .init(nil)
     let tokensSubject: CurrentValueSubject<AnyPublisher<Tokens?, Never>, Never> = .init(Empty().eraseToAnyPublisher())
 
+    // accessed without lock - always set during loading initial features, before use
     var authorizationRequest: (() -> Void) = unreachable("Authorization request has to be assigned before use.")
+    // accessed without lock - always set during loading initial features, before use
+    var mfaRequest: ((Array<MFAProvider>) -> Void) = unreachable("MFA request has to be assigned before use.")
 
     let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
       .setFailureType(to: TheError.self)
@@ -133,8 +136,16 @@ extension NetworkClient: Feature {
       authorizationRequest = request
     }
 
+    func setMFARequest(_ request: @escaping (Array<MFAProvider>) -> Void) {
+      mfaRequest = request
+    }
+
     func requestAuthorization() {
       authorizationRequest()
+    }
+
+    func requestMFA(with providers: Array<MFAProvider>) {
+      mfaRequest(providers)
     }
 
     return Self(
@@ -178,21 +189,30 @@ extension NetworkClient: Feature {
         using: networking,
         with: sessionVariablePublisher
       )
-      .withUnauthorized(authorizationRequest: requestAuthorization),
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA
+      ),
       resourcesTypesRequest: .live(
         using: networking,
         with: sessionVariablePublisher
       )
-      .withUnauthorized(authorizationRequest: requestAuthorization),
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA
+      ),
       resourceSecretRequest: .live(
         using: networking,
         with: sessionVariablePublisher
       )
-      .withUnauthorized(authorizationRequest: requestAuthorization),
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA
+      ),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:),
       setAuthorizationRequest: setAuthorizationRequest(_:),
-      setMFARequest: { _ in unreachable("PAS-319 - TODO") }
+      setMFARequest: setMFARequest(_:)
     )
   }
 

@@ -87,7 +87,7 @@ open class NavigationViewController: UINavigationController {
     completion: (() -> Void)? = nil
   ) {
     let presentingViewController: UIViewController? = self.presentingViewController
-    super.dismiss(
+    super.dismiss( 
       animated: animated,
       completion: { [weak presentingViewController] in
         presentingViewController?.setNeedsStatusBarAppearanceUpdate()

@@ -68,7 +68,7 @@ final class WindowTests: TestCase {
     else { return XCTFail() }
   }
 
-  func test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishes() {
+  func test_screenStateDispositionPublisher_publishesRequestPassphrase_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequest() {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -89,17 +89,53 @@ final class WindowTests: TestCase {
       .store(in: cancellables)
 
     authorizationPromptPresentationSubject.send(
-      .init(account: validAccount, message: .testMessage())
+      .passphraseRequest(
+        account: validAccount,
+        message: .testMessage()
+      )
     )
 
-    guard case let .some(.authorize(account, message)) = result
+    guard case let .some(.requestPassphrase(account, message)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
     XCTAssertEqual(message, .testMessage())
   }
 
+  func test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequest() {
+    accountSession.statePublisher = always(
+      Just(.none(lastUsed: .none))
+        .eraseToAnyPublisher()
+    )
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+    accountSession.authorizationPromptPresentationPublisher = always(
+      authorizationPromptPresentationSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition!
+
+    controller
+      .screenStateDispositionPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    authorizationPromptPresentationSubject.send(
+      .mfaRequest(
+        account: validAccount,
+        providers: []
+      )
+    )
+
+    guard case let .some(.requestMFA(account, providers)) = result
+    else { return XCTFail() }
+    XCTAssertEqual(account, validAccount)
+    XCTAssertEqual(providers, [])
+  }
+
   func
-    test_screenStateDispositionPublisher_publishesAuthorize_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsNotLoaded()
+    test_screenStateDispositionPublisher_publishesRequestPassphrase_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequestAndAccountTransferIsNotLoaded()
   {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
@@ -121,17 +157,55 @@ final class WindowTests: TestCase {
       .store(in: cancellables)
 
     authorizationPromptPresentationSubject.send(
-      .init(account: validAccount, message: nil)
+      .passphraseRequest(
+        account: validAccount,
+        message: .none
+      )
     )
 
-    guard case let .some(.authorize(account, message)) = result
+    guard case let .some(.requestPassphrase(account, message)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
     XCTAssertNil(message)
   }
 
   func
-  test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesAndAccountTransferIsLoaded()
+  test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsNotLoaded()
+  {
+    accountSession.statePublisher = always(
+      Just(.none(lastUsed: .none))
+        .eraseToAnyPublisher()
+    )
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+    accountSession.authorizationPromptPresentationPublisher = always(
+      authorizationPromptPresentationSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition!
+
+    controller
+      .screenStateDispositionPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    authorizationPromptPresentationSubject.send(
+      .mfaRequest(
+        account: validAccount,
+        providers: []
+      )
+    )
+
+    guard case let .some(.requestMFA(account, providers)) = result
+    else { return XCTFail() }
+    XCTAssertEqual(account, validAccount)
+    XCTAssertEqual(providers, [])
+  }
+
+  func
+  test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequestAndAccountTransferIsLoaded()
   {
     features.use(AccountTransfer.placeholder)
     accountSession.statePublisher = always(
@@ -154,7 +228,43 @@ final class WindowTests: TestCase {
       .store(in: cancellables)
 
     authorizationPromptPresentationSubject.send(
-      .init(account: validAccount, message: nil)
+      .passphraseRequest(
+        account: validAccount,
+        message: .none
+      )
+    )
+
+    XCTAssertNil(result)
+  }
+
+  func
+  test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsLoaded()
+  {
+    features.use(AccountTransfer.placeholder)
+    accountSession.statePublisher = always(
+      Just(.none(lastUsed: .none))
+        .eraseToAnyPublisher()
+    )
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+    accountSession.authorizationPromptPresentationPublisher = always(
+      authorizationPromptPresentationSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition?
+
+    controller
+      .screenStateDispositionPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    authorizationPromptPresentationSubject.send(
+      .mfaRequest(
+        account: validAccount,
+        providers: []
+      )
     )
 
     XCTAssertNil(result)
@@ -189,6 +299,33 @@ final class WindowTests: TestCase {
   }
 
   func
+  test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequired()
+  {
+    let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
+    accountSession.statePublisher = always(
+      accountSessionStateSubject
+        .eraseToAnyPublisher()
+    )
+    accountSession.authorizationPromptPresentationPublisher = always(
+      Empty().eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition!
+
+    controller
+      .screenStateDispositionPublisher()
+      .dropFirst()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    accountSessionStateSubject.send(.authorizedMFARequired(validAccount))
+
+    XCTAssertNil(result)
+  }
+
+  func
     test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedAndAccountTransferIsLoaded()
   {
     features.use(AccountTransfer.placeholder)
@@ -217,7 +354,35 @@ final class WindowTests: TestCase {
   }
 
   func
-    test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountID()
+  test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequiredAndAccountTransferIsLoaded()
+  {
+    features.use(AccountTransfer.placeholder)
+    let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
+    accountSession.statePublisher = always(
+      accountSessionStateSubject
+        .eraseToAnyPublisher()
+    )
+    accountSession.authorizationPromptPresentationPublisher = always(
+      Empty().eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition!
+
+    controller
+      .screenStateDispositionPublisher()
+      .dropFirst()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    accountSessionStateSubject.send(.authorizedMFARequired(validAccount))
+
+    XCTAssertNil(result)
+  }
+
+  func
+    test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountPassphraseRequest()
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -239,7 +404,47 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-    authorizationPromptPresentationSubject.send(.init(account: validAccount, message: nil))
+    authorizationPromptPresentationSubject.send(
+      .passphraseRequest(
+        account: validAccount,
+        message: .none
+      )
+    )
+    accountSessionStateSubject.send(.authorized(validAccount))
+
+    guard case .some(.useCachedScreenState) = result
+    else { return XCTFail() }
+  }
+
+  func
+  test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountMFARequest()
+  {
+    let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
+    accountSession.statePublisher = always(
+      accountSessionStateSubject
+        .eraseToAnyPublisher()
+    )
+    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
+    accountSession.authorizationPromptPresentationPublisher = always(
+      authorizationPromptPresentationSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+
+    let controller: WindowController = testInstance()
+    var result: WindowController.ScreenStateDisposition!
+
+    controller
+      .screenStateDispositionPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    authorizationPromptPresentationSubject.send(
+      .mfaRequest(
+        account: validAccount,
+        providers: []
+      )
+    )
     accountSessionStateSubject.send(.authorized(validAccount))
 
     guard case .some(.useCachedScreenState) = result

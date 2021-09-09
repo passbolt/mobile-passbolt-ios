@@ -119,5 +119,5 @@ extension TheError {
 
 extension TheError {
 
-  public var mfaRequiredProviders: Array<MFAProvider> { extensions[.mfaProviders] as? Array<MFAProvider> ?? [] }
+  public var mfaProviders: Array<MFAProvider> { extensions[.mfaProviders] as? Array<MFAProvider> ?? [] }
 }

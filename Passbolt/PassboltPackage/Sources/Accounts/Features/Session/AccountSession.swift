@@ -27,10 +27,37 @@ import NetworkClient
 
 import class Foundation.NSRecursiveLock
 
-public struct AuthorizationPromptRequest {
+public enum AuthorizationPromptRequest {
 
-  public var account: Account
-  public var message: LocalizedMessage?
+  case passphraseRequest(account: Account, message: LocalizedMessage?)
+  case mfaRequest(account: Account, providers: Array<MFAProvider>)
+
+  public var account: Account {
+    switch self {
+    case let .passphraseRequest(account, _):
+      return account
+    case let .mfaRequest(account, _):
+      return account
+    }
+  }
+
+  public var message: LocalizedMessage? {
+    switch self {
+    case let .passphraseRequest(_, message):
+      return message
+    case .mfaRequest:
+      return .none
+    }
+  }
+
+  public var mfaProviders: Array<MFAProvider> {
+    switch self {
+    case .passphraseRequest:
+      return []
+    case let .mfaRequest(_, providers):
+      return providers
+    }
+  }
 }
 
 public struct AccountSession {
@@ -55,6 +82,7 @@ extension AccountSession {
   public enum State: Equatable {
 
     case authorized(Account)
+    case authorizedMFARequired(Account)
     case authorizationRequired(Account)
     case none(lastUsed: Account?)
   }
@@ -136,12 +164,14 @@ extension AccountSession: Feature {
       )
     })
 
+    networkClient.setMFARequest(requestMFA(with:))
+
     // connect current account base url / domain with network client
     // to perform requests in correct contexts
     sessionStatePublisher
       .map { state -> NetworkSessionVariable? in
         switch state {
-        case let .authorized(account), let .authorizationRequired(account):
+        case let .authorized(account), let .authorizedMFARequired(account), let .authorizationRequired(account):
           return NetworkSessionVariable(domain: account.domain)
 
         case .none:
@@ -157,9 +187,8 @@ extension AccountSession: Feature {
     sessionStatePublisher
       .compactMap { state -> AnyPublisher<State, Never>? in
         switch state {
-        case let .authorized(account):
-          return
-            passphraseCache
+        case let .authorized(account), let .authorizedMFARequired(account):
+          return passphraseCache
             .passphrasePublisher(account.localID)
             .compactMap { passphrase -> State? in
               switch passphrase {
@@ -192,8 +221,9 @@ extension AccountSession: Feature {
         switch transition {
         case .willEnterForeground:
           switch sessionStateSubject.value {
-          case let .authorizationRequired(account), let .authorized(account):
-            return .init(account: account, message: nil)  // request authorization prompt for that account
+          case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account):
+            // request authorization prompt for that account
+            return .passphraseRequest(account: account, message: nil)
 
           case .none:
             return nil  // do nothing
@@ -224,7 +254,7 @@ extension AccountSession: Feature {
       features.unload(AccountDatabase.self)
 
       switch sessionStateSubject.value {
-      case .authorized, .authorizationRequired:
+      case .authorized, .authorizationRequired, .authorizedMFARequired:
         signOutCancellable =
           networkSession
           .closeSession()
@@ -372,7 +402,7 @@ extension AccountSession: Feature {
       sessionStatePublisher
         .map { sessionState -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
           switch sessionState {
-          case let .authorized(account):
+          case let .authorized(account), let .authorizedMFARequired(account):
             switch accountsDataStore.loadAccountPrivateKey(account.localID) {
             case let .success(armoredKey):
               return passphraseCache
@@ -448,15 +478,33 @@ extension AccountSession: Feature {
 
     func requestAuthorization(message: LocalizedMessage?) {
       switch sessionStateSubject.value {
-      case let .authorized(account):
+      case let .authorized(account), let .authorizedMFARequired(account):
         passphraseCache.clear()
         authorizationPromptPresentationSubject.send(
-          .init(account: account, message: message)
+          .passphraseRequest(account: account, message: message)
         )
       case let .authorizationRequired(account):
         authorizationPromptPresentationSubject.send(
-          .init(account: account, message: message)
+          .passphraseRequest(account: account, message: message)
         )
+      case .none:
+        break
+      }
+    }
+
+    func requestMFA(with providers: Array<MFAProvider>) {
+      assert(
+        !providers.isEmpty,
+        "Cannot request MFA without providers"
+      )
+      switch sessionStateSubject.value {
+      case let .authorized(account),
+        let .authorizedMFARequired(account),
+        let .authorizationRequired(account):
+        authorizationPromptPresentationSubject.send(
+          .mfaRequest(account: account, providers: providers)
+        )
+
       case .none:
         break
       }

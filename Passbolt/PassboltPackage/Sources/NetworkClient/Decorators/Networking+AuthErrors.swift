@@ -26,22 +26,31 @@ import Environment
 
 extension NetworkRequest {
 
-  public func withUnauthorized(
-    authorizationRequest: @escaping () -> Void
+  public func withAuthErrors(
+    authorizationRequest: @escaping () -> Void,
+    mfaRequest: @escaping (Array<MFAProvider>) -> Void
   ) -> Self {
     Self(
       execute: { variable in
-        self.execute(variable).mapError { (error: TheError) -> TheError in
-          if error.identifier == .missingSession {
-            authorizationRequest()
-          }
-          else {
-            /* NOP */
-          }
+        self.execute(variable)
+          .mapError { (error: TheError) -> TheError in
+            if error.identifier == .missingSession {
+              authorizationRequest()
+            }
+            else if error.identifier == .mfaRequired {
+              assert(
+                !error.mfaProviders.isEmpty,
+                "MFA required error has to contain at least one provider"
+              )
+              mfaRequest(error.mfaProviders)
+            }
+            else {
+              /* NOP */
+            }
 
-          return error
-        }
-        .eraseToAnyPublisher()
+            return error
+          }
+          .eraseToAnyPublisher()
       }
     )
   }

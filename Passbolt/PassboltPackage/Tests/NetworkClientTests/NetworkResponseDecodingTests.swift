@@ -186,7 +186,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
     }
 
     XCTAssertEqual(error.identifier, .mfaRequired)
-    XCTAssertEqual(error.mfaRequiredProviders, [MFAProvider.yubikey, MFAProvider.totp])
+    XCTAssertEqual(error.mfaProviders, [MFAProvider.yubikey, MFAProvider.totp])
   }
 
   func test_mfaErrorDecodingUsingCorrectData_andEmptyProviders_resultsInForbiddenError() {

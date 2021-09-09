@@ -71,7 +71,7 @@ extension ExtensionController: UIController {
           case let .authorized(account):
             return .home(account)
 
-          case .authorizationRequired:
+          case .authorizationRequired, .authorizedMFARequired:
             return .none // ignored
 
           case let .none(lastUsedAccount):

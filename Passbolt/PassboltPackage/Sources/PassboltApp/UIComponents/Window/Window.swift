@@ -85,10 +85,37 @@ internal final class Window {
             )
 
           // Prompt user with authorization screen if it is not already displayed.
-          case let .authorize(account, message):
-            guard !self.isSplashScreenDisplayed
+          case let .requestPassphrase(account, message):
+            guard !self.isSplashScreenDisplayed, !self.isAuthorizationDisplayed
             else { return }
-            self.screenStateCache = nil
+            if !self.isMFAPromptDisplayed {
+              assert(
+                self.screenStateCache == nil,
+                "Cannot replace screen state cache, it has to be empty"
+              )
+              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+              else { unreachable("Window root has to be an instance of UIComponent") }
+              self.screenStateCache = rootComponent
+            } else {
+              /* NOP - reuse previous cache if any if previous screen was mfa prompt */
+            }
+
+            self.replaceRoot(
+              with: self.components
+                .instance(
+                  of: AuthorizationNavigationViewController.self,
+                  in: (account: account, message: message)
+                )
+            )
+
+          // Prompt user with mfa screen if it is not already displayed.
+          case let .requestMFA(account, providers):
+            guard
+              !self.isSplashScreenDisplayed,
+              !self.isAuthorizationDisplayed,
+              !self.isMFAPromptDisplayed
+            else { return }
+
             assert(
               self.screenStateCache == nil,
               "Cannot replace screen state cache, it has to be empty"
@@ -97,11 +124,11 @@ internal final class Window {
             else { unreachable("Window root has to be an instance of UIComponent") }
             self.screenStateCache = rootComponent
 
+            #warning("TODO: [PAS-318]/[PAS-315] - navigate to proper screen")
             self.replaceRoot(
               with: self.components
                 .instance(
-                  of: AuthorizationNavigationViewController.self,
-                  in: (account: account, message: message)
+                  of: PlaceholderViewController.self
                 )
             )
           }
@@ -134,6 +161,15 @@ extension Window {
 
   private var isSplashScreenDisplayed: Bool {
     window.rootViewController is SplashScreenViewController
+  }
+
+  private var isAuthorizationDisplayed: Bool {
+    window.rootViewController is AuthorizationNavigationViewController
+  }
+
+  private var isMFAPromptDisplayed: Bool {
+    #warning("TODO: [PAS-318]/[PAS-315] - update to check for proper screen")
+    return window.rootViewController is PlaceholderViewController
   }
 }
 

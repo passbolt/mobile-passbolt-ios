@@ -99,21 +99,20 @@ extension UIViewController {
       delay: 0,
       options: [.beginFromCurrentState, .allowUserInteraction],
       animations: { snackbar.alpha = 1 },
-      completion: { [weak self] completed in
-        guard completed, hideDelay > 0 else { return }
+      completion: { [weak self] _ in
+        guard hideDelay > 0 else { return }
         UIView.animate(
           withDuration: 0.3,
           delay: hideDelay,
           options: [.beginFromCurrentState, .allowUserInteraction],
           animations: { snackbar.alpha = 0 },
-          completion: { [weak self] completed in
+          completion: { [weak self] _ in
             if self?._snackbarView === snackbar {
               self?._snackbarView = nil
             }
             else {
               /* */
             }
-            guard completed else { return }
             snackbar.removeFromSuperview()
           }
         )
@@ -131,8 +130,7 @@ extension UIViewController {
       delay: 0,
       options: [.beginFromCurrentState],
       animations: { snackbar.alpha = 0 },
-      completion: { completed in
-        guard completed else { return }
+      completion: { _ in
         snackbar.removeFromSuperview()
       }
     )

@@ -46,6 +46,7 @@ final class AccountSessionTests: TestCase {
     passphraseCache = .placeholder
     networkClient = .placeholder
     networkClient.setAuthorizationRequest = always(Void())
+    networkClient.setMFARequest = always(Void())
     networkClient.updateSession = always(Void())
     networkSession = .placeholder
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())

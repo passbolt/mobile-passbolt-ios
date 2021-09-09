@@ -141,9 +141,9 @@ final class ExtensionControllerTests: TestCase {
 
     authorizationPromptPresentationSubject
       .send(
-        AuthorizationPromptRequest(
+        .passphraseRequest(
           account: firstAccount,
-          message: nil
+          message: .none
         )
       )
 

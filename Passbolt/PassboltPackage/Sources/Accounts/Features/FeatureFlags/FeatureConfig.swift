@@ -65,9 +65,10 @@ extension FeatureConfig: Feature {
         defer { lock.unlock() }
         switch state {
         case let .authorizationRequired(account) where account.localID == accountID,
-          let .authorized(account) where account.localID == accountID:
+          let .authorized(account) where account.localID == accountID,
+          let .authorizedMFARequired(account) where account.localID == accountID:
           break
-        case let .authorizationRequired(account), let .authorized(account):
+        case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account):
           accountID = account.localID
           all = .init()
         case .none:

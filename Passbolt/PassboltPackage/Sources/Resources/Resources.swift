@@ -65,8 +65,13 @@ extension Resources: Feature {
         switch sessionState {
         case let .authorized(account):
           return (last: changes.current, current: account.localID)
+
+        case let .authorizedMFARequired(account):
+          return (last: changes.current, current: account.localID)
+
         case let .authorizationRequired(account):
           return (last: changes.current, current: account.localID)
+
         case .none:
           return (last: changes.current, current: nil)
         }

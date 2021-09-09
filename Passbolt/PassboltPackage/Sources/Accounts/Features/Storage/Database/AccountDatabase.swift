@@ -68,7 +68,7 @@ extension AccountDatabase: Feature {
       .statePublisher()
       .compactMap { sessionState -> AnyPublisher<DatabaseConnection?, Never>? in
         switch sessionState {
-        case let .authorized(account):
+        case let .authorized(account), let .authorizedMFARequired(account):
           if databaseConnectionSubject.value == nil {
             return
               passphraseCache
