@@ -21,27 +21,36 @@
 // @since         v1.0
 //
 
-@testable import Crypto
-@testable import UIComponents
+import Commons
+import Features
+import func Foundation.NSLocalizedString
+import NFC
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder,
-    Database.placeholder,
-    Files.placeholder,
-    AutoFillExtension.placeholder,
-    Yubikey.placeholder
-  )
+extension Yubikey {
+
+  public static func live() -> Self {
+    func readNFC() -> AnyPublisher<String, TheError> {
+
+      let otpPublisher: PassthroughSubject<String, TheError> = .init()
+
+      NFCReader.readOTP(
+        instructionMessage: NSLocalizedString("yubikey.scan.instruction", bundle: .main, comment: ""),
+        successMessage: NSLocalizedString("yubikey.scan.success", bundle: .main, comment: "")) { readResult in
+
+        switch readResult {
+        case let .success(otp):
+          otpPublisher.send(otp)
+          otpPublisher.send(completion: .finished)
+        case let .failure(error):
+          otpPublisher.send(completion: .failure(TheError.yubikeyError(underlyingError: error)))
+        }
+      }
+
+      return otpPublisher.eraseToAnyPublisher()
+    }
+
+    return Self(
+      readNFC: readNFC
+    )
+  }
 }

@@ -21,27 +21,41 @@
 // @since         v1.0
 //
 
-@testable import Crypto
-@testable import UIComponents
+import Commons
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder,
-    Database.placeholder,
-    Files.placeholder,
-    AutoFillExtension.placeholder,
-    Yubikey.placeholder
-  )
+public struct Yubikey: EnvironmentElement {
+
+  public var readNFC: () -> AnyPublisher<String, TheError>
+
+  public init(
+    readNFC: @escaping () -> AnyPublisher<String, TheError>
+  ) {
+    precondition(!isInExtensionContext)
+    self.readNFC = readNFC
+  }
+}
+
+extension Environment {
+
+  public var yubikey: Yubikey {
+    get { element(Yubikey.self) }
+    set { use(newValue) }
+  }
+}
+
+extension Yubikey {
+
+  public static func unavailable() -> Self {
+    Self(
+      readNFC: Fail(error: TheError.featureUnavailable(featureName: "Yubikey"))
+        .eraseToAnyPublisher
+    )
+  }
+}
+
+extension Yubikey {
+
+  public static var placeholder: Self {
+    Self(readNFC: Commons.placeholder("You have to provide mocks for used methods"))
+  }
 }

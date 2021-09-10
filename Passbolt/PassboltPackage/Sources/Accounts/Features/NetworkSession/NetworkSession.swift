@@ -38,11 +38,13 @@ internal struct NetworkSession {
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError>
+
   internal var createMFAToken: (
     _ account: Account,
     _ authorization: MFAAuthorization,
     _ storeLocally: Bool
   ) -> AnyPublisher<Void, TheError>
+
   internal var refreshSession: () -> AnyPublisher<NetworkSessionTokens, TheError>
   internal var closeSession: () -> AnyPublisher<Void, TheError>
 }

@@ -23,3 +23,4 @@
 
 "NSCameraUsageDescription" = "Your camera will be used to scan QR code to transfer your data.";
 "NSFaceIDUsageDescription" = "Biometrics can be used to save your passphrase securely.";
+"NFCReaderUsageDescription" = "NFC can be used to communicate with Yubikey token.";

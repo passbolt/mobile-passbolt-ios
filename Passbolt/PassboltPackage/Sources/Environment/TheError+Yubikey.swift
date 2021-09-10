@@ -21,27 +21,22 @@
 // @since         v1.0
 //
 
-@testable import Crypto
-@testable import UIComponents
+import Commons
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder,
-    Database.placeholder,
-    Files.placeholder,
-    AutoFillExtension.placeholder,
-    Yubikey.placeholder
-  )
+extension TheError {
+
+  public static func yubikeyError(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .yubikey,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
+}
+
+extension TheError.ID {
+
+  public static let yubikey: Self = "yubikey"
 }

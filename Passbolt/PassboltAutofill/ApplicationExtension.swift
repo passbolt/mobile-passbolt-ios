@@ -53,7 +53,8 @@ internal struct ApplicationExtension {
       Files.live,
       AppLifeCycle.autoFillExtension(),
       Camera.live(),
-      ExternalURLOpener.live()
+      ExternalURLOpener.live(),
+      Yubikey.unavailable()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

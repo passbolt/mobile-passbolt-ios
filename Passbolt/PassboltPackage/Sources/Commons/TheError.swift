@@ -176,6 +176,7 @@ extension TheError {
 extension TheError.ID {
 
   public static let canceled: Self = "canceled"
+  public static let featureUnavailable: Self = "featureUnavailable"
 }
 
 extension TheError.Extension {
@@ -194,6 +195,17 @@ extension TheError {
     underlyingError: nil,
     extensions: [.context: "canceled"]
   )
+
+  public static func featureUnavailable(
+    featureName: StaticString,
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .featureUnavailable,
+      underlyingError: underlyingError,
+      extensions: [.context: "\(featureName)"]
+    )
+  }
 }
 
 extension TheError.Extension {

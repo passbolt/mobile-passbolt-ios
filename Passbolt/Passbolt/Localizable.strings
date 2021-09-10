@@ -112,3 +112,6 @@
 "resource.menu.item.url" = "URL";
 "resource.menu.item.field.copied" = "%@ copied!";
 "resource.menu.action.failed" = "%@ failed!";
+
+"yubikey.scan.instruction" = "Place your Yubikey on your device.";
+"yubikey.scan.success" = "Scan success";

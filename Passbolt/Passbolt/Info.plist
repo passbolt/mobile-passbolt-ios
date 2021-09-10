@@ -35,10 +35,6 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSCameraUsageDescription</key>
-	<string>FXIME DESCRIPTION TEST</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>TODO reason</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter Thin</string>
@@ -87,5 +83,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>A000000527200101</string>
+	</array>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string></string>
 </dict>
 </plist>

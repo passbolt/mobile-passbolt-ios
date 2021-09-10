@@ -32,6 +32,10 @@ let package = Package(
       targets: ["NetworkClient"]
     ),
     .library(
+      name: "NFC",
+      targets: ["NFC"]
+    ),
+    .library(
       name: "PassboltApp",
       targets: ["PassboltApp"]
     ),
@@ -174,6 +178,19 @@ let package = Package(
       ]
     ),
     .target(
+      name: "NFC",
+      dependencies: [
+        "Commons"
+      ]
+    ),
+    .testTarget(
+      name: "NFCTests",
+      dependencies: [
+        "NFC",
+        "TestExtensions"
+      ]
+    ),
+    .target(
       name: "Environment",
       dependencies: [
         .product(name: "Aegithalos", package: "Aegithalos"),
@@ -201,6 +218,7 @@ let package = Package(
         "Resources",
         "Environment",
         "SharedUIComponents",
+        "NFC"
       ]
     ),
     .testTarget(

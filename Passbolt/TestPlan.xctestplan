@@ -104,6 +104,13 @@
         "identifier" : "SharedUIComponentsTests",
         "name" : "SharedUIComponentsTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "NFCTests",
+        "name" : "NFCTests"
+      }
     }
   ],
   "version" : 1

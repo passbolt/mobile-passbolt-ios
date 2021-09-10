@@ -25,6 +25,7 @@ import Crypto
 import Combine
 import Features
 import Foundation
+import NFC
 import PassboltApp
 
 internal struct Application {
@@ -50,7 +51,8 @@ internal struct Application {
       Database.sqlite(),
       Files.live,
       AutoFillExtension.live(),
-      SystemPasteboard.uiPasteboard()
+      SystemPasteboard.uiPasteboard(),
+      Yubikey.live()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
