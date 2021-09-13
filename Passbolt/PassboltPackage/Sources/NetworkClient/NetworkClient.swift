@@ -39,6 +39,8 @@ public struct NetworkClient {
   public var resourcesRequest: ResourcesRequest
   public var resourcesTypesRequest: ResourcesTypesRequest
   public var resourceSecretRequest: ResourceSecretRequest
+  public var totpAuthorizationRequest: TOTPAuthorizationRequest
+  public var yubikeyAuthorizationRequest: YubikeyAuthorizationRequest
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
@@ -209,6 +211,22 @@ extension NetworkClient: Feature {
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA
       ),
+      totpAuthorizationRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      )
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA
+      ),
+      yubikeyAuthorizationRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      )
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA
+      ),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:),
       setAuthorizationRequest: setAuthorizationRequest(_:),
@@ -232,6 +250,8 @@ extension NetworkClient: Feature {
       resourcesRequest: .placeholder,
       resourcesTypesRequest: .placeholder,
       resourceSecretRequest: .placeholder,
+      totpAuthorizationRequest: .placeholder,
+      yubikeyAuthorizationRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"), 

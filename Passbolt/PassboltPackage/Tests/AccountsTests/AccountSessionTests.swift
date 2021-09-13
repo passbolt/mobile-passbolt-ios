@@ -111,7 +111,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -147,7 +147,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -190,7 +190,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -234,7 +234,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -303,7 +303,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -344,7 +344,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -387,7 +387,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -425,7 +425,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -492,7 +492,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -527,7 +527,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -560,7 +560,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -592,7 +592,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -624,7 +624,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -658,7 +658,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -691,7 +691,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -795,7 +795,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -833,7 +833,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -880,7 +880,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -927,7 +927,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -963,7 +963,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(validSessionTokens)
+      Just(Void())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -1007,6 +1007,7 @@ private let validAccountAlternative: Account = .init(
 )
 
 private let validSessionTokens: NetworkSessionTokens = .init(
+  accountLocalID: validAccount.localID,
   accessToken: validJWTToken,
   refreshToken: "refresh_token"
 )

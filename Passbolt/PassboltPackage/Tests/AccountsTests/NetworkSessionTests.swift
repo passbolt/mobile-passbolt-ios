@@ -33,6 +33,7 @@ import XCTest
 final class NetworkSessionCreateSessionTests: TestCase {
 
   var networkClient: NetworkClient!
+  var accountsDataStore: AccountsDataStore!
   var verificationToken: UUID!
   var refreshToken: UUID!
   var domain: String!
@@ -43,6 +44,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     super.setUp()
 
     networkClient = .placeholder
+    accountsDataStore = .placeholder
 
     verificationToken = .test
     refreshToken = .test
@@ -110,15 +112,17 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_succeeds_withHappyPath() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: (accessToken: NetworkSessionTokens.AccessToken, refreshToken: NetworkSessionTokens.RefreshToken)?
+    var result: Void?
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -126,19 +130,17 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { sessionToken in
-          result = (
-            accessToken: sessionToken.accessToken,
-            refreshToken: sessionToken.refreshToken
-          )
+          result = Void()
         }
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.accessToken.rawValue, tokens.accessToken)
-    XCTAssertEqual(result?.refreshToken.rawValue, tokens.refreshToken)
+    XCTAssertNotNil(result)
   }
 
   func test_createSession_fails_whenSignInFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     networkClient.signInRequest.execute = always(
       Fail<SignInResponse, TheError>(error: .testError()).eraseToAnyPublisher()
     )
@@ -151,7 +153,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -171,8 +173,9 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_fails_withoutServerPGPPublicKey() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     networkClient.serverPGPPublicKeyRequest = .failingWith(.testError())
-
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
@@ -181,7 +184,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -201,6 +204,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_fails_withoutServerRSAPublicKey() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     networkClient.serverRSAPublicKeyRequest = .failingWith(.testError())
 
     features.use(networkClient)
@@ -211,7 +216,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -231,6 +236,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_fails_whenEncryptAndSignFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     features.environment.pgp.encryptAndSign = always(.failure(.testError()))
 
     features.use(networkClient)
@@ -241,7 +248,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -262,6 +269,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_fails_whenDecryptAndVerifyFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     features.environment.pgp.decryptAndVerify = always(.failure(.testError()))
 
     features.use(networkClient)
@@ -272,7 +281,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -293,6 +302,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_fails_whenSignatureVerificationFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     features.environment.signatureVerfication.verify = always(.failure(.testError()))
 
     features.use(networkClient)
@@ -303,7 +314,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -324,6 +335,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_fails_whenVerificationTokenIsInvalid() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
     tokens.verificationToken = "invalid"
 
     features.use(networkClient)
@@ -334,7 +347,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkSession
       .createSession(
-        "0",
+        validAccount,
         domain,
         pgpPrivateKey,
         passphrase
@@ -352,9 +365,236 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     XCTAssertEqual(result?.identifier, .signInError)
   }
+
+  func test_createMFAToken_doesNotStoreMFAToken_whenStoreLocallyFlagIsFalse() {
+    var result: MFAToken?
+    accountsDataStore.storeAccountMFAToken = { _, mfaToken in
+      result = mfaToken
+      return .success
+    }
+    features.use(accountsDataStore)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .totp("totp"),
+        false
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
+  }
+
+  func test_createMFAToken_storesMFAToken_whenStoreLocallyFlagIsTrue() {
+    var result: MFAToken?
+    accountsDataStore.storeAccountMFAToken = { _, mfaToken in
+      result = mfaToken
+      return .success
+    }
+    features.use(accountsDataStore)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .totp("totp"),
+        true
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .init(rawValue: "mfa_token"))
+  }
+
+  func test_createMFAToken_fails_whenTOTPRequestFails() {
+    features.use(accountsDataStore)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .totp("totp"),
+        true
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createMFAToken_fails_whenYubikeyOTPRequestFails() {
+    features.use(accountsDataStore)
+
+    networkClient.yubikeyAuthorizationRequest.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .yubikeyOTP("otp"),
+        true
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createMFAToken_fails_whenMFATokenStoreFails() {
+    accountsDataStore.storeAccountMFAToken = always(.failure(TheError.testError()))
+    features.use(accountsDataStore)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .totp("totp"),
+        true
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createMFAToken_succeeds_whenAllTOTPOperationsSucceed() {
+    accountsDataStore.storeAccountMFAToken = always(.success)
+    features.use(accountsDataStore)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: Void?
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .totp("totp"),
+        true
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          result = Void()
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+
+  func test_createMFAToken_succeeds_whenAllYubikeyOTPOperationsSucceed() {
+    accountsDataStore.storeAccountMFAToken = always(.success)
+    features.use(accountsDataStore)
+
+    networkClient.yubikeyAuthorizationRequest.execute = always(
+      Just(YubikeyAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: Void?
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .yubikeyOTP("otp"),
+        true
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          result = Void()
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
 }
 
 // MARK: Test data
+
+private let validAccount: Account = .init(
+  localID: .init(rawValue: UUID.test.uuidString),
+  domain: "https://localhost:8443",
+  userID: "f848277c-5398-58f8-a82a-72397af2d450",
+  fingerprint: "FINGERPRINT"
+)
 
 private let serverPGPPublicKey: ArmoredPGPPublicKey = """
   -----BEGIN PGP PUBLIC KEY BLOCK-----\nVersion: OpenPGP.js v4.6.2\nComment: https://openpgpjs.org\n\nxsBNBGBbRe0BCAC/VBEHj95tFp4ykmElcXNxdCcr0WOgSABVDNZVjyvt3ATG\nd8b6geoePfQX9TCDhzR4eoaRs/n5qpbvj6Kb4ZDxcsjAzn7b2Q3+flxg4+VD\nJOr79zEtqcKEmIIlecUPwy3E68oOPpe1CDwuOXI9dK/sOtLRTOWaQcBHIcs6\nw4IfZCnvrovIhuhaWJyA2xYA1MlIcpsK+x7c8snkv09wmzR06tT+i7jkd8Sc\n1j/rOOmSNgQxpCbVfSAiDN+MEGELveNOtrhdbprlB7m+q2tOiypEbnBYoL5v\nRPMDRzoew0duG18ITieFOa5OVXzvfjBdcoDeVl8iR/Kn7crmRYvAgyXVABEB\nAAHNGnRlc3QzIDx0ZXN0M0BwYXNzYm9sdC5jb20+wsB1BBABCAAfBQJgW0Xt\nBgsJBwgDAgQVCAoCAxYCAQIZAQIbAwIeAQAKCRCwLa3NlWXhuJiAB/0f4MKN\nKz7c5qdJjNGPvgExSfDLq1RIfR6pTrBCSpTxv+34n0hmjtS7GbFZWG+/eECs\n55GtFzORNBi589CgBBatNd0S7o5X1u4bau9NjahJ/gZXK8VOVWPleXPSnDmv\ngEeWGHKT+mvOvmS8n+iUdZI444a2s9Nk7OiL3r+q0OMvCOlc02sWhVCa0pE6\nk8ptHgRwdttfJY7UzmEcYvHNpnEgKexnlWCFSYTcXZtB3Gqja/j7+wyzK/Zh\nenRHRB9rwVmOKYlqtwsxZ9vpo9+Ca3kWMq4005FfKUOC+SZMN+19lG42pwrZ\n2/Isgoy4gNSoB/ZmrxcJ7K+lnSSXoRL4r8PNzsBNBGBbRe0BCADKZbs3Lwmv\needZfp/PKuBzrGEwkeTx5r1YwuUF53hWvLHCFH240NmSpgeLnpZsJuMP91yV\ns3EzAiPLbFqI803cQ1+URjciFuFycupcf9lgOsKbxodUz7ivORvmsuROg560\nByfEq69DSgIrRF1Z2aaCtLCFzw0q8lwYKR61ABpvr3rVEKfhsWF45m3esEJ1\neUYucJZ602/qv3Hfm/ephW5dlLn5f2GdKZW7PVbVt1AT62+6s8ges89FWA2F\niRFKf88uhJk1qR++V+uXPccVB6c/+nkO3GIWymKhECUxm62nQvytYlldTmb/\n8OeyBbhn0+ZbGT1bnkUr2POGP3CTA7o7ABEBAAHCwF8EGAEIAAkFAmBbRe0C\nGwwACgkQsC2tzZVl4biaCQgAuJTpcsh2UEqBHqmF6CyHbQz5WVdnXbpQebYb\nVQ3UQgSkEiUT9bwVnl/VMe3KiWlvdX+sLmIqFL9+RRB0eAHE8qgjlB8wf67t\nWwDftFh9vUNvFV1+72GFcN26GVCdVlTtkgDCvEDB/0/IMruGa7BpvD+LsPTJ\n9GUpdGtKXbhbH0QYCmp0CurLdJc0PnRNpUDXRQaZvYyBs8Kctjpbcxyd61/1\nS8t13+75XH/WMCZOXX2HZUm8/nj8CE2OV0z2pxfO08s4Q1DCpV72gnPzrr+E\n/iJQWd+b0qFaJvkjMNH//OoYx4K3ntlkofawTzfFIuBMJgwhvVXSKL/hE0F2\nWxHGgw==\n=bpWG\n-----END PGP PUBLIC KEY BLOCK-----\n\n

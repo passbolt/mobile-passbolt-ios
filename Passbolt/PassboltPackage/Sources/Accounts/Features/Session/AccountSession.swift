@@ -358,7 +358,7 @@ extension AccountSession: Feature {
       authorizationCancellable =
         networkSession
         .createSession(
-          account.userID,
+          account,
           account.domain,
           armoredPrivateKey,
           passphrase

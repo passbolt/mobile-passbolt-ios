@@ -21,25 +21,24 @@
 // @since         v1.0
 //
 
-public typealias EmptyNetworkSessionVariable = Void
+import Combine
 
-public struct NetworkSessionVariable {
+extension Publisher {
 
-  internal var domain: String
-
-  public init(domain: String) {
-    self.domain = domain
+  public func flatMapResult<Success>(
+    _ transform: @escaping (Output) -> Result<Success, Failure>
+  ) -> Publishers.SwitchToLatest<AnyPublisher<Success, Self.Failure>, Publishers.Map<Self, AnyPublisher<Success, Self.Failure>>> {
+    self.map { output -> AnyPublisher<Success, Failure> in
+      switch transform(output) {
+      case let .success(value):
+        return Just(value)
+          .setFailureType(to: Failure.self)
+          .eraseToAnyPublisher()
+      case let .failure(error):
+        return Fail(error: error)
+          .eraseToAnyPublisher()
+      }
+    }
+    .switchToLatest()
   }
-}
-
-public struct AuthorizedSessionVariable {
-
-  internal var domain: String
-  internal var authorizationToken: String
-  internal var mfaToken: String?
-}
-
-public struct DomainSessionVariable {
-
-  internal var domain: String
 }

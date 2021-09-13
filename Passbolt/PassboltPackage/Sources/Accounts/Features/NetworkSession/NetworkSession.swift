@@ -32,18 +32,27 @@ import class Foundation.JSONEncoder
 
 internal struct NetworkSession {
 
-  internal var createSession:
-    (
-      _ userID: Account.UserID,
+  internal var createSession: (
+      _ account: Account,
       _ domain: String,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) -> AnyPublisher<NetworkSessionTokens, TheError>
+    ) -> AnyPublisher<Void, TheError>
+  internal var createMFAToken: (
+    _ account: Account,
+    _ authorization: MFAAuthorization,
+    _ storeLocally: Bool
+  ) -> AnyPublisher<Void, TheError>
   internal var refreshSession: () -> AnyPublisher<NetworkSessionTokens, TheError>
   internal var closeSession: () -> AnyPublisher<Void, TheError>
 }
 
 extension NetworkSession {
+
+  public enum MFAAuthorization {
+    case yubikeyOTP(String)
+    case totp(String)
+  }
 
   fileprivate typealias ServerPublicKeys = (pgp: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey)
   fileprivate typealias ServerPublicKeysWithSignInChallenge = (
@@ -64,6 +73,7 @@ extension NetworkSession: Feature {
     let pgp: PGP = environment.pgp
     let signatureVerification: SignatureVerfication = environment.signatureVerfication
 
+    let accountDataStore: AccountsDataStore = features.instance()
     let networkClient: NetworkClient = features.instance()
 
     let sessionTokensSubject: CurrentValueSubject<NetworkSessionTokens?, Never> = .init(nil)
@@ -191,14 +201,17 @@ extension NetworkSession: Feature {
 
     func signIn(
       userID: Account.UserID,
-      challenge: ArmoredPGPMessage
+      challenge: ArmoredPGPMessage,
+      mfaToken: MFAToken?
     ) -> AnyPublisher<String, TheError> {
-      networkClient
+      #warning("TODO: [PAS-317] - handle MFA required after login - decode from response body")
+      return networkClient
         .signInRequest
         .make(
           using: .init(
             userID: userID.rawValue,
-            challenge: challenge
+            challenge: challenge,
+            mfaToken: mfaToken
           )
         )
         .map(\.body.challenge)
@@ -252,13 +265,15 @@ extension NetworkSession: Feature {
     func signInAndDecryptVerifyResponse(
       userID: Account.UserID,
       signInChallenge: ArmoredPGPMessage,
+      mfaToken: MFAToken?,
       serverPublicPGPKey: ArmoredPGPPublicKey,
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Tokens, TheError> {
       signIn(
         userID: userID,
-        challenge: signInChallenge
+        challenge: signInChallenge,
+        mfaToken: mfaToken
       )
       .map { (encryptedResponsePayload: String) -> AnyPublisher<Tokens, TheError> in
         decryptVerifyResponse(
@@ -274,7 +289,9 @@ extension NetworkSession: Feature {
     }
 
     func decodeVerifySignInTokens(
+      account: Account,
       signInTokens: Tokens,
+      mfaToken: MFAToken?,
       serverPublicRSAKey: ArmoredRSAPublicKey,
       verificationToken: String,
       challengeExpiration: Int
@@ -310,8 +327,10 @@ extension NetworkSession: Feature {
       case .success:
         return Just(
           NetworkSessionTokens(
+            accountLocalID: account.localID,
             accessToken: accessToken,
-            refreshToken: NetworkSessionTokens.RefreshToken(rawValue: signInTokens.refreshToken)
+            refreshToken: NetworkSessionTokens.RefreshToken(rawValue: signInTokens.refreshToken),
+            mfaToken: mfaToken
           )
         )
         .setFailureType(to: TheError.self)
@@ -327,14 +346,18 @@ extension NetworkSession: Feature {
     }
 
     func createSession(
-      userID: Account.UserID,
+      account: Account,
       domain: String,
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<NetworkSessionTokens, TheError> {
+    ) -> AnyPublisher<Void, TheError> {
       let verificationToken: String = uuidGenerator().uuidString
       let challengeExpiration: Int  // 120s is verification token's lifetime
       = time.timestamp() + 120
+
+      let mfaToken: MFAToken? = try? accountDataStore
+        .loadAccountMFAToken(account.localID)
+        .get() // we don't care about the errors here
 
       return fetchServerPublicKeys()
         .map { (serverPublicKeys: ServerPublicKeys) -> AnyPublisher<ServerPublicKeysWithSignInChallenge, TheError> in
@@ -360,8 +383,9 @@ extension NetworkSession: Feature {
             ServerPublicKeysWithSignInTokens, TheError
           > in
           signInAndDecryptVerifyResponse(
-            userID: userID,
+            userID: account.userID,
             signInChallenge: signInChallenge,
+            mfaToken: mfaToken,
             serverPublicPGPKey: serverPublicKeys.pgp,
             armoredPrivateKey: armoredPrivateKey,
             passphrase: passphrase
@@ -378,7 +402,9 @@ extension NetworkSession: Feature {
         .map {
           (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens) -> AnyPublisher<NetworkSessionTokens, TheError> in
           decodeVerifySignInTokens(
+            account: account,
             signInTokens: signInTokens,
+            mfaToken: mfaToken,
             serverPublicRSAKey: serverPublicKeys.rsa,
             verificationToken: verificationToken,
             challengeExpiration: challengeExpiration
@@ -388,7 +414,54 @@ extension NetworkSession: Feature {
         .handleEvents(receiveOutput: { (tokens: NetworkSessionTokens) in
           sessionTokensSubject.send(tokens)
         })
+        .mapToVoid()
         .eraseToAnyPublisher()
+    }
+
+    func createMFAToken(
+      account: Account,
+      authorization: MFAAuthorization,
+      storeLocally: Bool
+    ) -> AnyPublisher<Void, TheError> {
+      switch authorization {
+      case let .totp(otp):
+        return networkClient
+          .totpAuthorizationRequest
+          .make(using: .init(totp: otp))
+          .map(\.mfaToken)
+          .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
+            if storeLocally {
+              return accountDataStore
+                .storeAccountMFAToken(account.localID, token)
+                .map {
+                  sessionTokensSubject.value?.mfaToken = token
+                }
+            } else {
+              sessionTokensSubject.value?.mfaToken = token
+              return .success
+            }
+          }
+          .eraseToAnyPublisher()
+
+      case let .yubikeyOTP(otp):
+        return networkClient
+          .yubikeyAuthorizationRequest
+          .make(using: .init(otp: otp))
+          .map(\.mfaToken)
+          .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
+            if storeLocally {
+              return accountDataStore
+                .storeAccountMFAToken(account.localID, token)
+                .map {
+                  sessionTokensSubject.value?.mfaToken = token
+                }
+            } else {
+              sessionTokensSubject.value?.mfaToken = token
+              return .success
+            }
+          }
+          .eraseToAnyPublisher()
+      }
     }
 
     func refreshSession() -> AnyPublisher<NetworkSessionTokens, TheError> {
@@ -426,7 +499,8 @@ extension NetworkSession: Feature {
     }
 
     return Self(
-      createSession: createSession(userID:domain:armoredPrivateKey:passphrase:),
+      createSession: createSession(account:domain:armoredPrivateKey:passphrase:),
+      createMFAToken: createMFAToken(account:authorization:storeLocally:),
       refreshSession: refreshSession,
       closeSession: closeSession
     )
@@ -439,6 +513,7 @@ extension NetworkSession {
   internal static var placeholder: Self {
     Self(
       createSession: Commons.placeholder("You have to provide mocks for used methods"),
+      createMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
       refreshSession: Commons.placeholder("You have to provide mocks for used methods"),
       closeSession: Commons.placeholder("You have to provide mocks for used methods")
     )

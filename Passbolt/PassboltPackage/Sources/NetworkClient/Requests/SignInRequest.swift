@@ -39,7 +39,13 @@ extension SignInRequest {
           .url(string: sessionVariable.domain),
           .path("/auth/jwt/login.json"),
           .method(.post),
-          .jsonBody(from: requestVariable)
+          .whenSome(
+            requestVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          ),
+          .jsonBody(from: requestVariable.signInRequestBody)
         )
       },
       responseDecoder: .bodyAsJSON(),
@@ -49,12 +55,39 @@ extension SignInRequest {
   }
 }
 
-public struct SignInRequestVariable: Encodable {
+public struct SignInRequestVariable {
 
   public var userID: String
   public var challenge: ArmoredPGPMessage
+  public var mfaToken: MFAToken?
 
-  public init(userID: String, challenge: ArmoredPGPMessage) {
+  public init(
+    userID: String,
+    challenge: ArmoredPGPMessage,
+    mfaToken: MFAToken?
+  ) {
+    self.userID = userID
+    self.challenge = challenge
+    self.mfaToken = mfaToken
+  }
+
+  fileprivate var signInRequestBody: SignInRequestBody {
+    SignInRequestBody(
+      userID: userID,
+      challenge: challenge
+    )
+  }
+}
+
+private struct SignInRequestBody: Encodable {
+
+  fileprivate var userID: String
+  fileprivate var challenge: ArmoredPGPMessage
+
+  fileprivate init(
+    userID: String,
+    challenge: ArmoredPGPMessage
+  ) {
     self.userID = userID
     self.challenge = challenge
   }

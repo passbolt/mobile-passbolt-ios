@@ -21,25 +21,7 @@
 // @since         v1.0
 //
 
-public typealias EmptyNetworkSessionVariable = Void
+import Commons
 
-public struct NetworkSessionVariable {
-
-  internal var domain: String
-
-  public init(domain: String) {
-    self.domain = domain
-  }
-}
-
-public struct AuthorizedSessionVariable {
-
-  internal var domain: String
-  internal var authorizationToken: String
-  internal var mfaToken: String?
-}
-
-public struct DomainSessionVariable {
-
-  internal var domain: String
-}
+public enum MFATokenTag {}
+public typealias MFAToken = Tagged<String, MFATokenTag>

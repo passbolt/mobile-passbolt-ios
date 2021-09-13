@@ -29,6 +29,8 @@ public struct NetworkSessionTokens {
   public typealias AccessToken = JWT
   public typealias RefreshToken = Tagged<String, Self>
 
+  public let accountLocalID: Account.LocalID
   public var accessToken: AccessToken
   public var refreshToken: RefreshToken
+  public var mfaToken: MFAToken?
 }

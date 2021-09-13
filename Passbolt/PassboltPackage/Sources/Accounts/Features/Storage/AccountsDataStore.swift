@@ -39,6 +39,9 @@ internal struct AccountsDataStore {
   internal var storeAccountPassphrase: (Account.LocalID, Passphrase) -> Result<Void, TheError>
   internal var loadAccountPassphrase: (Account.LocalID) -> Result<Passphrase, TheError>
   internal var deleteAccountPassphrase: (Account.LocalID) -> Result<Void, TheError>
+  internal var storeAccountMFAToken: (Account.LocalID, MFAToken) -> Result<Void, TheError>
+  internal var loadAccountMFAToken: (Account.LocalID) -> Result<MFAToken?, TheError>
+  internal var deleteAccountMFAToken: (Account.LocalID) -> Result<Void, TheError>
   internal var loadAccountProfile: (Account.LocalID) -> Result<AccountProfile, TheError>
   internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
   internal var deleteAccount: (Account.LocalID) -> Void
@@ -125,6 +128,25 @@ extension AccountsDataStore: Feature {
       diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
       timeMeasurement.event("Account profiles loaded")
 
+
+      // storedAccountMFATokens - keychain accounts mfa tokens
+      let storedAccountMFATokens: Array<Account.LocalID>
+      switch keychain.loadMeta(matching: .accountMFATokenQuery()) {
+      case let .success(accounts):
+        storedAccountMFATokens = accounts
+          .compactMap(\.tag?.rawValue)
+          .map(Account.LocalID.init(rawValue:))
+      case let .failure(error):
+        diagnostics.diagnosticLog(
+          "Failed to load account mfa tokens data, recovering with empty list"
+        )
+        diagnostics.debugLog(error.description)
+        forceDelete(matching: .accountsProfilesQuery)
+        storedAccountMFATokens = .init()
+      }
+      diagnostics.debugLog("Stored account mfa tokens: \(storedAccountMFATokens)")
+      timeMeasurement.event("Account mfa tokens loaded")
+
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
       let armoredKeysQuery: KeychainQuery = .init(
@@ -200,6 +222,26 @@ extension AccountsDataStore: Feature {
       }
       diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
       timeMeasurement.event("Account profiles cleaned")
+
+
+      let mfaTokensToRemove: Array<Account.LocalID> =
+        storedAccountMFATokens
+        .filter { !updatedAccountsList.contains($0) }
+
+      for accountID in mfaTokensToRemove {
+        switch keychain.delete(matching: .accountMFATokenQuery(for: accountID)) {
+        case .success:
+          continue
+        case let .failure(error):
+          diagnostics.diagnosticLog(
+            "Failed to delete account mfa token"
+          )
+          diagnostics.debugLog(error.description)
+          return .failure(error)
+        }
+      }
+      diagnostics.debugLog("Deleted account mfa tokens: \(mfaTokensToRemove)")
+      timeMeasurement.event("Account mfa tokens cleaned")
 
       let keysToRemove: Array<Account.LocalID> =
         storedAccountKeys
@@ -582,6 +624,32 @@ extension AccountsDataStore: Feature {
         }
     }
 
+    func storeAccountMFAToken(
+      accountID: Account.LocalID,
+      token: MFAToken
+    ) -> Result<Void, TheError> {
+      environment
+        .keychain
+        .save(token, for: .accountMFATokenQuery(for: accountID))
+    }
+
+    func loadAccountMFAToken(
+      accountID: Account.LocalID
+    ) -> Result<MFAToken?, TheError> {
+      environment
+        .keychain
+        .loadFirst(matching: .accountMFATokenQuery(for: accountID))
+    }
+
+    func deleteAccountMFAToken(
+      accountID: Account.LocalID
+    ) -> Result<Void, TheError> {
+      environment
+        .keychain
+        .delete(matching: .accountMFATokenQuery(for: accountID))
+    }
+
+
     func loadAccountProfile(
       for accountID: Account.LocalID
     ) -> Result<AccountProfile, TheError> {
@@ -669,6 +737,11 @@ extension AccountsDataStore: Feature {
         environment
           .keychain
           .delete(matching: .accountArmoredKeyQuery(for: accountID))
+      )
+      results.append(
+        environment
+          .keychain
+          .delete(matching: .accountMFATokenQuery(for: accountID))
       )
       results.append(
         environment
@@ -763,6 +836,9 @@ extension AccountsDataStore: Feature {
       storeAccountPassphrase: storePassphrase(for:passphrase:),
       loadAccountPassphrase: loadPassphrase(for:),
       deleteAccountPassphrase: deletePassphrase(for:),
+      storeAccountMFAToken: storeAccountMFAToken(accountID:token:),
+      loadAccountMFAToken: loadAccountMFAToken(accountID:),
+      deleteAccountMFAToken: deleteAccountMFAToken(accountID:),
       loadAccountProfile: loadAccountProfile(for:),
       updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
@@ -783,6 +859,9 @@ extension AccountsDataStore: Feature {
       storeAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
       loadAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
+      storeAccountMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
+      loadAccountMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
+      deleteAccountMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
       loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
@@ -892,6 +971,20 @@ extension KeychainQuery {
     return Self(
       key: "accountPassphrase",
       tag: .init(rawValue: identifier.rawValue),
+      requiresBiometrics: false
+    )
+  }
+
+  fileprivate static func accountMFATokenQuery(
+    for identifier: Account.LocalID? = nil
+  ) -> Self {
+    assert(
+      identifier == nil || !(identifier?.rawValue.isEmpty ?? false),
+      "Cannot use empty account identifiers for database operations"
+    )
+    return Self(
+      key: "accountMFAToken",
+      tag: (identifier?.rawValue).map(KeychainQuery.Tag.init(rawValue:)),
       requiresBiometrics: false
     )
   }

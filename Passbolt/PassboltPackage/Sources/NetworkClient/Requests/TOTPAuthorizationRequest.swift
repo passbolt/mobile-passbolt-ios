@@ -22,16 +22,17 @@
 //
 
 import Commons
+import Crypto
 import Environment
 
-public typealias RefreshSessionRequest =
-  NetworkRequest<DomainSessionVariable, RefreshSessionRequestVariable, RefreshSessionResponse>
+public typealias TOTPAuthorizationRequest =
+  NetworkRequest<AuthorizedSessionVariable, TOTPAuthorizationRequestVariable, TOTPAuthorizationResponse>
 
-extension RefreshSessionRequest {
+extension TOTPAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -39,34 +40,72 @@ extension RefreshSessionRequest {
           .url(string: sessionVariable.domain),
           .path("/auth/jwt/refresh.json"),
           .method(.post),
+          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
           .jsonBody(from: requestVariable)
-          // warning - missing MFA token
         )
       },
-      responseDecoder: .bodyAsJSON(),
+      responseDecoder: .mfaCookie,
       using: networking,
       with: sessionVariablePublisher
     )
   }
 }
 
-public struct RefreshSessionRequestVariable: Encodable {
+public struct TOTPAuthorizationRequestVariable: Encodable {
 
-  public var userID: String
-  public var refreshToken: String
+  public var totp: String
 
   private enum CodingKeys: String, CodingKey {
-    case userID = "user_id"
-    case refreshToken = "refresh_token"
+    case totp = "totp"
   }
 
   public init(
-    userID: String,
-    refreshToken: String
+    totp: String
   ) {
-    self.userID = userID
-    self.refreshToken = refreshToken
+    self.totp = totp
   }
 }
 
-public typealias RefreshSessionResponse = CommonResponse<SignInResponseBody>
+public struct TOTPAuthorizationResponse {
+
+  public var mfaToken: MFAToken
+
+  public init(
+    mfaToken: MFAToken
+  ) {
+    self.mfaToken = mfaToken
+  }
+}
+
+extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
+
+  fileprivate static var mfaCookie: Self {
+    Self { httpResponse in
+      if
+        let cookieHeaderValue: String = httpResponse.headers["Set-cookie"],
+        let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+      {
+        return .success(
+          .init(
+            mfaToken: .init(
+              rawValue: String(
+                cookieHeaderValue[mfaCookieBounds.upperBound...]
+                  .prefix(
+                    while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+                  )
+              )
+            )
+          )
+        )
+      } else {
+        return .failure(
+          .networkResponseDecodingFailed(
+            underlyingError: nil,
+            rawNetworkResponse: httpResponse
+          )
+        )
+      }
+    }
+  }
+}
+

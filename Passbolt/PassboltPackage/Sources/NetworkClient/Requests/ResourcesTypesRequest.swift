@@ -42,6 +42,12 @@ extension ResourcesTypesRequest {
           .url(string: sessionVariable.domain),
           .path("/resource-types.json"),
           .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .whenSome(
+            sessionVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          ),
           .method(.get)
         )
       },
