@@ -139,11 +139,13 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
   }
 
   public func setupView() {
-    let content: Content = components.instance(in: controller.contentContext)
-
-    addChild(content)
-    contentView.setContent(view: content.view)
-    content.didMove(toParent: self)
+    addChild(
+      Content.self,
+      in: controller.contentContext,
+      viewSetup: { parentView, childView in
+        parentView.setContent(view: childView)
+      }
+    )
 
     setupSubscriptions()
   }

@@ -279,4 +279,151 @@ extension UIComponent {
     CATransaction.commit()
     return true
   }
+
+  public func addChild<Component>(
+    _ type: Component.Type,
+    viewSetup: (_ parent: Self.View, _ child: Component.View) -> Void,
+    animations: ((_ parent: Self.View, _ child: Component.View) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent, Component.Controller.Context == Void {
+    addChild(
+      type,
+      in: Void(),
+      viewSetup: viewSetup,
+      animations: animations,
+      completion: completion
+    )
+  }
+
+  public func addChild<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.Context,
+    viewSetup: (_ parent: Self.View, _ child: Component.View) -> Void,
+    animations: ((_ parent: Self.View, _ child: Component.View) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    let childComponent: Component = components
+      .instance(
+        of: Component.self,
+        in: context
+      )
+
+    addChild(childComponent)
+    childComponent.loadViewIfNeeded()
+    viewSetup(self.contentView, childComponent.contentView)
+    if let animations = animations {
+      UIView.animate(
+        withDuration: 0.3,
+        delay: 0,
+        options: [.beginFromCurrentState, .allowUserInteraction],
+        animations: {
+          animations(self.contentView, childComponent.contentView)
+        },
+        completion: { _ in
+          childComponent.didMove(toParent: self)
+          completion?()
+        }
+      )
+    } else {
+      childComponent.didMove(toParent: self)
+      completion?()
+    }
+  }
+
+  public func replaceChild<Replaced, Replacing>(
+    _ replaced: Replaced.Type,
+    with replacing: Replacing.Type,
+    viewSetup: (_ parent: Self.View, _ replacing: Replacing.View) -> Void,
+    animations: ((_ parent: Self.View, _ replacing: Replacing.View, _ replaced: Replaced.View) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) where Replaced: UIComponent, Replacing: UIComponent, Replacing.Controller.Context == Void {
+    replaceChild(
+      replaced,
+      with: replacing,
+      in: Void(),
+      viewSetup: viewSetup,
+      animations: animations,
+      completion: completion
+    )
+  }
+
+  public func replaceChild<Replaced, Replacing>(
+    _ replaced: Replaced.Type,
+    with replacing: Replacing.Type,
+    in context: Replacing.Controller.Context,
+    viewSetup: (_ parent: Self.View, _ replacing: Replacing.View) -> Void,
+    animations: ((_ parent: Self.View, _ replacing: Replacing.View, _ replaced: Replaced.View) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) where Replaced: UIComponent, Replacing: UIComponent {
+    let matchingComponents: Array<Replaced> = children.compactMap { $0 as? Replaced }
+    assert(matchingComponents.count == 1, "Cannot replace non existing or ambiguous child")
+    guard let replacedComponent: Replaced = matchingComponents.first
+    else { return }
+
+    replacedComponent.willMove(toParent: nil)
+
+    let replacingComponent: Replacing = components
+      .instance(
+        of: Replacing.self,
+        in: context
+      )
+
+    addChild(replacingComponent)
+    replacingComponent.loadViewIfNeeded()
+    viewSetup(self.contentView, replacingComponent.contentView)
+
+    if let animations = animations {
+      UIView.animate(
+        withDuration: 0.3,
+        delay: 0,
+        options: [.beginFromCurrentState, .allowUserInteraction],
+        animations: {
+          animations(self.contentView, replacingComponent.contentView, replacedComponent.contentView)
+        },
+        completion: { _ in
+          replacedComponent.view.removeFromSuperview()
+          replacedComponent.removeFromParent()
+          replacingComponent.didMove(toParent: self)
+          completion?()
+        }
+      )
+    } else {
+      replacedComponent.view.removeFromSuperview()
+      replacedComponent.removeFromParent()
+      replacingComponent.didMove(toParent: self)
+      completion?()
+    }
+  }
+
+  public func removeAllChildren<Component>(
+    _ type: Component.Type,
+    animations: ((_ parent: Self.View, _ removed: Component.View) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    children
+      .compactMap { $0 as? Component }
+      .forEach { child in
+        child.willMove(toParent: nil)
+        if let animations = animations {
+          UIView.animate(
+            withDuration: 0.3,
+            delay: 0,
+            options: [.beginFromCurrentState, .allowUserInteraction],
+            animations: {
+              animations(self.contentView, child.contentView)
+            },
+            completion: { _ in
+              child.view.removeFromSuperview()
+              child.removeFromParent()
+            }
+          )
+        } else {
+          child.view.removeFromSuperview()
+          child.removeFromParent()
+        }
+      }
+    CATransaction.commit()
+  }
 }

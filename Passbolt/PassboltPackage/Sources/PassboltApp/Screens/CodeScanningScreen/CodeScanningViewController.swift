@@ -94,10 +94,12 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
   }
 
   private func setupCodeReaderView() {
-    let codeReader: CodeReaderViewController = components.instance()
-    addChild(codeReader)
-    contentView.set(embeded: codeReader.view)
-    codeReader.didMove(toParent: self)
+    addChild(
+      CodeReaderViewController.self,
+      viewSetup: { parentView, childView in
+        parentView.set(embeded: childView)
+      }
+    )
   }
 
   private func setupSubscriptions() {

@@ -117,11 +117,12 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
   }
 
   private func setupResourcesListView() {
-    let resourcesList: ResourcesListViewController =
-      components
-      .instance(in: controller.resourcesFilterPublisher())
-    addChild(resourcesList)
-    contentView.setResourcesView(resourcesList.view)
-    resourcesList.didMove(toParent: self)
+    addChild(
+      ResourcesListViewController.self,
+      in: controller.resourcesFilterPublisher(),
+      viewSetup: { parentView, childView in
+        parentView.setResourcesView(childView)
+      }
+    )
   }
 }
