@@ -25,6 +25,7 @@ import Environment
 
 public struct Pasteboard {
 
+  public var get: () -> String?
   public var put: (String?) -> Void
 }
 
@@ -36,6 +37,7 @@ extension Pasteboard: Feature {
       let systemPasteboard: SystemPasteboard = environment.systemPasteboard
 
       return Self(
+        get: systemPasteboard.get,
         put: systemPasteboard.put
       )
   }
@@ -47,6 +49,7 @@ extension Pasteboard {
 
   public static var placeholder: Pasteboard {
     Self(
+      get: Commons.placeholder("You have to provide mocks for used methods"),
       put: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

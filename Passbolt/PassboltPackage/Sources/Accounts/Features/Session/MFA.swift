@@ -52,7 +52,6 @@ extension MFA: Feature {
               .switchToLatest()
               .eraseToAnyPublisher()
           case .none, .authorizationRequired:
-            assertionFailure("This should not happen")
             return Fail(error: .authorizationRequired())
               .eraseToAnyPublisher()
           }
@@ -68,7 +67,6 @@ extension MFA: Feature {
           case let .authorizedMFARequired(account), let .authorized(account):
             return networkSession.createMFAToken(account, .totp(totp), saveLocally)
           case .none, .authorizationRequired:
-            assertionFailure("This should not happen")
             return Fail(error: .authorizationRequired())
               .eraseToAnyPublisher()
           }

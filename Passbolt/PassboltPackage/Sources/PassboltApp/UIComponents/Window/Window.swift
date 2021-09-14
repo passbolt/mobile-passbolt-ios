@@ -124,11 +124,11 @@ internal final class Window {
             else { unreachable("Window root has to be an instance of UIComponent") }
             self.screenStateCache = rootComponent
 
-            #warning("TODO: [PAS-318]/[PAS-315] - navigate to proper screen")
             self.replaceRoot(
               with: self.components
                 .instance(
-                  of: PlaceholderViewController.self
+                  of: PlainNavigationViewController<MFARootViewController>.self,
+                  in: providers
                 )
             )
           }

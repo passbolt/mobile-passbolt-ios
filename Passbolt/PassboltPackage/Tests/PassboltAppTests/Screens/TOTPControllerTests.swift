@@ -32,31 +32,32 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class TOTPScreenTests: TestCase {
+final class TOTPControllerTests: TestCase {
 
-  var accountDataStore: AccountsDataStore!
   var networkClient: NetworkClient!
   var accounts: Accounts!
   var mfa: MFA!
+  var pasteboard: Pasteboard!
 
   override func setUp() {
     super.setUp()
-    accountDataStore = .placeholder
     networkClient = .placeholder
     accounts = .placeholder
     mfa = .placeholder
+    pasteboard = .placeholder
   }
 
   override func tearDown() {
-    accountDataStore = nil
     networkClient = nil
     accounts = nil
     mfa = nil
+    pasteboard = nil
     super.tearDown()
   }
 
   func test_statusChangePublisher_doesNotPublish_initially() {
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -73,6 +74,7 @@ final class TOTPScreenTests: TestCase {
 
   func test_statusChangePublisher_doesNotPublish_whenOTPIsShorterThanRequired() {
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -95,6 +97,7 @@ final class TOTPScreenTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -120,6 +123,7 @@ final class TOTPScreenTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -143,6 +147,7 @@ final class TOTPScreenTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -162,7 +167,8 @@ final class TOTPScreenTests: TestCase {
   }
 
   func test_statusChangePublisher_publishError_whenPastingOTPWithInvalidCharacters() {
-    environment.systemPasteboard.get = always("123abc")
+    pasteboard.get = always("123abc")
+    features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
       PassthroughSubject<Void, TheError>()
@@ -188,7 +194,8 @@ final class TOTPScreenTests: TestCase {
   }
 
   func test_statusChangePublisher_publishError_whenPastingTooLongOTP() {
-    environment.systemPasteboard.get = always("123456789")
+    pasteboard.get = always("123456789")
+    features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
       PassthroughSubject<Void, TheError>()
@@ -221,6 +228,7 @@ final class TOTPScreenTests: TestCase {
         .eraseToAnyPublisher()
     }
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -237,6 +245,7 @@ final class TOTPScreenTests: TestCase {
         .eraseToAnyPublisher()
     }
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -246,7 +255,8 @@ final class TOTPScreenTests: TestCase {
   }
 
   func test_pasteOTP_doesNotStartProcessing_whenPastedOTPIsShorterThanRequired() {
-    environment.systemPasteboard.get = always("12345")
+    pasteboard.get = always("12345")
+    features.use(pasteboard)
 
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
@@ -264,7 +274,8 @@ final class TOTPScreenTests: TestCase {
   }
 
   func test_pasteOTP_startsProcessing_whenPastedOTPMeetsRequirements() {
-    environment.systemPasteboard.get = always("123456")
+    pasteboard.get = always("123456")
+    features.use(pasteboard)
 
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
@@ -282,7 +293,8 @@ final class TOTPScreenTests: TestCase {
   }
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPHasInvalidCharacters() {
-    environment.systemPasteboard.get = always("123abc")
+    pasteboard.get = always("123abc")
+    features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
       PassthroughSubject<Void, TheError>()
@@ -306,7 +318,8 @@ final class TOTPScreenTests: TestCase {
   }
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPIsTooLong() {
-    environment.systemPasteboard.get = always("123456789")
+    pasteboard.get = always("123456789")
+    features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
       PassthroughSubject<Void, TheError>()
@@ -331,6 +344,7 @@ final class TOTPScreenTests: TestCase {
 
   func test_rememberDevicePublisher_publishesTrue_initially() {
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -347,6 +361,7 @@ final class TOTPScreenTests: TestCase {
 
   func test_toggleRememberDevice_togglesRememberDevice() {
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 
@@ -365,6 +380,7 @@ final class TOTPScreenTests: TestCase {
 
   func test_otpPublisher_publishesEmptyString_initially() {
     features.use(mfa)
+    features.use(pasteboard)
 
     let controller: TOTPController = testInstance()
 

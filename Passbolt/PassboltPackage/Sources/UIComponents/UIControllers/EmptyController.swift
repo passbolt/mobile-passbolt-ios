@@ -23,11 +23,15 @@
 
 public struct EmptyController<Context>: UIController {
 
+  public var context: Context
+
   public static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> EmptyController<Context> {
-    Self()
+    Self(
+      context: context
+    )
   }
 }

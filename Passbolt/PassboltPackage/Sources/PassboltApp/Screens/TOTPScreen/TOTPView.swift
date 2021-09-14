@@ -31,14 +31,13 @@ internal final class TOTPView: KeyboardAwareView {
   internal var rememberDeviceToggleTapPublisher: AnyPublisher<Void, Never>
 
   private let otpInput: OTPInput = .init(length: TOTPController.otpLength)
-  private let rememberDeviceSwitch: UISwitch = .init()
-  private let rememberDeviceToggle: Button = .init()
+  private let labeledSwitch: LabeledSwitch = .init()
 
   internal required init() {
     otpPublisher = otpInput.textPublisher
     let pasteOTPButton: Button = .init()
     pasteOTPTapPublisher = pasteOTPButton.tapPublisher
-    rememberDeviceToggleTapPublisher = rememberDeviceToggle.tapPublisher
+    rememberDeviceToggleTapPublisher = labeledSwitch.togglePublisher
     super.init()
 
     mut(self) {
@@ -73,10 +72,12 @@ internal final class TOTPView: KeyboardAwareView {
     mut(titleLabel) {
       .combined(
         .font(.inter(ofSize: 32, weight: .regular)),
-        .tintColor(dynamic: .primaryText),
+        .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .numberOfLines(1),
         .text(localized: "totp.title.label"),
+        .set(\.adjustsFontSizeToFitWidth, to: true),
+        .set(\.minimumScaleFactor, to: 0.5),
         .subview(of: self),
         .topAnchor(.equalTo, imageContainer.bottomAnchor, constant: 24),
         .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
@@ -88,7 +89,7 @@ internal final class TOTPView: KeyboardAwareView {
     mut(messageLabel) {
       .combined(
         .font(.inter(ofSize: 16, weight: .regular)),
-        .tintColor(dynamic: .primaryText),
+        .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .numberOfLines(1),
         .text(localized: "totp.message.label"),
@@ -121,7 +122,7 @@ internal final class TOTPView: KeyboardAwareView {
     let pasteOTPLabel: Label = .init()
     mut(pasteOTPLabel) {
       .combined(
-        .font(.inter(ofSize: 16, weight: .regular)),
+        .font(.inter(ofSize: 16, weight: .medium)),
         .textColor(dynamic: .primaryBlue),
         .textAlignment(.natural),
         .numberOfLines(1),
@@ -146,51 +147,24 @@ internal final class TOTPView: KeyboardAwareView {
       )
     }
 
-    let rememberDeviceContainer: View = .init()
-    mut(rememberDeviceContainer) {
+    mut(labeledSwitch) {
       .combined(
         .subview(of: self),
         .topAnchor(.equalTo, pasteOTPButton.bottomAnchor, constant: 96),
         .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
         .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
-        .bottomAnchor(.lessThanOrEqualTo, bottomAnchor, constant: -16)
-      )
-    }
-
-    let rememberDeviceLabel: Label = .init()
-    mut(rememberDeviceLabel) {
-      .combined(
-        .font(.inter(ofSize: 16, weight: .regular)),
-        .textColor(dynamic: .primaryText),
-        .textAlignment(.natural),
-        .numberOfLines(1),
-        .text(localized: "totp.remember.device.toggle.label"),
-        .subview(of: rememberDeviceContainer),
-        .topAnchor(.equalTo, rememberDeviceContainer.topAnchor),
-        .leadingAnchor(.equalTo, rememberDeviceContainer.leadingAnchor),
-        .bottomAnchor(.equalTo, rememberDeviceContainer.bottomAnchor)
-      )
-    }
-
-    mut(rememberDeviceToggle) {
-      .combined(
-        .backgroundColor(.clear),
-        .subview(of: rememberDeviceContainer),
-        .topAnchor(.equalTo, rememberDeviceContainer.topAnchor),
-        .leadingAnchor(.greaterThanOrEqualTo, rememberDeviceLabel.trailingAnchor, constant: 8),
-        .trailingAnchor(.equalTo, rememberDeviceContainer.trailingAnchor),
-        .bottomAnchor(.equalTo, rememberDeviceContainer.bottomAnchor)
-      )
-    }
-
-    mut(rememberDeviceSwitch) {
-      .combined(
-        .userInteractionEnabled(false),
-        .subview(of: rememberDeviceToggle),
-        .edges(
-          equalTo: rememberDeviceToggle,
-          insets: .init(top: 0, left: 0, bottom: 0, right: -3)
-        )
+        .bottomAnchor(.lessThanOrEqualTo, bottomAnchor, constant: -16),
+        .custom { (labeledSwitch: LabeledSwitch) in
+          labeledSwitch.applyOn(
+            label: .combined(
+              .font(.inter(ofSize: 14, weight: .semibold)),
+              .textColor(dynamic: .primaryText),
+              .textAlignment(.natural),
+              .numberOfLines(1),
+              .text(localized: "totp.remember.device.toggle.label")
+            )
+          )
+        }
       )
     }
   }
@@ -200,6 +174,6 @@ internal final class TOTPView: KeyboardAwareView {
   }
 
   internal func update(rememberDevice: Bool) {
-    rememberDeviceSwitch.setOn(rememberDevice, animated: window != nil)
+    labeledSwitch.update(isOn: rememberDevice)
   }
 }

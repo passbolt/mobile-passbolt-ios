@@ -403,4 +403,26 @@ extension DynamicImage {
       }
     }
   }
+
+  public static var yubikeyLogo: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "YubikeyLogo",
+          in: .uiCommons,
+          with: nil
+        )!
+
+      case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "YubikeyLogo",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
 }

@@ -78,7 +78,7 @@ public final class OTPInput: UIControl, UIKeyInput {
       .map { _ in
         Mutation<Label>
           .combined(
-            .font(.inter(ofSize: 36, weight: .regular)),
+            .font(.inter(ofSize: 36, weight: .semibold)),
             .textColor(dynamic: .primaryText),
             .textAlignment(.center),
             .text("_"),

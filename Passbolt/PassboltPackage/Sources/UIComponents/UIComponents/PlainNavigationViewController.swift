@@ -21,40 +21,40 @@
 // @since         v1.0
 //
 
-import Commons
+import Foundation
 
-public struct Yubikey: EnvironmentElement {
+public final class PlainNavigationViewController<Content: UIComponent>: NavigationViewController, UIComponent {
 
-  public var readNFC: () -> AnyPublisher<String, TheError>
+  public typealias Controller = EmptyController<Content.Controller.Context>
 
-  public init(
-    readNFC: @escaping () -> AnyPublisher<String, TheError>
-  ) {
-    self.readNFC = readNFC
-  }
-}
-
-extension Environment {
-
-  public var yubikey: Yubikey {
-    get { element(Yubikey.self) }
-    set { use(newValue) }
-  }
-}
-
-extension Yubikey {
-
-  public static func unavailable() -> Self {
+  public static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
     Self(
-      readNFC: Fail(error: TheError.featureUnavailable(featureName: "Yubikey"))
-        .eraseToAnyPublisher
+      using: controller,
+      with: components
     )
   }
-}
 
-extension Yubikey {
+  public let components: UIComponentFactory
+  private let controller: Controller
 
-  public static var placeholder: Self {
-    Self(readNFC: Commons.placeholder("You have to provide mocks for used methods"))
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
+  }
+
+  public func setup() {
+    let content: Content = components.instance(in: controller.context)
+    setViewControllers([content], animated: false)
+
+    mut(navigationBarView) {
+      .primaryNavigationStyle()
+    }
   }
 }

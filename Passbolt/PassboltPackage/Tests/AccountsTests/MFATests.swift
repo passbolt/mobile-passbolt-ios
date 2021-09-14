@@ -155,6 +155,44 @@ final class MFATests: TestCase {
     XCTAssertNotNil(result)
   }
 
+  func test_authorizeUsingYubikey_fails_whenAuthorizedRequired() {
+    accountSession.statePublisher = always(
+      Just(.authorizationRequired(account))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    networkSession.createMFAToken = always(
+      Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkSession)
+
+    environment.yubikey.readNFC = {
+      Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+
+    let feature: MFA = testInstance()
+    var result: TheError!
+
+    feature.authorizeUsingYubikey(false)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+
+          result = error
+        },
+        receiveValue: { _ in
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result.identifier, .authorizationRequired)
+  }
+
   func test_authorizeUsingTOTP_succeeds_whenAuthorized() {
     accountSession.statePublisher = always(
       Just(.authorized(account))
@@ -211,6 +249,38 @@ final class MFATests: TestCase {
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
+  }
+
+  func test_authorizeUsingTOTP_fails_whenAuthorizationRequired() {
+    accountSession.statePublisher = always(
+      Just(.authorizationRequired(account))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    networkSession.createMFAToken = always(
+      Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkSession)
+
+    let feature: MFA = testInstance()
+    var result: TheError!
+
+    feature.authorizeUsingTOTP("totp", false)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+
+          result = error
+        },
+        receiveValue: { _ in
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result.identifier, .authorizationRequired)
   }
 }
 

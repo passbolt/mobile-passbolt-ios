@@ -54,9 +54,9 @@ extension TOTPController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let pasteboard: SystemPasteboard = features.environment.systemPasteboard
 
     let mfa: MFA = features.instance()
+    let pasteboard: Pasteboard = features.instance()
 
     let statusChangeSubject: PassthroughSubject<StatusChange, Never> = .init()
     let otpSubject: CurrentValueSubject<String, Never> = .init("")

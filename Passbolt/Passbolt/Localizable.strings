@@ -113,10 +113,20 @@
 "resource.menu.item.field.copied" = "%@ copied!";
 "resource.menu.action.failed" = "%@ failed!";
 
-"yubikey.scan.instruction" = "Place your Yubikey on your device.";
-"yubikey.scan.success" = "Scan success";
-
 "totp.title.label" = "Two Factor Authentication";
 "totp.message.label" = "Enter the verification code:";
 "totp.paste.otp.button.label" = "Paste code";
 "totp.remember.device.toggle.label" = "Remember this device for 40 days";
+
+"yubikey.scan.instruction" = "Place your Yubikey on your device.";
+"yubikey.scan.success" = "Scan success";
+"mfa.yubikey.title" = "Yubikey OTP";
+"mfa.yubikey.description" = "Please note that your Yubikey must support
+NFC for this to work.";
+"mfa.yubikey.scan" = "Scan your Yubikey";
+"mfa.yubikey.scan.failed" = "Scan failed";
+"mfa.yubikey.nfc.not.supported" = "This device does not support NFC.";
+"mfa.yubikey.generic.error" = "Something went wrong";
+"mfa.provider.try.another" = "Try with another provider";
+"mfa.remember.token" = "Remember this device for 40 days";
+

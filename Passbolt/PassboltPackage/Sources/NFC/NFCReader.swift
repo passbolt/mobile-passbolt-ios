@@ -38,7 +38,7 @@ public final class NFCReader: NSObject {
 
   private let instructionMessage: String
   private let successMessage: String
-  private var callback: ((Result<Array<NFCNDEFMessage>, Error>) -> Void)?
+  private var callback: ((Result<Array<NFCNDEFMessage>, Error>) -> Void)? = nil
 
   public static func readOTP(
     instructionMessage: String,
@@ -46,7 +46,6 @@ public final class NFCReader: NSObject {
     parser: NDEFParser = .yubikeyOTPParser(),
     callback: @escaping (Result<String, Error>) -> Void
   ) {
-    #warning("PAS-317 Verify lifetime")
     let reader: NFCReader = .init(
       instructionMessage: instructionMessage,
       successMessage: successMessage,
@@ -66,7 +65,10 @@ public final class NFCReader: NSObject {
     self.queue = queue
     self.instructionMessage = instructionMessage
     self.successMessage = successMessage
+    super.init()
     self.callback = { (result: Result<Array<NFCNDEFMessage>, Error>) -> Void in
+      // capturing self to extend its lifetime & setting callback to nil
+      self.callback = nil
       if case let .success(string) = result.map(parser.parse),
          let otp = string {
           resultCallback(.success(otp))
@@ -110,26 +112,12 @@ extension NFCReader: NFCNDEFReaderSessionDelegate {
   }
 
   public func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
-    session.invalidate(errorMessage: "")
-
-    if let callback = callback {
-      self.callback = nil
-      callback(.failure(error))
-    }
-    else {
-      /* NOP */
-    }
+    callback?(.failure(error))
   }
 
   public func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
     session.alertMessage = successMessage
 
-    if let callback = callback {
-      self.callback = nil
-      callback(.success(messages))
-    }
-    else {
-      /* NOP */
-    }
+    callback?(.success(messages))
   }
 }

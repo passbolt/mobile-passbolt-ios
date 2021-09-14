@@ -136,8 +136,12 @@ extension WindowController: UIController {
             return .none
 
           // no change at all (authorization screen displayed without session)
-          case (.none, .requestPassphrase), (.none, .requestMFA), (.none, .useInitialScreenState(.none)):
+          case (.none, .requestPassphrase), (.none, .useInitialScreenState(.none)):
             return .none
+
+          // signed out after requesting MFA
+          case (.none, .requestMFA):
+            return .useInitialScreenState(for: nil)
 
           // signed out
           case (.none, .useInitialScreenState(.some)),

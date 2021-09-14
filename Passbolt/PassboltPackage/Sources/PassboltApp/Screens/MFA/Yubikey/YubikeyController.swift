@@ -21,40 +21,45 @@
 // @since         v1.0
 //
 
-import Commons
+import Accounts
+import UIComponents
 
-public struct Yubikey: EnvironmentElement {
+internal struct YubikeyController {
 
-  public var readNFC: () -> AnyPublisher<String, TheError>
-
-  public init(
-    readNFC: @escaping () -> AnyPublisher<String, TheError>
-  ) {
-    self.readNFC = readNFC
-  }
+  internal var toggleRememberDevice: () -> Void
+  internal var rememberDevicePublisher: () -> AnyPublisher<Bool, Never>
+  internal var authorizeUsingOTP: () -> AnyPublisher<Void, TheError>
 }
 
-extension Environment {
+extension YubikeyController: UIController {
 
-  public var yubikey: Yubikey {
-    get { element(Yubikey.self) }
-    set { use(newValue) }
-  }
-}
+  internal typealias Context = Void
 
-extension Yubikey {
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> YubikeyController {
+    let mfa: MFA = features.instance()
+    let rememberDeviceSubject: CurrentValueSubject<Bool, Never> = .init(true)
 
-  public static func unavailable() -> Self {
-    Self(
-      readNFC: Fail(error: TheError.featureUnavailable(featureName: "Yubikey"))
-        .eraseToAnyPublisher
+    func toggleRememberDevice() {
+      rememberDeviceSubject.value.toggle()
+    }
+
+    func rememberDevicePublisher() -> AnyPublisher<Bool, Never> {
+      rememberDeviceSubject.removeDuplicates().eraseToAnyPublisher()
+    }
+
+    func authorizeUsingOTP() -> AnyPublisher<Void, TheError> {
+      mfa.authorizeUsingYubikey(rememberDeviceSubject.value)
+        .eraseToAnyPublisher()
+    }
+
+    return Self(
+      toggleRememberDevice: toggleRememberDevice,
+      rememberDevicePublisher: rememberDevicePublisher,
+      authorizeUsingOTP: authorizeUsingOTP
     )
-  }
-}
-
-extension Yubikey {
-
-  public static var placeholder: Self {
-    Self(readNFC: Commons.placeholder("You have to provide mocks for used methods"))
   }
 }
