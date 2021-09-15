@@ -60,8 +60,7 @@ extension UIViewController {
       delay: 0,
       options: [.beginFromCurrentState],
       animations: { overlay.alpha = 0 },
-      completion: { completed in
-        guard completed else { return }
+      completion: { _ in
         overlay.removeFromSuperview()
       }
     )

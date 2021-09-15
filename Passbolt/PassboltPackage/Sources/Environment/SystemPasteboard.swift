@@ -26,6 +26,7 @@ import UIKit.UIPasteboard
 
 public struct SystemPasteboard: EnvironmentElement {
 
+  public var get: () -> String?
   public var put: (String?) -> Void
 }
 
@@ -41,11 +42,16 @@ extension SystemPasteboard {
 
   public static func uiPasteboard() -> Self {
 
+    func get() -> String? {
+      UIPasteboard.general.string
+    }
+
     func put(string: String?) {
       UIPasteboard.general.string = string
     }
 
     return Self(
+      get: get,
       put: put(string:)
     )
   }
@@ -56,8 +62,27 @@ extension SystemPasteboard {
 
   public static var placeholder: Self {
     Self(
+      get: Commons.placeholder("You have to provide mocks for used methods"),
       put: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }
 #endif
+
+extension TheError {
+
+  public static func invalidPasteValue(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .invalidPasteValue,
+      underlyingError: underlyingError,
+      extensions: [:]
+    )
+  }
+}
+
+extension TheError.ID {
+
+  public static let invalidPasteValue: Self = "invalidPasteValue"
+}

@@ -115,3 +115,8 @@
 
 "yubikey.scan.instruction" = "Place your Yubikey on your device.";
 "yubikey.scan.success" = "Scan success";
+
+"totp.title.label" = "Two Factor Authentication";
+"totp.message.label" = "Enter the verification code:";
+"totp.paste.otp.button.label" = "Paste code";
+"totp.remember.device.toggle.label" = "Remember this device for 40 days";

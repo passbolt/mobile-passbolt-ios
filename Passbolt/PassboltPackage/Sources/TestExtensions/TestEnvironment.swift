@@ -42,6 +42,7 @@ public func testEnvironment() -> Environment {
     Database.placeholder,
     Files.placeholder,
     AutoFillExtension.placeholder,
+    SystemPasteboard.placeholder,
     Yubikey.placeholder
   )
 }

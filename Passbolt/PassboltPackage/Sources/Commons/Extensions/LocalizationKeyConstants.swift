@@ -41,4 +41,5 @@ extension LocalizationKeyConstant {
   public static let refresh: Self = "generic.refresh"
   public static let create: Self = "generic.create"
   public static let emptyList: Self = "generic.empty.list"
+  public static let invalidPasteValue: Self = "generic.paste.value.invalid"
 }

@@ -38,7 +38,7 @@ extension TOTPAuthorizationRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain),
-          .path("/auth/jwt/refresh.json"),
+          .path("/mfa/verify/totp.json"),
           .method(.post),
           .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
           .jsonBody(from: requestVariable)
