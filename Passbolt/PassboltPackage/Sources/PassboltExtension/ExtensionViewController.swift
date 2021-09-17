@@ -88,6 +88,8 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
 
         case .home:
           replaceContent(with: components.instance(of: ResourcesNavigationViewController.self))
+        case .mfaRequired:
+          replaceContent(with: components.instance(of: PlainNavigationViewController<MFARequiredViewController>.self))
         }
       }
       .store(in: cancellables)

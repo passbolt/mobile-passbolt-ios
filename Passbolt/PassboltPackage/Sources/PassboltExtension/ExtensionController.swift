@@ -36,6 +36,7 @@ extension ExtensionController {
     case authorization(Account)
     case accountSelection(lastUsedAccount: Account?)
     case home(Account)
+    case mfaRequired
   }
 }
 
@@ -71,8 +72,11 @@ extension ExtensionController: UIController {
           case let .authorized(account):
             return .home(account)
 
-          case .authorizationRequired, .authorizedMFARequired:
+          case .authorizationRequired:
             return .none // ignored
+
+          case .authorizedMFARequired:
+            return .mfaRequired
 
           case let .none(lastUsedAccount):
             if let lastUsedAccount = lastUsedAccount {

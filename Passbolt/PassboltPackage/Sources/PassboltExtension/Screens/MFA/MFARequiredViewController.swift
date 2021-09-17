@@ -24,10 +24,10 @@
 import UICommons
 import UIComponents
 
-internal final class NoAccountsViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
+internal final class MFARequiredViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
 
-  internal typealias View = NoAccountsView
-  internal typealias Controller = NoAccountsController
+  internal typealias View = MFARequiredView
+  internal typealias Controller = MFARequiredController
 
   internal static func instance(
     using controller: Controller,
@@ -55,13 +55,15 @@ internal final class NoAccountsViewController: PlainViewController, UIComponent,
 
   internal func setupView() {
     customPresentationSetup()
+    setupSubscriptions()
+  }
 
-    contentView.buttonTapPublisher
+  private func setupSubscriptions() {
+    contentView.tapPublisher
       .map { [unowned self] _ -> AnyPublisher<Bool, Never> in
         self.controller.openApp()
           .handleEvents(receiveOutput: { didOpen in
-            guard !didOpen
-            else { return }
+            guard !didOpen else { return }
 
             self.present(
               snackbar: Mutation<UICommons.View>
@@ -78,3 +80,4 @@ internal final class NoAccountsViewController: PlainViewController, UIComponent,
       .store(in: cancellables)
   }
 }
+

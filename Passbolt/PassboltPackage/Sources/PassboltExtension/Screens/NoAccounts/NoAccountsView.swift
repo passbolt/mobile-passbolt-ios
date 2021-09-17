@@ -86,7 +86,7 @@ internal final class NoAccountsView: ScrolledStackView {
     mut(button) {
       .combined(
         .primaryStyle(),
-        .text(localized: "no.accounts.open.app")
+        .text(localized: "generic.open.app")
       )
     }
 

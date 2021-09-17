@@ -22,8 +22,11 @@
 //
 
 import AegithalosCocoa
+import Combine
 
 public final class ResultView: View {
+
+  public var buttonTapPublisher: AnyPublisher<Void, Never> { actionButton.tapPublisher }
 
   private lazy var imageView: ImageView = .init()
   private lazy var titleLabel: Label = .init()
@@ -52,7 +55,7 @@ public final class ResultView: View {
 
     mut(titleLabel) {
       .combined(
-        .font(.inter(ofSize: 24, weight: .regular)),
+        .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .numberOfLines(0),
@@ -68,11 +71,13 @@ public final class ResultView: View {
       .combined(
         .font(.inter(ofSize: 14, weight: .light)),
         .textColor(dynamic: .secondaryText),
+        .numberOfLines(0),
+        .lineBreakMode(.byWordWrapping),
         .subview(of: self),
         .centerXAnchor(.equalTo, centerXAnchor),
         .leadingAnchor(.greaterThanOrEqualTo, leadingAnchor, constant: 16),
         .trailingAnchor(.lessThanOrEqualTo, trailingAnchor, constant: -16),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: -32)
+        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 32)
       )
     }
 

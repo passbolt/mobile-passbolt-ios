@@ -22,6 +22,8 @@
 //
 
 // Passbolt autofill extension
+"generic.open.app" = "Open Passbolt App";
+"generic.failed.open.app" = "Failed to open the Passbolt App";
 
 "extension.setup.title" = "Passbolt Autofill enabled!";
 "extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
@@ -35,11 +37,12 @@
 
 "no.accounts.title" =  "No account found!";
 "no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials afterwards.";
-"no.accounts.open.app" = "Open Passbolt App";
-"no.accounts.open.app.error" = "Failed to open the Passbolt App";
 
 "resource.list.title" = "Choose password";
 "resource.list.section.suggested.title" = "Suggested passwords";
 "resource.list.section.all.title" = "Other passwords";
 
 "resources.search.placeholder" = "Search in passbolt...";
+
+"mfa.required.title" = "MFA is required";
+"mfa.required.description" = "Please use the Passbolt app to finalise your authentication.";
