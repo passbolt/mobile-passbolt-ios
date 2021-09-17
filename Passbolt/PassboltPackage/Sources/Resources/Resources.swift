@@ -66,7 +66,7 @@ extension Resources: Feature {
         case let .authorized(account):
           return (last: changes.current, current: account.localID)
 
-        case let .authorizedMFARequired(account):
+        case let .authorizedMFARequired(account, _):
           return (last: changes.current, current: account.localID)
 
         case let .authorizationRequired(account):

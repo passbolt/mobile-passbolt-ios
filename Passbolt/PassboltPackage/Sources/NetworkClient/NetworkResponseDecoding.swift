@@ -27,9 +27,9 @@ import Environment
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
-internal struct NetworkResponseDecoding<Response> {
+internal struct NetworkResponseDecoding<SessionVariable, RequestVariable, Response> {
 
-  internal var decode: (HTTPResponse) -> Result<Response, TheError>
+  internal var decode: (SessionVariable, RequestVariable, HTTPResponse) -> Result<Response, TheError>
 }
 
 extension NetworkResponseDecoding where Response == Void {
@@ -37,7 +37,7 @@ extension NetworkResponseDecoding where Response == Void {
   internal static func statusCodes(
     _ statusCodes: Range<HTTPStatusCode>
   ) -> Self {
-    Self { response in
+    Self { _, _, response in
       if statusCodes ~= response.statusCode {
         return .success(Void())
       }
@@ -54,7 +54,7 @@ extension NetworkResponseDecoding where Response == Void {
 extension NetworkResponseDecoding where Response == Data {
 
   internal static var rawBody: Self {
-    Self { response in
+    Self { _, _, response in
       .success(response.body)
     }
   }
@@ -65,7 +65,7 @@ extension NetworkResponseDecoding where Response == String {
   internal static func bodyAsString(
     withEncoding encoding: String.Encoding = .utf8
   ) -> Self {
-    Self { response in
+    Self { _, _, response in
       if let string: String = String(data: response.body, encoding: encoding) {
         return .success(string)
       }
@@ -87,7 +87,7 @@ extension NetworkResponseDecoding where Response: Decodable {
     using decoder: JSONDecoder = .init()
   ) -> Self {
 
-    Self { response in
+    Self { _, _, response in
       guard response.statusCode != 401
       else { return .failure(.missingSession()) }
 

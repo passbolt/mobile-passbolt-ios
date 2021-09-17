@@ -56,6 +56,7 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
   internal func setupView() {
     mut(navigationItem) {
       .combined(
+        .set(\.hidesBackButton, to: true),
         .rightBarButtonItem(
           Mutation<UIBarButtonItem>
             .combined(

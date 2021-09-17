@@ -52,7 +52,7 @@ extension AccountSettings: Feature {
       .statePublisher()
       .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountProfile?, Never>? in
         switch sessionState {
-        case let .authorized(account), let .authorizedMFARequired(account), let .authorizationRequired(account):
+        case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
           let initialProfilePublisher: AnyPublisher<AccountProfile?, Never>
 
           switch accountsDataStore.loadAccountProfile(account.localID) {

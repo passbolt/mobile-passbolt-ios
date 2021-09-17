@@ -81,9 +81,9 @@ public struct YubikeyAuthorizationResponse {
 extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse {
 
   fileprivate static var mfaCookie: Self {
-    Self { httpResponse in
+    Self { _, _, httpResponse in
       if
-        let cookieHeaderValue: String = httpResponse.headers["Set-cookie"],
+        let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
       {
         return .success(

@@ -92,8 +92,11 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.signInRequest = .respondingWith(
       .init(
-        header: .mock(),
-        body: .init(challenge: "")
+        mfaTokenIsValid: false,
+        body: .init(
+          header: .mock(),
+          body: .init(challenge: "")
+        )
       )
     )
 
@@ -552,7 +555,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-
   func test_createMFAToken_succeeds_whenAllYubikeyOTPOperationsSucceed() {
     accountsDataStore.storeAccountMFAToken = always(.success)
     features.use(accountsDataStore)
@@ -584,6 +586,104 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
+  }
+
+  func test_createSession_deletesMFAToken_withSuccessWhenResponseMFATokenIsNotValid() {
+    accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
+    var result: Void?
+    accountsDataStore.deleteAccountMFAToken = { _ in
+      result = Void()
+      return .success
+    }
+    features.use(accountsDataStore)
+    networkClient.signInRequest = .respondingWith(
+      .init(
+        mfaTokenIsValid: false,
+        body: .init(
+          header: .mock(),
+          body: .init(challenge: "")
+        )
+      )
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_createSession_doesNotDeleteMFAToken_withSuccessWhenResponseMFATokenIsValid() {
+    accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
+    var result: Void?
+    accountsDataStore.deleteAccountMFAToken = { _ in
+      result = Void()
+      return .success
+    }
+    features.use(accountsDataStore)
+    networkClient.signInRequest = .respondingWith(
+      .init(
+        mfaTokenIsValid: true,
+        body: .init(
+          header: .mock(),
+          body: .init(challenge: "")
+        )
+      )
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
+  }
+
+  func test_createSession_doesNotDeleteMFAToken_whenSignInFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
+    var result: Void?
+    accountsDataStore.deleteAccountMFAToken = { _ in
+      result = Void()
+      return .success
+    }
+    features.use(accountsDataStore)
+    networkClient.signInRequest.execute = always(
+      Fail<SignInResponse, TheError>(error: .testError()).eraseToAnyPublisher()
+    )
+
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
   }
 }
 

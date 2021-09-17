@@ -32,16 +32,18 @@ import class Foundation.JSONEncoder
 
 internal struct NetworkSession {
 
+  // returns nonempty Array<MFAProvider> if MFA required
+  // otherwise empty (even if MFA is enabled but current token was valid)
   internal var createSession: (
       _ account: Account,
       _ domain: String,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) -> AnyPublisher<Void, TheError>
+    ) -> AnyPublisher<Array<MFAProvider>, TheError>
 
   internal var createMFAToken: (
     _ account: Account,
-    _ authorization: MFAAuthorization,
+    _ authorization: AccountSession.MFAAuthorizationMethod,
     _ storeLocally: Bool
   ) -> AnyPublisher<Void, TheError>
 
@@ -51,16 +53,14 @@ internal struct NetworkSession {
 
 extension NetworkSession {
 
-  public enum MFAAuthorization {
-    case yubikeyOTP(String)
-    case totp(String)
-  }
-
   fileprivate typealias ServerPublicKeys = (pgp: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey)
   fileprivate typealias ServerPublicKeysWithSignInChallenge = (
     serverPublicKeys: ServerPublicKeys, signInChallenge: ArmoredPGPMessage
   )
   fileprivate typealias ServerPublicKeysWithSignInTokens = (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens)
+  fileprivate typealias SignInTokensWithMFAStatus = (signInTokens: Tokens, mfaTokenIsValid: Bool)
+  fileprivate typealias ServerPublicKeysWithSignInTokensAndMFAStatus = (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool)
+  fileprivate typealias SessionTokensWithMFAProviders = (tokens: NetworkSessionTokens, mfaProviders: Array<MFAProvider>)
 }
 
 extension NetworkSession: Feature {
@@ -205,8 +205,7 @@ extension NetworkSession: Feature {
       userID: Account.UserID,
       challenge: ArmoredPGPMessage,
       mfaToken: MFAToken?
-    ) -> AnyPublisher<String, TheError> {
-      #warning("TODO: [PAS-317] - handle MFA required after login - decode from response body")
+    ) -> AnyPublisher<(challenge: String, mfaTokenIsValid: Bool), TheError> {
       return networkClient
         .signInRequest
         .make(
@@ -216,7 +215,12 @@ extension NetworkSession: Feature {
             mfaToken: mfaToken
           )
         )
-        .map(\.body.challenge)
+        .map { response in
+          (
+            challenge: response.body.body.challenge,
+            mfaTokenIsValid: response.mfaTokenIsValid
+          )
+        }
         .eraseToAnyPublisher()
     }
 
@@ -271,19 +275,25 @@ extension NetworkSession: Feature {
       serverPublicPGPKey: ArmoredPGPPublicKey,
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<Tokens, TheError> {
+    ) -> AnyPublisher<SignInTokensWithMFAStatus, TheError> {
       signIn(
         userID: userID,
         challenge: signInChallenge,
         mfaToken: mfaToken
       )
-      .map { (encryptedResponsePayload: String) -> AnyPublisher<Tokens, TheError> in
+      .map { (encryptedResponsePayload: String, mfaTokenIsValid) -> AnyPublisher<SignInTokensWithMFAStatus, TheError> in
         decryptVerifyResponse(
           encryptedResponsePayload: encryptedResponsePayload,
           serverPublicPGPKey: serverPublicPGPKey,
           armoredPrivateKey: armoredPrivateKey,
           passphrase: passphrase
         )
+        .map { tokens -> SignInTokensWithMFAStatus in
+          SignInTokensWithMFAStatus(
+            signInTokens: tokens,
+            mfaTokenIsValid: mfaTokenIsValid
+          )
+        }
         .eraseToAnyPublisher()
       }
       .switchToLatest()
@@ -297,14 +307,14 @@ extension NetworkSession: Feature {
       serverPublicRSAKey: ArmoredRSAPublicKey,
       verificationToken: String,
       challengeExpiration: Int
-    ) -> AnyPublisher<NetworkSessionTokens, TheError> {
+    ) -> AnyPublisher<SessionTokensWithMFAProviders, TheError> {
       let accessToken: JWT
       switch JWT.from(rawValue: signInTokens.accessToken) {
       case let .success(jwt):
         accessToken = jwt
 
       case let .failure(error):
-        return Fail<NetworkSessionTokens, TheError>(
+        return Fail<SessionTokensWithMFAProviders, TheError>(
           error: .signInError(underlyingError: error)
             .appending(logMessage: "Failed to prepare for signature verification")
         )
@@ -318,7 +328,7 @@ extension NetworkSession: Feature {
         let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
         let signedData: Data = accessToken.signedPayload.data(using: .utf8)
       else {
-        return Fail<NetworkSessionTokens, TheError>(
+        return Fail<SessionTokensWithMFAProviders, TheError>(
           error: .signInError()
             .appending(logMessage: "Failed to prepare for signature verification")
         )
@@ -328,18 +338,21 @@ extension NetworkSession: Feature {
       switch signatureVerification.verify(signedData, signature, key) {
       case .success:
         return Just(
-          NetworkSessionTokens(
-            accountLocalID: account.localID,
-            accessToken: accessToken,
-            refreshToken: NetworkSessionTokens.RefreshToken(rawValue: signInTokens.refreshToken),
-            mfaToken: mfaToken
+          SessionTokensWithMFAProviders(
+            tokens: NetworkSessionTokens(
+              accountLocalID: account.localID,
+              accessToken: accessToken,
+              refreshToken: NetworkSessionTokens.RefreshToken(rawValue: signInTokens.refreshToken),
+              mfaToken: mfaToken
+            ),
+            mfaProviders: signInTokens.mfaProviders.map { mfaToken == .none ? $0 : [] } ?? []
           )
         )
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
 
       case let .failure(error):
-        return Fail<NetworkSessionTokens, TheError>(
+        return Fail<SessionTokensWithMFAProviders, TheError>(
           error: .signInError(underlyingError: error)
             .appending(logMessage: "Signature verification failed")
         )
@@ -352,7 +365,7 @@ extension NetworkSession: Feature {
       domain: String,
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Array<MFAProvider>, TheError> {
       let verificationToken: String = uuidGenerator().uuidString
       let challengeExpiration: Int  // 120s is verification token's lifetime
       = time.timestamp() + 120
@@ -382,7 +395,7 @@ extension NetworkSession: Feature {
         .switchToLatest()
         .map {
           (serverPublicKeys: ServerPublicKeys, signInChallenge: ArmoredPGPMessage) -> AnyPublisher<
-            ServerPublicKeysWithSignInTokens, TheError
+            ServerPublicKeysWithSignInTokensAndMFAStatus, TheError
           > in
           signInAndDecryptVerifyResponse(
             userID: account.userID,
@@ -392,37 +405,45 @@ extension NetworkSession: Feature {
             armoredPrivateKey: armoredPrivateKey,
             passphrase: passphrase
           )
-          .map { (tokens: Tokens) -> ServerPublicKeysWithSignInTokens in
-            ServerPublicKeysWithSignInTokens(
+          .map { (signInTokens: Tokens, mfaTokenIsValid: Bool) -> ServerPublicKeysWithSignInTokensAndMFAStatus in
+            ServerPublicKeysWithSignInTokensAndMFAStatus(
               serverPublicKeys: serverPublicKeys,
-              signInTokens: tokens
+              signInTokens: signInTokens,
+              mfaTokenIsValid: mfaTokenIsValid
             )
           }
           .eraseToAnyPublisher()
         }
         .switchToLatest()
         .map {
-          (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens) -> AnyPublisher<NetworkSessionTokens, TheError> in
+          (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool) -> AnyPublisher<SessionTokensWithMFAProviders, TheError> in
           decodeVerifySignInTokens(
             account: account,
             signInTokens: signInTokens,
-            mfaToken: mfaToken,
+            mfaToken: mfaTokenIsValid ? mfaToken : .none,
             serverPublicRSAKey: serverPublicKeys.rsa,
             verificationToken: verificationToken,
             challengeExpiration: challengeExpiration
           )
+          .handleEvents(receiveOutput: { _ in
+            guard mfaToken != nil, !mfaTokenIsValid else { return }
+            _ = accountDataStore.deleteAccountMFAToken(account.localID) // ignoring result
+          })
+          .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .handleEvents(receiveOutput: { (tokens: NetworkSessionTokens) in
+        .handleEvents(receiveOutput: { (tokens: NetworkSessionTokens, _: Array<MFAProvider>) in
           sessionTokensSubject.send(tokens)
         })
-        .mapToVoid()
+        .map { (_: NetworkSessionTokens, mfaProviders: Array<MFAProvider>) -> Array<MFAProvider> in
+          mfaProviders
+        }
         .eraseToAnyPublisher()
     }
 
     func createMFAToken(
       account: Account,
-      authorization: MFAAuthorization,
+      authorization: AccountSession.MFAAuthorizationMethod,
       storeLocally: Bool
     ) -> AnyPublisher<Void, TheError> {
       switch authorization {

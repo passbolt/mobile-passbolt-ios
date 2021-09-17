@@ -34,25 +34,28 @@ extension NetworkRequest {
 
   internal init(
     template: NetworkRequestTemplate<SessionVariable, Variable>,
-    responseDecoder: NetworkResponseDecoding<Response>,
+    responseDecoder: NetworkResponseDecoding<SessionVariable, Variable, Response>,
     using networking: Networking,
     with sessionVariablePublisher: AnyPublisher<SessionVariable, TheError>
   ) {
     self.execute = { requestVariable in
       sessionVariablePublisher
         .first()
-        .map { sessionVariable -> HTTPRequest in
-          template
+        .map { sessionVariable -> (SessionVariable, HTTPRequest) in
+          (
+            sessionVariable,
+            template
             .prepareRequest(
               with: sessionVariable,
               and: requestVariable
             )
+          )
         }
-        .map { request -> AnyPublisher<Response, TheError> in
+        .map { sessionVariable, request -> AnyPublisher<Response, TheError> in
           networking
             .make(request, useCache: template.cacheResponse)
             .mapError(TheError.httpError)
-            .map(withResultAsPublisher(responseDecoder.decode))
+            .map(withResultAsPublisher({ responseDecoder.decode(sessionVariable, requestVariable, $0) }))
             .switchToLatest()
             .eraseToAnyPublisher()
         }

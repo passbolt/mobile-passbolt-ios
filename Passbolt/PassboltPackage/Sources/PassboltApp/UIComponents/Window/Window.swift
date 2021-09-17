@@ -63,8 +63,7 @@ internal final class Window {
               self.replaceRoot(with: cachedScreen)
             }
             else {
-              assertionFailure("Missing cached screen state")
-              fallthrough  // fallback to initial screen state
+              fallthrough // fallback to initial screen state if there is none cached
             }
 
           // Go to initial screen state (through Splash)
@@ -86,8 +85,11 @@ internal final class Window {
 
           // Prompt user with authorization screen if it is not already displayed.
           case let .requestPassphrase(account, message):
-            guard !self.isSplashScreenDisplayed, !self.isAuthorizationDisplayed
+            guard
+              !self.isSplashScreenDisplayed,
+              !self.isAuthorizationDisplayed
             else { return }
+
             if !self.isMFAPromptDisplayed {
               assert(
                 self.screenStateCache == nil,
@@ -109,28 +111,37 @@ internal final class Window {
             )
 
           // Prompt user with mfa screen if it is not already displayed.
-          case let .requestMFA(account, providers):
+          case let .requestMFA(_, providers):
             guard
               !self.isSplashScreenDisplayed,
-              !self.isAuthorizationDisplayed,
               !self.isMFAPromptDisplayed
             else { return }
 
-            assert(
-              self.screenStateCache == nil,
-              "Cannot replace screen state cache, it has to be empty"
-            )
-            guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-            else { unreachable("Window root has to be an instance of UIComponent") }
-            self.screenStateCache = rootComponent
-
-            self.replaceRoot(
-              with: self.components
-                .instance(
-                  of: PlainNavigationViewController<MFARootViewController>.self,
+            if let authorizationNavigation = self.window.rootViewController as? AuthorizationNavigationViewController {
+              authorizationNavigation
+                .push(
+                  MFARootViewController.self,
                   in: providers
                 )
-            )
+            }
+            else {
+              assert(
+                self.screenStateCache == nil,
+                "Cannot replace screen state cache, it has to be empty"
+              )
+              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
+              else { unreachable("Window root has to be an instance of UIComponent") }
+              self.screenStateCache = rootComponent
+
+              self.replaceRoot(
+                with: self.components
+                  .instance(
+                    of: PlainNavigationViewController<MFARootViewController>.self,
+                    in: providers
+                  )
+              )
+            }
+
           }
         }
       )
@@ -164,12 +175,14 @@ extension Window {
   }
 
   private var isAuthorizationDisplayed: Bool {
-    window.rootViewController is AuthorizationNavigationViewController
+    guard let authorizationNavigation = window.rootViewController as? AuthorizationNavigationViewController
+    else { return false }
+    return !authorizationNavigation.viewControllers.contains(where: { $0 is MFARootViewController })
   }
 
   private var isMFAPromptDisplayed: Bool {
-    #warning("TODO: [PAS-318]/[PAS-315] - update to check for proper screen")
-    return window.rootViewController is PlaceholderViewController
+    window.rootViewController is PlainNavigationViewController<MFARootViewController>
+    || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers.contains(where: { $0 is MFARootViewController }) ?? false
   }
 }
 

@@ -118,7 +118,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
-      Just(())
+      Just(false)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -137,8 +137,8 @@ final class AuthorizationScreenTests: TestCase {
       .signIn()
       .sink(
         receiveCompletion: { _ in },
-        receiveValue: { value in
-          result = value
+        receiveValue: { _ in
+          result = Void()
         }
       )
       .store(in: cancellables)
@@ -185,7 +185,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
-      Just(())
+      Just(false)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -204,8 +204,8 @@ final class AuthorizationScreenTests: TestCase {
       .biometricSignIn()
       .sink(
         receiveCompletion: { _ in },
-        receiveValue: { value in
-          result = value
+        receiveValue: { _ in
+          result = Void()
         }
       )
       .store(in: cancellables)
@@ -254,7 +254,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
-      Just(())
+      Just(false)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -285,7 +285,7 @@ final class AuthorizationScreenTests: TestCase {
     accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)
     accountSession.authorize = always(
-      Just(())
+      Just(false)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )

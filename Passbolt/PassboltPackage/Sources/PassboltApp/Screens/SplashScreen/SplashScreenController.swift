@@ -22,6 +22,7 @@
 
 import Accounts
 import UIComponents
+import NetworkClient
 
 internal struct SplashScreenController {
 
@@ -37,6 +38,7 @@ extension SplashScreenController {
     case accountSelection(Account?)
     case diagnostics
     case home
+    case mfaAuthorization(Array<MFAProvider>)
     case featureConfigFetchError
   }
 }
@@ -83,7 +85,8 @@ extension SplashScreenController: UIController {
           return destinationSubject.send(.accountSetup)
         }
         else {
-          return accountSession.statePublisher()
+          return accountSession
+            .statePublisher()
             .first()
             .map { state -> AnyPublisher<Destination, Never> in
               switch state {
@@ -95,6 +98,14 @@ extension SplashScreenController: UIController {
                 return fetchConfiguration()
                   .map { () -> Destination in
                     .home
+                  }
+                  .replaceError(with: .featureConfigFetchError)
+                  .eraseToAnyPublisher()
+
+              case let .authorizedMFARequired(_, mfaProviders):
+                return fetchConfiguration()
+                  .map { () -> Destination in
+                    .mfaAuthorization(mfaProviders)
                   }
                   .replaceError(with: .featureConfigFetchError)
                   .eraseToAnyPublisher()

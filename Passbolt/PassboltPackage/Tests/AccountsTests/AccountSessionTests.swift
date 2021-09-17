@@ -111,7 +111,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -147,7 +147,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -190,7 +190,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -234,7 +234,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -303,7 +303,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -344,7 +344,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -387,7 +387,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -425,7 +425,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -477,7 +477,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           resultError = error
         },
-        receiveValue: {}
+        receiveValue: { _ in }
       )
       .store(in: cancellables)
 
@@ -492,7 +492,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -510,7 +510,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           resultError = error
         },
-        receiveValue: {
+        receiveValue: { _ in
           result = Void()
         }
       )
@@ -520,6 +520,71 @@ final class AccountSessionTests: TestCase {
     XCTAssertNotNil(result)
   }
 
+  func test_authorize_succeedsWithAuthorized_whenSessionCreateSucceedsWithNoMFAProviders() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    var result: AccountSession.State?
+    feature
+      .statePublisher()
+      .sink { state in
+        result = state
+      }
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    guard case .authorized = result
+    else { return XCTFail() }
+  }
+
+  func test_authorize_succeedsWithAuthorizedMFARequired_whenSessionCreateSucceedsWithMFAProviders() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>([.totp]))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    var result: AccountSession.State?
+    feature
+      .statePublisher()
+      .sink { state in
+        result = state
+      }
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, .authorizedMFARequired(validAccount, providers: [.totp]))
+  }
+
   func test_authorize_fails_whenPrivateKeyIsInaccessibleWhileUsingPassphrase() {
     accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
     features.use(accountsDataStore)
@@ -527,7 +592,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -544,7 +609,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: {}
+        receiveValue: { _ in }
       )
       .store(in: cancellables)
 
@@ -560,7 +625,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -577,7 +642,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: {}
+        receiveValue: { _ in }
       )
       .store(in: cancellables)
 
@@ -592,7 +657,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -609,7 +674,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: {}
+        receiveValue: { _ in }
       )
       .store(in: cancellables)
 
@@ -624,7 +689,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -641,7 +706,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: {}
+        receiveValue: { _ in }
       )
       .store(in: cancellables)
 
@@ -658,7 +723,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -675,7 +740,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: {}
+        receiveValue: { _ in }
       )
       .store(in: cancellables)
 
@@ -691,7 +756,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -795,7 +860,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -833,7 +898,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -861,7 +926,7 @@ final class AccountSessionTests: TestCase {
           else { return }
           resultError = error
         },
-        receiveValue: {
+        receiveValue: { _ in
           result = Void()
         }
       )
@@ -880,7 +945,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -927,7 +992,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -963,7 +1028,7 @@ final class AccountSessionTests: TestCase {
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
-      Just(Void())
+      Just(Array<MFAProvider>())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
@@ -989,6 +1054,71 @@ final class AccountSessionTests: TestCase {
     appLifeCycleSubject.send(.willEnterForeground)
 
     XCTAssertEqual(result?.account, validAccount)
+  }
+
+  func test_mfaAuthorization_fails_withNoActiveSession() {
+    features.use(accountsDataStore)
+    features.use(passphraseCache)
+    features.use(networkClient)
+
+    networkSession.createMFAToken = { account, authorization, remember in
+      return Empty()
+        .eraseToAnyPublisher()
+    }
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    var result: TheError?
+    feature
+      .mfaAuthorize(.totp("OTP"), false)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .authorizationRequired)
+  }
+
+  func test_mfaAuthorization_isForwardedToNetworkSession() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    var result: (account: Account, authorization: AccountSession.MFAAuthorizationMethod, remember: Bool)?
+    networkSession.createMFAToken = { account, authorization, remember in
+      result = (account, authorization, remember)
+      return Empty().eraseToAnyPublisher()
+    }
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    feature
+      .mfaAuthorize(.totp("OTP"), false)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.account, validAccount)
+    XCTAssertEqual(result?.authorization, .totp("OTP"))
+    XCTAssertEqual(result?.remember, false)
   }
 }
 

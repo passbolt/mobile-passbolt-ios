@@ -34,17 +34,14 @@ import XCTest
 final class MFATests: TestCase {
 
   var accountSession: AccountSession!
-  var networkSession: NetworkSession!
 
   override func setUp() {
     super.setUp()
     accountSession = .placeholder
-    networkSession = .placeholder
   }
 
   override func tearDown() {
     accountSession = nil
-    networkSession = nil
     super.tearDown()
   }
 
@@ -53,13 +50,12 @@ final class MFATests: TestCase {
       Just(.authorized(account))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     environment.yubikey.readNFC = {
       Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
@@ -88,13 +84,12 @@ final class MFATests: TestCase {
       Just(.authorized(account))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     environment.yubikey.readNFC = always(
       Fail(error: TheError.yubikeyError())
@@ -122,16 +117,15 @@ final class MFATests: TestCase {
 
   func test_authorizeUsingYubikey_succeeds_whenAuthorizedMFARequired() {
     accountSession.statePublisher = always(
-      Just(.authorizedMFARequired(account))
+      Just(.authorizedMFARequired(account, providers: [.totp]))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     environment.yubikey.readNFC = {
       Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
@@ -160,13 +154,12 @@ final class MFATests: TestCase {
       Just(.authorizationRequired(account))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     environment.yubikey.readNFC = {
       Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
@@ -198,13 +191,12 @@ final class MFATests: TestCase {
       Just(.authorized(account))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     let feature: MFA = testInstance()
     var result: Void!
@@ -224,16 +216,15 @@ final class MFATests: TestCase {
 
   func test_authorizeUsingTOTP_succeeds_whenAuthorizedMFARequired() {
     accountSession.statePublisher = always(
-      Just(.authorizedMFARequired(account))
+      Just(.authorizedMFARequired(account, providers: [.totp]))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     let feature: MFA = testInstance()
     var result: Void!
@@ -256,13 +247,12 @@ final class MFATests: TestCase {
       Just(.authorizationRequired(account))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    networkSession.createMFAToken = always(
+    accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    features.use(networkSession)
+    features.use(accountSession)
 
     let feature: MFA = testInstance()
     var result: TheError!

@@ -38,16 +38,18 @@ extension MFA: Feature {
 
     let yubikey: Yubikey = environment.yubikey
     let accountSession: AccountSession = features.instance()
-    let networkSession: NetworkSession = features.instance()
 
     func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, TheError> {
-      accountSession.statePublisher()
+      accountSession
+        .statePublisher()
+        .first()
         .map { state -> AnyPublisher<Void, TheError> in
           switch state {
-          case let .authorizedMFARequired(account), let .authorized(account):
-            return yubikey.readNFC()
+          case .authorized, .authorizedMFARequired:
+            return yubikey
+              .readNFC()
               .map { otp in
-                networkSession.createMFAToken(account, .yubikeyOTP(otp), saveLocally)
+                accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
               }
               .switchToLatest()
               .eraseToAnyPublisher()
@@ -61,11 +63,13 @@ extension MFA: Feature {
     }
 
     func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, TheError> {
-      accountSession.statePublisher()
+      accountSession
+        .statePublisher()
+        .first()
         .map { state -> AnyPublisher<Void, TheError> in
           switch state {
-          case let .authorizedMFARequired(account), let .authorized(account):
-            return networkSession.createMFAToken(account, .totp(totp), saveLocally)
+          case .authorized, .authorizedMFARequired:
+            return accountSession.mfaAuthorize(.totp(totp), saveLocally)
           case .none, .authorizationRequired:
             return Fail(error: .authorizationRequired())
               .eraseToAnyPublisher()

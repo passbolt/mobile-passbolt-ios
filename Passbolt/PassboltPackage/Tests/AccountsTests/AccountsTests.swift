@@ -73,7 +73,7 @@ final class AccountsStoreTests: TestCase {
     features.use(accountsDataStore)
     var accountSession: AccountSession = .placeholder
     accountSession.authorize = always(
-      Just(Void())
+      Just(false)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )

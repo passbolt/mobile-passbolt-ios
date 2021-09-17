@@ -33,12 +33,14 @@ import XCTest
 final class NetworkResponseDecodingTests: XCTestCase {
 
   func test_rawBody_passesUnmodifiedData() {
-    let decoding: NetworkResponseDecoding<Data> = .rawBody
+    let decoding: NetworkResponseDecoding<Void, Void, Data> = .rawBody
     let expectedBody: Data = Data([0x65, 0x66, 0x67, 0x68])
 
     let decodingResult: Result<Data, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -51,12 +53,14 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_bodyAsString_withValidString_decodesString() {
-    let decoding: NetworkResponseDecoding<String> = .bodyAsString()
+    let decoding: NetworkResponseDecoding<Void, Void, String> = .bodyAsString()
     let expectedBody: String = "abcd"
 
     let decodingResult: Result<String, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -69,11 +73,13 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_bodyAsString_withInvalidString_fails() {
-    let decoding: NetworkResponseDecoding<String> = .bodyAsString()
+    let decoding: NetworkResponseDecoding<Void, Void, String> = .bodyAsString()
 
     let decodingResult: Result<String, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -86,12 +92,14 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_bodyJSON_withValidJSON_decodesJSON() {
-    let decoding: NetworkResponseDecoding<TestCodable> = .bodyAsJSON()
+    let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
     let expectedBody: TestCodable = .sample
 
     let decodingResult: Result<TestCodable, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -104,11 +112,13 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_bodyJSON_withInvalidJSON_fails() {
-    let decoding: NetworkResponseDecoding<TestCodable> = .bodyAsJSON()
+    let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
     let decodingResult: Result<TestCodable, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -121,11 +131,13 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_succeesCodes_withStatusOk_succeeds() {
-    let decoding: NetworkResponseDecoding<Void> = .statusCodes(200..<400)
+    let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
 
     let decodingResult: Result<Void, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 201,
@@ -138,11 +150,13 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_succeesCodes_withInvalidStatus_fails() {
-    let decoding: NetworkResponseDecoding<Void> = .statusCodes(200..<400)
+    let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
 
     let decodingResult: Result<Void, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 401,
@@ -155,7 +169,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_mfaErrorDecodingUsingCorrectData_resultsInMfaRequiredError() {
-    let decoding: NetworkResponseDecoding<MFARequiredResponse> = .bodyAsJSON()
+    let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
     let body: MFARequiredResponseBody = .init(mfaProviders: [.yubikey, .totp])
     let response: CommonResponse<MFARequiredResponseBody> =
       CommonResponse(
@@ -171,6 +185,8 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decodingResult: Result<MFARequiredResponse, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 403,
@@ -190,7 +206,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_mfaErrorDecodingUsingCorrectData_andEmptyProviders_resultsInForbiddenError() {
-    let decoding: NetworkResponseDecoding<MFARequiredResponse> = .bodyAsJSON()
+    let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
     let body: MFARequiredResponseBody = .init(mfaProviders: [])
     let response: CommonResponse<MFARequiredResponseBody> =
       CommonResponse(
@@ -206,6 +222,8 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decodingResult: Result<MFARequiredResponse, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 403,
@@ -224,11 +242,13 @@ final class NetworkResponseDecodingTests: XCTestCase {
   }
 
   func test_mfaErrorDecodingUsingCorruptedData_resultsInForbiddenError() {
-    let decoding: NetworkResponseDecoding<MFARequiredResponse> = .bodyAsJSON()
+    let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
     let decodingResult: Result<MFARequiredResponse, TheError> =
       decoding
       .decode(
+        Void(),
+        Void(), 
         HTTPResponse(
           url: .test,
           statusCode: 403,

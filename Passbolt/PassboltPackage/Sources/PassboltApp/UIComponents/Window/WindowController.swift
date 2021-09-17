@@ -67,9 +67,14 @@ extension WindowController: UIController {
             // Replacing mfa prompt with passphrase prompt
             return .requestPassphrase(account, message: message)
 
-          // Previous disposition presented authorization prompt
+          // Previous disposition presented passphrase prompt and requesting MFA
+          case let (.requestPassphrase, .mfaRequest(account, providers: mfaProviders)):
+            // Pushing mfa prompt on passphrase prompt
+            return .requestMFA(account, providers: mfaProviders)
+
+          // Previous disposition presented MFA prompt
           case (.requestPassphrase, _), (.requestMFA, _):
-            // Ignoring additional prompt requests, in case of MFA passphrase flow has to handle it
+            // Ignoring other cases than previously handled.
             return .none
 
           // Previous disposition was not authorization prompt and requesting passphrase
@@ -86,8 +91,8 @@ extension WindowController: UIController {
             }
 
           // Previous disposition was not authorization prompt and requesting mfa
-          case let (.useCachedScreenState, .mfaRequest(account, providers)),
-            let (.useInitialScreenState, .mfaRequest(account, providers)):
+          case let (.useCachedScreenState, .mfaRequest(account, mfaProviders)),
+            let (.useInitialScreenState, .mfaRequest(account, mfaProviders)):
             if features.isLoaded(AccountTransfer.self) {
               // Ignoring prompt requests during new account setup.
               // Setup is finished after successfully providing passphrase for the first time.
@@ -95,7 +100,7 @@ extension WindowController: UIController {
             }
             else {
               // Presenting mfa prompt
-              return .requestMFA(account, providers: providers)
+              return .requestMFA(account, providers: mfaProviders)
             }
           }
         },

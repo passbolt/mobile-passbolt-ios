@@ -320,7 +320,7 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-    accountSessionStateSubject.send(.authorizedMFARequired(validAccount))
+    accountSessionStateSubject.send(.authorizedMFARequired(validAccount, providers: [.totp]))
 
     XCTAssertNil(result)
   }
@@ -376,7 +376,7 @@ final class WindowTests: TestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
-    accountSessionStateSubject.send(.authorizedMFARequired(validAccount))
+    accountSessionStateSubject.send(.authorizedMFARequired(validAccount, providers: [.totp]))
 
     XCTAssertNil(result)
   }

@@ -66,9 +66,9 @@ extension FeatureConfig: Feature {
         switch state {
         case let .authorizationRequired(account) where account.localID == accountID,
           let .authorized(account) where account.localID == accountID,
-          let .authorizedMFARequired(account) where account.localID == accountID:
+          let .authorizedMFARequired(account, _) where account.localID == accountID:
           break
-        case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account):
+        case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account, _):
           accountID = account.localID
           all = .init()
         case .none:

@@ -48,7 +48,7 @@ extension SignInRequest {
           .jsonBody(from: requestVariable.signInRequestBody)
         )
       },
-      responseDecoder: .bodyAsJSON(),
+      responseDecoder: .signInResponse(),
       using: networking,
       with: sessionVariablePublisher
     )
@@ -127,7 +127,11 @@ public struct SignInRequestChallenge: Encodable {
   }
 }
 
-public typealias SignInResponse = CommonResponse<SignInResponseBody>
+public struct SignInResponse {
+
+  public var mfaTokenIsValid: Bool
+  public var body: CommonResponse<SignInResponseBody>
+}
 
 public struct SignInResponseBody: Decodable {
 
@@ -141,6 +145,7 @@ public struct Tokens: Codable, Equatable {
   public var verificationToken: String
   public var accessToken: String
   public var refreshToken: String
+  public var mfaProviders: Array<MFAProvider>?
 
   private enum CodingKeys: String, CodingKey {
 
@@ -149,5 +154,49 @@ public struct Tokens: Codable, Equatable {
     case verificationToken = "verify_token"
     case accessToken = "access_token"
     case refreshToken = "refresh_token"
+    case mfaProviders = "mfa_providers"
+  }
+}
+
+extension NetworkResponseDecoding where Response == SignInResponse, SessionVariable == DomainSessionVariable, RequestVariable == SignInRequestVariable {
+
+  fileprivate static func signInResponse() -> Self {
+    Self { sessionVariable, requestVariable, httpResponse -> Result<SignInResponse, TheError> in
+      let mfaTokenIsValid: Bool
+      if let mfaToken: MFAToken = requestVariable.mfaToken {
+        if
+          let cookieHeaderValue: String = httpResponse.headers["Set-cookie"],
+          let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+        {
+          let mfaCookieValue: String = .init(
+            cookieHeaderValue[mfaCookieBounds.upperBound...]
+              .prefix(
+                while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+              )
+          )
+          if mfaToken.rawValue == mfaCookieValue {
+            mfaTokenIsValid = true // it was sent and server responded with same value - valid
+          }
+          else {
+            mfaTokenIsValid = false // it was sent but server responded with different value - invalid
+          }
+        }
+        else {
+          mfaTokenIsValid = false // it was sent but server responded with no value - invalid
+        }
+      } else {
+        mfaTokenIsValid = false // it was not sent so it is not valid (but that does not matter if it is not required)
+      }
+
+      return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<SignInResponseBody>>
+        .bodyAsJSON()
+        .decode(sessionVariable, requestVariable, httpResponse)
+        .map { body -> SignInResponse in
+          SignInResponse(
+            mfaTokenIsValid: mfaTokenIsValid,
+            body: body
+          )
+        }
+    }
   }
 }

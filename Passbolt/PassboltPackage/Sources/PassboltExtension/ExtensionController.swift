@@ -53,46 +53,59 @@ extension ExtensionController: UIController {
     let accounts: Accounts = features.instance()
     let accountSession: AccountSession = features.instance()
 
+    let navigationDestionationSubject: CurrentValueSubject<Destination?, Never> = .init(.none)
+
+    accountSession
+      .statePublisher()
+      .sink { state in
+        switch state {
+        case let .authorized(account):
+          navigationDestionationSubject.send(.home(account))
+
+        case .authorizationRequired:
+          navigationDestionationSubject.send(.none) // ignored
+
+        case .authorizedMFARequired:
+          navigationDestionationSubject.send(.none) // ignored, handled by prompt
+
+        case let .none(lastUsedAccount):
+          if let lastUsedAccount = lastUsedAccount {
+            navigationDestionationSubject.send(.accountSelection(lastUsedAccount: lastUsedAccount))
+          }
+          else {
+            let storedAccounts: Array<Account> = accounts.storedAccounts()
+            if storedAccounts.count == 1 {
+              navigationDestionationSubject.send(.accountSelection(lastUsedAccount: storedAccounts.first))
+            }
+            else {
+              navigationDestionationSubject.send(.accountSelection(lastUsedAccount: nil))
+            }
+          }
+        }
+      }
+      .store(in: cancellables)
+
     accountSession
       .authorizationPromptPresentationPublisher()
-      .sink { _ in
+      .sink { request in
         // We are not using authorization prompt in extension,
         // Instead when authorization would be required we treat it as logout.
         // Typical use of extension is to select password (and search for it if there is none)
         // while session (and passphrase cache) lasts for 5 minutes.
-        accountSession.close()
+        switch request {
+        case .passphraseRequest:
+          accountSession.close()
+
+        case .mfaRequest:
+          navigationDestionationSubject.send(.mfaRequired)
+        }
+
       }
       .store(in: cancellables)
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
-      accountSession
-        .statePublisher()
-        .compactMap { state -> Destination? in
-          switch state {
-          case let .authorized(account):
-            return .home(account)
-
-          case .authorizationRequired:
-            return .none // ignored
-
-          case .authorizedMFARequired:
-            return .mfaRequired
-
-          case let .none(lastUsedAccount):
-            if let lastUsedAccount = lastUsedAccount {
-              return .accountSelection(lastUsedAccount: lastUsedAccount)
-            }
-            else {
-              let storedAccounts: Array<Account> = accounts.storedAccounts()
-              if storedAccounts.count == 1 {
-                return .accountSelection(lastUsedAccount: storedAccounts.first)
-              }
-              else {
-                return .accountSelection(lastUsedAccount: nil)
-              }
-            }
-          }
-        }
+      navigationDestionationSubject
+        .filterMapOptional()
         .eraseToAnyPublisher()
     }
 
