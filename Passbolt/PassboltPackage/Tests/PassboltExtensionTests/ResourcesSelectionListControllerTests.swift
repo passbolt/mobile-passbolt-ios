@@ -221,4 +221,148 @@ final class ResourcesSelectionListControllerTests: TestCase {
     XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[1]).suggestionCopy])
     XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
+
+  func test_resourcesListPublisher_publishesEmptyResourcesListFromResources_usingRequestedServiceIdentifiers() {
+    autofillContext.requestedServiceIdentifiersPublisher
+      = always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
+          .eraseToAnyPublisher()
+      )
+    features.use(autofillContext)
+    let resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+      ListViewResource(
+        id: "resource_2",
+        permission: .read,
+        name: "Resoure 2",
+        url: "alterpassbolt.com",
+        username: "test"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+
+    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+
+    controller
+      .resourcesListPublisher()
+      .sink { values in
+        result = values
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.suggested, [])
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+  }
+
+  func test_resourcesListPublisher_publishesTwoMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers() {
+    autofillContext.requestedServiceIdentifiersPublisher
+      = always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+          .eraseToAnyPublisher()
+      )
+    features.use(autofillContext)
+    let resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+      ListViewResource(
+        id: "resource_2",
+        permission: .read,
+        name: "Resoure 2",
+        url: "alter.passbolt.com",
+        username: "test"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+
+    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+
+    controller
+      .resourcesListPublisher()
+      .sink { values in
+        result = values
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(
+      result?.suggested,
+      [
+        ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy,
+        ResourcesSelectionListViewResourceItem(from: resourcesList[1]).suggestionCopy
+      ]
+    )
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+  }
+
+  func test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers() {
+    autofillContext.requestedServiceIdentifiersPublisher
+      = always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+          .eraseToAnyPublisher()
+      )
+    features.use(autofillContext)
+    let resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+      ListViewResource(
+        id: "resource_2",
+        permission: .read,
+        name: "Resoure 2",
+        url: "alterpassbolt.com",
+        username: "test"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+
+    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+
+    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+
+    controller
+      .resourcesListPublisher()
+      .sink { values in
+        result = values
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy])
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+  }
 }

@@ -98,8 +98,41 @@ extension Array where Element == AutofillExtensionContext.ServiceIdentifier {
 
   internal func matches(_ resource: ListViewResource) -> Bool {
     contains { identifier in
-      resource.url?.contains(identifier.rawValue) ?? false
-        || resource.url?.contains(URL(string: identifier.rawValue)?.host ?? "") ?? false
+      // remove http & https
+      guard var resourceURL: String = resource.url
+      else { return false }
+
+      var serviceURL: String = identifier.rawValue
+
+      // Removing scheme before matching
+      if let resourceSchemeRange = resourceURL.range(of: "https://") ?? resourceURL.range(of: "http://") {
+        resourceURL.removeSubrange(resourceSchemeRange)
+      }
+      else {
+        /* NOP */
+      }
+
+      // Removing scheme before matching
+      if let serviceSchemeRange = serviceURL.range(of: "https://") ?? serviceURL.range(of: "http://") {
+        serviceURL.removeSubrange(serviceSchemeRange)
+      }
+      else {
+        /* NOP */
+      }
+
+      let resourceSequence = resourceURL.split(separator: ".").reversed()
+      let serviceSequence = serviceURL.split(separator: ".").reversed()
+
+      guard resourceSequence.count >= serviceSequence.count
+      else { return false }
+
+      return zip(
+        resourceSequence,
+        serviceSequence
+      )
+      .reduce(true) { $0 && $1.0 == $1.1 }
     }
   }
 }
+
+
