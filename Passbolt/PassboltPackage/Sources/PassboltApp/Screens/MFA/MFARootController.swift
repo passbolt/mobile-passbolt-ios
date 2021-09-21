@@ -31,6 +31,7 @@ internal struct MFARootController {
   internal var mfaProviderPublisher: () -> AnyPublisher<MFAProvider, TheError>
   internal var navigateToOtherMFA: () -> Void
   internal var closeSession: () -> Void
+  internal var isProviderSwitchingAvailable: () -> Bool
 }
 
 extension MFARootController: UIController {
@@ -79,10 +80,15 @@ extension MFARootController: UIController {
       accountSession.close()
     }
 
+    func isProviderSwitchingAvailable() -> Bool {
+      context.count > 1
+    }
+
     return Self(
       mfaProviderPublisher: mfaProviderPublisher,
       navigateToOtherMFA: navigateToOtherMFA,
-      closeSession: closeSession
+      closeSession: closeSession,
+      isProviderSwitchingAvailable: isProviderSwitchingAvailable
     )
   }
 }

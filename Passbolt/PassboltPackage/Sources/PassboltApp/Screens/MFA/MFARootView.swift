@@ -31,7 +31,12 @@ internal final class MFARootView: KeyboardAwareView {
   private let container: View = .init()
   private let button: TextButton = .init()
 
+  @available(*, unavailable, message: "Use init(hideButton:)")
   internal required init() {
+    unreachable("\(Self.self).\(#function) should not be used")
+  }
+
+  internal init(hideButton: Bool) {
     super.init()
 
     mut(self) {
@@ -44,7 +49,8 @@ internal final class MFARootView: KeyboardAwareView {
         .text(
           localized: "mfa.provider.try.another",
           inBundle: .main
-        )
+        ),
+        .hidden(hideButton)
       )
     }
 

@@ -39,7 +39,7 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
     )
   }
 
-  internal lazy var contentView: View = .init()
+  internal lazy var contentView: View = .init(hideButton: !controller.isProviderSwitchingAvailable())
 
   internal let components: UIComponentFactory
   private let controller: Controller

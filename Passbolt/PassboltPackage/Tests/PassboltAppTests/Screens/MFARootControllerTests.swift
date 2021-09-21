@@ -140,4 +140,47 @@ final class MFARootControllerTests: TestCase {
 
     XCTAssertNotNil(result)
   }
+
+  func test_isProviderSwitchingAvailable_returnsFalse_whenNoProvidersArePresent() {
+    accountSession.close = {}
+    features.use(accountSession)
+    features.use(mfa)
+
+    let providers: Array<MFAProvider> = []
+
+    let controller: MFARootController = testInstance(context: providers)
+    let result: Bool = controller.isProviderSwitchingAvailable()
+
+    XCTAssertFalse(result)
+  }
+
+  func test_isProviderSwitchingAvailable_returnsFalse_whenSingleProviderIsPresent() {
+    accountSession.close = {}
+    features.use(accountSession)
+    features.use(mfa)
+
+    let providers: Array<MFAProvider> = [
+      .totp
+    ]
+
+    let controller: MFARootController = testInstance(context: providers)
+    let result: Bool = controller.isProviderSwitchingAvailable()
+
+    XCTAssertFalse(result)
+  }
+
+  func test_isProviderSwitchingAvailable_returnsTrue_whenMoreThanOneProviderIsPresent() {
+    accountSession.close = {}
+    features.use(accountSession)
+    features.use(mfa)
+
+    let providers: Array<MFAProvider> = [
+      .totp, .yubikey
+    ]
+
+    let controller: MFARootController = testInstance(context: providers)
+    let result: Bool = controller.isProviderSwitchingAvailable()
+
+    XCTAssertTrue(result)
+  }
 }
