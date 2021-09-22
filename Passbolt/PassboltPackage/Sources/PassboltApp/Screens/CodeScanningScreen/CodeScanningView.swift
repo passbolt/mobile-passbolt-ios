@@ -24,13 +24,21 @@ import UICommons
 
 internal final class CodeScanningView: View {
 
+  override func setup() {
+    mut(self) {
+      .backgroundColor(dynamic: .background)
+    }
+  }
+
   internal func set(embeded view: UIView) {
     subviews.forEach { $0.removeFromSuperview() }
-    mut(self) {
+    mut(view) {
       .combined(
-        .backgroundColor(dynamic: .background),
-        .subview(view),
-        .edges(equalTo: view, usingSafeArea: false)
+        .subview(of: self),
+        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
+        .leftAnchor(.equalTo, leftAnchor),
+        .rightAnchor(.equalTo, rightAnchor),
+        .bottomAnchor(.equalTo, bottomAnchor)
       )
     }
   }

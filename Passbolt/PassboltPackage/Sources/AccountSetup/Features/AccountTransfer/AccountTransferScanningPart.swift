@@ -38,6 +38,18 @@ extension AccountTransferScanningPart {
     qrCode string: String
   ) -> Result<Self, TheError> {
     var payloadPart: String = string
+    guard !string.isEmpty
+    else {
+      return .failure(
+        .accountTransferScanningRecoverableError(
+          context: "part-decoding-invalid-version-or-code"
+        )
+          .appending(
+            logMessage: "Invalid QRCode or version"
+          )
+      )
+    }
+    
     let version: String = String(payloadPart.removeFirst())
 
     guard version == "1"
