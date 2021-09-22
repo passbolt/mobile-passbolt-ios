@@ -310,9 +310,10 @@ internal final class ResourceDetailsItemView: View {
       .combined(
         .leadingAnchor(.equalTo, titleLabel.leadingAnchor),
         .trailingAnchor(.equalTo, titleLabel.trailingAnchor),
-        .heightAnchor(.equalTo, constant: 20),
+        .heightAnchor(.greaterThanOrEqualTo, constant: 20),
         .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
         .textColor(dynamic: .secondaryText),
+        .lineBreakMode(.byWordWrapping),
         .font(.inter(ofSize: 14, weight: .medium)),
         .set(\.contentInset, to: .zero),
         .set(\.textContainerInset, to: .init(top: 0, left: -5, bottom: 0, right: 0)),
