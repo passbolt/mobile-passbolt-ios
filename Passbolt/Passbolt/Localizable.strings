@@ -130,3 +130,4 @@ NFC for this to work.";
 "mfa.provider.try.another" = "Try with another provider";
 "mfa.remember.token" = "Remember this device for 40 days";
 
+"error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";

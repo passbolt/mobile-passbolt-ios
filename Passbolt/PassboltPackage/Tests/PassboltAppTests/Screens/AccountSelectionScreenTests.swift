@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import AccountSetup
 import Combine
 import Features
 import NetworkClient
@@ -344,7 +345,7 @@ final class AccountSelectionScreenTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_addAccountPresentationPublisher_publishes_whenAddAccountCalled() {
+  func test_addAccountPresentationPublisher_publishesFalse_whenAddAccountCalledAndAccountTransferIsNotLoaded() {
     accounts.storedAccounts = always([])
     accounts.removeAccount = always(.success(()))
     features.use(accounts)
@@ -354,18 +355,43 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSettings)
 
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
-    var result: Void!
+    var result: Bool?
 
     controller
       .addAccountPresentationPublisher()
-      .sink(receiveValue: {
-        result = Void()
+      .sink(receiveValue: { accountTransferInProgress in
+        result = accountTransferInProgress
       })
       .store(in: cancellables)
 
     controller.addAccount()
 
-    XCTAssertNotNil(result)
+    XCTAssertEqual(result, false)
+  }
+
+  func test_addAccountPresentationPublisher_publishesTrue_whenAddAccountCalledAndAccountTransferIsLoaded() {
+    accounts.storedAccounts = always([])
+    accounts.removeAccount = always(.success(()))
+    features.use(accounts)
+    accountSession.close = always(Void())
+    features.use(accountSession)
+    features.use(networkClient)
+    features.use(accountSettings)
+    features.use(AccountTransfer.placeholder)
+
+    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    var result: Bool?
+
+    controller
+      .addAccountPresentationPublisher()
+      .sink(receiveValue: { accountTransferInProgress in
+        result = accountTransferInProgress
+      })
+      .store(in: cancellables)
+
+    controller.addAccount()
+
+    XCTAssertEqual(result, true)
   }
 }
 

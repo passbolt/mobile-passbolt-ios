@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import AccountSetup
 import NetworkClient
 import SharedUIComponents
 import UIComponents
@@ -34,7 +35,7 @@ internal struct AccountSelectionController {
   internal var presentRemoveAccountAlert: () -> Void
   internal var removeAccount: (Account) -> Result<Void, TheError>
   internal var addAccount: () -> Void
-  internal var addAccountPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var addAccountPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var toggleMode: () -> Void
   internal var shouldHideTitle: () -> Bool
 }
@@ -70,7 +71,7 @@ extension AccountSelectionController: UIController {
 
     let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
     let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    let addAccountPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let addAccountPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
       Publishers.CombineLatest3(
@@ -152,10 +153,10 @@ extension AccountSelectionController: UIController {
     }
 
     func addAccount() {
-      addAccountPresentationSubject.send()
+      addAccountPresentationSubject.send(features.isLoaded(AccountTransfer.self))
     }
 
-    func addAccountPresentationPublisher() -> AnyPublisher<Void, Never> {
+    func addAccountPresentationPublisher() -> AnyPublisher<Bool, Never> {
       addAccountPresentationSubject.eraseToAnyPublisher()
     }
 

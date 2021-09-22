@@ -149,8 +149,13 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     controller
       .addAccountPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.push(TransferInfoScreenViewController.self)
+      .sink { [weak self] accountTransferInProgress in
+        if accountTransferInProgress {
+          self?.presentErrorSnackbar(localizableKey: "error.another.account.transfer.in.progress", inBundle: .main)
+        }
+        else {
+          self?.push(TransferInfoScreenViewController.self)
+        }
       }
       .store(in: cancellables)
   }
