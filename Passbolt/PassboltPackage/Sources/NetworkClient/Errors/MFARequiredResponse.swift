@@ -39,7 +39,7 @@ public struct MFARequiredResponseBody: Decodable {
   }
 }
 
-#if DEBUG
 extension MFAProvider: Encodable, Equatable {}
+#if DEBUG
 extension MFARequiredResponseBody: Encodable, Equatable {}
 #endif
