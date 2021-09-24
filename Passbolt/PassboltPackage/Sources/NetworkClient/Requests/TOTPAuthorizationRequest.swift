@@ -54,15 +54,19 @@ extension TOTPAuthorizationRequest {
 public struct TOTPAuthorizationRequestVariable: Encodable {
 
   public var totp: String
+  public var remember: Bool
 
   private enum CodingKeys: String, CodingKey {
     case totp = "totp"
+    case remember = "remember"
   }
 
   public init(
-    totp: String
+    totp: String,
+    remember: Bool
   ) {
     self.totp = totp
+    self.remember = remember
   }
 }
 

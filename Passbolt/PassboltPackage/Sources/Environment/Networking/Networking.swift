@@ -30,6 +30,10 @@ import struct Foundation.URLRequest
 import class Foundation.URLResponse
 import class Foundation.URLSession
 import class Foundation.URLSessionConfiguration
+import protocol Foundation.URLSessionTaskDelegate
+import class Foundation.URLSessionTask
+import class Foundation.HTTPURLResponse
+import class Foundation.NSObject
 
 public struct Networking: EnvironmentElement {
 
@@ -63,10 +67,29 @@ extension Networking {
   }
 }
 
+public final class URLSessionDelegate: NSObject, URLSessionTaskDelegate {
+
+  public func urlSession(
+    _ session: URLSession,
+    task: URLSessionTask,
+    willPerformHTTPRedirection response: HTTPURLResponse,
+    newRequest request: URLRequest,
+    completionHandler: @escaping (URLRequest?) -> Void
+  ) {
+    // Explicitly ignoring redirects
+    completionHandler(nil)
+  }
+}
+
+private let sessionDelegate: URLSessionDelegate = .init()
+
 extension Networking {
 
   public static func foundation(
-    _ urlSession: URLSession = {
+    _ urlSession: URLSession? = nil
+  ) -> Self {
+
+    let urlSession: URLSession = urlSession ?? {
       let urlSessionConfiguration: URLSessionConfiguration = .default
       urlSessionConfiguration.networkServiceType = .responsiveData
       urlSessionConfiguration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
@@ -80,9 +103,12 @@ extension Networking {
       urlSessionConfiguration.timeoutIntervalForResource = 10
       urlSessionConfiguration.timeoutIntervalForRequest = 10
       urlSessionConfiguration.waitsForConnectivity = true
-      return URLSession(configuration: urlSessionConfiguration)
+      return URLSession(
+        configuration: urlSessionConfiguration,
+        delegate: sessionDelegate,
+        delegateQueue: nil
+      )
     }()
-  ) -> Self {
 
     let urlCache: URLCache = .init(
       memoryCapacity: 25_600,  // 25 MB ram
@@ -95,15 +121,15 @@ extension Networking {
       execute: { request, useCache in
         let urlRequest: URLRequest? = request.urlRequest(
           cachePolicy: useCache
-            ? .returnCacheDataElseLoad
-            : .reloadIgnoringLocalAndRemoteCacheData
+          ? .returnCacheDataElseLoad
+          : .reloadIgnoringLocalAndRemoteCacheData
         )
         guard let urlRequest: URLRequest = urlRequest
         else {
           return Fail<HTTPResponse, HTTPError>(
             error: .invalidRequest(request)
           )
-          .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
         }
 
         func mapURLErrors(
@@ -125,7 +151,7 @@ extension Networking {
         }
 
         return
-          urlSession
+        urlSession
           .dataTaskPublisher(for: urlRequest)
           .mapError(mapURLErrors)
           .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPError> in

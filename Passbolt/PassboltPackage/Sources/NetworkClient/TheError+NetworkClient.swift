@@ -90,6 +90,17 @@ extension TheError {
       extensions: [:]
     )
   }
+
+  public static func redirect(
+    underlyingError: Error? = nil,
+    location: String
+  ) -> Self {
+    Self(
+      identifier: .redirect,
+      underlyingError: underlyingError,
+      extensions: [.redirectLocation: location]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -100,6 +111,7 @@ extension TheError.ID {
   public static var notFound: Self { "notFound" }
   public static var forbidden: Self { "forbidden" }
   public static var mfaRequired: Self { "mfaRequired" }
+  public static var redirect: Self { "redirect" }
 }
 
 extension TheError.Extension {
@@ -110,6 +122,7 @@ extension TheError.Extension {
 extension TheError.Extension {
 
   public static var mfaProviders: Self { "mfaProviders" }
+  public static var redirectLocation: Self { "location" }
 }
 
 extension TheError {
@@ -120,4 +133,5 @@ extension TheError {
 extension TheError {
 
   public var mfaProviders: Array<MFAProvider> { extensions[.mfaProviders] as? Array<MFAProvider> ?? [] }
+  public var redirectLocation: String? { extensions[.redirectLocation] as? String }
 }

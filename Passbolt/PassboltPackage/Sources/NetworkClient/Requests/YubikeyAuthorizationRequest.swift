@@ -55,15 +55,19 @@ extension YubikeyAuthorizationRequest {
 public struct YubikeyAuthorizationRequestVariable: Encodable {
 
   public var otp: String
+  public var remember: Bool
 
   private enum CodingKeys: String, CodingKey {
     case otp = "hotp" // it is actually otp but backend expects hotp field
+    case remember = "remember"
   }
 
   public init(
-    otp: String
+    otp: String,
+    remember: Bool
   ) {
     self.otp = otp
+    self.remember = remember
   }
 }
 

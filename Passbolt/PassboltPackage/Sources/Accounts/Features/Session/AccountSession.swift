@@ -582,16 +582,20 @@ extension AccountSession: Feature {
         !providers.isEmpty,
         "Cannot request MFA without providers"
       )
-      switch sessionState {
-      case let .authorized(account),
-        let .authorizedMFARequired(account, _),
-        let .authorizationRequired(account):
-        authorizationPromptPresentationSubject.send(
-          .mfaRequest(account: account, providers: providers)
-        )
 
-      case .none:
-        break
+      withSessionState { state in
+        switch state {
+        case let .authorized(account),
+          let .authorizedMFARequired(account, _),
+          let .authorizationRequired(account):
+          state = .authorizedMFARequired(account, providers: providers)
+          authorizationPromptPresentationSubject.send(
+            .mfaRequest(account: account, providers: providers)
+          )
+
+        case .none:
+          break
+        }
       }
     }
 

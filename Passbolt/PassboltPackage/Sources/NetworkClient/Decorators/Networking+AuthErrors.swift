@@ -26,13 +26,45 @@ import Environment
 
 extension NetworkRequest {
 
-  public func withAuthErrors(
+  internal func withAuthErrors(
     authorizationRequest: @escaping () -> Void,
-    mfaRequest: @escaping (Array<MFAProvider>) -> Void
+    mfaRequest: @escaping (Array<MFAProvider>) -> Void,
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheError>,
+    sessionPublisher: AnyPublisher<DomainSessionVariable, TheError>
   ) -> Self {
     Self(
       execute: { variable in
         self.execute(variable)
+          .catch { error -> AnyPublisher<Response, TheError> in
+            if error.identifier == .redirect,
+               let location = error.redirectLocation.map(URLString.init(rawValue:)) {
+
+              return sessionPublisher
+                .map { URLString(rawValue: $0.domain) }
+                .map { domain -> AnyPublisher<Response, TheError> in
+                  if URLString.domain(forURL: location, matches: domain),
+                     location.hasSuffix("/mfa/verify/error.json") {
+                    return mfaRedirectionHandler(.init())
+                      .map { _ -> AnyPublisher<Response, TheError> in
+                        Fail(error: .internalInconsistency().appending(context: "MFA Redirect response invalid"))
+                          .eraseToAnyPublisher()
+                      }
+                      .switchToLatest()
+                      .eraseToAnyPublisher()
+                  }
+                  else {
+                    return Fail(error: error)
+                      .eraseToAnyPublisher()
+                  }
+                }
+                .switchToLatest()
+                .eraseToAnyPublisher()
+            }
+            else {
+              return Fail(error: error)
+                .eraseToAnyPublisher()
+            }
+          }
           .mapError { (error: TheError) -> TheError in
             if error.identifier == .missingSession {
               authorizationRequest()

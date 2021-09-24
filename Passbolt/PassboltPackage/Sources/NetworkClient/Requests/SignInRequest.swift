@@ -154,7 +154,7 @@ public struct Tokens: Codable, Equatable {
     case verificationToken = "verify_token"
     case accessToken = "access_token"
     case refreshToken = "refresh_token"
-    case mfaProviders = "mfa_providers"
+    case mfaProviders = "providers"
   }
 }
 
@@ -165,7 +165,7 @@ extension NetworkResponseDecoding where Response == SignInResponse, SessionVaria
       let mfaTokenIsValid: Bool
       if let mfaToken: MFAToken = requestVariable.mfaToken {
         if
-          let cookieHeaderValue: String = httpResponse.headers["Set-cookie"],
+          let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
           let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
         {
           let mfaCookieValue: String = .init(

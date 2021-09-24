@@ -98,7 +98,8 @@ extension NetworkSession: Feature {
                       .accessToken
                       .isExpired(timestamp: time.timestamp())
                   },
-                  refreshToken: sessionTokens.refreshToken.rawValue
+                  refreshToken: sessionTokens.refreshToken.rawValue,
+                  mfaToken: sessionTokens.mfaToken?.rawValue
                 )
               }
           }
@@ -481,7 +482,10 @@ extension NetworkSession: Feature {
         }
         .switchToLatest()
         .handleEvents(receiveOutput: { (tokens: NetworkSessionTokens, _: Array<MFAProvider>) in
-          sessionTokensSubject.send(tokens)
+
+          var copyTokens: NetworkSessionTokens = tokens
+          copyTokens.mfaToken = mfaToken
+          sessionTokensSubject.send(copyTokens)
         })
         .map { (_: NetworkSessionTokens, mfaProviders: Array<MFAProvider>) -> Array<MFAProvider> in
           mfaProviders
@@ -498,7 +502,7 @@ extension NetworkSession: Feature {
       case let .totp(otp):
         return networkClient
           .totpAuthorizationRequest
-          .make(using: .init(totp: otp))
+          .make(using: .init(totp: otp, remember: storeLocally))
           .map(\.mfaToken)
           .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
             if storeLocally {
@@ -517,7 +521,7 @@ extension NetworkSession: Feature {
       case let .yubikeyOTP(otp):
         return networkClient
           .yubikeyAuthorizationRequest
-          .make(using: .init(otp: otp))
+          .make(using: .init(otp: otp, remember: storeLocally))
           .map(\.mfaToken)
           .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
             if storeLocally {

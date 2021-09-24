@@ -52,7 +52,8 @@ extension NetworkClient {
   public typealias Tokens = (
     accessToken: String,
     isExpired: () -> Bool,
-    refreshToken: String
+    refreshToken: String,
+    mfaToken: String?
   )
 }
 
@@ -91,7 +92,8 @@ extension NetworkClient: Feature {
           return Just(
             AuthorizedSessionVariable(
               domain: session.domain,
-              authorizationToken: authorizationToken
+              authorizationToken: authorizationToken,
+              mfaToken: tokens?.mfaToken
             )
           )
           .setFailureType(to: TheError.self)
@@ -150,6 +152,11 @@ extension NetworkClient: Feature {
       mfaRequest(providers)
     }
 
+    let mfaRedirectRequest: MFARedirectRequest = .live(
+      using: networking,
+      with: sessionVariablePublisher
+    )
+
     return Self(
       accountTransferUpdate: .live(
         using: networking,
@@ -193,7 +200,9 @@ extension NetworkClient: Feature {
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
-        mfaRequest: requestMFA
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
       ),
       resourcesTypesRequest: .live(
         using: networking,
@@ -201,7 +210,9 @@ extension NetworkClient: Feature {
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
-        mfaRequest: requestMFA
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
       ),
       resourceSecretRequest: .live(
         using: networking,
@@ -209,7 +220,9 @@ extension NetworkClient: Feature {
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
-        mfaRequest: requestMFA
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
       ),
       totpAuthorizationRequest: .live(
         using: networking,
@@ -217,7 +230,9 @@ extension NetworkClient: Feature {
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
-        mfaRequest: requestMFA
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
       ),
       yubikeyAuthorizationRequest: .live(
         using: networking,
@@ -225,7 +240,9 @@ extension NetworkClient: Feature {
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
-        mfaRequest: requestMFA
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
       ),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:),

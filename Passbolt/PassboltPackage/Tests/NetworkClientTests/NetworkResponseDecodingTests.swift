@@ -265,4 +265,64 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     XCTAssertEqual(error.identifier, .forbidden)
   }
+
+  func test_redirectWithLocationHeader_fails_withRedirectError() {
+    let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
+
+    let decodingResult: Result<MFARequiredResponse, TheError> =
+      decoding
+      .decode(
+        Void(),
+        Void(),
+        HTTPResponse(
+          url: .test,
+          statusCode: 302,
+          headers: ["Location": "https://passbolt.com"],
+          body: Data([0x01, 0x02, 0x03])
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else {
+      XCTFail("Unexpected success")
+      return
+    }
+
+    XCTAssertEqual(error.identifier, .redirect)
+    XCTAssertEqual(error.redirectLocation, "https://passbolt.com")
+  }
+
+  func test_redirectWithNoLocationHeader_fails_withInvalidResponseError() {
+    let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
+
+    let decodingResult: Result<MFARequiredResponse, TheError> =
+      decoding
+      .decode(
+        Void(),
+        Void(),
+        HTTPResponse(
+          url: .test,
+          statusCode: 302,
+          headers: [:],
+          body: Data([0x01, 0x02, 0x03])
+        )
+      )
+
+    guard
+      case let .failure(error) = decodingResult,
+      let innerError = error.underlyingError
+    else {
+      XCTFail("Invalid state")
+      return
+    }
+
+    switch innerError.self {
+    case HTTPError.invalidResponse:
+      break
+    case _:
+      XCTFail("Invalid state")
+    }
+
+    XCTAssertEqual(error.redirectLocation, nil)
+  }
 }

@@ -96,12 +96,7 @@ extension Resources: Feature {
           // containing diff implementation will be a valid one and immediately used
           //
           // implement diff request here instead when available
-          if lastUpdate.distance(to: time.dateNow()) > 60 {
-            return lastUpdate
-          }
-          else {
-            return nil
-          }
+          return lastUpdate
         }
         .map { _ -> AnyPublisher<Void, TheError> in
           // refresh resources types

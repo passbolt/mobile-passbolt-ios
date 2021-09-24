@@ -88,6 +88,16 @@ extension NetworkResponseDecoding where Response: Decodable {
   ) -> Self {
 
     Self { _, _, response in
+      guard response.statusCode != 302
+      else {
+        if let location = response.headers["Location"] {
+          return .failure(.redirect(location: location))
+        }
+        else {
+          return .failure(.httpError(.invalidResponse))
+        }
+      }
+
       guard response.statusCode != 401
       else { return .failure(.missingSession()) }
 
@@ -100,7 +110,9 @@ extension NetworkResponseDecoding where Response: Decodable {
             )
 
           guard !mfaResponse.body.mfaProviders.isEmpty
-          else { return .failure(.forbidden()) }
+          else {
+            return .failure(.forbidden())
+          }
 
           return .failure(
             .mfaRequired(mfaProviders: mfaResponse.body.mfaProviders)
