@@ -74,7 +74,8 @@ public struct AccountSelectionCellItem: Hashable {
     lhs: AccountSelectionCellItem,
     rhs: AccountSelectionCellItem
   ) -> Bool {
-    lhs.title == rhs.title
+    lhs.account == rhs.account
+      && lhs.title == rhs.title
       && lhs.subtitle == rhs.subtitle
       && lhs.isCurrentAccount == rhs.isCurrentAccount
       && ((lhs.imagePublisher == nil && rhs.imagePublisher == nil)
@@ -86,6 +87,7 @@ public struct AccountSelectionCellItem: Hashable {
     hasher.combine(title)
     hasher.combine(subtitle)
     hasher.combine(isCurrentAccount)
+    hasher.combine(imagePublisher != nil)
   }
 }
 

@@ -31,19 +31,23 @@ import UIComponents
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ExtensionSetupScreenTests: TestCase {
 
+  var autoFill: AutoFill!
   var linkOpener: LinkOpener!
 
   override func setUp() {
     super.setUp()
+    autoFill = .placeholder
     linkOpener = .placeholder
   }
 
   override func tearDown() {
+    autoFill = nil
     linkOpener = nil
     super.tearDown()
   }
 
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
+    features.use(autoFill)
     features.use(linkOpener)
     let controller: ExtensionSetupController = testInstance()
 
@@ -56,6 +60,7 @@ final class ExtensionSetupScreenTests: TestCase {
   }
 
   func test_continueSetupPresentationPublisher_publish_afterSkip() {
+    features.use(autoFill)
     features.use(linkOpener)
 
     let controller: ExtensionSetupController = testInstance()
@@ -70,7 +75,9 @@ final class ExtensionSetupScreenTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_continueSetupPresentationPublisher_publish_afterSetup() {
+  func test_continueSetupPresentationPublisher_publishes_afterEnablingExtensionInSettings() {
+    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
+    features.use(autoFill)
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
 
@@ -89,7 +96,30 @@ final class ExtensionSetupScreenTests: TestCase {
     XCTAssertNotNil(result)
   }
 
+  func test_continueSetupPresentationPublisher_doesNotPublish_afterExtensionIsNotEnabledInSettings() {
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
+    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
+    features.use(linkOpener)
+
+    let controller: ExtensionSetupController = testInstance()
+
+    var result: Void!
+    controller.continueSetupPresentationPublisher()
+      .sink { result = $0 }
+      .store(in: cancellables)
+
+    controller
+      .setupExtension()
+      .sink { _ in }
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
+  }
+
   func test_setupExtension_opensSystemSettings() {
+    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
+    features.use(autoFill)
     var result: Void!
     linkOpener.openSystemSettings = {
       result = Void()

@@ -39,26 +39,36 @@ extension ExtensionSetupController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let autoFill: AutoFill = features.instance()
     let linkOpener: LinkOpener = features.instance()
-    let continueSetupPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let continueSetupPresentationSubject: CurrentValueSubject<Void?, Never> = .init(nil)
 
     func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
-      continueSetupPresentationSubject.eraseToAnyPublisher()
+      continueSetupPresentationSubject
+        .filterMapOptional()
+        .eraseToAnyPublisher()
     }
 
     func setupExtension() -> AnyPublisher<Never, TheError> {
       linkOpener
         .openSystemSettings()
-        .ignoreOutput()
+        .map { (_: Bool) -> AnyPublisher<Bool, Never> in
+          autoFill
+            .extensionEnabledStatePublisher()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
         .setFailureType(to: TheError.self)
-        .handleEvents(receiveCompletion: { _ in
-          continueSetupPresentationSubject.send()
+        .handleEvents(receiveOutput: { extensionEnabled in
+          guard extensionEnabled else { return }
+          continueSetupPresentationSubject.send(Void())
         })
+        .ignoreOutput()
         .eraseToAnyPublisher()
     }
 
     func skipSetup() {
-      continueSetupPresentationSubject.send()
+      continueSetupPresentationSubject.send(Void())
     }
 
     return Self(

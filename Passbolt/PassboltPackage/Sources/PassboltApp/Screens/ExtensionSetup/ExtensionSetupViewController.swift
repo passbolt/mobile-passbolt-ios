@@ -42,6 +42,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   internal let components: UIComponentFactory
 
   private let controller: Controller
+  private var continueSetupPresentationSubscriptionCancellable: AnyCancellable?
 
   internal init(
     using controller: Controller,
@@ -50,6 +51,19 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     self.controller = controller
     self.components = components
     super.init()
+  }
+
+  func activate() {
+    continueSetupPresentationSubscriptionCancellable = controller
+      .continueSetupPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.replaceWindowRoot(with: SplashScreenViewController.self)
+      }
+  }
+
+  func deactivate() {
+    continueSetupPresentationSubscriptionCancellable = nil
   }
 
   internal func setupView() {
@@ -88,14 +102,6 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       .skipTapPublisher
       .sink { [weak self] in
         self?.controller.skipSetup()
-      }
-      .store(in: cancellables)
-
-    controller
-      .continueSetupPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.replaceWindowRoot(with: SplashScreenViewController.self)
       }
       .store(in: cancellables)
   }
