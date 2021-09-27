@@ -150,6 +150,13 @@ extension AuthorizationController: UIController {
           )
         }
         .switchToLatest()
+        .collectErrorLog(using: diagnostics)
+        .handleErrors(
+          ([.notFound], handler: {
+            accountNotFoundScreenPresentationSubject.send(context)
+          }),
+          defaultHandler: { /* NOP */ }
+        )
         .eraseToAnyPublisher()
     }
 
@@ -159,6 +166,7 @@ extension AuthorizationController: UIController {
           account,
           .biometrics
         )
+        .collectErrorLog(using: diagnostics)
         .handleErrors(
           ([.notFound], handler: {
             accountNotFoundScreenPresentationSubject.send(context)

@@ -84,17 +84,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
           }
-          .handleEnd { [weak self] canceled in
-            if !canceled {
-              self?.signInCancellable = nil
-            }
-            else {
-              /* NOP */
-            }
-            self?.dismissOverlay()
-          }
           .handleErrors(
             ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.invalidPassphraseError], handler: { [weak self] in
+              self?.presentErrorSnackbar(
+                localizableKey: "sign.in.error.passphrase.invalid.message",
+                inBundle: .commons,
+                hideAfter: 5
+              )
+            }),
             ([.biometricsChanged], handler: { [weak self] in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.biometrics.changed.message",
@@ -106,6 +104,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               self?.presentErrorSnackbar()
             }
           )
+          .handleEnd { [weak self] canceled in
+            if !canceled {
+              self?.signInCancellable = nil
+            }
+            else {
+              /* NOP */
+            }
+            self?.dismissOverlay()
+          }
           .sinkDrop()
       })
       .store(in: cancellables)
@@ -222,17 +229,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
           }
-          .handleEnd { [weak self] canceled in
-            if !canceled {
-              self?.signInCancellable = nil
-            }
-            else {
-              /* NOP */
-            }
-            self?.dismissOverlay()
-          }
           .handleErrors(
             ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.invalidPassphraseError], handler: { [weak self] in
+              self?.presentErrorSnackbar(
+                localizableKey: "sign.in.error.passphrase.invalid.message",
+                inBundle: .commons,
+                hideAfter: 5
+              )
+            }),
             ([.biometricsChanged], handler: { [weak self] in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.biometrics.changed.message",
@@ -244,6 +249,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               self?.presentErrorSnackbar()
             }
           )
+          .handleEnd { [weak self] canceled in
+            if !canceled {
+              self?.signInCancellable = nil
+            }
+            else {
+              /* NOP */
+            }
+            self?.dismissOverlay()
+          }
           .sinkDrop()
       }
       .store(in: cancellables)
@@ -259,17 +273,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
           }
-          .handleEnd { [weak self] canceled in
-            if !canceled {
-              self?.signInCancellable = nil
-            }
-            else {
-              /* NOP */
-            }
-            self?.dismissOverlay()
-          }
           .handleErrors(
             ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.invalidPassphraseError], handler: { [weak self] in
+              self?.presentErrorSnackbar(
+                localizableKey: "sign.in.error.passphrase.invalid.message",
+                inBundle: .commons,
+                hideAfter: 5
+              )
+            }),
             ([.biometricsChanged], handler: { [weak self] in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.biometrics.changed.message",
@@ -281,6 +293,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               self?.presentErrorSnackbar()
             }
           )
+          .handleEnd { [weak self] canceled in
+            if !canceled {
+              self?.signInCancellable = nil
+            }
+            else {
+              /* NOP */
+            }
+            self?.dismissOverlay()
+          }
           .sinkDrop()
       }
       .store(in: cancellables)

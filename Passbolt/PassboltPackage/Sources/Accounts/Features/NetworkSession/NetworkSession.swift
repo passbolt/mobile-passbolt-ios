@@ -186,8 +186,7 @@ extension NetworkSession: Feature {
 
       case let .failure(error):
         return Fail<ArmoredPGPMessage, TheError>(
-          error: .signInError(underlyingError: error)
-            .appending(logMessage: "Failed to encrypt and sign challenge")
+          error: error.appending(logMessage: "Failed to encrypt and sign challenge")
         )
         .eraseToAnyPublisher()
       }
@@ -244,8 +243,7 @@ extension NetworkSession: Feature {
 
       case let .failure(error):
         return Fail<Tokens, TheError>(
-          error: .signInError(underlyingError: error)
-            .appending(logMessage: "Unable to decrypt and verify response")
+          error: error.appending(logMessage: "Unable to decrypt and verify response")
         )
         .eraseToAnyPublisher()
       }
@@ -315,8 +313,7 @@ extension NetworkSession: Feature {
 
       case let .failure(error):
         return Fail<SessionTokensWithMFAProviders, TheError>(
-          error: .signInError(underlyingError: error)
-            .appending(logMessage: "Failed to prepare for signature verification")
+          error: error.appending(logMessage: "Failed to prepare for signature verification")
         )
         .eraseToAnyPublisher()
       }
@@ -353,8 +350,7 @@ extension NetworkSession: Feature {
 
       case let .failure(error):
         return Fail<SessionTokensWithMFAProviders, TheError>(
-          error: .signInError(underlyingError: error)
-            .appending(logMessage: "Signature verification failed")
+          error: error.appending(logMessage: "Signature verification failed")
         )
         .eraseToAnyPublisher()
       }

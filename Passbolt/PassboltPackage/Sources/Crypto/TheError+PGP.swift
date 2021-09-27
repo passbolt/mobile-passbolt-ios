@@ -36,10 +36,10 @@ extension TheError {
     )
   }
 
-  internal static func invalidPassphraseError() -> Self {
+  internal static func invalidPassphraseError(underlyingError: Error? = nil) -> Self {
     Self(
       identifier: .invalidPassphraseError,
-      underlyingError: nil,
+      underlyingError: underlyingError,
       extensions: [:]
     )
   }

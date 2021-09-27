@@ -46,7 +46,7 @@ final class PGPTests: XCTestCase {
     XCTAssertSuccessNotEqual(output, input)
   }
 
-  func test_encryption_WithIncorrectPassphraseSigning_fails() {
+  func test_encryptionWithSigning_WithIncorrectPassphraseSigning_fails() {
     let input: String = ""
     let passphrase: Passphrase = "SomeInvalidPassphrase"
 
@@ -61,7 +61,7 @@ final class PGPTests: XCTestCase {
       return XCTFail("Invalid error")
     }
 
-    XCTAssertEqual(error.identifier, TheError.ID.pgpError)
+    XCTAssertEqual(error.identifier, TheError.ID.invalidPassphraseError)
   }
 
   func test_decryptionAndVerification_withCorrectPassphrase_succeeds() {
@@ -76,6 +76,24 @@ final class PGPTests: XCTestCase {
     )
 
     XCTAssertSuccessEqual(output, "Passbolt\n")
+  }
+
+  func test_decryptionAndVerification_withInvalidPassphrase_fails() {
+    let input: String = signedCiphertext
+    let passphrase: Passphrase = "InvalidPasshrase"
+
+    let output: Result<String, TheError> = pgp.decryptAndVerify(
+      input,
+      passphrase,
+      privateKey,
+      publicKey
+    )
+
+    guard case let Result.failure(error) = output else {
+      return XCTFail("Invalid error")
+    }
+
+    XCTAssertEqual(error.identifier, TheError.ID.invalidPassphraseError)
   }
 
   func test_decryptionAndVerification_withCorruptedInputData_fails() {
@@ -155,7 +173,7 @@ final class PGPTests: XCTestCase {
       return XCTFail("Invalid error")
     }
 
-    XCTAssertEqual(error.identifier, TheError.ID.pgpError)
+    XCTAssertEqual(error.identifier, TheError.ID.invalidPassphraseError)
   }
 
   func test_signMessage_withCorrectInputData_succeeds() {
@@ -178,9 +196,28 @@ final class PGPTests: XCTestCase {
     XCTAssertTrue(message.contains(input))
   }
 
-  func test_signMessage_withEmptyMessageAndPassphrase_fails() {
+  func test_signMessage_withEmptyMessage_succeeds() {
     let input: String = ""
-    let passphrase: Passphrase = ""
+    let passphrase: Passphrase = "SecretPassphrase"
+
+    let output: Result<String, TheError> = pgp.signMessage(
+      input,
+      passphrase,
+      privateKey
+    )
+
+    guard case let Result.success(message) = output else {
+      return XCTFail("Invalid value")
+    }
+
+    XCTAssertTrue(message.contains("-----BEGIN PGP SIGNED MESSAGE-----"))
+    XCTAssertTrue(message.contains("-----BEGIN PGP SIGNATURE-----"))
+    XCTAssertTrue(message.contains("-----END PGP SIGNATURE-----"))
+  }
+
+  func test_signMessage_withInvalidPassphrase_fails() {
+    let input: String = "The quick brown fox jumps over the lazy dog"
+    let passphrase: Passphrase = "InvalidPasshrase"
 
     let output: Result<String, TheError> = pgp.signMessage(
       input,
@@ -192,7 +229,7 @@ final class PGPTests: XCTestCase {
       return XCTFail("Invalid error")
     }
 
-    XCTAssertEqual(error.identifier, TheError.ID.pgpError)
+    XCTAssertEqual(error.identifier, TheError.ID.invalidPassphraseError)
   }
 
   func test_verifyMessage_withCorrectylySignedInputAndDisableTimeCheck_succeeds() {

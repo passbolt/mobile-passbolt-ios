@@ -267,8 +267,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .signInError)
-    XCTAssertEqual((result?.underlyingError as? TheError)?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .testError)
   }
 
   func test_createSession_fails_whenDecryptAndVerifyFails() {
@@ -300,8 +299,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .signInError)
-    XCTAssertEqual((result?.underlyingError as? TheError)?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .testError)
   }
 
   func test_createSession_fails_whenSignatureVerificationFails() {
@@ -333,8 +331,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .signInError)
-    XCTAssertEqual((result?.underlyingError as? TheError)?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .testError)
   }
 
   func test_createSession_fails_whenVerificationTokenIsInvalid() {

@@ -109,7 +109,18 @@ extension PGP {
         return .success(result)
       }
 
-      return .failure(.pgpError(nsError))
+      if
+        nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
+        ( // gopenpgp has multiple strings for the same error...
+          errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains("gopenpgp: error in unlocking key")
+        )
+      {
+        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+      } else {
+        return .failure(.pgpError(nsError))
+      }
     }
 
     func decryptAndVerify(
@@ -137,7 +148,18 @@ extension PGP {
         return .success(result)
       }
 
-      return .failure(.pgpError(nsError))
+      if
+        nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
+        ( // gopenpgp has multiple strings for the same error...
+          errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains("gopenpgp: error in unlocking key")
+        )
+      {
+        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+      } else {
+        return .failure(.pgpError(nsError))
+      }
     }
 
     func encrypt(
@@ -183,7 +205,18 @@ extension PGP {
         return .success(result)
       }
 
-      return .failure(.pgpError(nsError))
+      if
+        nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
+        ( // gopenpgp has multiple strings for the same error...
+          errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains("gopenpgp: error in unlocking key")
+        )
+      {
+        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+      } else {
+        return .failure(.pgpError(nsError))
+      }
     }
 
     func signMessage(
@@ -209,7 +242,18 @@ extension PGP {
         return .success(result)
       }
 
-      return .failure(.pgpError(nsError))
+      if
+        nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
+        ( // gopenpgp has multiple strings for the same error...
+          errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains("gopenpgp: error in unlocking key")
+        )
+      {
+        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+      } else {
+        return .failure(.pgpError(nsError))
+      }
     }
 
     func verifyMessage(

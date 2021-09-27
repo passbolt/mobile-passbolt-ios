@@ -552,37 +552,43 @@ extension AccountsDataStore: Feature {
         .mapError { error in
           diagnostics.diagnosticLog("Failed to load passphrase from keychain")
           diagnostics.debugLog(error.description)
-          guard error.identifier == .missingPassphrase
-          else { return .biometricsNotAvailable(underlyingError: error) }
-          // Ensure that account profile has biometrics disabled
-          // when passphrase is unavailable
-          _ = environment
-            .keychain
-            .loadFirst(
-              AccountProfile.self,
-              matching: .accountProfileQuery(for: accountID)
-            )
-            .flatMap { (accountProfile: AccountProfile?) -> Result<Void, TheError> in
-              if var updatedAccountProfile: AccountProfile = accountProfile {
-                guard updatedAccountProfile.biometricsEnabled
-                else { return .success }
-                updatedAccountProfile.biometricsEnabled = false
-                return environment
-                  .keychain
-                  .save(
-                    updatedAccountProfile,
-                    for: .accountProfileQuery(for: accountID)
-                  )
-                  .map {
-                    updatedAccountIDSubject.send(accountID)
-                  }
+          if error.identifier == .missingPassphrase {
+            // Ensure that account profile has biometrics disabled
+            // when passphrase is unavailable
+            _ = environment
+              .keychain
+              .loadFirst(
+                AccountProfile.self,
+                matching: .accountProfileQuery(for: accountID)
+              )
+              .flatMap { (accountProfile: AccountProfile?) -> Result<Void, TheError> in
+                if var updatedAccountProfile: AccountProfile = accountProfile {
+                  guard updatedAccountProfile.biometricsEnabled
+                  else { return .success }
+                  updatedAccountProfile.biometricsEnabled = false
+                  return environment
+                    .keychain
+                    .save(
+                      updatedAccountProfile,
+                      for: .accountProfileQuery(for: accountID)
+                    )
+                    .map {
+                      updatedAccountIDSubject.send(accountID)
+                    }
+                }
+                else {
+                  return .failure(.invalidAccount())
+                }
               }
-              else {
-                return .failure(.invalidAccount())
-              }
-            }
 
-          return .biometricsChanged()
+            return .biometricsChanged()
+          }
+          else if error.identifier == .canceled {
+            return error
+          }
+          else {
+            return .biometricsNotAvailable(underlyingError: error)
+          }
         }
     }
 
