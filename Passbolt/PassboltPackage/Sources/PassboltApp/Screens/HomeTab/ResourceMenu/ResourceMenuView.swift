@@ -101,7 +101,7 @@ internal final class ResourceMenuView: View {
       switch item.operation {
       case .openURL:
         mut(item.imageView) {
-          .image(named: .key, from: .uiCommons)
+          .image(named: .open, from: .uiCommons)
         }
 
         mut(item.titleLabel) {
