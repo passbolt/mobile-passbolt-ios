@@ -1023,7 +1023,83 @@ final class AccountSessionTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_authorize_doesNotClosePreviousSession_whenSwitchingToAlreadyStoredAccount() {
+  func test_authorize_doesNotClosePreviousSession_whenSwitchingSameAccount() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccounts = always([validAccountAlternative])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    var result: Void?
+    networkSession.closeSession = {
+      result = Void()
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
+  }
+
+  func test_authorize_doesClosePreviousSession_whenSwitchingToNotStoredAccount() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccounts = always([validAccountAlternative])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    var result: Void?
+    networkSession.closeSession = {
+      result = Void()
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_authorize_doesClosePreviousSession_whenSwitchingToAlreadyStoredAccount() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
@@ -1058,7 +1134,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertNil(result)
+    XCTAssertNotNil(result)
   }
 
   func test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenApplicationWillEnterForeground() {
