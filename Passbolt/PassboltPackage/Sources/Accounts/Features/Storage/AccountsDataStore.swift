@@ -51,6 +51,8 @@ internal struct AccountsDataStore {
       _ accountID: Account.LocalID,
       _ key: String
     ) -> Result<SQLiteConnection, TheError>
+  internal var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheError>
+  internal var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheError>
 }
 
 extension AccountsDataStore: Feature {
@@ -147,6 +149,24 @@ extension AccountsDataStore: Feature {
       diagnostics.debugLog("Stored account mfa tokens: \(storedAccountMFATokens)")
       timeMeasurement.event("Account mfa tokens loaded")
 
+      // storedServerFingerprints - keychain accounts server fingerprints
+      let storedServerFingerprints: Array<Account.LocalID>
+      switch keychain.loadMeta(matching: .serverFingerprintQuery()) {
+      case let .success(accounts):
+        storedServerFingerprints = accounts
+          .compactMap(\.tag?.rawValue)
+          .map(Account.LocalID.init(rawValue:))
+      case let .failure(error):
+        diagnostics.diagnosticLog(
+          "Failed to load account server fingerprint data, recovering with empty list"
+        )
+        diagnostics.debugLog(error.description)
+        forceDelete(matching: .accountsProfilesQuery)
+        storedServerFingerprints = .init()
+      }
+      diagnostics.debugLog("Stored server fingerprints: \(storedServerFingerprints)")
+      timeMeasurement.event("Account server fingerprints")
+
       // storedAccountKeys - keychain accounts private keys
       let storedAccountKeys: Array<Account.LocalID>
       let armoredKeysQuery: KeychainQuery = .init(
@@ -242,6 +262,25 @@ extension AccountsDataStore: Feature {
       }
       diagnostics.debugLog("Deleted account mfa tokens: \(mfaTokensToRemove)")
       timeMeasurement.event("Account mfa tokens cleaned")
+
+      let serverFingerprintsToRemove: Array<Account.LocalID> =
+        storedServerFingerprints
+        .filter { !updatedAccountsList.contains($0) }
+
+      for accountID in serverFingerprintsToRemove {
+        switch keychain.delete(matching: .serverFingerprintQuery(for: accountID)) {
+        case .success:
+          continue
+        case let .failure(error):
+          diagnostics.diagnosticLog(
+            "Failed to delete server fingerprint"
+          )
+          diagnostics.debugLog(error.description)
+          return .failure(error)
+        }
+      }
+      diagnostics.debugLog("Deleted server fingerprints: \(serverFingerprintsToRemove)")
+      timeMeasurement.event("Account server fingerprints cleaned")
 
       let keysToRemove: Array<Account.LocalID> =
         storedAccountKeys
@@ -832,6 +871,16 @@ extension AccountsDataStore: Feature {
         }
     }
 
+    func storeServerFingerprint(accountID: Account.LocalID, fingerprint: Fingerprint) -> Result<Void, TheError> {
+      keychain
+        .save(fingerprint, for: .serverFingerprintQuery(for: accountID))
+    }
+
+    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheError> {
+      keychain
+        .loadFirst(Fingerprint.self, matching: .serverFingerprintQuery(for: accountID))
+    }
+
     return Self(
       verifyDataIntegrity: ensureDataIntegrity,
       loadAccounts: loadAccounts,
@@ -849,7 +898,9 @@ extension AccountsDataStore: Feature {
       updateAccountProfile: update(accountProfile:),
       deleteAccount: deleteAccount(withID:),
       updatedAccountIDsPublisher: updatedAccountIDSubject.eraseToAnyPublisher,
-      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:key:)
+      accountDatabaseConnection: prepareDatabaseConnection(forAccountWithID:key:),
+      storeServerFingerprint: storeServerFingerprint(accountID:fingerprint:),
+      loadServerFingerprint: loadServerFingerprint(accountID:)
     )
   }
 
@@ -872,7 +923,9 @@ extension AccountsDataStore: Feature {
       updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
       deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
       updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods")
+      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods"),
+      storeServerFingerprint: Commons.placeholder("You have to provide mocks for used methods"),
+      loadServerFingerprint: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
   #endif
@@ -990,6 +1043,20 @@ extension KeychainQuery {
     )
     return Self(
       key: "accountMFAToken",
+      tag: (identifier?.rawValue).map(KeychainQuery.Tag.init(rawValue:)),
+      requiresBiometrics: false
+    )
+  }
+
+  fileprivate static func serverFingerprintQuery(
+    for identifier: Account.LocalID? = nil
+  ) -> Self {
+    assert(
+      identifier == nil || !(identifier?.rawValue.isEmpty ?? false),
+      "Cannot use empty account identifiers for database operations"
+    )
+    return Self(
+      key: "serverFingerprint",
       tag: (identifier?.rawValue).map(KeychainQuery.Tag.init(rawValue:)),
       requiresBiometrics: false
     )

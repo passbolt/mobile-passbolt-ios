@@ -31,7 +31,9 @@ extension Publisher where Failure == TheError {
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(receiveCompletion: { completion in
       guard case let .failure(error) = completion
-      else { return }
+      else {
+        return
+      }
 
       let matchingCase: (() -> Void)?
       = cases

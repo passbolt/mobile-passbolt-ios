@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Crypto
 import Foundation
 import UIComponents
 
@@ -81,11 +82,29 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self.signInCancellable = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
+          .handleEvents(receiveCompletion: { [weak self] completion in
+            guard case let .failure(error) = completion
+            else { return }
+
+            guard
+              error.identifier == .invalidServerFingerprint,
+              let accountID: Account.LocalID = error.accountID,
+              let fingerprint: Fingerprint = error.serverFingerprint
+            else {
+              return
+            }
+
+            self?.signInCancellable = nil
+            self?.navigateToInvalidServerFingerprint(
+              accountID: accountID,
+              fingerprint: fingerprint
+            )
+          })
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
           }
           .handleErrors(
-            ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.canceled, .notFound, .invalidServerFingerprint], handler: { /* NOP */ }),
             ([.invalidPassphraseError], handler: { [weak self] in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.passphrase.invalid.message",
@@ -226,6 +245,24 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self.signInCancellable = self.controller
           .signIn()
           .receive(on: RunLoop.main)
+          .handleEvents(receiveCompletion: { [weak self] completion in
+            guard case let .failure(error) = completion
+            else { return }
+
+            guard
+              error.identifier == .invalidServerFingerprint,
+              let accountID: Account.LocalID = error.accountID,
+              let fingerprint: Fingerprint = error.serverFingerprint
+            else {
+              return
+            }
+
+            self?.signInCancellable = nil
+            self?.navigateToInvalidServerFingerprint(
+              accountID: accountID,
+              fingerprint: fingerprint
+            )
+          })
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
           }
@@ -270,11 +307,28 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self.signInCancellable = self.controller
           .biometricSignIn()
           .receive(on: RunLoop.main)
+          .handleEvents(receiveCompletion: { [weak self] completion in
+            guard case let .failure(error) = completion
+            else { return }
+            guard
+              error.identifier == .invalidServerFingerprint,
+              let accountID: Account.LocalID = error.accountID,
+              let fingerprint: Fingerprint = error.serverFingerprint
+            else {
+              return
+            }
+
+            self?.signInCancellable = nil
+            self?.navigateToInvalidServerFingerprint(
+              accountID: accountID,
+              fingerprint: fingerprint
+            )
+          })
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
           }
           .handleErrors(
-            ([.canceled, .notFound], handler: { /* NOP */ }),
+            ([.canceled, .notFound, .invalidServerFingerprint], handler: { /* NOP */ }),
             ([.invalidPassphraseError], handler: { [weak self] in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.passphrase.invalid.message",
@@ -341,5 +395,15 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         )
       }
       .store(in: cancellables)
+  }
+
+  private func navigateToInvalidServerFingerprint(
+    accountID: Account.LocalID,
+    fingerprint: Fingerprint
+  ) {
+    push(
+      ServerFingerprintViewController.self,
+      in: (accountID: accountID, fingerprint: fingerprint)
+    )
   }
 }

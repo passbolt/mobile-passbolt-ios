@@ -329,7 +329,8 @@ let package = Package(
         .product(name: "AegithalosCocoa", package: "Aegithalos"),
       ],
       resources: [
-        .process("Fonts/AnonymousPro-Bold.ttf"),
+        .process("Fonts/Inconsolata-Bold.ttf"),
+        .process("Fonts/Inconsolata-SemiBold.ttf"),
         .process("Fonts/Inter-Black.ttf"),
         .process("Fonts/Inter-Bold.ttf"),
         .process("Fonts/Inter-ExtraLight.ttf"),

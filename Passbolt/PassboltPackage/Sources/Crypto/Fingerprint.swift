@@ -21,31 +21,7 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Commons
 
-extension Mutation where Subject: StackView {
-
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
-  }
-
-  public static func bintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
-  }
-
-  public static func addArrangedSubview(_ view: UIView) -> Self {
-    .custom { (subject: Subject) in subject.addArrangedSubview(view) }
-  }
-
-  public static func appendSpace(of size: CGFloat, tag: Int? = nil) -> Self {
-    .custom { (subject: Subject) in subject.appendSpace(of: size, tag: tag) }
-  }
-
-  public static func appendFiller(minSize: CGFloat) -> Self {
-    .custom { (subject: Subject) in subject.appendFiller(minSize: minSize) }
-  }
-
-  public static func isLayoutMarginsRelativeArrangement(_ value: Bool) -> Self {
-    .custom { (subject: Subject) in subject.isLayoutMarginsRelativeArrangement = value }
-  }
-}
+public enum FingerprintTag {}
+public typealias Fingerprint = Tagged<String, FingerprintTag>

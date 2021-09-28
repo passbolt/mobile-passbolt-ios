@@ -891,7 +891,8 @@ final class AccountSessionTests: TestCase {
 
   func test_authorize_succeeds_whenSwitchingSession() {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadAccounts = always([])
+    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
@@ -987,6 +988,7 @@ final class AccountSessionTests: TestCase {
 
   func test_authorize_closesPreviousSession_whenSwitchingAccount() {
     accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
     accountsDataStore.loadAccounts = always([])
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())

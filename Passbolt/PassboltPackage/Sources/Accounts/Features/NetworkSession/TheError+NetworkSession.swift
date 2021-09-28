@@ -22,6 +22,7 @@
 //
 
 import Commons
+import Crypto
 
 extension TheError {
 
@@ -44,10 +45,38 @@ extension TheError {
       extensions: .init()
     )
   }
+
+  public static func invalidServerFingerprint(
+    underlyingError: Error? = nil,
+    accountID: Account.LocalID,
+    updatedFingerprint: Fingerprint
+  ) -> Self {
+    .init(
+      identifier: .invalidServerFingerprint,
+      underlyingError: underlyingError,
+      extensions: [
+        .accountID: accountID,
+        .serverFingerprint: updatedFingerprint
+      ]
+    )
+  }
 }
 
 extension TheError.ID {
 
   public static let signInError: Self = "signInError"
   public static let missingSessionError: Self = "missingSessionError"
+  public static let invalidServerFingerprint: Self = "invalidServerFingerprint"
+}
+
+extension TheError.Extension {
+
+  public static let accountID: Self = "accountID"
+  public static let serverFingerprint: Self = "serverFingerprint"
+}
+
+extension TheError {
+
+  public var accountID: Account.LocalID? { extensions[.accountID] as? Account.LocalID }
+  public var serverFingerprint: Fingerprint? { extensions[.serverFingerprint] as? Fingerprint }
 }

@@ -53,7 +53,8 @@ internal struct NetworkSession {
 
 extension NetworkSession {
 
-  fileprivate typealias ServerPublicKeys = (pgp: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey)
+  fileprivate typealias ServerPublicPGPKeyWithFingerprint = (pgp: ArmoredPGPPublicKey, fingerprint: Fingerprint)
+  fileprivate typealias ServerPublicKeys = (pgp: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: ArmoredRSAPublicKey)
   fileprivate typealias ServerPublicKeysWithSignInChallenge = (
     serverPublicKeys: ServerPublicKeys, signInChallenge: ArmoredPGPMessage
   )
@@ -76,6 +77,7 @@ extension NetworkSession: Feature {
     let signatureVerification: SignatureVerfication = environment.signatureVerfication
 
     let accountDataStore: AccountsDataStore = features.instance()
+    let fingerprintStorage: FingerprintStorage = features.instance()
     let networkClient: NetworkClient = features.instance()
 
     let sessionTokensSubject: CurrentValueSubject<NetworkSessionTokens?, Never> = .init(nil)
@@ -103,12 +105,16 @@ extension NetworkSession: Feature {
           .eraseToAnyPublisher()
       )
 
-    func fetchServerPublicPGPKey() -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
+    func fetchServerPublicPGPKey() -> AnyPublisher<ServerPublicPGPKeyWithFingerprint, TheError> {
       networkClient
         .serverPGPPublicKeyRequest
         .make()
         .map { response in
-          ArmoredPGPPublicKey(rawValue: response.body.keyData)
+          #warning("Fingerprint should be extracted from the public key")
+          return (
+            pgp: ArmoredPGPPublicKey(rawValue: response.body.keyData),
+            fingerprint: .init(rawValue: response.body.fingerprint)
+          )
         }
         .eraseToAnyPublisher()
     }
@@ -123,16 +129,62 @@ extension NetworkSession: Feature {
         .eraseToAnyPublisher()
     }
 
-    func fetchServerPublicKeys() -> AnyPublisher<ServerPublicKeys, TheError> {
+    func fetchServerPublicKeys(accountID: Account.LocalID) -> AnyPublisher<ServerPublicKeys, TheError> {
       Publishers.Zip(
         fetchServerPublicPGPKey(),
         fetchServerPublicRSAKey()
       )
-      .map { (pgp: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey) -> ServerPublicKeys in
-        #warning("TODO: [PAS-235] verify server key fingerprint")
-        return ServerPublicKeys(pgp: pgp, rsa: rsa)
-      }
-      .eraseToAnyPublisher()
+        .map { (pgp: ServerPublicPGPKeyWithFingerprint, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
+          var existingFingerprint: Fingerprint? = nil
+          
+          switch fingerprintStorage.loadServerFingerprint(accountID) {
+          case let .success(fingerprint):
+            existingFingerprint = fingerprint
+            
+          case let .failure(error):
+            return Fail(
+              error: .invalidServerFingerprint(
+                accountID: accountID,
+                updatedFingerprint: pgp.fingerprint
+              )
+            )
+            .eraseToAnyPublisher()
+          }
+          
+          if let fingerprint = existingFingerprint {
+            if fingerprint == pgp.fingerprint {
+              return Just(
+                ServerPublicKeys(pgp: pgp.pgp, pgpFingerprint: pgp.fingerprint, rsa: rsa)
+              )
+                .setFailureType(to: TheError.self)
+                .eraseToAnyPublisher()
+            }
+            else {
+              return Fail(
+                error: .invalidServerFingerprint(
+                  accountID: accountID,
+                  updatedFingerprint: pgp.fingerprint
+                )
+              )
+                .eraseToAnyPublisher()
+            }
+          } else {
+            switch fingerprintStorage.storeServerFingerprint(accountID, pgp.fingerprint) {
+            case let .failure(error):
+              return Fail(error: error)
+                .eraseToAnyPublisher()
+            case _:
+              break
+            }
+            return Just(
+              ServerPublicKeys(pgp: pgp.pgp, pgpFingerprint: pgp.fingerprint, rsa: rsa)
+            )
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
     }
 
     func prepareSignInChallenge(
@@ -370,7 +422,7 @@ extension NetworkSession: Feature {
         .loadAccountMFAToken(account.localID)
         .get() // we don't care about the errors here
 
-      return fetchServerPublicKeys()
+      return fetchServerPublicKeys(accountID: account.localID)
         .map { (serverPublicKeys: ServerPublicKeys) -> AnyPublisher<ServerPublicKeysWithSignInChallenge, TheError> in
           prepareSignInChallenge(
             domain: domain,

@@ -35,6 +35,10 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>NFC can be used to communicate with Yubikey token.</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string></string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter Thin</string>
@@ -45,7 +49,8 @@
 		<string>Inter SemiBold</string>
 		<string>Inter Bold</string>
 		<string>Inter-Black</string>
-		<string>AnonymousPro Bold</string>
+		<string>Inconsolata SemiBold</string>
+		<string>Inconsolata Bold</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
@@ -87,9 +92,5 @@
 	<array>
 		<string>A000000527200101</string>
 	</array>
-	<key>NSFileProviderDomainUsageDescription</key>
-	<string></string>
-	<key>NFCReaderUsageDescription</key>
-	<string>NFC can be used to communicate with Yubikey token.c</string>
 </dict>
 </plist>

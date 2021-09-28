@@ -302,6 +302,30 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
+  func test_storeServerFingerprint_savesDataProperly() {
+    var result: Void!
+    features.environment.keychain.save = { _, _ in
+      result = Void()
+      return .success
+    }
+
+    let dataStore: AccountsDataStore = testInstance()
+
+    _ = dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storeServerFingerprint_failsIfKeychainSaveFails() {
+    features.environment.keychain.save = always(.failure(.testError()))
+
+    let dataStore: AccountsDataStore = testInstance()
+
+    let result: Result<Void, TheError> = dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
+
+    XCTAssertFailure(result)
+  }
+
   func test_verifyDataIntegrity_succeedsWithNoData() {
     let dataStore: AccountsDataStore = testInstance()
 
@@ -397,7 +421,7 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      ),
+      )
     ]
     let dataStore: AccountsDataStore = testInstance()
 
@@ -505,6 +529,28 @@ final class AccountsDataStoreTests: TestCase {
       "\(validAccount.localID).sqlite"
     )
   }
+
+  func test_verifyDataIntegrity_removesServerFingerprintData_whenAccountIDIsNotInList() {
+    mockKeychainStore = [
+      (
+        data: validServerFingerprint,
+        query: .init(
+          key: "serverFingerprint",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      )
+    ]
+    let dataStore: AccountsDataStore = testInstance()
+
+    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+
+    XCTAssertSuccess(result)
+    XCTAssertEqual(
+      mockKeychainStore.map(\.data),
+      []
+    )
+  }
 }
 
 private let validAccount: Account = .init(
@@ -591,5 +637,8 @@ private let validPrivateKey: ArmoredPGPPrivateKey =
   -----END PGP PRIVATE KEY BLOCK-----
   """
 
+private let serverFingerprint: Fingerprint = .init(rawValue: "E8FE388E385841B382B674ADB02DADCD9565E1B8")
+
+private let validServerFingerprint: Data = try! JSONEncoder().encode(["v": serverFingerprint])
 // keychain wrapper encodes values within own structure putting value under "v" key
 private let validPrivateKeyKeychainData: Data = try! JSONEncoder().encode(["v": validPrivateKey])

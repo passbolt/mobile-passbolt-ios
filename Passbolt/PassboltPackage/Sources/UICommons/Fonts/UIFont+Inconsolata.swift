@@ -26,7 +26,7 @@ import UIKit
 
 extension UIFont {
 
-  public static func anonymousPro(
+  public static func inconsolata(
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
   ) -> UIFont {
@@ -34,7 +34,12 @@ extension UIFont {
     switch weight {
     case .bold:
       font = UIFont(
-        name: "AnonymousPro Bold",
+        name: "Inconsolata Bold",
+        size: fontSize
+      )
+    case .semibold:
+      font = UIFont(
+        name: "Inconsolata SemiBold",
         size: fontSize
       )
 

@@ -49,6 +49,8 @@ extension ImageNameConstant {
   public static var open: Self { "Open" }
   public static var link: Self { "Link" }
   public static var unavailable: Self { "Unavailable" }
+  public static var checked: Self { "Checked" }
+  public static var unchecked: Self { "Unchecked" }
 }
 
 extension DynamicImage {

@@ -110,7 +110,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 value != nil,
                 then: .combined(
                   .text(value ?? ""),
-                  .font(.anonymousPro(ofSize: 14, weight: .bold))
+                  .font(.inconsolata(ofSize: 14, weight: .bold))
                 ),
                 else: .combined(
                   .text(String(repeating: "*", count: 10)),

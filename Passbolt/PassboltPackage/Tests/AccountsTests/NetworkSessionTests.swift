@@ -34,6 +34,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   var networkClient: NetworkClient!
   var accountsDataStore: AccountsDataStore!
+  var fingerprintStorage: FingerprintStorage!
   var verificationToken: UUID!
   var refreshToken: UUID!
   var domain: String!
@@ -45,6 +46,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient = .placeholder
     accountsDataStore = .placeholder
+    fingerprintStorage = .placeholder
 
     verificationToken = .test
     refreshToken = .test
@@ -116,7 +118,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   func test_createSession_succeeds_withHappyPath() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
@@ -143,7 +148,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   func test_createSession_fails_whenSignInFails() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
     networkClient.signInRequest.execute = always(
       Fail<SignInResponse, TheError>(error: .testError()).eraseToAnyPublisher()
     )
@@ -178,6 +186,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   func test_createSession_fails_withoutServerPGPPublicKey() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
     networkClient.serverPGPPublicKeyRequest = .failingWith(.testError())
     features.use(networkClient)
 
@@ -209,6 +218,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   func test_createSession_fails_withoutServerRSAPublicKey() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
     networkClient.serverRSAPublicKeyRequest = .failingWith(.testError())
 
     features.use(networkClient)
@@ -242,7 +252,9 @@ final class NetworkSessionCreateSessionTests: TestCase {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
     features.environment.pgp.encryptAndSign = always(.failure(.testError()))
-
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
+    features.use(fingerprintStorage)
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
@@ -270,12 +282,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
-  func test_createSession_fails_whenDecryptAndVerifyFails() {
+  func test_createSession_fails_whenDecryptAndVerifyFails_andServerFingerprint_isValid() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
     features.environment.pgp.decryptAndVerify = always(.failure(.testError()))
-
     features.use(networkClient)
+    features.use(fingerprintStorage)
 
     let networkSession: NetworkSession = testInstance()
 
@@ -306,8 +320,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
     features.environment.signatureVerfication.verify = always(.failure(.testError()))
-
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(networkClient)
+    features.use(fingerprintStorage)
 
     let networkSession: NetworkSession = testInstance()
 
@@ -339,6 +355,9 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(accountsDataStore)
     tokens.verificationToken = "invalid"
 
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
+    features.use(fingerprintStorage)
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
@@ -366,6 +385,106 @@ final class NetworkSessionCreateSessionTests: TestCase {
     XCTAssertEqual(result?.identifier, .signInError)
   }
 
+  func test_createSession_fails_whenServerFingerprintStore_fails_andNoFingerprintIsStored() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.success(nil))
+    fingerprintStorage.storeServerFingerprint = always(.failure(.testError()))
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createSession_fails_withInvalidServerFingerprintError_whenStoredFingerprint_doesNotMatchReceivedFingerprint() {
+    let storedFingerprint: Fingerprint = .init(rawValue: otherServerFingerprint)
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.success(storedFingerprint))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .invalidServerFingerprint)
+  }
+
+  func test_createSession_fails_whenServerFingerprintLoad_failsWithInvalidServerFingerprintError() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.failure(.testError()))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .invalidServerFingerprint)
+  }
+
   func test_createMFAToken_doesNotStoreMFAToken_whenStoreLocallyFlagIsFalse() {
     var result: MFAToken?
     accountsDataStore.storeAccountMFAToken = { _, mfaToken in
@@ -373,6 +492,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       return .success
     }
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
@@ -402,6 +522,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       return .success
     }
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
@@ -426,6 +547,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   func test_createMFAToken_fails_whenTOTPRequestFails() {
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
       Fail(error: .testError())
@@ -457,6 +579,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   func test_createMFAToken_fails_whenYubikeyOTPRequestFails() {
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.yubikeyAuthorizationRequest.execute = always(
       Fail(error: .testError())
@@ -489,6 +612,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   func test_createMFAToken_fails_whenMFATokenStoreFails() {
     accountsDataStore.storeAccountMFAToken = always(.failure(TheError.testError()))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
@@ -522,6 +646,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   func test_createMFAToken_succeeds_whenAllTOTPOperationsSucceed() {
     accountsDataStore.storeAccountMFAToken = always(.success)
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
@@ -555,6 +680,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   func test_createMFAToken_succeeds_whenAllYubikeyOTPOperationsSucceed() {
     accountsDataStore.storeAccountMFAToken = always(.success)
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
 
     networkClient.yubikeyAuthorizationRequest.execute = always(
       Just(YubikeyAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
@@ -592,7 +718,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
       result = Void()
       return .success
     }
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
     networkClient.signInRequest = .respondingWith(
       .init(
         mfaTokenIsValid: false,
@@ -626,7 +755,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
       result = Void()
       return .success
     }
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
+    features.use(fingerprintStorage)
     networkClient.signInRequest = .respondingWith(
       .init(
         mfaTokenIsValid: true,
@@ -655,12 +787,16 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   func test_createSession_doesNotDeleteMFAToken_whenSignInFails() {
     accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
+    accountsDataStore.loadAccounts = always([validAccount])
     var result: Void?
     accountsDataStore.deleteAccountMFAToken = { _ in
       result = Void()
       return .success
     }
     features.use(accountsDataStore)
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
+    features.use(fingerprintStorage)
     networkClient.signInRequest.execute = always(
       Fail<SignInResponse, TheError>(error: .testError()).eraseToAnyPublisher()
     )
@@ -682,6 +818,35 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     XCTAssertNil(result)
   }
+
+  func test_saveServerFingerprint_succeeds_whenNoFingerprint_wasPreviouslyStored() {
+    var storedFingerprint: Fingerprint?
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    fingerprintStorage.loadServerFingerprint = always(.success(storedFingerprint))
+    fingerprintStorage.storeServerFingerprint = { _, fingerprint in
+      storedFingerprint = fingerprint
+      return .success(())
+    }
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    XCTAssertNil(storedFingerprint)
+
+    networkSession
+      .createSession(
+        validAccount,
+        domain,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(storedFingerprint?.rawValue, serverPGPPublicKeyFingerprint)
+  }
 }
 
 // MARK: Test data
@@ -698,6 +863,7 @@ private let serverPGPPublicKey: ArmoredPGPPublicKey = """
   """
 
 private let serverPGPPublicKeyFingerprint: String = "E8FE388E385841B382B674ADB02DADCD9565E1B8"
+private let otherServerFingerprint: String = "2A4842CF153F003F565C22C01AEB35EEC222D2BC"
 
 private let pgpPrivateKey: ArmoredPGPPrivateKey =
   """
