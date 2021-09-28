@@ -72,12 +72,9 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
       .sink { [weak self] biometricState in
         switch biometricState {
         case .none:
-          #warning("TODO - change symbol to image when available, and it used to be a link to settings?")
-          self?.contentView.applyOn(biometricsImage: .image(symbol: .noSign))
+          self?.contentView.applyOn(biometricsImage: .image(named: .unavailable, from: .uiCommons))
           self?.contentView.applyOn(biometricsLabel: .text(localized: "account.settings.biometrics.unavailable"))
-          self?.contentView.applyOn(
-            biometricsToggle: .userInteractionEnabled(false)
-          )
+          self?.contentView.applyOn(biometricsToggle: .hidden(true))
 
         case let .faceID(enabled):
           self?.contentView.applyOn(biometricsImage: .image(named: .faceID, from: .uiCommons))
@@ -87,9 +84,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
               subject.setOn(enabled, animated: true)
             }
           )
-          self?.contentView.applyOn(
-            biometricsToggle: .userInteractionEnabled(true)
-          )
+          self?.contentView.applyOn(biometricsToggle: .hidden(false))
 
         case let .touchID(enabled):
           #warning("TODO - change symbol to image when available")
@@ -100,9 +95,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
               subject.setOn(enabled, animated: true)
             }
           )
-          self?.contentView.applyOn(
-            biometricsToggle: .userInteractionEnabled(true)
-          )
+          self?.contentView.applyOn(biometricsToggle: .hidden(false))
         }
       }
       .store(in: cancellables)

@@ -48,6 +48,7 @@ extension ImageNameConstant {
   public static var copy: Self { "Copy" }
   public static var open: Self { "Open" }
   public static var link: Self { "Link" }
+  public static var unavailable: Self { "Unavailable" }
 }
 
 extension DynamicImage {
