@@ -107,6 +107,7 @@ internal final class ResourceMenuView: View {
         mut(item.titleLabel) {
           .text(localized: "resource.menu.item.open.url")
         }
+
       case .copyURL:
         mut(item.imageView) {
           .image(named: .copy, from: .uiCommons)
@@ -115,6 +116,7 @@ internal final class ResourceMenuView: View {
         mut(item.titleLabel) {
           .text(localized: "resource.menu.item.copy.url")
         }
+
       case .copyPassword:
         mut(item.imageView) {
           .image(named: .key, from: .uiCommons)
@@ -122,6 +124,24 @@ internal final class ResourceMenuView: View {
 
         mut(item.titleLabel) {
           .text(localized: "resource.menu.item.copy.password")
+        }
+
+      case .copyUsername:
+        mut(item.imageView) {
+          .image(named: .user, from: .uiCommons)
+        }
+
+        mut(item.titleLabel) {
+          .text(localized: "resource.menu.item.copy.username")
+        }
+
+      case .copyDescription:
+        mut(item.imageView) {
+          .image(named: .description, from: .uiCommons)
+        }
+
+        mut(item.titleLabel) {
+          .text(localized: "resource.menu.item.copy.description")
         }
       }
 

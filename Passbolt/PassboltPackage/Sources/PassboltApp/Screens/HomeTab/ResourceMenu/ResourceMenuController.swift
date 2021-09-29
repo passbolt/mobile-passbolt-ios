@@ -27,20 +27,19 @@ import UIComponents
 
 internal struct ResourceMenuController {
 
-  internal var availableActionsPublisher: () -> AnyPublisher<Array<ResourceMenuController.Action>, Never>
+  internal var availableActionsPublisher: () -> AnyPublisher<Array<Action>, Never>
   internal var resourceDetailsPublisher: () -> AnyPublisher<ResourceDetailsController.ResourceDetails, TheError>
-  internal var resourceSecretPublisher: () -> AnyPublisher<String, TheError>
-  internal var copyURLPublisher: () -> AnyPublisher<Void, Never>
-  internal var openURLPublisher: () -> AnyPublisher<Bool, Never>
-  internal var performAction: (ResourceMenuController.Action) -> Void
+  internal var performAction: (Action) -> AnyPublisher<Void, TheError>
 }
 
 extension ResourceMenuController {
 
-  internal enum Action {
+  internal enum Action: CaseIterable {
     case openURL
     case copyURL
     case copyPassword
+    case copyUsername
+    case copyDescription
   }
 }
 
@@ -54,45 +53,90 @@ extension ResourceMenuController {
 
 extension ResourceMenuController: UIController {
 
-  internal typealias Context = (id: Resource.ID, source: Source)
+  internal typealias Context = Resource.ID
 
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
-    cancellables: Cancellables) -> Self {
-
+    cancellables: Cancellables
+  ) -> Self {
     let linkOpener: LinkOpener = features.instance()
     let resources: Resources = features.instance()
     let pasteboard: Pasteboard = features.instance()
 
-    let openUrlSubject: PassthroughSubject<Void, Never> = .init()
-    let copyUrlSubject: PassthroughSubject<Void, Never> = .init()
-    let secretCopySubject: PassthroughSubject<Void, Never> = .init()
-
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsController.ResourceDetails?, TheError> = .init(nil)
 
-      resources.resourceDetailsPublisher(context.id)
-        .map(ResourceDetailsController.ResourceDetails.from(detailsViewResource:))
-        .sink(
-          receiveCompletion: { completion in
-            guard case let .failure(error) = completion
-            else { return }
+    resources
+      .resourceDetailsPublisher(context)
+      .map(ResourceDetailsController.ResourceDetails.from(detailsViewResource:))
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          currentDetailsSubject.send(completion: .failure(error))
+        },
+        receiveValue: { resourceDetails in
+          currentDetailsSubject.send(resourceDetails)
+        }
+      )
+      .store(in: cancellables)
 
-            currentDetailsSubject.send(completion: .failure(error))
-          },
-          receiveValue: { resourceDetails in
-            currentDetailsSubject.send(resourceDetails)
-          }
-        )
-        .store(in: cancellables)
+    func availableActionsPublisher() -> AnyPublisher<Array<Action>, Never> {
+      currentDetailsSubject
+        .removeDuplicates()
+        .compactMap { resourceDetails -> Array<Action>? in
+          guard let resourceDetails = resourceDetails
+          else { return nil }
 
-    func availableActionsPublisher() -> AnyPublisher<Array<ResourceMenuController.Action>, Never> {
-      switch context.source {
-      case .resourceList:
-        return Just([.openURL, .copyURL, .copyPassword]).eraseToAnyPublisher()
-      case .resourceDetails:
-        return Just([.copyPassword]).eraseToAnyPublisher()
-      }
+          return Action
+            .allCases
+            .filter({ action in
+              switch action {
+              case .openURL, .copyURL:
+                return resourceDetails.fields.contains(where: { field in
+                  if case .uri = field {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+
+              case .copyPassword:
+                return resourceDetails.fields.contains(where: { field in
+                  if case .password = field {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+
+              case .copyUsername:
+                return resourceDetails.fields.contains(where: { field in
+                  if case .username = field {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+
+              case .copyDescription:
+                return resourceDetails.fields.contains(where: { field in
+                  if case .description = field {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+              }
+            }
+            )
+        }
+        .replaceError(with: [])
+        .eraseToAnyPublisher()
     }
 
     func resourceDetailsPublisher() -> AnyPublisher<ResourceDetailsController.ResourceDetails, TheError> {
@@ -102,90 +146,222 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func resourceSecretPublisher() -> AnyPublisher<String, TheError> {
-      secretCopySubject
-        .map {
-          resources.loadResourceSecret(context.id)
-          .map { resourceSecret -> AnyPublisher<String, TheError> in
-            guard let secret: String = resourceSecret.password
-            else {
-              return Fail(
-                error: TheError.invalidResourceSecret()
-              )
-              .eraseToAnyPublisher()
-            }
-            return Just(secret)
-              .setFailureType(to: TheError.self)
+    func openURLAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .map { resourceDetails -> AnyPublisher<Void, TheError> in
+          guard
+            let resourceDetails = resourceDetails,
+            resourceDetails.fields.contains(where: { field in
+              if case .uri = field {
+                return true
+              }
+              else {
+                return false
+              }
+            })
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+            .eraseToAnyPublisher()
+          }
+
+          guard let urlString: String = resourceDetails.url
+          else {
+            return Fail<Void, TheError>(error: .missingResourceData())
               .eraseToAnyPublisher()
           }
-          .switchToLatest()
-          .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .handleEvents(receiveOutput: { output in
-          pasteboard.put(output)
-        })
-        .eraseToAnyPublisher()
-    }
 
-    func copyURLPublisher() -> AnyPublisher<Void, Never> {
-      copyUrlSubject
-        .map {
-          currentDetailsSubject
-            .replaceError(with: nil)
-            .compactMap { $0?.url }
+          guard let url: URL = URL(string: urlString)
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          return linkOpener
+            .openLink(url)
+            .map { opened -> AnyPublisher<Void, TheError> in
+              if opened {
+                return Just(Void())
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+              }
+              else {
+                return Fail<Void, TheError>(error: .failedToOpenURL())
+                  .eraseToAnyPublisher()
+              }
+            }
+            .switchToLatest()
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .map { url in
-          pasteboard.put(url)
-        }
         .eraseToAnyPublisher()
     }
 
-    func openURLPublisher() -> AnyPublisher<Bool, Never> {
-      openUrlSubject.map {
-        currentDetailsSubject
-          .replaceError(with: nil)
-          .map { resourceDetails -> URL? in
-            guard
-              let resourceDetails = resourceDetails,
-              let urlString: String = resourceDetails.url,
-              let url: URL = URL(string: urlString)
-            else { return nil }
-
-            return url
+    func copyURLAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .map { resourceDetails -> AnyPublisher<Void, TheError> in
+          guard
+            let resourceDetails = resourceDetails,
+            resourceDetails.fields.contains(where: { field in
+              if case .uri = field {
+                return true
+              }
+              else {
+                return false
+              }
+            })
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
           }
-          .eraseToAnyPublisher()
-      }
-      .switchToLatest()
-      .map { url -> AnyPublisher<Bool, Never> in
-        guard let url: URL = url
-        else { return Just(false).eraseToAnyPublisher() }
 
-        return linkOpener.openLink(url)
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
+          guard let urlString: String = resourceDetails.url
+          else {
+            return Fail<Void, TheError>(error: .missingResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          return Just(Void())
+            .setFailureType(to: TheError.self)
+            .handleEvents(receiveOutput: { _ in
+              pasteboard.put(urlString)
+            })
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
     }
 
-    func perform(action: Action) {
+    func copyPasswordAction() -> AnyPublisher<Void, TheError> {
+      resources
+        .loadResourceSecret(context)
+        .map { resourceSecret -> AnyPublisher<String, TheError> in
+          guard let secret: String = resourceSecret.password
+          else {
+            return Fail(
+              error: TheError.invalidResourceSecret()
+            )
+              .eraseToAnyPublisher()
+          }
+          return Just(secret)
+            .setFailureType(to: TheError.self)
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .handleEvents(receiveOutput: { password in
+          pasteboard.put(password)
+        })
+        .mapToVoid()
+        .eraseToAnyPublisher()
+    }
+
+    func copyUsernameAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .map { resourceDetails -> AnyPublisher<Void, TheError> in
+          guard
+            let resourceDetails = resourceDetails,
+            resourceDetails.fields.contains(where: { field in
+              if case .username = field {
+                return true
+              }
+              else {
+                return false
+              }
+            })
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          guard let username: String = resourceDetails.username
+          else {
+            return Fail<Void, TheError>(error: .missingResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          return Just(Void())
+            .setFailureType(to: TheError.self)
+            .handleEvents(receiveOutput: { _ in
+              pasteboard.put(username)
+            })
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    func copyDescriptionAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .map { resourceDetails -> AnyPublisher<Void, TheError> in
+          guard
+            let resourceDetails = resourceDetails
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          if resourceDetails.fields.contains(where: { field in
+            guard case let .description(_, encrypted, _) = field
+            else { return false }
+            return encrypted
+          }) {
+            return resources
+              .loadResourceSecret(context)
+              .map { resourceSecret -> AnyPublisher<String, TheError> in
+                guard let secret: String = resourceSecret.description
+                else {
+                  return Fail(
+                    error: TheError.invalidResourceSecret()
+                  )
+                  .eraseToAnyPublisher()
+                }
+                return Just(secret)
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+              }
+              .switchToLatest()
+              .handleEvents(receiveOutput: { password in
+                pasteboard.put(password)
+              })
+              .mapToVoid()
+              .eraseToAnyPublisher()
+          }
+          else if let description: String = resourceDetails.description {
+            return Just(Void())
+              .setFailureType(to: TheError.self)
+              .handleEvents(receiveOutput: { _ in
+                pasteboard.put(description)
+              })
+              .eraseToAnyPublisher()
+          }
+          else {
+            return Fail(
+              error: .missingResourceData()
+            )
+            .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    func perform(action: Action) -> AnyPublisher<Void, TheError> {
       switch action {
-      case .copyPassword:
-        secretCopySubject.send()
       case .openURL:
-        openUrlSubject.send()
+        return openURLAction()
       case .copyURL:
-        copyUrlSubject.send()
+        return copyURLAction()
+      case .copyPassword:
+        return copyPasswordAction()
+      case .copyUsername:
+        return copyUsernameAction()
+      case .copyDescription:
+        return copyDescriptionAction()
       }
     }
 
     return Self(
       availableActionsPublisher: availableActionsPublisher,
       resourceDetailsPublisher: resourceDetailsPublisher,
-      resourceSecretPublisher: resourceSecretPublisher,
-      copyURLPublisher: copyURLPublisher,
-      openURLPublisher: openURLPublisher,
       performAction: perform(action:)
     )
   }

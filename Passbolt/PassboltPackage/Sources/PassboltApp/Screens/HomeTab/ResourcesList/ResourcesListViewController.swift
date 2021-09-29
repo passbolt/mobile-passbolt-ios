@@ -146,7 +146,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
 
         self.presentSheet(
           ResourceMenuViewController.self,
-          in: (id: resourceId, source: .resourceList)
+          in: resourceId
         )
       }
       .store(in: cancellables)

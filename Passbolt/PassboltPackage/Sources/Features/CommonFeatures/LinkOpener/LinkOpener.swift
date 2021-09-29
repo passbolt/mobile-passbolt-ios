@@ -62,3 +62,21 @@ extension LinkOpener: Feature {
   }
   #endif
 }
+
+extension TheError {
+
+  public static func failedToOpenURL(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .failedToOpenURL,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
+}
+
+extension TheError.ID {
+
+  public static let failedToOpenURL: Self = "failedToOpenURL"
+}

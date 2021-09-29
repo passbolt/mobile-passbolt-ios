@@ -52,7 +52,7 @@ final class ResourceMenuControllerTests: TestCase {
     resources = nil
   }
 
-  func test_resourceDetailsPublisher_publishes_whenMenuIsPresented() {
+  func test_resourceDetailsPublisher_publishes_initially() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
@@ -62,12 +62,11 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(resources)
 
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceDetails)
-    )
-    var result: ResourceDetailsController.ResourceDetails!
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    var result: ResourceDetailsController.ResourceDetails?
 
-    controller.resourceDetailsPublisher()
+    controller
+      .resourceDetailsPublisher()
       .sink(
         receiveCompletion: { _ in
           XCTFail("Unexpected completion")
@@ -78,10 +77,10 @@ final class ResourceMenuControllerTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.id.rawValue, detailsViewResource.id.rawValue)
+    XCTAssertEqual(result?.id.rawValue, detailsViewResource.id.rawValue)
   }
 
-  func test_availableActionsPublisher_publishesActionAvailable_whenMenuPresentedFromResourceList() {
+  func test_availableActionsPublisher_publishesActionAvailable_initially() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
@@ -91,12 +90,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(resources)
 
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceList)
-    )
-    let expectedActions: Array<ResourceMenuController.Action> = [
-      .openURL, .copyURL, .copyPassword
-    ]
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
     var result: Array<ResourceMenuController.Action>!
 
     controller.availableActionsPublisher()
@@ -105,37 +99,10 @@ final class ResourceMenuControllerTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, expectedActions)
+    XCTAssertEqual(result, ResourceMenuController.Action.allCases)
   }
 
-  func test_availableActionsPublisher_publishesActionAvailable_whenMenuPresentedFromResourceDetails() {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(linkOpener)
-    features.use(pasteboard)
-    features.use(resources)
-
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceDetails)
-    )
-    let expectedActions: Array<ResourceMenuController.Action> = [
-      .copyPassword
-    ]
-    var result: Array<ResourceMenuController.Action>!
-
-    controller.availableActionsPublisher()
-      .sink { actions in
-        result = actions
-      }
-      .store(in: cancellables)
-
-    XCTAssertEqual(result, expectedActions)
-  }
-
-  func test_resourceSecretPublisher_publishesSecret_andCopiesSecretToPasteboard_whenPerformActionCopyPassword_isCalled() {
+  func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
@@ -148,36 +115,24 @@ final class ResourceMenuControllerTests: TestCase {
     )
     features.use(resources)
 
-    var pasteboardContent: String? = nil
+    var result: String?
     pasteboard.put = { string in
-      pasteboardContent = string
+      result = string
     }
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceDetails)
-    )
-    var result: String!
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
 
-    controller.resourceSecretPublisher()
-      .sink(
-        receiveCompletion: { _ in
-          XCTFail("Unexpected completion")
-        },
-        receiveValue: { value in
-          result = value
-        }
-      )
+    controller
+      .performAction(.copyPassword)
+      .sinkDrop()
       .store(in: cancellables)
-
-    controller.performAction(.copyPassword)
 
     XCTAssertEqual(result, resourceSecret.password)
-    XCTAssertEqual(pasteboardContent, resourceSecret.password)
   }
 
-  func test_copyURLPublisher_andCopiesURLPasteboard_whenPerformActionCopyURL_isCalled() {
+  func test_performAction_copiesURLToPasteboard_forCopyURLAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
@@ -185,32 +140,24 @@ final class ResourceMenuControllerTests: TestCase {
     )
     features.use(resources)
 
-    var pasteboardContent: String? = nil
+    var result: String? = nil
     pasteboard.put = { string in
-      pasteboardContent = string
+      result = string
     }
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceDetails)
-    )
-    var result: Void!
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
 
-    controller.copyURLPublisher()
-      .sink { value in
-        result = value
-      }
+    controller
+      .performAction(.copyURL)
+      .sinkDrop()
       .store(in: cancellables)
 
-    controller.performAction(.copyURL)
-
-    XCTAssertNotNil(result)
-    XCTAssertNotNil(pasteboardContent)
-    XCTAssertEqual(pasteboardContent, detailsViewResource.url)
+    XCTAssertEqual(result, detailsViewResource.url)
   }
 
-  func test_openURLPublisher_publishesTrue_whenPerformActionOpenURL_isCalled_andSucceeds() {
+  func test_performAction_opensURL_forOpenURLAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
@@ -219,31 +166,24 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(resources)
     features.use(pasteboard)
 
-    var openedLink: URL? = nil
+    var result: URL? = nil
     linkOpener.openLink = { url in
-      openedLink = url
+      result = url
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceDetails)
-    )
-    var result: Bool!
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
 
-    controller.openURLPublisher()
-      .sink { value in
-        result = value
-      }
+    controller
+      .performAction(.openURL)
+      .sinkDrop()
       .store(in: cancellables)
 
-    controller.performAction(.openURL)
-
-    XCTAssertEqual(result, true)
-    XCTAssertEqual(openedLink?.absoluteString, detailsViewResource.url)
+    XCTAssertEqual(result?.absoluteString, detailsViewResource.url)
   }
 
-  func test_openURLPublisher_publishesFalse_whenPerformActionOpenURL_isCalled_andFails() {
+  func test_performAction_fails_forOpenURLAction_whenOpeningFails() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheError.self)
@@ -253,24 +193,107 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
 
     linkOpener.openLink = { _ in
-      Just(false).eraseToAnyPublisher()
+      Just(false)
+        .eraseToAnyPublisher()
     }
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
-      context: (id: detailsViewResource.id, source: .resourceDetails)
-    )
-    var result: Bool!
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
 
-    controller.openURLPublisher()
-      .sink { value in
-        result = value
-      }
+    var result: TheError?
+    controller
+      .performAction(.openURL)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
       .store(in: cancellables)
 
-    controller.performAction(.openURL)
+    XCTAssertEqual(result?.identifier, .failedToOpenURL)
+  }
 
-    XCTAssertEqual(result, false)
+  func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() {
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var result: String? = nil
+    pasteboard.put = { string in
+      result = string
+    }
+    features.use(pasteboard)
+    features.use(linkOpener)
+
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+
+    controller
+      .performAction(.copyUsername)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, detailsViewResource.username)
+  }
+
+  func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription() {
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var result: String? = nil
+    pasteboard.put = { string in
+      result = string
+    }
+    features.use(pasteboard)
+    features.use(linkOpener)
+
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+
+    controller
+      .performAction(.copyDescription)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, detailsViewResource.description)
+  }
+
+  func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() {
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResourceWithoutDescription)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resources.loadResourceSecret = always(
+      Just(resourceSecret)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var result: String?
+    pasteboard.put = { string in
+      result = string
+    }
+    features.use(pasteboard)
+    features.use(linkOpener)
+
+    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+
+    controller
+      .performAction(.copyDescription)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, "encrypted description")
   }
 }
 
@@ -288,8 +311,22 @@ private let detailsViewResource: DetailsViewResource = .init(
     .string(name: "description", required: true, encrypted: false, maxLength: nil)
   ])
 
+private let detailsViewResourceWithoutDescription: DetailsViewResource = .init(
+  id: .init(rawValue: "1"),
+  permission: .owner,
+  name: "Passphrase",
+  url: "https://passbolt.com",
+  username: "passbolt@passbolt.com",
+  description: nil,
+  fields: [
+    .string(name: "username", required: true, encrypted: false, maxLength: nil),
+    .string(name: "password", required: true, encrypted: true, maxLength: nil),
+    .string(name: "uri", required: true, encrypted: false, maxLength: nil),
+    .string(name: "description", required: true, encrypted: true, maxLength: nil)
+  ])
+
 private let resourceSecret: ResourceSecret = .from(
-  decrypted: #"["password" : "passbolt"]"#,
+  decrypted: #"{"password" : "passbolt", "description": "encrypted description"}"#,
   using: .init()
 )!
 

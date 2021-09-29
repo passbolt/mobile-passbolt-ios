@@ -109,7 +109,11 @@
 "resource.menu.item.open.url" = "Launch website";
 "resource.menu.item.copy.url" = "Copy URL";
 "resource.menu.item.copy.password" = "Copy password";
+"resource.menu.item.copy.username" = "Copy username";
+"resource.menu.item.copy.description" = "Copy description";
 "resource.menu.item.password" = "Password";
+"resource.menu.item.username" = "Username";
+"resource.menu.item.description" = "Description";
 "resource.menu.item.url" = "URL";
 "resource.menu.item.field.copied" = "%@ copied!";
 "resource.menu.action.failed" = "%@ failed!";

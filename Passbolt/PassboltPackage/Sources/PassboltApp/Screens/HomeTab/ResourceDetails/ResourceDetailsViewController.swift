@@ -88,7 +88,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .sink { [weak self] resourceId in
         self?.presentSheet(
           ResourceMenuViewController.self,
-          in: (id: resourceId, source: .resourceDetails)
+          in: resourceId
         )
       }
       .store(in: cancellables)

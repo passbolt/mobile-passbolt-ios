@@ -76,64 +76,76 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
       }
       .store(in: cancellables)
 
-    controller.resourceSecretPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] completion in
-        guard case .failure = completion
-        else { return }
-        self?.presentingViewController?.presentErrorSnackbar()
-        self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
-      } receiveValue: { [ weak self] resourceSecret in
-        self?.presentingViewController?.presentInfoSnackbar(
-          localizableKey: "resource.menu.item.field.copied",
-          inBundle: .main,
-          arguments: [
-            NSLocalizedString("resource.menu.item.password", comment: "")
-          ]
-        )
-      }
-      .store(in: cancellables)
-
-    controller.openURLPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] didOpen in
-        guard !didOpen
-        else { return }
-
-        self?.presentingViewController?.presentErrorSnackbar(
-          localizableKey: "resource.menu.action.failed",
-          inBundle: .main,
-          arguments: [
-            NSLocalizedString("resource.menu.item.open.url", bundle: .main, comment: "")]
-        )
-      }
-      .store(in: cancellables)
-
-    controller.copyURLPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.presentingViewController?.presentInfoSnackbar(
-          localizableKey: "resource.menu.item.field.copied",
-          inBundle: .main,
-          arguments: [
-            NSLocalizedString("resource.menu.item.url", comment: "")
-          ]
-        )
-      }
-      .store(in: cancellables)
-
-
-    contentView.closeButtonTapPublisher
+    contentView
+      .closeButtonTapPublisher
       .sink { [weak self] in
         self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
       }
       .store(in: cancellables)
 
-    contentView.itemTappedPublisher
-      .sink { [weak self] action in
-        self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
-        self?.controller.performAction(action)
+    contentView
+      .itemTappedPublisher
+      .map { [unowned self] action in
+        self.controller
+          .performAction(action)
+          .receive(on: RunLoop.main)
+          .handleEvents(receiveOutput: { [weak self] in
+            switch action {
+            case .openURL:
+              break
+
+            case .copyURL:
+              self?.presentingViewController?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.url", comment: "")
+                ]
+              )
+
+            case .copyPassword:
+              self?.presentingViewController?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.password", comment: "")
+                ]
+              )
+
+            case .copyUsername:
+              self?.presentingViewController?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.username", comment: "")
+                ]
+              )
+
+            case .copyDescription:
+              self?.presentingViewController?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.description", comment: "")
+                ]
+              )
+            }
+          })
+          .handleErrors(
+            ([.canceled], handler: { /* NOP */ }),
+            defaultHandler: { [weak self] in
+              self?.presentingViewController?.presentErrorSnackbar()
+            }
+          )
+          .handleEnd { [weak self] _ in
+            self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
+          }
+          .mapToVoid()
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
       }
+      .switchToLatest()
+      .sinkDrop()
       .store(in: cancellables)
   }
 }
