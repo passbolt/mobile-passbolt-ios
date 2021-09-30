@@ -40,7 +40,7 @@ internal final class CodeScanningExitConfirmationViewController:
           handler: {}
         ),
         .action(
-          localized: .yes,
+          localized: "code.scanning.exit.confirmation.confirm.button.title",
           inBundle: .commons,
           style: .destructive,
           accessibilityIdentifier: "alert.button.exit",

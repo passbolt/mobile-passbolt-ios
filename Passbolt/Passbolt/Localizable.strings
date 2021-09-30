@@ -31,6 +31,7 @@
 "welcome.no.account.alert.text" = "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension.";
 "code.scanning.exit.confirmation.title" = "Are you sure?";
 "code.scanning.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
+"code.scanning.exit.confirmation.confirm.button.title" = "Stop scanning";
 "code.scanning.help.title" = "Scanning QR codes";
 "code.scanning.help.message" = "You will see a sequence of QR codes. We will scan these codes until the progress bar is full. then you will be able to login!";
 "code.scanning.camera.unavailable" = "Sorry, you need a device with working camera to continue, as the key transfer is done using QR codes.";
