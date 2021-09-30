@@ -102,8 +102,8 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               field: field,
               buttonMutation: .combined(.when(
                 value != nil,
-                then: .image(symbol: .eyeSlash),
-                else: .image(symbol: .eye)
+                then: .image(named: .eyeSlash, from: .uiCommons),
+                else: .image(named: .eye, from: .uiCommons)
               )
             ),
               valueTextViewMutation: .when(

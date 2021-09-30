@@ -216,8 +216,8 @@ public final class SecureTextInput: TextInput {
       { isSecureTextEntry in
         .when(
           isSecureTextEntry,
-          then: .image(symbol: .eye),
-          else: .image(symbol: .eyeSlash)
+          then: .image(named: .eye, from: .uiCommons),
+          else: .image(named: .eyeSlash, from: .uiCommons)
         )
       }
     )

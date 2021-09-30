@@ -136,7 +136,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
             encrypted,
             then:
               .combined(
-                .image(symbol: .eye),
+                .image(named: .eye, from: .uiCommons),
                 .action { [weak self] in
                   self?.toggleEncryptedFieldTapSubject.send(field)
                 }
@@ -188,7 +188,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
           encrypted,
           then:
             .combined(
-              .image(symbol: .eye),
+              .image(named: .eye, from: .uiCommons),
               .action { [weak self] in
                 self?.toggleEncryptedFieldTapSubject.send(field)
               }

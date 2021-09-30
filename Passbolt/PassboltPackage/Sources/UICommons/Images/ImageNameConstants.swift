@@ -51,6 +51,8 @@ extension ImageNameConstant {
   public static var unavailable: Self { "Unavailable" }
   public static var checked: Self { "Checked" }
   public static var unchecked: Self { "Unchecked" }
+  public static var eye: Self { "Eye" }
+  public static var eyeSlash: Self { "EyeSlash" }
 }
 
 extension DynamicImage {
