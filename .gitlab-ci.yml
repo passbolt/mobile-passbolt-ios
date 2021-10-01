@@ -3,7 +3,7 @@ stages:
   - test
   - qa_build
 
-lint:
+.lint: # Disabling lint - due to a crash in swift-format - https://github.com/apple/swift-format/pull/267
   stage: static_analysis
   script:
     make lint

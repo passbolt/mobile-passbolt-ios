@@ -12,10 +12,11 @@ BUILD := $(shell date +%s)
 TEST_PLATFORM = iOS Simulator,name=iPhone 12
 
 clean:
+	rm -rf ~/tmp/passbolt
 	xcodebuild -project $(PROJECT_PATH) clean
 
 remove_derived:
-	rm -Rd $(DERIVED_DATA)
+	rm -rf $(DERIVED_DATA)
 
 test:
 	rm -rf TestResults.xcresult
