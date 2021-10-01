@@ -47,18 +47,74 @@ public final class TextSearchView: View {
       )
     }
 
+    let clearTextButton: ImageButton = .init()
+    mut(clearTextButton) {
+      .combined(
+        .action { [unowned textField] in
+          mut(textField) {
+            .combined(
+              .set(\.rightView, to: accesoryView),
+              .text("")
+            )
+          }
+          textSubject.send("")
+        },
+        .tintColor(dynamic: .primaryText),
+        .image(named: .close, from: .uiCommons)
+      )
+    }
+
     mut(self.textField) {
       .combined(
         .action(
-          { [unowned self] in self.editingDidBegin() },
+          { [unowned self] textField in
+            let isTextEntered: Bool = !(textField.text?.isEmpty ?? true)
+            if isTextEntered {
+              mut(textField) {
+                .set(\.rightView, to: clearTextButton)
+              }
+            }
+            else {
+              mut(textField) {
+                .set(\.rightView, to: accesoryView)
+              }
+            }
+            self.editingDidBegin()
+          },
           for: .editingDidBegin
         ),
         .action(
-          { textSubject.send($0.text ?? "") },
+          { textField in
+            let isTextEntered: Bool = !(textField.text?.isEmpty ?? true)
+            if isTextEntered {
+              mut(textField) {
+                .set(\.rightView, to: clearTextButton)
+              }
+            }
+            else {
+              mut(textField) {
+                .set(\.rightView, to: accesoryView)
+              }
+            }
+            textSubject.send(textField.text ?? "")
+          },
           for: .editingChanged
         ),
         .action(
-          { [unowned self] in self.editingDidEnd() },
+          { [unowned self] textField in
+            let isTextEntered: Bool = !(textField.text?.isEmpty ?? true)
+            if isTextEntered {
+              mut(textField) {
+                .set(\.rightView, to: clearTextButton)
+              }
+            }
+            else {
+              mut(textField) {
+                .set(\.rightView, to: accesoryView)
+              }
+            }
+            self.editingDidEnd()
+          },
           for: .editingDidEnd
         ),
         .textColor(dynamic: .primaryText),
@@ -75,9 +131,9 @@ public final class TextSearchView: View {
         .set(\.leftView, to: self.iconView),
         .set(\.leftViewMode, to: .always),
         .set(\.rightView, to: accesoryView),
-        .set(\.rightViewMode, to: .unlessEditing),
-        .set(\.clearButtonMode, to: .whileEditing),
-        .set(\.returnKeyType, to: .done),
+        .set(\.rightViewMode, to: .always),
+        .set(\.clearButtonMode, to: .never),
+        .set(\.returnKeyType, to: .search),
         .attributedPlaceholderString(
           .localized(
             "resources.search.placeholder",
