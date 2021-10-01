@@ -41,7 +41,7 @@ internal final class CodeScanningExitConfirmationViewController:
         ),
         .action(
           localized: "code.scanning.exit.confirmation.confirm.button.title",
-          inBundle: .commons,
+          inBundle: .main,
           style: .destructive,
           accessibilityIdentifier: "alert.button.exit",
           handler: controller.exit
