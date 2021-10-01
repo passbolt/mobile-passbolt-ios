@@ -104,14 +104,27 @@ extension FetchListViewResourcesOperation {
           resourcesListView
         WHERE
           1 -- equivalent of true, used to simplify dynamic query building
+
         """
 
       var params: Array<SQLiteBindable?> = .init()
 
       if let textFilter: String = input.text {
-        statement.append("\nAND (name LIKE '%' || ? || '%' OR url LIKE '%' || ? || '%')")
-        // adding twice since we can't count args when using dynamic query
-        // adn argument has to be used twice
+        statement
+          .append(
+            """
+            AND
+            (
+               name LIKE '%' || ? || '%'
+            OR url LIKE '%' || ? || '%'
+            OR username LIKE '%' || ? || '%'
+            )
+
+            """
+          )
+        // adding multiple times since we can't count args when using dynamic query
+        // and argument has to be used multiple times
+        params.append(textFilter)
         params.append(textFilter)
         params.append(textFilter)
       }
@@ -120,18 +133,24 @@ extension FetchListViewResourcesOperation {
       }
 
       if let nameFilter: String = input.name {
-        statement.append("\nAND name LIKE '%' || ? || '%'")
+        statement.append("AND name LIKE '%' || ? || '%' ")
         params.append(nameFilter)
       }
       else {
         /* NOP */
       }
 
-      if let urlFilter: String =
-        input.url
-      {
-        statement.append("\nAND url LIKE '%' || ? || '%'")
+      if let urlFilter: String = input.url {
+        statement.append("AND url LIKE '%' || ? || '%' ")
         params.append(urlFilter)
+      }
+      else {
+        /* NOP */
+      }
+
+      if let usernameFilter: String = input.username {
+        statement.append("AND username LIKE '%' || ? || '%' ")
+        params.append(usernameFilter)
       }
       else {
         /* NOP */
