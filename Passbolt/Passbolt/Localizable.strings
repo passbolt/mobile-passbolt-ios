@@ -121,7 +121,7 @@
 "totp.title.label" = "Two Factor Authentication";
 "totp.message.label" = "Enter the verification code:";
 "totp.paste.otp.button.label" = "Paste code";
-"totp.remember.device.toggle.label" = "Remember this device for 40 days";
+"totp.remember.device.toggle.label" = "Remember this device for 30 days";
 
 "yubikey.scan.instruction" = "Place your Yubikey on your device.";
 "yubikey.scan.success" = "Scan success";
@@ -133,6 +133,6 @@ NFC for this to work.";
 "mfa.yubikey.nfc.not.supported" = "This device does not support NFC.";
 "mfa.yubikey.generic.error" = "Something went wrong";
 "mfa.provider.try.another" = "Try with another provider";
-"mfa.remember.token" = "Remember this device for 40 days";
+"mfa.remember.token" = "Remember this device for 30 days";
 
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
