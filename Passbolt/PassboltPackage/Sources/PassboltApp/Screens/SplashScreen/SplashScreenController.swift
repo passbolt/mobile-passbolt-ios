@@ -35,7 +35,7 @@ extension SplashScreenController {
   internal enum Destination: Equatable {
 
     case accountSetup
-    case accountSelection(Account?)
+    case accountSelection(Account?, message: LocalizedMessage?)
     case diagnostics
     case home
     case mfaAuthorization(Array<MFAProvider>)
@@ -90,9 +90,14 @@ extension SplashScreenController: UIController {
             .first()
             .map { state -> AnyPublisher<Destination, Never> in
               switch state {
-              case let .none(lastUsed: .some(lastUsedAccount)):
-                return Just(.accountSelection(lastUsedAccount))
-                  .eraseToAnyPublisher()
+              case let .none(lastUsedAccount):
+                return Just(
+                  .accountSelection(
+                    lastUsedAccount,
+                    message: nil
+                  )
+                )
+                .eraseToAnyPublisher()
 
               case .authorized:
                 return fetchConfiguration()
@@ -110,9 +115,17 @@ extension SplashScreenController: UIController {
                   .replaceError(with: .featureConfigFetchError)
                   .eraseToAnyPublisher()
 
-              case _:
-                return Just(.accountSelection(nil))
-                  .eraseToAnyPublisher()
+              case let .authorizationRequired(account):
+                return Just(
+                  .accountSelection(
+                    account,
+                    message: .init(
+                      key: "authorization.prompt.refresh.session.reason",
+                      bundle: .main
+                    )
+                  )
+                )
+                .eraseToAnyPublisher()
               }
             }
             .switchToLatest()

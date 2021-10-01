@@ -34,6 +34,8 @@ import protocol Foundation.URLSessionTaskDelegate
 import class Foundation.URLSessionTask
 import class Foundation.HTTPURLResponse
 import class Foundation.NSObject
+import class Foundation.CachedURLResponse
+import class Foundation.NSLock
 
 public struct Networking: EnvironmentElement {
 
@@ -110,12 +112,8 @@ extension Networking {
       )
     }()
 
-    let urlCache: URLCache = .init(
-      memoryCapacity: 25_600,  // 25 MB ram
-      diskCapacity: 307_200  // 300 MB disk
-    )
-
-    urlSession.configuration.urlCache = urlCache
+    let lock: NSLock = .init()
+    var inMemoryCache: Dictionary<HTTPRequest, HTTPResponse> = .init()
 
     return Self(
       execute: { request, useCache in
@@ -129,7 +127,7 @@ extension Networking {
           return Fail<HTTPResponse, HTTPError>(
             error: .invalidRequest(request)
           )
-            .eraseToAnyPublisher()
+          .eraseToAnyPublisher()
         }
 
         func mapURLErrors(
@@ -150,26 +148,55 @@ extension Networking {
           }
         }
 
-        return
-        urlSession
-          .dataTaskPublisher(for: urlRequest)
-          .mapError(mapURLErrors)
-          .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPError> in
-            if let httpResponse: HTTPResponse = HTTPResponse(from: response, with: data) {
-              return Just(httpResponse)
-                .setFailureType(to: HTTPError.self)
-                .eraseToAnyPublisher()
+        if useCache, let cachedResponse: HTTPResponse = {
+          lock.lock()
+          defer { lock.unlock() }
+          return inMemoryCache[request]
+        }() {
+          return Just(cachedResponse)
+            .setFailureType(to: HTTPError.self)
+            .eraseToAnyPublisher()
+        }
+        else {
+          return urlSession
+            .dataTaskPublisher(for: urlRequest)
+            .mapError(mapURLErrors)
+            .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPError> in
+              if let httpResponse: HTTPResponse = HTTPResponse(from: response, with: data) {
+                if useCache {
+                  lock.lock()
+                  // clear cache if exceeds 25 MB
+                  if inMemoryCache.values.reduce(into: 0, { $0 += $1.body.count }) >= 26_214_400 {
+                    inMemoryCache.removeAll()
+                  }
+                  else {
+                    /* NOP */
+                  }
+                  inMemoryCache[request] = httpResponse
+                  lock.unlock()
+                }
+                else {
+                  /* NOP */
+                }
+                return Just(httpResponse)
+                  .setFailureType(to: HTTPError.self)
+                  .eraseToAnyPublisher()
+              }
+              else {
+                return Fail<HTTPResponse, HTTPError>(
+                  error: .invalidResponse
+                )
+                  .eraseToAnyPublisher()
+              }
             }
-            else {
-              return Fail<HTTPResponse, HTTPError>(
-                error: .invalidResponse
-              )
-              .eraseToAnyPublisher()
-            }
-          }
-          .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
+        }
       },
-      clearCache: urlCache.removeAllCachedResponses
+      clearCache: {
+        lock.lock()
+        inMemoryCache.removeAll()
+        lock.unlock()
+      }
     )
   }
 }

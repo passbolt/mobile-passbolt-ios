@@ -25,6 +25,8 @@ import UIComponents
 
 internal final class Window {
 
+  private static let transitionDuration: TimeInterval = 0.3
+
   private let window: UIWindow
   private let controller: WindowController
   private let components: UIComponentFactory
@@ -51,7 +53,8 @@ internal final class Window {
 
     self.controller
       .screenStateDispositionPublisher()
-      .receive(on: RunLoop.main)
+      // ensure that previous animations/transitions complete and only latest transition is applied
+      .debounce(for: .seconds(Self.transitionDuration), scheduler: RunLoop.main)
       .sink(
         receiveValue: { [weak self] disposition in
           guard let self = self else { return }
@@ -197,7 +200,7 @@ extension Window {
     window.rootViewController = component
     UIView.transition(
       with: window,
-      duration: animated ? 0.3 : 0,
+      duration: animated ? Self.transitionDuration : 0,
       options: [.transitionCrossDissolve],
       animations: {
         currentView?.alpha = 0

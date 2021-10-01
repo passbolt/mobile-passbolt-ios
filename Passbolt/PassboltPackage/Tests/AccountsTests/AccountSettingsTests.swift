@@ -25,6 +25,7 @@ import Combine
 import Crypto
 import Features
 import TestExtensions
+import NetworkClient
 
 @testable import Accounts
 
@@ -35,13 +36,36 @@ final class AccountSettingsTests: TestCase {
   var accountsDataStore: AccountsDataStore!
   var permissions: OSPermissions!
   var passphraseCache: PassphraseCache!
+  var networkClient: NetworkClient!
 
   override func setUp() {
     super.setUp()
     accountSession = .placeholder
     accountsDataStore = .placeholder
+    accountsDataStore.updateAccountProfile = always(.success)
     permissions = .placeholder
     passphraseCache = .placeholder
+    networkClient = .placeholder
+    networkClient.userProfileRequest.execute = always(
+      Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "https://passbolt.com/image.jpg"
+                )
+              )
+            )
+          )
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
   }
 
   override func tearDown() {
@@ -49,6 +73,7 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore = nil
     permissions = nil
     passphraseCache = nil
+    networkClient = nil
     super.tearDown()
   }
 
@@ -64,6 +89,7 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -91,6 +117,7 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -124,6 +151,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -152,6 +180,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -184,6 +213,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -216,6 +246,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -249,6 +280,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -281,6 +313,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -313,6 +346,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -346,6 +380,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -378,6 +413,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -410,6 +446,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -443,6 +480,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just(nil).eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -479,6 +517,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -508,6 +547,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -537,6 +577,7 @@ final class AccountSettingsTests: TestCase {
     features.use(permissions)
     passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -561,6 +602,7 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
     var result: AccountProfile!
@@ -598,6 +640,7 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
     var results: Array<AccountProfile> = .init()
@@ -628,6 +671,7 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     features.use(permissions)
     features.use(passphraseCache)
+    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -642,6 +686,218 @@ final class AccountSettingsTests: TestCase {
         }
       )
       .store(in: cancellables)
+  }
+
+  func test_setAvatarImageURL_succeeds_withHappyPath() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updateAccountProfile = always(.success)
+    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+    features.use(networkClient)
+
+    let feature: AccountSettings = testInstance()
+
+    var result: Void?
+    feature
+      .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          result = Void()
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_setAvatarImageURL_fails_withNoSession() {
+    accountSession.statePublisher = always(
+      Just(.none(lastUsed: validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+    features.use(networkClient)
+
+    let feature: AccountSettings = testInstance()
+
+    var result: TheError!
+    feature
+      .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result.identifier, .authorizationRequired)
+  }
+
+  func test_setAvatarImageURL_fails_withSessionAuthorizationRequired() {
+    accountSession.statePublisher = always(
+      Just(.authorizationRequired(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+    features.use(networkClient)
+
+    let feature: AccountSettings = testInstance()
+
+    var result: TheError!
+    feature
+      .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result.identifier, .authorizationRequired)
+  }
+
+  func test_setAvatarImageURL_fails_whenProfileSaveFails() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updateAccountProfile = always(.failure(.testError()))
+    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+    features.use(networkClient)
+
+    let feature: AccountSettings = testInstance()
+
+    var result: TheError!
+    feature
+      .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result.identifier, .testError)
+  }
+
+  func test_currentAccountProfileUpdate_isTriggered_whenChangingAccount() {
+    let accountSessionAccountSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: nil))
+    accountSession.statePublisher = always(
+      accountSessionAccountSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+    var result: Void?
+    networkClient.userProfileRequest.execute = { _ in
+      result = Void()
+      return Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "https://passbolt.com/image.jpg"
+                )
+              )
+            )
+          )
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    }
+    features.use(networkClient)
+
+    let feature: AccountSettings = testInstance()
+    _ = feature // silence warning
+
+    accountSessionAccountSubject.value = .authorized(validAccount)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_currentAccountProfileUpdate_isNotTriggeredAgain_whenChangingToSameAccount() {
+    let accountSessionAccountSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.authorized(validAccount))
+    accountSession.statePublisher = always(
+      accountSessionAccountSubject
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
+    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
+    features.use(accountsDataStore)
+    features.use(permissions)
+    features.use(passphraseCache)
+    var result: Int = 0
+    networkClient.userProfileRequest.execute = { _ in
+      result += 1
+      return Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "https://passbolt.com/image.jpg"
+                )
+              )
+            )
+          )
+        )
+      )
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(networkClient)
+
+    let feature: AccountSettings = testInstance()
+    _ = feature // silence warning
+
+    accountSessionAccountSubject.value = .authorized(validAccount)
+    accountSessionAccountSubject.value = .authorized(validAccount)
+    accountSessionAccountSubject.value = .authorized(validAccount)
+
+    XCTAssertEqual(result, 1)
   }
 }
 

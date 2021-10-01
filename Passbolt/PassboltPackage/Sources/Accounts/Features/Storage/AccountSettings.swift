@@ -23,11 +23,15 @@
 
 import Crypto
 import Features
+import struct Foundation.URL
+import Combine
+import NetworkClient
 
 public struct AccountSettings {
 
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
   public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheError>
+  public var setAvatarImageURL: (String) -> AnyPublisher<Void, TheError>
   public var accountWithProfile: (Account) -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   public var currentAccountProfilePublisher: () -> AnyPublisher<AccountProfile, Never>
@@ -45,6 +49,7 @@ extension AccountSettings: Feature {
     let diagnostics: Diagnostics = features.instance()
     let permissions: OSPermissions = features.instance()
     let passphraseCache: PassphraseCache = features.instance()
+    let networkClient: NetworkClient = features.instance()
 
     let currentAccountProfileSubject: CurrentValueSubject<AccountProfile?, Never> = .init(nil)
 
@@ -110,6 +115,92 @@ extension AccountSettings: Feature {
       }
       .removeDuplicates()
       .eraseToAnyPublisher()
+
+    accountSession
+      .statePublisher()
+      .scan(
+        (
+          last: Optional<Account>.none,
+          current: Optional<Account>.none
+        )
+      ) { changes, sessionState in
+        switch sessionState {
+        case let .authorized(account):
+          return (last: changes.current, current: account)
+
+        case let .authorizedMFARequired(account, _):
+          return (last: changes.current, current: account)
+
+        case let .authorizationRequired(account) where account == changes.current:
+          return (last: changes.current, current: account)
+
+        case .authorizationRequired, .none:
+          return (last: changes.current, current: nil)
+        }
+      }
+      .filter { $0.last != $0.current }
+      .compactMap { $0.current }
+      .map { account in
+        fetchAccountProfile(account)
+          .replaceError(with: Void())
+      }
+      .switchToLatest()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    func updateProfile(
+      for accountID: Account.LocalID,
+      _ update: (inout AccountProfile) -> Void
+    ) -> AnyPublisher<Void, TheError> {
+      var updatedProfile: AccountProfile
+
+      let profileLoadResult: Result<AccountProfile, TheError>
+      = accountsDataStore
+        .loadAccountProfile(accountID)
+
+      switch profileLoadResult {
+      case let .success(profile):
+        updatedProfile = profile
+
+      case let .failure(error):
+        return Fail<Void, TheError>(error: error)
+          .eraseToAnyPublisher()
+      }
+
+      update(&updatedProfile)
+
+      let profileUpdateResult: Result<Void, TheError>
+      = accountsDataStore
+        .updateAccountProfile(updatedProfile)
+
+      switch profileUpdateResult {
+      case .success:
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+
+      case let .failure(error):
+        return Fail<Void, TheError>(error: error)
+          .eraseToAnyPublisher()
+      }
+    }
+
+    func fetchAccountProfile(
+      _ account: Account
+    ) -> AnyPublisher<Void, TheError> {
+      networkClient
+        .userProfileRequest
+        .make(using: .init(userID: account.userID.rawValue))
+        .map { response -> AnyPublisher<Void, TheError> in
+          updateProfile(for: account.localID) { profile in
+            profile.firstName = response.body.profile.firstName
+            profile.lastName = response.body.profile.lastName
+            profile.avatarImageURL = response.body.profile.avatar.url.medium
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
 
     func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheError> {
       permissions
@@ -187,6 +278,32 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
+    func setAvatarImageURL(
+      _ url: String
+    ) -> AnyPublisher<Void, TheError> {
+      accountSession
+        .statePublisher()
+        .first()
+        .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheError> in
+          let account: Account
+          switch sessionState {
+          case let .authorized(currentAccount),
+            let .authorizedMFARequired(currentAccount, _):
+            account = currentAccount
+
+          case .authorizationRequired, .none:
+            return Fail<Void, TheError>(error: .authorizationRequired())
+              .eraseToAnyPublisher()
+          }
+
+          return updateProfile(for: account.localID) { profile in
+            profile.avatarImageURL = url
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     func accountWithProfile(
       for account: Account
     ) -> AccountWithProfile {
@@ -221,6 +338,7 @@ extension AccountSettings: Feature {
     return Self(
       biometricsEnabledPublisher: { biometricsEnabledPublisher },
       setBiometricsEnabled: setBiometrics(enabled:),
+      setAvatarImageURL: setAvatarImageURL(_:),
       accountWithProfile: accountWithProfile(for:),
       updatedAccountIDsPublisher: accountsDataStore
         .updatedAccountIDsPublisher,
@@ -235,6 +353,7 @@ extension AccountSettings {
     Self(
       biometricsEnabledPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setBiometricsEnabled: Commons.placeholder("You have to provide mocks for used methods"),
+      setAvatarImageURL: Commons.placeholder("You have to provide mocks for used methods"),
       accountWithProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       currentAccountProfilePublisher: Commons.placeholder("You have to provide mocks for used methods")

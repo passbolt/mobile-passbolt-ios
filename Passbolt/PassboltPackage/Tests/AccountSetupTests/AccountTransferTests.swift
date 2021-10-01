@@ -855,8 +855,7 @@ private let accountTransferUpdateResponse: AccountTransferUpdateResponse = .init
         lastName: "lastName",
         avatar: .init(
           url: .init(
-            medium: "mediumAvatarImagePath",
-            small: "smallAvatarImagePath"
+            medium: "mediumAvatarImagePath"
           )
         )
       )

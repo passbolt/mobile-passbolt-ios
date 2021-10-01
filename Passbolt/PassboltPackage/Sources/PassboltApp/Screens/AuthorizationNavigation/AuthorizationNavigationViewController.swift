@@ -65,7 +65,8 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
     if let selectedAccount: Account = controller.selectedAccount {
       push(
         AuthorizationViewController.self,
-        in: selectedAccount
+        in: selectedAccount,
+        animated: false
       )
     }
     else {

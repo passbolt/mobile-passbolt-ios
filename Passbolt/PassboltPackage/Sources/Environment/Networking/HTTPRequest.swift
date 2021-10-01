@@ -27,7 +27,7 @@ import struct Foundation.URLComponents
 import struct Foundation.URLQueryItem
 import struct Foundation.URLRequest
 
-public struct HTTPRequest {
+public struct HTTPRequest: Hashable {
 
   public var method: HTTPMethod
   public var headers: HTTPHeaders

@@ -135,7 +135,7 @@ final class SplashScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .accountSelection(account))
+    XCTAssertEqual(result, .accountSelection(account, message: nil))
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() {
@@ -162,7 +162,7 @@ final class SplashScreenTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .accountSelection(nil))
+    XCTAssertEqual(result, .accountSelection(nil, message: nil))
   }
 
   func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() {

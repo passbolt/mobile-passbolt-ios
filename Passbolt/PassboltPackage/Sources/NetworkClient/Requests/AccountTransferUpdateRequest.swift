@@ -154,6 +154,5 @@ extension AccountTransferUpdateResponseBody.User.Profile.Avatar {
   public struct Image: Decodable {
 
     public var medium: String
-    public var small: String
   }
 }
