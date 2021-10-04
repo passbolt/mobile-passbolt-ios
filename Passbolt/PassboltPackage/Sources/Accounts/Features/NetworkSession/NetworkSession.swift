@@ -53,8 +53,7 @@ internal struct NetworkSession {
 
 extension NetworkSession {
 
-  fileprivate typealias ServerPublicPGPKeyWithFingerprint = (pgp: ArmoredPGPPublicKey, fingerprint: Fingerprint)
-  fileprivate typealias ServerPublicKeys = (pgp: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: ArmoredRSAPublicKey)
+  fileprivate typealias ServerPublicKeys = (publicPGP: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: ArmoredRSAPublicKey)
   fileprivate typealias ServerPublicKeysWithSignInChallenge = (
     serverPublicKeys: ServerPublicKeys, signInChallenge: ArmoredPGPMessage
   )
@@ -106,16 +105,12 @@ extension NetworkSession: Feature {
           .eraseToAnyPublisher()
       )
 
-    func fetchServerPublicPGPKey() -> AnyPublisher<ServerPublicPGPKeyWithFingerprint, TheError> {
+    func fetchServerPublicPGPKey() -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
       networkClient
         .serverPGPPublicKeyRequest
         .make()
         .map { response in
-          #warning("Fingerprint should be extracted from the public key")
-          return (
-            pgp: ArmoredPGPPublicKey(rawValue: response.body.keyData),
-            fingerprint: .init(rawValue: response.body.fingerprint)
-          )
+          ArmoredPGPPublicKey(rawValue: response.body.keyData)
         }
         .eraseToAnyPublisher()
     }
@@ -135,42 +130,59 @@ extension NetworkSession: Feature {
         fetchServerPublicPGPKey(),
         fetchServerPublicRSAKey()
       )
-        .map { (pgp: ServerPublicPGPKeyWithFingerprint, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
+        .map { (publicPGP: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
           var existingFingerprint: Fingerprint? = nil
+          var serverFingerprint: Fingerprint
+
+          switch pgp.extractFingerprint(publicPGP) {
+          case let .success(fingerprint):
+            serverFingerprint = fingerprint
+
+          case let .failure(error):
+            return Fail(error: error)
+              .eraseToAnyPublisher()
+          }
           
           switch fingerprintStorage.loadServerFingerprint(accountID) {
           case let .success(fingerprint):
             existingFingerprint = fingerprint
             
-          case let .failure(error):
+          case .failure:
             return Fail(
               error: .invalidServerFingerprint(
                 accountID: accountID,
-                updatedFingerprint: pgp.fingerprint
+                updatedFingerprint: serverFingerprint
               )
             )
             .eraseToAnyPublisher()
           }
           
           if let fingerprint = existingFingerprint {
-            if fingerprint == pgp.fingerprint {
-              return Just(
-                ServerPublicKeys(pgp: pgp.pgp, pgpFingerprint: pgp.fingerprint, rsa: rsa)
-              )
+            switch pgp.verifyPublicKeyFingerprint(publicPGP, fingerprint) {
+            case let .success(match):
+              if match {
+                return Just(
+                  ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
+                )
                 .setFailureType(to: TheError.self)
                 .eraseToAnyPublisher()
-            }
-            else {
-              return Fail(
-                error: .invalidServerFingerprint(
-                  accountID: accountID,
-                  updatedFingerprint: pgp.fingerprint
+              }
+              else {
+                return Fail(
+                  error: .invalidServerFingerprint(
+                    accountID: accountID,
+                    updatedFingerprint: serverFingerprint
+                  )
                 )
-              )
+                .eraseToAnyPublisher()
+              }
+
+            case let .failure(error):
+              return Fail(error: error)
                 .eraseToAnyPublisher()
             }
           } else {
-            switch fingerprintStorage.storeServerFingerprint(accountID, pgp.fingerprint) {
+            switch fingerprintStorage.storeServerFingerprint(accountID, serverFingerprint) {
             case let .failure(error):
               return Fail(error: error)
                 .eraseToAnyPublisher()
@@ -178,10 +190,10 @@ extension NetworkSession: Feature {
               break
             }
             return Just(
-              ServerPublicKeys(pgp: pgp.pgp, pgpFingerprint: pgp.fingerprint, rsa: rsa)
+              ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
             )
-              .setFailureType(to: TheError.self)
-              .eraseToAnyPublisher()
+            .setFailureType(to: TheError.self)
+            .eraseToAnyPublisher()
           }
         }
         .switchToLatest()
@@ -429,7 +441,7 @@ extension NetworkSession: Feature {
             domain: domain,
             verificationToken: verificationToken,
             challengeExpiration: challengeExpiration,
-            serverPublicPGPKey: serverPublicKeys.pgp,
+            serverPublicPGPKey: serverPublicKeys.publicPGP,
             armoredPrivateKey: armoredPrivateKey,
             passphrase: passphrase
           )
@@ -450,7 +462,7 @@ extension NetworkSession: Feature {
             userID: account.userID,
             signInChallenge: signInChallenge,
             mfaToken: mfaToken,
-            serverPublicPGPKey: serverPublicKeys.pgp,
+            serverPublicPGPKey: serverPublicKeys.publicPGP,
             armoredPrivateKey: armoredPrivateKey,
             passphrase: passphrase
           )

@@ -87,6 +87,10 @@ internal final class SQLiteConnectionHandle {
         connectionHandle
           .execute("PRAGMA journal_mode = WAL;")
       }
+      .flatMap {
+        connectionHandle
+          .execute("PRAGMA SQLITE_DBCONFIG_DEFENSIVE = ON;")
+      }
       .map {
         connectionHandle
       }

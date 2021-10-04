@@ -51,6 +51,26 @@ extension TheError {
       extensions: [:]
     )
   }
+
+  internal static func failedToGetPGPFingerprint(
+    underlyingError: Error? = nil
+  ) -> Self {
+    Self(
+      identifier: .failedToGetPGPFingerprint,
+      underlyingError: underlyingError,
+      extensions: [:]
+    )
+  }
+
+  internal static func pgpFingerprintMismatch(
+    underlyingError: Error? = nil
+  ) -> Self {
+    Self(
+      identifier: .pgpFingerprintMismatch,
+      underlyingError: underlyingError,
+      extensions: [:]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -58,4 +78,16 @@ extension TheError.ID {
   public static var pgpError: Self { "pgpError" }
   public static var invalidPassphraseError: Self { "invalidPassphraseError" }
   public static var invalidInputDataError: Self { "invalidInputDataError" }
+  public static var failedToGetPGPFingerprint: Self { "failedToGetPGPFingerprint" }
+  public static var pgpFingerprintMismatch: Self { "pgpFingerprintMismatch" }
+}
+
+extension TheError.Extension {
+
+  public static let invalidFingerprint: Self = "invalidFingerprint"
+}
+
+extension TheError {
+
+  public var invalidFingerprint: Fingerprint? { extensions[.invalidFingerprint] as? Fingerprint }
 }

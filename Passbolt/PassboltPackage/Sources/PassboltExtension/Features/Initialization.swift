@@ -23,6 +23,7 @@
 
 import Accounts
 import Features
+import Darwin
 
 public struct Initialization {
 
@@ -47,7 +48,8 @@ extension Initialization: Feature {
       // initialize application extension features here
     }
     let initialize: () -> Void = { [unowned features] in
-      _initialize(with: features)
+      analytics()
+      return _initialize(with: features)
     }
 
     func featureUnload() -> Bool {

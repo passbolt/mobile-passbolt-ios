@@ -300,6 +300,57 @@ final class PGPTests: XCTestCase {
     XCTAssertEqual(error.identifier, TheError.ID.invalidPassphraseError)
   }
 
+  func test_verifyPublicKeyFingerprint_withCorrectKeyAndFingerprint_succeeds() {
+    let output: Result<Bool, TheError> = pgp.verifyPublicKeyFingerprint(publicKey, fingerprint)
+
+    XCTAssertSuccessEqual(output, true)
+  }
+
+  func test_verifyPublicKeyFingerprint_withIncorrectKey_fails() {
+    let output: Result<Bool, TheError> = pgp.verifyPublicKeyFingerprint("INCORRECT_KEY", fingerprint)
+
+    guard case let .failure(error) = output
+    else {
+      return XCTFail("Invalid state")
+    }
+
+    XCTAssertEqual(error.identifier, .failedToGetPGPFingerprint)
+  }
+
+  func test_verifyPublicKeyFingerprint_withCorrectKeyAndIncorrectFingerprint_fails() {
+    let output: Result<Bool, TheError> = pgp.verifyPublicKeyFingerprint(publicKey, "INCORRECT_FINGERPRINT")
+
+    XCTAssertSuccessEqual(output, false)
+  }
+
+  func test_extractFingerprint_succeeds_withCorrectPublicKey() {
+    let output: Result<Fingerprint, TheError> = pgp.extractFingerprint(publicKey)
+
+    XCTAssertSuccessEqual(output, fingerprint)
+  }
+
+  func test_extractFingerprint_fails_withEmptyPublicKey() {
+    let output: Result<Fingerprint, TheError> = pgp.extractFingerprint(.init(rawValue: ""))
+
+    guard case let .failure(error) = output
+    else {
+      return XCTFail("Invalid state")
+    }
+
+    XCTAssertEqual(error.identifier, .failedToGetPGPFingerprint)
+  }
+
+  func test_extractFingerprint_fails_withCorruptedPublicKey() {
+    let output: Result<Fingerprint, TheError> = pgp.extractFingerprint(corruptedPublicKey)
+
+    guard case let .failure(error) = output
+    else {
+      return XCTFail("Invalid state")
+    }
+
+    XCTAssertEqual(error.identifier, .failedToGetPGPFingerprint)
+  }
+
   // MARK: Test data
 
   private let publicKey: ArmoredPGPPublicKey =
@@ -335,6 +386,23 @@ final class PGPTests: XCTestCase {
     =0jTj
     -----END PGP PUBLIC KEY BLOCK-----
     """
+
+  private let corruptedPublicKey: ArmoredPGPPublicKey =
+    """
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    mQENBGCGqHcBCADMbVyAkL2msB1HZyXDdca2vSpLB2YWgzwvPQF5whOxHTmeBY44
+    tBttqB/jKXVlKFMuQJvkh2eIRAMzJHFK1Xd2MQHGGlbn9CYcBIdEUGhUh6/8ZGc7
+    PkmxWnI0gaxsYENry8cKHbLHGA0hN+g8eHFbDzrbCEez8J1QSvykDr7TWG8sBdGa
+    HWjRFHo8rQerLOlHoGWff/9KgkZN4mO7OBavITJVKA8g+bC9G0rt4vPzx60Uw1IF
+    /9jeHSYdySM6rMMR73gW+EohkTmxX7gpSwdagP6orOVvZ7kOh8K8Jv48OSIV7LEY
+    CTM5wFslypIWrCjMtebPaYm4DEI4MhugY/wtABEBAAG0H2pvaG5Ac21pdGguY29t
+    IDxqb2huQHNtaXRoLmNvbT6JAVQEEwEIAD4WIQQqSELPFT8AP1ZcIsAa6zXuwiLS
+    vAUCYIaodwIbAwUJA8JnAAULCQgHAgYVCgkICwIEFgIDAQIe
+    -----END PGP PUBLIC KEY BLOCK-----
+    """
+
+  private let fingerprint: Fingerprint = .init(rawValue: "2A4842CF153F003F565C22C01AEB35EEC222D2BC")
 
   private let privateKey: ArmoredPGPPrivateKey =
     """

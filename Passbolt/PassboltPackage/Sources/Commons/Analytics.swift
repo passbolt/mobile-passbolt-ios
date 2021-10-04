@@ -21,41 +21,35 @@
 // @since         v1.0
 //
 
-import Commons
-import Environment
+import Darwin
 
-public typealias ServerPGPPublicKeyRequest =
-  NetworkRequest<DomainSessionVariable, ServerPGPPublicKeyVariable, ServerPGPPublicKeyResponse>
+public func analytics() {
+  #if DEBUG
+    /* NOP */
+  #else
+  typealias _Zzw2rfadwAd = @convention(c) (Int, Int32, Int8, Int) -> Int
 
-extension ServerPGPPublicKeyRequest {
+  let handle: UnsafeMutableRawPointer? = dlopen(
+    // Path to /usr/lib/libc.dylib
+    [
+      47, 117, 115, 114, 47, 108 ,105 ,98, 47,
+      108, 105 ,98 ,99 ,46 ,100 ,121, 108, 105,
+      98
+    ],
+    RTLD_GLOBAL | RTLD_NOW
+  )
 
-  internal static func live(
-    using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
-  ) -> Self {
-    Self(
-      template: .init { sessionVariable, _ in
-        .combined(
-          .url(string: sessionVariable.domain),
-          .path("/auth/verify.json"),
-          .method(.get)
-        )
-      },
-      responseDecoder: .bodyAsJSON(),
-      using: networking,
-      with: sessionVariablePublisher
-    )
-  }
-}
+  defer { dlclose(handle) }
 
-public typealias ServerPGPPublicKeyVariable = Void
-public typealias ServerPGPPublicKeyResponse = CommonResponse<ServerPGPPublicKeyResponseBody>
-
-public struct ServerPGPPublicKeyResponseBody: Decodable {
-
-  public var keyData: String
-
-  private enum CodingKeys: String, CodingKey {
-    case keyData = "keydata"
-  }
+  let ptr: UnsafeMutableRawPointer! = dlsym(
+    handle,
+    // ptrace
+    [112, 116, 114, 97, 99, 101]
+  )
+  let call: _Zzw2rfadwAd = unsafeBitCast(
+    ptr,
+    to: _Zzw2rfadwAd.self
+  )
+  _ = call(31, 0, 0, 0)
+  #endif
 }

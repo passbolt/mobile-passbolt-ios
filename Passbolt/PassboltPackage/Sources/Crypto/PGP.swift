@@ -78,6 +78,17 @@ public struct PGP {
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> Result<Void, TheError>
+
+  public var verifyPublicKeyFingerprint:
+    (
+      _ publicKey: ArmoredPGPPublicKey,
+      _ fingerprint: Fingerprint
+    ) -> Result<Bool, TheError>
+
+  public var extractFingerprint:
+    (
+      _ publicKey: ArmoredPGPPublicKey
+    ) -> Result<Fingerprint, TheError>
 }
 
 extension PGP {
@@ -304,6 +315,43 @@ extension PGP {
       }
     }
 
+    func verifyPublicKeyFingerprint(
+      _ publicKey: ArmoredPGPPublicKey,
+      fingerprint: Fingerprint
+    ) -> Result<Bool, TheError> {
+      defer { Gopenpgp.HelperFreeOSMemory() }
+
+      var error: NSError?
+
+      guard let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
+        publicKey.rawValue,
+        &error
+      )?.getFingerprint()
+      else {
+        return .failure(.failedToGetPGPFingerprint(underlyingError: error))
+      }
+
+      return .success(fingerprintFromKey.uppercased() == fingerprint.rawValue.uppercased())
+    }
+
+    func extractFingerprint(
+      publicKey: ArmoredPGPPublicKey
+    ) -> Result<Fingerprint, TheError> {
+      defer { Gopenpgp.HelperFreeOSMemory() }
+      
+      var error: NSError?
+
+      guard let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
+        publicKey.rawValue,
+        &error
+      )?.getFingerprint()
+      else {
+        return .failure(.failedToGetPGPFingerprint(underlyingError: error))
+      }
+
+      return .success(.init(rawValue: fingerprintFromKey.uppercased()))
+    }
+
     return Self(
       encryptAndSign: encryptAndSign(_:passphrase:privateKey:publicKey:),
       decryptAndVerify: decryptAndVerify(_:passphrase:privateKey:publicKey:),
@@ -311,7 +359,9 @@ extension PGP {
       decrypt: decrypt(_:passphrase:privateKey:),
       signMessage: signMessage(_:passphrase:privateKey:),
       verifyMessage: verifyMessage(_:publicKey:verifyTime:),
-      verifyPassphrase: verifyPassphrase(privateKey:passphrase:)
+      verifyPassphrase: verifyPassphrase(privateKey:passphrase:),
+      verifyPublicKeyFingerprint: verifyPublicKeyFingerprint(_:fingerprint:),
+      extractFingerprint: extractFingerprint(publicKey:)
     )
   }
 }
@@ -327,7 +377,9 @@ extension PGP {
       decrypt: Commons.placeholder("You have to provide mocks for used methods"),
       signMessage: Commons.placeholder("You have to provide mocks for used methods"),
       verifyMessage: Commons.placeholder("You have to provide mocks for used methods"),
-      verifyPassphrase: Commons.placeholder("You have to provide mocks for used methods")
+      verifyPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
+      verifyPublicKeyFingerprint: Commons.placeholder("You have to provide mocks for used methods"),
+      extractFingerprint: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

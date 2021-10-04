@@ -73,6 +73,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
         )!
       )
     )
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
+    features.environment.pgp.extractFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     features.environment.signatureVerfication.verify = always(.success(Void()))
 
     networkClient.serverRSAPublicKeyRequest = .respondingWith(
@@ -86,7 +88,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .init(
         header: .mock(),
         body: .init(
-          fingerprint: serverPGPPublicKeyFingerprint,
           keyData: serverPGPPublicKey.rawValue
         )
       )
@@ -423,6 +424,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(storedFingerprint))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(false))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
     features.use(networkClient)
