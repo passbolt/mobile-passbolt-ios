@@ -42,7 +42,6 @@ extension ResourcesRequest {
           .url(string: sessionVariable.domain),
           .path("/resources.json"),
           .queryItem("contain[permission]", value: "1"),
-          .queryItem("contain[secret]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
           .whenSome(
             sessionVariable.mfaToken,

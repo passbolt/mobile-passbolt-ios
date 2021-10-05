@@ -100,8 +100,8 @@ extension Networking {
       urlSessionConfiguration.allowsConstrainedNetworkAccess = true
       urlSessionConfiguration.allowsExpensiveNetworkAccess = true
       urlSessionConfiguration.httpShouldUsePipelining = true
-      urlSessionConfiguration.timeoutIntervalForResource = 10
-      urlSessionConfiguration.timeoutIntervalForRequest = 10
+      urlSessionConfiguration.timeoutIntervalForResource = 30
+      urlSessionConfiguration.timeoutIntervalForRequest = 30
       urlSessionConfiguration.waitsForConnectivity = true
       return URLSession(
         configuration: urlSessionConfiguration,

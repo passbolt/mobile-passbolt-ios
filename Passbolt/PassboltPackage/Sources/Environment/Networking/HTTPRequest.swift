@@ -123,7 +123,7 @@ extension HTTPRequest {
     urlRequest.httpMethod = method.rawValue
     urlRequest.httpBody = body
     urlRequest.allHTTPHeaderFields = headers
-    urlRequest.timeoutInterval = 10
+    urlRequest.timeoutInterval = 30
     urlRequest.cachePolicy = cachePolicy
     urlRequest.httpShouldHandleCookies = false
     return urlRequest
