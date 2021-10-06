@@ -126,8 +126,26 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
   ) {
     self.iconView.update(from: item.name)
     self.titleLabel.text = item.name
-    self.subtitleLabel.text = item.username
-    self.titleCenterConstraint?.constant = (item.username?.isEmpty ?? true) ? 0 : -10
+    if let username: String = item.username, !username.isEmpty {
+      self.titleCenterConstraint?.constant = -10
+      mut(self.subtitleLabel) {
+        .combined(
+          .font(.inter(ofSize: 12, weight: .regular)),
+          .text(username)
+        )
+      }
+    }
+    else {
+      // to adjust view to center name instead of adding username placeholder use line below
+      // self.titleCenterConstraint?.constant = 0
+      self.titleCenterConstraint?.constant = -10
+      mut(self.subtitleLabel) {
+        .combined(
+          .font(.interItalic(ofSize: 12, weight: .regular)),
+          .text(localized: "resource.list.username.empty.placeholder", inBundle: .commons)
+        )
+      }
+    }
     self.tapAction = tapAction
     self.menuTapAction = menuTapAction
   }

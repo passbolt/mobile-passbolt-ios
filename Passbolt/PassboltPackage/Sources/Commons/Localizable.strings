@@ -63,6 +63,8 @@
 "sign.in.error.biometrics.changed.message" = "It seems that your device biometrics has changed. Please, enter your passphrase and configure biometrics again";
 "sign.in.error.passphrase.invalid.message" = "Invalid passphrase.";
 
+"resource.list.username.empty.placeholder" = "No username";
+
 "resource.detail.field.username" = "Username";
 "resource.detail.field.passphrase" = "Password";
 "resource.detail.field.uri" = "Website URL";

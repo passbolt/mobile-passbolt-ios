@@ -39,19 +39,6 @@
 	<string>NFC can be used to communicate with Yubikey token.</string>
 	<key>NSFileProviderDomainUsageDescription</key>
 	<string></string>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Inter Thin</string>
-		<string>Inter Regular</string>
-		<string>Inter Medium</string>
-		<string>Inter ExtraLight</string>
-		<string>Inter Light</string>
-		<string>Inter SemiBold</string>
-		<string>Inter Bold</string>
-		<string>Inter-Black</string>
-		<string>Inconsolata SemiBold</string>
-		<string>Inconsolata Bold</string>
-	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

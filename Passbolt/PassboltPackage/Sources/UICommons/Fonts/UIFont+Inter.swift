@@ -26,15 +26,39 @@ import UIKit
 
 extension UIFont {
 
+  private static let register: Void = {
+    func registerFont(fileName: String) {
+      guard
+        let pathForResourceString = Bundle.module.path(forResource: fileName, ofType: "otf"),
+        let fontData = NSData(contentsOfFile: pathForResourceString),
+        let dataProvider = CGDataProvider(data: fontData),
+        let fontRef = CGFont(dataProvider)
+      else { return }
+
+      CTFontManagerRegisterGraphicsFont(fontRef, nil)
+    }
+    registerFont(fileName: "Inter Black")
+    registerFont(fileName: "Inter Bold")
+    registerFont(fileName: "Inter Semi Bold")
+    registerFont(fileName: "Inter Light")
+    registerFont(fileName: "Inter Extra Light")
+    registerFont(fileName: "Inter Medium")
+    registerFont(fileName: "Inter Regular")
+    registerFont(fileName: "Inter Thin")
+    registerFont(fileName: "Inter Light Italic")
+    registerFont(fileName: "Inter Italic")
+  }()
+
   public static func inter(
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
   ) -> UIFont {
+    _ = register
     let font: UIFont?
     switch weight {
     case .black:
       font = UIFont(
-        name: "Inter-Black",
+        name: "Inter Black",
         size: fontSize
       )
 
@@ -46,7 +70,7 @@ extension UIFont {
 
     case .semibold:
       font = UIFont(
-        name: "Inter SemiBold",
+        name: "Inter Semi Bold",
         size: fontSize
       )
 
@@ -58,7 +82,7 @@ extension UIFont {
 
     case .ultraLight:
       font = UIFont(
-        name: "Inter ExtraLight",
+        name: "Inter Extra Light",
         size: fontSize
       )
 
@@ -84,10 +108,41 @@ extension UIFont {
       assertionFailure("Unsupported font weight: \(weight)")
       font = nil
     }
+
     return font
       ?? .systemFont(
         ofSize: fontSize,
         weight: weight
       )
+  }
+
+  public static func interItalic(
+    ofSize fontSize: CGFloat,
+    weight: UIFont.Weight = .regular
+  ) -> UIFont {
+    _ = register
+    let font: UIFont?
+    switch weight {
+    case .light:
+      font = UIFont(
+        name: "Inter LightItalic",
+        size: fontSize
+      )
+
+    case .regular:
+      font = UIFont(
+        name: "Inter Italic",
+        size: fontSize
+      )
+
+    case _:
+      assertionFailure("Unsupported font weight: \(weight)")
+      font = nil
+    }
+    
+    return font
+    ?? .italicSystemFont(
+      ofSize: fontSize
+    )
   }
 }

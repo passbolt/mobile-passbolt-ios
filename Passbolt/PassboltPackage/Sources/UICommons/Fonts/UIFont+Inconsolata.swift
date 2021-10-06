@@ -26,10 +26,26 @@ import UIKit
 
 extension UIFont {
 
+  private static let register: Void = {
+    func registerFont(fileName: String) {
+      guard
+        let pathForResourceString = Bundle.module.path(forResource: fileName, ofType: "ttf"),
+        let fontData = NSData(contentsOfFile: pathForResourceString),
+        let dataProvider = CGDataProvider(data: fontData),
+        let fontRef = CGFont(dataProvider)
+      else { return }
+
+      CTFontManagerRegisterGraphicsFont(fontRef, nil)
+    }
+    registerFont(fileName: "Inconsolata Bold")
+    registerFont(fileName: "Inconsolata SemiBold")
+  }()
+
   public static func inconsolata(
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
   ) -> UIFont {
+    _ = register
     let font: UIFont?
     switch weight {
     case .bold:
@@ -47,8 +63,9 @@ extension UIFont {
       assertionFailure("Unsupported font weight: \(weight)")
       font = nil
     }
+
     return font
-      ?? .systemFont(
+      ?? .monospacedSystemFont(
         ofSize: fontSize,
         weight: weight
       )
