@@ -217,11 +217,18 @@ extension AccountSettings: Feature {
             .statePublisher()
             .first()
             .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheError> in
-              guard case let .authorized(account) = sessionState
-              else {
+              let account: Account
+
+              switch sessionState {
+              case let .authorized(theAccount):
+                account = theAccount
+              case let .authorizedMFARequired(theAccount, _):
+                account = theAccount
+              case _:
                 accountSession.requestAuthorizationPrompt(
                   .init(key: "authorization.prompt.biometrics.set.reason", bundle: .main)
                 )
+
                 return Fail<Void, TheError>(error: .authorizationRequired())
                   .eraseToAnyPublisher()
               }
