@@ -54,6 +54,8 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
     mut(self) {
       .combined(
         .set(\.dynamicBackgroundColor, to: .background),
+        .set(\.dynamicTintColor, to: .primaryBlue),
+        .set(\.indicatorStyle, to: .black),
         .set(\.keyboardDismissMode, to: .onDrag),
         .contentInset(.init(top: 4, left: 0, bottom: 0, right: 0))
       )
