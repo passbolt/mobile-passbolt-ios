@@ -49,6 +49,7 @@
 "account.selection.remove.account.subtitle" = "Choose an account to unlink.";
 "account.selection.remove.alert.title" = "Are you sure ?";
 "account.selection.remove.alert.message" = "This will remove your account from this device. Your passwords will not be deleted.";
+"account.selection.account.removed" = "The account has been removed.";
 
 "authorization.button.title" = "Sign In";
 "authorization.forgot.passphrase.button.title" = "I forgot my passphrase";

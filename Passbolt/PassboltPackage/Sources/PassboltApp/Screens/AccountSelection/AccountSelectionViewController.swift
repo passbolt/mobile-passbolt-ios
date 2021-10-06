@@ -117,8 +117,12 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
 
           self.controller.toggleMode()
 
-          guard case Result.failure = self.controller.removeAccount(item.account) else {
-            return
+          guard case .failure = self.controller.removeAccount(item.account)
+          else {
+            return self.presentInfoSnackbar(
+              localizableKey: "account.selection.account.removed",
+              inBundle: .commons
+            )
           }
 
           self.present(

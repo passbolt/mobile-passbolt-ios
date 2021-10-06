@@ -53,6 +53,7 @@ extension UIViewController {
         .snackBarMessage(
           localized: localizableKey,
           arguments: arguments,
+          inBundle: inBundle,
           backgroundColor: .primaryText,
           textColor: .primaryTextAlternative
         )
