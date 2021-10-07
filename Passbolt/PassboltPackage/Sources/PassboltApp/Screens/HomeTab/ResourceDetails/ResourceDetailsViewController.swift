@@ -138,34 +138,64 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .sinkDrop()
       .store(in: cancellables)
 
-    contentView.copyFieldNameTapPublisher
-      .sink { [weak self] copiedField in
-        self?.controller.copyFieldValue(copiedField)
-        let localizedField: String = {
-          switch copiedField {
-          case .username:
-            return NSLocalizedString("resource.detail.field.username", bundle: .commons, comment: "")
-          case .uri:
-            return NSLocalizedString("resource.detail.field.uri", bundle: .commons, comment: "")
-          default:
-            return NSLocalizedString("resource.details.value", bundle: .commons, comment: "")
-          }
-        }()
 
-        self?.present(
-          snackbar: Mutation<UICommons.View>
-            .snackBarMessage(
-              localized: "resource.details.copied",
-              arguments: [
-                localizedField
-              ],
-              inBundle: .commons,
-              backgroundColor: .primaryText,
-              textColor: .primaryTextAlternative
-            )
-            .instantiate()
-        )
+    contentView
+      .copyFieldNameTapPublisher
+      .map { [unowned self] field in
+        self.controller
+          .copyFieldValue(field)
+          .receive(on: RunLoop.main)
+          .handleEvents(receiveOutput: { [weak self] in
+            switch field {
+            case .uri:
+              self?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.url", comment: "")
+                ]
+              )
+
+            case .password:
+              self?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.password", comment: "")
+                ]
+              )
+
+            case .username:
+              self?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.username", comment: "")
+                ]
+              )
+
+            case .description:
+              self?.presentInfoSnackbar(
+                localizableKey: "resource.menu.item.field.copied",
+                inBundle: .main,
+                arguments: [
+                  NSLocalizedString("resource.menu.item.description", comment: "")
+                ]
+              )
+            }
+          })
+          .handleErrors(
+            ([.canceled, .authorizationRequired], handler: { /* NOP */ }),
+            defaultHandler: { [weak self] in
+              self?.presentErrorSnackbar()
+            }
+          )
+          .mapToVoid()
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
       }
+      .switchToLatest()
+      .sinkDrop()
       .store(in: cancellables)
   }
 }

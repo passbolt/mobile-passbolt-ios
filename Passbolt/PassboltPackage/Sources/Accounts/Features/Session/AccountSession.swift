@@ -485,6 +485,7 @@ extension AccountSession: Feature {
       publicKey: ArmoredPGPPublicKey?
     ) -> AnyPublisher<String, TheError> {
       sessionStatePublisher
+        .first()
         .map { sessionState -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
           switch sessionState {
           case let .authorized(account), let .authorizedMFARequired(account, _):
@@ -492,6 +493,7 @@ extension AccountSession: Feature {
             case let .success(armoredKey):
               return passphraseCache
                 .passphrasePublisher(account.localID)
+                .first()
                 .setFailureType(to: TheError.self)
                 .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
                   guard let passphrase: Passphrase = passphrase

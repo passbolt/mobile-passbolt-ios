@@ -101,21 +101,25 @@ internal final class ResourceDetailsView: ScrolledStackView {
     let setupSteps: Array<FieldSetup> = resourceDetails.fields.compactMap { field in
       let encryptedPlaceholder: String = .init(repeating: "*", count: 10)
 
+      let contentButtonMutation: Mutation<ResourceDetailsItemView>
       let titleMutation: Mutation<Label>
       let valueMutation: Mutation<TextView>
-      let buttonMutation: Mutation<ImageButton>
+      let accessoryButtonMutation: Mutation<ImageButton>
 
       switch field {
       case let .username(_, encrypted, _):
+        contentButtonMutation = .action { [weak self] in
+          self?.copyFieldNameTapSubject.send(field)
+        }
         titleMutation = .text(localized: "resource.detail.field.username", inBundle: .commons)
         valueMutation = .combined(
+          .userInteractionEnabled(false),
           .when(
             encrypted,
             then: .text(encryptedPlaceholder),
             else: .text(resourceDetails.username ?? ""))
         )
-
-        buttonMutation = .combined(
+        accessoryButtonMutation = .combined(
           .image(named: .copy, from: .uiCommons),
           .action { [weak self] in
             self?.copyFieldNameTapSubject.send(field)
@@ -123,8 +127,12 @@ internal final class ResourceDetailsView: ScrolledStackView {
         )
 
       case let .password(_, encrypted, _):
+        contentButtonMutation = .action { [weak self] in
+          self?.copyFieldNameTapSubject.send(field)
+        }
         titleMutation = .text(localized: "resource.detail.field.passphrase", inBundle: .commons)
         valueMutation = .combined(
+          .userInteractionEnabled(false),
           .when(
             encrypted,
             then: .text(encryptedPlaceholder),
@@ -132,7 +140,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
         )
 
         if config.revealPasswordEnabled {
-          buttonMutation = .when(
+          accessoryButtonMutation = .when(
             encrypted,
             then:
               .combined(
@@ -145,11 +153,15 @@ internal final class ResourceDetailsView: ScrolledStackView {
           )
         }
         else {
-          buttonMutation = .hidden(true)
+          accessoryButtonMutation = .hidden(true)
         }
       case let .uri(_, encrypted, _):
+        contentButtonMutation = .action { [weak self] in
+          self?.copyFieldNameTapSubject.send(field)
+        }
         titleMutation = .text(localized: "resource.detail.field.uri", inBundle: .commons)
         valueMutation = .combined(
+          .userInteractionEnabled(true),
           .when(
             encrypted,
             then: .text(encryptedPlaceholder),
@@ -167,7 +179,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
           )
         )
 
-        buttonMutation = .combined(
+        accessoryButtonMutation = .combined(
           .image(named: .copy, from: .uiCommons),
           .action { [weak self] in
             self?.copyFieldNameTapSubject.send(field)
@@ -175,16 +187,20 @@ internal final class ResourceDetailsView: ScrolledStackView {
         )
 
       case let .description(_, encrypted, _):
+        contentButtonMutation = .action { [weak self] in
+          self?.copyFieldNameTapSubject.send(field)
+        }
         titleMutation = .text(localized: "resource.detail.field.description", inBundle: .commons)
         valueMutation = .combined(
           .combined(
+            .userInteractionEnabled(false),
             .when(
               encrypted,
               then: .text(encryptedPlaceholder),
               else: .text(resourceDetails.description ?? ""))
           )
         )
-        buttonMutation = .when(
+        accessoryButtonMutation = .when(
           encrypted,
           then:
             .combined(
@@ -197,15 +213,16 @@ internal final class ResourceDetailsView: ScrolledStackView {
         )
 
       case _:
-        assertionFailure("Invalid case")
+        assertionFailure("Undefined resource field \(field)")
         return nil
       }
 
       return .init(
         field: field,
+        contentButtonMutation: contentButtonMutation,
         titleMutation: titleMutation,
         valueMutation: valueMutation,
-        buttonMutation: buttonMutation
+        accessoryButtonMutation: accessoryButtonMutation
       )
     }
 
@@ -223,9 +240,10 @@ internal final class ResourceDetailsView: ScrolledStackView {
       }
 
       Mutation.combined(
+        setup.contentButtonMutation.contramap(\ResourceDetailsItemView.self),
         setup.titleMutation.contramap(\ResourceDetailsItemView.titleLabel),
         setup.valueMutation.contramap(\ResourceDetailsItemView.valueTextView),
-        setup.buttonMutation.contramap(\ResourceDetailsItemView.button)
+        setup.accessoryButtonMutation.contramap(\ResourceDetailsItemView.accessoryButton)
       )
       .apply(on: itemView)
 
@@ -259,19 +277,19 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
     itemViewUpdate(
       .combined(
-        buttonMutation.contramap(\ResourceDetailsItemView.button),
+        buttonMutation.contramap(\ResourceDetailsItemView.accessoryButton),
         valueTextViewMutation.contramap(\ResourceDetailsItemView.valueTextView)
       )
     )
   }
 }
 
-internal final class ResourceDetailsItemView: View {
+internal final class ResourceDetailsItemView: Button {
 
   fileprivate var field: ResourceDetailsController.ResourceDetails.Field
   fileprivate var titleLabel: Label = .init()
   fileprivate var valueTextView: TextView = .init()
-  fileprivate var button: ImageButton = .init()
+  fileprivate var accessoryButton: ImageButton = .init()
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
@@ -290,7 +308,7 @@ internal final class ResourceDetailsItemView: View {
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background),
-        .subview(titleLabel, valueTextView, button),
+        .subview(titleLabel, valueTextView, accessoryButton),
         .heightAnchor(.greaterThanOrEqualTo, constant: 52)
       )
     }
@@ -298,7 +316,7 @@ internal final class ResourceDetailsItemView: View {
     mut(titleLabel) {
       .combined(
         .leadingAnchor(.equalTo, leadingAnchor),
-        .trailingAnchor(.equalTo, button.leadingAnchor, constant: -8),
+        .trailingAnchor(.equalTo, accessoryButton.leadingAnchor, constant: -8),
         .topAnchor(.equalTo, topAnchor, constant: 4),
         .bottomAnchor(.equalTo, valueTextView.topAnchor, constant: -8),
         .textColor(dynamic: .primaryText),
@@ -322,7 +340,7 @@ internal final class ResourceDetailsItemView: View {
       )
     }
 
-    mut(button) {
+    mut(accessoryButton) {
       .combined(
         .trailingAnchor(.equalTo, trailingAnchor),
         .centerYAnchor(.equalTo, centerYAnchor),
@@ -339,7 +357,8 @@ internal final class ResourceDetailsItemView: View {
 fileprivate struct FieldSetup {
 
   fileprivate var field: ResourceDetailsController.ResourceDetails.Field
+  fileprivate var contentButtonMutation: Mutation<ResourceDetailsItemView>
   fileprivate var titleMutation: Mutation<Label>
   fileprivate var valueMutation: Mutation<TextView>
-  fileprivate var buttonMutation: Mutation<ImageButton>
+  fileprivate var accessoryButtonMutation: Mutation<ImageButton>
 }

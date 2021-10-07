@@ -323,10 +323,78 @@ final class ResourceDetailsControllerTests: TestCase {
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
 
-    controller.copyFieldValue(.username(required: true, encrypted: false, maxLength: nil))
+    controller
+      .copyFieldValue(.username(required: true, encrypted: false, maxLength: nil))
+      .sinkDrop()
+      .store(in: cancellables)
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, detailsViewResource.username)
+  }
+
+  func test_copyFieldDescription_succeeds() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
+    features.use(resources)
+
+    var pasteboardContent: String? = nil
+
+    pasteboard.put = { string in
+      pasteboardContent = string
+    }
+
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+
+    controller
+      .copyFieldValue(.description(required: true, encrypted: false, maxLength: nil))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(pasteboardContent)
+    XCTAssertEqual(pasteboardContent, detailsViewResource.description)
+  }
+
+  func test_copyFieldEncryptedDescription_succeeds() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    resources.resourceDetailsPublisher = always(
+      Just(encryptedDescriptionDetailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
+    resources.loadResourceSecret = always(
+      Just(resourceSecret)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var pasteboardContent: String? = nil
+
+    pasteboard.put = { string in
+      pasteboardContent = string
+    }
+
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+
+    controller
+      .copyFieldValue(.description(required: true, encrypted: true, maxLength: nil))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(pasteboardContent)
+    XCTAssertEqual(pasteboardContent, resourceSecret.description)
   }
 
   func test_copyFieldURI_succeeds() {
@@ -350,10 +418,48 @@ final class ResourceDetailsControllerTests: TestCase {
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
 
-    controller.copyFieldValue(.uri(required: true, encrypted: false, maxLength: 0))
+    controller
+      .copyFieldValue(.uri(required: true, encrypted: false, maxLength: 0))
+      .sinkDrop()
+      .store(in: cancellables)
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, detailsViewResource.url)
+  }
+
+  func test_copyFieldPassword_succeeds() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
+    resources.loadResourceSecret = always(
+      Just(resourceSecret)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    var pasteboardContent: String? = nil
+
+    pasteboard.put = { string in
+      pasteboardContent = string
+    }
+
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+
+    controller
+      .copyFieldValue(.password(required: true, encrypted: true, maxLength: nil))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(pasteboardContent)
+    XCTAssertEqual(pasteboardContent, resourceSecret.password)
   }
 }
 
@@ -371,7 +477,21 @@ private let detailsViewResource: DetailsViewResource = .init(
     .string(name: "description", required: true, encrypted: false, maxLength: nil)
   ])
 
+private let encryptedDescriptionDetailsViewResource: DetailsViewResource = .init(
+  id: .init(rawValue: "1"),
+  permission: .owner,
+  name: "Passphrase",
+  url: "https://passbolt.com",
+  username: "passbolt@passbolt.com",
+  description: nil,
+  fields: [
+    .string(name: "username", required: true, encrypted: false, maxLength: nil),
+    .string(name: "password", required: true, encrypted: true, maxLength: nil),
+    .string(name: "uri", required: true, encrypted: false, maxLength: nil),
+    .string(name: "description", required: true, encrypted: true, maxLength: nil)
+  ])
+
 private let resourceSecret: ResourceSecret = .from(
-  decrypted: #"["password" : "passbolt"]"#,
+  decrypted: #"{"password": "passbolt", "description": "encrypted"}"#,
   using: .init()
 )!

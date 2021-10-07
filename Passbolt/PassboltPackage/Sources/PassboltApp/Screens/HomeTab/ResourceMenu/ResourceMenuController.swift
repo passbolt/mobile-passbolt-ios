@@ -148,6 +148,7 @@ extension ResourceMenuController: UIController {
 
     func openURLAction() -> AnyPublisher<Void, TheError> {
       currentDetailsSubject
+        .first()
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = resourceDetails,
@@ -198,6 +199,7 @@ extension ResourceMenuController: UIController {
 
     func copyURLAction() -> AnyPublisher<Void, TheError> {
       currentDetailsSubject
+        .first()
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = resourceDetails,
@@ -240,7 +242,7 @@ extension ResourceMenuController: UIController {
             return Fail(
               error: TheError.invalidResourceSecret()
             )
-              .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
           }
           return Just(secret)
             .setFailureType(to: TheError.self)
@@ -256,6 +258,7 @@ extension ResourceMenuController: UIController {
 
     func copyUsernameAction() -> AnyPublisher<Void, TheError> {
       currentDetailsSubject
+        .first()
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = resourceDetails,
@@ -291,9 +294,9 @@ extension ResourceMenuController: UIController {
 
     func copyDescriptionAction() -> AnyPublisher<Void, TheError> {
       currentDetailsSubject
+        .first()
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
-          guard
-            let resourceDetails = resourceDetails
+          guard let resourceDetails = resourceDetails
           else {
             return Fail<Void, TheError>(error: .invalidResourceData())
               .eraseToAnyPublisher()
@@ -344,6 +347,7 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
+  #warning("This is similar to ResourceDetailsController code, it might be unified to avoid duplicates")
     func perform(action: Action) -> AnyPublisher<Void, TheError> {
       switch action {
       case .openURL:

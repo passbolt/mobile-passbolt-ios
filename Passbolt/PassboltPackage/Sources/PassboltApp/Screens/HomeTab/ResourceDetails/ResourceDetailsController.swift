@@ -31,7 +31,7 @@ internal struct ResourceDetailsController {
   internal var toggleDecrypt: (ResourceDetails.Field) -> AnyPublisher<String?, TheError>
   internal var presentResourceMenu: () -> Void
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var copyFieldValue: (ResourceDetails.Field) -> Void
+  internal var copyFieldValue: (ResourceDetails.Field) -> AnyPublisher<Void, TheError>
 }
 
 
@@ -145,20 +145,178 @@ extension ResourceDetailsController: UIController {
       resourceMenuPresentationSubject.eraseToAnyPublisher()
     }
 
-    func copyField(_ field: ResourceDetails.Field) {
-      let value: String? = {
-        switch field {
-        case .username:
-          return currentDetailsSubject.value?.resourceDetails.username
-        case .uri:
-          return currentDetailsSubject.value?.resourceDetails.url
-        case _:
-          assertionFailure("Invalid case")
-          return nil
+    func copyURLAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .first()
+        .map { details -> AnyPublisher<Void, TheError> in
+          guard
+            let resourceDetails = details?.resourceDetails,
+            resourceDetails.fields.contains(where: { field in
+              if case .uri = field {
+                return true
+              }
+              else {
+                return false
+              }
+            })
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          guard let urlString: String = resourceDetails.url
+          else {
+            return Fail<Void, TheError>(error: .missingResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          return Just(Void())
+            .setFailureType(to: TheError.self)
+            .handleEvents(receiveOutput: { _ in
+              pasteboard.put(urlString)
+            })
+            .eraseToAnyPublisher()
         }
-      }()
-      
-      pasteboard.put(value)
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    func copyPasswordAction() -> AnyPublisher<Void, TheError> {
+      resources
+        .loadResourceSecret(context)
+        .map { resourceSecret -> AnyPublisher<String, TheError> in
+          guard let secret: String = resourceSecret.password
+          else {
+            return Fail(
+              error: TheError.invalidResourceSecret()
+            )
+            .eraseToAnyPublisher()
+          }
+          return Just(secret)
+            .setFailureType(to: TheError.self)
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .handleEvents(receiveOutput: { password in
+          pasteboard.put(password)
+        })
+        .mapToVoid()
+        .eraseToAnyPublisher()
+    }
+
+    func copyUsernameAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .first()
+        .map { details -> AnyPublisher<Void, TheError> in
+          guard
+            let resourceDetails = details?.resourceDetails,
+            resourceDetails.fields.contains(where: { field in
+              if case .username = field {
+                return true
+              }
+              else {
+                return false
+              }
+            })
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          guard let username: String = resourceDetails.username
+          else {
+            return Fail<Void, TheError>(error: .missingResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          return Just(Void())
+            .setFailureType(to: TheError.self)
+            .handleEvents(receiveOutput: { _ in
+              pasteboard.put(username)
+            })
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    func copyDescriptionAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .first()
+        .map { details -> AnyPublisher<Void, TheError> in
+          guard let resourceDetails = details?.resourceDetails
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          if resourceDetails.fields.contains(where: { field in
+            guard case let .description(_, encrypted, _) = field
+            else { return false }
+            return encrypted
+          }) {
+            return resources
+              .loadResourceSecret(context)
+              .map { resourceSecret -> AnyPublisher<String, TheError> in
+                guard let secret: String = resourceSecret.description
+                else {
+                  return Fail(
+                    error: TheError.invalidResourceSecret()
+                  )
+                    .eraseToAnyPublisher()
+                }
+                return Just(secret)
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+              }
+              .switchToLatest()
+              .handleEvents(receiveOutput: { password in
+                pasteboard.put(password)
+              })
+              .mapToVoid()
+              .eraseToAnyPublisher()
+          }
+          else if let description: String = resourceDetails.description {
+            return Just(Void())
+              .setFailureType(to: TheError.self)
+              .handleEvents(receiveOutput: { _ in
+                pasteboard.put(description)
+              })
+              .eraseToAnyPublisher()
+          }
+          else {
+            return Fail(
+              error: .missingResourceData()
+            )
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    #warning("This is similar to ResourceMenuController code, it might be unified to avoid duplicates")
+    func copyField(
+      _ field: ResourceDetails.Field
+    ) -> AnyPublisher<Void, TheError> {
+      switch field {
+      case .uri:
+        return copyURLAction()
+
+      case .password:
+        return copyPasswordAction()
+
+      case .username:
+        return copyUsernameAction()
+
+      case .description:
+        return copyDescriptionAction()
+
+      case _:
+        assertionFailure("Unhandled resource field - \(field)")
+        return Fail(error: .invalidResourceData())
+          .eraseToAnyPublisher()
+      }
     }
 
     return Self(
