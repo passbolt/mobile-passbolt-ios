@@ -151,8 +151,8 @@ internal final class TOTPView: KeyboardAwareView {
       .combined(
         .subview(of: self),
         .topAnchor(.equalTo, pasteOTPButton.bottomAnchor, constant: 96),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
+        .leadingAnchor(.equalTo, leadingAnchor),
+        .trailingAnchor(.equalTo, trailingAnchor),
         .bottomAnchor(.lessThanOrEqualTo, bottomAnchor, constant: -16),
         .custom { (labeledSwitch: LabeledSwitch) in
           labeledSwitch.applyOn(
