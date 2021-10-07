@@ -325,4 +325,71 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     XCTAssertEqual(error.redirectLocation, nil)
   }
+
+  func test_decodeBadRequest_fromResponse_withEmptyBody_fails_networkResponseDecodingFailedError() {
+    let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
+
+    let decodingResult: Result<TestCodable, TheError> =
+      decoding
+      .decode(
+        Void(),
+        Void(),
+        HTTPResponse(
+          url: .test,
+          statusCode: 400,
+          headers: [:],
+          body: Data()
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else { return XCTFail("Invalid state") }
+
+    XCTAssertEqual(error.identifier, .networkResponseDecodingFailed)
+  }
+
+  func test_decodeBadRequest_fromResponse_withEmptyJsonInBody_fails_validationViolationError() {
+    let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
+
+    let decodingResult: Result<TestCodable, TheError> =
+      decoding
+      .decode(
+        Void(),
+        Void(),
+        HTTPResponse(
+          url: .test,
+          statusCode: 400,
+          headers: [:],
+          body: "{}".data(using: .utf8)!
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else { return XCTFail("Invalid state") }
+
+    XCTAssertEqual(error.identifier, .validationError)
+  }
+
+  func test_decodeBadRequest_fromResponse_withValidJsonInBody_fails_validationViolationError() {
+    let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
+
+    let decodingResult: Result<TestCodable, TheError> =
+      decoding
+      .decode(
+        Void(),
+        Void(),
+        HTTPResponse(
+          url: .test,
+          statusCode: 400,
+          headers: [:],
+          body: TestCodable.sampleJSONData
+        )
+      )
+
+    guard case let .failure(error) = decodingResult
+    else { return XCTFail("Invalid state") }
+
+    XCTAssertEqual(error.identifier, .validationError)
+    XCTAssertFalse(error.validationViolations?.isEmpty ?? true)
+  }
 }

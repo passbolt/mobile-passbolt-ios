@@ -176,4 +176,8 @@ internal final class TOTPView: KeyboardAwareView {
   internal func update(rememberDevice: Bool) {
     labeledSwitch.update(isOn: rememberDevice)
   }
+
+  internal func applyOn(labels mutation: Mutation<Label>) {
+    otpInput.applyOn(labels: mutation)
+  }
 }

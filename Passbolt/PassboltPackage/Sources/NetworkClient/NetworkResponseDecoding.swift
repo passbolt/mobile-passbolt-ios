@@ -26,6 +26,7 @@ import Environment
 
 import struct Foundation.Data
 import class Foundation.JSONDecoder
+import class Foundation.JSONSerialization
 
 internal struct NetworkResponseDecoding<SessionVariable, RequestVariable, Response> {
 
@@ -81,6 +82,37 @@ extension NetworkResponseDecoding where Response == String {
   }
 }
 
+extension NetworkResponseDecoding {
+
+  internal static func decodeBadRequest(response: HTTPResponse) -> Result<Response, TheError> {
+    do {
+      guard let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(with: response.body, options: .init()) as? Dictionary<String, Any>
+      else {
+        return .failure(
+          .networkResponseDecodingFailed(
+            underlyingError: nil,
+            rawNetworkResponse: response
+          )
+        )
+      }
+
+      return .failure(
+        .validationError(
+          validationViolations: validationViolations
+        )
+      )
+    }
+    catch {
+      return .failure(
+        .networkResponseDecodingFailed(
+          underlyingError: nil,
+          rawNetworkResponse: response
+        )
+      )
+    }
+  }
+}
+
 extension NetworkResponseDecoding where Response: Decodable {
 
   internal static func bodyAsJSON(
@@ -97,6 +129,9 @@ extension NetworkResponseDecoding where Response: Decodable {
           return .failure(.httpError(.invalidResponse))
         }
       }
+
+      guard response.statusCode != 400
+      else { return decodeBadRequest(response: response) }
 
       guard response.statusCode != 401
       else { return .failure(.missingSession()) }

@@ -130,6 +130,25 @@ public final class OTPInput: UIControl, UIKeyInput {
     set { /* NOP */ }
   }
 
+  public override func becomeFirstResponder() -> Bool {
+    if super.becomeFirstResponder() {
+      text = ""
+      labels.forEach {
+        mut($0) {
+          .textColor(dynamic: .primaryText)
+        }
+      }
+      return true
+    }
+    else {
+      return false
+    }
+  }
+
+  public func applyOn(labels mutation: Mutation<Label>) {
+    labels.forEach { mutation.apply(on: $0) }
+  }
+
   @objc private func touchUpInside() {
     _ = becomeFirstResponder()
   }

@@ -24,6 +24,7 @@
 import Commons
 import Crypto
 import Environment
+import Foundation
 
 public typealias TOTPAuthorizationRequest =
   NetworkRequest<AuthorizedSessionVariable, TOTPAuthorizationRequestVariable, TOTPAuthorizationResponse>
@@ -85,6 +86,11 @@ extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
 
   fileprivate static var mfaCookie: Self {
     Self { _, _, httpResponse in
+      guard httpResponse.statusCode != 400
+      else {
+        return decodeBadRequest(response: httpResponse)
+      }
+
       if
         let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")

@@ -29,19 +29,25 @@ extension UIViewController {
     overlay: UIView,
     animated: Bool = true
   ) {
+    guard let window = self.viewIfLoaded?.window
+    else {
+      return
+    }
+
     dismissSnackbar(animated: true)
-    _overlayView = overlay
+    dismissOverlay()
+    window._overlayView = overlay
     overlay.layer.removeAllAnimations()
-    let parentView: UIView = self.view.window ?? self.view
+
     mut(overlay) {
       .combined(
         .alpha(0),
-        .subview(of: parentView),
-        .edges(equalTo: parentView, usingSafeArea: false)
+        .subview(of: window),
+        .edges(equalTo: window, usingSafeArea: false)
       )
     }
-    parentView.layoutIfNeeded()
-    parentView.bringSubviewToFront(overlay)
+    window.layoutIfNeeded()
+    window.bringSubviewToFront(overlay)
     UIView.animate(
       withDuration: animated ? 0.3 : 0,
       delay: 0,
@@ -53,8 +59,9 @@ extension UIViewController {
   public func dismissOverlay(
     animated: Bool = true
   ) {
-    guard let overlay = _overlayView else { return }
-    _overlayView = nil
+    guard let overlay = self.viewIfLoaded?.window?._overlayView
+    else { return }
+    self.viewIfLoaded?.window?._overlayView = nil
     UIView.animate(
       withDuration: animated ? 0.3 : 0,
       delay: 0,
@@ -67,7 +74,7 @@ extension UIViewController {
   }
 }
 
-extension UIViewController {
+extension UIWindow {
 
   // swift-format-ignore: NoLeadingUnderscores
   fileprivate var _overlayView: UIView? {

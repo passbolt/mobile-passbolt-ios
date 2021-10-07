@@ -101,6 +101,17 @@ extension TheError {
       extensions: [.redirectLocation: location]
     )
   }
+
+  public static func validationError(
+    underlyingError: Error? = nil,
+    validationViolations: Dictionary<String, Any>
+  ) -> Self {
+    Self(
+      identifier: .validationError,
+      underlyingError: underlyingError,
+      extensions: [.validationViolations: validationViolations]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -112,6 +123,7 @@ extension TheError.ID {
   public static var forbidden: Self { "forbidden" }
   public static var mfaRequired: Self { "mfaRequired" }
   public static var redirect: Self { "redirect" }
+  public static var validationError: Self { "validationError" }
 }
 
 extension TheError.Extension {
@@ -123,11 +135,13 @@ extension TheError.Extension {
 
   public static var mfaProviders: Self { "mfaProviders" }
   public static var redirectLocation: Self { "location" }
+  public static var validationViolations: Self { "validationViolations" }
 }
 
 extension TheError {
 
   public var rawNetworkResponse: HTTPResponse? { extensions[.rawNetworkResponse] as? HTTPResponse }
+  public var validationViolations: Dictionary<String, Any>? { extensions[.validationViolations] as? Dictionary<String, Any> }
 }
 
 extension TheError {

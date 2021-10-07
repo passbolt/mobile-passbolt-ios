@@ -50,6 +50,7 @@ public struct TestCodable: Codable, Equatable {
       ]
     }
     """
+  
   // swift-format-ignore: NeverForceUnwrap
   public static let sampleJSONData: Data =
     sampleJSONString

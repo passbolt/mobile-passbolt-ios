@@ -100,6 +100,18 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
       .receive(on: RunLoop.main)
       .sink { [weak self] change in
         switch change {
+        case .idle, .processing:
+          self?.contentView.applyOn(labels:
+            .textColor(dynamic: .primaryText)
+          )
+
+        case .error:
+          self?.contentView.applyOn(labels:
+            .textColor(dynamic: .secondaryRed)
+          )
+        }
+
+        switch change {
         case .idle:
           self?.dismissOverlay()
         case .processing:
@@ -108,6 +120,9 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
         case let .error(error) where error.identifier == .invalidPasteValue:
           self?.dismissOverlay()
           self?.presentErrorSnackbar(localizableKey: .invalidPasteValue, inBundle: .commons)
+        case let .error(error) where error.identifier == .validationError:
+          self?.dismissOverlay()
+          self?.presentErrorSnackbar(localizableKey: "totp.wrong.code.error", inBundle: .main)
         case let .error(error) where error.identifier != .canceled:
           self?.dismissOverlay()
           self?.presentErrorSnackbar()
