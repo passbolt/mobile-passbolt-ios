@@ -38,3 +38,6 @@ lint:
 
 format:
 	swift run --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode format --configuration ./Tools/code-format.json --in-place --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests
+
+prepare_licenses:
+	swift run --package-path Tools/license --build-path ~/tmp/passbolt -- license-plist --suppress-opening-directory --fail-if-missing-license --package-path Passbolt/PassboltPackage/Package.swift --config-path Tools/license-plist.yml --prefix LicensePlist --output-path Passbolt/Passbolt/Settings.bundle

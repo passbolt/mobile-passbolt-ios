@@ -77,4 +77,8 @@ build/
 ## Lint report
 lint-report
 
+## Licenses
+*LicensePlist.latest_result.txt
+
+
 # End of https://www.toptal.com/developers/gitignore/api/swiftpm,macos,xcode

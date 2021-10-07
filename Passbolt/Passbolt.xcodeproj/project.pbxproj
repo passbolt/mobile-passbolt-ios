@@ -35,6 +35,7 @@
 		DD3F9EBC26244C020027D016 /* PassboltApp in Frameworks */ = {isa = PBXBuildFile; productRef = DD3F9EBB26244C020027D016 /* PassboltApp */; };
 		DD59A9C82625A37500736D43 /* PassboltExtension in Frameworks */ = {isa = PBXBuildFile; productRef = DD59A9C72625A37500736D43 /* PassboltExtension */; };
 		DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */; };
+		DD8979C6270F13E600D95978 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = DD8979C5270F13E600D95978 /* Settings.bundle */; };
 		DD8A0DD6264927EA0079673A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD8A0DD5264927EA0079673A /* Localizable.strings */; };
 		DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB2A674263B09500014C895 /* Launch Screen.storyboard */; };
 /* End PBXBuildFile section */
@@ -81,6 +82,7 @@
 		DD3F9EB726244A330027D016 /* PassboltPackage */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PassboltPackage; sourceTree = "<group>"; };
 		DD673CFC26F0B58C0051EEB5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DD87927E262983CF006ECC0A /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
+		DD8979C5270F13E600D95978 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		DD8A0DD5264927EA0079673A /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		DDB2A674263B09500014C895 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -140,6 +142,7 @@
 				DDB2A674263B09500014C895 /* Launch Screen.storyboard */,
 				DD8A0DD5264927EA0079673A /* Localizable.strings */,
 				DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */,
+				DD8979C5270F13E600D95978 /* Settings.bundle */,
 			);
 			path = Passbolt;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 			files = (
 				DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */,
 				DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */,
+				DD8979C6270F13E600D95978 /* Settings.bundle in Resources */,
 				DD8A0DD6264927EA0079673A /* Localizable.strings in Resources */,
 				DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */,
 			);
