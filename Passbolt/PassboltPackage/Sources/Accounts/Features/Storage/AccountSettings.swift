@@ -128,13 +128,13 @@ extension AccountSettings: Feature {
         case let .authorized(account):
           return (last: changes.current, current: account)
 
-        case let .authorizedMFARequired(account, _):
+        case let .authorizedMFARequired(account, _) where account == changes.current:
           return (last: changes.current, current: account)
 
         case let .authorizationRequired(account) where account == changes.current:
           return (last: changes.current, current: account)
 
-        case .authorizationRequired, .none:
+        case .authorizationRequired, .authorizedMFARequired, .none:
           return (last: changes.current, current: nil)
         }
       }
