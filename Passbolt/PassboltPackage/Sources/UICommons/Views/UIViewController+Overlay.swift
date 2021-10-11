@@ -37,6 +37,7 @@ extension UIViewController {
     dismissSnackbar(animated: true)
     dismissOverlay()
     window._overlayView = overlay
+    _overlayView = overlay
     overlay.layer.removeAllAnimations()
 
     mut(overlay) {
@@ -59,9 +60,10 @@ extension UIViewController {
   public func dismissOverlay(
     animated: Bool = true
   ) {
-    guard let overlay = self.viewIfLoaded?.window?._overlayView
+    guard let overlay = self.viewIfLoaded?.window?._overlayView ?? self._overlayView
     else { return }
     self.viewIfLoaded?.window?._overlayView = nil
+    self._overlayView = nil
     UIView.animate(
       withDuration: animated ? 0.3 : 0,
       delay: 0,
@@ -76,6 +78,26 @@ extension UIViewController {
 
 extension UIWindow {
 
+  // swift-format-ignore: NoLeadingUnderscores
+  fileprivate var _overlayView: UIView? {
+    get {
+      objc_getAssociatedObject(
+        self,
+        &overlayViewAssociationKey
+      ) as? UIView
+    }
+    set {
+      objc_setAssociatedObject(
+        self,
+        &overlayViewAssociationKey,
+        newValue,
+        .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+      )
+    }
+  }
+}
+
+extension UIViewController {
   // swift-format-ignore: NoLeadingUnderscores
   fileprivate var _overlayView: UIView? {
     get {

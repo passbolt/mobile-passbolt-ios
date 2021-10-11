@@ -152,6 +152,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       })
       .sink(receiveCompletion: { [weak self] completion in
         self?.contentView.finishDataRefresh()
+
       })
       .store(in: self.cancellables)
   }
