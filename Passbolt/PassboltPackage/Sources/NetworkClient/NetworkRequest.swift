@@ -54,7 +54,16 @@ extension NetworkRequest {
         .map { sessionVariable, request -> AnyPublisher<Response, TheError> in
           networking
             .make(request, useCache: template.cacheResponse)
-            .mapError(TheError.httpError)
+            .mapError { error -> TheError in
+              switch error {
+              case let .cannotConnect(url), let .timeout(url):
+                return TheError.serverNotReachable(url: url, underlyingError: error)
+              case .invalidRequest, .invalidResponse, .other:
+                return TheError.httpError(error)
+              case .canceled:
+                return TheError.canceled
+              }
+            }
             .map(withResultAsPublisher({ responseDecoder.decode(sessionVariable, requestVariable, $0) }))
             .switchToLatest()
             .eraseToAnyPublisher()

@@ -23,17 +23,31 @@
 
 import Combine
 
+
+public enum PublisherEnding: Equatable {
+
+  case finished
+  case failed
+  case canceled
+}
+
 extension Publisher {
 
   public func handleEnd(
-    _ handler: @escaping (Bool) -> Void
+    _ handler: @escaping (PublisherEnding) -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(
       receiveCompletion: { completion in
-        handler(false)
+        switch completion {
+        case .finished:
+          handler(.finished)
+
+        case .failure:
+          handler(.failed)
+        }
       },
       receiveCancel: {
-        handler(true)
+        handler(.canceled)
       }
     )
   }

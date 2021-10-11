@@ -26,8 +26,8 @@ import Combine
 extension Publisher where Failure == TheError {
 
   public func handleErrors(
-    _ cases: (Set<TheError.ID>, handler: () -> Void)...,
-    defaultHandler: @escaping () -> Void
+    _ cases: (Set<TheError.ID>, handler: (TheError) -> Bool)...,
+    defaultHandler: @escaping (TheError) -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(receiveCompletion: { completion in
       guard case let .failure(error) = completion
@@ -35,16 +35,19 @@ extension Publisher where Failure == TheError {
         return
       }
 
-      let matchingCase: (() -> Void)?
+      let handled: Bool
       = cases
         .first { $0.0.contains(error.identifier) }
         .map { $0.handler }
+        .map { $0(error) }
+        ?? false
 
-      if let matchingCase = matchingCase {
-        matchingCase()
+
+      if !handled {
+        defaultHandler(error)
       }
       else {
-        defaultHandler()
+        /* NOP */
       }
     })
   }

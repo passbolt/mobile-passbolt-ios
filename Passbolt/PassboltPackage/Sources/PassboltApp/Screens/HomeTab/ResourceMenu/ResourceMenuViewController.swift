@@ -132,8 +132,8 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
             }
           })
           .handleErrors(
-            ([.canceled, .authorizationRequired], handler: { /* NOP */ }),
-            defaultHandler: { [weak self] in
+            ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
+            defaultHandler: { [weak self] _ in
               self?.presentingViewController?.presentErrorSnackbar()
             }
           )

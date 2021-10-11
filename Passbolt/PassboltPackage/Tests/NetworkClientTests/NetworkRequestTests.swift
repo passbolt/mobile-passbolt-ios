@@ -111,7 +111,7 @@ final class NetworkRequestTests: XCTestCase {
 
   func test_request_withHTTPError_fails() {
     networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
-      Fail<HTTPResponse, HTTPError>(error: .canceled)
+      Fail<HTTPResponse, HTTPError>(error: .invalidResponse)
         .eraseToAnyPublisher()
     }
 

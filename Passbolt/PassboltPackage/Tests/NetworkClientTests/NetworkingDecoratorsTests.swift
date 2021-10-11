@@ -106,7 +106,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
 
     var networking: Networking = .placeholder
     networking.execute = { _, _ in
-      Fail<HTTPResponse, HTTPError>(error: .cannotConnect)
+      Fail<HTTPResponse, HTTPError>(error: .invalidResponse)
         .eraseToAnyPublisher()
     }
     networking = networking.withLogs(using: diagnostics)
@@ -130,7 +130,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
       result,
       [
         "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-        "Received <uniqueID>:\ncannotConnect\n---",
+        "Received <uniqueID>:\ninvalidResponse\n---",
       ]
     )
   }

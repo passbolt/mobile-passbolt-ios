@@ -104,27 +104,39 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
             self?.present(overlay: LoaderOverlayView())
           }
           .handleErrors(
-            ([.canceled, .notFound, .invalidServerFingerprint], handler: { /* NOP */ }),
-            ([.invalidPassphraseError], handler: { [weak self] in
+            (
+              [.canceled, .notFound, .invalidServerFingerprint, .notFound],
+              handler: { _ in true /* NOP */ }
+            ),
+            ([.serverNotReachable], handler: { [weak self] error in
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: error.url
+              )
+              return true
+            }),
+            ([.invalidPassphraseError], handler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.passphrase.invalid.message",
                 inBundle: .commons,
                 hideAfter: 5
               )
+              return true
             }),
-            ([.biometricsChanged], handler: { [weak self] in
+            ([.biometricsChanged], handler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.biometrics.changed.message",
                 inBundle: .commons,
                 hideAfter: 5
               )
+              return true
             }),
-            defaultHandler: { [weak self] in
+            defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
           )
-          .handleEnd { [weak self] canceled in
-            if !canceled {
+          .handleEnd { [weak self] ending in
+            if ending != .canceled {
               self?.signInCancellable = nil
             }
             else {
@@ -267,27 +279,39 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
             self?.present(overlay: LoaderOverlayView())
           }
           .handleErrors(
-            ([.canceled, .notFound], handler: { /* NOP */ }),
-            ([.invalidPassphraseError], handler: { [weak self] in
+            (
+              [.canceled, .notFound, .invalidServerFingerprint, .notFound],
+              handler: { _ in true /* NOP */ }
+            ),
+            ([.serverNotReachable], handler: { [weak self] error in
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: error.url
+              )
+              return true
+            }),
+            ([.invalidPassphraseError], handler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.passphrase.invalid.message",
                 inBundle: .commons,
                 hideAfter: 5
               )
+              return true
             }),
-            ([.biometricsChanged], handler: { [weak self] in
+            ([.biometricsChanged], handler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.biometrics.changed.message",
                 inBundle: .commons,
                 hideAfter: 5
               )
+              return true
             }),
-            defaultHandler: { [weak self] in
+            defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
           )
-          .handleEnd { [weak self] canceled in
-            if !canceled {
+          .handleEnd { [weak self] ending in
+            if ending != .canceled {
               self?.signInCancellable = nil
             }
             else {
@@ -328,27 +352,39 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
             self?.present(overlay: LoaderOverlayView())
           }
           .handleErrors(
-            ([.canceled, .notFound, .invalidServerFingerprint], handler: { /* NOP */ }),
-            ([.invalidPassphraseError], handler: { [weak self] in
+            (
+              [.canceled, .notFound, .invalidServerFingerprint, .notFound],
+              handler: { _ in true /* NOP */ }
+            ),
+            ([.serverNotReachable], handler: { [weak self] error in
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: error.url
+              )
+              return true
+            }),
+            ([.invalidPassphraseError], handler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.passphrase.invalid.message",
                 inBundle: .commons,
                 hideAfter: 5
               )
+              return true
             }),
-            ([.biometricsChanged], handler: { [weak self] in
+            ([.biometricsChanged], handler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 localizableKey: "sign.in.error.biometrics.changed.message",
                 inBundle: .commons,
                 hideAfter: 5
               )
+              return true
             }),
-            defaultHandler: { [weak self] in
+            defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
           )
-          .handleEnd { [weak self] canceled in
-            if !canceled {
+          .handleEnd { [weak self] ending in
+            if ending != .canceled {
               self?.signInCancellable = nil
             }
             else {

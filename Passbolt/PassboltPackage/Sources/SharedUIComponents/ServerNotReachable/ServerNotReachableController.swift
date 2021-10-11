@@ -20,31 +20,60 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
-import AccountSetup
 import UIComponents
+import Accounts
+import struct Foundation.URLComponents
 
-internal struct CodeReaderController {
+public final class ServerNotReachableAlertViewController:
+  AlertViewController<ServerNotReachableController>, UIComponent
+{
 
-  internal var processPayload: (String) -> AnyPublisher<Never, TheError>
+  public func setup() {
+    mut(self) {
+      .combined(
+        .title(
+          localized: "server.not.reachable.alert.title",
+          inBundle: .sharedUIComponents
+        ),
+        .message(
+          localized: "server.not.reachable.alert.message",
+          inBundle: .sharedUIComponents,
+          arguments: controller.serverURL?.rawValue
+          ?? NSLocalizedString(
+            "server.not.reachable.alert.message.server.placeholder",
+            bundle: .sharedUIComponents,
+            comment: ""
+          )
+        ),
+        .action(
+          localized: .gotIt,
+          inBundle: .commons,
+          style: .default,
+          handler: {}
+        )
+      )
+    }
+  }
 }
 
-extension CodeReaderController: UIController {
+public struct ServerNotReachableController {
 
-  internal typealias Context = Void
+  internal var serverURL: URLString?
+}
 
-  internal static func instance(
+extension ServerNotReachableController: UIController {
+
+  public typealias Context = URL?
+
+  public static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
-
-    func processPayload(_ payload: String) -> AnyPublisher<Never, TheError> {
-      accountTransfer.processPayload(payload)
-    }
-
+    var urlComponents: URLComponents? = context.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
+    urlComponents?.path = ""
     return Self(
-      processPayload: processPayload
+      serverURL: (urlComponents?.string).map(URLString.init(rawValue:))
     )
   }
 }

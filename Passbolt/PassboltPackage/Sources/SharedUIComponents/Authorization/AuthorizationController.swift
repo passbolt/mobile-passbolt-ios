@@ -70,6 +70,7 @@ extension AuthorizationController: UIController {
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let accountNotFoundScreenPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let serverNotReachableScreenPresentationSubject: PassthroughSubject<URLString, Never> = .init()
     let validator: Validator<String> = .nonEmpty(
       errorLocalizationKey: "authorization.passphrase.error",
       bundle: .commons
@@ -119,8 +120,7 @@ extension AuthorizationController: UIController {
     }
 
     func biometricStatePublisher() -> AnyPublisher<BiometricsState, Never> {
-      #warning("TODO: switch to account settings to provide data - remove context")
-      return Publishers.CombineLatest(
+      Publishers.CombineLatest(
         biometry
           .biometricsStatePublisher(),
         accountWithProfileSubject
@@ -152,10 +152,11 @@ extension AuthorizationController: UIController {
         .switchToLatest()
         .collectErrorLog(using: diagnostics)
         .handleErrors(
-          ([.notFound], handler: {
+          ([.notFound], handler: { _ in
             accountNotFoundScreenPresentationSubject.send(context)
+            return true
           }),
-          defaultHandler: { /* NOP */ }
+          defaultHandler: { _ in /* NOP */ }
         )
         .eraseToAnyPublisher()
     }
@@ -168,10 +169,11 @@ extension AuthorizationController: UIController {
         )
         .collectErrorLog(using: diagnostics)
         .handleErrors(
-          ([.notFound], handler: {
+          ([.notFound], handler: { _ in 
             accountNotFoundScreenPresentationSubject.send(context)
+            return true
           }),
-          defaultHandler: { /* NOP */ }
+          defaultHandler: { _ in /* NOP */ }
         )
         .eraseToAnyPublisher()
     }

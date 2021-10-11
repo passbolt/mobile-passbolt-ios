@@ -351,7 +351,7 @@ let package = Package(
         .process("Fonts/Inter Semi Bold.otf"),
         .process("Fonts/Inter Thin.otf"),
         .process("Fonts/Inter Italic.otf"),
-        .process("Fonts/Inter LightItalic.otf"),
+        .process("Fonts/Inter Light Italic.otf"),
       ]
     ),
     .target(

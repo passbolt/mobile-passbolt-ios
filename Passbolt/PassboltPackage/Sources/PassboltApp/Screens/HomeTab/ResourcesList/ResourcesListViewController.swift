@@ -65,9 +65,9 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           .handleErrors(
             (
               [.canceled, .authorizationRequired, .missingSession],
-              handler: { /* NOP */ }
+              handler: { _ in true /* NOP */ }
             ),
-            defaultHandler: { [weak self] in
+            defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
           )

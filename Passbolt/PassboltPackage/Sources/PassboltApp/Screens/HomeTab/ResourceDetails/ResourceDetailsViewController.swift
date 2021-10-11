@@ -185,8 +185,8 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
             }
           })
           .handleErrors(
-            ([.canceled, .authorizationRequired], handler: { /* NOP */ }),
-            defaultHandler: { [weak self] in
+            ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
+            defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
           )

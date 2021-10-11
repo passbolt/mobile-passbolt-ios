@@ -25,6 +25,7 @@ import Commons
 
 import struct Foundation.Data
 import class Foundation.URLCache
+import struct Foundation.URL
 import struct Foundation.URLError
 import struct Foundation.URLRequest
 import class Foundation.URLResponse
@@ -122,7 +123,9 @@ extension Networking {
           ? .returnCacheDataElseLoad
           : .reloadIgnoringLocalAndRemoteCacheData
         )
-        guard let urlRequest: URLRequest = urlRequest
+        guard
+          let urlRequest: URLRequest = urlRequest,
+          let url: URL = urlRequest.url
         else {
           return Fail<HTTPResponse, HTTPError>(
             error: .invalidRequest(request)
@@ -137,11 +140,22 @@ extension Networking {
           case .cancelled:
             return .canceled
 
-          case .notConnectedToInternet, .cannotFindHost:
-            return .cannotConnect
+          case
+              .notConnectedToInternet,
+              .cannotFindHost,
+              .cannotConnectToHost,
+              .dnsLookupFailed,
+              .httpTooManyRedirects,
+              .redirectToNonExistentLocation,
+              .secureConnectionFailed,
+              .serverCertificateHasBadDate,
+              .serverCertificateUntrusted,
+              .serverCertificateHasUnknownRoot,
+              .serverCertificateNotYetValid:
+            return .cannotConnect(url)
 
           case .timedOut:
-            return .timeout
+            return .timeout(url)
 
           case _:  // fill more errors if needed
             return .other(error)

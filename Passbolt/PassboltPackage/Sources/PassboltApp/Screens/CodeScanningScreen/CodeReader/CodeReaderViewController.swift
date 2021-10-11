@@ -22,6 +22,7 @@
 
 import AVFoundation
 import UIComponents
+import SharedUIComponents
 
 internal final class CodeReaderViewController: PlainViewController, UIComponent {
 
@@ -124,21 +125,6 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
     payloadProcessingCancellable =
       controller
       .processPayload(payload)
-      .handleEvents(receiveCompletion: { [weak self] completion in
-        switch completion {
-        case .finished, .failure(.canceled):
-          self?.captureMetadataQueue.async { [weak self] in
-            self?.payloadProcessingCancellable = nil
-          }
-
-        case .failure:
-          // Delay unlocking QRCode processing until message becomes visible for some time.
-          // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
-          self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            self?.payloadProcessingCancellable = nil
-          }
-        }
-      })
       .subscribe(on: RunLoop.main)
       .handleEvents(receiveSubscription: { [weak self] _ in
         self?.present(
@@ -154,30 +140,49 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         )
       })
       .receive(on: RunLoop.main)
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          switch completion {
-          case .finished, .failure(.canceled):
-            break
-          case let .failure(error)
-          where error.identifier == .accountTransferScanningRecoverableError
-            && error.context?.contains("invalid-version-or-code") ?? false:
-            self?.present(
-              snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
-                .instantiate(),
-              hideAfter: 3
-            )
-
-          case .failure:
-            self?.present(
-              snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: "code.scanning.processing.error")
-                .instantiate(),
-              hideAfter: 3
-            )
-          }
+      .handleErrors(
+        ([.canceled, .duplicateAccount], handler: { _ in true /* NOP */ }),
+        ([.serverNotReachable], handler: { [weak self] error in
+          self?.present(
+            ServerNotReachableAlertViewController.self,
+            in: error.url
+          )
+          return true
+        }),
+        ([.accountTransferScanningRecoverableError], handler: { [weak self] error in
+          guard error.context?.contains("invalid-version-or-code") ?? false
+          else { return false }
+          self?.present(
+            snackbar: Mutation<UICommons.View>
+              .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
+              .instantiate(),
+            hideAfter: 3
+          )
+          return true
+        }),
+        defaultHandler: { [weak self] _ in
+          self?.present(
+            snackbar: Mutation<UICommons.View>
+              .snackBarErrorMessage(localized: "code.scanning.processing.error")
+              .instantiate(),
+            hideAfter: 3
+          )
         }
       )
+      .handleEnd { [weak self] ending in
+        if ending == .failed {
+          // Delay unlocking QRCode processing until message becomes visible for some time.
+          // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
+          self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            self?.payloadProcessingCancellable = nil
+          }
+        }
+        else {
+          self?.captureMetadataQueue.async { [weak self] in
+            self?.payloadProcessingCancellable = nil
+          }
+        }
+      }
+      .sinkDrop()
   }
 }

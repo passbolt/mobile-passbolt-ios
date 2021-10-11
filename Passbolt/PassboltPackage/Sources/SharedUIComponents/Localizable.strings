@@ -26,4 +26,8 @@
 "account.not.found.title.label" = "The account doesn’t exist";
 "account.not.found.message.label" = "The account has been deleted";
 "account.not.found.action.button.title" = "Connect to an existing account";
-"server.fingerprint.save.failed" "Failed to save server fingerprint.";
+"server.fingerprint.save.failed" = "Failed to save server fingerprint.";
+
+"server.not.reachable.alert.title" = "Server was not reachable!";
+"server.not.reachable.alert.message.server.placeholder" = "Server";
+"server.not.reachable.alert.message" = "%@ cannot be reached. Please try again";

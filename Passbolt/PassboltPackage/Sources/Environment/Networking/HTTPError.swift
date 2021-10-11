@@ -21,12 +21,14 @@
 // @since         v1.0
 //
 
+import struct Foundation.URL
+
 public enum HTTPError: Error {
 
   case invalidRequest(HTTPRequest)
   case invalidResponse
-  case timeout
-  case cannotConnect
+  case timeout(URL)
+  case cannotConnect(URL)
   case canceled
   case other(Error)
 }

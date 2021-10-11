@@ -23,6 +23,7 @@
 
 import Commons
 import Environment
+import struct Foundation.URL
 
 extension TheError {
 
@@ -112,6 +113,17 @@ extension TheError {
       extensions: [.validationViolations: validationViolations]
     )
   }
+
+  public static func serverNotReachable(
+    url: URL?,
+    underlyingError: Error? = nil
+  ) -> Self {
+    Self(
+      identifier: .serverNotReachable,
+      underlyingError: underlyingError,
+      extensions: [.url: url as Any]
+    )
+  }
 }
 
 extension TheError.ID {
@@ -124,6 +136,7 @@ extension TheError.ID {
   public static var mfaRequired: Self { "mfaRequired" }
   public static var redirect: Self { "redirect" }
   public static var validationError: Self { "validationError" }
+  public static var serverNotReachable: Self { "serverNotReachable" }
 }
 
 extension TheError.Extension {
@@ -136,6 +149,7 @@ extension TheError.Extension {
   public static var mfaProviders: Self { "mfaProviders" }
   public static var redirectLocation: Self { "location" }
   public static var validationViolations: Self { "validationViolations" }
+  public static var url: Self { "url" }
 }
 
 extension TheError {
@@ -148,4 +162,5 @@ extension TheError {
 
   public var mfaProviders: Array<MFAProvider> { extensions[.mfaProviders] as? Array<MFAProvider> ?? [] }
   public var redirectLocation: String? { extensions[.redirectLocation] as? String }
+  public var url: URL? { extensions[.url] as? URL }
 }
