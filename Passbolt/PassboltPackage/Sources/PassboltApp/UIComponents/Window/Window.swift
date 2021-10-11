@@ -121,11 +121,21 @@ internal final class Window {
             else { return }
 
             if let authorizationNavigation = self.window.rootViewController as? AuthorizationNavigationViewController {
-              authorizationNavigation
-                .push(
-                  MFARootViewController.self,
-                  in: providers
+              if providers.isEmpty {
+                self.replaceRoot(
+                  with: self.components
+                    .instance(
+                      of: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                    )
                 )
+              }
+              else {
+                authorizationNavigation
+                  .push(
+                    MFARootViewController.self,
+                    in: providers
+                  )
+              }
             }
             else {
               assert(
@@ -136,15 +146,24 @@ internal final class Window {
               else { unreachable("Window root has to be an instance of UIComponent") }
               self.screenStateCache = rootComponent
 
-              self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<MFARootViewController>.self,
-                    in: providers
-                  )
-              )
+              if providers.isEmpty {
+                self.replaceRoot(
+                  with: self.components
+                    .instance(
+                      of: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                    )
+                )
+              }
+              else {
+                self.replaceRoot(
+                  with: self.components
+                    .instance(
+                      of: PlainNavigationViewController<MFARootViewController>.self,
+                      in: providers
+                    )
+                )
+              }
             }
-
           }
         }
       )

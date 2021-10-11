@@ -21,38 +21,27 @@
 // @since         v1.0
 //
 
-public typealias MFARequiredResponse = CommonResponse<MFARequiredResponseBody>
+import UIComponents
+import Accounts
 
-public enum MFAProvider: String, Decodable {
+internal struct UnsupportedMFAController {
 
-  case totp = "totp"
-  case yubikey = "yubikey"
+  internal var closeSession: () -> Void
 }
 
-public struct MFARequiredResponseBody: Decodable {
+extension UnsupportedMFAController: UIController {
 
-  public var mfaProviders: Array<MFAProvider>
+  internal typealias Context = Void
 
-  private enum CodingKeys: String, CodingKey {
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let accountSession: AccountSession = features.instance()
 
-    case mfaProviders = "mfa_providers"
-  }
-
-  public init(from decoder: Decoder) throws {
-    let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
-
-    // Decoding an array of string (MFA providers) to later, remove the ones that are not part of MFAProvider.
-    let rawMfaProviders: Array<String> = try container.decode(Array<String>.self, forKey: .mfaProviders)
-
-    self.mfaProviders = rawMfaProviders.compactMap { .init(rawValue: $0) }
-  }
-
-  internal init(mfaProviders: Array<MFAProvider>) {
-    self.mfaProviders = mfaProviders
+    return Self(
+      closeSession: accountSession.close
+    )
   }
 }
-
-extension MFAProvider: Encodable, Equatable {}
-#if DEBUG
-extension MFARequiredResponseBody: Encodable, Equatable {}
-#endif

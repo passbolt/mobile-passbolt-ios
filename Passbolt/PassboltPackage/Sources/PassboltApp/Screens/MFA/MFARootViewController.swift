@@ -77,21 +77,28 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
   private func setupSubscriptions() {
     controller.mfaProviderPublisher()
       .receive(on: RunLoop.main)
-      .sink { completion in
-      } receiveValue: { [weak self] provider in
-        guard let self = self
-        else { return }
-        switch provider {
-        case .yubikey:
-          self.addChild(YubikeyViewController.self) { parent, child in
-            parent.setContent(view: child)
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          guard case .failure = completion
+          else {
+            return
           }
-        case .totp:
-          self.addChild(TOTPViewController.self) { parent, child in
-            parent.setContent(view: child)
+          self?.presentErrorSnackbar()
+        },
+        receiveValue: { [weak self] provider in
+          guard let self = self
+          else { return }
+          switch provider {
+          case .yubikey:
+            self.addChild(YubikeyViewController.self) { parent, child in
+              parent.setContent(view: child)
+            }
+          case .totp:
+            self.addChild(TOTPViewController.self) { parent, child in
+              parent.setContent(view: child)
+            }
           }
-        }
-      }
+        })
       .store(in: cancellables)
 
     contentView.tapPublisher

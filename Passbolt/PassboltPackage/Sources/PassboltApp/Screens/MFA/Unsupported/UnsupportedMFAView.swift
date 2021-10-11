@@ -21,38 +21,46 @@
 // @since         v1.0
 //
 
-public typealias MFARequiredResponse = CommonResponse<MFARequiredResponseBody>
+import UICommons
 
-public enum MFAProvider: String, Decodable {
+internal final class UnsupportedMFAView: View {
 
-  case totp = "totp"
-  case yubikey = "yubikey"
+  private let resultView: ResultView = .init()
+
+  internal required init() {
+    super.init()
+
+    mut(self) {
+      .backgroundColor(dynamic: .background)
+    }
+
+    mut(resultView) {
+      .combined(
+        .subview(of: self),
+        .leadingAnchor(.equalTo, leadingAnchor),
+        .trailingAnchor(.equalTo, trailingAnchor),
+        .centerYAnchor(.equalTo, centerYAnchor, constant: -56),
+        .bottomAnchor(.equalTo, bottomAnchor)
+      )
+    }
+
+    resultView
+      .applyOn(
+        image: .image(dynamic: .failureMark)
+      )
+    resultView
+      .applyOn(
+        title: .text(localized: "mfa.unsupported.provider.title", inBundle: .main)
+      )
+
+    resultView
+      .applyOn(
+        message: .text(localized: "mfa.unsupported.provider.description", inBundle: .main)
+      )
+
+    resultView
+      .applyOn(
+        button: .hidden(true)
+      )
+  }
 }
-
-public struct MFARequiredResponseBody: Decodable {
-
-  public var mfaProviders: Array<MFAProvider>
-
-  private enum CodingKeys: String, CodingKey {
-
-    case mfaProviders = "mfa_providers"
-  }
-
-  public init(from decoder: Decoder) throws {
-    let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
-
-    // Decoding an array of string (MFA providers) to later, remove the ones that are not part of MFAProvider.
-    let rawMfaProviders: Array<String> = try container.decode(Array<String>.self, forKey: .mfaProviders)
-
-    self.mfaProviders = rawMfaProviders.compactMap { .init(rawValue: $0) }
-  }
-
-  internal init(mfaProviders: Array<MFAProvider>) {
-    self.mfaProviders = mfaProviders
-  }
-}
-
-extension MFAProvider: Encodable, Equatable {}
-#if DEBUG
-extension MFARequiredResponseBody: Encodable, Equatable {}
-#endif

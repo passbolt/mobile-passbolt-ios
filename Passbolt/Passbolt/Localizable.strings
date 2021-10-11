@@ -135,5 +135,7 @@ NFC for this to work.";
 "mfa.yubikey.generic.error" = "Something went wrong";
 "mfa.provider.try.another" = "Try with another provider";
 "mfa.remember.token" = "Remember this device for 30 days";
-
+"mfa.unsupported.provider.title" = "Your MFA provider is not supported";
+"mfa.unsupported.provider.description" = "Please setup another provider using the web app.
+Contact your administrator for more information.";
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";

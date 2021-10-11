@@ -90,10 +90,17 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       replaceWindowRoot(with: MainTabsViewController.self)
 
     case let .mfaAuthorization(mfaProviders):
-      replaceWindowRoot(
-        with: PlainNavigationViewController<MFARootViewController>.self,
-        in: mfaProviders
-      )
+      if mfaProviders.isEmpty {
+        replaceWindowRoot(
+          with: PlainNavigationViewController<UnsupportedMFAViewController>.self
+        )
+      }
+      else {
+        replaceWindowRoot(
+          with: PlainNavigationViewController<MFARootViewController>.self,
+          in: mfaProviders
+        )
+      }
 
     case .featureConfigFetchError:
       present(

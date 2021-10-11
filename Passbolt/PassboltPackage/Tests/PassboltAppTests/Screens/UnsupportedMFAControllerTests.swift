@@ -21,38 +21,44 @@
 // @since         v1.0
 //
 
-public typealias MFARequiredResponse = CommonResponse<MFARequiredResponseBody>
+import Accounts
+import Combine
+import Features
+import NetworkClient
+import TestExtensions
+import UIComponents
+import XCTest
 
-public enum MFAProvider: String, Decodable {
+@testable import PassboltApp
 
-  case totp = "totp"
-  case yubikey = "yubikey"
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+final class UnsupportedMFAControllerTests: TestCase {
+
+  var accountSession: AccountSession!
+
+  override func setUp() {
+    super.setUp()
+
+    accountSession = .placeholder
+  }
+
+  override func tearDown() {
+    super.tearDown()
+
+    accountSession = nil
+  }
+
+  func test_closeSession_succeeds() {
+    var result: Void!
+    accountSession.close = {
+      result = Void()
+    }
+    features.use(accountSession)
+
+    let controller: UnsupportedMFAController = testInstance()
+
+    controller.closeSession()
+
+    XCTAssertNotNil(result)
+  }
 }
-
-public struct MFARequiredResponseBody: Decodable {
-
-  public var mfaProviders: Array<MFAProvider>
-
-  private enum CodingKeys: String, CodingKey {
-
-    case mfaProviders = "mfa_providers"
-  }
-
-  public init(from decoder: Decoder) throws {
-    let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
-
-    // Decoding an array of string (MFA providers) to later, remove the ones that are not part of MFAProvider.
-    let rawMfaProviders: Array<String> = try container.decode(Array<String>.self, forKey: .mfaProviders)
-
-    self.mfaProviders = rawMfaProviders.compactMap { .init(rawValue: $0) }
-  }
-
-  internal init(mfaProviders: Array<MFAProvider>) {
-    self.mfaProviders = mfaProviders
-  }
-}
-
-extension MFAProvider: Encodable, Equatable {}
-#if DEBUG
-extension MFARequiredResponseBody: Encodable, Equatable {}
-#endif
