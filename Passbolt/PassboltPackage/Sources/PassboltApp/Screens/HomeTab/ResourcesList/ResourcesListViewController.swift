@@ -150,5 +150,13 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         )
       }
       .store(in: cancellables)
+
+    controller.resourceCreatePresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        #warning("PAS-406 Uncomment")
+//        self?.push(ResourceCreateViewController.self)
+      }
+      .store(in: cancellables)
   }
 }

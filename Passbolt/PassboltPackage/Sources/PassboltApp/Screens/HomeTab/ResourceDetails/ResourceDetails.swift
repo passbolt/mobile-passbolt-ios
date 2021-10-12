@@ -50,6 +50,7 @@ extension ResourceDetailsController {
       }
     }
 
+    #warning("PAS-409 Unify dynamic fields")
     internal enum Field: Comparable, Hashable {
 
       case username(required: Bool, encrypted: Bool, maxLength: Int?)

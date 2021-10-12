@@ -21,33 +21,19 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+extension Mutation where Subject: TextView {
 
-extension Mutation where Subject: Label {
-
-  public static func titleStyle() -> Self {
+  public static func formStyle() -> Self {
     .combined(
-      .font(.inter(ofSize: 24, weight: .semibold)),
-      .textColor(dynamic: .primaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
-  }
-
-  public static func infoStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .light)),
-      .textColor(dynamic: .secondaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
-  }
-
-  public static func placeholderStyle() -> Self {
-    .combined(
+      .contentInset(.init(top: 8, left: 4, bottom: 8, right: 4)),
       .font(.inter(ofSize: 14, weight: .medium)),
       .textColor(dynamic: .secondaryText),
-      .numberOfLines(1)
+      .backgroundColor(dynamic: .background),
+      .border(dynamic: .divider, width: 1),
+      .cornerRadius(4),
+      .returnKeyType(.done),
+      .heightAnchor(.greaterThanOrEqualTo, constant: 48)
     )
   }
 }
+

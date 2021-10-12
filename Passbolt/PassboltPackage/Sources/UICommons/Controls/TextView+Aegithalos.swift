@@ -37,8 +37,15 @@ extension Mutation where Subject: TextView {
     .custom { (subject: Subject) in subject.dynamicTextColor = color }
   }
 
+  public static func border(dynamic color: DynamicColor, width: CGFloat = 1) -> Self {
+    .custom { (subject: Subject) in
+      subject.dynamicBorderColor = color
+      subject.layer.borderWidth = width
+    }
+  }
+
   public static func attributedString(
-    _ attributedString: AttributedString
+    _ attributedString: AttributedString?
   ) -> Self {
     .custom { (subject: Subject) in subject.attributedString = attributedString }
   }

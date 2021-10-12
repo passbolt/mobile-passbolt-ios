@@ -21,33 +21,45 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import UICommons
+import UIComponents
 
-extension Mutation where Subject: Label {
+internal final class ResourceCreateViewController: PlainViewController, UIComponent {
 
-  public static func titleStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 24, weight: .semibold)),
-      .textColor(dynamic: .primaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
+  internal typealias View = ResourceCreateView
+  internal typealias Controller = ResourceCreateController
+
+  internal static func instance(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) -> Self {
+    Self(
+      using: controller,
+      with: components
     )
   }
 
-  public static func infoStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .light)),
-      .textColor(dynamic: .secondaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
+  internal private(set) lazy var contentView: View = .init(resourceFields: controller.resourceFields())
+  internal let components: UIComponentFactory
+  private let controller: Controller
+
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init()
   }
 
-  public static func placeholderStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textColor(dynamic: .secondaryText),
-      .numberOfLines(1)
-    )
+  internal func setupView() {
+    mut(navigationItem) {
+      .title(localized: "resource.create.title", inBundle: .main)
+    }
+
+    setupSubscriptions()
+  }
+
+  private func setupSubscriptions() {
   }
 }

@@ -34,6 +34,7 @@ internal struct ResourcesListController {
   internal var presentResourceMenu: (ResourcesListViewResourceItem) -> Void
   internal var resourceDetailsPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceCreatePresentationPublisher: () -> AnyPublisher<Void, Never>
 }
 
 extension ResourcesListController: UIController {
@@ -50,6 +51,7 @@ extension ResourcesListController: UIController {
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
+    let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func refreshResources() -> AnyPublisher<Never, TheError> {
       resources.refreshIfNeeded()
@@ -63,7 +65,7 @@ extension ResourcesListController: UIController {
     }
 
     func addResource() {
-      // TODO: out of MVP scope
+      resourceCreatePresentationSubject.send()
     }
 
     func presentResourceDetails(_ resource: ResourcesListViewResourceItem) {
@@ -82,6 +84,10 @@ extension ResourcesListController: UIController {
       resourceMenuIDSubject.eraseToAnyPublisher()
     }
 
+    func resourceCreatePresentationPublisher() -> AnyPublisher<Void, Never> {
+      resourceCreatePresentationSubject.eraseToAnyPublisher()
+    }
+
     return Self(
       refreshResources: refreshResources,
       resourcesListPublisher: resourcesListPublisher,
@@ -89,7 +95,8 @@ extension ResourcesListController: UIController {
       presentResourceDetails: presentResourceDetails,
       presentResourceMenu: presentResourceMenu,
       resourceDetailsPresentationPublisher: resourceDetailsPresentationPublisher,
-      resourceMenuPresentationPublisher: resourceMenuPresentationPublisher
+      resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
+      resourceCreatePresentationPublisher: resourceCreatePresentationPublisher
     )
   }
 }

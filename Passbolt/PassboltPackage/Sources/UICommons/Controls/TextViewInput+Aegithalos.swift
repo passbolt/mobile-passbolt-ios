@@ -21,33 +21,15 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Foundation
 
-extension Mutation where Subject: Label {
+extension Mutation where Subject == TextViewInput {
 
-  public static func titleStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 24, weight: .semibold)),
-      .textColor(dynamic: .primaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
+  public static func attributedPlaceholder(_ value: AttributedString?) -> Self {
+    .custom { (subject: Subject) in subject.attributedPlaceholder = value }
   }
 
-  public static func infoStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .light)),
-      .textColor(dynamic: .secondaryText),
-      .textAlignment(.center),
-      .numberOfLines(0)
-    )
-  }
-
-  public static func placeholderStyle() -> Self {
-    .combined(
-      .font(.inter(ofSize: 14, weight: .medium)),
-      .textColor(dynamic: .secondaryText),
-      .numberOfLines(1)
-    )
+  public static func isRequired(_ value: Bool) -> Self {
+    .custom { (subject: Subject) in subject.isRequired = value }
   }
 }

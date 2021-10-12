@@ -41,6 +41,14 @@ open class TextView: UITextView {
       self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
     }
   }
+  public lazy var dynamicBorderColor: DynamicColor = .always(
+    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
+  )
+  {
+    didSet {
+      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+    }
+  }
 
   // Conflicts with `attributedText` property, never use both at the same time.
   public var attributedString: AttributedString? {
