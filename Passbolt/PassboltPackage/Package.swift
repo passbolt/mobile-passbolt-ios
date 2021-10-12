@@ -306,7 +306,7 @@ let package = Package(
         .define("NDEBUG"), // Settings based on recommended values: https://www.sqlite.org/draft/security.html
         .define("SQLITE_MAX_LIMIT_LENGTH", to: "1000000"),
         .define("SQLITE_MAX_SQL_LENGTH", to: "100000"),
-        .define("SQLITE_MAX_LIMIT_COLUMN", to: ""),
+        .define("SQLITE_MAX_LIMIT_COLUMN", to: "100"),
         .define("SQLITE_MAX_LIMIT_EXPR_DEPTH", to: "10"),
         .define("SQLITE_MAX_LIMIT_COMPOUND_SELECT", to: "3"),
         .define("SQLITE_MAX_LIMIT_VDBE_OP", to: "25000"),

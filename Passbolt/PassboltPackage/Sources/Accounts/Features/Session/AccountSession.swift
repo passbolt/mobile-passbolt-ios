@@ -580,11 +580,6 @@ extension AccountSession: Feature {
     }
 
     func requestMFA(with providers: Array<MFAProvider>) {
-      assert(
-        !providers.isEmpty,
-        "Cannot request MFA without providers"
-      )
-
       withSessionState { state in
         switch state {
         case let .authorized(account),

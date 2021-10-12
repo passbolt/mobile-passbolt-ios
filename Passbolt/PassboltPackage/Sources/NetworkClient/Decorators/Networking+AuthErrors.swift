@@ -70,10 +70,6 @@ extension NetworkRequest {
               authorizationRequest()
             }
             else if error.identifier == .mfaRequired {
-              assert(
-                !error.mfaProviders.isEmpty,
-                "MFA required error has to contain at least one provider"
-              )
               mfaRequest(error.mfaProviders)
             }
             else {

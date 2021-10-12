@@ -144,11 +144,6 @@ extension NetworkResponseDecoding where Response: Decodable {
               from: response.body
             )
 
-          guard !mfaResponse.body.mfaProviders.isEmpty
-          else {
-            return .failure(.forbidden())
-          }
-
           return .failure(
             .mfaRequired(mfaProviders: mfaResponse.body.mfaProviders)
           )

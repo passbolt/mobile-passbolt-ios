@@ -205,7 +205,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
     XCTAssertEqual(error.mfaProviders, [MFAProvider.yubikey, MFAProvider.totp])
   }
 
-  func test_mfaErrorDecodingUsingCorrectData_andEmptyProviders_resultsInForbiddenError() {
+  func test_mfaErrorDecodingUsingCorrectData_andEmptyProviders_resultsMFARequiredError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
     let body: MFARequiredResponseBody = .init(mfaProviders: [])
     let response: CommonResponse<MFARequiredResponseBody> =
@@ -238,7 +238,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, .forbidden)
+    XCTAssertEqual(error.identifier, .mfaRequired)
   }
 
   func test_mfaErrorDecodingUsingCorruptedData_resultsInForbiddenError() {
