@@ -138,6 +138,7 @@ extension Resources: Feature {
 
                   return ResourceType(
                     id: .init(rawValue: type.id),
+                    slug: type.slug,
                     name: type.name,
                     fields: fields + secretFields
                   )

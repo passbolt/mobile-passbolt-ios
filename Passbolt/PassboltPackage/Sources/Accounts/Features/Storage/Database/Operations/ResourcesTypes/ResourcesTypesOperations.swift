@@ -26,6 +26,7 @@ extension StoreResourcesTypesOperation {
               .execute(
                 upsertTypeStatement,
                 with: resourceType.id.rawValue,
+                resourceType.slug,
                 resourceType.name
               )
           }
@@ -100,6 +101,41 @@ extension StoreResourcesTypesOperation {
   }
 }
 
+public typealias FetchResourcesTypesOperation = DatabaseOperation<Void, Array<ResourceType>>
+
+extension FetchResourcesTypesOperation {
+
+  static func using(
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+  ) -> Self {
+    withConnection(
+      using: connectionPublisher
+    ) { conn, _ in
+      conn
+        .fetch(
+          selectTypesStatement
+        ) { rows in
+            .success(
+              rows.compactMap { row -> ResourceType? in
+                guard
+                  let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
+                  let slug: String = row.slug,
+                  let name: String = row.name,
+                  let rawFields: String = row.fields
+                else { return nil }
+                return ResourceType(
+                  id: id,
+                  slug: slug,
+                  name: name,
+                  fields: ResourceField.arrayFrom(rawString: rawFields)
+                )
+              }
+            )
+        }
+    }
+  }
+}
+
 // remove all existing fields for given type
 private let cleanFieldsStatement: SQLiteStatement = """
   DELETE FROM
@@ -124,24 +160,38 @@ private let cleanFieldsStatement: SQLiteStatement = """
   ;
   """
 
+// select types
+private let selectTypesStatement: SQLiteStatement = """
+  SELECT
+    id,
+    slug,
+    name,
+    fields
+  FROM
+    resourceTypesView;
+  """
+
 // insert or update type
 private let upsertTypeStatement: SQLiteStatement = """
   INSERT INTO
     resourceTypes(
       id,
+      slug,
       name
     )
   VALUES
     (
       ?1,
-      ?2
+      ?2,
+      ?3
     )
   ON CONFLICT
     (
       id
     )
   DO UPDATE SET
-    name=?2
+    slug=?2,
+    name=?3
   ;
   """
 

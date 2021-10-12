@@ -103,6 +103,7 @@ extension TheError {
     )
   }
 
+#warning("TODO: resolve conflict with TheError+Validated")
   public static func validationError(
     underlyingError: Error? = nil,
     validationViolations: Dictionary<String, Any>

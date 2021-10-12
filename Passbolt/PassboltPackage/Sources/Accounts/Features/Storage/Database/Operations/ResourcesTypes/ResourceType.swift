@@ -25,19 +25,28 @@ import Commons
 
 public struct ResourceType {
 
+  public static let defaultResourceSlug: String = "password-and-description"
+
   public typealias ID = Tagged<String, Self>
 
   public var id: ID
+  public var slug: String
   public var name: String
   public var fields: Array<ResourceField>
 
   public init(
     id: ID,
+    slug: String,
     name: String,
     fields: Array<ResourceField>
   ) {
     self.id = id
+    self.slug = slug
     self.name = name
     self.fields = fields
+  }
+
+  public var isDefault: Bool {
+    slug == Self.defaultResourceSlug
   }
 }

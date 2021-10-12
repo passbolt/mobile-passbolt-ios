@@ -51,7 +51,7 @@ extension SQLiteMigration {
         resourceTypes
       (
         id TEXT NOT NULL PRIMARY KEY,
-        name TEXT NOT NULL -- name of secret type i.e. simplePassword
+        name TEXT NOT NULL -- name of secret type
       );
       """,
       // - secretFields - //

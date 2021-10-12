@@ -23,7 +23,8 @@
 
 extension TheError {
 
-  internal static func validationError(
+  #warning("TODO: resolve conflict with TheError+NetworkClient")
+  public static func validationError(
     _ localizationKey: String
   ) -> Self {
     Self(

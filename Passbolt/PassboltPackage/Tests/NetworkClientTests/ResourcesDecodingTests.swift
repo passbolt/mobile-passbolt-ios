@@ -34,6 +34,7 @@ final class ResourcesDecodingTests: XCTestCase {
       {
         "id": "669f8c64-242a-59fb-92fc-81f660975fd3",
         "name": "Simple password",
+        "slug": "simple-password",
         "definition": {
           "resource": {
           "type": "object",
@@ -93,6 +94,7 @@ final class ResourcesDecodingTests: XCTestCase {
 
     XCTAssertEqual(decodedData?.id, "669f8c64-242a-59fb-92fc-81f660975fd3")
     XCTAssertEqual(decodedData?.name, "Simple password")
+    XCTAssertEqual(decodedData?.slug, "simple-password")
     XCTAssertTrue(
       decodedData?.definition.resourceProperties.contains(where: {
         switch $0 {
@@ -150,6 +152,7 @@ final class ResourcesDecodingTests: XCTestCase {
       {
         "id": "669f8c64-242a-59fb-92fc-81f660975fd3",
         "name": "Simple password",
+        "slug": "simple-password",
         "definition": {
           "resource": {
           "type": "object",
@@ -228,6 +231,7 @@ final class ResourcesDecodingTests: XCTestCase {
 
     XCTAssertEqual(decodedData?.id, "669f8c64-242a-59fb-92fc-81f660975fd3")
     XCTAssertEqual(decodedData?.name, "Simple password")
+    XCTAssertEqual(decodedData?.slug, "simple-password")
     XCTAssertTrue(
       decodedData?.definition.resourceProperties.contains(where: {
         switch $0 {

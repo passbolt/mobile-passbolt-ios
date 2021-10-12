@@ -45,7 +45,6 @@ public enum ResourceField {
     case _:
       return nil
     }
-
   }
 
   // for database use
@@ -56,32 +55,28 @@ public enum ResourceField {
     }
   }
 
-  // for database use
-  internal var name: String {
+  public var name: String {
     switch self {
     case let .string(name, _, _, _):
       return name
     }
   }
 
-  // for database use
-  internal var required: Bool {
+  public var required: Bool {
     switch self {
     case let .string(_, required, _, _):
       return required
     }
   }
 
-  // for database use
-  internal var encrypted: Bool {
+  public var encrypted: Bool {
     switch self {
     case let .string(_, _, encrypted, _):
       return encrypted
     }
   }
 
-  // for database use
-  internal var maxLength: Int? {
+  public var maxLength: Int? {
     switch self {
     case let .string(_, _, _, maxLength):
       return maxLength

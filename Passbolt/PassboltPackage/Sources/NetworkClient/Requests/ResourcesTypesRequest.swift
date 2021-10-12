@@ -67,6 +67,7 @@ public typealias ResourcesTypesRequestResponseBody = Array<ResourcesTypesRequest
 public struct ResourcesTypesRequestResponseBodyItem: Decodable {
 
   public var id: String
+  public var slug: String
   public var name: String
   public var definition: Definition
 
@@ -74,6 +75,7 @@ public struct ResourcesTypesRequestResponseBodyItem: Decodable {
 
     case id = "id"
     case name = "name"
+    case slug = "slug"
     case definition = "definition"
   }
 }

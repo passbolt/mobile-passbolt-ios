@@ -25,6 +25,16 @@ import Commons
 
 extension TheError {
 
+  public static func invalidOrMissingResourceType(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .invalidOrMissingResourceType,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
+
   public static func missingResourceData(
     underlyingError: Error? = nil
   ) -> Self {
@@ -58,6 +68,7 @@ extension TheError {
 
 extension TheError.ID {
 
+  public static let invalidOrMissingResourceType: Self = "invalidOrMissingResourceType"
   public static let missingResourceData: Self = "missingResourceData"
   public static let invalidResourceData: Self = "invalidResourceData"
   public static let invalidResourceSecret: Self = "invalidResourceSecret"

@@ -49,4 +49,56 @@ extension Validator where Value: Collection {
       }
     }
   }
+
+  public static func minLength(
+    _ minLength: UInt,
+    errorIdentifier: TheError.ID = .validation,
+    errorLocalizationKey: String,
+    bundle: Bundle
+  ) -> Self {
+    Self { value in
+      if value.count >= minLength {
+        return .valid(value)
+      }
+      else {
+        return .invalid(
+          value,
+          errors: TheError(
+            identifier: errorIdentifier,
+            underlyingError: nil,
+            extensions: [
+              .localizationKey: errorLocalizationKey,
+              .localizationBundle: bundle,
+            ]
+          )
+        )
+      }
+    }
+  }
+
+  public static func maxLength(
+    _ maxLength: UInt,
+    errorIdentifier: TheError.ID = .validation,
+    errorLocalizationKey: String,
+    bundle: Bundle
+  ) -> Self {
+    Self { value in
+      if value.count <= maxLength {
+        return .valid(value)
+      }
+      else {
+        return .invalid(
+          value,
+          errors: TheError(
+            identifier: errorIdentifier,
+            underlyingError: nil,
+            extensions: [
+              .localizationKey: errorLocalizationKey,
+              .localizationBundle: bundle,
+            ]
+          )
+        )
+      }
+    }
+  }
 }

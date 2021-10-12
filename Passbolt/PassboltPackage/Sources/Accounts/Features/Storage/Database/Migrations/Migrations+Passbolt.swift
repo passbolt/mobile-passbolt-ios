@@ -27,7 +27,8 @@ extension SQLiteMigration: CaseIterable {
 
   public static var allCases: [SQLiteMigration] {
     [
-      .migration_0
+      .migration_0,
+      .migration_1,
     ]
   }
 }
