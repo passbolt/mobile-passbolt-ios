@@ -26,7 +26,7 @@ import UIComponents
 internal struct ErrorController {
 
   internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var retry: () -> AnyPublisher<Void, TheError>
+  internal var retry: () -> AnyPublisher<Void?, Never>
   internal var presentSignOut: () -> Void
 }
 
@@ -45,13 +45,22 @@ extension ErrorController: UIController {
       signOutPresentationSubject.eraseToAnyPublisher()
     }
 
+    func retry() -> AnyPublisher<Void?, Never> {
+      context()
+        .map { input -> Void? in
+          input
+        }
+        .replaceError(with: nil)
+        .eraseToAnyPublisher()
+    }
+
     func presentSignOut() {
       signOutPresentationSubject.send()
     }
 
     return Self(
       signOutAlertPresentationPublisher: signOutAlertPresentationPublisher,
-      retry: context,
+      retry: retry,
       presentSignOut: presentSignOut
     )
   }

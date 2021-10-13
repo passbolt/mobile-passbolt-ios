@@ -76,7 +76,8 @@ internal final class Window {
           // - account selection (for unauthorized)
           case .useInitialScreenState:
             self.screenStateCache = nil
-            guard !self.isSplashScreenDisplayed
+
+            guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
             else { return }
 
             self.replaceRoot(
@@ -194,6 +195,10 @@ extension Window {
 
   private var isSplashScreenDisplayed: Bool {
     window.rootViewController is SplashScreenViewController
+  }
+
+  private var isErrorDisplayed: Bool {
+    window.rootViewController?.presentedViewController is ErrorViewController
   }
 
   private var isAuthorizationDisplayed: Bool {

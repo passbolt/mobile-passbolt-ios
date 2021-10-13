@@ -65,23 +65,35 @@ final class ErrorViewController: PlainViewController, UIComponent {
           .handleEvents(
             receiveSubscription: { [weak self] _ in
               self?.present(overlay: LoaderOverlayView())
-            },
-            receiveCompletion: { [weak self] completion in
-              self?.dismissOverlay()
-              guard case .failure = completion else { return }
-              self?.present(
-                snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(localized: .genericError, inBundle: .commons)
-                  .instantiate(),
-                hideAfter: 2
-              )
             }
           )
       }
       .switchToLatest()
-      .replaceError(with: ())
       .receive(on: RunLoop.main)
-      .sink { /* NOP */  }
+      .sink { [weak self] result in
+        self?.dismissOverlay()
+
+        guard result == nil
+        else { return }
+          self?.present(
+            snackbar: Mutation<UICommons.View>
+              .snackBarErrorMessage(localized: .genericError, inBundle: .commons)
+              .instantiate()
+          )
+      }
+      .store(in: cancellables)
+
+    contentView.signOutTapPublisher
+      .sink { [unowned self] in
+        self.controller.presentSignOut()
+      }
+      .store(in: cancellables)
+
+    controller.signOutAlertPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.present(SignOutAlertViewController.self)
+      }
       .store(in: cancellables)
   }
 }
