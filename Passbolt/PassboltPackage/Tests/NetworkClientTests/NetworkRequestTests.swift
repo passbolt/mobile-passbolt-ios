@@ -141,6 +141,74 @@ final class NetworkRequestTests: XCTestCase {
     XCTAssertEqual(completionError?.identifier, .httpError)
   }
 
+  func test_request_withHTTPErrorCannotConnect_failsWithServerNotReachableError() {
+    let url: URL = .init(string: "https://passbolt.com")!
+    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+      Fail<HTTPResponse, HTTPError>(error: .cannotConnect(url))
+        .eraseToAnyPublisher()
+    }
+
+    request = prepareRequest()
+    var completionError: TheError? = nil
+
+    request
+      .make(using: .sample)
+      .sink(
+        receiveCompletion: { completion in
+          switch completion {
+          case .finished:
+            XCTFail("Unexpected behaviour")
+
+          case let .failure(error):
+            completionError = error
+          }
+        },
+        receiveValue: { _ in
+          XCTFail("Unexpected behaviour")
+        }
+      )
+      .store(in: cancellables)
+
+    sessionSubject.send(NetworkSessionVariable(domain: "https://passbolt.com"))
+
+    XCTAssertEqual(completionError?.identifier, .serverNotReachable)
+    XCTAssertEqual(completionError?.url, url)
+  }
+
+  func test_request_withHTTPErrorTimeout_failsWithServerNotReachableError() {
+    let url: URL = .init(string: "https://passbolt.com")!
+    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+      Fail<HTTPResponse, HTTPError>(error: .timeout(url))
+        .eraseToAnyPublisher()
+    }
+
+    request = prepareRequest()
+    var completionError: TheError? = nil
+
+    request
+      .make(using: .sample)
+      .sink(
+        receiveCompletion: { completion in
+          switch completion {
+          case .finished:
+            XCTFail("Unexpected behaviour")
+
+          case let .failure(error):
+            completionError = error
+          }
+        },
+        receiveValue: { _ in
+          XCTFail("Unexpected behaviour")
+        }
+      )
+      .store(in: cancellables)
+
+    sessionSubject.send(NetworkSessionVariable(domain: "https://passbolt.com"))
+
+    XCTAssertEqual(completionError?.identifier, .serverNotReachable)
+    XCTAssertEqual(completionError?.url, url)
+  }
+
   func test_requestBodyAndResponseBody_withBodyMirroring_areEqual() {
     networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
       Just(

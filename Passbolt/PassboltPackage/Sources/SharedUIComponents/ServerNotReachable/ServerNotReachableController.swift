@@ -71,7 +71,11 @@ extension ServerNotReachableController: UIController {
     cancellables: Cancellables
   ) -> Self {
     var urlComponents: URLComponents? = context.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
+    urlComponents?.user = nil
     urlComponents?.path = ""
+    urlComponents?.query = nil
+    urlComponents?.fragment = nil
+
     return Self(
       serverURL: (urlComponents?.string).map(URLString.init(rawValue:))
     )
