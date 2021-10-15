@@ -54,7 +54,8 @@ internal struct ApplicationExtension {
       AppLifeCycle.autoFillExtension(),
       Camera.live(),
       ExternalURLOpener.live(),
-      Yubikey.unavailable()
+      Yubikey.unavailable(),
+      Randomness.system()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

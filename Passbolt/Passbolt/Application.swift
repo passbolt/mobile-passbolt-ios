@@ -52,7 +52,8 @@ internal struct Application {
       Files.live,
       AutoFillExtension.live(),
       SystemPasteboard.uiPasteboard(),
-      Yubikey.live()
+      Yubikey.live(),
+      Randomness.system()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
