@@ -140,13 +140,16 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
 
     controller.resourceMenuPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] resourceId in
+      .sink { [weak self] resourceID in
         guard let self = self
         else { return }
 
         self.presentSheet(
           ResourceMenuViewController.self,
-          in: resourceId
+          in: (
+            resourceID: resourceID,
+            showDeleteAlert: self.controller.presentDeleteResourceAlert
+          )
         )
       }
       .store(in: cancellables)
@@ -156,6 +159,49 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .sink { [weak self] in
         #warning("PAS-406 Uncomment")
 //        self?.push(ResourceCreateViewController.self)
+      }
+      .store(in: cancellables)
+
+    controller.resourceDeleteAlertPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [unowned self] resourceID in
+        self.dismiss(ResourceMenuViewController.self) {
+          self.present(
+            ResourceDeleteAlert.self,
+            in: { [unowned self] in
+              self.controller.resourceDeletionPublisher(resourceID)
+                .receive(on: RunLoop.main)
+                .handleStart { [weak self] in
+                  self?.present(overlay: LoaderOverlayView())
+                }
+                .handleErrors(
+                  (
+                    [.canceled],
+                    handler: { _ in true /* NOP */ }
+                  ),
+                  defaultHandler: { [weak self] _ in
+                    self?.presentErrorSnackbar()
+                  }
+                )
+                .handleEnd { [weak self] ending in
+                  self?.dismissOverlay()
+
+                  guard case .finished = ending
+                  else { return }
+
+                  self?.presentInfoSnackbar(
+                    localizableKey: "resource.menu.action.deleted",
+                    inBundle: .main,
+                    arguments: [
+                      NSLocalizedString("resource.menu.item.password", comment: "")
+                    ]
+                  )
+                }
+                .sinkDrop()
+                .store(in: cancellables)
+            }
+          )
+        }
       }
       .store(in: cancellables)
   }

@@ -111,12 +111,14 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.delete.password" = "Delete";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
 "resource.menu.item.description" = "Description";
 "resource.menu.item.url" = "URL";
 "resource.menu.item.field.copied" = "%@ copied!";
 "resource.menu.action.failed" = "%@ failed!";
+"resource.menu.action.deleted" = "%@ has been deleted!";
 
 "totp.title.label" = "Two Factor Authentication";
 "totp.message.label" = "Enter the verification code:";

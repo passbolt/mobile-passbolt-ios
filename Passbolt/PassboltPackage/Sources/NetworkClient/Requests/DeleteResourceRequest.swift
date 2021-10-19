@@ -21,26 +21,48 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Commons
+import Environment
 
-extension LocalizationKeyConstant {
+import struct Foundation.Data
 
-  public static let done: Self = "generic.done"
-  public static let yes: Self = "generic.yes"
-  public static let cancel: Self = "generic.cancel"
-  public static let remove: Self = "generic.remove"
-  public static let loading: Self = "generic.loading"
-  public static let `continue`: Self = "generic.continue"
-  public static let retry: Self = "generic.retry"
-  public static let delete: Self = "generic.delete"
-  public static let gotIt: Self = "generic.got.it"
-  public static let settings: Self = "generic.settings"
-  public static let genericError: Self = "generic.error"
-  public static let disable: Self = "generic.disable"
-  public static let signOut: Self = "generic.sign.out"
-  public static let refresh: Self = "generic.refresh"
-  public static let create: Self = "generic.create"
-  public static let emptyList: Self = "generic.empty.list"
-  public static let invalidPasteValue: Self = "generic.paste.value.invalid"
-  public static let areYouSure: Self = "generic.are.you.sure";
+public typealias DeleteResourceRequest = NetworkRequest<
+  AuthorizedSessionVariable, DeleteResourceRequestVariable, Void
+>
+
+extension DeleteResourceRequest {
+
+  internal static func live(
+    using networking: Networking,
+    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+  ) -> Self {
+    Self(
+      template: .init { sessionVariable, requestVariable in
+          .combined(
+            .url(string: sessionVariable.domain),
+            .path("/resources/\(requestVariable.resourceID).json"),
+            .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+            .whenSome(
+              sessionVariable.mfaToken,
+              then: { mfaToken in
+                  .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+              }
+            ),
+            .method(.delete)
+          )
+      },
+      responseDecoder: .statusCodes(200..<300),
+      using: networking,
+      with: sessionVariablePublisher
+    )
+  }
+}
+
+public struct DeleteResourceRequestVariable {
+
+  public var resourceID: String
+
+  public init(resourceID: String) {
+    self.resourceID = resourceID
+  }
 }

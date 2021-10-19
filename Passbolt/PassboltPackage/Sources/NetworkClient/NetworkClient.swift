@@ -43,6 +43,7 @@ public struct NetworkClient {
   public var yubikeyAuthorizationRequest: YubikeyAuthorizationRequest
   public var userProfileRequest: UserProfileRequest
   public var createResourceRequest: CreateResourceRequest
+  public var deleteResourceRequest: DeleteResourceRequest
   public var updateSession: (NetworkSessionVariable?) -> Void
   public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
@@ -266,6 +267,16 @@ extension NetworkClient: Feature {
         mfaRedirectionHandler: mfaRedirectRequest.execute,
         sessionPublisher: domainVariablePublisher
       ),
+      deleteResourceRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      )
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
+      ),
       updateSession: sessionSubject.send(_:),
       setTokensPublisher: setTokens(publisher:),
       setAuthorizationRequest: setAuthorizationRequest(_:),
@@ -293,6 +304,7 @@ extension NetworkClient: Feature {
       yubikeyAuthorizationRequest: .placeholder,
       userProfileRequest: .placeholder,
       createResourceRequest: .placeholder,
+      deleteResourceRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"), 

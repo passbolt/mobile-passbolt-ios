@@ -143,6 +143,21 @@ internal final class ResourceMenuView: View {
         mut(item.titleLabel) {
           .text(localized: "resource.menu.item.copy.description")
         }
+
+      case .delete:
+        mut(item.imageView) {
+          .combined(
+            .image(named: .trash, from: .uiCommons),
+            .tintColor(dynamic: .secondaryRed)
+          )
+        }
+
+        mut(item.titleLabel) {
+          .combined(
+            .text(localized: "resource.menu.item.delete.password"),
+            .textColor(dynamic: .secondaryRed)
+          )
+        }
       }
 
       return item

@@ -241,4 +241,91 @@ final class ResourceListControllerTests: TestCase {
     XCTAssertNotNil(result)
     XCTAssertEqual(result.rawValue, resourcesList.first!.id.rawValue)
   }
+
+  func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled() {
+    let resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+      ListViewResource(
+        id: "resource_2",
+        permission: .read,
+        name: "Resoure 2",
+        url: "passbolt.com",
+        username: "test"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+
+    let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+
+    var result: Resource.ID!
+
+    controller
+      .resourceDeleteAlertPresentationPublisher()
+      .sink { value in
+        result = value
+      }
+      .store(in: cancellables)
+
+    controller.presentDeleteResourceAlert(resourcesList.first!.id)
+
+    XCTAssertNotNil(result)
+    XCTAssertEqual(result.rawValue, resourcesList.first!.id.rawValue)
+  }
+
+  func test_resourceDeletionPublisher_triggersRefreshIfNeeded_whenDeletion_succeeds() {
+    var resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    resources.deleteResource = { resourceID in
+      resourcesList.removeAll { $0.id == resourceID }
+      return Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+
+    var result: Void?
+
+    resources.refreshIfNeeded = {
+      result = Void()
+      return Just(())
+        .ignoreOutput()
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+
+    let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+
+    controller
+      .resourceDeletionPublisher(resourcesList.first!.id)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+    XCTAssertTrue(resourcesList.isEmpty)
+  }
 }

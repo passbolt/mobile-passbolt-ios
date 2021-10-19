@@ -40,6 +40,7 @@
 "generic.create" = "Create";
 "generic.empty.list" = "There are no results";
 "generic.paste.value.invalid" = "Trying to paste invalid value";
+"generic.are.you.sure" = "Are you sure?";
 
 "account.selection.title" = "Welcome back!";
 "account.selection.subtitle" = "Choose an account to sign in!";

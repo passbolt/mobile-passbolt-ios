@@ -461,6 +461,84 @@ final class ResourceDetailsControllerTests: TestCase {
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, resourceSecret.password)
   }
+
+  func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled() {
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(featureConfig)
+    features.use(resources)
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+    var result: Resource.ID?
+
+    controller.resourceDeleteAlertPresentationPublisher()
+      .sink { resourceID in
+        result = resourceID
+      }
+      .store(in: cancellables)
+
+    controller.presentDeleteResourceAlert(context)
+
+    XCTAssertEqual(result, context)
+  }
+
+  func test_resourceDeletionPublisher_triggersRefreshIfNeeded_whenDeletion_succeeds() {
+    var resourcesList: Array<ListViewResource> = [
+      ListViewResource(
+        id: "resource_1",
+        permission: .read,
+        name: "Resoure 1",
+        url: "passbolt.com",
+        username: "test"
+      ),
+    ]
+    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResource)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    resources.deleteResource = { resourceID in
+      resourcesList.removeAll { $0.id == resourceID }
+      return Just(())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+
+    var result: Void?
+
+    resources.refreshIfNeeded = {
+      result = Void()
+      return Just(())
+        .ignoreOutput()
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(resources)
+    features.use(featureConfig)
+    features.use(pasteboard)
+
+    let context: Resource.ID = "1"
+    let controller: ResourceDetailsController = testInstance(context: context)
+
+    controller
+      .resourceDeletionPublisher(resourcesList.first!.id)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+    XCTAssertTrue(resourcesList.isEmpty)
+  }
 }
 
 private let detailsViewResource: DetailsViewResource = .init(

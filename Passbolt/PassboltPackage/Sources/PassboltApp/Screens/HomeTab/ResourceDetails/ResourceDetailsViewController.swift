@@ -43,6 +43,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
   internal let components: UIComponentFactory
 
   private let controller: Controller
+  private var resourceDetailsCancellable: AnyCancellable?
 
   internal init(
     using controller: Controller,
@@ -71,24 +72,27 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
   }
 
   private func setupSubscriptions() {
-    controller.resourceDetailsWithConfigPublisher()
+    resourceDetailsCancellable = controller.resourceDetailsWithConfigPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] completion in
         guard case .failure = completion
         else { return }
+
         self?.navigationController?.presentErrorSnackbar()
         self?.pop(if: Self.self)
       } receiveValue: { [ weak self] resourceDetailsWithConfig in
         self?.contentView.update(with: resourceDetailsWithConfig)
       }
-      .store(in: cancellables)
 
     controller.resourceMenuPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] resourceId in
-        self?.presentSheet(
+      .sink { [unowned self] resourceID in
+        self.presentSheet(
           ResourceMenuViewController.self,
-          in: resourceId
+          in: (
+            resourceID: resourceID,
+            showDeleteAlert: self.controller.presentDeleteResourceAlert
+          )
         )
       }
       .store(in: cancellables)
@@ -196,6 +200,53 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       }
       .switchToLatest()
       .sinkDrop()
+      .store(in: cancellables)
+
+    controller.resourceDeleteAlertPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [unowned self] resourceID in
+        self.dismiss(ResourceMenuViewController.self) {
+          self.present(
+            ResourceDeleteAlert.self,
+            in: { [unowned self] in
+              self.controller.resourceDeletionPublisher(resourceID)
+                .receive(on: RunLoop.main)
+                .handleStart { [weak self] in
+                  self?.present(overlay: LoaderOverlayView())
+                }
+                .handleErrors(
+                  (
+                    [.canceled],
+                    handler: { _ in true /* NOP */ }
+                  ),
+                  defaultHandler: { [weak self] _ in
+                    self?.presentErrorSnackbar()
+                  }
+                )
+                .handleEnd { [weak self] ending in
+                  resourceDetailsCancellable = nil
+
+                  self?.dismissOverlay()
+
+                  guard case .finished = ending
+                  else { return }
+
+                  self?.presentInfoSnackbar(
+                    localizableKey: "resource.menu.action.deleted",
+                    inBundle: .main,
+                    arguments: [
+                      NSLocalizedString("resource.menu.item.password", comment: "")
+                    ]
+                  )
+
+                  self?.pop(if: Self.self)
+                }
+                .sinkDrop()
+                .store(in: cancellables)
+            }
+          )
+        }
+      }
       .store(in: cancellables)
   }
 }

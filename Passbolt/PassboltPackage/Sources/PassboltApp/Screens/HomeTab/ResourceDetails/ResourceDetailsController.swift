@@ -30,7 +30,10 @@ internal struct ResourceDetailsController {
   internal var resourceDetailsWithConfigPublisher: () -> AnyPublisher<ResourceDetailsWithConfig, TheError>
   internal var toggleDecrypt: (ResourceDetails.Field) -> AnyPublisher<String?, TheError>
   internal var presentResourceMenu: () -> Void
+  internal var presentDeleteResourceAlert: (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceDeleteAlertPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Never, TheError>
   internal var copyFieldValue: (ResourceDetails.Field) -> AnyPublisher<Void, TheError>
 }
 
@@ -62,6 +65,7 @@ extension ResourceDetailsController: UIController {
     var revealedFields: Set<ResourceDetails.Field> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
+    let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsWithConfig?, TheError> = .init(nil)
 
@@ -319,11 +323,29 @@ extension ResourceDetailsController: UIController {
       }
     }
 
+    func presentDeleteResourceAlert(resourceID: Resource.ID) {
+      resourceDeleteAlertPresentationSubject.send(resourceID)
+    }
+
+    func resourceDeleteAlertPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
+      resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
+    }
+
+    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Never, TheError> {
+      resources.deleteResource(resourceID)
+        .map { resources.refreshIfNeeded() }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     return Self(
       resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
       toggleDecrypt: toggleDecrypt(field:),
       presentResourceMenu: presentResourceMenu,
+      presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
+      resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,
+      resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
       copyFieldValue: copyField(_:)
     )
   }

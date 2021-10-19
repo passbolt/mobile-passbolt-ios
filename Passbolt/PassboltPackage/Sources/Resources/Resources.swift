@@ -35,6 +35,7 @@ public struct Resources {
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
   public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheError>
   public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, TheError>
+  public var deleteResource: (Resource.ID) -> AnyPublisher<Void, TheError>
   public var featureUnload: () -> Bool
 }
 
@@ -274,6 +275,13 @@ extension Resources: Feature {
       .eraseToAnyPublisher()
     }
 
+    func deleteResource(resourceID: Resource.ID) -> AnyPublisher<Void, TheError> {
+      networkClient
+        .deleteResourceRequest
+        .make(using: .init(resourceID: resourceID.rawValue))
+        .eraseToAnyPublisher()
+    }
+
     func featureUnload() -> Bool {
       // prevent from publishing values after unload
       resourcesUpdateSubject.send(completion: .finished)
@@ -285,6 +293,7 @@ extension Resources: Feature {
       filteredResourcesListPublisher: filteredResourcesListPublisher,
       loadResourceSecret: loadResourceSecret,
       resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
+      deleteResource: deleteResource(resourceID:),
       featureUnload: featureUnload
     )
   }
@@ -300,6 +309,7 @@ extension Resources {
       filteredResourcesListPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       loadResourceSecret: Commons.placeholder("You have to provide mocks for used methods"),
       resourceDetailsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      deleteResource: Commons.placeholder("You have to provide mocks for used methods"),
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

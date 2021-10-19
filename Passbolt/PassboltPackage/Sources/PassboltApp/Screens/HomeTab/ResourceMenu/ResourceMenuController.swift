@@ -40,6 +40,7 @@ extension ResourceMenuController {
     case copyPassword
     case copyUsername
     case copyDescription
+    case delete
   }
 }
 
@@ -53,7 +54,10 @@ extension ResourceMenuController {
 
 extension ResourceMenuController: UIController {
 
-  internal typealias Context = Resource.ID
+  internal typealias Context = (
+    resourceID: Resource.ID,
+    showDeleteAlert: (Resource.ID) -> Void
+  )
 
   internal static func instance(
     in context: Context,
@@ -67,7 +71,7 @@ extension ResourceMenuController: UIController {
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsController.ResourceDetails?, TheError> = .init(nil)
 
     resources
-      .resourceDetailsPublisher(context)
+      .resourceDetailsPublisher(context.resourceID)
       .map(ResourceDetailsController.ResourceDetails.from(detailsViewResource:))
       .sink(
         receiveCompletion: { completion in
@@ -131,9 +135,16 @@ extension ResourceMenuController: UIController {
                     return false
                   }
                 })
+
+              case .delete:
+                return [
+                  .owner,
+                  .write
+                ]
+                .contains(resourceDetails.permission)
               }
             }
-            )
+          )
         }
         .replaceError(with: [])
         .eraseToAnyPublisher()
@@ -235,7 +246,7 @@ extension ResourceMenuController: UIController {
 
     func copyPasswordAction() -> AnyPublisher<Void, TheError> {
       resources
-        .loadResourceSecret(context)
+        .loadResourceSecret(context.resourceID)
         .map { resourceSecret -> AnyPublisher<String, TheError> in
           guard let secret: String = resourceSecret.password
           else {
@@ -308,7 +319,7 @@ extension ResourceMenuController: UIController {
             return encrypted
           }) {
             return resources
-              .loadResourceSecret(context)
+              .loadResourceSecret(context.resourceID)
               .map { resourceSecret -> AnyPublisher<String, TheError> in
                 guard let secret: String = resourceSecret.description
                 else {
@@ -347,6 +358,28 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
+    func deleteAction() -> AnyPublisher<Void, TheError> {
+      currentDetailsSubject
+        .first()
+        .map { resourceDetails -> AnyPublisher<Void, TheError> in
+          guard let resourceDetails = resourceDetails
+          else {
+            return Fail<Void, TheError>(error: .invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          return Just(
+            context.showDeleteAlert(
+              .init(rawValue:resourceDetails.id.rawValue)
+            )
+          )
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
   #warning("This is similar to ResourceDetailsController code, it might be unified to avoid duplicates")
     func perform(action: Action) -> AnyPublisher<Void, TheError> {
       switch action {
@@ -360,6 +393,8 @@ extension ResourceMenuController: UIController {
         return copyUsernameAction()
       case .copyDescription:
         return copyDescriptionAction()
+      case .delete:
+        return deleteAction()
       }
     }
 

@@ -62,7 +62,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(resources)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
     var result: ResourceDetailsController.ResourceDetails?
 
     controller
@@ -90,7 +95,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(resources)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
     var result: Array<ResourceMenuController.Action>!
 
     controller.availableActionsPublisher()
@@ -122,7 +132,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     controller
       .performAction(.copyPassword)
@@ -147,7 +162,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     controller
       .performAction(.copyURL)
@@ -173,7 +193,12 @@ final class ResourceMenuControllerTests: TestCase {
     }
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     controller
       .performAction(.openURL)
@@ -198,7 +223,12 @@ final class ResourceMenuControllerTests: TestCase {
     }
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     var result: TheError?
     controller
@@ -231,7 +261,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     controller
       .performAction(.copyUsername)
@@ -256,7 +291,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     controller
       .performAction(.copyDescription)
@@ -286,7 +326,12 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(context: detailsViewResource.id)
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { _ in }
+      )
+    )
 
     controller
       .performAction(.copyDescription)
@@ -294,6 +339,40 @@ final class ResourceMenuControllerTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertEqual(result, "encrypted description")
+  }
+
+  func test_performAction_triggersShowDeleteAlert_forDeleteAction() {
+    resources.resourceDetailsPublisher = always(
+      Just(detailsViewResourceWithoutDescription)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resources.loadResourceSecret = always(
+      Just(resourceSecret)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    features.use(pasteboard)
+    features.use(linkOpener)
+
+    var result: Resource.ID?
+
+    let controller: ResourceMenuController = testInstance(
+      context: (
+        resourceID: detailsViewResource.id,
+        showDeleteAlert: { resourceID in
+          result = resourceID
+        }
+      )
+    )
+
+    controller
+      .performAction(.delete)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, detailsViewResource.id)
   }
 }
 
