@@ -21,16 +21,22 @@
 // @since         v1.0
 //
 
+import class Foundation.Bundle
+
 extension TheError {
 
   #warning("TODO: resolve conflict with TheError+NetworkClient")
   public static func validationError(
-    _ localizationKey: String
+    _ localizationKey: StaticString,
+    bundle: Bundle
   ) -> Self {
     Self(
       identifier: .validation,
       underlyingError: nil,
-      extensions: [.localizationKey: localizationKey]
+      extensions: [
+        .localizationKey: localizationKey,
+        .localizationBundle: bundle
+      ]
     )
   }
 }

@@ -132,7 +132,7 @@ extension TheError {
     return mutable
   }
 
-  public var localizationKey: String? { extensions[.localizationKey] as? String }
+  public var localizationKey: StaticString? { extensions[.localizationKey] as? StaticString }
   public var localizationBundle: Bundle? { extensions[.localizationBundle] as? Bundle }
 }
 

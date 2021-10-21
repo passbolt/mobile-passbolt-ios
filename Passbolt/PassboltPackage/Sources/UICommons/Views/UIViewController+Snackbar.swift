@@ -46,6 +46,7 @@ extension UIViewController {
   public func presentInfoSnackbar(
     localizableKey: LocalizationKeyConstant = .genericError,
     inBundle: Bundle = .commons,
+    presentationAnchor: UIView? = nil,
     arguments: Array<CVarArg> = []
   ) {
     present(

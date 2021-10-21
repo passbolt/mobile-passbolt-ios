@@ -75,11 +75,14 @@ extension Validator {
     }
   }
 
-  public static func alwaysInvalid(errorLocalizationKey: String) -> Self {
+  public static func alwaysInvalid(
+    errorLocalizationKey: StaticString,
+    bundle: Bundle = .main
+  ) -> Self {
     Self { value in
       .invalid(
         value,
-        errors: TheError.validationError(errorLocalizationKey)
+        errors: TheError.validationError(errorLocalizationKey, bundle: bundle)
       )
     }
   }

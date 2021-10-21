@@ -63,4 +63,14 @@ extension Mutation where Subject: Button {
   public static func disabled() -> Self {
     .custom { (subject: Subject) in subject.isEnabled = false }
   }
+
+  public static func aspectRatio(_ ratio: CGFloat) -> Self {
+    .custom { (subject: Subject) in
+      subject.heightAnchor.constraint(
+        equalTo: subject.widthAnchor,
+        multiplier: ratio,
+        constant: 0
+      ).isActive = true
+    }
+  }
 }

@@ -27,7 +27,7 @@ extension Validator where Value: Collection {
 
   public static func nonEmpty(
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: String,
+    errorLocalizationKey: StaticString,
     bundle: Bundle
   ) -> Self {
     Self { value in

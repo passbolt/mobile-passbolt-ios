@@ -23,10 +23,16 @@
 
 import Accounts
 import UIComponents
+import Resources
 
 internal struct ResourceCreateController {
 
-  internal var resourceFields: () -> Array<Field>
+  internal var resourceFieldsPublisher: () -> AnyPublisher<Array<Field>, TheError>
+  internal var fieldValuePublisher: (String) -> AnyPublisher<Validated<String>, Never>
+  internal var passwordEntropyPublisher: () -> AnyPublisher<Entropy, Never>
+  internal var createResource: () -> AnyPublisher<Void, TheError>
+  internal var setValue: (String, String) -> AnyPublisher<Void, TheError>
+  internal var generatePassword: () -> Void
 }
 
 extension ResourceCreateController {
@@ -47,6 +53,8 @@ extension ResourceCreateController {
 
     fileprivate static func from(resourceField: ResourceField) -> Field? {
       switch resourceField {
+      case let .string("name", required, encrypted, maxLength):
+        return .name(required: required, encrypted: encrypted, maxLength: maxLength)
       case let .string("username", required, encrypted, maxLength):
         return .username(required: required, encrypted: encrypted, maxLength: maxLength)
       case let .string("password", required, encrypted, maxLength),
@@ -105,19 +113,73 @@ extension ResourceCreateController: UIController {
     cancellables: Cancellables
   ) -> Self {
 
-    func resourceFields() -> Array<Field> {
-      #warning("PAS-409 Provide fields")
-      return [
-        .name(required: true, encrypted: false, maxLength: nil),
-        .uri(required: true, encrypted: false, maxLength: nil),
-        .username(required: true, encrypted: false, maxLength: nil),
-        .password(required: true, encrypted: false, maxLength: nil),
-        .description(required: true, encrypted: false, maxLength: nil)
-      ]
+    let resources: Resources = features.instance()
+    let resourceForm: ResourceCreateForm = features.instance()
+    let randomGenerator: RandomStringGenerator = features.instance()
+
+    func resourceFieldsPublisher() -> AnyPublisher<Array<Field>, TheError> {
+      resourceForm.resourceTypePublisher()
+        .map { resourceType in
+          resourceType.fields.compactMap { resourceField in
+            Field.from(resourceField: resourceField)
+          }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    func fieldValuePublisher(fieldName: String) -> AnyPublisher<Validated<String>, Never> {
+      resourceForm.fieldValuePublisher(fieldName)
+    }
+
+    func setValue(_ value: String, for field: String) -> AnyPublisher<Void, TheError> {
+      resourceForm.setFieldValue(value, field)
+    }
+
+    func passwordEntropyPublisher() -> AnyPublisher<Entropy, Never> {
+      resourceForm.fieldValuePublisher("password")
+        .map { field in
+          #warning("PAS-430 Set target entropy")
+          return randomGenerator.entropy(field.value, CharacterSets.all.count)
+        }
+        .eraseToAnyPublisher()
+    }
+
+    func createResource() -> AnyPublisher<Void, TheError> {
+      resourceForm.createResource()
+        .mapToVoid()
+        .map { _ -> AnyPublisher<Void, TheError> in
+          resources.refreshIfNeeded()
+            .mapToVoid()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .handleEvents(receiveCompletion: { [weak features] completion in
+          guard case .finished = completion
+          else { return }
+
+          features?.unload(ResourceCreateForm.self)
+        })
+        .eraseToAnyPublisher()
+    }
+
+    func generatePassword() {
+      let password: String = randomGenerator.generate(
+        CharacterSets.all,
+        Entropy.veryStrongPassword
+      )
+
+      resourceForm.setFieldValue(password, "password")
+        .sinkDrop()
+        .store(in: cancellables)
     }
 
     return Self(
-      resourceFields: resourceFields
+      resourceFieldsPublisher: resourceFieldsPublisher,
+      fieldValuePublisher: fieldValuePublisher,
+      passwordEntropyPublisher: passwordEntropyPublisher,
+      createResource: createResource,
+      setValue: setValue(_:for:),
+      generatePassword: generatePassword
     )
   }
 }

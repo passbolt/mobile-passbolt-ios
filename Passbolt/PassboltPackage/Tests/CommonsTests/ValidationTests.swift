@@ -31,7 +31,7 @@ final class ValidationTests: XCTestCase {
   var testValue: TestValue!
   var testEmbeddedValue: TestEmbeddedValue!
 
-  private let messageKeyInvalid: String = "key.invalid"
+  private let messageKeyInvalid: StaticString = "key.invalid"
 
   override func setUp() {
     super.setUp()
@@ -61,7 +61,7 @@ final class ValidationTests: XCTestCase {
     XCTAssert(validated.errors.first?.identifier == .validation)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 1)
-    XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
+    XCTAssert(validated.errors.first?.localizationKey?.description == messageKeyInvalid.description)
   }
 
   func test_invalid_producesError() {
@@ -72,7 +72,7 @@ final class ValidationTests: XCTestCase {
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 1)
 
-    XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
+    XCTAssert(validated.errors.first?.localizationKey?.description == messageKeyInvalid.description)
   }
 
   func test_contraMapFromValid_producesValidValue() {
@@ -94,7 +94,7 @@ final class ValidationTests: XCTestCase {
     XCTAssertEqual(validated.value, testEmbeddedValue)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 1)
-    XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
+    XCTAssert(validated.errors.first?.localizationKey?.description == messageKeyInvalid.description)
   }
 
   func test_zipFromValid_producesValidValue() {
@@ -118,7 +118,7 @@ final class ValidationTests: XCTestCase {
     XCTAssertEqual(validated.value, testValue)
     XCTAssertFalse(validated.isValid)
     XCTAssert(validated.errors.count == 2)
-    XCTAssert(validated.errors.first?.localizationKey == messageKeyInvalid)
+    XCTAssert(validated.errors.first?.localizationKey?.description == messageKeyInvalid.description)
   }
 }
 

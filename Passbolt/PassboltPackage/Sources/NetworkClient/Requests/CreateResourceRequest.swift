@@ -114,6 +114,6 @@ public struct CreateResourceRequestResponseBody: Decodable {
 
   public enum CodingKeys: String, CodingKey {
 
-    case resourceID = "resource_id"
+    case resourceID = "id"
   }
 }

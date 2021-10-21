@@ -21,13 +21,22 @@
 // @since         v1.0
 //
 
-public struct Entropy {
+public struct Entropy: RawRepresentable, Strideable {
+  public typealias Stride = Double
 
   public var rawValue: Double
 
   public init(rawValue: Double) {
     assert(rawValue >= 0)
     self.rawValue = rawValue
+  }
+
+  public func distance(to other: Entropy) -> Double {
+    other.rawValue - self.rawValue
+  }
+
+  public func advanced(by n: Double) -> Entropy {
+    .init(rawValue: self.rawValue + n)
   }
 }
 
@@ -46,4 +55,7 @@ extension Entropy {
   public static let fairPassword: Self = .init(rawValue: 80)
   public static let strongPassword: Self = .init(rawValue: 112)
   public static let veryStrongPassword: Self = .init(rawValue: 128)
+  public static let greatestFinite: Self = .init(rawValue: Double.greatestFiniteMagnitude)
 }
+
+

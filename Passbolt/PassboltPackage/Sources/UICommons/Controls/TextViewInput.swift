@@ -67,11 +67,12 @@ public class TextViewInput: View {
   }
 
   fileprivate let textView: TextView = .init()
-  private var errorMessage: (localizationKey: String, bundle: Bundle)? {
+  private var errorMessage: (localizationKey: StaticString, bundle: Bundle)? {
     didSet { updatePresentation() }
   }
 
   private let descriptionLabel: Label = .init()
+  private let accessoryContainer: View = .init()
   private let requiredLabel: Label = .init()
   private let placeholderLabel: Label = .init()
   private let errorMessageView: ErrorMessageView = .init()
@@ -86,7 +87,7 @@ public class TextViewInput: View {
     super.init()
 
     mut(self) {
-      .subview(descriptionLabel, requiredLabel)
+      .subview(descriptionLabel, requiredLabel, accessoryContainer)
     }
 
     mut(descriptionLabel) {
@@ -104,7 +105,15 @@ public class TextViewInput: View {
         .textColor(dynamic: .secondaryRed),
         .text("*"),
         .leadingAnchor(.equalTo, descriptionLabel.trailingAnchor, constant: 2),
-        .trailingAnchor(.lessThanOrEqualTo, trailingAnchor),
+        .centerYAnchor(.equalTo, descriptionLabel.centerYAnchor)
+      )
+    }
+
+    mut(accessoryContainer) {
+      .combined(
+        .leadingAnchor(.lessThanOrEqualTo, requiredLabel.trailingAnchor, constant: 8),
+        .trailingAnchor(.equalTo, trailingAnchor),
+        .topAnchor(.equalTo, descriptionLabel.topAnchor),
         .centerYAnchor(.equalTo, descriptionLabel.centerYAnchor)
       )
     }
@@ -177,7 +186,7 @@ public class TextViewInput: View {
       textView.text = validated.value
     }
 
-    if let localizationKey: String = validated.errors.first?.localizationKey,
+    if let localizationKey: StaticString = validated.errors.first?.localizationKey,
       let localizationBundle: Bundle = validated.errors.first?.localizationBundle
     {
       errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
@@ -187,8 +196,29 @@ public class TextViewInput: View {
     }
   }
 
+  public func set(
+    accessory: UIView,
+    with insets: UIEdgeInsets = .zero
+  ) {
+    mut(accessoryContainer) {
+      .combined(
+        .custom { (subject: View) in
+          subject.subviews.forEach { $0.removeFromSuperview() }
+        },
+        .subview(accessory)
+      )
+    }
+
+    mut(accessory) {
+      .combined(
+        .trailingAnchor(.equalTo, accessoryContainer.trailingAnchor, constant: -insets.right),
+        .centerYAnchor(.equalTo, accessoryContainer.centerYAnchor)
+      )
+    }
+  }
+
   private func updatePresentation() {
-    if let (localizationKey, bundle): (String, Bundle) = errorMessage {
+    if let (localizationKey, bundle): (StaticString, Bundle) = errorMessage {
       mut(errorMessageView) {
         .combined(
           .text(

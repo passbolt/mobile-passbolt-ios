@@ -39,9 +39,12 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init(resourceFields: controller.resourceFields())
+  internal private(set) lazy var contentView: View = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
+
+  private var fieldCancellables: Cancellables = .init()
+  private let showErrorSubject: PassthroughSubject<Void, Never> = .init()
 
   internal init(
     using controller: Controller,
@@ -61,5 +64,147 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
   }
 
   private func setupSubscriptions() {
+    controller.resourceFieldsPublisher()
+      .receive(on: RunLoop.main)
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          guard case .failure = completion
+          else { return }
+
+          self?.presentErrorSnackbar()
+        },
+        receiveValue: { [weak self] fields in
+          self?.contentView.update(with: fields)
+          self?.setupFieldSubscriptions()
+        }
+      )
+      .store(in: cancellables)
+
+    controller.passwordEntropyPublisher()
+      .receive(on: RunLoop.main)
+      .sink(receiveValue: { [weak self] entropy in
+        self?.contentView.update(entropy: entropy)
+      })
+      .store(in: cancellables)
+
+    contentView.createTapPublisher
+      .map { [unowned self] _ -> AnyPublisher<Void, Never> in
+        self.controller.createResource()
+          .receive(on: RunLoop.main)
+          .handleStart { [weak self] in
+            self?.present(overlay: LoaderOverlayView())
+          }
+          .handleErrors(
+            (
+              [.canceled],
+              handler: { _ in true /* NOP */ }
+            ),
+            (
+              [.validation],
+              handler: { [weak self] error in
+                self?.showErrorSubject.send()
+
+                guard
+                  let localizationKey = error.localizationKey,
+                  let localizationBundle = error.localizationBundle
+                else { return false }
+
+                self?.presentErrorSnackbar(
+                  localizableKey: .init(stringLiteral: localizationKey),
+                  inBundle: localizationBundle
+                )
+                return true
+              }
+            ),
+            defaultHandler: { [weak self] _ in
+              self?.presentErrorSnackbar()
+            }
+          )
+          .handleEnd { [weak self] ending in
+            self?.dismissOverlay()
+
+            guard case .finished = ending
+            else { return }
+
+            self?.parent?.presentInfoSnackbar(
+              localizableKey: "resource.form.new.password.created",
+              inBundle: .commons
+            )
+
+            self?.pop(if: Self.self)
+          }
+          .mapToVoid()
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    contentView.generateTapPublisher
+      .map { [unowned self] in
+        self.controller.generatePassword()
+      }
+      .sinkDrop()
+      .store(in: cancellables)
+
+    contentView.lockTapPublisher
+      .sink(receiveValue: { [weak self] in
+        self?.presentInfoSnackbar(
+          localizableKey: "resource.form.description.encrypted",
+          inBundle: .commons,
+          presentationAnchor: self?.contentView.lockAnchor
+        )
+      })
+      .store(in: cancellables)
+
+  }
+
+  private func setupFieldSubscriptions() {
+    fieldCancellables = .init()
+
+    controller.resourceFieldsPublisher()
+      .first()
+      .receive(on: RunLoop.main)
+      .handleEvents(receiveOutput: { [weak self] resourceFields in
+        _ = resourceFields.map { resourceField in
+          guard let self = self
+          else { return }
+          let fieldValuePublisher = self.controller.fieldValuePublisher(resourceField.name().rawValue)
+
+          fieldValuePublisher
+            .first()  // skipping error just to update intial value
+            .map { Validated.valid($0.value) }
+            .merge(
+              with:
+                fieldValuePublisher
+                .dropFirst()
+            )
+            .merge(
+              with:
+                self.showErrorSubject // the subject is used as a trigger for showing error on the form, initially no errors are shown
+                .map { fieldValuePublisher.first() }
+                .switchToLatest()
+            )
+            .receive(on: RunLoop.main)
+            .sink(receiveValue: { [weak self] validated in
+              self?.contentView.update(
+                validated: validated,
+                for: resourceField
+              )
+            })
+            .store(in: self.fieldCancellables)
+
+          self.contentView.fieldValuePublisher(for: resourceField)
+            .map { [unowned self] value -> AnyPublisher<Void, TheError> in
+              self.controller.setValue(value, resourceField.name().rawValue)
+            }
+            .switchToLatest()
+            .sinkDrop()
+            .store(in: self.fieldCancellables)
+        }
+      })
+      .sinkDrop()
+      .store(in: fieldCancellables)
   }
 }

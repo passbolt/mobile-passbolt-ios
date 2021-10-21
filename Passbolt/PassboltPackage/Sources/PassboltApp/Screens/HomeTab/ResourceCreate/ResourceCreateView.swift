@@ -21,31 +21,77 @@
 // @since         v1.0
 //
 
-import Commons
-import UICommons
 import Accounts
+import Commons
+import Features
+import UICommons
 
-internal final class ResourceCreateView: ScrolledStackView {
+internal final class ResourceCreateView: KeyboardAwareView {
 
   internal typealias FieldWithView = (field: ResourceCreateController.Field, view: View)
 
-  private let nameInput: TextInput = .init()
-  private let urlInput: TextInput = .init()
-  private let usernameInput: TextInput = .init()
-  private let passwordInput: SecureTextInput = .init()
-  private let descriptionInput: TextViewInput = .init()
+  internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
+  internal var lockTapPublisher: AnyPublisher<Void, Never> { lockButton.tapPublisher }
+  internal var createTapPublisher: AnyPublisher<Void, Never> { createButton.tapPublisher }
+
+  internal var lockAnchor: UIView { lockButton }
+
+  private let scrolledStack: ScrolledStackView = .init()
+  private let entropyView: EntropyView = .init()
+  private let generateButton: ImageButton = .init()
+  private let lockButton: ImageButton = .init()
+  private let createButton: TextButton = .init()
 
   private var fieldViews: Dictionary<ResourceCreateController.Field, View> = .init()
 
-  @available(*, unavailable, message: "Use init(resourceFields:)")
   internal required init() {
-    unreachable("Use init(resourceFields:)")
-  }
-
-  internal init(resourceFields: Array<ResourceCreateController.Field>) {
     super.init()
 
-    fieldViews = resourceFields.compactMap { resourceField -> (ResourceCreateController.Field, View) in
+    mut(scrolledStack) {
+      .combined(
+        .subview(of: self),
+        .leadingAnchor(.equalTo, leadingAnchor),
+        .trailingAnchor(.equalTo, trailingAnchor),
+        .topAnchor(.equalTo, topAnchor),
+        .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
+        .isLayoutMarginsRelativeArrangement(true),
+        .contentInset(.init(top: 0, left: 16, bottom: 16, right: 16)),
+        .backgroundColor(dynamic: .background)
+      )
+    }
+
+    mut(createButton) {
+      .combined(
+        .primaryStyle(),
+        .text(localized: "resource.form.create.button.title", inBundle: .commons)
+      )
+    }
+
+    mut(lockButton) {
+      .combined(
+        .enabled(),
+        .image(named: .lock, from: .uiCommons),
+        .tintColor(dynamic: .iconAlternative),
+        .aspectRatio(1),
+        .widthAnchor(.equalTo, constant: 14)
+      )
+    }
+
+    mut(generateButton) {
+      .combined(
+        .imageContentMode(.center),
+        .imageInsets(.init(top: 8, left: 8, bottom: -8, right: -8)),
+        .image(named: .magicWand, from: .uiCommons),
+        .tintColor(dynamic: .iconAlternative),
+        .backgroundColor(dynamic: .secondaryGray),
+        .border(dynamic: .divider, width: 1),
+        .cornerRadius(4)
+      )
+    }
+  }
+
+  internal func update(with fields: Array<ResourceCreateController.Field>) {
+    fieldViews = fields.compactMap { resourceField -> (ResourceCreateController.Field, View) in
       switch resourceField {
       case let .name(required, _, _):
         return (
@@ -180,8 +226,8 @@ internal final class ResourceCreateView: ScrolledStackView {
               ),
               .isRequired(false),
               .custom { (input: TextViewInput) in
-                input.applyOn(text:
-                                  .formStyle()
+                input.applyOn(
+                  text: .formStyle()
                 )
                 input.applyOn(
                   description: .text(localized: "resource.create.field.description.label", inBundle: .main)
@@ -196,21 +242,139 @@ internal final class ResourceCreateView: ScrolledStackView {
       partialResult[fieldWithView.field] = fieldWithView.view
     })
 
-    mut(self) {
+    scrolledStack.removeAllArrangedSubviews()
+
+    mut(scrolledStack) {
       .combined(
-        .axis(.vertical),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 0, left: 16, bottom: 16, right: 16)),
         .forEach(
-          in: fieldViews.sorted { $0.key < $1.key }, { fieldView in
-              .combined(
+          in: fieldViews.sorted { $0.key < $1.key }, { [unowned self] fieldView in
+            switch fieldView.key {
+            case .password:
+              let container: View = Mutation
+                .combined(
+                  .backgroundColor(dynamic: .background)
+                )
+                .instantiate()
+
+              mut(fieldView.value) {
+                .combined(
+                  .subview(of: container),
+                  .leadingAnchor(.equalTo, container.leadingAnchor),
+                  .trailingAnchor(.equalTo, container.trailingAnchor, constant: -60),
+                  .topAnchor(.equalTo, container.topAnchor)
+                )
+              }
+
+              let textFieldCenterYAnchor: NSLayoutYAxisAnchor =
+                (fieldView.value as? TextInput)?.textFieldCenterYAnchor ?? fieldView.value.centerYAnchor
+
+              mut(self.generateButton) {
+                .combined(
+                  .subview(of: container),
+                  .trailingAnchor(.equalTo, container.trailingAnchor),
+                  .centerYAnchor(.equalTo, textFieldCenterYAnchor),
+                  .widthAnchor(.equalTo, constant: 48),
+                  .aspectRatio(1)
+                )
+              }
+
+              mut(self.entropyView) {
+                .combined(
+                  .subview(of: container),
+                  .leadingAnchor(.equalTo, container.leadingAnchor),
+                  .trailingAnchor(.equalTo, fieldView.value.trailingAnchor),
+                  .topAnchor(.equalTo, fieldView.value.bottomAnchor),
+                  .bottomAnchor(.equalTo, container.bottomAnchor)
+                )
+              }
+
+              return .combined(
+                .append(container),
+                .appendSpace(of: 4)
+              )
+
+            case .description:
+              if let textViewInput = fieldView.value as? TextViewInput {
+                textViewInput.set(
+                  accessory: self.lockButton,
+                  with: .zero
+                )
+              }
+
+              fallthrough
+            case _:
+              return .combined(
                 .append(fieldView.value),
                 .appendSpace(of: 4)
               )
+            }
           }
         ),
-        .appendFiller(minSize: 20)
+        .appendFiller(minSize: 20),
+        .append(createButton)
       )
     }
+  }
+
+  internal func update(
+    validated: Validated<String>,
+    for field: ResourceCreateController.Field
+  ) {
+    guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
+    else {
+      assertionFailure("Missing field for key: \(field)")
+      return
+    }
+
+    switch field {
+    case .name, .uri, .username, .password:
+      guard let textInput: TextInput = fieldView as? TextInput
+      else {
+        assertionFailure("Field is not a TextInput")
+        return
+      }
+
+      textInput.update(from: validated)
+    case .description:
+      guard let textViewInput: TextViewInput = fieldView as? TextViewInput
+      else {
+        assertionFailure("Field is not a TextViewInput")
+        return
+      }
+
+      textViewInput.update(from: validated)
+    }
+  }
+
+  internal func fieldValuePublisher(for field: ResourceCreateController.Field) -> AnyPublisher<String, Never> {
+    guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
+    else {
+      return Empty(completeImmediately: true)
+      .eraseToAnyPublisher()
+    }
+
+    switch field {
+    case .name, .uri, .username, .password:
+      guard let textInput: TextInput = fieldView as? TextInput
+      else {
+        return Empty(completeImmediately: true)
+        .eraseToAnyPublisher()
+      }
+
+      return textInput.textPublisher
+
+    case .description:
+      guard let textViewInput: TextViewInput = fieldView as? TextViewInput
+      else {
+        return Empty(completeImmediately: true)
+        .eraseToAnyPublisher()
+      }
+
+      return textViewInput.textPublisher
+    }
+  }
+
+  internal func update(entropy: Entropy) {
+    entropyView.update(entropy: entropy)
   }
 }

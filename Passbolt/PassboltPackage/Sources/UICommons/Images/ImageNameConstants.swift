@@ -55,6 +55,7 @@ extension ImageNameConstant {
   public static var eyeSlash: Self { "EyeSlash" }
   public static var description: Self { "Description" }
   public static var user: Self { "User" }
+  public static var magicWand: Self { "MagicWand" }
 }
 
 extension DynamicImage {

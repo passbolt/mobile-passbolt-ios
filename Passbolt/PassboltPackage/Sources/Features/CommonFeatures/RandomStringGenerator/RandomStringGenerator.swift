@@ -47,6 +47,7 @@ extension RandomStringGenerator: Feature {
 
     var randomness: Randomness = environment.randomness
 
+    #warning("PAS-430 Accept alphabet as an array of Set<Character>")
     func entropy(
       password: String,
       alphabetCount: Int
@@ -68,6 +69,7 @@ extension RandomStringGenerator: Feature {
 
       var output: String = ""
 
+      #warning("PAS-430 Change behavior")
       while entropy(
         password: output,
         alphabetCount: alphabet.count

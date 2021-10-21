@@ -51,8 +51,10 @@ public class TextInput: View {
     set { requiredLabel.isHidden = !newValue }
   }
 
+  public var textFieldCenterYAnchor: NSLayoutYAxisAnchor { textField.centerYAnchor }
+
   fileprivate let textField: TextField = .init()
-  private var errorMessage: (localizationKey: String, bundle: Bundle)? {
+  private var errorMessage: (localizationKey: StaticString, bundle: Bundle)? {
     didSet { updatePresentation() }
   }
 
@@ -149,7 +151,7 @@ public class TextInput: View {
   public func update(from validated: Validated<String>) {
     textField.text = validated.value
 
-    if let localizationKey: String = validated.errors.first?.localizationKey,
+    if let localizationKey: StaticString = validated.errors.first?.localizationKey,
       let localizationBundle: Bundle = validated.errors.first?.localizationBundle
     {
       errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
@@ -160,7 +162,7 @@ public class TextInput: View {
   }
 
   private func updatePresentation() {
-    if let (localizationKey, bundle): (String, Bundle) = errorMessage {
+    if let (localizationKey, bundle): (StaticString, Bundle) = errorMessage {
       mut(errorMessageView) {
         .combined(
           .text(

@@ -78,3 +78,18 @@
 "server.key.fingerprint.changed.description" = "For security reasons please check with your administrator that this is a change that they initiated. The new fingerprint:";
 "server.key.fingerprint.accept.check" = "Yes, I checked and it is all fine.";
 "server.key.fingerprint.accept.new.key" = "Accept new key";
+
+"resource.form.field.error.empty" = "The field cannot be empty";
+"resource.from.field.error.invalid.value" = "The value for this field is invalid";
+"resource.form.field.error.max.length" = "The maximum length has been exceeded.";
+"resource.form.error.invalid" = "The form is invalid";
+
+"resource.form.password.strength" = "Password strength";
+"resource.form.strength.very.weak" = "very weak";
+"resource.form.strength.weak" = "weak";
+"resource.form.strength.fair" = "fair";
+"resource.form.strength.strong" = "strong";
+"resource.form.strength.very.strong" = "very strong";
+"resource.form.create.button.title" = "Create";
+"resource.form.new.password.created" = "New password has been created";
+"resource.form.description.encrypted" = "Description is encrypted";

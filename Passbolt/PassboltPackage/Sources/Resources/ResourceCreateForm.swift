@@ -37,6 +37,7 @@ public struct ResourceCreateForm {
   public var fieldValuePublisher: (String) -> AnyPublisher<Validated<String>, Never>
   // send the form and create resource on server
   public var createResource: () -> AnyPublisher<Resource.ID, TheError>
+  public var featureUnload: () -> Bool
 }
 
 extension ResourceCreateForm: Feature {
@@ -101,8 +102,7 @@ extension ResourceCreateForm: Feature {
       zip(
         {
           if field.required {
-            #warning("TODO: fill in errors")
-            return .nonEmpty(errorLocalizationKey: "TODO: error localization", bundle: .commons)
+            return .nonEmpty(errorLocalizationKey: "resource.form.field.error.empty", bundle: .commons)
           }
           else {
             return .alwaysValid
@@ -110,7 +110,11 @@ extension ResourceCreateForm: Feature {
         }(),
         // even if there is no requirement for max length we are limiting it with
         // some high value to prevent too big values
-        .maxLength(UInt(field.maxLength ?? 10000), errorLocalizationKey: "TODO: error localization", bundle: .commons)
+        .maxLength(
+          UInt(field.maxLength ?? 10000),
+          errorLocalizationKey: "resource.form.field.error.max.length",
+          bundle: .commons
+        )
       )
     }
 
@@ -178,8 +182,7 @@ extension ResourceCreateForm: Feature {
             }
             guard validatedValue.isValid
             else {
-              #warning("TODO: fill in errors")
-              return Fail(error: .validationError("TODO: error?"))
+              return Fail(error: .validationError("resource.form.error.invalid", bundle: .commons))
                 .eraseToAnyPublisher()
             }
             if field.encrypted {
@@ -209,13 +212,15 @@ extension ResourceCreateForm: Feature {
             .map { resourceTypeID -> AnyPublisher<Resource.ID, TheError> in
               guard let name: String = fieldValues["name"]
               else {
-                #warning("TODO: fill in errors")
-                return Fail(error: .validationError("TODO: error?"))
-                  .eraseToAnyPublisher()
+                return Fail(
+                  error: .invalidOrMissingResourceType()
+                )
+                .eraseToAnyPublisher()
               }
 
               return accountSession
                 .statePublisher()
+                .first()
                 .map { sessionState -> AnyPublisher<ArmoredPGPMessage, TheError> in
                   switch sessionState {
                   case let .authorized(account), let .authorizedMFARequired(account, _):
@@ -257,11 +262,16 @@ extension ResourceCreateForm: Feature {
         .eraseToAnyPublisher()
     }
 
+    func featureUnload() -> Bool {
+      true
+    }
+
     return Self(
       resourceTypePublisher: { resourceTypePublisher },
       setFieldValue: setFieldValue(_:fieldName:),
       fieldValuePublisher: fieldValuePublisher(fieldName:),
-      createResource: createResource
+      createResource: createResource,
+      featureUnload: featureUnload
     )
   }
 }
@@ -275,7 +285,8 @@ extension ResourceCreateForm {
       resourceTypePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setFieldValue: Commons.placeholder("You have to provide mocks for used methods"),
       fieldValuePublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      createResource: Commons.placeholder("You have to provide mocks for used methods")
+      createResource: Commons.placeholder("You have to provide mocks for used methods"),
+      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }
 }

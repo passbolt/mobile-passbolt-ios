@@ -23,7 +23,7 @@
 
 import Foundation
 
-internal enum CharacterSets {
+public enum CharacterSets {
 
   internal static let lowercaseLetters: Set<Character> = .init([
     "a", "b", "c", "d", "e", "f",
@@ -65,7 +65,7 @@ internal enum CharacterSets {
       .reduce(.init()) { $0.union($1) }
   }
 
-  internal static var all: Set<Character> {
+  public static var all: Set<Character> {
     [
       alphanumeric,
       parenthesis,

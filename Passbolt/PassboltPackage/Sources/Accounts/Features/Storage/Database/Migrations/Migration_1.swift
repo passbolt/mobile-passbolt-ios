@@ -65,7 +65,7 @@ extension SQLiteMigration {
           ON
             resourceFields.id == resourceTypesFields.resourceFieldID
           WHERE
-            resourceTypesFields.id == resourceTypes.id
+            resourceTypesFields.resourceTypeID == resourceTypes.id
         )
         AS fields
       FROM

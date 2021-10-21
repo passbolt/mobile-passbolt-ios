@@ -75,7 +75,7 @@ extension Mutation where Subject: ErrorMessageView {
   }
 
   internal static func text(
-    localized localizationKey: String,
+    localized localizationKey: StaticString,
     fromTable tableName: String? = nil,
     inBundle bundle: Bundle = Bundle.main,
     value: String = "",
@@ -83,7 +83,7 @@ extension Mutation where Subject: ErrorMessageView {
   ) -> Self {
     text(
       NSLocalizedString(
-        localizationKey,
+        localizationKey.description,
         tableName: tableName,
         bundle: bundle,
         value: value,

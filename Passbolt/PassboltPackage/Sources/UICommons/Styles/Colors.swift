@@ -131,6 +131,19 @@ public struct DynamicColor {
     }
   }
 
+  /// Default/Light: #FFBD2E Dark: #FFBD2E
+  public static var secondaryOrange: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0xFFBD2E)
+
+      case .light, _:
+        return UIColor(0xFFBD2E)
+      }
+    }
+  }
+
   /// Default/Light: #D40101 Dark: #D40101
   public static var secondaryRed: Self {
     Self { userInterfaceStyle in
@@ -153,6 +166,19 @@ public struct DynamicColor {
 
       case .light, _:
         return UIColor(0xFAC600)
+      }
+    }
+  }
+
+  /// Default/Light: #FAC600 Dark: #FAC600
+  public static var secondaryGray: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0xF3F3F3)
+
+      case .light, _:
+        return UIColor(0xF3F3F3)
       }
     }
   }
