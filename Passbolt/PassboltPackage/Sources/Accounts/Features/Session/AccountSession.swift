@@ -70,6 +70,8 @@ public struct AccountSession {
   public var mfaAuthorize: (MFAAuthorizationMethod, Bool) -> AnyPublisher<Void, TheError>
   // Decrypt message with current session context if any. Optionally verify signature if public key was provided.
   public var decryptMessage: (String, ArmoredPGPPublicKey?) -> AnyPublisher<String, TheError>
+  // Encrypt and sign message using provided public key with current session user signature.
+  public var encryptAndSignMessage: (String, ArmoredPGPPublicKey) -> AnyPublisher<ArmoredPGPMessage, TheError>
   // Publishes current account ID each time access to its private key
   // is required and cannot be handled automatically (passphrase cache is expired)
   public var authorizationPromptPresentationPublisher: () -> AnyPublisher<AuthorizationPromptRequest, Never>
@@ -558,6 +560,69 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
     }
 
+    func encryptAndSignMessage(
+      _ message: String,
+      publicKey: ArmoredPGPPublicKey
+    ) -> AnyPublisher<ArmoredPGPMessage, TheError> {
+      sessionStatePublisher
+        .first()
+        .map { sessionState -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
+          switch sessionState {
+          case let .authorized(account), let .authorizedMFARequired(account, _):
+            switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+            case let .success(armoredKey):
+              return passphraseCache
+                .passphrasePublisher(account.localID)
+                .first()
+                .setFailureType(to: TheError.self)
+                .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
+                  guard let passphrase: Passphrase = passphrase
+                  else {
+                    requestAuthorization(message: nil)
+                    return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
+                      .eraseToAnyPublisher()
+                  }
+                  return Just((armoredKey, passphrase))
+                    .setFailureType(to: TheError.self)
+                    .eraseToAnyPublisher()
+                }
+                .switchToLatest()
+                .eraseToAnyPublisher()
+
+            case let .failure(error):
+              diagnostics.debugLog(
+                "Failed to retrieve private key for account: \(account.localID)"
+                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+              )
+              return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: error)
+                .eraseToAnyPublisher()
+            }
+
+          case .authorizationRequired, .none:
+            requestAuthorization(message: nil)
+            return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .map { armoredPrivateKey, passphrase -> AnyPublisher<ArmoredPGPMessage, TheError> in
+          let encryptionResult: Result<String, TheError> = pgp.encryptAndSign(message, passphrase, armoredPrivateKey, publicKey)
+
+          switch encryptionResult {
+          case let .success(encrypted):
+            return Just(.init(rawValue: encrypted))
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+
+          case let .failure(error):
+            return Fail<ArmoredPGPMessage, TheError>(error: error)
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     func authorizationPromptPresentationPublisher() -> AnyPublisher<AuthorizationPromptRequest, Never> {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
@@ -601,6 +666,7 @@ extension AccountSession: Feature {
       authorize: authorize(account:authorizationMethod:),
       mfaAuthorize: mfaAuthorize(method:rememberDevice:),
       decryptMessage: decryptMessage,
+      encryptAndSignMessage: encryptAndSignMessage(_:publicKey:),
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
       requestAuthorizationPrompt: requestAuthorization,
       close: closeSession
@@ -617,6 +683,7 @@ extension AccountSession {
       authorize: Commons.placeholder("You have to provide mocks for used methods"),
       mfaAuthorize: Commons.placeholder("You have to provide mocks for used methods"),
       decryptMessage: Commons.placeholder("You have to provide mocks for used methods"),
+      encryptAndSignMessage: Commons.placeholder("You have to provide mocks for used methods"),
       authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       requestAuthorizationPrompt: Commons.placeholder("You have to provide mocks for used methods"),
       close: Commons.placeholder("You have to provide mocks for used methods")

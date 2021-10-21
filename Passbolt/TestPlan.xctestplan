@@ -111,6 +111,13 @@
         "identifier" : "NFCTests",
         "name" : "NFCTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "UsersTests",
+        "name" : "UsersTests"
+      }
     }
   ],
   "version" : 1

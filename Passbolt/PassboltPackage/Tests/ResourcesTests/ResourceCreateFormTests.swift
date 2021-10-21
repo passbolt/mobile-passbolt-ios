@@ -26,6 +26,7 @@ import Crypto
 import Features
 import NetworkClient
 import TestExtensions
+import Users
 import XCTest
 
 @testable import Accounts
@@ -34,25 +35,33 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceCreateFormTests: TestCase {
 
+  var accountSession: AccountSession!
   var database: AccountDatabase!
   var networkClient: NetworkClient!
+  var userPGPMessages: UserPGPMessages!
 
   override func setUp() {
     super.setUp()
+    accountSession = .placeholder
     database = .placeholder
     networkClient = .placeholder
+    userPGPMessages = .placeholder
   }
 
   override func tearDown() {
+    accountSession = nil
     database = nil
     networkClient = nil
+    userPGPMessages = nil
     super.tearDown()
   }
 
   func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -73,9 +82,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([emptyResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -96,9 +107,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_resourceTypePublisher_publishesDefaultResourceType_whenValidResourceTypeAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([.init(id: "password-and-description", slug: "password-and-description", name: "password-and-description", fields: [])]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -117,9 +130,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -140,9 +155,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_fieldValuePublisher_returnsInitiallyPublishingPublisher_whenResourceFieldAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -161,9 +178,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_fieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -187,9 +206,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_fieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -215,9 +236,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_setFieldValue_fails_whenResourceFieldNotAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -238,9 +261,11 @@ final class ResourceCreateFormTests: TestCase {
   }
 
   func test_setFieldValue_succeeds_whenResourceFieldAvailable() {
+    features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
     features.use(database)
     features.use(networkClient)
+    features.use(userPGPMessages)
 
     let feature: ResourceCreateForm = testInstance()
 
@@ -257,6 +282,239 @@ final class ResourceCreateFormTests: TestCase {
 
     XCTAssertNotNil(result)
   }
+
+  func test_createResource_fails_whenFetchResourcesTypesOperationFails() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceCreateForm = testInstance()
+
+    var result: TheError?
+    feature
+      .createResource()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createResource_fails_whenFieldsValidationFails() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultShrinkedResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceCreateForm = testInstance()
+
+    var result: TheError?
+    feature
+      .createResource()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .validation)
+  }
+
+  func test_createResource_fails_whenNoActiveUserSession() {
+    accountSession.statePublisher = always(
+      Just(.none(lastUsed: nil))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultShrinkedResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceCreateForm = testInstance()
+
+    feature
+      .setFieldValue("name", "name")
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    feature
+      .createResource()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .authorizationRequired)
+  }
+
+  func test_createResource_fails_whenEncryptMessageForUserFails() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultShrinkedResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    features.use(networkClient)
+    userPGPMessages.encryptMessageForUser = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(userPGPMessages)
+
+    let feature: ResourceCreateForm = testInstance()
+
+    feature
+      .setFieldValue("name", "name")
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    feature
+      .createResource()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createResource_fails_whenCreateResourceRequestFails() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultShrinkedResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    networkClient.createResourceRequest.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+    userPGPMessages.encryptMessageForUser = always(
+      Just("encrypted-message")
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(userPGPMessages)
+
+    let feature: ResourceCreateForm = testInstance()
+
+    feature
+      .setFieldValue("name", "name")
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    feature
+      .createResource()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_createResource_succeeds_whenAllOperationsSucceed() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultShrinkedResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    networkClient.createResourceRequest.execute = always(
+      Just(.init(
+        header: .mock(),
+        body: .init(resourceID: "resource-id")
+      ))
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+    userPGPMessages.encryptMessageForUser = always(
+      Just("encrypted-message")
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(userPGPMessages)
+
+    let feature: ResourceCreateForm = testInstance()
+
+    feature
+      .setFieldValue("name", "name")
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: Resource.ID?
+    feature
+      .createResource()
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { resourceID in
+          result = resourceID
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, "resource-id")
+  }
 }
 
 private let emptyResourceType: ResourceType = .init(
@@ -264,6 +522,15 @@ private let emptyResourceType: ResourceType = .init(
   slug: "empty",
   name: "empty",
   fields: []
+)
+
+private let defaultShrinkedResourceType: ResourceType = .init(
+  id: "password-and-description-shrinked",
+  slug: "password-and-description",
+  name: "password-and-description-shrinked",
+  fields: [
+    .string(name: "name", required: true, encrypted: false, maxLength: nil),
+  ]
 )
 
 private let defaultResourceType: ResourceType = .init(
@@ -277,4 +544,11 @@ private let defaultResourceType: ResourceType = .init(
     .string(name: "password", required: true, encrypted: true, maxLength: nil),
     .string(name: "description", required: false, encrypted: true, maxLength: nil),
   ]
+)
+
+private let validAccount: Account = .init(
+  localID: .init(rawValue: UUID.test.uuidString),
+  domain: "https://passbolt.dev",
+  userID: "USER_ID",
+  fingerprint: "FINGERPRINT"
 )

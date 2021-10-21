@@ -69,6 +69,10 @@ let package = Package(
       targets: ["UIComponents"]
     ),
     .library(
+      name: "Users",
+      targets: ["Users"]
+    ),
+    .library(
       name: "Environment",
       targets: [
         "Environment"
@@ -207,6 +211,23 @@ let package = Package(
       ]
     ),
     .target(
+      name: "Users",
+      dependencies: [
+        "Accounts",
+        "Commons",
+        "Crypto",
+        "Features",
+        "NetworkClient",
+      ]
+    ),
+    .testTarget(
+      name: "UsersTests",
+      dependencies: [
+        "Users",
+        "TestExtensions",
+      ]
+    ),
+    .target(
       name: "PassboltApp",
       dependencies: [
         "Accounts",
@@ -253,9 +274,11 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
+        "Crypto",
         "Features",
         "NetworkClient",
         "Environment",
+        "Users",
       ]
     ),
     .testTarget(

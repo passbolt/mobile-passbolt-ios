@@ -22,8 +22,10 @@
 //
 
 import Accounts
+import Crypto
 import Features
 import NetworkClient
+import Users
 
 public struct ResourceCreateForm {
 
@@ -44,11 +46,14 @@ extension ResourceCreateForm: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let accountSession: AccountSession = features.instance()
     let database: AccountDatabase = features.instance()
     let networkClient: NetworkClient = features.instance()
+    let userPGPMessages: UserPGPMessages = features.instance()
 
     let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheError> = .init(nil)
-    let formValues: CurrentValueSubject<Dictionary<String, Validated<String>>, Never> = .init(.init())
+    let resourceTypePublisher: AnyPublisher<ResourceType, TheError> = resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
+    let formValuesSubject: CurrentValueSubject<Dictionary<String, Validated<String>>, Never> = .init(.init())
 
     database
       .fetchResourcesTypesOperation()
@@ -73,17 +78,17 @@ extension ResourceCreateForm: Feature {
         },
         receiveValue: { resourceType in
           // remove fields that are no longer in resource
-          let removedFieldNames: Array<String> = formValues.value.keys.filter { key in
+          let removedFieldNames: Array<String> = formValuesSubject.value.keys.filter { key in
             !resourceType.fields.contains(where: { $0.name == key })
           }
           for removedFieldName in removedFieldNames {
-            formValues.value.removeValue(forKey: removedFieldName)
+            formValuesSubject.value.removeValue(forKey: removedFieldName)
           }
 
           // add new fields (if any) and validate again existing ones
           for field in resourceType.fields {
-            let fieldValue: String = formValues.value[field.name]?.value ?? ""
-            formValues.value[field.name] = fieldValidator(for: field).validate(fieldValue)
+            let fieldValue: String = formValuesSubject.value[field.name]?.value ?? ""
+            formValuesSubject.value[field.name] = fieldValidator(for: field).validate(fieldValue)
           }
           resourceTypeSubject.send(resourceType)
         }
@@ -109,19 +114,13 @@ extension ResourceCreateForm: Feature {
       )
     }
 
-    func resourceTypePublisher() -> AnyPublisher<ResourceType, TheError> {
-      resourceTypeSubject
-        .filterMapOptional()
-        .eraseToAnyPublisher()
-    }
-
     func setFieldValue(
       _ value: String,
       fieldName: String
     ) -> AnyPublisher<Void, TheError> {
-      resourceTypeSubject
+      resourceTypePublisher
         .map { resourceType -> AnyPublisher<Validated<String>, TheError> in
-          if let field: ResourceField = resourceType?.fields.first(where: { $0.name == fieldName }) {
+          if let field: ResourceField = resourceType.fields.first(where: { $0.name == fieldName }) {
             return Just(fieldValidator(for: field).validate(value))
               .setFailureType(to: TheError.self)
               .eraseToAnyPublisher()
@@ -133,7 +132,7 @@ extension ResourceCreateForm: Feature {
         }
         .switchToLatest()
         .handleEvents(receiveOutput: { validatedValue in
-          formValues.value[fieldName] = validatedValue
+          formValuesSubject.value[fieldName] = validatedValue
         })
         .mapToVoid()
         .eraseToAnyPublisher()
@@ -142,7 +141,7 @@ extension ResourceCreateForm: Feature {
     func fieldValuePublisher(
       fieldName: String
     ) -> AnyPublisher<Validated<String>, Never> {
-      formValues
+      formValuesSubject
         .map { formFields -> AnyPublisher<Validated<String>, Never> in
           if let fieldValue: Validated<String> = formFields[fieldName] {
             return Just(fieldValue)
@@ -161,52 +160,94 @@ extension ResourceCreateForm: Feature {
     }
 
     func createResource() -> AnyPublisher<Resource.ID, TheError> {
-      formValues
+      Publishers.CombineLatest(
+        resourceTypePublisher,
+        formValuesSubject
+          .setFailureType(to: TheError.self)
+      )
         .first()
-        .map { validatedFieldValues -> AnyPublisher<Dictionary<String, String>, TheError> in
+        .map { resourceType, validatedFieldValues -> AnyPublisher<(fieldValues: Dictionary<String, String>, encodedSecret: String), TheError> in
           var fieldValues: Dictionary<String, String> = .init()
-          fieldValues.reserveCapacity(validatedFieldValues.count)
+          var secretFieldValues: Dictionary<String, String> = .init()
+
           for (key, validatedValue) in validatedFieldValues {
+            guard let field: ResourceField = resourceType.fields.first(where: { $0.name == key })
+            else {
+              assertionFailure("Trying to use form value that is not associated with any resource fields")
+              continue
+            }
             guard validatedValue.isValid
             else {
               #warning("TODO: fill in errors")
               return Fail(error: .validationError("TODO: error?"))
                 .eraseToAnyPublisher()
             }
-            fieldValues[key] = validatedValue.value
+            if field.encrypted {
+              secretFieldValues[key] = validatedValue.value
+            }
+            else {
+              fieldValues[key] = validatedValue.value
+            }
           }
-          return Just(fieldValues)
+
+          let encodedSecretFields: String = secretFieldValues
+            .map { field -> String in
+              "\"\(field.key)\":\"\(field.value)\""
+            }
+            .joined(separator: ",")
+          let encodedSecret: String = "{\(encodedSecretFields)}"
+
+          return Just((fieldValues: fieldValues, encodedSecret: encodedSecret))
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .map { fieldValues -> AnyPublisher<Resource.ID, TheError> in
+        .map { (fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheError> in
           resourceTypeSubject
             .first()
             .compactMap(\.?.id)
             .map { resourceTypeID -> AnyPublisher<Resource.ID, TheError> in
-              #warning("TODO: [PAS-419] encrypt message using user public key")
               guard let name: String = fieldValues["name"]
               else {
                 #warning("TODO: fill in errors")
                 return Fail(error: .validationError("TODO: error?"))
                   .eraseToAnyPublisher()
               }
-              return networkClient
-                .createResourceRequest
-                .make(
-                  using: .init(
-                    resourceTypeID: resourceTypeID.rawValue,
-                    name: name,
-                    username: fieldValues["username"],
-                    url: fieldValues["uri"],
-                    description: fieldValues["description"],
-                    secretData: "TODO: secret"
-                  )
-                )
-                .map { response -> Resource.ID in
-                  .init(rawValue: response.body.resourceID)
+
+              return accountSession
+                .statePublisher()
+                .map { sessionState -> AnyPublisher<ArmoredPGPMessage, TheError> in
+                  switch sessionState {
+                  case let .authorized(account), let .authorizedMFARequired(account, _):
+                    return userPGPMessages
+                      .encryptMessageForUser(.init(rawValue: account.userID.rawValue), encodedSecret)
+                      .eraseToAnyPublisher()
+
+                  case .authorizationRequired, .none:
+                    return Fail(error: .authorizationRequired())
+                      .eraseToAnyPublisher()
+                  }
                 }
+                .switchToLatest()
+                .map { encryptedSecret in
+                  networkClient
+                    .createResourceRequest
+                    .make(
+                      using: .init(
+                        resourceTypeID: resourceTypeID.rawValue,
+                        name: name,
+                        username: fieldValues["username"],
+                        url: fieldValues["uri"],
+                        description: fieldValues["description"],
+                        secretData: encryptedSecret.rawValue
+                      )
+                    )
+                    .map { response -> Resource.ID in
+                      .init(rawValue: response.body.resourceID)
+                    }
+                    .eraseToAnyPublisher()
+                }
+                .switchToLatest()
                 .eraseToAnyPublisher()
             }
             .switchToLatest()
@@ -217,7 +258,7 @@ extension ResourceCreateForm: Feature {
     }
 
     return Self(
-      resourceTypePublisher: resourceTypePublisher,
+      resourceTypePublisher: { resourceTypePublisher },
       setFieldValue: setFieldValue(_:fieldName:),
       fieldValuePublisher: fieldValuePublisher(fieldName:),
       createResource: createResource

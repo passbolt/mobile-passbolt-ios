@@ -51,6 +51,7 @@ final class AccountSettingsTests: TestCase {
         .init(
           header: .mock(),
           body: .init(
+            id: "user-id",
             profile: .init(
               firstName: "firstName",
               lastName: "lastName",
@@ -59,7 +60,8 @@ final class AccountSettingsTests: TestCase {
                   medium: "https://passbolt.com/image.jpg"
                 )
               )
-            )
+            ),
+            gpgKey: .init(armoredKey: "armored-public-key")
           )
         )
       )
@@ -829,6 +831,7 @@ final class AccountSettingsTests: TestCase {
         .init(
           header: .mock(),
           body: .init(
+            id: "user-id",
             profile: .init(
               firstName: "firstName",
               lastName: "lastName",
@@ -837,7 +840,8 @@ final class AccountSettingsTests: TestCase {
                   medium: "https://passbolt.com/image.jpg"
                 )
               )
-            )
+            ),
+            gpgKey: .init(armoredKey: "armored-public-key")
           )
         )
       )
@@ -873,6 +877,7 @@ final class AccountSettingsTests: TestCase {
         .init(
           header: .mock(),
           body: .init(
+            id: "user-id",
             profile: .init(
               firstName: "firstName",
               lastName: "lastName",
@@ -881,7 +886,8 @@ final class AccountSettingsTests: TestCase {
                   medium: "https://passbolt.com/image.jpg"
                 )
               )
-            )
+            ),
+            gpgKey: .init(armoredKey: "armored-public-key")
           )
         )
       )

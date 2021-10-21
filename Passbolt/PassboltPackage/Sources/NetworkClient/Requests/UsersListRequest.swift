@@ -24,13 +24,10 @@
 import Commons
 import Environment
 
-import struct Foundation.Data
+public typealias UserListRequest =
+NetworkRequest<AuthorizedSessionVariable, UserListRequestVariable, UserListRequestResponse>
 
-public typealias CreateResourceRequest = NetworkRequest<
-  AuthorizedSessionVariable, CreateResourceRequestVariable, CreateResourceRequestResponse
->
-
-extension CreateResourceRequest {
+extension UserListRequest {
 
   internal static func live(
     using networking: Networking,
@@ -40,16 +37,23 @@ extension CreateResourceRequest {
       template: .init { sessionVariable, requestVariable in
           .combined(
             .url(string: sessionVariable.domain),
-            .path("/resources.json"),
+            .path("/users.json"),
+            .whenSome(
+              requestVariable.resourceIDFilter,
+              then: { resourceID in
+                  .queryItem("filter[has-access]", value: resourceID)
+              },
+              else: .none
+            ),
+            .queryItem("api-version", value: "v2"),
             .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
             .whenSome(
               sessionVariable.mfaToken,
               then: { mfaToken in
-                  .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+                .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
               }
             ),
-            .jsonBody(from: requestVariable),
-            .method(.post)
+            .method(.get)
           )
       },
       responseDecoder: .bodyAsJSON(),
@@ -59,61 +63,15 @@ extension CreateResourceRequest {
   }
 }
 
-public struct CreateResourceRequestVariable: Encodable {
+public struct UserListRequestVariable {
 
-  public var resourceTypeID: String
-  public var name: String
-  public var username: String?
-  public var url: String?
-  public var description: String?
-  public var secrets: Array<Secret>
-
-  public struct Secret: Encodable {
-
-    public var data: String
-  }
+  public var resourceIDFilter: String?
 
   public init(
-    resourceTypeID: String,
-    name: String,
-    username: String?,
-    url: String?,
-    description: String?,
-    secretData: String
+    resourceIDFilter: String? = nil
   ) {
-    self.resourceTypeID = resourceTypeID
-    self.name = name
-    self.username = username
-    self.url = url
-    self.description = description
-    self.secrets = [Secret(data: secretData)]
-  }
-
-  public enum CodingKeys: String, CodingKey {
-
-    case name = "name"
-    case description = "description"
-    case username = "username"
-    case url = "uri"
-    case resourceTypeID = "resource_type_id"
-    case secrets = "secrets"
+    self.resourceIDFilter = resourceIDFilter
   }
 }
 
-public typealias CreateResourceRequestResponse = CommonResponse<CreateResourceRequestResponseBody>
-
-public struct CreateResourceRequestResponseBody: Decodable {
-
-  public var resourceID: String
-
-  public init(
-    resourceID: String
-  ) {
-    self.resourceID = resourceID
-  }
-
-  public enum CodingKeys: String, CodingKey {
-
-    case resourceID = "resource_id"
-  }
-}
+public typealias UserListRequestResponse = CommonResponse<Array<User>>
