@@ -79,7 +79,76 @@ final class UserPGPMessagesTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
+  func test_encryptMessageForUser_fails_whenPublicKeyVerificationFails() {
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(.testError()))
+    accountSession.statePublisher = always(
+      Just(
+        .authorized(.init(
+          localID: "local-id",
+          domain: "https://passbolt.com",
+          userID: "user-id",
+          fingerprint: "fingerpring"
+        ))
+      )
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    features.use(database)
+    networkClient.userProfileRequest.execute = always(
+      Just(.init(
+        header: .mock(),
+        body: .init(
+          id: "user-id",
+          profile: .init(
+            firstName: "firstName",
+            lastName: "lastName",
+            avatar: .init(
+              url: .init(
+                medium: "avatar-url"
+              )
+            )
+          ),
+          gpgKey: .init(
+            armoredKey: "armored-public-key"
+          )
+        )
+      ))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let feature: UserPGPMessages = testInstance()
+
+    var result: TheError?
+    feature
+      .encryptMessageForUser("user-id", "message")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .invalidUserPublicKey)
+  }
+
   func test_encryptMessageForUser_fails_whenEncryptAndSignMessageFails() {
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
+    accountSession.statePublisher = always(
+      Just(
+        .authorized(.init(
+          localID: "local-id",
+          domain: "https://passbolt.com",
+          userID: "user.id",
+          fingerprint: "fingerpring"
+        ))
+      )
+      .eraseToAnyPublisher()
+    )
     accountSession.encryptAndSignMessage = always(
       Fail(error: .testError())
         .eraseToAnyPublisher()
@@ -129,6 +198,18 @@ final class UserPGPMessagesTests: TestCase {
   }
 
   func test_encryptMessageForUser_succeeds_whenAllOperationsSucceed() {
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
+    accountSession.statePublisher = always(
+      Just(
+        .authorized(.init(
+          localID: "local-id",
+          domain: "https://passbolt.com",
+          userID: "user.id",
+          fingerprint: "fingerpring"
+        ))
+      )
+        .eraseToAnyPublisher()
+    )
     accountSession.encryptAndSignMessage = always(
       Just("encrypted-armored-message")
         .setFailureType(to: TheError.self)
@@ -176,7 +257,7 @@ final class UserPGPMessagesTests: TestCase {
     XCTAssertEqual(result?.rawValue, "encrypted-armored-message")
   }
 
-  func test_encryptMessageForResourceUsers_fails_whenUserListRequest() {
+  func test_encryptMessageForResourceUsers_fails_whenUserListRequestFails() {
     features.use(accountSession)
     features.use(database)
     networkClient.userListRequest.execute = always(
@@ -203,7 +284,82 @@ final class UserPGPMessagesTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
+  func test_encryptMessageForResourceUsers_fails_whenPublicKeyVerificationFails() {
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(.testError()))
+    accountSession.statePublisher = always(
+      Just(
+        .authorized(.init(
+          localID: "local-id",
+          domain: "https://passbolt.com",
+          userID: "user-id",
+          fingerprint: "fingerpring"
+        ))
+      )
+        .eraseToAnyPublisher()
+    )
+    accountSession.encryptAndSignMessage = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    features.use(database)
+    networkClient.userListRequest.execute = always(
+      Just(.init(
+        header: .mock(),
+        body: [
+          .init(
+            id: "user-id",
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "avatar-url"
+                )
+              )
+            ),
+            gpgKey: .init(
+              armoredKey: "armored-public-key"
+            )
+          )
+        ]
+      ))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let feature: UserPGPMessages = testInstance()
+
+    var result: TheError?
+    feature
+      .encryptMessageForResourceUsers("resource-id", "message")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .invalidUserPublicKey)
+  }
+
   func test_encryptMessageForResourceUsers_fails_whenEncryptAndSignMessageFails() {
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
+    accountSession.statePublisher = always(
+      Just(
+        .authorized(.init(
+          localID: "local-id",
+          domain: "https://passbolt.com",
+          userID: "user-id",
+          fingerprint: "fingerpring"
+        ))
+      )
+      .eraseToAnyPublisher()
+    )
     accountSession.encryptAndSignMessage = always(
       Fail(error: .testError())
         .eraseToAnyPublisher()
@@ -255,6 +411,18 @@ final class UserPGPMessagesTests: TestCase {
   }
 
   func test_encryptMessageForResourceUsers_succeeds_whenAllOperationsSucceed() {
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
+    accountSession.statePublisher = always(
+      Just(
+        .authorized(.init(
+          localID: "local-id",
+          domain: "https://passbolt.com",
+          userID: "user.id",
+          fingerprint: "fingerpring"
+        ))
+      )
+        .eraseToAnyPublisher()
+    )
     accountSession.encryptAndSignMessage = always(
       Just("encrypted-armored-message")
         .setFailureType(to: TheError.self)

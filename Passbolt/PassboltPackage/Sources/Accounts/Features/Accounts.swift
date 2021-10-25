@@ -37,7 +37,7 @@ public struct Accounts {
       _ firstName: String,
       _ lastName: String,
       _ avatarImageURL: String,
-      _ fingerprint: String,
+      _ fingerprint: Fingerprint,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError>
@@ -72,7 +72,7 @@ extension Accounts: Feature {
       firstName: String,
       lastName: String,
       avatarImageURL: String,
-      fingerprint: String,
+      fingerprint: Fingerprint,
       armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Void, TheError> {

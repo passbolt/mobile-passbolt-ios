@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Crypto
+
 // Read only composite of Account and AccountProfile for displaying authorization and account list.
 public struct AccountWithProfile {
 
@@ -32,7 +34,7 @@ public struct AccountWithProfile {
   public let firstName: String
   public let lastName: String
   public let avatarImageURL: String
-  public let fingerprint: String
+  public let fingerprint: Fingerprint
   public let biometricsEnabled: Bool
 
   public init(
@@ -44,7 +46,7 @@ public struct AccountWithProfile {
     firstName: String,
     lastName: String,
     avatarImageURL: String,
-    fingerprint: String,
+    fingerprint: Fingerprint,
     biometricsEnabled: Bool
   ) {
     self.localID = localID

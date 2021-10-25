@@ -100,7 +100,7 @@ extension AccountTransfer: Feature {
               ),
               account: AccountTransferAccount(
                 userID: mdmTransferedAccount.userID,
-                fingerprint: mdmTransferedAccount.fingerprint,
+                fingerprint: .init(rawValue: mdmTransferedAccount.fingerprint),
                 armoredKey: ArmoredPGPPrivateKey(rawValue: mdmTransferedAccount.armoredKey)
               ),
               profile: AccountTransferAccountProfile(

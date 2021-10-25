@@ -22,22 +22,21 @@
 //
 
 import Commons
-import Crypto
 
-// Immutable part of account, used to identify account and associated server.
-// WARNING: Do not add new or rename fields in this structure
-// - it will cause data wipe on devices after update.
-// Prepare data migration mechanism before making such changes.
-public struct Account {
+extension TheError {
 
-  public typealias UserID = Tagged<String, Self>
-  public typealias LocalID = Tagged<String, UserID>
-
-  public let localID: LocalID
-  public let domain: String
-  public let userID: UserID
-  public let fingerprint: Fingerprint
+  public static func invalidUserPublicKey(
+    underlyingError: Error? = nil
+  ) -> Self {
+    .init(
+      identifier: .invalidUserPublicKey,
+      underlyingError: underlyingError,
+      extensions: .init()
+    )
+  }
 }
 
-extension Account: Hashable {}
-extension Account: Codable {}
+extension TheError.ID {
+
+  public static let invalidUserPublicKey: Self = "invalidUserPublicKey"
+}

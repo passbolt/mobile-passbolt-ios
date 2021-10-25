@@ -44,8 +44,44 @@ extension UserPGPMessages: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
     ) -> Self {
+      let pgp: PGP = features.environment.pgp
       let accountSession: AccountSession = features.instance()
       let networkClient: NetworkClient = features.instance()
+
+      func verifiedPublicKey(
+        _ userID: User.ID,
+        publicKey: ArmoredPGPPublicKey
+      ) -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
+        #warning("Currently we can verify only own public key, we might add other users keys verification in the future.")
+        return accountSession
+          .statePublisher()
+          .first()
+          .map { accountSessionState -> AnyPublisher<ArmoredPGPPublicKey, TheError> in
+            switch accountSessionState {
+            case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
+              if account.userID.rawValue == userID.rawValue {
+                if (try? pgp.verifyPublicKeyFingerprint(publicKey, account.fingerprint).get()) ?? false {
+                  return Just(publicKey)
+                    .setFailureType(to: TheError.self)
+                    .eraseToAnyPublisher()
+                } else {
+                  return Fail(error: .invalidUserPublicKey())
+                    .eraseToAnyPublisher()
+                }
+              } else {
+                return Just(publicKey)
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+              }
+
+            case .none:
+              return Fail(error: .authorizationRequired())
+                .eraseToAnyPublisher()
+            }
+          }
+          .switchToLatest()
+          .eraseToAnyPublisher()
+      }
 
       func encryptMessageForUser(
         _ userID: User.ID,
@@ -56,9 +92,13 @@ extension UserPGPMessages: Feature {
           .make(using: .init(userID: userID.rawValue))
           .map(\.body)
           .map { user -> AnyPublisher<ArmoredPGPMessage, TheError> in
-            #warning("[PAS-433] TODO: verify public key for current user using local fingerprint/private key")
-            return accountSession
-              .encryptAndSignMessage(message, user.gpgKey.armoredKey)
+            verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
+              .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheError> in
+                accountSession
+                  .encryptAndSignMessage(message, armoredPublicKey)
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
           }
           .switchToLatest()
           .eraseToAnyPublisher()
@@ -73,12 +113,15 @@ extension UserPGPMessages: Feature {
           .make(using: .init(resourceIDFilter: resourceID.rawValue))
           .map(\.body)
           .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> in
-            #warning("[PAS-433] TODO: verify public key for current user using local fingerprint/private key")
-            return Publishers.MergeMany(
+            Publishers.MergeMany(
               users
                 .map { user -> AnyPublisher<(User.ID, ArmoredPGPMessage), TheError> in
-                  accountSession
-                    .encryptAndSignMessage(message, user.gpgKey.armoredKey)
+                  verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
+                    .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheError> in
+                      accountSession
+                        .encryptAndSignMessage(message, armoredPublicKey)
+                    }
+                    .switchToLatest()
                     .map { encryptedMessage in
                       (user.id, encryptedMessage)
                     }
