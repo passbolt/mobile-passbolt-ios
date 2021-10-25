@@ -44,7 +44,7 @@ extension UserPGPMessages: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
     ) -> Self {
-      let pgp: PGP = features.environment.pgp
+      let pgp: PGP = environment.pgp
       let accountSession: AccountSession = features.instance()
       let networkClient: NetworkClient = features.instance()
 
