@@ -34,10 +34,10 @@ qa_build_publish:
 	xcrun altool --upload-app -f $(IPA_PATH)/Passbolt.ipa -u $(ASC_USER) --apiKey $(ASC_KEY) --apiIssuer $(ASC_KEY_ISSUER) --type ios
 
 lint:
-	swift run --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ./Tools/code-format.json --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report
+	swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report
 
 format:
-	swift run --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode format --configuration ./Tools/code-format.json --in-place --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests
+	swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format format --configuration ./Tools/code-format.json --in-place --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests
 
 prepare_licenses:
 	swift run --package-path Tools/license --build-path ~/tmp/passbolt -- license-plist --suppress-opening-directory --fail-if-missing-license --package-path Passbolt/PassboltPackage/Package.swift --config-path Tools/license-plist.yml --prefix LicensePlist --output-path Passbolt/Passbolt/Settings.bundle

@@ -175,10 +175,10 @@
 			buildConfigurationList = DD38F952261746C500A6C627 /* Build configuration list for PBXNativeTarget "Passbolt" */;
 			buildPhases = (
 				DD38F93A261746C400A6C627 /* Sources */,
+				DDBB9861261C8851008B178F /* Run Linter */,
 				DD38F93B261746C400A6C627 /* Frameworks */,
 				DD38F93C261746C400A6C627 /* Resources */,
 				DD38F97226174BB700A6C627 /* Embed App Extensions */,
-				DDBB9861261C8851008B178F /* Swift Format */,
 			);
 			buildRules = (
 			);
@@ -198,6 +198,7 @@
 			buildConfigurationList = DD38F96F26174BB700A6C627 /* Build configuration list for PBXNativeTarget "PassboltAutofill" */;
 			buildPhases = (
 				DD38F95C26174BB700A6C627 /* Sources */,
+				42A55678272977F700FE5E6A /* Run Linter */,
 				DD38F95D26174BB700A6C627 /* Frameworks */,
 				DD38F95E26174BB700A6C627 /* Resources */,
 			);
@@ -293,7 +294,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode format --in-place --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+			shellScript = "swift run --configuration release --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format format --configuration ../Tools/code-format.json --in-place --parallel --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
 		};
 		4205C51C269844C400F2434D /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -311,9 +312,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+			shellScript = "swift run --configuration release --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ../Tools/code-format.json  --parallel --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
 		};
-		DDBB9861261C8851008B178F /* Swift Format */ = {
+		42A55678272977F700FE5E6A /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -322,14 +323,32 @@
 			);
 			inputPaths = (
 			);
-			name = "Swift Format";
+			name = "Run Linter";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run --configuration release --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ../Tools/code-format.json --parallel --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+		};
+		DDBB9861261C8851008B178F /* Run Linter */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Linter";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/zsh;
-			shellScript = "# /usr/bin/xcrun --sdk macosx swift run --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format --mode lint --configuration ../Tools/code-format.json --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
+			shellScript = "/usr/bin/xcrun --sdk macosx swift run --configuration release --package-path ../Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ../Tools/code-format.json --parallel --recursive ./PassboltPackage/Package.swift ./PassboltPackage/Sources ./PassboltPackage/Tests\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -380,6 +399,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -388,6 +408,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
