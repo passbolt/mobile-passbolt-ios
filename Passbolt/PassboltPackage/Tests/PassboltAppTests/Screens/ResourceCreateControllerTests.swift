@@ -90,27 +90,96 @@ final class ResourceCreateControllerTests: TestCase {
     ])
   }
 
+  func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() {
+    var resultPassword: String?
+    resourceForm.resourceTypePublisher = always(
+      Just(defaultResourceType)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resourceForm.setFieldValue = { value, fieldName in
+      if fieldName == "password" {
+        resultPassword = value
+      }
+      else {
+        /* NOP */
+      }
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    var resultGenerate: (
+      alphabet: Set<Set<Character>>,
+      minLength: Int,
+      targetEntropy: Entropy
+    )?
+    randomGenerator.generate = { alphabets, minLength, targetEntropy in
+      resultGenerate = (alphabets, minLength, targetEntropy)
+      return "&!)]V3rYstrP@$word___"
+    }
+    features.use(resources)
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    let controller: ResourceCreateController = testInstance()
+
+    controller.generatePassword()
+
+    XCTAssertNotNil(resultPassword)
+    XCTAssertEqual(resultGenerate?.alphabet, CharacterSets.all)
+    XCTAssertEqual(resultGenerate?.minLength, 18)
+    XCTAssertEqual(resultGenerate?.targetEntropy, .veryStrongPassword)
+  }
+
+  func test_passwordEntropyPublisher_publishes_whenFieldPublisher_publishes() {
+    let fieldValueSubject: PassthroughSubject<Validated<String>, Never> = .init()
+    resourceForm.resourceTypePublisher = always(
+      Just(defaultResourceType)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resourceForm.fieldValuePublisher = always(
+      fieldValueSubject.eraseToAnyPublisher()
+    )
+    randomGenerator.entropy = always(.veryStrongPassword)
+    features.use(resources)
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    let controller: ResourceCreateController = testInstance()
+    var result: Entropy?
+
+    controller.passwordEntropyPublisher()
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { entropy in
+          result = entropy
+        }
+      )
+      .store(in: cancellables)
+
+    fieldValueSubject.send(.valid("|hX!y*JLW@&&R3/Qo=Q?"))
+
+    XCTAssertEqual(result, .veryStrongPassword)
+  }
+
   func test_createResource_triggersRefreshIfNeeded_andUnloadsResourceCreateForm() {
     var refreshIfNeededCalled: Void?
     var unloadFeature: Void?
-
     resources.refreshIfNeeded = {
       refreshIfNeededCalled = Void()
       return Empty(completeImmediately: true)
         .eraseToAnyPublisher()
     }
-
     resourceForm.createResource = always(
       Just("1")
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-
     resourceForm.featureUnload = {
       unloadFeature = Void()
       return true
     }
-
     features.use(resources)
     features.use(resourceForm)
     features.use(randomGenerator)
@@ -123,6 +192,20 @@ final class ResourceCreateControllerTests: TestCase {
 
     XCTAssertNotNil(refreshIfNeededCalled)
     XCTAssertNotNil(unloadFeature)
+  }
+
+  func test_resourceForm_isUnloaded_whenCleanupCalled() {
+    resourceForm.featureUnload = always(true)
+
+    features.use(resources)
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    let controller: ResourceCreateController = testInstance()
+
+    controller.cleanup()
+
+    XCTAssertFalse(features.isLoaded(ResourceCreateForm.self))
   }
 }
 

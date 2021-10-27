@@ -33,6 +33,7 @@ internal struct ResourceCreateController {
   internal var createResource: () -> AnyPublisher<Void, TheError>
   internal var setValue: (String, String) -> AnyPublisher<Void, TheError>
   internal var generatePassword: () -> Void
+  internal var cleanup: () -> Void
 }
 
 extension ResourceCreateController {
@@ -138,8 +139,10 @@ extension ResourceCreateController: UIController {
     func passwordEntropyPublisher() -> AnyPublisher<Entropy, Never> {
       resourceForm.fieldValuePublisher("password")
         .map { field in
-          #warning("PAS-430 Set target entropy")
-          return randomGenerator.entropy(field.value, CharacterSets.all.count)
+          randomGenerator.entropy(
+            field.value,
+            CharacterSets.all
+          )
         }
         .eraseToAnyPublisher()
     }
@@ -165,6 +168,7 @@ extension ResourceCreateController: UIController {
     func generatePassword() {
       let password: String = randomGenerator.generate(
         CharacterSets.all,
+        18,
         Entropy.veryStrongPassword
       )
 
@@ -173,13 +177,18 @@ extension ResourceCreateController: UIController {
         .store(in: cancellables)
     }
 
+    func cleanup() {
+      features.unload(ResourceCreateForm.self)
+    }
+
     return Self(
       resourceFieldsPublisher: resourceFieldsPublisher,
       fieldValuePublisher: fieldValuePublisher,
       passwordEntropyPublisher: passwordEntropyPublisher,
       createResource: createResource,
       setValue: setValue(_:for:),
-      generatePassword: generatePassword
+      generatePassword: generatePassword,
+      cleanup: cleanup
     )
   }
 }

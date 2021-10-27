@@ -27,13 +27,14 @@ import func Darwin.log
 public struct RandomStringGenerator {
 
   public var generate: (
-    _ alphabet: Set<Character>,
+    _ alphabets: Set<Set<Character>>, // sets have to be disjoint
+    _ minLength: Int,
     _ targetEntropy: Entropy
   ) -> String
 
   public var entropy: (
     _ password: String,
-    _ alphabetCount: Int
+    _ alphabets: Set<Set<Character>> // sets have to be disjoint
   ) -> Entropy
 }
 
@@ -47,34 +48,46 @@ extension RandomStringGenerator: Feature {
 
     var randomness: Randomness = environment.randomness
 
-    #warning("PAS-430 Accept alphabet as an array of Set<Character>")
     func entropy(
       password: String,
-      alphabetCount: Int
+      alphabets: Set<Set<Character>>
     ) -> Entropy {
-      if !password.isEmpty && alphabetCount > 0 {
-        return .init(rawValue: Double(password.count) * (log(Double(alphabetCount)) / log(2)))
+
+      guard !password.isEmpty && !alphabets.isEmpty && alphabets.contains(where: { !$0.isEmpty })
+      else { return .zero }
+
+      let usedAlphabet: Set<Character>  = Set(password).reduce(into: .init()) { result, character in
+        for alphabet in alphabets {
+          if alphabet.contains(character) {
+            return result.formUnion(alphabet)
+          }
+          else {
+            /* NOP */
+          }
+        }
+
+        result.insert(character)
       }
-      else {
-        return .zero
-      }
+
+      return .init(rawValue: Double(password.count) * (log(Double(usedAlphabet.count)) / log(2)))
     }
 
     func generate(
-      from alphabet: Set<Character>,
+      from alphabets: Set<Set<Character>>,
+      minLength: Int,
       with targetEntropy: Entropy
     ) -> String {
 
-      assert(!alphabet.isEmpty && targetEntropy.rawValue > 0)
+      assert(!alphabets.isEmpty && minLength > 0 && targetEntropy.rawValue > 0)
 
       var output: String = ""
+      let entireAlphabet: Set<Character> = alphabets.reduce(.init()) { $0.union($1) }
 
-      #warning("PAS-430 Change behavior")
       while entropy(
         password: output,
-        alphabetCount: alphabet.count
-      ) < targetEntropy {
-        guard let element = alphabet.randomElement(using: &randomness)
+        alphabets: alphabets
+      ) < targetEntropy || output.count < minLength {
+        guard let element = entireAlphabet.randomElement(using: &randomness)
         else { continue }
 
         output.append(element)
@@ -84,8 +97,8 @@ extension RandomStringGenerator: Feature {
     }
 
     return Self(
-      generate: generate(from:with:),
-      entropy: entropy(password:alphabetCount:)
+      generate: generate(from:minLength:with:),
+      entropy: entropy(password:alphabets:)
     )
   }
 }

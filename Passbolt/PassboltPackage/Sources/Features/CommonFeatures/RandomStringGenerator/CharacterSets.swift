@@ -56,21 +56,21 @@ public enum CharacterSets {
     "<", "*", "+", "!", "?", "="
   ])
 
-  internal static var alphanumeric: Set<Character> {
+  internal static var alphanumeric: Set<Set<Character>> {
     [
       lowercaseLetters,
       uppercaseLetters,
       digits
     ]
-      .reduce(.init()) { $0.union($1) }
   }
 
-  public static var all: Set<Character> {
+  public static var all: Set<Set<Character>> {
     [
-      alphanumeric,
+      lowercaseLetters,
+      uppercaseLetters,
+      digits,
       parenthesis,
       special
     ]
-      .reduce(.init()) { $0.union($1) }
   }
 }

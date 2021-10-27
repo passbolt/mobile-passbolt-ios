@@ -57,7 +57,20 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
 
   internal func setupView() {
     mut(navigationItem) {
-      .title(localized: "resource.create.title", inBundle: .main)
+      .combined(
+        .title(localized: "resource.create.title", inBundle: .main),
+        .leftBarButtonItem(
+          Mutation<UIBarButtonItem>
+            .combined(
+              .backStyle(),
+              .action { [weak self] in
+                self?.controller.cleanup()
+                self?.pop(if: Self.self)
+              }
+            )
+            .instantiate()
+        )
+      )
     }
 
     setupSubscriptions()
