@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Foundation
 import Gopenpgp

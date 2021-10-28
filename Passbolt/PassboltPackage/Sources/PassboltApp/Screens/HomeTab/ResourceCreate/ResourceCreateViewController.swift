@@ -77,7 +77,8 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
   }
 
   private func setupSubscriptions() {
-    controller.resourceFieldsPublisher()
+    controller
+      .resourcePropertiesPublisher()
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] completion in
@@ -86,8 +87,8 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
 
           self?.presentErrorSnackbar()
         },
-        receiveValue: { [weak self] fields in
-          self?.contentView.update(with: fields)
+        receiveValue: { [weak self] properties in
+          self?.contentView.update(with: properties)
           self?.setupFieldSubscriptions()
         }
       )
@@ -102,7 +103,8 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
 
     contentView.createTapPublisher
       .map { [unowned self] _ -> AnyPublisher<Void, Never> in
-        self.controller.createResource()
+        self.controller
+          .sendForm()
           .receive(on: RunLoop.main)
           .handleStart { [weak self] in
             self?.present(overlay: LoaderOverlayView())
@@ -177,14 +179,15 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
   private func setupFieldSubscriptions() {
     fieldCancellables = .init()
 
-    controller.resourceFieldsPublisher()
+    controller
+      .resourcePropertiesPublisher()
       .first()
       .receive(on: RunLoop.main)
-      .handleEvents(receiveOutput: { [weak self] resourceFields in
-        _ = resourceFields.map { resourceField in
+      .handleEvents(receiveOutput: { [weak self] resourceProperties in
+        _ = resourceProperties.map { resourceProperty in
           guard let self = self
           else { return }
-          let fieldValuePublisher = self.controller.fieldValuePublisher(resourceField.name().rawValue)
+          let fieldValuePublisher = self.controller.fieldValuePublisher(resourceProperty.field)
 
           fieldValuePublisher
             .first()  // skipping error just to update intial value
@@ -204,14 +207,14 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
             .sink(receiveValue: { [weak self] validated in
               self?.contentView.update(
                 validated: validated,
-                for: resourceField
+                for: resourceProperty.field
               )
             })
             .store(in: self.fieldCancellables)
 
-          self.contentView.fieldValuePublisher(for: resourceField)
+          self.contentView.fieldValuePublisher(for: resourceProperty.field)
             .map { [unowned self] value -> AnyPublisher<Void, TheError> in
-              self.controller.setValue(value, resourceField.name().rawValue)
+              self.controller.setValue(value, resourceProperty.field)
             }
             .switchToLatest()
             .sinkDrop()

@@ -23,12 +23,13 @@
 
 import Accounts
 import Commons
+import CommonDataModels
 import Features
 import UICommons
 
 internal final class ResourceCreateView: KeyboardAwareView {
 
-  internal typealias FieldWithView = (field: ResourceCreateController.Field, view: View)
+  internal typealias FieldWithView = (field: ResourceField, view: View)
 
   internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
   internal var lockTapPublisher: AnyPublisher<Void, Never> { lockButton.tapPublisher }
@@ -42,7 +43,7 @@ internal final class ResourceCreateView: KeyboardAwareView {
   private let lockButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
-  private var fieldViews: Dictionary<ResourceCreateController.Field, View> = .init()
+  private var fieldViews: Dictionary<ResourceField, View> = .init()
 
   internal required init() {
     super.init()
@@ -90,155 +91,160 @@ internal final class ResourceCreateView: KeyboardAwareView {
     }
   }
 
-  internal func update(with fields: Array<ResourceCreateController.Field>) {
-    fieldViews = fields.compactMap { resourceField -> (ResourceCreateController.Field, View) in
-      switch resourceField {
-      case let .name(required, _, _):
-        return (
-          field: resourceField,
-          view: Mutation<TextInput>
-            .combined(
-              .backgroundColor(dynamic: .background),
-              .isRequired(required),
-              .custom { (input: TextInput) in
-                input.applyOn(
-                  text: .combined(
-                    .primaryStyle(),
-                    .attributedPlaceholderString(
-                      .localized(
-                        "resource.create.name.field.placeholder",
-                        inBundle: .main,
-                        font: .inter(ofSize: 14, weight: .medium),
-                        color: .secondaryText
+  internal func update(with properties: Array<ResourceProperty>) {
+    fieldViews = properties
+      .compactMap { resourceProperty -> (ResourceField, View)? in
+        switch resourceProperty.field {
+        case .name:
+          return (
+            field: resourceProperty.field,
+            view: Mutation<TextInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceProperty.required),
+                .custom { (input: TextInput) in
+                  input.applyOn(
+                    text: .combined(
+                      .primaryStyle(),
+                      .attributedPlaceholderString(
+                        .localized(
+                          "resource.create.name.field.placeholder",
+                          inBundle: .main,
+                          font: .inter(ofSize: 14, weight: .medium),
+                          color: .secondaryText
+                        )
                       )
                     )
                   )
-                )
-                input.applyOn(
-                  description: .text(localized: "resource.create.field.name.label", inBundle: .main)
-                )
-              }
-            )
-            .instantiate()
-        )
+                  input.applyOn(
+                    description: .text(localized: "resource.create.field.name.label", inBundle: .main)
+                  )
+                }
+              )
+              .instantiate()
+          )
 
-      case let .uri(required, _, _):
-        return (
-          field: resourceField,
-          view: Mutation<TextInput>
-            .combined(
-              .backgroundColor(dynamic: .background),
-              .isRequired(required),
-              .custom { (input: TextInput) in
-                input.applyOn(
-                  text: .combined(
-                    .primaryStyle(),
-                    .attributedPlaceholderString(
-                      .localized(
-                        "resource.create.url.field.placeholder",
-                        inBundle: .main,
-                        font: .inter(ofSize: 14, weight: .medium),
-                        color: .secondaryText
+        case .uri:
+          return (
+            field: resourceProperty.field,
+            view: Mutation<TextInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceProperty.required),
+                .custom { (input: TextInput) in
+                  input.applyOn(
+                    text: .combined(
+                      .primaryStyle(),
+                      .attributedPlaceholderString(
+                        .localized(
+                          "resource.create.url.field.placeholder",
+                          inBundle: .main,
+                          font: .inter(ofSize: 14, weight: .medium),
+                          color: .secondaryText
+                        )
                       )
                     )
                   )
-                )
-                input.applyOn(
-                  description: .text(localized: "resource.create.field.url.label", inBundle: .main)
-                )
-              }
-            )
-            .instantiate()
-        )
+                  input.applyOn(
+                    description: .text(localized: "resource.create.field.url.label", inBundle: .main)
+                  )
+                }
+              )
+              .instantiate()
+          )
 
-      case let .username(required, _, _):
-        return (
-          field: resourceField,
-          view: Mutation<TextInput>
-            .combined(
-              .backgroundColor(dynamic: .background),
-              .isRequired(required),
-              .custom { (input: TextInput) in
-                input.applyOn(
-                  text: .combined(
-                    .primaryStyle(),
-                    .attributedPlaceholderString(
-                      .localized(
-                        "resource.create.username.field.placeholder",
-                        inBundle: .main,
-                        font: .inter(ofSize: 14, weight: .medium),
-                        color: .secondaryText
+        case .username:
+          return (
+            field: resourceProperty.field,
+            view: Mutation<TextInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceProperty.required),
+                .custom { (input: TextInput) in
+                  input.applyOn(
+                    text: .combined(
+                      .primaryStyle(),
+                      .attributedPlaceholderString(
+                        .localized(
+                          "resource.create.username.field.placeholder",
+                          inBundle: .main,
+                          font: .inter(ofSize: 14, weight: .medium),
+                          color: .secondaryText
+                        )
                       )
                     )
                   )
-                )
-                input.applyOn(
-                  description: .text(localized: "resource.create.field.username.label", inBundle: .main)
-                )
-              }
-            )
-            .instantiate()
-        )
+                  input.applyOn(
+                    description: .text(localized: "resource.create.field.username.label", inBundle: .main)
+                  )
+                }
+              )
+              .instantiate()
+          )
 
-      case let .password(required, _, _):
-        return (
-          field: resourceField,
-          view: Mutation<SecureTextInput>
-            .combined(
-              .backgroundColor(dynamic: .background),
-              .isRequired(required),
-              .custom { (input: TextInput) in
-                input.applyOn(
-                  text: .combined(
-                    .primaryStyle(),
-                    .attributedPlaceholderString(
-                      .localized(
-                        "resource.create.password.field.placeholder",
-                        inBundle: .main,
-                        font: .inter(ofSize: 14, weight: .medium),
-                        color: .secondaryText
+        case .password:
+          return (
+            field: resourceProperty.field,
+            view: Mutation<SecureTextInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceProperty.required),
+                .custom { (input: TextInput) in
+                  input.applyOn(
+                    text: .combined(
+                      .primaryStyle(),
+                      .attributedPlaceholderString(
+                        .localized(
+                          "resource.create.password.field.placeholder",
+                          inBundle: .main,
+                          font: .inter(ofSize: 14, weight: .medium),
+                          color: .secondaryText
+                        )
                       )
                     )
                   )
-                )
-                input.applyOn(
-                  description: .text(localized: "resource.create.field.password.label", inBundle: .main)
-                )
-              }
-            )
-            .instantiate()
-        )
+                  input.applyOn(
+                    description: .text(localized: "resource.create.field.password.label", inBundle: .main)
+                  )
+                }
+              )
+              .instantiate()
+          )
 
-      case let .description(required, _, _):
-        return (
-          field: resourceField,
-          view: Mutation<TextViewInput>
-            .combined(
-              .backgroundColor(dynamic: .background),
-              .isRequired(required),
-              .attributedPlaceholder(
-                .localized(
-                  "resource.create.description.field.placeholder",
-                  inBundle: .main,
-                  font: .inter(ofSize: 14, weight: .medium),
-                  color: .secondaryText
-                )
-              ),
-              .isRequired(false),
-              .custom { (input: TextViewInput) in
-                input.applyOn(
-                  text: .formStyle()
-                )
-                input.applyOn(
-                  description: .text(localized: "resource.create.field.description.label", inBundle: .main)
-                )
-              }
-            )
-            .instantiate()
-        )
+        case .description:
+          return (
+            field: resourceProperty.field,
+            view: Mutation<TextViewInput>
+              .combined(
+                .backgroundColor(dynamic: .background),
+                .isRequired(resourceProperty.required),
+                .attributedPlaceholder(
+                  .localized(
+                    "resource.create.description.field.placeholder",
+                    inBundle: .main,
+                    font: .inter(ofSize: 14, weight: .medium),
+                    color: .secondaryText
+                  )
+                ),
+                .isRequired(false),
+                .custom { (input: TextViewInput) in
+                  input.applyOn(
+                    text: .formStyle()
+                  )
+                  input.applyOn(
+                    description: .text(localized: "resource.create.field.description.label", inBundle: .main)
+                  )
+                }
+              )
+              .instantiate()
+          )
+
+        case let .undefined(name):
+          assertionFailure("Undefined field: \(name)")
+          return nil
+        }
       }
-    }
-    .reduce(into: Dictionary<ResourceCreateController.Field, View>(), { (partialResult, fieldWithView: FieldWithView)  in
+    .reduce(into: Dictionary<ResourceField, View>(), { (partialResult, fieldWithView: FieldWithView)  in
       partialResult[fieldWithView.field] = fieldWithView.view
     })
 
@@ -318,7 +324,7 @@ internal final class ResourceCreateView: KeyboardAwareView {
 
   internal func update(
     validated: Validated<String>,
-    for field: ResourceCreateController.Field
+    for field: ResourceField
   ) {
     guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
     else {
@@ -343,10 +349,14 @@ internal final class ResourceCreateView: KeyboardAwareView {
       }
 
       textViewInput.update(from: validated)
+    case let .undefined(name):
+      return assertionFailure("Undefined field: \(name)")
     }
   }
 
-  internal func fieldValuePublisher(for field: ResourceCreateController.Field) -> AnyPublisher<String, Never> {
+  internal func fieldValuePublisher(
+    for field: ResourceField
+  ) -> AnyPublisher<String, Never> {
     guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
     else {
       return Empty(completeImmediately: true)
@@ -371,6 +381,11 @@ internal final class ResourceCreateView: KeyboardAwareView {
       }
 
       return textViewInput.textPublisher
+
+    case let .undefined(name):
+      assertionFailure("Undefined field: \(name)")
+      return Empty(completeImmediately: true)
+        .eraseToAnyPublisher()
     }
   }
 

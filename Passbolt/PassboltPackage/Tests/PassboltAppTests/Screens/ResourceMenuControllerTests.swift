@@ -26,6 +26,7 @@ import Combine
 import Features
 @testable import Resources
 import TestExtensions
+import CommonDataModels
 import UIComponents
 import XCTest
 
@@ -383,12 +384,13 @@ private let detailsViewResource: DetailsViewResource = .init(
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: "Passbolt",
-  fields: [
-    .string(name: "username", required: true, encrypted: false, maxLength: nil),
-    .string(name: "password", required: true, encrypted: true, maxLength: nil),
-    .string(name: "uri", required: true, encrypted: false, maxLength: nil),
-    .string(name: "description", required: true, encrypted: false, maxLength: nil)
-  ])
+  properties: [
+    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!
+  ]
+)
 
 private let detailsViewResourceWithoutDescription: DetailsViewResource = .init(
   id: .init(rawValue: "1"),
@@ -397,12 +399,13 @@ private let detailsViewResourceWithoutDescription: DetailsViewResource = .init(
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: nil,
-  fields: [
-    .string(name: "username", required: true, encrypted: false, maxLength: nil),
-    .string(name: "password", required: true, encrypted: true, maxLength: nil),
-    .string(name: "uri", required: true, encrypted: false, maxLength: nil),
-    .string(name: "description", required: true, encrypted: true, maxLength: nil)
-  ])
+  properties: [
+    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!
+  ]
+)
 
 private let resourceSecret: ResourceSecret = .from(
   decrypted: #"{"password" : "passbolt", "description": "encrypted description"}"#,

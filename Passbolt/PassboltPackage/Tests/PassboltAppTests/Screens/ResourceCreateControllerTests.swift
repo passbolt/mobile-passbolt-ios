@@ -26,6 +26,7 @@ import Combine
 import Features
 import NetworkClient
 @testable import Resources
+import CommonDataModels
 import TestExtensions
 import UIComponents
 import XCTest
@@ -37,7 +38,7 @@ final class ResourceCreateControllerTests: TestCase {
 
   private var networkClient: NetworkClient!
   private var resources: Resources!
-  private var resourceForm: ResourceCreateForm!
+  private var resourceForm: ResourceEditForm!
   private var randomGenerator: RandomStringGenerator!
 
   override func setUp() {
@@ -70,35 +71,36 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(randomGenerator)
 
     let controller: ResourceCreateController = testInstance()
-    var result: Array<ResourceCreateController.Field> = .init()
+    var result: Array<ResourceField> = .init()
 
-    controller.resourceFieldsPublisher()
+    controller
+      .resourcePropertiesPublisher()
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { fields in
-          result = fields
+          result = fields.map(\.field)
         }
       )
       .store(in: cancellables)
 
     XCTAssertEqual(result, [
-      .name(required: true, encrypted: false, maxLength: nil),
-      .uri(required: false, encrypted: false, maxLength: nil),
-      .username(required: false, encrypted: false, maxLength: nil),
-      .password(required: true, encrypted: true, maxLength: nil),
-      .description(required: false, encrypted: true, maxLength: nil)
+      .name,
+      .uri,
+      .username,
+      .password,
+      .description
     ])
   }
 
   func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() {
-    var resultPassword: String?
+    var resultPassword: ResourceFieldValue?
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
-    resourceForm.setFieldValue = { value, fieldName in
-      if fieldName == "password" {
+    resourceForm.setFieldValue = { value, field in
+      if field == .password {
         resultPassword = value
       }
       else {
@@ -132,7 +134,7 @@ final class ResourceCreateControllerTests: TestCase {
   }
 
   func test_passwordEntropyPublisher_publishes_whenFieldPublisher_publishes() {
-    let fieldValueSubject: PassthroughSubject<Validated<String>, Never> = .init()
+    let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue>, Never> = .init()
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
         .setFailureType(to: TheError.self)
@@ -158,12 +160,12 @@ final class ResourceCreateControllerTests: TestCase {
       )
       .store(in: cancellables)
 
-    fieldValueSubject.send(.valid("|hX!y*JLW@&&R3/Qo=Q?"))
+    fieldValueSubject.send(.valid(.string("|hX!y*JLW@&&R3/Qo=Q?")))
 
     XCTAssertEqual(result, .veryStrongPassword)
   }
 
-  func test_createResource_triggersRefreshIfNeeded_andUnloadsResourceCreateForm() {
+  func test_createResource_triggersRefreshIfNeeded_andUnloadsResourceEditForm() {
     var refreshIfNeededCalled: Void?
     var unloadFeature: Void?
     resources.refreshIfNeeded = {
@@ -171,7 +173,7 @@ final class ResourceCreateControllerTests: TestCase {
       return Empty(completeImmediately: true)
         .eraseToAnyPublisher()
     }
-    resourceForm.createResource = always(
+    resourceForm.sendForm = always(
       Just("1")
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
@@ -186,7 +188,8 @@ final class ResourceCreateControllerTests: TestCase {
 
     let controller: ResourceCreateController = testInstance()
 
-    controller.createResource()
+    controller
+      .sendForm()
       .sinkDrop()
       .store(in: cancellables)
 
@@ -205,7 +208,7 @@ final class ResourceCreateControllerTests: TestCase {
 
     controller.cleanup()
 
-    XCTAssertFalse(features.isLoaded(ResourceCreateForm.self))
+    XCTAssertFalse(features.isLoaded(ResourceEditForm.self))
   }
 }
 
@@ -214,10 +217,10 @@ private let defaultResourceType: ResourceType = .init(
   slug: "password-and-description",
   name: "password-and-description",
   fields: [
-    .string(name: "name", required: true, encrypted: false, maxLength: nil),
-    .string(name: "uri", required: false, encrypted: false, maxLength: nil),
-    .string(name: "username", required: false, encrypted: false, maxLength: nil),
-    .string(name: "password", required: true, encrypted: true, maxLength: nil),
-    .string(name: "description", required: false, encrypted: true, maxLength: nil)
+    .init(name: "name", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "uri", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
+    .init(name: "username", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
+    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+    .init(name: "description", typeString: "string", required: false, encrypted: true, maxLength: nil)!
   ]
 )

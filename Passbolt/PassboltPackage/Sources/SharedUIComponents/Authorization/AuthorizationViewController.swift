@@ -23,6 +23,7 @@
 
 import Accounts
 import Crypto
+import CommonDataModels
 import Foundation
 import UIComponents
 

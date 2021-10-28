@@ -22,25 +22,26 @@
 //
 
 import Accounts
+import CommonDataModels
 import Crypto
 import Features
 import NetworkClient
 import Users
 
-public struct ResourceCreateForm {
+public struct ResourceEditForm {
 
   // initial version supports only one type of resource type, so there is no method to change it
   public var resourceTypePublisher: () -> AnyPublisher<ResourceType, TheError>
   // since currently the only field value is String we are not allowing other value types
-  public var setFieldValue: (String, String) -> AnyPublisher<Void, TheError>
+  public var setFieldValue: (ResourceFieldValue, ResourceField) -> AnyPublisher<Void, TheError>
   // prepare publisher for given field, publisher will complete when field will be no longer available
-  public var fieldValuePublisher: (String) -> AnyPublisher<Validated<String>, Never>
+  public var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
   // send the form and create resource on server
-  public var createResource: () -> AnyPublisher<Resource.ID, TheError>
+  public var sendForm: () -> AnyPublisher<Resource.ID, TheError>
   public var featureUnload: () -> Bool
 }
 
-extension ResourceCreateForm: Feature {
+extension ResourceEditForm: Feature {
 
   public static func load(
     in environment: Environment,
@@ -53,8 +54,10 @@ extension ResourceCreateForm: Feature {
     let userPGPMessages: UserPGPMessages = features.instance()
 
     let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheError> = .init(nil)
-    let resourceTypePublisher: AnyPublisher<ResourceType, TheError> = resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
-    let formValuesSubject: CurrentValueSubject<Dictionary<String, Validated<String>>, Never> = .init(.init())
+    let resourceTypePublisher: AnyPublisher<ResourceType, TheError> =
+      resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
+    let formValuesSubject: CurrentValueSubject<Dictionary<ResourceField, Validated<ResourceFieldValue>>, Never> =
+      .init(.init())
 
     database
       .fetchResourcesTypesOperation()
@@ -79,53 +82,66 @@ extension ResourceCreateForm: Feature {
         },
         receiveValue: { resourceType in
           // remove fields that are no longer in resource
-          let removedFieldNames: Array<String> = formValuesSubject.value.keys.filter { key in
-            !resourceType.fields.contains(where: { $0.name == key })
+          let removedFields: Array<ResourceField> = formValuesSubject.value.keys.filter { key in
+            !resourceType.properties.contains(where: { $0.field == key })
           }
-          for removedFieldName in removedFieldNames {
-            formValuesSubject.value.removeValue(forKey: removedFieldName)
+          for removedField in removedFields {
+            formValuesSubject.value.removeValue(forKey: removedField)
           }
 
           // add new fields (if any) and validate again existing ones
-          for field in resourceType.fields {
-            let fieldValue: String = formValuesSubject.value[field.name]?.value ?? ""
-            formValuesSubject.value[field.name] = fieldValidator(for: field).validate(fieldValue)
+          for property in resourceType.properties {
+            let fieldValue: ResourceFieldValue =
+              formValuesSubject.value[property.field]?.value
+              ?? .init(defaultFor: property.type)
+            formValuesSubject.value[property.field] =
+              propertyValidator(for: property)
+              .validate(fieldValue)
           }
           resourceTypeSubject.send(resourceType)
         }
       )
       .store(in: cancellables)
 
-    func fieldValidator(
-      for field: ResourceField
-    ) -> Validator<String> {
-      zip(
-        {
-          if field.required {
-            return .nonEmpty(errorLocalizationKey: "resource.form.field.error.empty", bundle: .commons)
-          }
-          else {
-            return .alwaysValid
-          }
-        }(),
-        // even if there is no requirement for max length we are limiting it with
-        // some high value to prevent too big values
-        .maxLength(
-          UInt(field.maxLength ?? 10000),
-          errorLocalizationKey: "resource.form.field.error.max.length",
-          bundle: .commons
+    func propertyValidator(
+      for property: ResourceProperty
+    ) -> Validator<ResourceFieldValue> {
+      switch property.type {
+      case .string:
+        return zip(
+          {
+            if property.required {
+              return .nonEmpty(errorLocalizationKey: "resource.form.field.error.empty", bundle: .commons)
+            }
+            else {
+              return .alwaysValid
+            }
+          }(),
+          // even if there is no requirement for max length we are limiting it with
+          // some high value to prevent too big values
+            .maxLength(
+              UInt(property.maxLength ?? 10000),
+              errorLocalizationKey: "resource.form.field.error.max.length",
+              bundle: .commons
+            )
         )
-      )
+          .contraMap { resourceFieldValue -> String in
+            switch resourceFieldValue {
+            case let .string(value):
+              return value
+            }
+          }
+      }
     }
 
     func setFieldValue(
-      _ value: String,
-      fieldName: String
+      _ value: ResourceFieldValue,
+      field: ResourceField
     ) -> AnyPublisher<Void, TheError> {
       resourceTypePublisher
-        .map { resourceType -> AnyPublisher<Validated<String>, TheError> in
-          if let field: ResourceField = resourceType.fields.first(where: { $0.name == fieldName }) {
-            return Just(fieldValidator(for: field).validate(value))
+        .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, TheError> in
+          if let property: ResourceProperty = resourceType.properties.first(where: { $0.field == field }) {
+            return Just(propertyValidator(for: property).validate(value))
               .setFailureType(to: TheError.self)
               .eraseToAnyPublisher()
           }
@@ -136,18 +152,18 @@ extension ResourceCreateForm: Feature {
         }
         .switchToLatest()
         .handleEvents(receiveOutput: { validatedValue in
-          formValuesSubject.value[fieldName] = validatedValue
+          formValuesSubject.value[field] = validatedValue
         })
         .mapToVoid()
         .eraseToAnyPublisher()
     }
 
     func fieldValuePublisher(
-      fieldName: String
-    ) -> AnyPublisher<Validated<String>, Never> {
+      field: ResourceField
+    ) -> AnyPublisher<Validated<ResourceFieldValue>, Never> {
       formValuesSubject
-        .map { formFields -> AnyPublisher<Validated<String>, Never> in
-          if let fieldValue: Validated<String> = formFields[fieldName] {
+        .map { formFields -> AnyPublisher<Validated<ResourceFieldValue>, Never> in
+          if let fieldValue: Validated<ResourceFieldValue> = formFields[field] {
             return Just(fieldValue)
               .eraseToAnyPublisher()
           }
@@ -163,19 +179,19 @@ extension ResourceCreateForm: Feature {
         .eraseToAnyPublisher()
     }
 
-    func createResource() -> AnyPublisher<Resource.ID, TheError> {
+    func sendForm() -> AnyPublisher<Resource.ID, TheError> {
       Publishers.CombineLatest(
         resourceTypePublisher,
         formValuesSubject
           .setFailureType(to: TheError.self)
       )
         .first()
-        .map { resourceType, validatedFieldValues -> AnyPublisher<(fieldValues: Dictionary<String, String>, encodedSecret: String), TheError> in
-          var fieldValues: Dictionary<String, String> = .init()
-          var secretFieldValues: Dictionary<String, String> = .init()
+        .map { resourceType, validatedFieldValues -> AnyPublisher<(fieldValues: Dictionary<ResourceField, ResourceFieldValue>, encodedSecret: String), TheError> in
+          var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
+          var secretFieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
 
           for (key, validatedValue) in validatedFieldValues {
-            guard let field: ResourceField = resourceType.fields.first(where: { $0.name == key })
+            guard let property: ResourceProperty = resourceType.properties.first(where: { $0.field == key })
             else {
               assertionFailure("Trying to use form value that is not associated with any resource fields")
               continue
@@ -185,7 +201,7 @@ extension ResourceCreateForm: Feature {
               return Fail(error: .validationError("resource.form.error.invalid", bundle: .commons))
                 .eraseToAnyPublisher()
             }
-            if field.encrypted {
+            if property.encrypted {
               secretFieldValues[key] = validatedValue.value
             }
             else {
@@ -195,7 +211,10 @@ extension ResourceCreateForm: Feature {
 
           let encodedSecretFields: String = secretFieldValues
             .map { field -> String in
-              "\"\(field.key)\":\"\(field.value)\""
+              switch field.value {
+              case let .string(value):
+                return "\"\(field.key)\":\"\(value)\""
+              }
             }
             .joined(separator: ",")
           let encodedSecret: String = "{\(encodedSecretFields)}"
@@ -210,7 +229,7 @@ extension ResourceCreateForm: Feature {
             .first()
             .compactMap(\.?.id)
             .map { resourceTypeID -> AnyPublisher<Resource.ID, TheError> in
-              guard let name: String = fieldValues["name"]
+              guard let name: String = fieldValues[.name]?.stringValue
               else {
                 return Fail(
                   error: .invalidOrMissingResourceType()
@@ -241,9 +260,9 @@ extension ResourceCreateForm: Feature {
                       using: .init(
                         resourceTypeID: resourceTypeID.rawValue,
                         name: name,
-                        username: fieldValues["username"],
-                        url: fieldValues["uri"],
-                        description: fieldValues["description"],
+                        username: fieldValues[.username]?.stringValue,
+                        url: fieldValues[.uri]?.stringValue,
+                        description: fieldValues[.description]?.stringValue,
                         secretData: encryptedSecret.rawValue
                       )
                     )
@@ -268,9 +287,9 @@ extension ResourceCreateForm: Feature {
 
     return Self(
       resourceTypePublisher: { resourceTypePublisher },
-      setFieldValue: setFieldValue(_:fieldName:),
-      fieldValuePublisher: fieldValuePublisher(fieldName:),
-      createResource: createResource,
+      setFieldValue: setFieldValue(_:field:),
+      fieldValuePublisher: fieldValuePublisher(field:),
+      sendForm: sendForm,
       featureUnload: featureUnload
     )
   }
@@ -278,14 +297,14 @@ extension ResourceCreateForm: Feature {
 
 #if DEBUG
 
-extension ResourceCreateForm {
+extension ResourceEditForm {
 
-  public static var placeholder: ResourceCreateForm {
+  public static var placeholder: ResourceEditForm {
     Self(
       resourceTypePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setFieldValue: Commons.placeholder("You have to provide mocks for used methods"),
       fieldValuePublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      createResource: Commons.placeholder("You have to provide mocks for used methods"),
+      sendForm: Commons.placeholder("You have to provide mocks for used methods"),
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

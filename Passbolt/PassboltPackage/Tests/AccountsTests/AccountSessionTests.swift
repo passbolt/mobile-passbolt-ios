@@ -26,6 +26,7 @@ import Commons
 import Crypto
 import Features
 import NetworkClient
+import CommonDataModels
 import TestExtensions
 import XCTest
 

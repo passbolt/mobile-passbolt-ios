@@ -21,18 +21,29 @@
 // @since         v1.0
 //
 
-import Commons
+public enum ResourceFieldType {
 
-import struct Foundation.Data
+  case string
+}
 
-public enum ArmoredPGPPrivateKeyTag {}
-public typealias ArmoredPGPPrivateKey = Tagged<String, ArmoredPGPPrivateKeyTag>
+extension ResourceFieldType: RawRepresentable {
 
-public enum ArmoredPGPPublicKeyTag {}
-public typealias ArmoredPGPPublicKey = Tagged<String, ArmoredPGPPublicKeyTag>
+  public init?(rawValue: String) {
+    switch rawValue {
+    case "string":
+      self = .string
 
-public enum ArmoredPGPMessageTag {}
-public typealias ArmoredPGPMessage = Tagged<String, ArmoredPGPMessageTag>
+    case _:
+      return nil
+    }
+  }
 
-public enum ArmoredRSAPublicKeyTag {}
-public typealias ArmoredRSAPublicKey = Tagged<String, ArmoredRSAPublicKeyTag>
+  public var rawValue: String {
+    switch self {
+    case .string:
+      return "string"
+    }
+  }
+}
+
+extension ResourceFieldType: Hashable {}

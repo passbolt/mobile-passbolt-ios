@@ -16,6 +16,10 @@ let package = Package(
       targets: ["AccountSetup"]
     ),
     .library(
+      name: "CommonDataModels",
+      targets: ["CommonDataModels"]
+    ),
+    .library(
       name: "Commons",
       targets: ["Commons"]
     ),
@@ -90,6 +94,7 @@ let package = Package(
     .target(
       name: "Accounts",
       dependencies: [
+        "CommonDataModels",
         "Commons",
         "Crypto",
         "Features",
@@ -121,6 +126,12 @@ let package = Package(
       ]
     ),
     .target(
+      name: "CommonDataModels",
+      dependencies: [
+        "Commons",
+      ]
+    ),
+    .target(
       name: "Commons",
       dependencies: [
         .product(name: "AegithalosCocoa", package: "Aegithalos")
@@ -139,6 +150,7 @@ let package = Package(
     .target(
       name: "Crypto",
       dependencies: [
+        "CommonDataModels",
         "Commons",
         "gopenPGP",
       ]
@@ -214,6 +226,7 @@ let package = Package(
       name: "Users",
       dependencies: [
         "Accounts",
+        "CommonDataModels",
         "Commons",
         "Crypto",
         "Features",
@@ -273,6 +286,7 @@ let package = Package(
       name: "Resources",
       dependencies: [
         "Accounts",
+        "CommonDataModels",
         "Commons",
         "Crypto",
         "Features",

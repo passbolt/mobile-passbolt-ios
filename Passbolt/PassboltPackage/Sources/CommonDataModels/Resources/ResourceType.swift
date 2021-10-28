@@ -22,31 +22,32 @@
 //
 
 import Commons
-import CommonDataModels
 
-public struct ListViewResource {
+public struct ResourceType {
 
-  public typealias ID = Resource.ID
+  public static let defaultResourceSlug: Slug = "password-and-description"
 
-  public let id: ID
-  public var permission: ResourcePermission
+  public typealias ID = Tagged<String, Self>
+  public typealias Slug = Tagged<String, ID>
+
+  public var id: ID
+  public var slug: Slug
   public var name: String
-  public var url: String?
-  public var username: String?
+  public var properties: Array<ResourceProperty>
 
   public init(
     id: ID,
-    permission: ResourcePermission,
+    slug: Slug,
     name: String,
-    url: String?,
-    username: String?
+    fields: Array<ResourceProperty>
   ) {
     self.id = id
-    self.permission = permission
+    self.slug = slug
     self.name = name
-    self.url = url
-    self.username = username
+    self.properties = fields
+  }
+
+  public var isDefault: Bool {
+    slug == Self.defaultResourceSlug
   }
 }
-
-extension ListViewResource: Hashable {}

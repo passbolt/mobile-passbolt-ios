@@ -15,6 +15,7 @@
 import Commons
 import Crypto
 import TestExtensions
+import CommonDataModels
 import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals

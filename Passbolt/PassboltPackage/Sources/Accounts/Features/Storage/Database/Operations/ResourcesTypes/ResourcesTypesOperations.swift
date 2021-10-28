@@ -1,5 +1,6 @@
 import Combine
 import Commons
+import CommonDataModels
 import Environment
 
 public typealias StoreResourcesTypesOperation = DatabaseOperation<Array<ResourceType>, Void>
@@ -26,7 +27,7 @@ extension StoreResourcesTypesOperation {
               .execute(
                 upsertTypeStatement,
                 with: resourceType.id.rawValue,
-                resourceType.slug,
+                resourceType.slug.rawValue,
                 resourceType.name
               )
           }
@@ -40,14 +41,14 @@ extension StoreResourcesTypesOperation {
         }
 
         // iterate over fields for given resource type
-        for field in resourceType.fields {
+        for field in resourceType.properties {
           // insert fields for type (previous were deleted, no need for update)
           let result: Result<Int, TheError> =
             conn
             .execute(
               insertFieldStatement,
-              with: field.name,
-              field.typeString,
+              with: field.field.rawValue,
+              field.type.rawValue,
               field.required,
               field.encrypted,
               field.maxLength
@@ -119,7 +120,7 @@ extension FetchResourcesTypesOperation {
               rows.compactMap { row -> ResourceType? in
                 guard
                   let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
-                  let slug: String = row.slug,
+                  let slug: ResourceType.Slug = (row.slug as String?).map(ResourceType.Slug.init(rawValue:)),
                   let name: String = row.name,
                   let rawFields: String = row.fields
                 else { return nil }
@@ -127,7 +128,7 @@ extension FetchResourcesTypesOperation {
                   id: id,
                   slug: slug,
                   name: name,
-                  fields: ResourceField.arrayFrom(rawString: rawFields)
+                  fields: ResourceProperty.arrayFrom(rawString: rawFields)
                 )
               }
             )
@@ -240,3 +241,36 @@ private let insertTypeFieldStatement: SQLiteStatement = """
     )
   ;
   """
+
+extension ResourceProperty {
+
+  internal static func arrayFrom(
+    rawString: String
+  ) -> Array<Self> {
+    rawString.components(separatedBy: ",").compactMap(from(string:))
+  }
+
+  internal static func from(
+    string: String
+  ) -> Self? {
+    var fields = string.components(separatedBy: ";")
+
+    let maxLength: Int? = fields.popLast()?.components(separatedBy: "=").last.flatMap { Int($0) }
+
+    guard
+      let encrypted: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
+      let required: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
+      var nameAndTypeString: Array<String> = fields.popLast()?.components(separatedBy: ":"),
+      let typeString: String = nameAndTypeString.popLast(),
+      let name: String = nameAndTypeString.popLast()
+    else { return nil }
+
+    return .init(
+      name: name,
+      typeString: typeString,
+      required: required,
+      encrypted: encrypted,
+      maxLength: maxLength
+    )
+  }
+}

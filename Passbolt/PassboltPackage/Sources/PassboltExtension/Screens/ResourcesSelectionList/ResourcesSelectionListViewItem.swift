@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import CommonDataModels
 
 internal enum ResourcesSelectionListViewItem {
 

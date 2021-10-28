@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Crypto
 import Features
 import struct Foundation.URL

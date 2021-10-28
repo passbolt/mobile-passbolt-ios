@@ -21,32 +21,41 @@
 // @since         v1.0
 //
 
-import Commons
-import CommonDataModels
+public struct ResourceProperty {
 
-public struct ListViewResource {
+  public var field: ResourceField
+  public var type: ResourceFieldType
+  public var required: Bool
+  public var encrypted: Bool
+  public var maxLength: Int?
 
-  public typealias ID = Resource.ID
-
-  public let id: ID
-  public var permission: ResourcePermission
-  public var name: String
-  public var url: String?
-  public var username: String?
-
-  public init(
-    id: ID,
-    permission: ResourcePermission,
+  // for serialization use
+  public init?(
     name: String,
-    url: String?,
-    username: String?
+    typeString: String,
+    required: Bool,
+    encrypted: Bool,
+    maxLength: Int?
   ) {
-    self.id = id
-    self.permission = permission
-    self.name = name
-    self.url = url
-    self.username = username
+    guard let fieldType: ResourceFieldType = .init(rawValue: typeString)
+    else { return nil }
+
+    self.field = .init(rawValue: name)
+    self.type = fieldType
+    self.required = required
+    self.encrypted = encrypted
+    self.maxLength = maxLength
   }
 }
 
-extension ListViewResource: Hashable {}
+extension ResourceProperty: Hashable {}
+
+extension ResourceProperty: Comparable {
+
+  public static func < (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.field < rhs.field
+  }
+}

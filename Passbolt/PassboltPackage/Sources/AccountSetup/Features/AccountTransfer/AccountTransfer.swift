@@ -23,6 +23,7 @@
 
 import Accounts
 import Commons
+import CommonDataModels
 import Crypto
 import Features
 import NetworkClient

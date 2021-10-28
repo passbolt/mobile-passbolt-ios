@@ -23,6 +23,7 @@
 
 import Accounts
 import Resources
+import CommonDataModels
 import UIComponents
 
 internal struct ResourceMenuController {
@@ -97,8 +98,8 @@ extension ResourceMenuController: UIController {
             .filter({ action in
               switch action {
               case .openURL, .copyURL:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .uri = field {
+                return resourceDetails.properties.contains(where: { property in
+                  if case .uri = property.field {
                     return true
                   }
                   else {
@@ -107,8 +108,8 @@ extension ResourceMenuController: UIController {
                 })
 
               case .copyPassword:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .password = field {
+                return resourceDetails.properties.contains(where: { property in
+                  if case .password = property.field {
                     return true
                   }
                   else {
@@ -117,8 +118,8 @@ extension ResourceMenuController: UIController {
                 })
 
               case .copyUsername:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .username = field {
+                return resourceDetails.properties.contains(where: { property in
+                  if case .username = property.field {
                     return true
                   }
                   else {
@@ -127,8 +128,8 @@ extension ResourceMenuController: UIController {
                 })
 
               case .copyDescription:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .description = field {
+                return resourceDetails.properties.contains(where: { property in
+                  if case .description = property.field {
                     return true
                   }
                   else {
@@ -163,8 +164,8 @@ extension ResourceMenuController: UIController {
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = resourceDetails,
-            resourceDetails.fields.contains(where: { field in
-              if case .uri = field {
+            resourceDetails.properties.contains(where: { property in
+              if case .uri = property.field {
                 return true
               }
               else {
@@ -214,8 +215,8 @@ extension ResourceMenuController: UIController {
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = resourceDetails,
-            resourceDetails.fields.contains(where: { field in
-              if case .uri = field {
+            resourceDetails.properties.contains(where: { property in
+              if case .uri = property.field {
                 return true
               }
               else {
@@ -273,8 +274,8 @@ extension ResourceMenuController: UIController {
         .map { resourceDetails -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = resourceDetails,
-            resourceDetails.fields.contains(where: { field in
-              if case .username = field {
+            resourceDetails.properties.contains(where: { property in
+              if case .username = property.field {
                 return true
               }
               else {
@@ -313,10 +314,10 @@ extension ResourceMenuController: UIController {
               .eraseToAnyPublisher()
           }
 
-          if resourceDetails.fields.contains(where: { field in
-            guard case let .description(_, encrypted, _) = field
+          if resourceDetails.properties.contains(where: { property in
+            guard case .description = property.field
             else { return false }
-            return encrypted
+            return property.encrypted
           }) {
             return resources
               .loadResourceSecret(context.resourceID)

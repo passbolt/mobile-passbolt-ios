@@ -26,6 +26,7 @@ import Combine
 import Features
 import Resources
 import TestExtensions
+import CommonDataModels
 import UIComponents
 import XCTest
 

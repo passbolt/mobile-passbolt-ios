@@ -22,31 +22,6 @@
 //
 
 import Commons
-import CommonDataModels
 
-public struct ListViewResource {
-
-  public typealias ID = Resource.ID
-
-  public let id: ID
-  public var permission: ResourcePermission
-  public var name: String
-  public var url: String?
-  public var username: String?
-
-  public init(
-    id: ID,
-    permission: ResourcePermission,
-    name: String,
-    url: String?,
-    username: String?
-  ) {
-    self.id = id
-    self.permission = permission
-    self.name = name
-    self.url = url
-    self.username = username
-  }
-}
-
-extension ListViewResource: Hashable {}
+public enum ArmoredPGPMessageTag {}
+public typealias ArmoredPGPMessage = Tagged<String, ArmoredPGPMessageTag>

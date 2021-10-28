@@ -22,6 +22,7 @@
 //
 
 import Commons
+import CommonDataModels
 
 public struct DetailsViewResource {
 
@@ -33,7 +34,7 @@ public struct DetailsViewResource {
   public var url: String?
   public var username: String?
   public var description: String?
-  public var fields: Array<ResourceField>
+  public var properties: Array<ResourceProperty>
 
   public init(
     id: ID,
@@ -42,7 +43,7 @@ public struct DetailsViewResource {
     url: String?,
     username: String?,
     description: String?,
-    fields: Array<ResourceField>
+    properties: Array<ResourceProperty>
   ) {
     self.id = id
     self.permission = permission
@@ -50,6 +51,6 @@ public struct DetailsViewResource {
     self.url = url
     self.username = username
     self.description = description
-    self.fields = fields
+    self.properties = properties
   }
 }

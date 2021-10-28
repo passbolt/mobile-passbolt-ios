@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import CommonDataModels
 import Commons
 import Crypto
 import CryptoKit

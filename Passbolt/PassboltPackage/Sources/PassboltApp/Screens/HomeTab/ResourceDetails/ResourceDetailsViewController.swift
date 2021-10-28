@@ -151,6 +151,9 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] in
             switch field {
+            case .name:
+              break
+
             case .uri:
               self?.presentInfoSnackbar(
                 localizableKey: "resource.menu.item.field.copied",
@@ -186,6 +189,9 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   NSLocalizedString("resource.menu.item.description", comment: "")
                 ]
               )
+
+            case let .undefined(name):
+              assertionFailure("Undefined field: \(name)")
             }
           })
           .handleErrors(

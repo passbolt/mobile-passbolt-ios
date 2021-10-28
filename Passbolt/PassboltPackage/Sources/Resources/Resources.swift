@@ -23,6 +23,7 @@
 
 import Accounts
 import Crypto
+import CommonDataModels
 import Features
 import NetworkClient
 
@@ -107,14 +108,15 @@ extension Resources: Feature {
             .map { (response: ResourcesTypesRequestResponse) -> Array<ResourceType> in
               response.body
                 .map { (type: ResourcesTypesRequestResponseBodyItem) -> ResourceType in
-                  let fields: Array<ResourceField> = type
+                  let fields: Array<ResourceProperty> = type
                     .definition
                     .resourceProperties
-                    .map { property -> ResourceField in
+                    .compactMap { property -> ResourceProperty? in
                       switch property {
                       case let .string(name, isOptional, maxLength):
-                        return .string(
+                        return .init(
                           name: name,
+                          typeString: "string",
                           required: !isOptional,
                           encrypted: false,
                           maxLength: maxLength
@@ -122,14 +124,15 @@ extension Resources: Feature {
                       }
                     }
 
-                  let secretFields: Array<ResourceField> = type
+                  let secretFields: Array<ResourceProperty> = type
                     .definition
                     .secretProperties
-                    .map { property -> ResourceField in
+                    .compactMap { property -> ResourceProperty? in
                       switch property {
                       case let .string(name, isOptional, maxLength):
-                        return .string(
+                        return .init(
                           name: name,
+                          typeString: "string",
                           required: !isOptional,
                           encrypted: true,
                           maxLength: maxLength
@@ -139,7 +142,7 @@ extension Resources: Feature {
 
                   return ResourceType(
                     id: .init(rawValue: type.id),
-                    slug: type.slug,
+                    slug: .init(rawValue: type.slug),
                     name: type.name,
                     fields: fields + secretFields
                   )

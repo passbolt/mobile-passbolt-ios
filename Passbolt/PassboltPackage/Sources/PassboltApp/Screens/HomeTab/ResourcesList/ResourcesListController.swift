@@ -23,6 +23,7 @@
 
 import Accounts
 import Resources
+import CommonDataModels
 import UIComponents
 
 internal struct ResourcesListController {

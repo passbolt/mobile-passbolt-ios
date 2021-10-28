@@ -26,6 +26,7 @@ import Combine
 import Features
 @testable import Resources
 import TestExtensions
+import CommonDataModels
 import UIComponents
 import XCTest
 
@@ -87,7 +88,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = { _ in
       var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
-      detailsViewResourceWithReorderedFields.fields.reverse()
+      detailsViewResourceWithReorderedFields.properties.reverse()
       return Just(detailsViewResourceWithReorderedFields)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
@@ -99,11 +100,11 @@ final class ResourceDetailsControllerTests: TestCase {
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
 
-    let expectedOrderedFields: [ResourceDetailsController.ResourceDetails.Field] = [
-      .username(required: true, encrypted: false, maxLength: nil),
-      .password(required: true, encrypted: true, maxLength: nil),
-      .uri(required: true, encrypted: false, maxLength: nil),
-      .description(required: true, encrypted: false, maxLength: nil)
+    let expectedOrderedFields: [ResourceField] = [
+      .username,
+      .password,
+      .uri,
+      .description
     ]
 
     var result: ResourceDetailsController.ResourceDetailsWithConfig!
@@ -122,7 +123,7 @@ final class ResourceDetailsControllerTests: TestCase {
 
     XCTAssertNotNil(result)
     XCTAssertEqual(result.resourceDetails.id.rawValue, context.rawValue)
-    XCTAssertEqual(result.resourceDetails.fields, expectedOrderedFields)
+    XCTAssertEqual(result.resourceDetails.properties.map(\.field), expectedOrderedFields)
   }
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() {
@@ -170,11 +171,7 @@ final class ResourceDetailsControllerTests: TestCase {
 
     controller
       .toggleDecrypt(
-        .password(
-          required: true,
-          encrypted: true,
-          maxLength: nil
-        )
+        .password
       )
       .sink { completion in
         guard case .finished = completion
@@ -206,13 +203,7 @@ final class ResourceDetailsControllerTests: TestCase {
     var result: TheError!
 
     controller
-      .toggleDecrypt(
-        .password(
-          required: true,
-          encrypted: true,
-          maxLength: nil
-        )
-      )
+      .toggleDecrypt(.password)
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion
         else {
@@ -245,23 +236,13 @@ final class ResourceDetailsControllerTests: TestCase {
 
     controller
       .toggleDecrypt(
-        .password(
-          required: true,
-          encrypted: true,
-          maxLength: nil
-        )
+        .password
       )
       .sinkDrop()
       .store(in: cancellables)
 
     controller
-      .toggleDecrypt(
-        .password(
-          required: true,
-          encrypted: true,
-          maxLength: nil
-        )
-      )
+      .toggleDecrypt(.password)
       .sink { completion in
         guard case .finished = completion
         else {
@@ -324,7 +305,7 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
 
     controller
-      .copyFieldValue(.username(required: true, encrypted: false, maxLength: nil))
+      .copyFieldValue(.username)
       .sinkDrop()
       .store(in: cancellables)
 
@@ -354,7 +335,7 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
 
     controller
-      .copyFieldValue(.description(required: true, encrypted: false, maxLength: nil))
+      .copyFieldValue(.description)
       .sinkDrop()
       .store(in: cancellables)
 
@@ -389,7 +370,7 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
 
     controller
-      .copyFieldValue(.description(required: true, encrypted: true, maxLength: nil))
+      .copyFieldValue(.description)
       .sinkDrop()
       .store(in: cancellables)
 
@@ -419,7 +400,7 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
 
     controller
-      .copyFieldValue(.uri(required: true, encrypted: false, maxLength: 0))
+      .copyFieldValue(.uri)
       .sinkDrop()
       .store(in: cancellables)
 
@@ -454,7 +435,7 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
 
     controller
-      .copyFieldValue(.password(required: true, encrypted: true, maxLength: nil))
+      .copyFieldValue(.password)
       .sinkDrop()
       .store(in: cancellables)
 
@@ -548,11 +529,11 @@ private let detailsViewResource: DetailsViewResource = .init(
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: "Passbolt",
-  fields: [
-    .string(name: "username", required: true, encrypted: false, maxLength: nil),
-    .string(name: "password", required: true, encrypted: true, maxLength: nil),
-    .string(name: "uri", required: true, encrypted: false, maxLength: nil),
-    .string(name: "description", required: true, encrypted: false, maxLength: nil)
+  properties: [
+    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!
   ])
 
 private let encryptedDescriptionDetailsViewResource: DetailsViewResource = .init(
@@ -562,11 +543,11 @@ private let encryptedDescriptionDetailsViewResource: DetailsViewResource = .init
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: nil,
-  fields: [
-    .string(name: "username", required: true, encrypted: false, maxLength: nil),
-    .string(name: "password", required: true, encrypted: true, maxLength: nil),
-    .string(name: "uri", required: true, encrypted: false, maxLength: nil),
-    .string(name: "description", required: true, encrypted: true, maxLength: nil)
+  properties: [
+    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!
   ])
 
 private let resourceSecret: ResourceSecret = .from(

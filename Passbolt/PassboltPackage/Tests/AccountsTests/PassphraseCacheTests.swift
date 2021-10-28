@@ -26,6 +26,7 @@ import Crypto
 import Environment
 import Features
 import TestExtensions
+import CommonDataModels
 import XCTest
 
 @testable import Accounts

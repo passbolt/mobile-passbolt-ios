@@ -22,6 +22,7 @@
 //
 
 import Combine
+import CommonDataModels
 import Commons
 import Environment
 
@@ -226,7 +227,7 @@ extension FetchDetailsViewResourcesOperation {
             let url: String? = row.url
             let username: String? = row.username
             let description: String? = row.description
-            let fields: Array<ResourceField> = ResourceField.arrayFrom(rawString: rawFields)
+            let properties: Array<ResourceProperty> = ResourceProperty.arrayFrom(rawString: rawFields)
 
             return .success(
               DetailsViewResource(
@@ -236,7 +237,7 @@ extension FetchDetailsViewResourcesOperation {
                 url: url,
                 username: username,
                 description: description,
-                fields: fields
+                properties: properties
               )
             )
           } ?? .failure(.databaseFetchError(databaseErrorMessage: "No value"))

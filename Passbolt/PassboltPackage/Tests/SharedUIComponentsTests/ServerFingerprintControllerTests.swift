@@ -22,6 +22,7 @@
 //
 
 import Crypto
+import CommonDataModels
 import Features
 import TestExtensions
 import UIComponents

@@ -21,32 +21,67 @@
 // @since         v1.0
 //
 
-import Commons
+public enum ResourceFieldValue {
 
-public struct ResourceType {
+  case string(String)
+}
 
-  public static let defaultResourceSlug: String = "password-and-description"
-
-  public typealias ID = Tagged<String, Self>
-
-  public var id: ID
-  public var slug: String
-  public var name: String
-  public var fields: Array<ResourceField>
+extension ResourceFieldValue {
 
   public init(
-    id: ID,
-    slug: String,
-    name: String,
-    fields: Array<ResourceField>
+    defaultFor type: ResourceFieldType
   ) {
-    self.id = id
-    self.slug = slug
-    self.name = name
-    self.fields = fields
+    switch type {
+    case .string:
+      self = .string("")
+    }
   }
 
-  public var isDefault: Bool {
-    slug == Self.defaultResourceSlug
+  public init(
+    fromString string: String,
+    forType type: ResourceFieldType
+  ) {
+    switch type {
+    case .string:
+      self = .string(string)
+    }
+  }
+}
+
+extension ResourceFieldValue {
+
+  public var fieldType: ResourceFieldType {
+    switch self {
+    case .string:
+      return .string
+    }
+  }
+
+  public var stringValue: String {
+    get {
+      switch self {
+      case let .string(value):
+        return value
+      }
+    }
+    set {
+      switch self {
+      case .string:
+        self = .string(newValue)
+      }
+    }
+  }
+}
+
+extension ResourceFieldValue: Equatable {
+
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    switch (lhs, rhs) {
+    case let (.string(lhsv), .string(rhsv)):
+      return lhsv == rhsv
+    }
   }
 }

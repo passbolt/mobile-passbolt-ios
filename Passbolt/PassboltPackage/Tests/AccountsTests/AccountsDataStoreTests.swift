@@ -25,6 +25,7 @@ import Commons
 import Crypto
 import Features
 import TestExtensions
+import CommonDataModels
 import XCTest
 
 @testable import Accounts

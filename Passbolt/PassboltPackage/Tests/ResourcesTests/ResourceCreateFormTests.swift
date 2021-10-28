@@ -24,6 +24,7 @@
 import Commons
 import Crypto
 import Features
+import CommonDataModels
 import NetworkClient
 import TestExtensions
 import Users
@@ -33,7 +34,7 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceCreateFormTests: TestCase {
+final class ResourceEditFormTests: TestCase {
 
   var accountSession: AccountSession!
   var database: AccountDatabase!
@@ -63,7 +64,7 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: TheError?
     feature
@@ -88,7 +89,7 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: TheError?
     feature
@@ -113,7 +114,7 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: ResourceType?
     feature
@@ -136,11 +137,11 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: Void?
     feature
-      .fieldValuePublisher("unavailable")
+      .fieldValuePublisher(.undefined(name: "unavailable"))
       .sink(
         receiveCompletion: { completion in
           result = Void()
@@ -156,16 +157,20 @@ final class ResourceCreateFormTests: TestCase {
 
   func test_fieldValuePublisher_returnsInitiallyPublishingPublisher_whenResourceFieldAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
-    var result: Validated<String>?
+    var result: Validated<ResourceFieldValue>?
     feature
-      .fieldValuePublisher("name")
+      .fieldValuePublisher(.name)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { value in
@@ -174,21 +179,25 @@ final class ResourceCreateFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.value, "")
+    XCTAssertEqual(result?.value, .string(""))
   }
 
   func test_fieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
-    var result: Validated<String>?
+    var result: Validated<ResourceFieldValue>?
     feature
-      .fieldValuePublisher("name")
+      .fieldValuePublisher(.name)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { value in
@@ -198,25 +207,29 @@ final class ResourceCreateFormTests: TestCase {
       .store(in: cancellables)
 
     feature
-      .setFieldValue("updated", "name")
+      .setFieldValue(.string("updated"), .name)
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.value, "updated")
+    XCTAssertEqual(result?.value, .string("updated"))
   }
 
   func test_fieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
-    var result: Validated<String>?
+    var result: Validated<ResourceFieldValue>?
     feature
-      .fieldValuePublisher("name")
+      .fieldValuePublisher(.name)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { value in
@@ -228,7 +241,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssert(!(result?.isValid ?? false))
 
     feature
-      .setFieldValue("updated", "name")
+      .setFieldValue(.string("updated"), .name)
       .sinkDrop()
       .store(in: cancellables)
 
@@ -237,16 +250,20 @@ final class ResourceCreateFormTests: TestCase {
 
   func test_setFieldValue_fails_whenResourceFieldNotAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: TheError?
     feature
-      .setFieldValue("updated", "unavailable")
+      .setFieldValue(.string("updated"), .undefined(name: "unavailable"))
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -262,16 +279,20 @@ final class ResourceCreateFormTests: TestCase {
 
   func test_setFieldValue_succeeds_whenResourceFieldAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultResourceType])
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: Void?
     feature
-      .setFieldValue("updated", "name")
+      .setFieldValue(.string("updated"), .name)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: {
@@ -283,7 +304,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_createResource_fails_whenFetchResourcesTypesOperationFails() {
+  func test_sendForm_fails_whenFetchResourcesTypesOperationFails() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Fail(error: .testError())
@@ -293,11 +314,11 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: TheError?
     feature
-      .createResource()
+      .sendForm()
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -311,7 +332,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
-  func test_createResource_fails_whenFieldsValidationFails() {
+  func test_sendForm_fails_whenFieldsValidationFails() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
@@ -322,11 +343,11 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     var result: TheError?
     feature
-      .createResource()
+      .sendForm()
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -340,7 +361,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssertEqual(result?.identifier, .validation)
   }
 
-  func test_createResource_fails_whenNoActiveUserSession() {
+  func test_sendForm_fails_whenNoActiveUserSession() {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: nil))
         .eraseToAnyPublisher()
@@ -355,16 +376,16 @@ final class ResourceCreateFormTests: TestCase {
     features.use(networkClient)
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     feature
-      .setFieldValue("name", "name")
+      .setFieldValue(.string(name), .name)
       .sinkDrop()
       .store(in: cancellables)
 
     var result: TheError?
     feature
-      .createResource()
+      .sendForm()
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -378,7 +399,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssertEqual(result?.identifier, .authorizationRequired)
   }
 
-  func test_createResource_fails_whenEncryptMessageForUserFails() {
+  func test_sendForm_fails_whenEncryptMessageForUserFails() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
@@ -397,16 +418,16 @@ final class ResourceCreateFormTests: TestCase {
     )
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     feature
-      .setFieldValue("name", "name")
+      .setFieldValue(.string(name), .name)
       .sinkDrop()
       .store(in: cancellables)
 
     var result: TheError?
     feature
-      .createResource()
+      .sendForm()
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -420,7 +441,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
-  func test_createResource_fails_whenCreateResourceRequestFails() {
+  func test_sendForm_fails_whenCreateResourceRequestFails() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
@@ -444,16 +465,16 @@ final class ResourceCreateFormTests: TestCase {
     )
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     feature
-      .setFieldValue("name", "name")
+      .setFieldValue(.string("name"), .name)
       .sinkDrop()
       .store(in: cancellables)
 
     var result: TheError?
     feature
-      .createResource()
+      .sendForm()
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -467,7 +488,7 @@ final class ResourceCreateFormTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
-  func test_createResource_succeeds_whenAllOperationsSucceed() {
+  func test_sendForm_succeeds_whenAllOperationsSucceed() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
@@ -495,16 +516,16 @@ final class ResourceCreateFormTests: TestCase {
     )
     features.use(userPGPMessages)
 
-    let feature: ResourceCreateForm = testInstance()
+    let feature: ResourceEditForm = testInstance()
 
     feature
-      .setFieldValue("name", "name")
+      .setFieldValue(.string("name"), .name)
       .sinkDrop()
       .store(in: cancellables)
 
     var result: Resource.ID?
     feature
-      .createResource()
+      .sendForm()
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { resourceID in
@@ -529,7 +550,7 @@ private let defaultShrinkedResourceType: ResourceType = .init(
   slug: "password-and-description",
   name: "password-and-description-shrinked",
   fields: [
-    .string(name: "name", required: true, encrypted: false, maxLength: nil),
+    .init(name: "name", typeString: "string", required: true, encrypted: false, maxLength: nil)!
   ]
 )
 
@@ -538,11 +559,11 @@ private let defaultResourceType: ResourceType = .init(
   slug: "password-and-description",
   name: "password-and-description",
   fields: [
-    .string(name: "name", required: true, encrypted: false, maxLength: nil),
-    .string(name: "uri", required: false, encrypted: false, maxLength: nil),
-    .string(name: "username", required: false, encrypted: false, maxLength: nil),
-    .string(name: "password", required: true, encrypted: true, maxLength: nil),
-    .string(name: "description", required: false, encrypted: true, maxLength: nil),
+    .init(name: "name", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+    .init(name: "uri", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
+    .init(name: "username", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
+    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+    .init(name: "description", typeString: "string", required: false, encrypted: true, maxLength: nil)!,
   ]
 )
 

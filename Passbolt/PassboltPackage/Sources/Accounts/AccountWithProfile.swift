@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Crypto
 
 // Read only composite of Account and AccountProfile for displaying authorization and account list.

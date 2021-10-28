@@ -23,11 +23,7 @@
 
 import Accounts
 import Commons
-
-extension ResourceDetailsController {
-
-  internal typealias FieldName = Tagged<String, ResourceDetailsController>
-}
+import CommonDataModels
 
 extension ResourceDetailsController {
 
@@ -50,61 +46,6 @@ extension ResourceDetailsController {
       }
     }
 
-    #warning("PAS-409 Unify dynamic fields")
-    internal enum Field: Comparable, Hashable {
-
-      case username(required: Bool, encrypted: Bool, maxLength: Int?)
-      case password(required: Bool, encrypted: Bool, maxLength: Int?)
-      case uri(required: Bool, encrypted: Bool, maxLength: Int?)
-      case description(required: Bool, encrypted: Bool, maxLength: Int?)
-
-      fileprivate static func from(resourceField: ResourceField) -> Field? {
-        switch resourceField {
-        case let .string("username", required, encrypted, maxLength):
-          return .username(required: required, encrypted: encrypted, maxLength: maxLength)
-        case let .string("password", required, encrypted, maxLength),
-             let .string("secret", required, encrypted, maxLength):
-          return .password(required: required, encrypted: encrypted, maxLength: maxLength)
-        case let .string("uri", required, encrypted, maxLength):
-          return .uri(required: required, encrypted: encrypted, maxLength: maxLength)
-        case let .string("description", required, encrypted, maxLength):
-          return .description(required: required, encrypted: encrypted, maxLength: maxLength)
-        case _:
-          return nil
-        }
-      }
-
-      internal func name() -> FieldName {
-        switch self {
-        case .username:
-          return "username"
-        case .password:
-          return "password"
-        case .uri:
-          return "uri"
-        case .description:
-          return "description"
-        }
-      }
-
-      static func < (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        case (.username, _):
-          return true
-        case (.password, .username), (.password, .password):
-          return false
-        case (.password, .uri), (.password, .description):
-          return true
-        case (.uri, .username), (.uri, .password), (.uri, .uri):
-          return false
-        case (.uri, .description):
-          return true
-        case (.description, _):
-          return false
-        }
-      }
-    }
-
     internal typealias ID = Tagged<String, ResourceDetails>
 
     internal let id: ID
@@ -113,13 +54,11 @@ extension ResourceDetailsController {
     internal var url: String?
     internal var username: String?
     internal var description: String?
-    internal var fields: Array<Field>
+    internal var properties: Array<ResourceProperty>
 
-    internal static func from(detailsViewResource: DetailsViewResource) -> ResourceDetails {
-
-      let fields: Array<ResourceDetails.Field> = detailsViewResource.fields
-        .compactMap(ResourceDetails.Field.from(resourceField:))
-        .sorted()
+    internal static func from(
+      detailsViewResource: DetailsViewResource
+    ) -> ResourceDetails {
 
       return .init(
         id: .init(rawValue: detailsViewResource.id.rawValue),
@@ -128,7 +67,9 @@ extension ResourceDetailsController {
         url: detailsViewResource.url,
         username: detailsViewResource.username,
         description: detailsViewResource.description,
-        fields: fields
+        properties: detailsViewResource
+          .properties
+          .sorted()
       )
     }
   }

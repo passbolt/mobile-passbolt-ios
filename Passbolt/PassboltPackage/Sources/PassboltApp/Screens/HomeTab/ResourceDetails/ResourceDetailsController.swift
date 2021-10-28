@@ -24,17 +24,18 @@
 import Accounts
 import Resources
 import UIComponents
+import CommonDataModels
 
 internal struct ResourceDetailsController {
 
   internal var resourceDetailsWithConfigPublisher: () -> AnyPublisher<ResourceDetailsWithConfig, TheError>
-  internal var toggleDecrypt: (ResourceDetails.Field) -> AnyPublisher<String?, TheError>
+  internal var toggleDecrypt: (ResourceField) -> AnyPublisher<String?, TheError>
   internal var presentResourceMenu: () -> Void
   internal var presentDeleteResourceAlert: (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeleteAlertPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Never, TheError>
-  internal var copyFieldValue: (ResourceDetails.Field) -> AnyPublisher<Void, TheError>
+  internal var copyFieldValue: (ResourceField) -> AnyPublisher<Void, TheError>
 }
 
 
@@ -62,7 +63,7 @@ extension ResourceDetailsController: UIController {
     let featureConfig: FeatureConfig = features.instance()
 
     let lock: NSRecursiveLock = .init()
-    var revealedFields: Set<ResourceDetails.Field> = .init()
+    var revealedFields: Set<ResourceField> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -107,7 +108,7 @@ extension ResourceDetailsController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func toggleDecrypt(field: ResourceDetails.Field) -> AnyPublisher<String?, TheError> {
+    func toggleDecrypt(field: ResourceField) -> AnyPublisher<String?, TheError> {
       lock.lock()
       defer { lock.unlock() }
 
@@ -124,7 +125,7 @@ extension ResourceDetailsController: UIController {
       else {
         return resources.loadResourceSecret(context)
           .map { resourceSecret -> AnyPublisher<String?, TheError> in
-            guard let secret: String = resourceSecret[dynamicMember: field.name().rawValue]
+            guard let secret: String = resourceSecret[dynamicMember: field.rawValue]
             else { return Fail<String?, TheError>(error: TheError.invalidResourceSecret()).eraseToAnyPublisher() }
 
             return Just(secret)
@@ -155,8 +156,8 @@ extension ResourceDetailsController: UIController {
         .map { details -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = details?.resourceDetails,
-            resourceDetails.fields.contains(where: { field in
-              if case .uri = field {
+            resourceDetails.properties.contains(where: { property in
+              if case .uri = property.field {
                 return true
               }
               else {
@@ -214,8 +215,8 @@ extension ResourceDetailsController: UIController {
         .map { details -> AnyPublisher<Void, TheError> in
           guard
             let resourceDetails = details?.resourceDetails,
-            resourceDetails.fields.contains(where: { field in
-              if case .username = field {
+            resourceDetails.properties.contains(where: { property in
+              if case .username = property.field {
                 return true
               }
               else {
@@ -254,10 +255,10 @@ extension ResourceDetailsController: UIController {
               .eraseToAnyPublisher()
           }
 
-          if resourceDetails.fields.contains(where: { field in
-            guard case let .description(_, encrypted, _) = field
+          if resourceDetails.properties.contains(where: { property in
+            guard case .description = property.field
             else { return false }
-            return encrypted
+            return property.encrypted
           }) {
             return resources
               .loadResourceSecret(context)
@@ -301,7 +302,7 @@ extension ResourceDetailsController: UIController {
 
     #warning("This is similar to ResourceMenuController code, it might be unified to avoid duplicates")
     func copyField(
-      _ field: ResourceDetails.Field
+      _ field: ResourceField
     ) -> AnyPublisher<Void, TheError> {
       switch field {
       case .uri:
