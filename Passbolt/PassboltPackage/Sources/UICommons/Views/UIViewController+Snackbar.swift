@@ -23,6 +23,13 @@
 
 import AegithalosCocoa
 
+public enum SnackbarPresentationMode {
+
+  case anchor(UIView)
+  case local
+  case global
+}
+
 extension UIViewController {
 
   public func presentErrorSnackbar(
@@ -46,7 +53,7 @@ extension UIViewController {
   public func presentInfoSnackbar(
     localizableKey: LocalizationKeyConstant = .genericError,
     inBundle: Bundle = .commons,
-    presentationAnchor: UIView? = nil,
+    presentationMode: SnackbarPresentationMode = .local,
     arguments: Array<CVarArg> = []
   ) {
     present(
@@ -58,13 +65,14 @@ extension UIViewController {
           backgroundColor: .primaryText,
           textColor: .primaryTextAlternative
         )
-        .instantiate()
+        .instantiate(),
+      presentationMode: presentationMode
     )
   }
 
   public func present(
     snackbar: UIView,
-    presentationAnchor: UIView? = nil,  // bottom of screen is used if no anchor provided
+    presentationMode: SnackbarPresentationMode = .local,
     hideAfter hideDelay: TimeInterval = 3,  // zero is not going to hide automatically
     replaceCurrent: Bool = true,  // presentation will be ignored if set to false and other is presented
     animated: Bool = true
@@ -73,24 +81,42 @@ extension UIViewController {
     dismissSnackbar(animated: animated)
     _snackbarView = snackbar
     snackbar.layer.removeAllAnimations()
+
+    let presentFromView: UIView
+    let presentBottomAnchor: NSLayoutYAxisAnchor
+
+    switch presentationMode {
+    case let .anchor(view):
+      presentFromView = view.superview ?? view
+      presentBottomAnchor = view.topAnchor
+    case .local:
+      presentFromView = self.view
+      presentBottomAnchor = presentFromView.safeAreaLayoutGuide.bottomAnchor
+    case .global:
+      presentFromView =
+        self.tabBarController?.view
+        ?? self.navigationController?.view
+        ?? self.view
+      presentBottomAnchor = presentFromView.safeAreaLayoutGuide.bottomAnchor
+    }
+
     mut(snackbar) {
       .combined(
         .alpha(0),
-        .subview(of: self.view),
+        .subview(of: presentFromView),
         .leadingAnchor(
           .equalTo,
-          self.view.safeAreaLayoutGuide.leadingAnchor,
+          presentFromView.safeAreaLayoutGuide.leadingAnchor,
           constant: 24
         ),
         .trailingAnchor(
           .equalTo,
-          self.view.safeAreaLayoutGuide.trailingAnchor,
+          presentFromView.safeAreaLayoutGuide.trailingAnchor,
           constant: -24
         ),
         .bottomAnchor(
           .equalTo,
-          presentationAnchor.map(\.topAnchor)
-            ?? self.view.safeAreaLayoutGuide.bottomAnchor,
+          presentBottomAnchor,
           constant: -24
         )
       )

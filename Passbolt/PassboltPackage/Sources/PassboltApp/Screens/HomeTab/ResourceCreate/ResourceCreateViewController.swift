@@ -139,9 +139,10 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
             guard case .finished = ending
             else { return }
 
-            self?.parent?.presentInfoSnackbar(
+            self?.presentInfoSnackbar(
               localizableKey: "resource.form.new.password.created",
-              inBundle: .commons
+              inBundle: .commons,
+              presentationMode: .global
             )
 
             self?.pop(if: Self.self)
@@ -166,7 +167,7 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
         self?.presentInfoSnackbar(
           localizableKey: "resource.form.description.encrypted",
           inBundle: .commons,
-          presentationAnchor: self?.contentView.lockAnchor
+          presentationMode: (self?.contentView.lockAnchor).map { .anchor($0) } ?? .local
         )
       })
       .store(in: cancellables)

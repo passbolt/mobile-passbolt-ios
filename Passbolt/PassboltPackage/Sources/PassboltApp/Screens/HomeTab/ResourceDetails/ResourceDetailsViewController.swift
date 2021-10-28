@@ -80,7 +80,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
 
         self?.navigationController?.presentErrorSnackbar()
         self?.pop(if: Self.self)
-      } receiveValue: { [ weak self] resourceDetailsWithConfig in
+      } receiveValue: { [weak self] resourceDetailsWithConfig in
         self?.contentView.update(with: resourceDetailsWithConfig)
       }
 
@@ -234,6 +234,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   self?.presentInfoSnackbar(
                     localizableKey: "resource.menu.action.deleted",
                     inBundle: .main,
+                    presentationMode: .global,
                     arguments: [
                       NSLocalizedString("resource.menu.item.password", comment: "")
                     ]
