@@ -30,6 +30,11 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
 
   typealias Identifier = AutofillExtensionContext.ServiceIdentifier
 
+  func test_matches_returnsFalse_withEmptyDomains() {
+    XCTAssertFalse(("" as Identifier).matches(url: "passbolt.com"))
+    XCTAssertFalse(("passbolt.com" as Identifier).matches(url: ""))
+  }
+
   func test_matches_returnsTrue_withMatchingDomains() {
     XCTAssertTrue(("http://www.passbolt.com" as Identifier).matches(url: "http://www.passbolt.com"))
     XCTAssertTrue(("https://www.passbolt.com" as Identifier).matches(url: "https://www.passbolt.com"))

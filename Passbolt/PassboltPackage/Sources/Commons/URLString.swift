@@ -123,7 +123,10 @@ extension URLString {
       let targetDomainComponents = targetURL.split(separator: ".").reversed()
       let checkedDomainComponents = checkedURL.split(separator: ".").reversed()
 
-      guard targetDomainComponents.count <= checkedDomainComponents.count
+      guard
+        !targetDomainComponents.isEmpty,
+        !checkedDomainComponents.isEmpty,
+        targetDomainComponents.count <= checkedDomainComponents.count
       else { return false }
 
       if targetDomainComponents.count == 1 {
