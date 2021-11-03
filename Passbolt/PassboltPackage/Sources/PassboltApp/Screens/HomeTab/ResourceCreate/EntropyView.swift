@@ -36,7 +36,11 @@ internal final class EntropyView: View {
 
     let indicatorContainer: View =
       Mutation.combined(
+        .backgroundColor(dynamic: .background),
+        .border(dynamic: .divider, width: 1),
+        .cornerRadius(4, masksToBounds: true),
         .subview(of: self),
+        .heightAnchor(.equalTo, constant: 8),
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, topAnchor)
@@ -45,6 +49,7 @@ internal final class EntropyView: View {
 
     mut(indicator) {
       .combined(
+        .backgroundColor(dynamic: .background),
         .subview(of: indicatorContainer),
         .leadingAnchor(.equalTo, indicatorContainer.leadingAnchor),
         .topAnchor(.equalTo, indicatorContainer.topAnchor),
@@ -54,10 +59,7 @@ internal final class EntropyView: View {
           widthAnchor,
           multiplier: 1,
           referenceOutput: &self.indicatorWidthConstraint
-        ),
-        .backgroundColor(dynamic: .background),
-        .border(dynamic: .divider, width: 1),
-        .cornerRadius(4)
+        )
       )
     }
 
