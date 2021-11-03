@@ -31,7 +31,7 @@ extension Mutation where Subject: TextView {
       .backgroundColor(dynamic: .background),
       .border(dynamic: .divider, width: 1),
       .cornerRadius(4),
-      .returnKeyType(.done),
+      .returnKeyType(.default),
       .heightAnchor(.greaterThanOrEqualTo, constant: 48)
     )
   }
