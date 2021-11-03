@@ -32,6 +32,9 @@ extension Mutation where Subject: TextField {
       .textColor(dynamic: .primaryText),
       .backgroundColor(dynamic: .background),
       .cornerRadius(4),
+      .custom { (subject: Subject) in
+        subject.autocapitalizationType = .none
+      },
       .border(dynamic: .divider, width: 1),
       .heightAnchor(.equalTo, constant: 48)
     )
