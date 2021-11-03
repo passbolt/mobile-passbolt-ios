@@ -12,10 +12,10 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Crypto
 import TestExtensions
-import CommonDataModels
 import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals

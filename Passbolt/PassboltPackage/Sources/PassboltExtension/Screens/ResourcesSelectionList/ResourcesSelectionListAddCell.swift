@@ -99,4 +99,3 @@ internal final class ResourcesSelectionListAddCell: CollectionViewCell {
     self.tapAction = nil
   }
 }
-

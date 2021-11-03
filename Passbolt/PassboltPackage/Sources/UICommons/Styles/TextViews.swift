@@ -36,4 +36,3 @@ extension Mutation where Subject: TextView {
     )
   }
 }
-

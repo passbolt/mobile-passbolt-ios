@@ -98,7 +98,8 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
               parent.setContent(view: child)
             }
           }
-        })
+        }
+      )
       .store(in: cancellables)
 
     contentView.tapPublisher

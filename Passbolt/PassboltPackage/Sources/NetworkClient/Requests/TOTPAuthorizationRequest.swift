@@ -91,8 +91,7 @@ extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
         return decodeBadRequest(response: httpResponse)
       }
 
-      if
-        let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
+      if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
       {
         return .success(
@@ -107,7 +106,8 @@ extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
             )
           )
         )
-      } else {
+      }
+      else {
         return .failure(
           .networkResponseDecodingFailed(
             underlyingError: nil,
@@ -118,4 +118,3 @@ extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
     }
   }
 }
-

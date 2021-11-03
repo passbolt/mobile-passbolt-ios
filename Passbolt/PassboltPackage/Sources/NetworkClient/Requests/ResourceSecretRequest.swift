@@ -69,4 +69,3 @@ public struct ResourceSecretRequestResponseBody: Decodable {
 
   public var data: String
 }
-

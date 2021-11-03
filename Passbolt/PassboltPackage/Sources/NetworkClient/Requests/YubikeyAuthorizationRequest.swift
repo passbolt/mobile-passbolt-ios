@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-
 import Commons
 import Crypto
 import Environment
@@ -58,7 +57,7 @@ public struct YubikeyAuthorizationRequestVariable: Encodable {
   public var remember: Bool
 
   private enum CodingKeys: String, CodingKey {
-    case otp = "hotp" // it is actually otp but backend expects hotp field
+    case otp = "hotp"  // it is actually otp but backend expects hotp field
     case remember = "remember"
   }
 
@@ -86,8 +85,7 @@ extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse
 
   fileprivate static var mfaCookie: Self {
     Self { _, _, httpResponse in
-      if
-        let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
+      if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
       {
         return .success(
@@ -102,7 +100,8 @@ extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse
             )
           )
         )
-      } else {
+      }
+      else {
         return .failure(
           .networkResponseDecodingFailed(
             underlyingError: nil,
@@ -113,5 +112,3 @@ extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse
     }
   }
 }
-
-

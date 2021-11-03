@@ -128,7 +128,7 @@ let package = Package(
     .target(
       name: "CommonDataModels",
       dependencies: [
-        "Commons",
+        "Commons"
       ]
     ),
     .target(
@@ -203,7 +203,7 @@ let package = Package(
       name: "NFCTests",
       dependencies: [
         "NFC",
-        "TestExtensions"
+        "TestExtensions",
       ]
     ),
     .target(
@@ -252,7 +252,7 @@ let package = Package(
         "Resources",
         "Environment",
         "SharedUIComponents",
-        "NFC"
+        "NFC",
       ]
     ),
     .testTarget(
@@ -340,7 +340,7 @@ let package = Package(
         .define("SQLITE_HAS_CODEC"),
         .define("SQLITE_TEMP_STORE", to: "3"),
         .define("SQLCIPHER_CRYPTO_CC"),
-        .define("NDEBUG"), // Settings based on recommended values: https://www.sqlite.org/draft/security.html
+        .define("NDEBUG"),  // Settings based on recommended values: https://www.sqlite.org/draft/security.html
         .define("SQLITE_MAX_LIMIT_LENGTH", to: "1000000"),
         .define("SQLITE_MAX_SQL_LENGTH", to: "100000"),
         .define("SQLITE_MAX_LIMIT_COLUMN", to: "100"),
@@ -351,7 +351,7 @@ let package = Package(
         .define("SQLITE_MAX_LIMIT_ATTACH", to: "0"),
         .define("SQLITE_MAX_LIMIT_LIKE_PATTERN_LENGTH", to: "50"),
         .define("SQLITE_MAX_LIMIT_VARIABLE_NUMBER", to: "10"),
-        .define("SQLITE_MAX_LIMIT_TRIGGER_DEPTH", to: "10")
+        .define("SQLITE_MAX_LIMIT_TRIGGER_DEPTH", to: "10"),
       ],
       swiftSettings: [
         .define("SQLITE_HAS_CODEC")

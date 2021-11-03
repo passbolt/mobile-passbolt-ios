@@ -40,7 +40,11 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertTrue(("https://www.passbolt.com" as Identifier).matches(url: "https://www.passbolt.com"))
     XCTAssertTrue(("https://www.passbolt.com:443" as Identifier).matches(url: "https://www.passbolt.com:443"))
     XCTAssertTrue(("https://email" as Identifier).matches(url: "https://email"))
-    XCTAssertTrue(("https://àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.com" as Identifier).matches(url: "https://àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.com"))
+    XCTAssertTrue(
+      ("https://àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.com" as Identifier).matches(
+        url: "https://àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.com"
+      )
+    )
     XCTAssertTrue(("https://الش.com" as Identifier).matches(url: "https://الش.com"))
     XCTAssertTrue(("https://Ид.com" as Identifier).matches(url: "https://Ид.com"))
     XCTAssertTrue(("https://完善.com" as Identifier).matches(url: "https://完善.com"))

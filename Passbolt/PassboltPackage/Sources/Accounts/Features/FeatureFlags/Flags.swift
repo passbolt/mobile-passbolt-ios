@@ -21,8 +21,9 @@
 // @since         v1.0
 //
 
-import struct Foundation.URL
 import NetworkClient
+
+import struct Foundation.URL
 
 #warning("TODO: Add other feature flags: tags & folders")
 

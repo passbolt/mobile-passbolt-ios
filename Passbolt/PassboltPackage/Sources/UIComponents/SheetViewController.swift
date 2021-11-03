@@ -34,7 +34,8 @@ public final class SheetContentView: View {
   public required init() {
     super.init()
 
-    let overlay: View = Mutation
+    let overlay: View =
+      Mutation
       .combined(
         .subview(of: self),
         .backgroundColor(.clear),

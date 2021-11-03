@@ -107,14 +107,14 @@ extension WindowController: UIController {
       accountSession
         .statePublisher()
         .removeDuplicates()
-        .dropFirst() // initial application state handles initial state
+        .dropFirst()  // initial application state handles initial state
         .compactMap { sessionState -> ScreenStateDisposition? in
           switch (sessionState, screenStateDispositionSubject.value) {
           // authorized after prompting
           case let (.authorized(account), .requestPassphrase(promptedAccount, _))
-            where promptedAccount == account,
+          where promptedAccount == account,
             let (.authorized(account), .requestMFA(promptedAccount, _))
-            where promptedAccount == account:
+          where promptedAccount == account:
             return .useCachedScreenState(for: account)
 
           // switched to same account (mfa has to be handled by sign in flow if needed)
@@ -161,7 +161,7 @@ extension WindowController: UIController {
 
           // mfa auth succeeded
           case let (.authorized(account), .requestMFA(previousAccount, _))
-            where account == previousAccount:
+          where account == previousAccount:
             return .useCachedScreenState(for: account)
 
           // mfa auth succeeded but for wrong account

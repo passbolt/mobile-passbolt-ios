@@ -266,7 +266,8 @@ extension UIComponent {
     CATransaction.begin()
     CATransaction.setCompletionBlock(completion)
     var updatedViewControllers: Array<UIViewController> = navigationController.viewControllers
-    updatedViewControllers[targetIndex] = components
+    updatedViewControllers[targetIndex] =
+      components
       .instance(
         of: Replacement.self,
         in: context
@@ -302,7 +303,8 @@ extension UIComponent {
     animations: ((_ parent: Self.View, _ child: Component.View) -> Void)? = nil,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
-    let childComponent: Component = components
+    let childComponent: Component =
+      components
       .instance(
         of: Component.self,
         in: context
@@ -324,7 +326,8 @@ extension UIComponent {
           completion?()
         }
       )
-    } else {
+    }
+    else {
       childComponent.didMove(toParent: self)
       completion?()
     }
@@ -362,7 +365,8 @@ extension UIComponent {
 
     replacedComponent.willMove(toParent: nil)
 
-    let replacingComponent: Replacing = components
+    let replacingComponent: Replacing =
+      components
       .instance(
         of: Replacing.self,
         in: context
@@ -387,7 +391,8 @@ extension UIComponent {
           completion?()
         }
       )
-    } else {
+    }
+    else {
       replacedComponent.view.removeFromSuperview()
       replacedComponent.removeFromParent()
       replacingComponent.didMove(toParent: self)
@@ -419,7 +424,8 @@ extension UIComponent {
               child.removeFromParent()
             }
           )
-        } else {
+        }
+        else {
           child.view.removeFromSuperview()
           child.removeFromParent()
         }

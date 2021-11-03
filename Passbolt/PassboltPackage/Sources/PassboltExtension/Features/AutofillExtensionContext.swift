@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
-import struct Accounts.ListViewResource
 import Commons
 import Features
 
+import struct Accounts.ListViewResource
 import struct Foundation.URL
 
 public struct AutofillExtensionContext {

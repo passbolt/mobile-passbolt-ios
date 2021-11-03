@@ -21,16 +21,16 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Combine
-import Features
-@testable import Resources
-import TestExtensions
 import CommonDataModels
+import Features
+import TestExtensions
 import UIComponents
 import XCTest
 
+@testable import Accounts
 @testable import PassboltApp
+@testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceDetailsControllerTests: TestCase {
@@ -69,15 +69,18 @@ final class ResourceDetailsControllerTests: TestCase {
     var result: ResourceDetailsController.ResourceDetailsWithConfig!
 
     controller.resourceDetailsWithConfigPublisher()
-      .sink(receiveCompletion: { completion in
-        guard case .finished = completion
-        else {
-          XCTFail("Unexpected failure")
-          return
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else {
+            XCTFail("Unexpected failure")
+            return
+          }
+        },
+        receiveValue: { resourceDetailsConfig in
+          result = resourceDetailsConfig
         }
-      }, receiveValue: { resourceDetailsConfig in
-        result = resourceDetailsConfig
-      })
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
@@ -104,21 +107,24 @@ final class ResourceDetailsControllerTests: TestCase {
       .username,
       .password,
       .uri,
-      .description
+      .description,
     ]
 
     var result: ResourceDetailsController.ResourceDetailsWithConfig!
 
     controller.resourceDetailsWithConfigPublisher()
-      .sink(receiveCompletion: { completion in
-        guard case .finished = completion
-        else {
-          XCTFail("Unexpected failure")
-          return
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else {
+            XCTFail("Unexpected failure")
+            return
+          }
+        },
+        receiveValue: { resourceDetailsConfig in
+          result = resourceDetailsConfig
         }
-      }, receiveValue: { resourceDetailsConfig in
-        result = resourceDetailsConfig
-      })
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
@@ -139,16 +145,19 @@ final class ResourceDetailsControllerTests: TestCase {
     var result: TheError!
 
     controller.resourceDetailsWithConfigPublisher()
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion
-        else {
-          XCTFail("Unexpected completion")
-          return
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else {
+            XCTFail("Unexpected completion")
+            return
+          }
+          result = error
+        },
+        receiveValue: { _ in
+          XCTFail("Unexpected value")
         }
-        result = error
-      }, receiveValue: { _ in
-        XCTFail("Unexpected value")
-      })
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
@@ -204,16 +213,19 @@ final class ResourceDetailsControllerTests: TestCase {
 
     controller
       .toggleDecrypt(.password)
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion
-        else {
-          XCTFail("Unexpected completion")
-          return
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else {
+            XCTFail("Unexpected completion")
+            return
+          }
+          result = error
+        },
+        receiveValue: { _ in
+          XCTFail("Unexpected value")
         }
-        result = error
-      }, receiveValue: { _ in
-        XCTFail("Unexpected value")
-      })
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
@@ -477,7 +489,7 @@ final class ResourceDetailsControllerTests: TestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test"
-      ),
+      )
     ]
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
@@ -533,8 +545,9 @@ private let detailsViewResource: DetailsViewResource = .init(
     .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
     .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
     .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!
-  ])
+    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
+  ]
+)
 
 private let encryptedDescriptionDetailsViewResource: DetailsViewResource = .init(
   id: .init(rawValue: "1"),
@@ -547,8 +560,9 @@ private let encryptedDescriptionDetailsViewResource: DetailsViewResource = .init
     .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
     .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
     .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!
-  ])
+    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
+  ]
+)
 
 private let resourceSecret: ResourceSecret = .from(
   decrypted: #"{"password": "passbolt", "description": "encrypted"}"#,

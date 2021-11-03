@@ -22,10 +22,10 @@
 //
 
 import Accounts
+import CommonDataModels
 import Commons
 import Crypto
 import Security
-import CommonDataModels
 import TestExtensions
 import XCTest
 

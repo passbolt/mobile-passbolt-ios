@@ -21,16 +21,16 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Combine
-import Features
-@testable import Resources
-import TestExtensions
 import CommonDataModels
+import Features
+import TestExtensions
 import UIComponents
 import XCTest
 
+@testable import Accounts
 @testable import PassboltApp
+@testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceMenuControllerTests: TestCase {
@@ -388,7 +388,7 @@ private let detailsViewResource: DetailsViewResource = .init(
     .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
     .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
     .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!
+    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
   ]
 )
 
@@ -403,7 +403,7 @@ private let detailsViewResourceWithoutDescription: DetailsViewResource = .init(
     .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
     .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
     .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!
+    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
   ]
 )
 
@@ -411,4 +411,3 @@ private let resourceSecret: ResourceSecret = .from(
   decrypted: #"{"password" : "passbolt", "description": "encrypted description"}"#,
   using: .init()
 )!
-

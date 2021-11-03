@@ -21,12 +21,12 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Crypto
 import Features
 import NetworkClient
 import TestExtensions
-import CommonDataModels
 import XCTest
 
 @testable import Accounts
@@ -47,22 +47,22 @@ final class FingerprintStorageTests: TestCase {
   }
 
   func test_loadServerFingerprint_succeeds_withNil_whenNoFingerprintWasStored() {
-      let storedFingerprint: Fingerprint? = nil
-      accountDataStore.loadServerFingerprint = always(.success(storedFingerprint))
-      features.use(accountDataStore)
+    let storedFingerprint: Fingerprint? = nil
+    accountDataStore.loadServerFingerprint = always(.success(storedFingerprint))
+    features.use(accountDataStore)
 
-      let feature: FingerprintStorage = testInstance()
-      var result: Fingerprint?
+    let feature: FingerprintStorage = testInstance()
+    var result: Fingerprint?
 
-      switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
-      case let .success(serverFingerprint):
-        result = serverFingerprint
-      case .failure:
-        break
-      }
-
-      XCTAssertNil(result)
+    switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
+    case let .success(serverFingerprint):
+      result = serverFingerprint
+    case .failure:
+      break
     }
+
+    XCTAssertNil(result)
+  }
 
   func test_loadServerFingerprint_succeeds_whenDataStoreLoadSucceeds() {
     accountDataStore.loadServerFingerprint = always(.success("FINGERPRINT"))

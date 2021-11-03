@@ -64,7 +64,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
         else { return }
         self?.presentingViewController?.presentErrorSnackbar()
         self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
-      } receiveValue: { [ weak self] resourceDetails in
+      } receiveValue: { [weak self] resourceDetails in
         self?.contentView.update(title: resourceDetails.name)
       }
       .store(in: cancellables)

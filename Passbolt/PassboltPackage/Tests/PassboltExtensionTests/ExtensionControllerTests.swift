@@ -134,11 +134,13 @@ final class ExtensionControllerTests: TestCase {
     }
     accountSession.statePublisher = always(Empty().eraseToAnyPublisher())
     let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
-    accountSession.authorizationPromptPresentationPublisher = always(authorizationPromptPresentationSubject.eraseToAnyPublisher())
+    accountSession.authorizationPromptPresentationPublisher = always(
+      authorizationPromptPresentationSubject.eraseToAnyPublisher()
+    )
     features.use(accountSession)
 
     let controller: ExtensionController = testInstance()
-    _ = controller // silence warning
+    _ = controller  // silence warning
 
     authorizationPromptPresentationSubject
       .send(

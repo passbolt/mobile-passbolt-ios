@@ -42,5 +42,5 @@ extension LocalizationKeyConstant {
   public static let create: Self = "generic.create"
   public static let emptyList: Self = "generic.empty.list"
   public static let invalidPasteValue: Self = "generic.paste.value.invalid"
-  public static let areYouSure: Self = "generic.are.you.sure";
+  public static let areYouSure: Self = "generic.are.you.sure"
 }

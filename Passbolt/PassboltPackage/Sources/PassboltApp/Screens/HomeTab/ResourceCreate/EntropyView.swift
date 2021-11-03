@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import UICommons
 import Features
+import UICommons
 
 internal final class EntropyView: View {
 
@@ -50,7 +50,10 @@ internal final class EntropyView: View {
         .topAnchor(.equalTo, indicatorContainer.topAnchor),
         .heightAnchor(.equalTo, constant: 8),
         .widthAnchor(
-          .equalTo, widthAnchor, multiplier: 1, referenceOutput: &self.indicatorWidthConstraint
+          .equalTo,
+          widthAnchor,
+          multiplier: 1,
+          referenceOutput: &self.indicatorWidthConstraint
         ),
         .backgroundColor(dynamic: .background),
         .border(dynamic: .divider, width: 1),
@@ -123,7 +126,10 @@ internal final class EntropyView: View {
       .combined(
         .backgroundColor(dynamic: color),
         .widthAnchor(
-          .equalTo, widthAnchor, multiplier: multiplier, referenceOutput: &self.indicatorWidthConstraint
+          .equalTo,
+          widthAnchor,
+          multiplier: multiplier,
+          referenceOutput: &self.indicatorWidthConstraint
         )
       )
     }

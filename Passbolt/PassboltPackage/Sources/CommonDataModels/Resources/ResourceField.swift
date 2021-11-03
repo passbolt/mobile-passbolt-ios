@@ -125,3 +125,13 @@ extension ResourceField: Comparable {
     }
   }
 }
+
+extension ResourceField: Codable {
+
+  public func encode(
+    to encoder: Encoder
+  ) throws {
+    var container: SingleValueEncodingContainer = encoder.singleValueContainer()
+    try container.encode(rawValue)
+  }
+}

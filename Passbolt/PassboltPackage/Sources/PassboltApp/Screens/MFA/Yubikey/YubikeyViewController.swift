@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
+import NFC
 import UICommons
 import UIComponents
-import NFC
 
 internal final class YubikeyViewController: PlainViewController, UIComponent {
 
@@ -84,15 +84,18 @@ internal final class YubikeyViewController: PlainViewController, UIComponent {
             switch (error.identifier, error.underlyingError) {
             case (.yubikey, .some(NFCError.nfcDataParsingFailed)):
               self?.parent?.presentErrorSnackbar(
-                localizableKey: "mfa.yubikey.scan.failed", inBundle: .main
+                localizableKey: "mfa.yubikey.scan.failed",
+                inBundle: .main
               )
             case (.yubikey, .some(NFCError.nfcNotSupported)):
               self?.parent?.presentErrorSnackbar(
-                localizableKey: "mfa.yubikey.nfc.not.supported", inBundle: .main
+                localizableKey: "mfa.yubikey.nfc.not.supported",
+                inBundle: .main
               )
             case _:
               self?.parent?.presentErrorSnackbar(
-                localizableKey: "mfa.yubikey.generic.error", inBundle: .main
+                localizableKey: "mfa.yubikey.generic.error",
+                inBundle: .main
               )
             }
           })

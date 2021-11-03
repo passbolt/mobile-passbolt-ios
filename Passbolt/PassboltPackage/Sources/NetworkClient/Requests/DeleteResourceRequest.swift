@@ -38,18 +38,18 @@ extension DeleteResourceRequest {
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
-          .combined(
-            .url(string: sessionVariable.domain),
-            .path("/resources/\(requestVariable.resourceID).json"),
-            .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
-            .whenSome(
-              sessionVariable.mfaToken,
-              then: { mfaToken in
-                  .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
-              }
-            ),
-            .method(.delete)
-          )
+        .combined(
+          .url(string: sessionVariable.domain),
+          .path("/resources/\(requestVariable.resourceID).json"),
+          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .whenSome(
+            sessionVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          ),
+          .method(.delete)
+        )
       },
       responseDecoder: .statusCodes(200..<300),
       using: networking,

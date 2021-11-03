@@ -51,4 +51,3 @@ extension MFARedirectRequest {
 
 internal struct MFARedirectRequestVariable {}
 internal struct MFARedirectResponse: Decodable {}
-

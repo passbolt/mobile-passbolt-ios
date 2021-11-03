@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Crypto
 import CommonDataModels
+import Crypto
 import Features
 import NetworkClient
 

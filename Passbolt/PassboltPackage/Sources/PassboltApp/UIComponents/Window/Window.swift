@@ -66,7 +66,7 @@ internal final class Window {
               self.replaceRoot(with: cachedScreen)
             }
             else {
-              fallthrough // fallback to initial screen state if there is none cached
+              fallthrough  // fallback to initial screen state if there is none cached
             }
 
           // Go to initial screen state (through Splash)
@@ -102,7 +102,8 @@ internal final class Window {
               guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
               else { unreachable("Window root has to be an instance of UIComponent") }
               self.screenStateCache = rootComponent
-            } else {
+            }
+            else {
               /* NOP - reuse previous cache if any if previous screen was mfa prompt */
             }
 
@@ -209,7 +210,9 @@ extension Window {
 
   private var isMFAPromptDisplayed: Bool {
     window.rootViewController is PlainNavigationViewController<MFARootViewController>
-    || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers.contains(where: { $0 is MFARootViewController }) ?? false
+      || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers.contains(where: {
+        $0 is MFARootViewController
+      }) ?? false
   }
 }
 

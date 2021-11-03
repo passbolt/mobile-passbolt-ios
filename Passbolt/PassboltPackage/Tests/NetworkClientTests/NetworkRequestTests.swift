@@ -483,9 +483,10 @@ final class NetworkRequestTests: XCTestCase {
       with: sessionSubject.eraseToAnyPublisher()
     )
     .withAuthErrors(
-      authorizationRequest: { /* NOP */ },
+      authorizationRequest: { /* NOP */  },
       mfaRequest: { _ in /* NOP */ },
       mfaRedirectionHandler: mfaRedirectionHandler,
-      sessionPublisher: domainSubject.eraseToAnyPublisher())
+      sessionPublisher: domainSubject.eraseToAnyPublisher()
+    )
   }
 }

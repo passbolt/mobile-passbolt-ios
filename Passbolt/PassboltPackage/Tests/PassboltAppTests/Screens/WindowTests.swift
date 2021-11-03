@@ -68,7 +68,9 @@ final class WindowTests: TestCase {
     else { return XCTFail() }
   }
 
-  func test_screenStateDispositionPublisher_publishesRequestPassphrase_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequest() {
+  func
+    test_screenStateDispositionPublisher_publishesRequestPassphrase_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequest()
+  {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -101,7 +103,9 @@ final class WindowTests: TestCase {
     XCTAssertEqual(message, .testMessage())
   }
 
-  func test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequest() {
+  func
+    test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequest()
+  {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -170,7 +174,7 @@ final class WindowTests: TestCase {
   }
 
   func
-  test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsNotLoaded()
+    test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsNotLoaded()
   {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
@@ -205,7 +209,7 @@ final class WindowTests: TestCase {
   }
 
   func
-  test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequestAndAccountTransferIsLoaded()
+    test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequestAndAccountTransferIsLoaded()
   {
     features.use(AccountTransfer.placeholder)
     accountSession.statePublisher = always(
@@ -238,7 +242,7 @@ final class WindowTests: TestCase {
   }
 
   func
-  test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsLoaded()
+    test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsLoaded()
   {
     features.use(AccountTransfer.placeholder)
     accountSession.statePublisher = always(
@@ -299,7 +303,7 @@ final class WindowTests: TestCase {
   }
 
   func
-  test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequired()
+    test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequired()
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -354,7 +358,7 @@ final class WindowTests: TestCase {
   }
 
   func
-  test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequiredAndAccountTransferIsLoaded()
+    test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequiredAndAccountTransferIsLoaded()
   {
     features.use(AccountTransfer.placeholder)
     let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
@@ -417,7 +421,7 @@ final class WindowTests: TestCase {
   }
 
   func
-  test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountMFARequest()
+    test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountMFARequest()
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(

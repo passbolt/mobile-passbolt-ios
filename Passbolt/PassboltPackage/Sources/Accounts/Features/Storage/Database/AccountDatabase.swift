@@ -187,7 +187,7 @@ extension AccountDatabase: Feature {
       storeResourcesTypes: StoreResourcesTypesOperation.using(currentConnectionPublisher),
       fetchListViewResources: FetchListViewResourcesOperation.using(currentConnectionPublisher),
       fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentConnectionPublisher),
-			fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentConnectionPublisher),
+      fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentConnectionPublisher),
       featureUnload: featureUnload
     )
   }
@@ -201,7 +201,7 @@ extension AccountDatabase: Feature {
       storeResourcesTypes: .placeholder,
       fetchListViewResources: .placeholder,
       fetchDetailsViewResources: .placeholder,
-			fetchResourcesTypesOperation: .placeholder,
+      fetchResourcesTypesOperation: .placeholder,
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

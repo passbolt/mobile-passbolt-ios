@@ -37,13 +37,16 @@ extension NetworkRequest {
         self.execute(variable)
           .catch { error -> AnyPublisher<Response, TheError> in
             if error.identifier == .redirect,
-               let location = error.redirectLocation.map(URLString.init(rawValue:)) {
+              let location = error.redirectLocation.map(URLString.init(rawValue:))
+            {
 
-              return sessionPublisher
+              return
+                sessionPublisher
                 .map { URLString(rawValue: $0.domain) }
                 .map { domain -> AnyPublisher<Response, TheError> in
                   if URLString.domain(forURL: location, matches: domain),
-                     location.hasSuffix("/mfa/verify/error.json") {
+                    location.hasSuffix("/mfa/verify/error.json")
+                  {
                     return mfaRedirectionHandler(.init())
                       .map { _ -> AnyPublisher<Response, TheError> in
                         Fail(error: .internalInconsistency().appending(context: "MFA Redirect response invalid"))

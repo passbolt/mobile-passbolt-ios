@@ -139,10 +139,10 @@ extension UIFont {
       assertionFailure("Unsupported font weight: \(weight)")
       font = nil
     }
-    
+
     return font
-    ?? .italicSystemFont(
-      ofSize: fontSize
-    )
+      ?? .italicSystemFont(
+        ofSize: fontSize
+      )
   }
 }

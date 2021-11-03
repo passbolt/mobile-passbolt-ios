@@ -112,8 +112,11 @@ final class TOTPControllerTests: TestCase {
 
     controller.setOTP("123456")
 
-    if case .processing = result {}
-    else { XCTFail() }
+    if case .processing = result {
+    }
+    else {
+      XCTFail()
+    }
   }
 
   func test_statusChangePublisher_publishIdle_whenOTPProcessingFinishes() {
@@ -137,8 +140,11 @@ final class TOTPControllerTests: TestCase {
 
     controller.setOTP("123456")
 
-    if case .idle = result {}
-    else { XCTFail() }
+    if case .idle = result {
+    }
+    else {
+      XCTFail()
+    }
   }
 
   func test_statusChangePublisher_publishError_whenOTPProcessingFails() {

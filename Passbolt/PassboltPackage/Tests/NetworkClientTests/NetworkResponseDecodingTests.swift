@@ -248,7 +248,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
       decoding
       .decode(
         Void(),
-        Void(), 
+        Void(),
         HTTPResponse(
           url: .test,
           statusCode: 403,

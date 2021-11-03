@@ -23,6 +23,7 @@
 
 import Commons
 import Environment
+
 import struct Foundation.URL
 
 extension TheError {
@@ -103,7 +104,7 @@ extension TheError {
     )
   }
 
-#warning("TODO: resolve conflict with TheError+Validated")
+  #warning("TODO: resolve conflict with TheError+Validated")
   public static func validationError(
     underlyingError: Error? = nil,
     validationViolations: Dictionary<String, Any>
@@ -156,7 +157,9 @@ extension TheError.Extension {
 extension TheError {
 
   public var rawNetworkResponse: HTTPResponse? { extensions[.rawNetworkResponse] as? HTTPResponse }
-  public var validationViolations: Dictionary<String, Any>? { extensions[.validationViolations] as? Dictionary<String, Any> }
+  public var validationViolations: Dictionary<String, Any>? {
+    extensions[.validationViolations] as? Dictionary<String, Any>
+  }
 }
 
 extension TheError {

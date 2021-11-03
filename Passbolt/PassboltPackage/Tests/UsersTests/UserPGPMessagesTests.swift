@@ -21,12 +21,11 @@
 // @since         v1.0
 //
 
-
+import CommonDataModels
 import Commons
 import Crypto
-import NetworkClient
 import Features
-import CommonDataModels
+import NetworkClient
 import TestExtensions
 
 @testable import Accounts
@@ -84,38 +83,42 @@ final class UserPGPMessagesTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(.testError()))
     accountSession.statePublisher = always(
       Just(
-        .authorized(.init(
-          localID: "local-id",
-          domain: "https://passbolt.com",
-          userID: "user-id",
-          fingerprint: "fingerpring"
-        ))
+        .authorized(
+          .init(
+            localID: "local-id",
+            domain: "https://passbolt.com",
+            userID: "user-id",
+            fingerprint: "fingerpring"
+          )
+        )
       )
-        .eraseToAnyPublisher()
+      .eraseToAnyPublisher()
     )
     features.use(accountSession)
     features.use(database)
     networkClient.userProfileRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: .init(
-          id: "user-id",
-          profile: .init(
-            firstName: "firstName",
-            lastName: "lastName",
-            avatar: .init(
-              url: .init(
-                medium: "avatar-url"
+      Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            id: "user-id",
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "avatar-url"
+                )
               )
+            ),
+            gpgKey: .init(
+              armoredKey: "armored-public-key"
             )
-          ),
-          gpgKey: .init(
-            armoredKey: "armored-public-key"
           )
         )
-      ))
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
@@ -141,12 +144,14 @@ final class UserPGPMessagesTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
     accountSession.statePublisher = always(
       Just(
-        .authorized(.init(
-          localID: "local-id",
-          domain: "https://passbolt.com",
-          userID: "user.id",
-          fingerprint: "fingerpring"
-        ))
+        .authorized(
+          .init(
+            localID: "local-id",
+            domain: "https://passbolt.com",
+            userID: "user.id",
+            fingerprint: "fingerpring"
+          )
+        )
       )
       .eraseToAnyPublisher()
     )
@@ -157,24 +162,26 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userProfileRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: .init(
-          id: "user-id",
-          profile: .init(
-            firstName: "firstName",
-            lastName: "lastName",
-            avatar: .init(
-              url: .init(
-                medium: "avatar-url"
+      Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            id: "user-id",
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "avatar-url"
+                )
               )
+            ),
+            gpgKey: .init(
+              armoredKey: "armored-public-key"
             )
-          ),
-          gpgKey: .init(
-            armoredKey: "armored-public-key"
           )
         )
-      ))
+      )
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
     )
@@ -202,14 +209,16 @@ final class UserPGPMessagesTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
     accountSession.statePublisher = always(
       Just(
-        .authorized(.init(
-          localID: "local-id",
-          domain: "https://passbolt.com",
-          userID: "user.id",
-          fingerprint: "fingerpring"
-        ))
+        .authorized(
+          .init(
+            localID: "local-id",
+            domain: "https://passbolt.com",
+            userID: "user.id",
+            fingerprint: "fingerpring"
+          )
+        )
       )
-        .eraseToAnyPublisher()
+      .eraseToAnyPublisher()
     )
     accountSession.encryptAndSignMessage = always(
       Just("encrypted-armored-message")
@@ -219,26 +228,28 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userProfileRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: .init(
-          id: "user-id",
-          profile: .init(
-            firstName: "firstName",
-            lastName: "lastName",
-            avatar: .init(
-              url: .init(
-                medium: "avatar-url"
+      Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            id: "user-id",
+            profile: .init(
+              firstName: "firstName",
+              lastName: "lastName",
+              avatar: .init(
+                url: .init(
+                  medium: "avatar-url"
+                )
               )
+            ),
+            gpgKey: .init(
+              armoredKey: "armored-public-key"
             )
-          ),
-          gpgKey: .init(
-            armoredKey: "armored-public-key"
           )
         )
-      ))
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
@@ -289,14 +300,16 @@ final class UserPGPMessagesTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(.testError()))
     accountSession.statePublisher = always(
       Just(
-        .authorized(.init(
-          localID: "local-id",
-          domain: "https://passbolt.com",
-          userID: "user-id",
-          fingerprint: "fingerpring"
-        ))
+        .authorized(
+          .init(
+            localID: "local-id",
+            domain: "https://passbolt.com",
+            userID: "user-id",
+            fingerprint: "fingerpring"
+          )
+        )
       )
-        .eraseToAnyPublisher()
+      .eraseToAnyPublisher()
     )
     accountSession.encryptAndSignMessage = always(
       Fail(error: .testError())
@@ -305,28 +318,30 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userListRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: [
-          .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
+      Just(
+        .init(
+          header: .mock(),
+          body: [
+            .init(
+              id: "user-id",
+              profile: .init(
+                firstName: "firstName",
+                lastName: "lastName",
+                avatar: .init(
+                  url: .init(
+                    medium: "avatar-url"
+                  )
                 )
+              ),
+              gpgKey: .init(
+                armoredKey: "armored-public-key"
               )
-            ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
             )
-          )
-        ]
-      ))
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+          ]
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
@@ -352,12 +367,14 @@ final class UserPGPMessagesTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
     accountSession.statePublisher = always(
       Just(
-        .authorized(.init(
-          localID: "local-id",
-          domain: "https://passbolt.com",
-          userID: "user-id",
-          fingerprint: "fingerpring"
-        ))
+        .authorized(
+          .init(
+            localID: "local-id",
+            domain: "https://passbolt.com",
+            userID: "user-id",
+            fingerprint: "fingerpring"
+          )
+        )
       )
       .eraseToAnyPublisher()
     )
@@ -368,26 +385,28 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userListRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: [
-          .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
+      Just(
+        .init(
+          header: .mock(),
+          body: [
+            .init(
+              id: "user-id",
+              profile: .init(
+                firstName: "firstName",
+                lastName: "lastName",
+                avatar: .init(
+                  url: .init(
+                    medium: "avatar-url"
+                  )
                 )
+              ),
+              gpgKey: .init(
+                armoredKey: "armored-public-key"
               )
-            ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
             )
-          )
-        ]
-      ))
+          ]
+        )
+      )
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
     )
@@ -415,14 +434,16 @@ final class UserPGPMessagesTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
     accountSession.statePublisher = always(
       Just(
-        .authorized(.init(
-          localID: "local-id",
-          domain: "https://passbolt.com",
-          userID: "user.id",
-          fingerprint: "fingerpring"
-        ))
+        .authorized(
+          .init(
+            localID: "local-id",
+            domain: "https://passbolt.com",
+            userID: "user.id",
+            fingerprint: "fingerpring"
+          )
+        )
       )
-        .eraseToAnyPublisher()
+      .eraseToAnyPublisher()
     )
     accountSession.encryptAndSignMessage = always(
       Just("encrypted-armored-message")
@@ -432,41 +453,43 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userListRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: [
-          .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
+      Just(
+        .init(
+          header: .mock(),
+          body: [
+            .init(
+              id: "user-id",
+              profile: .init(
+                firstName: "firstName",
+                lastName: "lastName",
+                avatar: .init(
+                  url: .init(
+                    medium: "avatar-url"
+                  )
                 )
+              ),
+              gpgKey: .init(
+                armoredKey: "armored-public-key"
               )
             ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
-            )
-          ),
-          .init(
-            id: "another-user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
+            .init(
+              id: "another-user-id",
+              profile: .init(
+                firstName: "firstName",
+                lastName: "lastName",
+                avatar: .init(
+                  url: .init(
+                    medium: "avatar-url"
+                  )
                 )
+              ),
+              gpgKey: .init(
+                armoredKey: "armored-public-key"
               )
             ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
-            )
-          )
-        ]
-      ))
+          ]
+        )
+      )
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
     )
@@ -489,4 +512,3 @@ final class UserPGPMessagesTests: TestCase {
     XCTAssertTrue(result?.contains(where: { $0 == "another-user-id" && $1 == "encrypted-armored-message" }) ?? false)
   }
 }
-

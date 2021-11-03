@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Commons
 import CommonDataModels
+import Commons
 import Features
 import UICommons
 
@@ -92,7 +92,8 @@ internal final class ResourceCreateView: KeyboardAwareView {
   }
 
   internal func update(with properties: Array<ResourceProperty>) {
-    fieldViews = properties
+    fieldViews =
+      properties
       .compactMap { resourceProperty -> (ResourceField, View)? in
         switch resourceProperty.field {
         case .name:
@@ -244,19 +245,24 @@ internal final class ResourceCreateView: KeyboardAwareView {
           return nil
         }
       }
-    .reduce(into: Dictionary<ResourceField, View>(), { (partialResult, fieldWithView: FieldWithView)  in
-      partialResult[fieldWithView.field] = fieldWithView.view
-    })
+      .reduce(
+        into: Dictionary<ResourceField, View>(),
+        { (partialResult, fieldWithView: FieldWithView) in
+          partialResult[fieldWithView.field] = fieldWithView.view
+        }
+      )
 
     scrolledStack.removeAllArrangedSubviews()
 
     mut(scrolledStack) {
       .combined(
         .forEach(
-          in: fieldViews.sorted { $0.key < $1.key }, { [unowned self] fieldView in
+          in: fieldViews.sorted { $0.key < $1.key },
+          { [unowned self] fieldView in
             switch fieldView.key {
             case .password:
-              let container: View = Mutation
+              let container: View =
+                Mutation
                 .combined(
                   .backgroundColor(dynamic: .background)
                 )
@@ -360,7 +366,7 @@ internal final class ResourceCreateView: KeyboardAwareView {
     guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
     else {
       return Empty(completeImmediately: true)
-      .eraseToAnyPublisher()
+        .eraseToAnyPublisher()
     }
 
     switch field {
@@ -368,7 +374,7 @@ internal final class ResourceCreateView: KeyboardAwareView {
       guard let textInput: TextInput = fieldView as? TextInput
       else {
         return Empty(completeImmediately: true)
-        .eraseToAnyPublisher()
+          .eraseToAnyPublisher()
       }
 
       return textInput.textPublisher
@@ -377,7 +383,7 @@ internal final class ResourceCreateView: KeyboardAwareView {
       guard let textViewInput: TextViewInput = fieldView as? TextViewInput
       else {
         return Empty(completeImmediately: true)
-        .eraseToAnyPublisher()
+          .eraseToAnyPublisher()
       }
 
       return textViewInput.textPublisher

@@ -79,7 +79,7 @@ final class RandomStringGeneratorTests: TestCase {
 
     let alphabet: Set<Set<Character>> = [
       CharacterSets.koreanCharacters,
-      CharacterSets.digits
+      CharacterSets.digits,
     ]
 
     let generator: RandomStringGenerator = testInstance()
@@ -101,7 +101,7 @@ final class RandomStringGeneratorTests: TestCase {
       CharacterSets.uppercaseLetters,
       CharacterSets.digits,
       CharacterSets.koreanCharacters,
-      CharacterSets.digits
+      CharacterSets.digits,
     ]
 
     let generator: RandomStringGenerator = testInstance()
@@ -218,7 +218,7 @@ final class RandomStringGeneratorTests: TestCase {
 
     let alphabet: Set<Set<Character>> = [
       CharacterSets.koreanCharacters,
-      CharacterSets.koreanDigits
+      CharacterSets.koreanDigits,
     ]
     let generator: RandomStringGenerator = testInstance()
     let result: Entropy = generator.entropy(
@@ -265,21 +265,21 @@ extension CharacterSets {
     "ㅍ", "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ",
     "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅛ", "ㅜ",
     "ㅠ", "ㅘ", "ㅙ", "ㅚ", "ㅝ", "ㅞ",
-    "ㅟ", "ㅡ", "ㅢ", "ㅣ"
+    "ㅟ", "ㅡ", "ㅢ", "ㅣ",
   ]
 
   // Hangul digits - https://en.wikipedia.org/wiki/Korean_numerals
   static let koreanDigits: Set<Character> = [
-    "영", "령", "공", // 0
+    "영", "령", "공",  // 0
     "일",
     "이",
     "삼",
     "사",
     "오",
-    "육", "륙", // 6
+    "육", "륙",  // 6
     "칠",
     "팔",
     "구",
-    "십", // 10
+    "십",  // 10
   ]
 }

@@ -199,7 +199,7 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
             )
             .merge(
               with:
-                self.showErrorSubject // the subject is used as a trigger for showing error on the form, initially no errors are shown
+                self.showErrorSubject  // the subject is used as a trigger for showing error on the form, initially no errors are shown
                 .map { fieldValuePublisher.first() }
                 .switchToLatest()
             )

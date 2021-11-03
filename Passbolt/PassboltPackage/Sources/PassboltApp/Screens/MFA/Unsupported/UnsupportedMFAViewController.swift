@@ -72,4 +72,3 @@ internal final class UnsupportedMFAViewController: PlainViewController, UICompon
     }
   }
 }
-

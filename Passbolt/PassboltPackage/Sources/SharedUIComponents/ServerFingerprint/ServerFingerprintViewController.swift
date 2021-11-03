@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
+import Foundation
 import UICommons
 import UIComponents
-import Foundation
 
 public final class ServerFingerprintViewController: PlainViewController, UIComponent {
 

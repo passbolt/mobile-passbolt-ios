@@ -28,7 +28,11 @@ import UIComponents
 internal struct ResourcesSelectionListController {
 
   internal var refreshResources: () -> AnyPublisher<Never, TheError>
-  internal var resourcesListPublisher: () -> AnyPublisher<(suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>), Never>
+  internal var resourcesListPublisher:
+    () -> AnyPublisher<
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
+      Never
+    >
   internal var addResource: () -> Void
   internal var selectResource: (ResourcesSelectionListViewResourceItem) -> AnyPublisher<Void, TheError>
 }
@@ -50,7 +54,10 @@ extension ResourcesSelectionListController: UIController {
       resources.refreshIfNeeded()
     }
 
-    func resourcesListPublisher() -> AnyPublisher<(suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>), Never> {
+    func resourcesListPublisher() -> AnyPublisher<
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
+      Never
+    > {
       Publishers.CombineLatest(
         resources
           .filteredResourcesListPublisher(context),
@@ -58,7 +65,8 @@ extension ResourcesSelectionListController: UIController {
       )
       .map { resources, requested in
         (
-          suggested: resources
+          suggested:
+            resources
             .filter { resource in
               requested.matches(resource)
             }
@@ -111,4 +119,3 @@ extension ResourcesSelectionListController: UIController {
     )
   }
 }
-

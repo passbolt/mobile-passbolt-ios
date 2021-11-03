@@ -35,7 +35,7 @@ extension TheError {
       underlyingError: nil,
       extensions: [
         .localizationKey: localizationKey,
-        .localizationBundle: bundle
+        .localizationBundle: bundle,
       ]
     )
   }

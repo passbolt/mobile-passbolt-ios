@@ -35,13 +35,12 @@ extension Publisher where Failure == TheError {
         return
       }
 
-      let handled: Bool
-      = cases
+      let handled: Bool =
+        cases
         .first { $0.0.contains(error.identifier) }
         .map { $0.handler }
         .map { $0(error) }
         ?? false
-
 
       if !handled {
         defaultHandler(error)
@@ -52,4 +51,3 @@ extension Publisher where Failure == TheError {
     })
   }
 }
-

@@ -159,14 +159,14 @@ public struct Tokens: Codable, Equatable {
   }
 }
 
-extension NetworkResponseDecoding where Response == SignInResponse, SessionVariable == DomainSessionVariable, RequestVariable == SignInRequestVariable {
+extension NetworkResponseDecoding
+where Response == SignInResponse, SessionVariable == DomainSessionVariable, RequestVariable == SignInRequestVariable {
 
   fileprivate static func signInResponse() -> Self {
     Self { sessionVariable, requestVariable, httpResponse -> Result<SignInResponse, TheError> in
       let mfaTokenIsValid: Bool
       if let mfaToken: MFAToken = requestVariable.mfaToken {
-        if
-          let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
+        if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
           let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
         {
           let mfaCookieValue: String = .init(
@@ -176,17 +176,18 @@ extension NetworkResponseDecoding where Response == SignInResponse, SessionVaria
               )
           )
           if mfaToken.rawValue == mfaCookieValue {
-            mfaTokenIsValid = true // it was sent and server responded with same value - valid
+            mfaTokenIsValid = true  // it was sent and server responded with same value - valid
           }
           else {
-            mfaTokenIsValid = false // it was sent but server responded with different value - invalid
+            mfaTokenIsValid = false  // it was sent but server responded with different value - invalid
           }
         }
         else {
-          mfaTokenIsValid = false // it was sent but server responded with no value - invalid
+          mfaTokenIsValid = false  // it was sent but server responded with no value - invalid
         }
-      } else {
-        mfaTokenIsValid = false // it was not sent so it is not valid (but that does not matter if it is not required)
+      }
+      else {
+        mfaTokenIsValid = false  // it was not sent so it is not valid (but that does not matter if it is not required)
       }
 
       return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<SignInResponseBody>>

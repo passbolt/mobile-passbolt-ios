@@ -85,3 +85,16 @@ extension ResourceFieldValue: Equatable {
     }
   }
 }
+
+extension ResourceFieldValue: Encodable {
+
+  public func encode(
+    to encoder: Encoder
+  ) throws {
+    var container: SingleValueEncodingContainer = encoder.singleValueContainer()
+    switch self {
+    case let .string(value):
+      try container.encode(value)
+    }
+  }
+}

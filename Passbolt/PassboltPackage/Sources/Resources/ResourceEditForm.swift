@@ -28,6 +28,8 @@ import Features
 import NetworkClient
 import Users
 
+import class Foundation.JSONEncoder
+
 public struct ResourceEditForm {
 
   // initial version supports only one type of resource type, so there is no method to change it
@@ -119,18 +121,18 @@ extension ResourceEditForm: Feature {
           }(),
           // even if there is no requirement for max length we are limiting it with
           // some high value to prevent too big values
-            .maxLength(
-              UInt(property.maxLength ?? 10000),
-              errorLocalizationKey: "resource.form.field.error.max.length",
-              bundle: .commons
-            )
+          .maxLength(
+            UInt(property.maxLength ?? 10000),
+            errorLocalizationKey: "resource.form.field.error.max.length",
+            bundle: .commons
+          )
         )
-          .contraMap { resourceFieldValue -> String in
-            switch resourceFieldValue {
-            case let .string(value):
-              return value
-            }
+        .contraMap { resourceFieldValue -> String in
+          switch resourceFieldValue {
+          case let .string(value):
+            return value
           }
+        }
       }
     }
 
@@ -185,100 +187,109 @@ extension ResourceEditForm: Feature {
         formValuesSubject
           .setFailureType(to: TheError.self)
       )
-        .first()
-        .map { resourceType, validatedFieldValues -> AnyPublisher<(fieldValues: Dictionary<ResourceField, ResourceFieldValue>, encodedSecret: String), TheError> in
-          var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
-          var secretFieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
+      .first()
+      .map {
+        resourceType,
+        validatedFieldValues -> AnyPublisher<
+          (fieldValues: Dictionary<ResourceField, ResourceFieldValue>, encodedSecret: String), TheError
+        > in
+        var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
+        var secretFieldValues: Dictionary<ResourceField.RawValue, ResourceFieldValue> = .init()
 
-          for (key, validatedValue) in validatedFieldValues {
-            guard let property: ResourceProperty = resourceType.properties.first(where: { $0.field == key })
-            else {
-              assertionFailure("Trying to use form value that is not associated with any resource fields")
-              continue
-            }
-            guard validatedValue.isValid
-            else {
-              return Fail(error: .validationError("resource.form.error.invalid", bundle: .commons))
-                .eraseToAnyPublisher()
-            }
-            if property.encrypted {
-              secretFieldValues[key] = validatedValue.value
-            }
-            else {
-              fieldValues[key] = validatedValue.value
-            }
+        for (key, validatedValue) in validatedFieldValues {
+          guard let property: ResourceProperty = resourceType.properties.first(where: { $0.field == key })
+          else {
+            assertionFailure("Trying to use form value that is not associated with any resource fields")
+            continue
           }
+          guard validatedValue.isValid
+          else {
+            return Fail(error: .validationError("resource.form.error.invalid", bundle: .commons))
+              .eraseToAnyPublisher()
+          }
+          if property.encrypted {
+            secretFieldValues[key.rawValue] = validatedValue.value
+          }
+          else {
+            fieldValues[key] = validatedValue.value
+          }
+        }
 
-          let encodedSecretFields: String = secretFieldValues
-            .map { field -> String in
-              switch field.value {
-              case let .string(value):
-                return "\"\(field.key)\":\"\(value)\""
-              }
-            }
-            .joined(separator: ",")
-          let encodedSecret: String = "{\(encodedSecretFields)}"
+        let encodedSecret: String? =
+          (try? JSONEncoder().encode(secretFieldValues))
+          .flatMap { String(data: $0, encoding: .utf8) }
 
-          return Just((fieldValues: fieldValues, encodedSecret: encodedSecret))
-            .setFailureType(to: TheError.self)
+        guard let encodedSecret: String = encodedSecret
+        else {
+          return Fail(error: .invalidResourceData())
             .eraseToAnyPublisher()
         }
-        .switchToLatest()
-        .map { (fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheError> in
-          resourceTypeSubject
-            .first()
-            .compactMap(\.?.id)
-            .map { resourceTypeID -> AnyPublisher<Resource.ID, TheError> in
-              guard let name: String = fieldValues[.name]?.stringValue
-              else {
-                return Fail(
-                  error: .invalidOrMissingResourceType()
-                )
-                .eraseToAnyPublisher()
-              }
 
-              return accountSession
-                .statePublisher()
-                .first()
-                .map { sessionState -> AnyPublisher<ArmoredPGPMessage, TheError> in
-                  switch sessionState {
-                  case let .authorized(account), let .authorizedMFARequired(account, _):
-                    return userPGPMessages
-                      .encryptMessageForUser(.init(rawValue: account.userID.rawValue), encodedSecret)
-                      .eraseToAnyPublisher()
+        return Just((fieldValues: fieldValues, encodedSecret: encodedSecret))
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .map { (fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheError> in
+        resourceTypeSubject
+          .first()
+          .compactMap(\.?.id)
+          .map { resourceTypeID -> AnyPublisher<Resource.ID, TheError> in
+            guard let name: String = fieldValues[.name]?.stringValue
+            else {
+              return Fail(
+                error: .invalidOrMissingResourceType()
+              )
+              .eraseToAnyPublisher()
+            }
 
-                  case .authorizationRequired, .none:
-                    return Fail(error: .authorizationRequired())
-                      .eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest()
-                .map { encryptedSecret in
-                  networkClient
-                    .createResourceRequest
-                    .make(
-                      using: .init(
-                        resourceTypeID: resourceTypeID.rawValue,
-                        name: name,
-                        username: fieldValues[.username]?.stringValue,
-                        url: fieldValues[.uri]?.stringValue,
-                        description: fieldValues[.description]?.stringValue,
-                        secretData: encryptedSecret.rawValue
-                      )
-                    )
-                    .map { response -> Resource.ID in
-                      .init(rawValue: response.body.resourceID)
-                    }
+            return
+              accountSession
+              .statePublisher()
+              .first()
+              .map { sessionState -> AnyPublisher<ArmoredPGPMessage, TheError> in
+                switch sessionState {
+                case let .authorized(account), let .authorizedMFARequired(account, _):
+                  return
+                    userPGPMessages
+                    .encryptMessageForUser(.init(rawValue: account.userID.rawValue), encodedSecret)
+                    .eraseToAnyPublisher()
+
+                case .authorizationRequired, .none:
+                  accountSession.requestAuthorizationPrompt(
+                    .init(key: "authorization.prompt.refresh.session.reason", bundle: .main)
+                  )
+                  return Fail(error: .authorizationRequired())
                     .eraseToAnyPublisher()
                 }
-                .switchToLatest()
-                .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+              }
+              .switchToLatest()
+              .map { encryptedSecret in
+                networkClient
+                  .createResourceRequest
+                  .make(
+                    using: .init(
+                      resourceTypeID: resourceTypeID.rawValue,
+                      name: name,
+                      username: fieldValues[.username]?.stringValue,
+                      url: fieldValues[.uri]?.stringValue,
+                      description: fieldValues[.description]?.stringValue,
+                      secretData: encryptedSecret.rawValue
+                    )
+                  )
+                  .map { response -> Resource.ID in
+                    .init(rawValue: response.body.resourceID)
+                  }
+                  .eraseToAnyPublisher()
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
+          }
+          .switchToLatest()
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func featureUnload() -> Bool {

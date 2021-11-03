@@ -23,7 +23,6 @@
 
 import Combine
 
-
 public enum PublisherEnding: Equatable {
 
   case finished

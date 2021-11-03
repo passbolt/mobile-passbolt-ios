@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Crypto
 import CommonDataModels
+import Crypto
 import Features
 import TestExtensions
 import UIComponents
@@ -176,4 +176,3 @@ final class ServerFingerprintControllerTests: TestCase {
 private let accountID: Account.LocalID = .init(rawValue: "ACCOUNT_ID")
 private let validFingerprint: Fingerprint = .init(rawValue: "E8FE388E385841B382B674ADB02DADCD9565E1B8")
 private let otherFingerprint: Fingerprint = .init(rawValue: "2A4842CF153F003F565C22C01AEB35EEC222D2BC")
-

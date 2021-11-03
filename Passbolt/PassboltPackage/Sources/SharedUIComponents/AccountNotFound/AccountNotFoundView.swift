@@ -20,9 +20,9 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import Accounts
 import Combine
 import UICommons
-import Accounts
 
 internal final class AccountNotFoundView: ScrolledStackView {
 

@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import UIComponents
 import Accounts
+import UIComponents
 
 internal struct UnsupportedMFAController {
 

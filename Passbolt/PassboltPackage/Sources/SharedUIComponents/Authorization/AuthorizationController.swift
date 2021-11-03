@@ -152,10 +152,13 @@ extension AuthorizationController: UIController {
         .switchToLatest()
         .collectErrorLog(using: diagnostics)
         .handleErrors(
-          ([.notFound], handler: { _ in
-            accountNotFoundScreenPresentationSubject.send(context)
-            return true
-          }),
+          (
+            [.notFound],
+            handler: { _ in
+              accountNotFoundScreenPresentationSubject.send(context)
+              return true
+            }
+          ),
           defaultHandler: { _ in /* NOP */ }
         )
         .eraseToAnyPublisher()
@@ -169,10 +172,13 @@ extension AuthorizationController: UIController {
         )
         .collectErrorLog(using: diagnostics)
         .handleErrors(
-          ([.notFound], handler: { _ in 
-            accountNotFoundScreenPresentationSubject.send(context)
-            return true
-          }),
+          (
+            [.notFound],
+            handler: { _ in
+              accountNotFoundScreenPresentationSubject.send(context)
+              return true
+            }
+          ),
           defaultHandler: { _ in /* NOP */ }
         )
         .eraseToAnyPublisher()

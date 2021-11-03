@@ -101,47 +101,50 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .map { [unowned self] field in
         self.controller.toggleDecrypt(field)
           .receive(on: RunLoop.main)
-          .handleEvents(receiveOutput: { [weak self] value in
-            self?.contentView.applyOn(
-              field: field,
-              buttonMutation: .combined(.when(
-                value != nil,
-                then: .image(named: .eyeSlash, from: .uiCommons),
-                else: .image(named: .eye, from: .uiCommons)
-              )
-            ),
-              valueTextViewMutation: .when(
-                value != nil,
-                then: .combined(
-                  .text(value ?? ""),
-                  .font(.inconsolata(ofSize: 14, weight: .bold))
+          .handleEvents(
+            receiveOutput: { [weak self] value in
+              self?.contentView.applyOn(
+                field: field,
+                buttonMutation: .combined(
+                  .when(
+                    value != nil,
+                    then: .image(named: .eyeSlash, from: .uiCommons),
+                    else: .image(named: .eye, from: .uiCommons)
+                  )
                 ),
-                else: .combined(
-                  .text(String(repeating: "*", count: 10)),
-                  .font(.inter(ofSize: 14, weight: .medium))
+                valueTextViewMutation: .when(
+                  value != nil,
+                  then: .combined(
+                    .text(value ?? ""),
+                    .font(.inconsolata(ofSize: 14, weight: .bold))
+                  ),
+                  else: .combined(
+                    .text(String(repeating: "*", count: 10)),
+                    .font(.inter(ofSize: 14, weight: .medium))
+                  )
                 )
               )
-            )
-          }, receiveCompletion: { [weak self] completion in
-            guard case .failure = completion
-            else { return }
-            self?.present(
-              snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(
-                  localized: .genericError,
-                  inBundle: .commons
-                )
-                .instantiate(),
-              hideAfter: 2
-            )
-          })
+            },
+            receiveCompletion: { [weak self] completion in
+              guard case .failure = completion
+              else { return }
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(
+                    localized: .genericError,
+                    inBundle: .commons
+                  )
+                  .instantiate(),
+                hideAfter: 2
+              )
+            }
+          )
           .mapToVoid()
           .replaceError(with: Void())
       }
       .switchToLatest()
       .sinkDrop()
       .store(in: cancellables)
-
 
     contentView
       .copyFieldNameTapPublisher

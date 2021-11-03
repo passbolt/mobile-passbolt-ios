@@ -23,6 +23,7 @@
 
 import Commons
 import Environment
+
 import struct Foundation.URL
 
 public typealias ConfigRequest =
@@ -66,7 +67,8 @@ public struct Config: Decodable {
     self.legal = try container.decode(Legal?.self, forKey: CodingKeys.legal)
 
     if let folders: Folders = try plugins.decodeIfPresent(
-        Folders.self, forKey: "folders"
+      Folders.self,
+      forKey: "folders"
     ) {
       self.plugins.append(folders)
     }
@@ -75,7 +77,8 @@ public struct Config: Decodable {
     }
 
     if let previewPassword: PreviewPassword = try plugins.decodeIfPresent(
-        PreviewPassword.self, forKey: "previewPassword"
+      PreviewPassword.self,
+      forKey: "previewPassword"
     ) {
       self.plugins.append(previewPassword)
     }
@@ -84,7 +87,8 @@ public struct Config: Decodable {
     }
 
     if let tags: Tags = try plugins.decodeIfPresent(
-        Tags.self, forKey: "tags"
+      Tags.self,
+      forKey: "tags"
     ) {
       self.plugins.append(tags)
     }

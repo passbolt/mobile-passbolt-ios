@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Crypto
 import CommonDataModels
+import Crypto
 import Foundation
 import UIComponents
 
@@ -109,29 +109,38 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               [.canceled, .notFound, .invalidServerFingerprint, .notFound],
               handler: { _ in true /* NOP */ }
             ),
-            ([.serverNotReachable], handler: { [weak self] error in
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: error.url
-              )
-              return true
-            }),
-            ([.invalidPassphraseError], handler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                localizableKey: "sign.in.error.passphrase.invalid.message",
-                inBundle: .commons,
-                hideAfter: 5
-              )
-              return true
-            }),
-            ([.biometricsChanged], handler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                localizableKey: "sign.in.error.biometrics.changed.message",
-                inBundle: .commons,
-                hideAfter: 5
-              )
-              return true
-            }),
+            (
+              [.serverNotReachable],
+              handler: { [weak self] error in
+                self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: error.url
+                )
+                return true
+              }
+            ),
+            (
+              [.invalidPassphraseError],
+              handler: { [weak self] _ in
+                self?.presentErrorSnackbar(
+                  localizableKey: "sign.in.error.passphrase.invalid.message",
+                  inBundle: .commons,
+                  hideAfter: 5
+                )
+                return true
+              }
+            ),
+            (
+              [.biometricsChanged],
+              handler: { [weak self] _ in
+                self?.presentErrorSnackbar(
+                  localizableKey: "sign.in.error.biometrics.changed.message",
+                  inBundle: .commons,
+                  hideAfter: 5
+                )
+                return true
+              }
+            ),
             defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
@@ -284,29 +293,38 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               [.canceled, .notFound, .invalidServerFingerprint, .notFound],
               handler: { _ in true /* NOP */ }
             ),
-            ([.serverNotReachable], handler: { [weak self] error in
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: error.url
-              )
-              return true
-            }),
-            ([.invalidPassphraseError], handler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                localizableKey: "sign.in.error.passphrase.invalid.message",
-                inBundle: .commons,
-                hideAfter: 5
-              )
-              return true
-            }),
-            ([.biometricsChanged], handler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                localizableKey: "sign.in.error.biometrics.changed.message",
-                inBundle: .commons,
-                hideAfter: 5
-              )
-              return true
-            }),
+            (
+              [.serverNotReachable],
+              handler: { [weak self] error in
+                self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: error.url
+                )
+                return true
+              }
+            ),
+            (
+              [.invalidPassphraseError],
+              handler: { [weak self] _ in
+                self?.presentErrorSnackbar(
+                  localizableKey: "sign.in.error.passphrase.invalid.message",
+                  inBundle: .commons,
+                  hideAfter: 5
+                )
+                return true
+              }
+            ),
+            (
+              [.biometricsChanged],
+              handler: { [weak self] _ in
+                self?.presentErrorSnackbar(
+                  localizableKey: "sign.in.error.biometrics.changed.message",
+                  inBundle: .commons,
+                  hideAfter: 5
+                )
+                return true
+              }
+            ),
             defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }
@@ -357,29 +375,38 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               [.canceled, .notFound, .invalidServerFingerprint, .notFound],
               handler: { _ in true /* NOP */ }
             ),
-            ([.serverNotReachable], handler: { [weak self] error in
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: error.url
-              )
-              return true
-            }),
-            ([.invalidPassphraseError], handler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                localizableKey: "sign.in.error.passphrase.invalid.message",
-                inBundle: .commons,
-                hideAfter: 5
-              )
-              return true
-            }),
-            ([.biometricsChanged], handler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                localizableKey: "sign.in.error.biometrics.changed.message",
-                inBundle: .commons,
-                hideAfter: 5
-              )
-              return true
-            }),
+            (
+              [.serverNotReachable],
+              handler: { [weak self] error in
+                self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: error.url
+                )
+                return true
+              }
+            ),
+            (
+              [.invalidPassphraseError],
+              handler: { [weak self] _ in
+                self?.presentErrorSnackbar(
+                  localizableKey: "sign.in.error.passphrase.invalid.message",
+                  inBundle: .commons,
+                  hideAfter: 5
+                )
+                return true
+              }
+            ),
+            (
+              [.biometricsChanged],
+              handler: { [weak self] _ in
+                self?.presentErrorSnackbar(
+                  localizableKey: "sign.in.error.biometrics.changed.message",
+                  inBundle: .commons,
+                  hideAfter: 5
+                )
+                return true
+              }
+            ),
             defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar()
             }

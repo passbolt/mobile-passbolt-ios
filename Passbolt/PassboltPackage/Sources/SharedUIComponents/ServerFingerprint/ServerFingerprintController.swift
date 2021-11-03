@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Crypto
 import CommonDataModels
+import Crypto
 import UIComponents
 
 public struct ServerFingerprintController {

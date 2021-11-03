@@ -25,7 +25,7 @@ import Commons
 import Environment
 
 public typealias UserProfileRequest =
-NetworkRequest<AuthorizedSessionVariable, UserProfileRequestVariable, UserProfileRequestResponse>
+  NetworkRequest<AuthorizedSessionVariable, UserProfileRequestVariable, UserProfileRequestResponse>
 
 extension UserProfileRequest {
 
@@ -35,24 +35,24 @@ extension UserProfileRequest {
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
-          .combined(
-            .url(string: sessionVariable.domain),
-            .whenSome(
-              requestVariable.userID,
-              then: { userID in
-                .path("/users/\(userID).json")
-              },
-              else: .path("/users/me.json")
-            ),
-            .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
-            .whenSome(
-              sessionVariable.mfaToken,
-              then: { mfaToken in
-                .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
-              }
-            ),
-            .method(.get)
-          )
+        .combined(
+          .url(string: sessionVariable.domain),
+          .whenSome(
+            requestVariable.userID,
+            then: { userID in
+              .path("/users/\(userID).json")
+            },
+            else: .path("/users/me.json")
+          ),
+          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .whenSome(
+            sessionVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          ),
+          .method(.get)
+        )
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,

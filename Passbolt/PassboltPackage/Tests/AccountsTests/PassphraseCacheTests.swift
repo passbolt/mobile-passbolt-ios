@@ -21,12 +21,12 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Crypto
 import Environment
 import Features
 import TestExtensions
-import CommonDataModels
 import XCTest
 
 @testable import Accounts

@@ -24,7 +24,10 @@
 import Accounts
 import UICommons
 
-internal final class ResourcesSelectionListView: CollectionView<ResourcesSelectionListSection, ResourcesSelectionListViewItem> {
+internal final class ResourcesSelectionListView: CollectionView<
+  ResourcesSelectionListSection, ResourcesSelectionListViewItem
+>
+{
 
   internal var addTapPublisher: AnyPublisher<Void, Never> {
     addTapSubject.eraseToAnyPublisher()
@@ -97,11 +100,12 @@ internal final class ResourcesSelectionListView: CollectionView<ResourcesSelecti
     for section: ResourcesSelectionListSection,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
-    let header: ResourcesSelectionListSectionHeader? = dequeueReusableSupplementaryView(
-      ofKind: UICollectionView.elementKindSectionHeader,
-      withReuseIdentifier: ResourcesSelectionListSectionHeader.reuseIdentifier,
-      for: indexPath
-    ) as? ResourcesSelectionListSectionHeader
+    let header: ResourcesSelectionListSectionHeader? =
+      dequeueReusableSupplementaryView(
+        ofKind: UICollectionView.elementKindSectionHeader,
+        withReuseIdentifier: ResourcesSelectionListSectionHeader.reuseIdentifier,
+        for: indexPath
+      ) as? ResourcesSelectionListSectionHeader
     switch section {
     case .add:
       header?.setTitle(localized: nil)
@@ -117,4 +121,3 @@ internal final class ResourcesSelectionListView: CollectionView<ResourcesSelecti
     }
   }
 }
-

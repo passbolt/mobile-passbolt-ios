@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Commons
 import CommonDataModels
+import Commons
 
 public struct ListViewResource {
 

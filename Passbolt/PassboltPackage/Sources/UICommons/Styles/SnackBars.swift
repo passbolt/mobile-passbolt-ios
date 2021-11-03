@@ -78,7 +78,8 @@ extension Mutation where Subject: View {
               )
               if arguments.isEmpty {
                 subject.text = localized
-              } else {
+              }
+              else {
                 subject.text = String(
                   format: localized,
                   arguments: arguments

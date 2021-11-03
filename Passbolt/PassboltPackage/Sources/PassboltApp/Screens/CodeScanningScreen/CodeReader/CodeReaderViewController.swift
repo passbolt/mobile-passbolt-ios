@@ -21,8 +21,8 @@
 // @since         v1.0
 
 import AVFoundation
-import UIComponents
 import SharedUIComponents
+import UIComponents
 
 internal final class CodeReaderViewController: PlainViewController, UIComponent {
 
@@ -142,24 +142,30 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       .receive(on: RunLoop.main)
       .handleErrors(
         ([.canceled, .duplicateAccount], handler: { _ in true /* NOP */ }),
-        ([.serverNotReachable], handler: { [weak self] error in
-          self?.present(
-            ServerNotReachableAlertViewController.self,
-            in: error.url
-          )
-          return true
-        }),
-        ([.accountTransferScanningRecoverableError], handler: { [weak self] error in
-          guard error.context?.contains("invalid-version-or-code") ?? false
-          else { return false }
-          self?.present(
-            snackbar: Mutation<UICommons.View>
-              .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
-              .instantiate(),
-            hideAfter: 3
-          )
-          return true
-        }),
+        (
+          [.serverNotReachable],
+          handler: { [weak self] error in
+            self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: error.url
+            )
+            return true
+          }
+        ),
+        (
+          [.accountTransferScanningRecoverableError],
+          handler: { [weak self] error in
+            guard error.context?.contains("invalid-version-or-code") ?? false
+            else { return false }
+            self?.present(
+              snackbar: Mutation<UICommons.View>
+                .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
+                .instantiate(),
+              hideAfter: 3
+            )
+            return true
+          }
+        ),
         defaultHandler: { [weak self] _ in
           self?.present(
             snackbar: Mutation<UICommons.View>

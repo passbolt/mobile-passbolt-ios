@@ -72,4 +72,3 @@ extension ResourceDeleteAlertController: UIController {
     )
   }
 }
-

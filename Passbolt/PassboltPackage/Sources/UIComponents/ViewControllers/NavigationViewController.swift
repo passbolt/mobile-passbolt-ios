@@ -87,7 +87,7 @@ open class NavigationViewController: UINavigationController {
     completion: (() -> Void)? = nil
   ) {
     let presentingViewController: UIViewController? = self.presentingViewController
-    super.dismiss( 
+    super.dismiss(
       animated: animated,
       completion: { [weak presentingViewController] in
         presentingViewController?.setNeedsStatusBarAppearanceUpdate()
@@ -120,31 +120,36 @@ open class NavigationViewController: UINavigationController {
     }
     CATransaction.begin()
     CATransaction.setCompletionBlock {
-      (viewController.navigationItem.backBarButtonItem?.menu = UIMenu(title: "TEST", image: nil, identifier: nil, options: [], children: []))
+      (viewController.navigationItem.backBarButtonItem?.menu = UIMenu(
+        title: "TEST",
+        image: nil,
+        identifier: nil,
+        options: [],
+        children: []
+      ))
     }
     super.pushViewController(viewController, animated: animated)
     CATransaction.commit()
   }
 
   open override func popViewController(animated: Bool) -> UIViewController? {
-      if
-        let tabBarController = tabBarController,
-        tabBarController.tabBar.isHidden,
-        viewControllers.count <= 2
-      {
-        tabBarController.tabBar.isHidden = false
-        UIView.animate(
-          withDuration: animated ? 0.25 : 0,
-          delay: 0,
-          options: [.allowUserInteraction, .beginFromCurrentState],
-          animations: {
-            tabBarController.tabBar.frame.origin.x = 0
-          }
-        )
-      }
-      else {
-        /* NOP */
-      }
+    if let tabBarController = tabBarController,
+      tabBarController.tabBar.isHidden,
+      viewControllers.count <= 2
+    {
+      tabBarController.tabBar.isHidden = false
+      UIView.animate(
+        withDuration: animated ? 0.25 : 0,
+        delay: 0,
+        options: [.allowUserInteraction, .beginFromCurrentState],
+        animations: {
+          tabBarController.tabBar.frame.origin.x = 0
+        }
+      )
+    }
+    else {
+      /* NOP */
+    }
 
     return super.popViewController(animated: animated)
   }
@@ -152,7 +157,6 @@ open class NavigationViewController: UINavigationController {
   open override var viewControllers: [UIViewController] {
     didSet { print(viewControllers) }
   }
-
 
   open override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
     viewControllers.forEach { viewController in
@@ -200,8 +204,7 @@ open class NavigationViewController: UINavigationController {
   }
 
   open override func popToRootViewController(animated: Bool) -> [UIViewController]? {
-    if
-      let tabBarController = tabBarController,
+    if let tabBarController = tabBarController,
       tabBarController.tabBar.isHidden
     {
       tabBarController.tabBar.isHidden = false
@@ -226,7 +229,7 @@ open class NavigationViewController: UINavigationController {
 private final class BackBarButtonItem: UIBarButtonItem {
 
   override var menu: UIMenu? {
-    set { /* NOP */ }
+    set { /* NOP */  }
     get { return nil }
   }
 }
@@ -238,8 +241,7 @@ extension NavigationViewController: UINavigationControllerDelegate {
     willShow viewController: UIViewController,
     animated: Bool
   ) {
-    viewController.navigationItem.backBarButtonItem
-    = BackBarButtonItem(
+    viewController.navigationItem.backBarButtonItem = BackBarButtonItem(
       title: "",
       style: .plain,
       target: nil,

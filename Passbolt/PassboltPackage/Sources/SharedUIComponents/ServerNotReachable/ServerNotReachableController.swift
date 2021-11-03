@@ -20,8 +20,9 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
-import UIComponents
 import Accounts
+import UIComponents
+
 import struct Foundation.URLComponents
 
 public final class ServerNotReachableAlertViewController:
@@ -39,11 +40,11 @@ public final class ServerNotReachableAlertViewController:
           localized: "server.not.reachable.alert.message",
           inBundle: .sharedUIComponents,
           arguments: controller.serverURL?.rawValue
-          ?? NSLocalizedString(
-            "server.not.reachable.alert.message.server.placeholder",
-            bundle: .sharedUIComponents,
-            comment: ""
-          )
+            ?? NSLocalizedString(
+              "server.not.reachable.alert.message.server.placeholder",
+              bundle: .sharedUIComponents,
+              comment: ""
+            )
         ),
         .action(
           localized: .gotIt,

@@ -26,7 +26,9 @@ import UICommons
 internal final class ResourceMenuView: View {
 
   internal var closeButtonTapPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
-  internal var itemTappedPublisher: AnyPublisher<ResourceMenuController.Action, Never> { itemTappedSubject.eraseToAnyPublisher() }
+  internal var itemTappedPublisher: AnyPublisher<ResourceMenuController.Action, Never> {
+    itemTappedSubject.eraseToAnyPublisher()
+  }
 
   private let itemTappedSubject: PassthroughSubject<ResourceMenuController.Action, Never> = .init()
 

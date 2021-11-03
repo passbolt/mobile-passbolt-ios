@@ -22,6 +22,7 @@
 //
 
 import AegithalosCocoa
+
 import class Foundation.Bundle
 
 public struct LocalizedMessage: Equatable {

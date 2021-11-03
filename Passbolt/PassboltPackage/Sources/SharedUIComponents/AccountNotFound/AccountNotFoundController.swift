@@ -20,8 +20,8 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
-import UIComponents
 import Accounts
+import UIComponents
 
 internal struct AccountNotFoundController {
 
@@ -47,14 +47,13 @@ extension AccountNotFoundController: UIController {
       accountSettings.accountWithProfile(context)
     }
 
-    func navigateBack() -> Void {
+    func navigateBack() {
       backNavigationPresentationSubject.send()
     }
 
     func backNavigationPresentationPublisher() -> AnyPublisher<Void, Never> {
       backNavigationPresentationSubject.eraseToAnyPublisher()
     }
-
 
     return Self(
       accountWithProfile: accountWithProfile,

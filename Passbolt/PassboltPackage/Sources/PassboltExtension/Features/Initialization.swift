@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Features
 import Darwin
+import Features
 
 public struct Initialization {
 

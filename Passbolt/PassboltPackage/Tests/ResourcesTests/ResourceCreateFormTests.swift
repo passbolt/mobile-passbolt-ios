@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Crypto
 import Features
-import CommonDataModels
 import NetworkClient
 import TestExtensions
 import Users
@@ -59,7 +59,9 @@ final class ResourceEditFormTests: TestCase {
 
   func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
@@ -84,7 +86,9 @@ final class ResourceEditFormTests: TestCase {
 
   func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([emptyResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([emptyResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
@@ -109,7 +113,16 @@ final class ResourceEditFormTests: TestCase {
 
   func test_resourceTypePublisher_publishesDefaultResourceType_whenValidResourceTypeAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([.init(id: "password-and-description", slug: "password-and-description", name: "password-and-description", fields: [])]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
@@ -132,7 +145,9 @@ final class ResourceEditFormTests: TestCase {
 
   func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() {
     features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher())
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
     features.use(database)
     features.use(networkClient)
     features.use(userPGPMessages)
@@ -366,10 +381,11 @@ final class ResourceEditFormTests: TestCase {
       Just(.none(lastUsed: nil))
         .eraseToAnyPublisher()
     )
+    accountSession.requestAuthorizationPrompt = always(Void())
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheError.self) 
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -501,10 +517,12 @@ final class ResourceEditFormTests: TestCase {
     )
     features.use(database)
     networkClient.createResourceRequest.execute = always(
-      Just(.init(
-        header: .mock(),
-        body: .init(resourceID: "resource-id")
-      ))
+      Just(
+        .init(
+          header: .mock(),
+          body: .init(resourceID: "resource-id")
+        )
+      )
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
     )

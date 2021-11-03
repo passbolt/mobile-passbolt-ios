@@ -45,10 +45,10 @@ extension NetworkRequest {
           (
             sessionVariable,
             template
-            .prepareRequest(
-              with: sessionVariable,
-              and: requestVariable
-            )
+              .prepareRequest(
+                with: sessionVariable,
+                and: requestVariable
+              )
           )
         }
         .map { sessionVariable, request -> AnyPublisher<Response, TheError> in

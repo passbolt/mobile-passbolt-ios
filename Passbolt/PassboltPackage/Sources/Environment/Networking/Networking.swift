@@ -23,20 +23,20 @@
 
 import Commons
 
+import class Foundation.CachedURLResponse
 import struct Foundation.Data
-import class Foundation.URLCache
+import class Foundation.HTTPURLResponse
+import class Foundation.NSLock
+import class Foundation.NSObject
 import struct Foundation.URL
+import class Foundation.URLCache
 import struct Foundation.URLError
 import struct Foundation.URLRequest
 import class Foundation.URLResponse
 import class Foundation.URLSession
 import class Foundation.URLSessionConfiguration
-import protocol Foundation.URLSessionTaskDelegate
 import class Foundation.URLSessionTask
-import class Foundation.HTTPURLResponse
-import class Foundation.NSObject
-import class Foundation.CachedURLResponse
-import class Foundation.NSLock
+import protocol Foundation.URLSessionTaskDelegate
 
 public struct Networking: EnvironmentElement {
 
@@ -92,26 +92,28 @@ extension Networking {
     _ urlSession: URLSession? = nil
   ) -> Self {
 
-    let urlSession: URLSession = urlSession ?? {
-      let urlSessionConfiguration: URLSessionConfiguration = .default
-      urlSessionConfiguration.networkServiceType = .responsiveData
-      urlSessionConfiguration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-      urlSessionConfiguration.httpCookieAcceptPolicy = .never
-      urlSessionConfiguration.httpShouldSetCookies = false
-      urlSessionConfiguration.httpCookieStorage = .none
-      urlSessionConfiguration.allowsCellularAccess = true
-      urlSessionConfiguration.allowsConstrainedNetworkAccess = true
-      urlSessionConfiguration.allowsExpensiveNetworkAccess = true
-      urlSessionConfiguration.httpShouldUsePipelining = true
-      urlSessionConfiguration.timeoutIntervalForResource = 30
-      urlSessionConfiguration.timeoutIntervalForRequest = 30
-      urlSessionConfiguration.waitsForConnectivity = true
-      return URLSession(
-        configuration: urlSessionConfiguration,
-        delegate: sessionDelegate,
-        delegateQueue: nil
-      )
-    }()
+    let urlSession: URLSession =
+      urlSession
+      ?? {
+        let urlSessionConfiguration: URLSessionConfiguration = .default
+        urlSessionConfiguration.networkServiceType = .responsiveData
+        urlSessionConfiguration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        urlSessionConfiguration.httpCookieAcceptPolicy = .never
+        urlSessionConfiguration.httpShouldSetCookies = false
+        urlSessionConfiguration.httpCookieStorage = .none
+        urlSessionConfiguration.allowsCellularAccess = true
+        urlSessionConfiguration.allowsConstrainedNetworkAccess = true
+        urlSessionConfiguration.allowsExpensiveNetworkAccess = true
+        urlSessionConfiguration.httpShouldUsePipelining = true
+        urlSessionConfiguration.timeoutIntervalForResource = 30
+        urlSessionConfiguration.timeoutIntervalForRequest = 30
+        urlSessionConfiguration.waitsForConnectivity = true
+        return URLSession(
+          configuration: urlSessionConfiguration,
+          delegate: sessionDelegate,
+          delegateQueue: nil
+        )
+      }()
 
     let lock: NSLock = .init()
     var inMemoryCache: Dictionary<HTTPRequest, HTTPResponse> = .init()
@@ -120,8 +122,8 @@ extension Networking {
       execute: { request, useCache in
         let urlRequest: URLRequest? = request.urlRequest(
           cachePolicy: useCache
-          ? .returnCacheDataElseLoad
-          : .reloadIgnoringLocalAndRemoteCacheData
+            ? .returnCacheDataElseLoad
+            : .reloadIgnoringLocalAndRemoteCacheData
         )
         guard
           let urlRequest: URLRequest = urlRequest,
@@ -140,18 +142,17 @@ extension Networking {
           case .cancelled:
             return .canceled
 
-          case
-              .notConnectedToInternet,
-              .cannotFindHost,
-              .cannotConnectToHost,
-              .dnsLookupFailed,
-              .httpTooManyRedirects,
-              .redirectToNonExistentLocation,
-              .secureConnectionFailed,
-              .serverCertificateHasBadDate,
-              .serverCertificateUntrusted,
-              .serverCertificateHasUnknownRoot,
-              .serverCertificateNotYetValid:
+          case .notConnectedToInternet,
+            .cannotFindHost,
+            .cannotConnectToHost,
+            .dnsLookupFailed,
+            .httpTooManyRedirects,
+            .redirectToNonExistentLocation,
+            .secureConnectionFailed,
+            .serverCertificateHasBadDate,
+            .serverCertificateUntrusted,
+            .serverCertificateHasUnknownRoot,
+            .serverCertificateNotYetValid:
             return .cannotConnect(url)
 
           case .timedOut:
@@ -162,17 +163,20 @@ extension Networking {
           }
         }
 
-        if useCache, let cachedResponse: HTTPResponse = {
-          lock.lock()
-          defer { lock.unlock() }
-          return inMemoryCache[request]
-        }() {
+        if useCache,
+          let cachedResponse: HTTPResponse = {
+            lock.lock()
+            defer { lock.unlock() }
+            return inMemoryCache[request]
+          }()
+        {
           return Just(cachedResponse)
             .setFailureType(to: HTTPError.self)
             .eraseToAnyPublisher()
         }
         else {
-          return urlSession
+          return
+            urlSession
             .dataTaskPublisher(for: urlRequest)
             .mapError(mapURLErrors)
             .flatMap { data, response -> AnyPublisher<HTTPResponse, HTTPError> in
@@ -200,7 +204,7 @@ extension Networking {
                 return Fail<HTTPResponse, HTTPError>(
                   error: .invalidResponse
                 )
-                  .eraseToAnyPublisher()
+                .eraseToAnyPublisher()
               }
             }
             .eraseToAnyPublisher()

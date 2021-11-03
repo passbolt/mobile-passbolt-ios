@@ -44,8 +44,8 @@ extension Keychain {
     func load(
       matching query: KeychainQuery
     ) -> Result<Array<Data>, TheError> {
-      let context: LAContext?
-        = query.requiresBiometrics
+      let context: LAContext? =
+        query.requiresBiometrics
         ? biometricsContext()
         : nil
       defer { context?.invalidate() }
@@ -60,8 +60,8 @@ extension Keychain {
     func loadMeta(
       matching query: KeychainQuery
     ) -> Result<Array<KeychainItemMetadata>, TheError> {
-      let context: LAContext?
-        = query.requiresBiometrics
+      let context: LAContext? =
+        query.requiresBiometrics
         ? biometricsContext()
         : nil
       defer { context?.invalidate() }
@@ -88,8 +88,8 @@ extension Keychain {
       _ data: Data,
       for query: KeychainQuery
     ) -> Result<Void, TheError> {
-      let context: LAContext?
-        = query.requiresBiometrics
+      let context: LAContext? =
+        query.requiresBiometrics
         ? biometricsContext()
         : nil
       defer { context?.invalidate() }

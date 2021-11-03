@@ -200,15 +200,15 @@ extension FetchDetailsViewResourcesOperation {
       using: connectionPublisher
     ) { conn, input in
       let statement: SQLiteStatement = """
-      SELECT
-        *
-      FROM
-        resourceDetailsView
-      WHERE
-        id == ?1
-      LIMIT
-        1;
-      """
+        SELECT
+          *
+        FROM
+          resourceDetailsView
+        WHERE
+          id == ?1
+        LIMIT
+          1;
+        """
       return conn.fetch(
         statement,
         with: [input.rawValue]

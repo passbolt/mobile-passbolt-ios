@@ -102,11 +102,10 @@ final class ResourcesSelectionListControllerTests: TestCase {
   }
 
   func test_resourcesListPublisher_publishesResourcesListFromResources() {
-    autofillContext.requestedServiceIdentifiersPublisher
-      = always(
-        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
-          .eraseToAnyPublisher()
-      )
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just(Array<AutofillExtensionContext.ServiceIdentifier>())
+        .eraseToAnyPublisher()
+    )
     features.use(autofillContext)
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
@@ -134,7 +133,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -148,11 +148,10 @@ final class ResourcesSelectionListControllerTests: TestCase {
   }
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() {
-    autofillContext.requestedServiceIdentifiersPublisher
-      = always(
-        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
-          .eraseToAnyPublisher()
-      )
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just(Array<AutofillExtensionContext.ServiceIdentifier>())
+        .eraseToAnyPublisher()
+    )
     features.use(autofillContext)
     var result: ResourcesFilter?
     resources.filteredResourcesListPublisher = { filterPublisher in
@@ -177,11 +176,10 @@ final class ResourcesSelectionListControllerTests: TestCase {
   }
 
   func test_resourcesListPublisher_publishesSuggestedResourcesListFromResources_usingRequestedServiceIdentifiers() {
-    autofillContext.requestedServiceIdentifiersPublisher
-      = always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")])
-          .eraseToAnyPublisher()
-      )
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")])
+        .eraseToAnyPublisher()
+    )
     features.use(autofillContext)
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
@@ -209,7 +207,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -223,11 +222,10 @@ final class ResourcesSelectionListControllerTests: TestCase {
   }
 
   func test_resourcesListPublisher_publishesOneMatchingResourcesListFromResources_usingRequestedServiceIdentifiers() {
-    autofillContext.requestedServiceIdentifiersPublisher
-      = always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
-          .eraseToAnyPublisher()
-      )
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
+        .eraseToAnyPublisher()
+    )
     features.use(autofillContext)
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
@@ -255,7 +253,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -271,12 +270,13 @@ final class ResourcesSelectionListControllerTests: TestCase {
     XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
 
-  func test_resourcesListPublisher_publishesOneMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers() {
-    autofillContext.requestedServiceIdentifiersPublisher
-      = always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-          .eraseToAnyPublisher()
-      )
+  func
+    test_resourcesListPublisher_publishesOneMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers()
+  {
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+        .eraseToAnyPublisher()
+    )
     features.use(autofillContext)
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
@@ -304,7 +304,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -320,12 +321,13 @@ final class ResourcesSelectionListControllerTests: TestCase {
     XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
 
-  func test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers() {
-    autofillContext.requestedServiceIdentifiersPublisher
-      = always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-          .eraseToAnyPublisher()
-      )
+  func
+    test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers()
+  {
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+        .eraseToAnyPublisher()
+    )
     features.use(autofillContext)
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
@@ -353,7 +355,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -366,9 +369,10 @@ final class ResourcesSelectionListControllerTests: TestCase {
     XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
 
-  func test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiersWithURLPath() {
-    autofillContext.requestedServiceIdentifiersPublisher
-    = always(
+  func
+    test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiersWithURLPath()
+  {
+    autofillContext.requestedServiceIdentifiersPublisher = always(
       Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com/some/path/here")])
         .eraseToAnyPublisher()
     )
@@ -399,7 +403,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()
@@ -412,9 +417,10 @@ final class ResourcesSelectionListControllerTests: TestCase {
     XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
   }
 
-  func test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiersWithResourceURLPath() {
-    autofillContext.requestedServiceIdentifiersPublisher
-    = always(
+  func
+    test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiersWithResourceURLPath()
+  {
+    autofillContext.requestedServiceIdentifiersPublisher = always(
       Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
         .eraseToAnyPublisher()
     )
@@ -445,7 +451,8 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+    var result:
+      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
 
     controller
       .resourcesListPublisher()

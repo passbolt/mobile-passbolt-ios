@@ -38,19 +38,19 @@ extension CreateResourceRequest {
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
-          .combined(
-            .url(string: sessionVariable.domain),
-            .path("/resources.json"),
-            .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
-            .whenSome(
-              sessionVariable.mfaToken,
-              then: { mfaToken in
-                  .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
-              }
-            ),
-            .jsonBody(from: requestVariable),
-            .method(.post)
-          )
+        .combined(
+          .url(string: sessionVariable.domain),
+          .path("/resources.json"),
+          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .whenSome(
+            sessionVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          ),
+          .jsonBody(from: requestVariable),
+          .method(.post)
+        )
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,

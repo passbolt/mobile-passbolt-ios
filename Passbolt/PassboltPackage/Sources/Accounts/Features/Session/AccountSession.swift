@@ -223,7 +223,8 @@ extension AccountSession: Feature {
       .compactMap { state -> AnyPublisher<State, Never>? in
         switch state {
         case let .authorized(account), let .authorizedMFARequired(account, _):
-          return passphraseCache
+          return
+            passphraseCache
             .passphrasePublisher(account.localID)
             .compactMap { passphrase -> State? in
               switch passphrase {
@@ -322,10 +323,15 @@ extension AccountSession: Feature {
       authorizationCancellable = nil
 
       switch sessionState {
-      case let .authorized(currentAccount) where currentAccount.userID != account.userID || (currentAccount.localID != account.localID
-        && !accountsDataStore.loadAccounts().contains(currentAccount)),
-        let .authorizationRequired(currentAccount) where currentAccount.userID != account.userID || (currentAccount.localID != account.localID
-        && !accountsDataStore.loadAccounts().contains(currentAccount)):
+      case let .authorized(currentAccount)
+      where currentAccount.userID != account.userID
+        || (currentAccount.localID != account.localID
+          && !accountsDataStore.loadAccounts().contains(currentAccount))
+        ,
+        let .authorizationRequired(currentAccount)
+      where currentAccount.userID != account.userID
+        || (currentAccount.localID != account.localID
+          && !accountsDataStore.loadAccounts().contains(currentAccount)):
         diagnostics.debugLog("Signing out \(currentAccount.localID)")
         // signout from current account on switching accounts
         _clearCurrentSession()
@@ -423,7 +429,7 @@ extension AccountSession: Feature {
           }
         )
         .map { mfaProviders in
-          !mfaProviders.isEmpty // if array is not empty MFA authorization is required
+          !mfaProviders.isEmpty  // if array is not empty MFA authorization is required
         }
         .subscribe(signInResultSubject)
 
@@ -455,9 +461,10 @@ extension AccountSession: Feature {
               .eraseToAnyPublisher()
           }
 
-          return networkSession
+          return
+            networkSession
             .createMFAToken(account, method, rememberDevice)
-            .map { _  -> AnyPublisher<Void, TheError> in
+            .map { _ -> AnyPublisher<Void, TheError> in
               withSessionState { state -> AnyPublisher<Void, TheError> in
                 switch sessionStateSubject.value {
                 case let .authorized(currentAccount) where currentAccount == account,
@@ -494,7 +501,8 @@ extension AccountSession: Feature {
           case let .authorized(account), let .authorizedMFARequired(account, _):
             switch accountsDataStore.loadAccountPrivateKey(account.localID) {
             case let .success(armoredKey):
-              return passphraseCache
+              return
+                passphraseCache
                 .passphrasePublisher(account.localID)
                 .first()
                 .setFailureType(to: TheError.self)
@@ -572,7 +580,8 @@ extension AccountSession: Feature {
           case let .authorized(account), let .authorizedMFARequired(account, _):
             switch accountsDataStore.loadAccountPrivateKey(account.localID) {
             case let .success(armoredKey):
-              return passphraseCache
+              return
+                passphraseCache
                 .passphrasePublisher(account.localID)
                 .first()
                 .setFailureType(to: TheError.self)
@@ -593,7 +602,7 @@ extension AccountSession: Feature {
             case let .failure(error):
               diagnostics.debugLog(
                 "Failed to retrieve private key for account: \(account.localID)"
-                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+                  + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
               )
               return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: error)
                 .eraseToAnyPublisher()
@@ -607,7 +616,12 @@ extension AccountSession: Feature {
         }
         .switchToLatest()
         .map { armoredPrivateKey, passphrase -> AnyPublisher<ArmoredPGPMessage, TheError> in
-          let encryptionResult: Result<String, TheError> = pgp.encryptAndSign(message, passphrase, armoredPrivateKey, publicKey)
+          let encryptionResult: Result<String, TheError> = pgp.encryptAndSign(
+            message,
+            passphrase,
+            armoredPrivateKey,
+            publicKey
+          )
 
           switch encryptionResult {
           case let .success(encrypted):

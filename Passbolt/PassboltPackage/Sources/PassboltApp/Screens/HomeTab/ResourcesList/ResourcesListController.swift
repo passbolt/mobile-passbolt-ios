@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Resources
 import CommonDataModels
+import Resources
 import UIComponents
 
 internal struct ResourcesListController {

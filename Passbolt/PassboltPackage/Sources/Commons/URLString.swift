@@ -34,7 +34,9 @@ extension URLString {
 
     // Pick and remove scheme from target url
     let targetURLScheme: Substring
-    if let schemeRange = targetURL.range(of: "https://") ?? targetURL.range(of: "http://"), schemeRange.lowerBound == targetURL.startIndex {
+    if let schemeRange = targetURL.range(of: "https://") ?? targetURL.range(of: "http://"),
+      schemeRange.lowerBound == targetURL.startIndex
+    {
       targetURLScheme = targetURL[schemeRange]
       targetURL.removeSubrange(schemeRange)
     }
@@ -44,7 +46,9 @@ extension URLString {
 
     // Pick and remove scheme from checked url
     let checkedScheme: Substring
-    if let schemeRange = checkedURL.range(of: "https://") ?? checkedURL.range(of: "http://"), schemeRange.lowerBound == checkedURL.startIndex {
+    if let schemeRange = checkedURL.range(of: "https://") ?? checkedURL.range(of: "http://"),
+      schemeRange.lowerBound == checkedURL.startIndex
+    {
       checkedScheme = checkedURL[schemeRange]
       checkedURL.removeSubrange(schemeRange)
     }
@@ -65,7 +69,7 @@ extension URLString {
 
     // Remove path from target url - ignoring in matching
     if let pathBeginningIndex = targetURL.firstIndex(of: "/") {
-      targetURL.removeSubrange(pathBeginningIndex ..< targetURL.endIndex)
+      targetURL.removeSubrange(pathBeginningIndex..<targetURL.endIndex)
     }
     else {
       /* NOP */
@@ -73,7 +77,7 @@ extension URLString {
 
     // Remove path from checked url - ignoring in matching
     if let pathBeginningIndex = checkedURL.firstIndex(of: "/") {
-      checkedURL.removeSubrange(pathBeginningIndex ..< checkedURL.endIndex)
+      checkedURL.removeSubrange(pathBeginningIndex..<checkedURL.endIndex)
     }
     else {
       /* NOP */
@@ -81,7 +85,9 @@ extension URLString {
 
     // Pick and remove port from target url
     let targetURLPort: Substring
-    if let portRange = targetURL.lastIndex(of: ":").map({ $0 ..< targetURL.endIndex }), targetURL[portRange].range(of: "^(:[0-9]{1,6})$", options: .regularExpression, range: nil, locale: nil) != nil {
+    if let portRange = targetURL.lastIndex(of: ":").map({ $0..<targetURL.endIndex }),
+      targetURL[portRange].range(of: "^(:[0-9]{1,6})$", options: .regularExpression, range: nil, locale: nil) != nil
+    {
       targetURLPort = targetURL[portRange]
       targetURL.removeSubrange(portRange)
     }
@@ -91,7 +97,9 @@ extension URLString {
 
     // Pick and remove scheme from checked url
     let checkedURLPort: Substring
-    if let portRange = checkedURL.lastIndex(of: ":").map({ $0 ..< checkedURL.endIndex }), checkedURL[portRange].range(of: "^(:[0-9]{1,6})$", options: .regularExpression, range: nil, locale: nil) != nil {
+    if let portRange = checkedURL.lastIndex(of: ":").map({ $0..<checkedURL.endIndex }),
+      checkedURL[portRange].range(of: "^(:[0-9]{1,6})$", options: .regularExpression, range: nil, locale: nil) != nil
+    {
       checkedURLPort = checkedURL[portRange]
       checkedURL.removeSubrange(portRange)
     }
@@ -149,10 +157,10 @@ extension URLString {
 
 // regex based on  https://github.com/passbolt/passbolt_styleguide/blob/master/src/react-quickaccess/components/HomePage/canSuggestUrl.js
 private let ipv4Regex: Regex = """
-(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}
-"""
+  (?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}
+  """
 
 // regex based on  https://github.com/passbolt/passbolt_styleguide/blob/master/src/react-quickaccess/components/HomePage/canSuggestUrl.js
 private let ipv6Regex: Regex = """
-(?:(?:[a-fA-F\\d]{1,4}:){7}(?:[a-fA-F\\d]{1,4}|:)|(?:[a-fA-F\\d]{1,4}:){6}(?:${v4}|:[a-fA-F\\d]{1,4}|:)|(?:[a-fA-F\\d]{1,4}:){5}(?::${v4}|(?::[a-fA-F\\d]{1,4}){1,2}|:)|(?:[a-fA-F\\d]{1,4}:){4}(?:(?::[a-fA-F\\d]{1,4}){0,1}:${v4}|(?::[a-fA-F\\d]{1,4}){1,3}|:)|(?:[a-fA-F\\d]{1,4}:){3}(?:(?::[a-fA-F\\d]{1,4}){0,2}:${v4}|(?::[a-fA-F\\d]{1,4}){1,4}|:)|(?:[a-fA-F\\d]{1,4}:){2}(?:(?::[a-fA-F\\d]{1,4}){0,3}:${v4}|(?::[a-fA-F\\d]{1,4}){1,5}|:)|(?:[a-fA-F\\d]{1,4}:){1}(?:(?::[a-fA-F\\d]{1,4}){0,4}:${v4}|(?::[a-fA-F\\d]{1,4}){1,6}|:)|(?::(?:(?::[a-fA-F\\d]{1,4}){0,5}:${v4}|(?::[a-fA-F\\d]{1,4}){1,7}|:)))(?:%[0-9a-zA-Z]{1,})?
-"""
+  (?:(?:[a-fA-F\\d]{1,4}:){7}(?:[a-fA-F\\d]{1,4}|:)|(?:[a-fA-F\\d]{1,4}:){6}(?:${v4}|:[a-fA-F\\d]{1,4}|:)|(?:[a-fA-F\\d]{1,4}:){5}(?::${v4}|(?::[a-fA-F\\d]{1,4}){1,2}|:)|(?:[a-fA-F\\d]{1,4}:){4}(?:(?::[a-fA-F\\d]{1,4}){0,1}:${v4}|(?::[a-fA-F\\d]{1,4}){1,3}|:)|(?:[a-fA-F\\d]{1,4}:){3}(?:(?::[a-fA-F\\d]{1,4}){0,2}:${v4}|(?::[a-fA-F\\d]{1,4}){1,4}|:)|(?:[a-fA-F\\d]{1,4}:){2}(?:(?::[a-fA-F\\d]{1,4}){0,3}:${v4}|(?::[a-fA-F\\d]{1,4}){1,5}|:)|(?:[a-fA-F\\d]{1,4}:){1}(?:(?::[a-fA-F\\d]{1,4}){0,4}:${v4}|(?::[a-fA-F\\d]{1,4}){1,6}|:)|(?::(?:(?::[a-fA-F\\d]{1,4}){0,5}:${v4}|(?::[a-fA-F\\d]{1,4}){1,7}|:)))(?:%[0-9a-zA-Z]{1,})?
+  """

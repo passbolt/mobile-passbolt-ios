@@ -33,16 +33,16 @@ extension Pasteboard: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: Cancellables) -> Pasteboard {
-      let systemPasteboard: SystemPasteboard = environment.systemPasteboard
+    cancellables: Cancellables
+  ) -> Pasteboard {
+    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
 
-      return Self(
-        get: systemPasteboard.get,
-        put: systemPasteboard.put
-      )
+    return Self(
+      get: systemPasteboard.get,
+      put: systemPasteboard.put
+    )
   }
 }
-
 
 #if DEBUG
 extension Pasteboard {

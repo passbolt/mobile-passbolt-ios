@@ -25,7 +25,7 @@ import Commons
 import Environment
 
 public typealias UserListRequest =
-NetworkRequest<AuthorizedSessionVariable, UserListRequestVariable, UserListRequestResponse>
+  NetworkRequest<AuthorizedSessionVariable, UserListRequestVariable, UserListRequestResponse>
 
 extension UserListRequest {
 
@@ -35,26 +35,26 @@ extension UserListRequest {
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
-          .combined(
-            .url(string: sessionVariable.domain),
-            .path("/users.json"),
-            .whenSome(
-              requestVariable.resourceIDFilter,
-              then: { resourceID in
-                  .queryItem("filter[has-access]", value: resourceID)
-              },
-              else: .none
-            ),
-            .queryItem("api-version", value: "v2"),
-            .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
-            .whenSome(
-              sessionVariable.mfaToken,
-              then: { mfaToken in
-                .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
-              }
-            ),
-            .method(.get)
-          )
+        .combined(
+          .url(string: sessionVariable.domain),
+          .path("/users.json"),
+          .whenSome(
+            requestVariable.resourceIDFilter,
+            then: { resourceID in
+              .queryItem("filter[has-access]", value: resourceID)
+            },
+            else: .none
+          ),
+          .queryItem("api-version", value: "v2"),
+          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .whenSome(
+            sessionVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          ),
+          .method(.get)
+        )
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,

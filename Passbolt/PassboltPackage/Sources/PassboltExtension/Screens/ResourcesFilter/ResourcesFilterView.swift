@@ -121,4 +121,3 @@ internal final class ResourcesFilterView: View {
     }
   }
 }
-

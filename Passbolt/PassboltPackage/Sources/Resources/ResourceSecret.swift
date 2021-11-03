@@ -1,4 +1,3 @@
-
 //
 // Passbolt - Open source password manager for teams
 // Copyright (c) 2021 Passbolt SA
@@ -58,12 +57,14 @@ extension ResourceSecret {
         return Self(
           values: try decoder.decode(Dictionary<String, String>.self, from: data)
         )
-      } catch {
+      }
+      catch {
         return Self(
           values: ["password": message]
         )
       }
-    } else {
+    }
+    else {
       return nil
     }
   }

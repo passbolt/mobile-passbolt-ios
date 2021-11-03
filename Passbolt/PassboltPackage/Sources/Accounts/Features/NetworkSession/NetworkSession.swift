@@ -35,18 +35,20 @@ internal struct NetworkSession {
 
   // returns nonempty Array<MFAProvider> if MFA required
   // otherwise empty (even if MFA is enabled but current token was valid)
-  internal var createSession: (
+  internal var createSession:
+    (
       _ account: Account,
       _ domain: String,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> AnyPublisher<Array<MFAProvider>, TheError>
 
-  internal var createMFAToken: (
-    _ account: Account,
-    _ authorization: AccountSession.MFAAuthorizationMethod,
-    _ storeLocally: Bool
-  ) -> AnyPublisher<Void, TheError>
+  internal var createMFAToken:
+    (
+      _ account: Account,
+      _ authorization: AccountSession.MFAAuthorizationMethod,
+      _ storeLocally: Bool
+    ) -> AnyPublisher<Void, TheError>
 
   internal var refreshSession: () -> AnyPublisher<NetworkSessionTokens, TheError>
   internal var closeSession: () -> AnyPublisher<Void, TheError>
@@ -54,13 +56,17 @@ internal struct NetworkSession {
 
 extension NetworkSession {
 
-  fileprivate typealias ServerPublicKeys = (publicPGP: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: ArmoredRSAPublicKey)
+  fileprivate typealias ServerPublicKeys = (
+    publicPGP: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: ArmoredRSAPublicKey
+  )
   fileprivate typealias ServerPublicKeysWithSignInChallenge = (
     serverPublicKeys: ServerPublicKeys, signInChallenge: ArmoredPGPMessage
   )
   fileprivate typealias ServerPublicKeysWithSignInTokens = (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens)
   fileprivate typealias SignInTokensWithMFAStatus = (signInTokens: Tokens, mfaTokenIsValid: Bool)
-  fileprivate typealias ServerPublicKeysWithSignInTokensAndMFAStatus = (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool)
+  fileprivate typealias ServerPublicKeysWithSignInTokensAndMFAStatus = (
+    serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool
+  )
   fileprivate typealias SessionTokensWithMFAProviders = (tokens: NetworkSessionTokens, mfaProviders: Array<MFAProvider>)
 }
 
@@ -131,74 +137,75 @@ extension NetworkSession: Feature {
         fetchServerPublicPGPKey(),
         fetchServerPublicRSAKey()
       )
-        .map { (publicPGP: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
-          var existingFingerprint: Fingerprint? = nil
-          var serverFingerprint: Fingerprint
+      .map { (publicPGP: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
+        var existingFingerprint: Fingerprint? = nil
+        var serverFingerprint: Fingerprint
 
-          switch pgp.extractFingerprint(publicPGP) {
-          case let .success(fingerprint):
-            serverFingerprint = fingerprint
+        switch pgp.extractFingerprint(publicPGP) {
+        case let .success(fingerprint):
+          serverFingerprint = fingerprint
+
+        case let .failure(error):
+          return Fail(error: error)
+            .eraseToAnyPublisher()
+        }
+
+        switch fingerprintStorage.loadServerFingerprint(accountID) {
+        case let .success(fingerprint):
+          existingFingerprint = fingerprint
+
+        case .failure:
+          return Fail(
+            error: .invalidServerFingerprint(
+              accountID: accountID,
+              updatedFingerprint: serverFingerprint
+            )
+          )
+          .eraseToAnyPublisher()
+        }
+
+        if let fingerprint = existingFingerprint {
+          switch pgp.verifyPublicKeyFingerprint(publicPGP, fingerprint) {
+          case let .success(match):
+            if match {
+              return Just(
+                ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
+              )
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+            }
+            else {
+              return Fail(
+                error: .invalidServerFingerprint(
+                  accountID: accountID,
+                  updatedFingerprint: serverFingerprint
+                )
+              )
+              .eraseToAnyPublisher()
+            }
 
           case let .failure(error):
             return Fail(error: error)
               .eraseToAnyPublisher()
           }
-          
-          switch fingerprintStorage.loadServerFingerprint(accountID) {
-          case let .success(fingerprint):
-            existingFingerprint = fingerprint
-            
-          case .failure:
-            return Fail(
-              error: .invalidServerFingerprint(
-                accountID: accountID,
-                updatedFingerprint: serverFingerprint
-              )
-            )
-            .eraseToAnyPublisher()
-          }
-          
-          if let fingerprint = existingFingerprint {
-            switch pgp.verifyPublicKeyFingerprint(publicPGP, fingerprint) {
-            case let .success(match):
-              if match {
-                return Just(
-                  ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
-                )
-                .setFailureType(to: TheError.self)
-                .eraseToAnyPublisher()
-              }
-              else {
-                return Fail(
-                  error: .invalidServerFingerprint(
-                    accountID: accountID,
-                    updatedFingerprint: serverFingerprint
-                  )
-                )
-                .eraseToAnyPublisher()
-              }
-
-            case let .failure(error):
-              return Fail(error: error)
-                .eraseToAnyPublisher()
-            }
-          } else {
-            switch fingerprintStorage.storeServerFingerprint(accountID, serverFingerprint) {
-            case let .failure(error):
-              return Fail(error: error)
-                .eraseToAnyPublisher()
-            case _:
-              break
-            }
-            return Just(
-              ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
-            )
-            .setFailureType(to: TheError.self)
-            .eraseToAnyPublisher()
-          }
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+        else {
+          switch fingerprintStorage.storeServerFingerprint(accountID, serverFingerprint) {
+          case let .failure(error):
+            return Fail(error: error)
+              .eraseToAnyPublisher()
+          case _:
+            break
+          }
+          return Just(
+            ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
+          )
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+        }
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func prepareSignInChallenge(
@@ -432,9 +439,10 @@ extension NetworkSession: Feature {
       let challengeExpiration: Int  // 120s is verification token's lifetime
       = time.timestamp() + 120
 
-      let mfaToken: MFAToken? = try? accountDataStore
+      let mfaToken: MFAToken? =
+        try? accountDataStore
         .loadAccountMFAToken(account.localID)
-        .get() // we don't care about the errors here
+        .get()  // we don't care about the errors here
 
       return fetchServerPublicKeys(accountID: account.localID)
         .map { (serverPublicKeys: ServerPublicKeys) -> AnyPublisher<ServerPublicKeysWithSignInChallenge, TheError> in
@@ -478,7 +486,9 @@ extension NetworkSession: Feature {
         }
         .switchToLatest()
         .map {
-          (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool) -> AnyPublisher<SessionTokensWithMFAProviders, TheError> in
+          (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool) -> AnyPublisher<
+            SessionTokensWithMFAProviders, TheError
+          > in
           decodeVerifySignInTokens(
             account: account,
             signInTokens: signInTokens,
@@ -489,7 +499,7 @@ extension NetworkSession: Feature {
           )
           .handleEvents(receiveOutput: { _ in
             guard mfaToken != nil, !mfaTokenIsValid else { return }
-            _ = accountDataStore.deleteAccountMFAToken(account.localID) // ignoring result
+            _ = accountDataStore.deleteAccountMFAToken(account.localID)  // ignoring result
           })
           .eraseToAnyPublisher()
         }
@@ -519,12 +529,14 @@ extension NetworkSession: Feature {
           .map(\.mfaToken)
           .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
             if storeLocally {
-              return accountDataStore
+              return
+                accountDataStore
                 .storeAccountMFAToken(account.localID, token)
                 .map {
                   sessionTokensSubject.value?.mfaToken = token
                 }
-            } else {
+            }
+            else {
               sessionTokensSubject.value?.mfaToken = token
               return .success
             }
@@ -538,12 +550,14 @@ extension NetworkSession: Feature {
           .map(\.mfaToken)
           .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
             if storeLocally {
-              return accountDataStore
+              return
+                accountDataStore
                 .storeAccountMFAToken(account.localID, token)
                 .map {
                   sessionTokensSubject.value?.mfaToken = token
                 }
-            } else {
+            }
+            else {
               sessionTokensSubject.value?.mfaToken = token
               return .success
             }

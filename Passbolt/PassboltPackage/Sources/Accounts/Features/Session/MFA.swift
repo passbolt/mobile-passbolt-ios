@@ -34,7 +34,8 @@ extension MFA: Feature {
   public static func load(
     in environment: Environment,
     using features: FeatureFactory,
-    cancellables: Cancellables) -> MFA {
+    cancellables: Cancellables
+  ) -> MFA {
 
     let yubikey: Yubikey = environment.yubikey
     let accountSession: AccountSession = features.instance()
@@ -46,7 +47,8 @@ extension MFA: Feature {
         .map { state -> AnyPublisher<Void, TheError> in
           switch state {
           case .authorized, .authorizedMFARequired:
-            return yubikey
+            return
+              yubikey
               .readNFC()
               .map { otp in
                 accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)

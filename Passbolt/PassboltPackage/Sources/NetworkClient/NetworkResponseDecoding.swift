@@ -86,7 +86,11 @@ extension NetworkResponseDecoding {
 
   internal static func decodeBadRequest(response: HTTPResponse) -> Result<Response, TheError> {
     do {
-      guard let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(with: response.body, options: .init()) as? Dictionary<String, Any>
+      guard
+        let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(
+          with: response.body,
+          options: .init()
+        ) as? Dictionary<String, Any>
       else {
         return .failure(
           .networkResponseDecodingFailed(

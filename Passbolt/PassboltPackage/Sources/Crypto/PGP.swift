@@ -121,16 +121,16 @@ extension PGP {
         return .success(result)
       }
 
-      if
-        nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        ( // gopenpgp has multiple strings for the same error...
-          errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains("gopenpgp: error in unlocking key")
-        )
+      if nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains(
+            "gopenpgp: error in unlocking key"
+          )
       {
         return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
-      } else {
+      }
+      else {
         return .failure(.pgpError(nsError))
       }
     }
@@ -160,16 +160,16 @@ extension PGP {
         return .success(result)
       }
 
-      if
-        nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        ( // gopenpgp has multiple strings for the same error...
-          errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains("gopenpgp: error in unlocking key")
-        )
+      if nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains(
+            "gopenpgp: error in unlocking key"
+          )
       {
         return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
-      } else {
+      }
+      else {
         return .failure(.pgpError(nsError))
       }
     }
@@ -217,16 +217,16 @@ extension PGP {
         return .success(result)
       }
 
-      if
-        nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        ( // gopenpgp has multiple strings for the same error...
-          errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains("gopenpgp: error in unlocking key")
-        )
+      if nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains(
+            "gopenpgp: error in unlocking key"
+          )
       {
         return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
-      } else {
+      }
+      else {
         return .failure(.pgpError(nsError))
       }
     }
@@ -254,16 +254,16 @@ extension PGP {
         return .success(result)
       }
 
-      if
-        nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
-        ( // gopenpgp has multiple strings for the same error...
-          errorDescription.contains("gopenpgp: unable to unlock key")
-          || errorDescription.contains("gopenpgp: error in unlocking key")
-        )
+      if nsError.domain == "go",
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        errorDescription.contains("gopenpgp: unable to unlock key")
+          || errorDescription.contains(
+            "gopenpgp: error in unlocking key"
+          )
       {
         return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
-      } else {
+      }
+      else {
         return .failure(.pgpError(nsError))
       }
     }
@@ -324,10 +324,11 @@ extension PGP {
 
       var error: NSError?
 
-      guard let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
-        publicKey.rawValue,
-        &error
-      )?.getFingerprint()
+      guard
+        let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
+          publicKey.rawValue,
+          &error
+        )?.getFingerprint()
       else {
         return .failure(.failedToGetPGPFingerprint(underlyingError: error))
       }
@@ -339,13 +340,14 @@ extension PGP {
       publicKey: ArmoredPGPPublicKey
     ) -> Result<Fingerprint, TheError> {
       defer { Gopenpgp.HelperFreeOSMemory() }
-      
+
       var error: NSError?
 
-      guard let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
-        publicKey.rawValue,
-        &error
-      )?.getFingerprint()
+      guard
+        let fingerprintFromKey: String = Gopenpgp.CryptoNewKeyFromArmored(
+          publicKey.rawValue,
+          &error
+        )?.getFingerprint()
       else {
         return .failure(.failedToGetPGPFingerprint(underlyingError: error))
       }

@@ -69,7 +69,8 @@ extension MFARootController: UIController {
         let currentIndex: Array.Index = providers.firstIndex(of: currentProvider)
       else { return }
 
-      let nextIndex: Array.Index = currentIndex.advanced(by: 1) < providers.count ? currentIndex.advanced(by: 1) : providers.startIndex
+      let nextIndex: Array.Index =
+        currentIndex.advanced(by: 1) < providers.count ? currentIndex.advanced(by: 1) : providers.startIndex
 
       let nextProvider: MFAProvider = providers[nextIndex]
 

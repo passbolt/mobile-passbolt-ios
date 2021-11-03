@@ -164,7 +164,11 @@ public class TextViewInput: View {
     }
 
     mut(placeholderLabel) {
-      .topAnchor(.equalTo, textView.topAnchor, constant: textView.contentInset.top, referenceOutput: &placeholderTopConstraint
+      .topAnchor(
+        .equalTo,
+        textView.topAnchor,
+        constant: textView.contentInset.top,
+        referenceOutput: &placeholderTopConstraint
       )
     }
   }

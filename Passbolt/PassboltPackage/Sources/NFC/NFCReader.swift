@@ -70,8 +70,9 @@ public final class NFCReader: NSObject {
       // capturing self to extend its lifetime & setting callback to nil
       self.callback = nil
       if case let .success(string) = result.map(parser.parse),
-         let otp = string {
-          resultCallback(.success(otp))
+        let otp = string
+      {
+        resultCallback(.success(otp))
       }
       else {
         resultCallback(.failure(NFCError.nfcDataParsingFailed))

@@ -21,8 +21,8 @@
 // @since         v1.0
 
 import Accounts
-import UIComponents
 import NetworkClient
+import UIComponents
 
 internal struct SplashScreenController {
 
@@ -85,7 +85,8 @@ extension SplashScreenController: UIController {
           return destinationSubject.send(.accountSetup)
         }
         else {
-          return accountSession
+          return
+            accountSession
             .statePublisher()
             .first()
             .map { state -> AnyPublisher<Destination, Never> in

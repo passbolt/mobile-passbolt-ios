@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import class CoreNFC.NFCNDEFMessage
 import class CoreNFC.NFCNDEFPayload
 import struct Foundation.CharacterSet

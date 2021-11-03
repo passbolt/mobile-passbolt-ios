@@ -131,12 +131,12 @@ extension AccountsDataStore: Feature {
       diagnostics.debugLog("Stored account profiles: \(storedAccountsProfiles)")
       timeMeasurement.event("Account profiles loaded")
 
-
       // storedAccountMFATokens - keychain accounts mfa tokens
       let storedAccountMFATokens: Array<Account.LocalID>
       switch keychain.loadMeta(matching: .accountMFATokenQuery()) {
       case let .success(accounts):
-        storedAccountMFATokens = accounts
+        storedAccountMFATokens =
+          accounts
           .compactMap(\.tag?.rawValue)
           .map(Account.LocalID.init(rawValue:))
       case let .failure(error):
@@ -154,7 +154,8 @@ extension AccountsDataStore: Feature {
       let storedServerFingerprints: Array<Account.LocalID>
       switch keychain.loadMeta(matching: .serverFingerprintQuery()) {
       case let .success(accounts):
-        storedServerFingerprints = accounts
+        storedServerFingerprints =
+          accounts
           .compactMap(\.tag?.rawValue)
           .map(Account.LocalID.init(rawValue:))
       case let .failure(error):
@@ -243,7 +244,6 @@ extension AccountsDataStore: Feature {
       }
       diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
       timeMeasurement.event("Account profiles cleaned")
-
 
       let mfaTokensToRemove: Array<Account.LocalID> =
         storedAccountMFATokens
@@ -694,7 +694,6 @@ extension AccountsDataStore: Feature {
         .keychain
         .delete(matching: .accountMFATokenQuery(for: accountID))
     }
-
 
     func loadAccountProfile(
       for accountID: Account.LocalID

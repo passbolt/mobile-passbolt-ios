@@ -75,11 +75,11 @@ final class ErrorViewController: PlainViewController, UIComponent {
 
         guard result == nil
         else { return }
-          self?.present(
-            snackbar: Mutation<UICommons.View>
-              .snackBarErrorMessage(localized: .genericError, inBundle: .commons)
-              .instantiate()
-          )
+        self?.present(
+          snackbar: Mutation<UICommons.View>
+            .snackBarErrorMessage(localized: .genericError, inBundle: .commons)
+            .instantiate()
+        )
       }
       .store(in: cancellables)
 

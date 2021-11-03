@@ -21,17 +21,17 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Combine
+import CommonDataModels
 import Features
 import NetworkClient
-@testable import Resources
-import CommonDataModels
 import TestExtensions
 import UIComponents
 import XCTest
 
+@testable import Accounts
 @testable import PassboltApp
+@testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceCreateControllerTests: TestCase {
@@ -83,13 +83,16 @@ final class ResourceCreateControllerTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result, [
-      .name,
-      .uri,
-      .username,
-      .password,
-      .description
-    ])
+    XCTAssertEqual(
+      result,
+      [
+        .name,
+        .uri,
+        .username,
+        .password,
+        .description,
+      ]
+    )
   }
 
   func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() {
@@ -110,11 +113,12 @@ final class ResourceCreateControllerTests: TestCase {
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     }
-    var resultGenerate: (
-      alphabet: Set<Set<Character>>,
-      minLength: Int,
-      targetEntropy: Entropy
-    )?
+    var resultGenerate:
+      (
+        alphabet: Set<Set<Character>>,
+        minLength: Int,
+        targetEntropy: Entropy
+      )?
     randomGenerator.generate = { alphabets, minLength, targetEntropy in
       resultGenerate = (alphabets, minLength, targetEntropy)
       return "&!)]V3rYstrP@$word___"
@@ -221,6 +225,6 @@ private let defaultResourceType: ResourceType = .init(
     .init(name: "uri", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
     .init(name: "username", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
     .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: false, encrypted: true, maxLength: nil)!
+    .init(name: "description", typeString: "string", required: false, encrypted: true, maxLength: nil)!,
   ]
 )

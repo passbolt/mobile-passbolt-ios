@@ -53,7 +53,8 @@ public final class ServerFingerprintView: ScrolledStackView {
       heightMultiplier: 1
     )
 
-    let container: View = Mutation
+    let container: View =
+      Mutation
       .combined(
         .backgroundColor(dynamic: .background),
         .custom { (view: View) in
@@ -122,11 +123,13 @@ public final class ServerFingerprintView: ScrolledStackView {
       )
     }
 
-    checkedLabel.applyOn(label: .combined(
-      .font(.inter(ofSize: 14)),
-      .text(localized: "server.key.fingerprint.accept.check", inBundle: .commons),
-      .textColor(dynamic: .secondaryText)
-    ))
+    checkedLabel.applyOn(
+      label: .combined(
+        .font(.inter(ofSize: 14)),
+        .text(localized: "server.key.fingerprint.accept.check", inBundle: .commons),
+        .textColor(dynamic: .secondaryText)
+      )
+    )
 
     mut(acceptButton) {
       .combined(

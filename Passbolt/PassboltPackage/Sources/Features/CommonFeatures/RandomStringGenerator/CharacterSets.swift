@@ -30,7 +30,7 @@ public enum CharacterSets {
     "g", "h", "i", "j", "k", "l",
     "m", "n", "o", "p", "q", "r",
     "s", "t", "u", "v", "w", "x",
-    "y", "z"
+    "y", "z",
   ])
 
   internal static let uppercaseLetters: Set<Character> = .init([
@@ -38,29 +38,29 @@ public enum CharacterSets {
     "G", "H", "I", "J", "K", "L",
     "M", "N", "O", "P", "Q", "R",
     "S", "T", "U", "V", "W", "X",
-    "Y", "Z"
+    "Y", "Z",
   ])
 
   internal static let digits: Set<Character> = .init([
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
   ])
 
   internal static let parenthesis: Set<Character> = .init([
-    "{", "(", "[", "|", "]", ")", "}"
+    "{", "(", "[", "|", "]", ")", "}",
   ])
 
   internal static let special: Set<Character> = .init([
     "#", "$", "%", "&", "@", "^",
     "~", ".", ",", ":", ";", "'",
     "\"", "`", "/", "\\", "_", "-",
-    "<", "*", "+", "!", "?", "="
+    "<", "*", "+", "!", "?", "=",
   ])
 
   internal static var alphanumeric: Set<Set<Character>> {
     [
       lowercaseLetters,
       uppercaseLetters,
-      digits
+      digits,
     ]
   }
 
@@ -70,7 +70,7 @@ public enum CharacterSets {
       uppercaseLetters,
       digits,
       parenthesis,
-      special
+      special,
     ]
   }
 }

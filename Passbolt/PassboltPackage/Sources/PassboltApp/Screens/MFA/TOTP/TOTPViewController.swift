@@ -101,13 +101,15 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
       .sink { [weak self] change in
         switch change {
         case .idle, .processing:
-          self?.contentView.applyOn(labels:
-            .textColor(dynamic: .primaryText)
+          self?.contentView.applyOn(
+            labels:
+              .textColor(dynamic: .primaryText)
           )
 
         case .error:
-          self?.contentView.applyOn(labels:
-            .textColor(dynamic: .secondaryRed)
+          self?.contentView.applyOn(
+            labels:
+              .textColor(dynamic: .secondaryRed)
           )
         }
 

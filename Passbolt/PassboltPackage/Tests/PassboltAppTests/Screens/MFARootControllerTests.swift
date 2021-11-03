@@ -55,19 +55,22 @@ final class MFARootControllerTests: TestCase {
     accountSession.close = {}
     features.use(accountSession)
     features.use(mfa)
-    
+
     let providers: Array<MFAProvider> = [
-      .totp, .yubikey
+      .totp, .yubikey,
     ]
 
     let controller: MFARootController = testInstance(context: providers)
     var result: MFAProvider!
 
     controller.mfaProviderPublisher()
-      .sink(receiveCompletion: { _ in
-      }, receiveValue: { provider in
-        result = provider
-      })
+      .sink(
+        receiveCompletion: { _ in
+        },
+        receiveValue: { provider in
+          result = provider
+        }
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result, providers.first!)
@@ -79,17 +82,20 @@ final class MFARootControllerTests: TestCase {
     features.use(mfa)
 
     let providers: Array<MFAProvider> = [
-      .totp, .yubikey
+      .totp, .yubikey,
     ]
 
     let controller: MFARootController = testInstance(context: providers)
     var result: MFAProvider!
 
     controller.mfaProviderPublisher()
-      .sink(receiveCompletion: { _ in
-      }, receiveValue: { provider in
-        result = provider
-      })
+      .sink(
+        receiveCompletion: { _ in
+        },
+        receiveValue: { provider in
+          result = provider
+        }
+      )
       .store(in: cancellables)
 
     controller.navigateToOtherMFA()
@@ -103,17 +109,20 @@ final class MFARootControllerTests: TestCase {
     features.use(mfa)
 
     let providers: Array<MFAProvider> = [
-      .totp, .yubikey
+      .totp, .yubikey,
     ]
 
     let controller: MFARootController = testInstance(context: providers)
     var result: Array<MFAProvider> = []
 
     controller.mfaProviderPublisher()
-      .sink(receiveCompletion: { _ in
-      }, receiveValue: { provider in
-        result.append(provider)
-      })
+      .sink(
+        receiveCompletion: { _ in
+        },
+        receiveValue: { provider in
+          result.append(provider)
+        }
+      )
       .store(in: cancellables)
 
     controller.navigateToOtherMFA()
@@ -131,7 +140,7 @@ final class MFARootControllerTests: TestCase {
     features.use(mfa)
 
     let providers: Array<MFAProvider> = [
-      .totp, .yubikey
+      .totp, .yubikey,
     ]
 
     let controller: MFARootController = testInstance(context: providers)
@@ -175,7 +184,7 @@ final class MFARootControllerTests: TestCase {
     features.use(mfa)
 
     let providers: Array<MFAProvider> = [
-      .totp, .yubikey
+      .totp, .yubikey,
     ]
 
     let controller: MFARootController = testInstance(context: providers)

@@ -27,7 +27,11 @@ extension Publisher {
 
   public func flatMapResult<Success>(
     _ transform: @escaping (Output) -> Result<Success, Failure>
-  ) -> Publishers.SwitchToLatest<AnyPublisher<Success, Self.Failure>, Publishers.Map<Self, AnyPublisher<Success, Self.Failure>>> {
+  )
+    -> Publishers.SwitchToLatest<
+      AnyPublisher<Success, Self.Failure>, Publishers.Map<Self, AnyPublisher<Success, Self.Failure>>
+    >
+  {
     self.map { output -> AnyPublisher<Success, Failure> in
       switch transform(output) {
       case let .success(value):

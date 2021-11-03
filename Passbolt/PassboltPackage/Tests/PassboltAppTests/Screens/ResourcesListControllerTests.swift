@@ -23,10 +23,10 @@
 
 import Accounts
 import Combine
+import CommonDataModels
 import Features
 import Resources
 import TestExtensions
-import CommonDataModels
 import UIComponents
 import XCTest
 
@@ -293,7 +293,7 @@ final class ResourceListControllerTests: TestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test"
-      ),
+      )
     ]
     resources.filteredResourcesListPublisher = always(
       Just(resourcesList)

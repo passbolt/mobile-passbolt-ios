@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import UIComponents
 import Accounts
+import UIComponents
 
 internal struct TOTPController {
 
@@ -66,12 +66,13 @@ extension TOTPController: UIController {
       .combineLatest(rememberDeviceSubject)
       .removeDuplicates(by: { prev, next in
         prev.0 == next.0
-        && prev.1 == next.1
+          && prev.1 == next.1
       })
       .compactMap { (otp, rememberDevice) -> AnyPublisher<Void, Never>? in
         if otp.count == Self.otpLength {
           statusChangeSubject.send(.processing)
-          return mfa
+          return
+            mfa
             .authorizeUsingTOTP(otp, rememberDevice)
             .handleEvents(
               receiveCompletion: { completion in
@@ -106,14 +107,13 @@ extension TOTPController: UIController {
       otpSubject.removeDuplicates().eraseToAnyPublisher()
     }
 
-    func setOTP(_ otp: String) -> Void {
+    func setOTP(_ otp: String) {
       otpSubject.value = otp
     }
 
-    func pasteOTP() -> Void {
-      if
-        let pasted: String = pasteboard.get(),
-        (pasted.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted)?.isEmpty ?? true),
+    func pasteOTP() {
+      if let pasted: String = pasteboard.get(),
+        pasted.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted)?.isEmpty ?? true,
         pasted.count == Self.otpLength
       {
         otpSubject.value = pasted
@@ -127,7 +127,7 @@ extension TOTPController: UIController {
       rememberDeviceSubject.removeDuplicates().eraseToAnyPublisher()
     }
 
-    func toggleRememberDevice() -> Void {
+    func toggleRememberDevice() {
       rememberDeviceSubject.value.toggle()
     }
 

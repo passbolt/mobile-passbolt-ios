@@ -69,7 +69,8 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
 
     contentView
       .update(
-        from: controller
+        from:
+          controller
           .accountWithProfile()
       )
 

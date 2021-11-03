@@ -57,7 +57,7 @@ extension TheError {
       underlyingError: underlyingError,
       extensions: [
         .accountID: accountID,
-        .serverFingerprint: updatedFingerprint
+        .serverFingerprint: updatedFingerprint,
       ]
     )
   }

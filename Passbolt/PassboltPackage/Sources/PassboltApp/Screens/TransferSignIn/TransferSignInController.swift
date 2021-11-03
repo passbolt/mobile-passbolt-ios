@@ -23,9 +23,9 @@
 
 import AccountSetup
 import Accounts
+import CommonDataModels
 import Commons
 import Crypto
-import CommonDataModels
 import UIComponents
 
 import struct Foundation.Data

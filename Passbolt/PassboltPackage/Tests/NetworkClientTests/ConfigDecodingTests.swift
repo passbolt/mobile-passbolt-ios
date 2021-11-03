@@ -21,9 +21,8 @@
 // @since         v1.0
 //
 
-import Foundation
-
 import Accounts
+import Foundation
 import XCTest
 
 @testable import NetworkClient
@@ -33,30 +32,30 @@ final class ConfigDecodingTests: XCTestCase {
 
   func test_pluginsDecoding_withAllPluginsEnabled_succeeds() {
     let rawJSON: Data = """
-    {
-        "legal": {
-        "privacy_policy": {
-          "url": "https://www.passbolt.com/privacy"
+      {
+          "legal": {
+          "privacy_policy": {
+            "url": "https://www.passbolt.com/privacy"
+          },
+          "terms": {
+            "url": "https://www.passbolt.com/terms"
+          }
         },
-        "terms": {
-          "url": "https://www.passbolt.com/terms"
-        }
-      },
-      "plugins": {
-        "previewPassword": {
-          "enabled": true
-        },
-        "tags": {
-          "version": "1.0.1",
-          "enabled": true
-        },
-        "folders": {
-          "version": "2.0.0",
-          "enabled": true
+        "plugins": {
+          "previewPassword": {
+            "enabled": true
+          },
+          "tags": {
+            "version": "1.0.1",
+            "enabled": true
+          },
+          "folders": {
+            "version": "2.0.0",
+            "enabled": true
+          }
         }
       }
-    }
-    """.data(using: .utf8)!
+      """.data(using: .utf8)!
 
     let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
 
@@ -76,12 +75,12 @@ final class ConfigDecodingTests: XCTestCase {
 
   func test_pluginsDecoding_withNoPlugins_succeeds() {
     let rawJSON: Data = """
-    {
-      "legal": null,
-      "plugins": {
+      {
+        "legal": null,
+        "plugins": {
+        }
       }
-    }
-    """.data(using: .utf8)!
+      """.data(using: .utf8)!
 
     let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
 
@@ -91,21 +90,21 @@ final class ConfigDecodingTests: XCTestCase {
 
   func test_pluginsDecoding_withInvalidJSON_fails() {
     let rawJSON: Data = """
-    {
-        "legal": {
-      },
-      "plugins": {
-        tags": {
-          "version": "1.0.1",
-          "enabled": true
+      {
+          "legal": {
         },
-        "folders": {
-          "version": "2.0.0",
-          "enabled": true
+        "plugins": {
+          tags": {
+            "version": "1.0.1",
+            "enabled": true
+          },
+          "folders": {
+            "version": "2.0.0",
+            "enabled": true
+          }
         }
       }
-    }
-    """.data(using: .utf8)!
+      """.data(using: .utf8)!
 
     let config: Config? = try? JSONDecoder().decode(Config.self, from: rawJSON)
 

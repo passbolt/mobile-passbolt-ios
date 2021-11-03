@@ -21,12 +21,12 @@
 // @since         v1.0
 //
 
-@testable import Accounts
 import Commons
-@testable import NetworkClient
 import TestExtensions
 import XCTest
 
+@testable import Accounts
+@testable import NetworkClient
 
 final class FeatureConfigTests: TestCase {
 
@@ -181,7 +181,7 @@ final class FeatureConfigTests: TestCase {
       plugins: [
         Config.Folders(enabled: true, version: "1.0.2"),
         Config.PreviewPassword(enabled: true),
-        Config.Tags(enabled: true, version: "1.0.1")
+        Config.Tags(enabled: true, version: "1.0.1"),
       ]
     )
 

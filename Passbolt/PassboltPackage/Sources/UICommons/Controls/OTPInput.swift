@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Combine
 import AegithalosCocoa
+import Combine
 
 public final class OTPInput: UIControl, UIKeyInput {
 
@@ -34,11 +34,9 @@ public final class OTPInput: UIControl, UIKeyInput {
     get { textSubject.value }
     set {
       if newValue.count > length {
-        textSubject.value
-        = String(
+        textSubject.value = String(
           newValue[
-            newValue.startIndex
-            ..< newValue.index(newValue.startIndex, offsetBy: length)
+            newValue.startIndex..<newValue.index(newValue.startIndex, offsetBy: length)
           ]
         )
       }
@@ -50,14 +48,13 @@ public final class OTPInput: UIControl, UIKeyInput {
         .enumerated()
         .forEach { idx, label in
           if idx < newValue.count {
-            label.text
-            = String(
+            label.text = String(
               newValue[
-                newValue.index(newValue.startIndex, offsetBy: idx)
-                ... newValue.index(newValue.startIndex, offsetBy: idx)
+                newValue.index(newValue.startIndex, offsetBy: idx)...newValue.index(newValue.startIndex, offsetBy: idx)
               ]
             )
-          } else {
+          }
+          else {
             label.text = "_"
           }
         }
@@ -74,7 +71,7 @@ public final class OTPInput: UIControl, UIKeyInput {
     self.length = length
     let labelsContainer: StackView = .init()
     self.labelsContainer = labelsContainer
-    self.labels = (0 ..< length)
+    self.labels = (0..<length)
       .map { _ in
         Mutation<Label>
           .combined(
@@ -127,7 +124,7 @@ public final class OTPInput: UIControl, UIKeyInput {
 
   public var keyboardType: UIKeyboardType {
     get { .decimalPad }
-    set { /* NOP */ }
+    set { /* NOP */  }
   }
 
   public override func becomeFirstResponder() -> Bool {

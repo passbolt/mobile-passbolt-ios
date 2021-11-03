@@ -22,20 +22,23 @@
 //
 
 import Commons
+
 import func Darwin.log
 
 public struct RandomStringGenerator {
 
-  public var generate: (
-    _ alphabets: Set<Set<Character>>, // sets have to be disjoint
-    _ minLength: Int,
-    _ targetEntropy: Entropy
-  ) -> String
+  public var generate:
+    (
+      _ alphabets: Set<Set<Character>>,  // sets have to be disjoint
+      _ minLength: Int,
+      _ targetEntropy: Entropy
+    ) -> String
 
-  public var entropy: (
-    _ password: String,
-    _ alphabets: Set<Set<Character>> // sets have to be disjoint
-  ) -> Entropy
+  public var entropy:
+    (
+      _ password: String,
+      _ alphabets: Set<Set<Character>>  // sets have to be disjoint
+    ) -> Entropy
 }
 
 extension RandomStringGenerator: Feature {
@@ -56,7 +59,7 @@ extension RandomStringGenerator: Feature {
       guard !password.isEmpty && !alphabets.isEmpty && alphabets.contains(where: { !$0.isEmpty })
       else { return .zero }
 
-      let usedAlphabet: Set<Character>  = Set(password).reduce(into: .init()) { result, character in
+      let usedAlphabet: Set<Character> = Set(password).reduce(into: .init()) { result, character in
         for alphabet in alphabets {
           if alphabet.contains(character) {
             return result.formUnion(alphabet)

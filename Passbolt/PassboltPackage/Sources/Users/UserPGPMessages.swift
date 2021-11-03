@@ -22,9 +22,9 @@
 //
 
 import Accounts
-import Features
 import CommonDataModels
 import Crypto
+import Features
 import NetworkClient
 
 public struct UserPGPMessages {
@@ -35,7 +35,8 @@ public struct UserPGPMessages {
   // Encrypt PGP message for each user with permission to the resource with given id
   // by fetching users public keys associated with resource from the server.
   // Automatically verifies public key for current user based on the local storage.
-  public var encryptMessageForResourceUsers: (Resource.ID, String) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError>
+  public var encryptMessageForResourceUsers:
+    (Resource.ID, String) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError>
 }
 
 extension UserPGPMessages: Feature {
@@ -44,103 +45,106 @@ extension UserPGPMessages: Feature {
     in environment: Environment,
     using features: FeatureFactory,
     cancellables: Cancellables
-    ) -> Self {
-      let pgp: PGP = environment.pgp
-      let accountSession: AccountSession = features.instance()
-      let networkClient: NetworkClient = features.instance()
+  ) -> Self {
+    let pgp: PGP = environment.pgp
+    let accountSession: AccountSession = features.instance()
+    let networkClient: NetworkClient = features.instance()
 
-      func verifiedPublicKey(
-        _ userID: User.ID,
-        publicKey: ArmoredPGPPublicKey
-      ) -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
-        #warning("Currently we can verify only own public key, we might add other users keys verification in the future.")
-        return accountSession
-          .statePublisher()
-          .first()
-          .map { accountSessionState -> AnyPublisher<ArmoredPGPPublicKey, TheError> in
-            switch accountSessionState {
-            case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
-              if account.userID.rawValue == userID.rawValue {
-                if (try? pgp.verifyPublicKeyFingerprint(publicKey, account.fingerprint).get()) ?? false {
-                  return Just(publicKey)
-                    .setFailureType(to: TheError.self)
-                    .eraseToAnyPublisher()
-                } else {
-                  return Fail(error: .invalidUserPublicKey())
-                    .eraseToAnyPublisher()
-                }
-              } else {
+    func verifiedPublicKey(
+      _ userID: User.ID,
+      publicKey: ArmoredPGPPublicKey
+    ) -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
+      #warning("Currently we can verify only own public key, we might add other users keys verification in the future.")
+      return
+        accountSession
+        .statePublisher()
+        .first()
+        .map { accountSessionState -> AnyPublisher<ArmoredPGPPublicKey, TheError> in
+          switch accountSessionState {
+          case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
+            if account.userID.rawValue == userID.rawValue {
+              if (try? pgp.verifyPublicKeyFingerprint(publicKey, account.fingerprint).get()) ?? false {
                 return Just(publicKey)
                   .setFailureType(to: TheError.self)
                   .eraseToAnyPublisher()
               }
-
-            case .none:
-              return Fail(error: .authorizationRequired())
+              else {
+                return Fail(error: .invalidUserPublicKey())
+                  .eraseToAnyPublisher()
+              }
+            }
+            else {
+              return Just(publicKey)
+                .setFailureType(to: TheError.self)
                 .eraseToAnyPublisher()
             }
-          }
-          .switchToLatest()
-          .eraseToAnyPublisher()
-      }
 
-      func encryptMessageForUser(
-        _ userID: User.ID,
-        message: String
-      ) -> AnyPublisher<ArmoredPGPMessage, TheError> {
-        networkClient
-          .userProfileRequest
-          .make(using: .init(userID: userID.rawValue))
-          .map(\.body)
-          .map { user -> AnyPublisher<ArmoredPGPMessage, TheError> in
-            verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
-              .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheError> in
-                accountSession
-                  .encryptAndSignMessage(message, armoredPublicKey)
-              }
-              .switchToLatest()
+          case .none:
+            return Fail(error: .authorizationRequired())
               .eraseToAnyPublisher()
           }
-          .switchToLatest()
-          .eraseToAnyPublisher()
-      }
-
-      func encryptMessageForResourceUsers(
-        _ resourceID: Resource.ID,
-        message: String
-      ) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> {
-        networkClient
-          .userListRequest
-          .make(using: .init(resourceIDFilter: resourceID.rawValue))
-          .map(\.body)
-          .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> in
-            Publishers.MergeMany(
-              users
-                .map { user -> AnyPublisher<(User.ID, ArmoredPGPMessage), TheError> in
-                  verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
-                    .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheError> in
-                      accountSession
-                        .encryptAndSignMessage(message, armoredPublicKey)
-                    }
-                    .switchToLatest()
-                    .map { encryptedMessage in
-                      (user.id, encryptedMessage)
-                    }
-                    .eraseToAnyPublisher()
-                }
-            )
-            .collect()
-            .eraseToAnyPublisher()
-          }
-          .switchToLatest()
-          .eraseToAnyPublisher()
-      }
-
-      return Self(
-        encryptMessageForUser: encryptMessageForUser(_:message:),
-        encryptMessageForResourceUsers: encryptMessageForResourceUsers(_:message:)
-      )
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
     }
+
+    func encryptMessageForUser(
+      _ userID: User.ID,
+      message: String
+    ) -> AnyPublisher<ArmoredPGPMessage, TheError> {
+      networkClient
+        .userProfileRequest
+        .make(using: .init(userID: userID.rawValue))
+        .map(\.body)
+        .map { user -> AnyPublisher<ArmoredPGPMessage, TheError> in
+          verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
+            .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheError> in
+              accountSession
+                .encryptAndSignMessage(message, armoredPublicKey)
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    func encryptMessageForResourceUsers(
+      _ resourceID: Resource.ID,
+      message: String
+    ) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> {
+      networkClient
+        .userListRequest
+        .make(using: .init(resourceIDFilter: resourceID.rawValue))
+        .map(\.body)
+        .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> in
+          Publishers.MergeMany(
+            users
+              .map { user -> AnyPublisher<(User.ID, ArmoredPGPMessage), TheError> in
+                verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
+                  .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheError> in
+                    accountSession
+                      .encryptAndSignMessage(message, armoredPublicKey)
+                  }
+                  .switchToLatest()
+                  .map { encryptedMessage in
+                    (user.id, encryptedMessage)
+                  }
+                  .eraseToAnyPublisher()
+              }
+          )
+          .collect()
+          .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    return Self(
+      encryptMessageForUser: encryptMessageForUser(_:message:),
+      encryptMessageForResourceUsers: encryptMessageForResourceUsers(_:message:)
+    )
+  }
 }
 
 #if DEBUG

@@ -80,4 +80,3 @@ internal final class MFARequiredViewController: PlainViewController, UIComponent
       .store(in: cancellables)
   }
 }
-

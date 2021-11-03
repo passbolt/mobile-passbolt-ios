@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Features
 import TestExtensions
 import XCTest
-import CommonDataModels
 
 @testable import Accounts
 @testable import Crypto
@@ -420,7 +420,9 @@ final class NetworkSessionCreateSessionTests: TestCase {
     XCTAssertEqual(result?.identifier, .testError)
   }
 
-  func test_createSession_fails_withInvalidServerFingerprintError_whenStoredFingerprint_doesNotMatchReceivedFingerprint() {
+  func
+    test_createSession_fails_withInvalidServerFingerprintError_whenStoredFingerprint_doesNotMatchReceivedFingerprint()
+  {
     let storedFingerprint: Fingerprint = .init(rawValue: otherServerFingerprint)
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(storedFingerprint))
@@ -807,7 +809,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
-
 
     networkSession
       .createSession(

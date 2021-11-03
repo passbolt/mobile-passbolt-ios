@@ -319,7 +319,7 @@ extension NetworkClient: Feature {
       userListRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),
       setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"), 
+      setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"),
       setMFARequest: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

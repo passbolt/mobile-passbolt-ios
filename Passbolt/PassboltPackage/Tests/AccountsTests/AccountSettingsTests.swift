@@ -22,11 +22,11 @@
 //
 
 import Combine
+import CommonDataModels
 import Crypto
 import Features
-import TestExtensions
 import NetworkClient
-import CommonDataModels
+import TestExtensions
 
 @testable import Accounts
 
@@ -852,7 +852,7 @@ final class AccountSettingsTests: TestCase {
     features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
-    _ = feature // silence warning
+    _ = feature  // silence warning
 
     accountSessionAccountSubject.value = .authorized(validAccount)
 
@@ -860,7 +860,9 @@ final class AccountSettingsTests: TestCase {
   }
 
   func test_currentAccountProfileUpdate_isNotTriggeredAgain_whenChangingToSameAccount() {
-    let accountSessionAccountSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.authorized(validAccount))
+    let accountSessionAccountSubject: CurrentValueSubject<AccountSession.State, Never> = .init(
+      .authorized(validAccount)
+    )
     accountSession.statePublisher = always(
       accountSessionAccountSubject
         .eraseToAnyPublisher()
@@ -892,13 +894,13 @@ final class AccountSettingsTests: TestCase {
           )
         )
       )
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
     }
     features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
-    _ = feature // silence warning
+    _ = feature  // silence warning
 
     accountSessionAccountSubject.value = .authorized(validAccount)
     accountSessionAccountSubject.value = .authorized(validAccount)

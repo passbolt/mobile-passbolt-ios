@@ -85,8 +85,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .resourcesListPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] resources in
-        var items: Array<(ResourcesSelectionListSection, Array<ResourcesSelectionListViewItem>)>
-        = [
+        var items: Array<(ResourcesSelectionListSection, Array<ResourcesSelectionListViewItem>)> = [
           // TODO: Add button is out of MVP scope
           // uncommend line below
           // to present create password button.
@@ -157,4 +156,3 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .store(in: self.cancellables)
   }
 }
-

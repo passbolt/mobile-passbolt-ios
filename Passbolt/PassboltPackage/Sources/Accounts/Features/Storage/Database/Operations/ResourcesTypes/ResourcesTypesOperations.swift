@@ -1,6 +1,6 @@
 import Combine
-import Commons
 import CommonDataModels
+import Commons
 import Environment
 
 public typealias StoreResourcesTypesOperation = DatabaseOperation<Array<ResourceType>, Void>
@@ -116,22 +116,22 @@ extension FetchResourcesTypesOperation {
         .fetch(
           selectTypesStatement
         ) { rows in
-            .success(
-              rows.compactMap { row -> ResourceType? in
-                guard
-                  let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
-                  let slug: ResourceType.Slug = (row.slug as String?).map(ResourceType.Slug.init(rawValue:)),
-                  let name: String = row.name,
-                  let rawFields: String = row.fields
-                else { return nil }
-                return ResourceType(
-                  id: id,
-                  slug: slug,
-                  name: name,
-                  fields: ResourceProperty.arrayFrom(rawString: rawFields)
-                )
-              }
-            )
+          .success(
+            rows.compactMap { row -> ResourceType? in
+              guard
+                let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
+                let slug: ResourceType.Slug = (row.slug as String?).map(ResourceType.Slug.init(rawValue:)),
+                let name: String = row.name,
+                let rawFields: String = row.fields
+              else { return nil }
+              return ResourceType(
+                id: id,
+                slug: slug,
+                name: name,
+                fields: ResourceProperty.arrayFrom(rawString: rawFields)
+              )
+            }
+          )
         }
     }
   }

@@ -22,8 +22,8 @@
 //
 
 import Combine
-import UIKit
 import Commons
+import UIKit
 
 public final class CheckedLabel: View {
 

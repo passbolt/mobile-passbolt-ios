@@ -54,7 +54,8 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   }
 
   func activate() {
-    continueSetupPresentationSubscriptionCancellable = controller
+    continueSetupPresentationSubscriptionCancellable =
+      controller
       .continueSetupPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in

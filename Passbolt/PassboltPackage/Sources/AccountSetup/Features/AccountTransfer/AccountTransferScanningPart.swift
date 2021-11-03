@@ -44,12 +44,12 @@ extension AccountTransferScanningPart {
         .accountTransferScanningRecoverableError(
           context: "part-decoding-invalid-version-or-code"
         )
-          .appending(
-            logMessage: "Invalid QRCode or version"
-          )
+        .appending(
+          logMessage: "Invalid QRCode or version"
+        )
       )
     }
-    
+
     let version: String = String(payloadPart.removeFirst())
 
     guard version == "1"

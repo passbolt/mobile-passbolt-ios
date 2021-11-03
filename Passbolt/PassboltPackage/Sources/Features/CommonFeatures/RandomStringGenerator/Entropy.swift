@@ -57,5 +57,3 @@ extension Entropy {
   public static let veryStrongPassword: Self = .init(rawValue: 128)
   public static let greatestFinite: Self = .init(rawValue: Double.greatestFiniteMagnitude)
 }
-
-

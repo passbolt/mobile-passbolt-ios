@@ -22,9 +22,9 @@
 //
 
 import Accounts
-import UIComponents
 import CommonDataModels
 import Resources
+import UIComponents
 
 internal struct ResourceCreateController {
 
@@ -83,7 +83,8 @@ extension ResourceCreateController: UIController {
               .eraseToAnyPublisher()
           }
 
-          return resourceForm
+          return
+            resourceForm
             .setFieldValue(.init(fromString: value, forType: property.type), field)
         }
         .switchToLatest()

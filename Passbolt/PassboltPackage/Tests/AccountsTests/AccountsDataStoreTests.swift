@@ -21,11 +21,11 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Crypto
 import Features
 import TestExtensions
-import CommonDataModels
 import XCTest
 
 @testable import Accounts
@@ -422,7 +422,7 @@ final class AccountsDataStoreTests: TestCase {
           tag: .init(rawValue: validAccount.localID.rawValue),
           requiresBiometrics: false
         )
-      )
+      ),
     ]
     let dataStore: AccountsDataStore = testInstance()
 

@@ -22,10 +22,10 @@
 //
 
 import Features
-import struct Foundation.URL
 import NetworkClient
 
 import class Foundation.NSRecursiveLock
+import struct Foundation.URL
 
 public protocol FeatureConfigItem {
 
@@ -133,7 +133,7 @@ extension FeatureConfig: Feature {
         all[PreviewPassword.featureFlagIdentifier] = FeatureConfig.PreviewPassword.default
       }
 
-      if let tags: Config.Tags  = config.plugins.firstElementOfType(), tags.enabled {
+      if let tags: Config.Tags = config.plugins.firstElementOfType(), tags.enabled {
         all[Tags.featureFlagIdentifier] = FeatureConfig.Tags.enabled
       }
       else {
@@ -178,9 +178,9 @@ extension FeatureConfig {
   }
 }
 
-fileprivate extension Array where Element == Plugin {
+extension Array where Element == Plugin {
 
-  func firstElementOfType<T>(_ ofType: T.Type = T.self) -> T? {
+  fileprivate func firstElementOfType<T>(_ ofType: T.Type = T.self) -> T? {
     first { $0 is T } as? T
   }
 }

@@ -23,8 +23,9 @@
 
 import Commons
 import Features
-import func Foundation.NSLocalizedString
 import NFC
+
+import func Foundation.NSLocalizedString
 
 extension Yubikey {
 
@@ -35,7 +36,8 @@ extension Yubikey {
 
       NFCReader.readOTP(
         instructionMessage: NSLocalizedString("yubikey.scan.instruction", bundle: .main, comment: ""),
-        successMessage: NSLocalizedString("yubikey.scan.success", bundle: .main, comment: "")) { readResult in
+        successMessage: NSLocalizedString("yubikey.scan.success", bundle: .main, comment: "")
+      ) { readResult in
 
         switch readResult {
         case let .success(otp):

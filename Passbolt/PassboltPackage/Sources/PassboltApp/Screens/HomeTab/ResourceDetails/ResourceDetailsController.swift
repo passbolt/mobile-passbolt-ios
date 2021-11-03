@@ -22,9 +22,9 @@
 //
 
 import Accounts
+import CommonDataModels
 import Resources
 import UIComponents
-import CommonDataModels
 
 internal struct ResourceDetailsController {
 
@@ -37,7 +37,6 @@ internal struct ResourceDetailsController {
   internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Never, TheError>
   internal var copyFieldValue: (ResourceField) -> AnyPublisher<Void, TheError>
 }
-
 
 extension ResourceDetailsController {
 
@@ -70,36 +69,36 @@ extension ResourceDetailsController: UIController {
 
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsWithConfig?, TheError> = .init(nil)
 
-      resources.resourceDetailsPublisher(context)
-        .map {
-          let resourceDetails: ResourceDetailsController.ResourceDetails = .from(detailsViewResource: $0)
-          let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
-          let previewPasswordEnabled: Bool = {
-            switch previewPassword {
-            case .enabled:
-              return true
-            case .disabled:
-              return false
-            }
-          }()
-
-          return .init(
-            resourceDetails: resourceDetails,
-            revealPasswordEnabled: previewPasswordEnabled
-          )
-        }
-        .sink(
-          receiveCompletion: { completion in
-            guard case let .failure(error) = completion
-            else { return }
-
-            currentDetailsSubject.send(completion: .failure(error))
-          },
-          receiveValue: { resourceDetails in
-            currentDetailsSubject.send(resourceDetails)
+    resources.resourceDetailsPublisher(context)
+      .map {
+        let resourceDetails: ResourceDetailsController.ResourceDetails = .from(detailsViewResource: $0)
+        let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
+        let previewPasswordEnabled: Bool = {
+          switch previewPassword {
+          case .enabled:
+            return true
+          case .disabled:
+            return false
           }
+        }()
+
+        return .init(
+          resourceDetails: resourceDetails,
+          revealPasswordEnabled: previewPasswordEnabled
         )
-        .store(in: cancellables)
+      }
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+
+          currentDetailsSubject.send(completion: .failure(error))
+        },
+        receiveValue: { resourceDetails in
+          currentDetailsSubject.send(resourceDetails)
+        }
+      )
+      .store(in: cancellables)
 
     func resourceDetailsWithConfigPublisher() -> AnyPublisher<ResourceDetailsWithConfig, TheError> {
       currentDetailsSubject
@@ -114,13 +113,13 @@ extension ResourceDetailsController: UIController {
 
       if revealedFields.contains(field) {
         return Just(nil)
-        .setFailureType(to: TheError.self)
-        .handleEvents(receiveOutput: { _ in
-          lock.lock()
-          revealedFields.remove(field)
-          lock.unlock()
-        })
-        .eraseToAnyPublisher()
+          .setFailureType(to: TheError.self)
+          .handleEvents(receiveOutput: { _ in
+            lock.lock()
+            revealedFields.remove(field)
+            lock.unlock()
+          })
+          .eraseToAnyPublisher()
       }
       else {
         return resources.loadResourceSecret(context)
@@ -260,7 +259,8 @@ extension ResourceDetailsController: UIController {
             else { return false }
             return property.encrypted
           }) {
-            return resources
+            return
+              resources
               .loadResourceSecret(context)
               .map { resourceSecret -> AnyPublisher<String, TheError> in
                 guard let secret: String = resourceSecret.description
@@ -268,7 +268,7 @@ extension ResourceDetailsController: UIController {
                   return Fail(
                     error: TheError.invalidResourceSecret()
                   )
-                    .eraseToAnyPublisher()
+                  .eraseToAnyPublisher()
                 }
                 return Just(secret)
                   .setFailureType(to: TheError.self)
@@ -293,7 +293,7 @@ extension ResourceDetailsController: UIController {
             return Fail(
               error: .missingResourceData()
             )
-              .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
           }
         }
         .switchToLatest()

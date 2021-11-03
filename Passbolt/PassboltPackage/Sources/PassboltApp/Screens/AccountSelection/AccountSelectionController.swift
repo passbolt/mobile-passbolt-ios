@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Accounts
 import AccountSetup
+import Accounts
 import NetworkClient
 import SharedUIComponents
 import UIComponents

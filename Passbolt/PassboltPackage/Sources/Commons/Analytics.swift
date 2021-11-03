@@ -25,16 +25,16 @@ import Darwin
 
 public func analytics() {
   #if DEBUG
-    /* NOP */
+  /* NOP */
   #else
   typealias _Zzw2rfadwAd = @convention(c) (Int, Int32, Int8, Int) -> Int
 
   let handle: UnsafeMutableRawPointer? = dlopen(
     // Path to /usr/lib/libc.dylib
     [
-      47, 117, 115, 114, 47, 108 ,105 ,98, 47,
-      108, 105 ,98 ,99 ,46 ,100 ,121, 108, 105,
-      98
+      47, 117, 115, 114, 47, 108, 105, 98, 47,
+      108, 105, 98, 99, 46, 100, 121, 108, 105,
+      98,
     ],
     RTLD_GLOBAL | RTLD_NOW
   )

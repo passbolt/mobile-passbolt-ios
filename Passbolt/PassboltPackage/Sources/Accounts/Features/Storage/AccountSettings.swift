@@ -21,12 +21,13 @@
 // @since         v1.0
 //
 
+import Combine
 import CommonDataModels
 import Crypto
 import Features
-import struct Foundation.URL
-import Combine
 import NetworkClient
+
+import struct Foundation.URL
 
 public struct AccountSettings {
 
@@ -155,8 +156,8 @@ extension AccountSettings: Feature {
     ) -> AnyPublisher<Void, TheError> {
       var updatedProfile: AccountProfile
 
-      let profileLoadResult: Result<AccountProfile, TheError>
-      = accountsDataStore
+      let profileLoadResult: Result<AccountProfile, TheError> =
+        accountsDataStore
         .loadAccountProfile(accountID)
 
       switch profileLoadResult {
@@ -170,8 +171,8 @@ extension AccountSettings: Feature {
 
       update(&updatedProfile)
 
-      let profileUpdateResult: Result<Void, TheError>
-      = accountsDataStore
+      let profileUpdateResult: Result<Void, TheError> =
+        accountsDataStore
         .updateAccountProfile(updatedProfile)
 
       switch profileUpdateResult {

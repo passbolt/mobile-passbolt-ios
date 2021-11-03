@@ -68,7 +68,8 @@ internal final class ResourcesSelectionListSectionHeader: CollectionReusableView
         .text(localized: localizationKey, inBundle: bundle)
       }
       heightConstraint?.constant = 44
-    } else {
+    }
+    else {
       heightConstraint?.constant = 0
     }
   }

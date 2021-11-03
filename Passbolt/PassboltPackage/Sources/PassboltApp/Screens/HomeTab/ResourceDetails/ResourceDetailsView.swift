@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import UICommons
 import CommonDataModels
+import UICommons
 
 internal final class ResourceDetailsView: ScrolledStackView {
 
@@ -121,7 +121,8 @@ internal final class ResourceDetailsView: ScrolledStackView {
           .when(
             property.encrypted,
             then: .text(encryptedPlaceholder),
-            else: .text(resourceDetails.username ?? ""))
+            else: .text(resourceDetails.username ?? "")
+          )
         )
         accessoryButtonMutation = .combined(
           .image(named: .copy, from: .uiCommons),
@@ -202,7 +203,8 @@ internal final class ResourceDetailsView: ScrolledStackView {
             .when(
               property.encrypted,
               then: .text(encryptedPlaceholder),
-              else: .text(resourceDetails.description ?? ""))
+              else: .text(resourceDetails.description ?? "")
+            )
           )
         )
         accessoryButtonMutation = .when(
@@ -214,7 +216,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
                 self?.toggleEncryptedFieldTapSubject.send(property.field)
               }
             ),
-            else: .hidden(true)
+          else: .hidden(true)
         )
 
       case let .undefined(name):

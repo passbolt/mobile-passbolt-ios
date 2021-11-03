@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Resources
 import CommonDataModels
+import Resources
 import UIComponents
 
 internal struct ResourceMenuController {
@@ -140,12 +140,12 @@ extension ResourceMenuController: UIController {
               case .delete:
                 return [
                   .owner,
-                  .write
+                  .write,
                 ]
                 .contains(resourceDetails.permission)
               }
             }
-          )
+            )
         }
         .replaceError(with: [])
         .eraseToAnyPublisher()
@@ -174,7 +174,7 @@ extension ResourceMenuController: UIController {
             })
           else {
             return Fail<Void, TheError>(error: .invalidResourceData())
-            .eraseToAnyPublisher()
+              .eraseToAnyPublisher()
           }
 
           guard let urlString: String = resourceDetails.url
@@ -189,7 +189,8 @@ extension ResourceMenuController: UIController {
               .eraseToAnyPublisher()
           }
 
-          return linkOpener
+          return
+            linkOpener
             .openLink(url)
             .map { opened -> AnyPublisher<Void, TheError> in
               if opened {
@@ -319,7 +320,8 @@ extension ResourceMenuController: UIController {
             else { return false }
             return property.encrypted
           }) {
-            return resources
+            return
+              resources
               .loadResourceSecret(context.resourceID)
               .map { resourceSecret -> AnyPublisher<String, TheError> in
                 guard let secret: String = resourceSecret.description
@@ -371,7 +373,7 @@ extension ResourceMenuController: UIController {
 
           return Just(
             context.showDeleteAlert(
-              .init(rawValue:resourceDetails.id.rawValue)
+              .init(rawValue: resourceDetails.id.rawValue)
             )
           )
           .setFailureType(to: TheError.self)
@@ -381,7 +383,7 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-  #warning("This is similar to ResourceDetailsController code, it might be unified to avoid duplicates")
+    #warning("This is similar to ResourceDetailsController code, it might be unified to avoid duplicates")
     func perform(action: Action) -> AnyPublisher<Void, TheError> {
       switch action {
       case .openURL:

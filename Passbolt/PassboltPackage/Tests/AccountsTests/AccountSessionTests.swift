@@ -21,12 +21,11 @@
 // @since         v1.0
 //
 
-
+import CommonDataModels
 import Commons
 import Crypto
 import Features
 import NetworkClient
-import CommonDataModels
 import TestExtensions
 import XCTest
 
@@ -108,7 +107,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -130,7 +131,6 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-
     feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
       .sinkDrop()
@@ -143,7 +143,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
@@ -186,7 +188,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
@@ -417,7 +421,9 @@ final class AccountSessionTests: TestCase {
     XCTAssertEqual(result, "decrypted")
   }
 
-  func test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenDecryptMessage_fails_withSessionAuthorizationRequired() {
+  func
+    test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenDecryptMessage_fails_withSessionAuthorizationRequired()
+  {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
@@ -489,7 +495,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -525,7 +533,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -558,7 +568,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -622,7 +634,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -720,7 +734,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -752,7 +768,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
@@ -856,7 +874,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
@@ -897,7 +917,9 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -945,7 +967,9 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -994,7 +1018,9 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -1032,7 +1058,9 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -1070,7 +1098,9 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -1108,7 +1138,9 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
     passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -1144,7 +1176,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -1209,7 +1243,9 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
     passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
     features.use(passphraseCache)
     features.use(networkClient)
     networkSession.createSession = always(
@@ -1264,9 +1300,9 @@ private let validSessionTokens: NetworkSessionTokens = .init(
 
 private let armoredPGPPrivateKey: ArmoredPGPPrivateKey = "private_key"
 
-private let validJWTToken: JWT
-= try! .from(rawValue: """
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
-"""
+private let validJWTToken: JWT = try! .from(
+  rawValue: """
+    eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9.mooyAR9uQ1F6sHMaA3Ya4bRKPazydqowEsgm-Sbr7RmED36CShWdF3a-FdxyezcgI85FPyF0Df1_AhTOknb0sPs-Yur1Oa0XwsDsXfpw-xJsnlx9JCylp6C6rm_rypJL1E8t_63QCS_k5rv7hpDc8ctjLW8mXoFXXP_bDkSezyPVUaRDvjLgaDm01Ocin112h1FvQZTittQhhdL-KU5C1HjCJn03zNmH46TihstdK7PZ7mRz2YgIpm9P-5JzYYmSV3eP70_0dVCC_lv0N3VJFLKVB9FP99R4jChJv5DEilEgMwi_73YsP3Z55rGDaoyjhj661rDteq-42LMXcvSmOg
+    """
 )
 .get()

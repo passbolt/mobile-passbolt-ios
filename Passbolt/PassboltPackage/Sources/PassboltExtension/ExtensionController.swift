@@ -63,10 +63,10 @@ extension ExtensionController: UIController {
           navigationDestionationSubject.send(.home(account))
 
         case .authorizationRequired:
-          navigationDestionationSubject.send(.none) // ignored
+          navigationDestionationSubject.send(.none)  // ignored
 
         case .authorizedMFARequired:
-          navigationDestionationSubject.send(.none) // ignored, handled by prompt
+          navigationDestionationSubject.send(.none)  // ignored, handled by prompt
 
         case let .none(lastUsedAccount):
           if let lastUsedAccount = lastUsedAccount {

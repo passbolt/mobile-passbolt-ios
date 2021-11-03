@@ -83,8 +83,8 @@ final class AccountNotFoundScreenTests: TestCase {
 
     let controller: AccountNotFoundController = testInstance(context: accountWithProfile.account)
 
-    let result: AccountWithProfile
-      = controller
+    let result: AccountWithProfile =
+      controller
       .accountWithProfile()
 
     XCTAssertEqual(result, accountWithProfile)
@@ -100,7 +100,8 @@ final class AccountNotFoundScreenTests: TestCase {
 
     let controller: AccountNotFoundController = testInstance(context: accountWithProfile.account)
 
-    _ = controller
+    _ =
+      controller
       .accountWithProfile()
 
     XCTAssertEqual(result, accountWithProfile.account)
