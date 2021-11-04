@@ -306,6 +306,7 @@ let package = Package(
       name: "SharedUIComponents",
       dependencies: [
         "Accounts",
+        "Resources",
         "UIComponents",
       ],
       resources: [

@@ -28,7 +28,7 @@ import UIComponents
 
 internal struct ResourcesListController {
 
-  internal var refreshResources: () -> AnyPublisher<Never, TheError>
+  internal var refreshResources: () -> AnyPublisher<Void, TheError>
   internal var resourcesListPublisher: () -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never>
   internal var addResource: () -> Void
   internal var presentResourceDetails: (ResourcesListViewResourceItem) -> Void
@@ -38,7 +38,7 @@ internal struct ResourcesListController {
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var resourceCreatePresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var resourceDeleteAlertPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Never, TheError>
+  internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Void, TheError>
 }
 
 extension ResourcesListController: UIController {
@@ -58,7 +58,7 @@ extension ResourcesListController: UIController {
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
-    func refreshResources() -> AnyPublisher<Never, TheError> {
+    func refreshResources() -> AnyPublisher<Void, TheError> {
       resources.refreshIfNeeded()
     }
 
@@ -101,7 +101,7 @@ extension ResourcesListController: UIController {
       resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
     }
 
-    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Never, TheError> {
+    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, TheError> {
       resources.deleteResource(resourceID)
         .map { resources.refreshIfNeeded() }
         .switchToLatest()

@@ -22,19 +22,21 @@
 //
 
 import Accounts
+import CommonDataModels
 import Resources
 import UIComponents
 
 internal struct ResourcesSelectionListController {
 
-  internal var refreshResources: () -> AnyPublisher<Never, TheError>
+  internal var refreshResources: () -> AnyPublisher<Void, TheError>
   internal var resourcesListPublisher:
     () -> AnyPublisher<
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
       Never
     >
   internal var addResource: () -> Void
-  internal var selectResource: (ResourcesSelectionListViewResourceItem) -> AnyPublisher<Void, TheError>
+  internal var resourceCreatePresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var selectResource: (Resource.ID) -> AnyPublisher<Void, TheError>
 }
 
 extension ResourcesSelectionListController: UIController {
@@ -50,7 +52,9 @@ extension ResourcesSelectionListController: UIController {
     let autofillContext: AutofillExtensionContext = features.instance()
     let resources: Resources = features.instance()
 
-    func refreshResources() -> AnyPublisher<Never, TheError> {
+    let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
+
+    func refreshResources() -> AnyPublisher<Void, TheError> {
       resources.refreshIfNeeded()
     }
 
@@ -79,12 +83,18 @@ extension ResourcesSelectionListController: UIController {
     }
 
     func addResource() {
-      // TODO: out of MVP scope
+      resourceCreatePresentationSubject.send()
     }
 
-    func selectResource(_ resource: ResourcesSelectionListViewResourceItem) -> AnyPublisher<Void, TheError> {
+    func resourceCreatePresentationPublisher() -> AnyPublisher<Void, Never> {
+      resourceCreatePresentationSubject.eraseToAnyPublisher()
+    }
+
+    func selectResource(
+      _ resourceID: Resource.ID
+    ) -> AnyPublisher<Void, TheError> {
       resources
-        .loadResourceSecret(resource.id)
+        .loadResourceSecret(resourceID)
         .map { resourceSecret -> AnyPublisher<String, TheError> in
           if let password: String = resourceSecret.password {
             return Just(password)
@@ -97,11 +107,17 @@ extension ResourcesSelectionListController: UIController {
           }
         }
         .switchToLatest()
-        .handleEvents(receiveOutput: { password in
+        .combineLatest(
+          resources
+            .resourceDetailsPublisher(resourceID)
+            .first()
+            .map { $0.username }
+        )
+        .handleEvents(receiveOutput: { (password, username) in
           autofillContext
             .completeWithCredential(
               AutofillExtensionContext.Credential(
-                user: resource.username ?? "",
+                user: username ?? "",
                 password: password
               )
             )
@@ -115,6 +131,7 @@ extension ResourcesSelectionListController: UIController {
       refreshResources: refreshResources,
       resourcesListPublisher: resourcesListPublisher,
       addResource: addResource,
+      resourceCreatePresentationPublisher: resourceCreatePresentationPublisher,
       selectResource: selectResource
     )
   }

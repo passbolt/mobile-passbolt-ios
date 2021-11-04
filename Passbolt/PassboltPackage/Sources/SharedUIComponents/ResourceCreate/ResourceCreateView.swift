@@ -27,7 +27,7 @@ import Commons
 import Features
 import UICommons
 
-internal final class ResourceCreateView: KeyboardAwareView {
+public final class ResourceCreateView: KeyboardAwareView {
 
   internal typealias FieldWithView = (field: ResourceField, view: View)
 

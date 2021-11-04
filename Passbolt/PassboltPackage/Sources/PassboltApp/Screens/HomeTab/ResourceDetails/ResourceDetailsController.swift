@@ -34,7 +34,7 @@ internal struct ResourceDetailsController {
   internal var presentDeleteResourceAlert: (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeleteAlertPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Never, TheError>
+  internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Void, TheError>
   internal var copyFieldValue: (ResourceField) -> AnyPublisher<Void, TheError>
 }
 
@@ -332,7 +332,7 @@ extension ResourceDetailsController: UIController {
       resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
     }
 
-    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Never, TheError> {
+    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, TheError> {
       resources.deleteResource(resourceID)
         .map { resources.refreshIfNeeded() }
         .switchToLatest()

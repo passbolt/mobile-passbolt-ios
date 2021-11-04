@@ -131,11 +131,14 @@ final class ResourceTests: TestCase {
     var result: TheError?
     feature
       .refreshIfNeeded()
-      .sink { completion in
-        guard case let .failure(error) = completion
-        else { return }
-        result = error
-      }
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result?.identifier, .testError)
@@ -177,11 +180,14 @@ final class ResourceTests: TestCase {
     var result: TheError?
     feature
       .refreshIfNeeded()
-      .sink { completion in
-        guard case let .failure(error) = completion
-        else { return }
-        result = error
-      }
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result?.identifier, .testError)
@@ -223,11 +229,14 @@ final class ResourceTests: TestCase {
     var result: TheError?
     feature
       .refreshIfNeeded()
-      .sink { completion in
-        guard case let .failure(error) = completion
-        else { return }
-        result = error
-      }
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result?.identifier, .testError)
@@ -269,11 +278,14 @@ final class ResourceTests: TestCase {
     var result: TheError?
     feature
       .refreshIfNeeded()
-      .sink { completion in
-        guard case let .failure(error) = completion
-        else { return }
-        result = error
-      }
+      .sink(
+        receiveCompletion:{ completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result?.identifier, .testError)

@@ -26,7 +26,7 @@ import CommonDataModels
 import Resources
 import UIComponents
 
-internal struct ResourceCreateController {
+public struct ResourceCreateController {
 
   internal var resourcePropertiesPublisher: () -> AnyPublisher<Array<ResourceProperty>, TheError>
   internal var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<String>, Never>
@@ -39,10 +39,10 @@ internal struct ResourceCreateController {
 
 extension ResourceCreateController: UIController {
 
-  internal typealias Context = Void
+  public typealias Context = (Resource.ID) -> Void
 
-  internal static func instance(
-    in context: Context,
+  public static func instance(
+    in context: @escaping Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
@@ -107,19 +107,25 @@ extension ResourceCreateController: UIController {
     func sendForm() -> AnyPublisher<Void, TheError> {
       resourceForm
         .sendForm()
-        .mapToVoid()
-        .map { _ -> AnyPublisher<Void, TheError> in
-          resources.refreshIfNeeded()
-            .mapToVoid()
+        .map { resourceID -> AnyPublisher<Resource.ID, TheError> in
+          resources
+            .refreshIfNeeded()
+            .map { resourceID }
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .handleEvents(receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
+        .handleEvents(
+          receiveOutput: { resourceID in
+            context(resourceID)
+          },
+          receiveCompletion: { completion in
+            guard case .finished = completion
+            else { return }
 
-          cleanup()
-        })
+            cleanup()
+          }
+        )
+        .mapToVoid()
         .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }

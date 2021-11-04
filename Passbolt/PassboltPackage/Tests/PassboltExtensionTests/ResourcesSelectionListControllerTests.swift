@@ -54,7 +54,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() {
     features.use(autofillContext)
     resources.refreshIfNeeded = always(
-      Empty<Never, TheError>(completeImmediately: true)
+      Empty<Void, TheError>(completeImmediately: true)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -66,11 +66,14 @@ final class ResourcesSelectionListControllerTests: TestCase {
     var result: Void?
     controller
       .refreshResources()
-      .sink { completion in
-        guard case .finished = completion
-        else { return }
-        result = Void()
-      }
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          result = Void()
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
@@ -79,7 +82,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
   func test_refreshResources_fails_whenResourcesRefreshFails() {
     features.use(autofillContext)
     resources.refreshIfNeeded = always(
-      Fail<Never, TheError>(error: .testError())
+      Fail<Void, TheError>(error: .testError())
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -91,11 +94,14 @@ final class ResourcesSelectionListControllerTests: TestCase {
     var result: TheError?
     controller
       .refreshResources()
-      .sink { completion in
-        guard case let .failure(error) = completion
-        else { return }
-        result = error
-      }
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: cancellables)
 
     XCTAssertEqual(result?.identifier, .testError)

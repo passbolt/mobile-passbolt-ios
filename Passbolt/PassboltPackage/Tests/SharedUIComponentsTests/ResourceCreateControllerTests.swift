@@ -30,8 +30,8 @@ import UIComponents
 import XCTest
 
 @testable import Accounts
-@testable import PassboltApp
 @testable import Resources
+@testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceCreateControllerTests: TestCase {
@@ -70,7 +70,7 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance()
+    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
     var result: Array<ResourceField> = .init()
 
     controller
@@ -127,7 +127,7 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance()
+    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
 
     controller.generatePassword()
 
@@ -152,7 +152,7 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance()
+    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
     var result: Entropy?
 
     controller.passwordEntropyPublisher()
@@ -169,12 +169,11 @@ final class ResourceCreateControllerTests: TestCase {
     XCTAssertEqual(result, .veryStrongPassword)
   }
 
-  func test_createResource_triggersRefreshIfNeeded_andUnloadsResourceEditForm() {
-    var refreshIfNeededCalled: Void?
-    var unloadFeature: Void?
+  func test_createResource_unloadsResourceEditForm_whenSendingFormSucceeds() {
+    var result: Void?
     resources.refreshIfNeeded = {
-      refreshIfNeededCalled = Void()
-      return Empty(completeImmediately: true)
+      Just(Void())
+        .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
@@ -183,22 +182,80 @@ final class ResourceCreateControllerTests: TestCase {
         .eraseToAnyPublisher()
     )
     resourceForm.featureUnload = {
-      unloadFeature = Void()
+      result = Void()
       return true
     }
     features.use(resources)
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance()
+    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
 
     controller
       .sendForm()
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertNotNil(refreshIfNeededCalled)
-    XCTAssertNotNil(unloadFeature)
+    XCTAssertNotNil(result)
+  }
+
+  func test_createResource_triggersRefreshIfNeeded_whenSendingFormSucceeds() {
+    var result: Void?
+    resources.refreshIfNeeded = {
+      result = Void()
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    resourceForm.sendForm = always(
+      Just("1")
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resourceForm.featureUnload = {
+      true
+    }
+    features.use(resources)
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+
+    controller
+      .sendForm()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_createResource_callsContextCompletionWithCreatedResourceID_whenSendingFormSucceeds() {
+    resources.refreshIfNeeded = {
+      Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    resourceForm.sendForm = always(
+      Just("1")
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resourceForm.featureUnload = { true }
+    features.use(resources)
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    var result: Resource.ID?
+    let controller: ResourceCreateController = testInstance(
+      context: { id in result = id }
+    )
+
+    controller
+      .sendForm()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, "1")
   }
 
   func test_resourceForm_isUnloaded_whenCleanupCalled() {
@@ -208,7 +265,7 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance()
+    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
 
     controller.cleanup()
 

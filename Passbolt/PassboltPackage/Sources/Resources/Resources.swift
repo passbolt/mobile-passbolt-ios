@@ -31,7 +31,7 @@ import struct Foundation.Date
 
 public struct Resources {
 
-  public var refreshIfNeeded: () -> AnyPublisher<Never, TheError>
+  public var refreshIfNeeded: () -> AnyPublisher<Void, TheError>
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
   public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheError>
@@ -85,7 +85,7 @@ extension Resources: Feature {
       }
       .store(in: cancellables)
 
-    func refreshIfNeeded() -> AnyPublisher<Never, TheError> {
+    func refreshIfNeeded() -> AnyPublisher<Void, TheError> {
       accountDatabase
         // get info about last successful update
         .fetchLastUpdate()
@@ -213,7 +213,6 @@ extension Resources: Feature {
           else { return }
           resourcesUpdateSubject.send()
         })
-        .ignoreOutput()
         .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
@@ -270,7 +269,9 @@ extension Resources: Feature {
         .eraseToAnyPublisher()
     }
 
-    func resourceDetailsPublisher(resourceID: Resource.ID) -> AnyPublisher<DetailsViewResource, TheError> {
+    func resourceDetailsPublisher(
+      resourceID: Resource.ID
+    ) -> AnyPublisher<DetailsViewResource, TheError> {
       resourcesUpdateSubject.map {
         accountDatabase.fetchDetailsViewResources(resourceID)
       }

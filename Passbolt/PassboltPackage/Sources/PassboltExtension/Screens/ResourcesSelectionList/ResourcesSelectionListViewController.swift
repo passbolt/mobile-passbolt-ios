@@ -23,6 +23,7 @@
 
 import UICommons
 import UIComponents
+import SharedUIComponents
 
 internal final class ResourcesSelectionListViewController: PlainViewController, UIComponent {
 
@@ -86,10 +87,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .receive(on: RunLoop.main)
       .sink { [weak self] resources in
         var items: Array<(ResourcesSelectionListSection, Array<ResourcesSelectionListViewItem>)> = [
-          // TODO: Add button is out of MVP scope
-          // uncommend line below
-          // to present create password button.
-          // (.add, [.add])
+          (.add, [.add])
         ]
         if !resources.suggested.isEmpty {
           items.append((.suggested, resources.suggested.map { .resource($0) }))
@@ -119,7 +117,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .itemTapPublisher
       .compactMap { [unowned self] item -> AnyPublisher<Void, Never>? in
         self.controller
-          .selectResource(item)
+          .selectResource(item.id)
           .receive(on: RunLoop.main)
           .handleEvents(receiveCompletion: { [weak self] completion in
             guard case .failure = completion
@@ -142,6 +140,24 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .sinkDrop()
       .store(in: self.cancellables)
 
+    controller
+      .resourceCreatePresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        self?.push(
+          ResourceCreateViewController.self,
+          in: { [weak self] resourceID in
+            guard let self = self else { return }
+            self.controller
+              .selectResource(resourceID)
+              .eraseToAnyPublisher()
+              .sinkDrop()
+              .store(in: self.cancellables)
+          }
+        )
+      }
+      .store(in: cancellables)
+
     // Initially refresh resources (ignoring errors)
     self.controller
       .refreshResources()
@@ -149,10 +165,12 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .handleEvents(receiveSubscription: { [weak self] _ in
         self?.contentView.startDataRefresh()
       })
-      .sink(receiveCompletion: { [weak self] completion in
-        self?.contentView.finishDataRefresh()
-
-      })
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          self?.contentView.finishDataRefresh()
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: self.cancellables)
   }
 }

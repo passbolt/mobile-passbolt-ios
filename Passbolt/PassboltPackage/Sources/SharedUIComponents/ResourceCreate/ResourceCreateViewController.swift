@@ -24,12 +24,12 @@
 import UICommons
 import UIComponents
 
-internal final class ResourceCreateViewController: PlainViewController, UIComponent {
+public final class ResourceCreateViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourceCreateView
-  internal typealias Controller = ResourceCreateController
+  public typealias View = ResourceCreateView
+  public typealias Controller = ResourceCreateController
 
-  internal static func instance(
+  public static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
@@ -39,8 +39,8 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
-  internal let components: UIComponentFactory
+  public private(set) lazy var contentView: View = .init()
+  public let components: UIComponentFactory
   private let controller: Controller
 
   private var fieldCancellables: Cancellables = .init()
@@ -55,7 +55,7 @@ internal final class ResourceCreateViewController: PlainViewController, UICompon
     super.init()
   }
 
-  internal func setupView() {
+  public func setupView() {
     mut(navigationItem) {
       .combined(
         .title(localized: "resource.create.title", inBundle: .main),

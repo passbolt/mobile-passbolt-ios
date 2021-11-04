@@ -23,6 +23,7 @@
 
 import UICommons
 import UIComponents
+import SharedUIComponents
 
 internal final class ResourcesListViewController: PlainViewController, UIComponent {
 
@@ -113,12 +114,17 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
     self.controller
       .refreshResources()
       .receive(on: RunLoop.main)
-      .handleEvents(receiveSubscription: { [weak self] _ in
-        self?.contentView.startDataRefresh()
-      })
-      .sink(receiveCompletion: { [weak self] completion in
-        self?.contentView.finishDataRefresh()
-      })
+      .handleEvents(
+        receiveSubscription: { [weak self] _ in
+          self?.contentView.startDataRefresh()
+        }
+      )
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          self?.contentView.finishDataRefresh()
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
       .store(in: self.cancellables)
 
     controller.resourceDetailsPresentationPublisher()
@@ -147,10 +153,14 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       }
       .store(in: cancellables)
 
-    controller.resourceCreatePresentationPublisher()
+    controller
+      .resourceCreatePresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.push(ResourceCreateViewController.self)
+        self?.push(
+          ResourceCreateViewController.self,
+          in: { _ in /* NOP */ }
+        )
       }
       .store(in: cancellables)
 
