@@ -84,7 +84,7 @@ internal final class ResourceCreateView: KeyboardAwareView {
         .imageInsets(.init(top: 8, left: 8, bottom: -8, right: -8)),
         .image(named: .magicWand, from: .uiCommons),
         .tintColor(dynamic: .iconAlternative),
-        .backgroundColor(dynamic: .secondaryGray),
+        .backgroundColor(dynamic: .divider),
         .border(dynamic: .divider, width: 1),
         .cornerRadius(4)
       )
@@ -217,7 +217,6 @@ internal final class ResourceCreateView: KeyboardAwareView {
             field: resourceProperty.field,
             view: Mutation<TextViewInput>
               .combined(
-                .backgroundColor(dynamic: .background),
                 .isRequired(resourceProperty.required),
                 .attributedPlaceholder(
                   .localized(

@@ -36,7 +36,7 @@ internal final class SplashScreenView: View {
     mut(imageView) {
       .combined(
         .subview(of: self),
-        .image(named: .appLogo, from: .uiCommons),
+        .image(dynamic: .passboltLogo),
         .centerXAnchor(.equalTo, centerXAnchor),
         .centerYAnchor(.equalTo, centerYAnchor)
       )

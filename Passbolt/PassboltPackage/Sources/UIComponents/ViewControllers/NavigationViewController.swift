@@ -42,15 +42,18 @@ open class NavigationViewController: UINavigationController {
     (presentedViewController ?? visibleViewController) as? AnyUIComponent
   }
 
-  // we are not supporting dark mode yet, forcing to use always darkContent
-  override open var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
-
   public var lazyView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
   }
 
   public var contentView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
+  }
+
+  public lazy var dynamicBackgroundColor: DynamicColor = .background {
+    didSet {
+      viewIfLoaded?.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
+    }
   }
 
   public var navigationBarView: NavigationBar {
@@ -63,7 +66,7 @@ open class NavigationViewController: UINavigationController {
 
   override open func loadView() {
     super.loadView()
-    view.backgroundColor = .white
+    view.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     interactivePopGestureRecognizer?.isEnabled = false
   }
 
@@ -221,6 +224,19 @@ open class NavigationViewController: UINavigationController {
       /* NOP */
     }
     return super.popToRootViewController(animated: animated)
+  }
+
+  override public func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    guard traitCollection != previousTraitCollection
+    else { return }
+    updateColors()
+  }
+
+  private func updateColors() {
+    viewIfLoaded?.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
   }
 }
 

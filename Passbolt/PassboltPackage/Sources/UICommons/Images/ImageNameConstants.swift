@@ -25,7 +25,6 @@ import AegithalosCocoa
 
 extension ImageNameConstant {
 
-  public static let appLogo: Self = "AppLogo"
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
   public static var help: Self { "Help" }
@@ -308,7 +307,7 @@ extension DynamicImage {
       case .dark:
         // swift-format-ignore: NeverForceUnwrap
         return UIImage(
-          named: "PassboltIcon",
+          named: "PassboltIconDark",
           in: .uiCommons,
           with: nil
         )!
@@ -316,7 +315,29 @@ extension DynamicImage {
       case .light, _:
         // swift-format-ignore: NeverForceUnwrap
         return UIImage(
-          named: "PassboltIcon",
+          named: "PassboltIconLight",
+          in: .uiCommons,
+          with: nil
+        )!
+      }
+    }
+  }
+
+  public static var passboltLogo: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "PassboltLogoDark",
+          in: .uiCommons,
+          with: nil
+        )!
+
+      case .light, _:
+        // swift-format-ignore: NeverForceUnwrap
+        return UIImage(
+          named: "PassboltLogoLight",
           in: .uiCommons,
           with: nil
         )!
@@ -374,7 +395,7 @@ extension DynamicImage {
       case .dark:
         // swift-format-ignore: NeverForceUnwrap
         return UIImage(
-          named: "AccountsSkeleton",
+          named: "AccountsSkeletonDark",
           in: .uiCommons,
           with: nil
         )!
@@ -382,7 +403,7 @@ extension DynamicImage {
       case .light, _:
         // swift-format-ignore: NeverForceUnwrap
         return UIImage(
-          named: "AccountsSkeleton",
+          named: "AccountsSkeletonLight",
           in: .uiCommons,
           with: nil
         )!

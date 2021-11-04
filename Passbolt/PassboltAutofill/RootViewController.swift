@@ -41,9 +41,6 @@ internal class RootViewController: ASCredentialProviderViewController {
     unreachable("\(Self.self).\(#function) should not be used")
   }
 
-  // we are not supporting dark mode yet, forcing to use always darkContent
-  override internal var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
-
   override internal func prepareCredentialList(
     for serviceIdentifiers: Array<ASCredentialServiceIdentifier>
   ) {

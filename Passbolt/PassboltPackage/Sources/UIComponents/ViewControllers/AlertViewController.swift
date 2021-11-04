@@ -51,11 +51,6 @@ open class AlertViewController<Controller: UIController>: UIAlertController {
   // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
   public private(set) var controller: Controller! = nil
 
-  override open var preferredStatusBarStyle: UIStatusBarStyle {
-    (presentingViewController?.childForStatusBarStyle
-      ?? presentingViewController as? AnyUIComponent)?.preferredStatusBarStyle ?? .default
-  }
-
   public var contentView: UIView {
     unreachable("\(Self.self).\(#function) should not be used")
   }

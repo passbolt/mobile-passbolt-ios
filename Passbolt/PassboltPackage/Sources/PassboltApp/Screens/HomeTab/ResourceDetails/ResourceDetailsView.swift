@@ -59,7 +59,10 @@ internal final class ResourceDetailsView: ScrolledStackView {
     )
 
     mut(iconContainer) {
-      .heightAnchor(.equalTo, constant: 60)
+      .combined(
+        .backgroundColor(.clear),
+        .heightAnchor(.equalTo, constant: 60)
+      )
     }
 
     mut(iconView) {

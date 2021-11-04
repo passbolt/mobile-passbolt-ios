@@ -35,7 +35,7 @@ extension Mutation where Subject: View {
       arguments: arguments,
       inBundle: bundle,
       backgroundColor: .secondaryRed,
-      textColor: .primaryTextAlternative
+      textColor: .primaryButtonText
     )
   }
 

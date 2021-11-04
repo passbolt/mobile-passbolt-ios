@@ -65,7 +65,7 @@ internal final class ResourceMenuView: View {
     mut(button) {
       .combined(
         .image(named: .close, from: .uiCommons),
-        .tintColor(dynamic: .iconAlternative),
+        .tintColor(dynamic: .primaryText),
         .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
         .topAnchor(.equalTo, topAnchor, constant: 16),
         .widthAnchor(.equalTo, constant: 20),
@@ -210,7 +210,7 @@ internal final class ResourceMenuItemView: Button {
         .widthAnchor(.equalTo, constant: 18),
         .heightAnchor(.equalTo, constant: 18),
         .contentMode(.scaleAspectFit),
-        .tintColor(dynamic: .iconAlternative)
+        .tintColor(dynamic: .primaryText)
       )
     }
 

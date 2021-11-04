@@ -153,6 +153,7 @@ public final class TextSearchView: View {
     mut(self) {
       .combined(
         .border(dynamic: .divider, width: 1),
+        .backgroundColor(dynamic: .backgroundAlternative),
         .cornerRadius(8, masksToBounds: true)
       )
     }

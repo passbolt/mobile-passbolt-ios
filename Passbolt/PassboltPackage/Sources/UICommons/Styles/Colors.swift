@@ -158,19 +158,6 @@ public struct DynamicColor {
   }
 
   /// Default/Light: #FAC600 Dark: #FAC600
-  public static var secondaryYellow: Self {
-    Self { userInterfaceStyle in
-      switch userInterfaceStyle {
-      case .dark:
-        return UIColor(0xFAC600)
-
-      case .light, _:
-        return UIColor(0xFAC600)
-      }
-    }
-  }
-
-  /// Default/Light: #FAC600 Dark: #FAC600
   public static var secondaryGray: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
@@ -235,12 +222,12 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #333333 Dark: #333333
+  /// Default/Light: #333333 Dark: #DDDDDD
   public static var primaryText: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0x333333)
+        return UIColor(0xDDDDDD)
 
       case .light, _:
         return UIColor(0x333333)
@@ -248,11 +235,24 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #FFFFFF Dark: #FFFFFF
+  /// Default/Light: #FFFFFF Dark: #000000
   public static var primaryTextAlternative: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
+        return UIColor(0x000000)
+
+      case .light, _:
+        return UIColor(0xFFFFFF)
+      }
+    }
+  }
+
+  /// Default/Light: #FFFFFF Dark: #000000
+  public static var primaryButtonText: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
         return UIColor(0xFFFFFF)
 
       case .light, _:
@@ -261,12 +261,25 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #666666 Dark: #666666
+  /// Default/Light: #FFFFFF Dark: #000000
+  public static var primaryButtonTint: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0xFFFFFF)
+
+      case .light, _:
+        return UIColor(0x000000)
+      }
+    }
+  }
+
+  /// Default/Light: #666666 Dark: #B5B5B5
   public static var secondaryText: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0x666666)
+        return UIColor(0xB5B5B5)
 
       case .light, _:
         return UIColor(0x666666)
@@ -287,12 +300,12 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #FFFFFF Dark: #FFFFFF
+  /// Default/Light: #FFFFFF Dark: #000000
   public static var background: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0xFFFFFF)
+        return UIColor(0x000000)
 
       case .light, _:
         return UIColor(0xFFFFFF)
@@ -300,12 +313,25 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #000000, alpha 0.4 Dark: #000000, alpha 0.4
+  /// Default/Light: #FFFFFF Dark: #0F0F0F
+  public static var backgroundAlternative: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0x0F0F0F)
+
+      case .light, _:
+        return UIColor(0xFFFFFF)
+      }
+    }
+  }
+
+  /// Default/Light: #000000, alpha 0.4 Dark: #888888, alpha 0.4
   public static var overlayBackground: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0x000000).withAlphaComponent(0.4)
+        return UIColor(0x484848).withAlphaComponent(0.2)
 
       case .light, _:
         return UIColor(0x000000).withAlphaComponent(0.4)
@@ -313,12 +339,12 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #DDDDDD Dark: #DDDDDD
+  /// Default/Light: #DDDDDD Dark: #0F0F0F
   public static var divider: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0xDDDDDD)
+        return UIColor(0x0F0F0F)
 
       case .light, _:
         return UIColor(0xDDDDDD)
@@ -339,12 +365,12 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #333333 Dark: #333333
+  /// Default/Light: #333333 Dark: #777777
   public static var iconAlternative: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0x333333)
+        return UIColor(0x777777)
 
       case .light, _:
         return UIColor(0x333333)

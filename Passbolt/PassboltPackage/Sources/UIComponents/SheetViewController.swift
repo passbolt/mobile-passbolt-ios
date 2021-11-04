@@ -67,7 +67,7 @@ public final class SheetContentView: View {
     }
 
     mut(self) {
-      .backgroundColor(.black.withAlphaComponent(0.4))
+      .backgroundColor(dynamic: .overlayBackground)
     }
   }
 

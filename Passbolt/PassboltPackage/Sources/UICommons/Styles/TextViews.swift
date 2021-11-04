@@ -28,7 +28,7 @@ extension Mutation where Subject: TextView {
       .contentInset(.init(top: 8, left: 4, bottom: 8, right: 4)),
       .font(.inter(ofSize: 14, weight: .medium)),
       .textColor(dynamic: .secondaryText),
-      .backgroundColor(dynamic: .background),
+      .backgroundColor(dynamic: .backgroundAlternative),
       .border(dynamic: .divider, width: 1),
       .cornerRadius(4),
       .returnKeyType(.default),

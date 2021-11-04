@@ -39,7 +39,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     let logoContainer: ContainerView = .init(
       contentView: logoImageView,
       mutation: .combined(
-        .image(named: .appLogo, from: .uiCommons),
+        .image(dynamic: .passboltLogo),
         .contentMode(.scaleAspectFit),
         .accessibilityIdentifier("welcome.app.logo.imageview")
       ),

@@ -32,7 +32,9 @@ extension Mutation where Subject: TextButton {
       .disabledBackgroundColor(dynamic: .primaryBlueDisabled),
       .cornerRadius(4, masksToBounds: true),
       .heightAnchor(.equalTo, constant: 56),
-      .textColor(dynamic: .primaryTextAlternative),
+      .textColor(dynamic: .primaryButtonText),
+      .pressedTextColor(dynamic: .primaryButtonText),
+      .disabledTextColor(dynamic: .primaryButtonText),
       .font(.inter(ofSize: 14, weight: .medium)),
       .textAlignment(.center),
       .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8))
@@ -45,6 +47,8 @@ extension Mutation where Subject: TextButton {
       .backgroundColor(.clear),
       .textAlignment(.center),
       .textColor(dynamic: .primaryText),
+      .pressedTextColor(dynamic: .primaryText),
+      .disabledTextColor(dynamic: .primaryText),
       .textInsets(.init(top: 4, leading: 8, bottom: -4, trailing: -8)),
       .heightAnchor(.equalTo, constant: 56)
     )

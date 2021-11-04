@@ -47,6 +47,7 @@ extension Mutation where Subject: Label {
     .combined(
       .font(.inter(ofSize: 14, weight: .medium)),
       .textColor(dynamic: .secondaryText),
+      .backgroundColor(.clear),
       .numberOfLines(1)
     )
   }

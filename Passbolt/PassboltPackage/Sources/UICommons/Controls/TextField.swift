@@ -104,6 +104,7 @@ open class TextField: UITextField {
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
+    self.layer.borderColor = dynamicBorderColor(in: interfaceStyle).cgColor
     self.tintColor = dynamicTintColor(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
     if let attributedPlaceholderString = attributedPlaceholderString?.nsAttributedString(in: interfaceStyle) {

@@ -122,6 +122,7 @@ public class TextViewInput: View {
 
     mut(textView) {
       .combined(
+        .backgroundColor(dynamic: .backgroundAlternative),
         .set(\.textContainer.heightTracksTextView, to: true),
         .set(\.isScrollEnabled, to: false),
         .set(\.attributedString, to: attributedPlaceholder),

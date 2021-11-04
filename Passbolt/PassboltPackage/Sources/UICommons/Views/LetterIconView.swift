@@ -40,6 +40,10 @@ public final class LetterIconView: View {
         .edges(equalTo: self, usingSafeArea: false)
       )
     }
+
+    mut(self) {
+      .backgroundColor(.white)
+    }
   }
 
   public func update(

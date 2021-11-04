@@ -29,7 +29,7 @@ extension Mutation where Subject: NavigationBar {
     .combined(
       .backgroundColor(dynamic: .background),
       .barTintColor(dynamic: .background),
-      .tintColor(dynamic: .iconAlternative),
+      .tintColor(dynamic: .primaryButtonTint),
       .translucent(false),
       .shadowImage(UIImage()),
       .backgroundImage(nil),

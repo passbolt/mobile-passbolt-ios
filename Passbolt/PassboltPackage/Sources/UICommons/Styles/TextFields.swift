@@ -30,7 +30,7 @@ extension Mutation where Subject: TextField {
       .contentInsets(.init(top: 4, left: 8, bottom: 4, right: 8)),
       .font(.inter(ofSize: 14, weight: .medium)),
       .textColor(dynamic: .primaryText),
-      .backgroundColor(dynamic: .background),
+      .backgroundColor(dynamic: .backgroundAlternative),
       .cornerRadius(4),
       .custom { (subject: Subject) in
         subject.autocapitalizationType = .none
