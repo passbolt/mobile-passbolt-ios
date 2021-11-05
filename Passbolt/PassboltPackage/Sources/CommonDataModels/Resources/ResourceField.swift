@@ -23,10 +23,18 @@
 
 public enum ResourceField {
 
+  /**
+   name
+   URL
+   Username
+   Password
+   Description
+   */
+
   case name
+  case uri
   case username
   case password
-  case uri
   case description
   case undefined(name: String)
 }
@@ -38,14 +46,14 @@ extension ResourceField: RawRepresentable {
     case "name":
       self = .name
 
+    case "uri":
+      self = .uri
+
     case "username":
       self = .username
 
     case "password", "secret":
       self = .password
-
-    case "uri":
-      self = .uri
 
     case "description":
       self = .description
@@ -93,6 +101,12 @@ extension ResourceField: Comparable {
     case (_, .name):
       return false
 
+    case (.uri, _):
+      return true
+
+    case (_, .uri):
+      return false
+
     case (.username, _):
       return true
 
@@ -103,12 +117,6 @@ extension ResourceField: Comparable {
       return true
 
     case (_, .password):
-      return false
-
-    case (.uri, _):
-      return true
-
-    case (_, .uri):
       return false
 
     case (.description, _):

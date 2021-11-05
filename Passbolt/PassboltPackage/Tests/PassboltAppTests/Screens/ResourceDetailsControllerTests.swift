@@ -104,9 +104,9 @@ final class ResourceDetailsControllerTests: TestCase {
     let controller: ResourceDetailsController = testInstance(context: context)
 
     let expectedOrderedFields: [ResourceField] = [
+      .uri,
       .username,
       .password,
-      .uri,
       .description,
     ]
 
