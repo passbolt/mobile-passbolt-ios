@@ -32,6 +32,9 @@ import class Foundation.JSONEncoder
 
 public struct ResourceEditForm {
 
+  // sets currently edited resource, if it was not set default form creates new resource
+  // note that editing resource will download and decrypt secrets to fill them in and allow editing
+  public var editResource: (Resource.ID) -> AnyPublisher<Void, TheError>
   // initial version supports only one type of resource type, so there is no method to change it
   public var resourceTypePublisher: () -> AnyPublisher<ResourceType, TheError>
   // since currently the only field value is String we are not allowing other value types
@@ -54,13 +57,16 @@ extension ResourceEditForm: Feature {
     let database: AccountDatabase = features.instance()
     let networkClient: NetworkClient = features.instance()
     let userPGPMessages: UserPGPMessages = features.instance()
+    let resources: Resources = features.instance()
 
+    let editedResourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
     let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheError> = .init(nil)
     let resourceTypePublisher: AnyPublisher<ResourceType, TheError> =
       resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
     let formValuesSubject: CurrentValueSubject<Dictionary<ResourceField, Validated<ResourceFieldValue>>, Never> =
       .init(.init())
 
+    // load initial resource type
     database
       .fetchResourcesTypesOperation()
       .map { resourceTypes -> AnyPublisher<ResourceType, TheError> in
@@ -83,6 +89,17 @@ extension ResourceEditForm: Feature {
           resourceTypeSubject.send(completion: .failure(error))
         },
         receiveValue: { resourceType in
+          resourceTypeSubject.send(resourceType)
+        }
+      )
+      .store(in: cancellables)
+
+    // handle current resource type updates
+    resourceTypePublisher
+      .removeDuplicates(by: { $0.id == $1.id })
+      .sink(
+        receiveCompletion: { _ in /* NOP */ },
+        receiveValue: { resourceType in
           // remove fields that are no longer in resource
           let removedFields: Array<ResourceField> = formValuesSubject.value.keys.filter { key in
             !resourceType.properties.contains(where: { $0.field == key })
@@ -100,10 +117,110 @@ extension ResourceEditForm: Feature {
               propertyValidator(for: property)
               .validate(fieldValue)
           }
-          resourceTypeSubject.send(resourceType)
         }
       )
       .store(in: cancellables)
+
+    func editResource(
+      _ resourceID: Resource.ID
+    ) -> AnyPublisher<Void, TheError> {
+      assert(
+        editedResourceIDSubject.value == nil,
+        "Edited resource change is not supported"
+      )
+      return
+        database
+        .fetchEditViewResourceOperation(resourceID)
+        .map { resource in
+          resources
+            .loadResourceSecret(resource.id)
+            .map { secret in (resource, secret) }
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .handleEvents(
+          receiveOutput: { resource, secret in
+            resourceTypeSubject.send(resource.type)
+            editedResourceIDSubject.send(resource.id)
+            for property in resource.type.properties {
+              switch property.field {
+              case .name:
+                formValuesSubject.value[.name] =
+                  propertyValidator(
+                    for: property
+                  )
+                  .validate(
+                    .init(
+                      fromString: resource.name,
+                      forType: property.type
+                    )
+                  )
+
+              case .uri:
+                formValuesSubject.value[.uri] =
+                  propertyValidator(
+                    for: property
+                  )
+                  .validate(
+                    .init(
+                      fromString: resource.url ?? "",
+                      forType: property.type
+                    )
+                  )
+
+              case .username:
+                formValuesSubject.value[.username] =
+                  propertyValidator(
+                    for: property
+                  )
+                  .validate(
+                    .init(
+                      fromString: resource.username ?? "",
+                      forType: property.type
+                    )
+                  )
+
+              case .password:
+                formValuesSubject.value[.password] =
+                  propertyValidator(
+                    for: property
+                  )
+                  .validate(
+                    .init(
+                      fromString: secret.password ?? "",
+                      forType: property.type
+                    )
+                  )
+
+              case .description:
+                formValuesSubject.value[.description] =
+                  propertyValidator(
+                    for: property
+                  )
+                  .validate(
+                    .init(
+                      fromString: (property.encrypted ? secret.description : resource.description) ?? "",
+                      forType: property.type
+                    )
+                  )
+
+              case let .undefined(name: name):
+                formValuesSubject.value[.undefined(name: name)] =
+                  propertyValidator(
+                    for: property
+                  )
+                  .validate(
+                    .init(
+                      defaultFor: property.type
+                    )
+                  )
+              }
+            }
+          }
+        )
+        .mapToVoid()
+        .eraseToAnyPublisher()
+    }
 
     func propertyValidator(
       for property: ResourceProperty
@@ -182,16 +299,25 @@ extension ResourceEditForm: Feature {
     }
 
     func sendForm() -> AnyPublisher<Resource.ID, TheError> {
-      Publishers.CombineLatest(
+      Publishers.CombineLatest3(
+        editedResourceIDSubject
+          .setFailureType(to: TheError.self),
         resourceTypePublisher,
         formValuesSubject
           .setFailureType(to: TheError.self)
       )
       .first()
       .map {
+        resourceID,
         resourceType,
         validatedFieldValues -> AnyPublisher<
-          (fieldValues: Dictionary<ResourceField, ResourceFieldValue>, encodedSecret: String), TheError
+          (
+            resourceID: Resource.ID?,
+            resourceTypeID: ResourceType.ID,
+            fieldValues: Dictionary<ResourceField, ResourceFieldValue>,
+            encodedSecret: String
+          ),
+          TheError
         > in
         var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
         var secretFieldValues: Dictionary<ResourceField.RawValue, ResourceFieldValue> = .init()
@@ -225,68 +351,111 @@ extension ResourceEditForm: Feature {
             .eraseToAnyPublisher()
         }
 
-        return Just((fieldValues: fieldValues, encodedSecret: encodedSecret))
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
+        return Just(
+          (
+            resourceID: resourceID,
+            resourceTypeID: resourceType.id,
+            fieldValues: fieldValues,
+            encodedSecret: encodedSecret
+          )
+        )
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .map { (fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheError> in
-        resourceTypeSubject
-          .first()
-          .compactMap(\.?.id)
-          .map { resourceTypeID -> AnyPublisher<Resource.ID, TheError> in
-            guard let name: String = fieldValues[.name]?.stringValue
-            else {
-              return Fail(
-                error: .invalidOrMissingResourceType()
-              )
-              .eraseToAnyPublisher()
-            }
+      .map { (resourceID, resourceTypeID, fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheError> in
+        guard let name: String = fieldValues[.name]?.stringValue
+        else {
+          return Fail(error: .invalidOrMissingResourceType())
+            .eraseToAnyPublisher()
+        }
 
-            return
-              accountSession
-              .statePublisher()
-              .first()
-              .map { sessionState -> AnyPublisher<ArmoredPGPMessage, TheError> in
-                switch sessionState {
-                case let .authorized(account), let .authorizedMFARequired(account, _):
-                  return
-                    userPGPMessages
-                    .encryptMessageForUser(.init(rawValue: account.userID.rawValue), encodedSecret)
-                    .eraseToAnyPublisher()
+        if let resourceID: Resource.ID = resourceID {
+          return
+            accountSession
+            .statePublisher()
+            .first()
+            .map { sessionState -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> in
+              switch sessionState {
+              case .authorized, .authorizedMFARequired:
+                return
+                  userPGPMessages
+                  .encryptMessageForResourceUsers(resourceID, encodedSecret)
+                  .eraseToAnyPublisher()
 
-                case .authorizationRequired, .none:
-                  accountSession.requestAuthorizationPrompt(
-                    .init(key: "authorization.prompt.refresh.session.reason", bundle: .main)
-                  )
-                  return Fail(error: .authorizationRequired())
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .map { encryptedSecret in
-                networkClient
-                  .createResourceRequest
-                  .make(
-                    using: .init(
-                      resourceTypeID: resourceTypeID.rawValue,
-                      name: name,
-                      username: fieldValues[.username]?.stringValue,
-                      url: fieldValues[.uri]?.stringValue,
-                      description: fieldValues[.description]?.stringValue,
-                      secretData: encryptedSecret.rawValue
-                    )
-                  )
-                  .map { response -> Resource.ID in
-                    .init(rawValue: response.body.resourceID)
-                  }
+              case .authorizationRequired, .none:
+                accountSession.requestAuthorizationPrompt(
+                  .init(key: "authorization.prompt.refresh.session.reason", bundle: .main)
+                )
+                return Fail(error: .authorizationRequired())
                   .eraseToAnyPublisher()
               }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          }
-          .switchToLatest()
-          .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheError> in
+              networkClient
+                .updateResourceRequest
+                .make(
+                  using: .init(
+                    resourceID: resourceID.rawValue,
+                    resourceTypeID: resourceTypeID.rawValue,
+                    name: name,
+                    username: fieldValues[.username]?.stringValue,
+                    url: fieldValues[.uri]?.stringValue,
+                    description: fieldValues[.description]?.stringValue,
+                    secrets: encryptedSecrets.map { (userID: $0.rawValue, data: $1.rawValue) }
+                  )
+                )
+                .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
+                .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
+        else {
+          return
+            accountSession
+            .statePublisher()
+            .first()
+            .map {
+              sessionState -> AnyPublisher<Array<(userID: User.ID, encryptedMessage: ArmoredPGPMessage)>, TheError> in
+              switch sessionState {
+              case let .authorized(account), let .authorizedMFARequired(account, _):
+                return
+                  userPGPMessages
+                  .encryptMessageForUser(.init(rawValue: account.userID.rawValue), encodedSecret)
+                  .map { encryptedMessage in [(.init(rawValue: account.userID.rawValue), encryptedMessage)] }
+                  .eraseToAnyPublisher()
+
+              case .authorizationRequired, .none:
+                accountSession.requestAuthorizationPrompt(
+                  .init(key: "authorization.prompt.refresh.session.reason", bundle: .main)
+                )
+                return Fail(error: .authorizationRequired())
+                  .eraseToAnyPublisher()
+              }
+            }
+            .switchToLatest()
+            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheError> in
+              return
+                networkClient
+                .createResourceRequest
+                .make(
+                  using: .init(
+                    resourceTypeID: resourceTypeID.rawValue,
+                    name: name,
+                    username: fieldValues[.username]?.stringValue,
+                    url: fieldValues[.uri]?.stringValue,
+                    description: fieldValues[.description]?.stringValue,
+                    secretData: encryptedSecrets.first?.encryptedMessage.rawValue ?? ""
+                  )
+                )
+                .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
+                .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+        }
       }
       .switchToLatest()
       .eraseToAnyPublisher()
@@ -297,6 +466,7 @@ extension ResourceEditForm: Feature {
     }
 
     return Self(
+      editResource: editResource(_:),
       resourceTypePublisher: { resourceTypePublisher },
       setFieldValue: setFieldValue(_:field:),
       fieldValuePublisher: fieldValuePublisher(field:),
@@ -312,6 +482,7 @@ extension ResourceEditForm {
 
   public static var placeholder: ResourceEditForm {
     Self(
+      editResource: Commons.placeholder("You have to provide mocks for used methods"),
       resourceTypePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setFieldValue: Commons.placeholder("You have to provide mocks for used methods"),
       fieldValuePublisher: Commons.placeholder("You have to provide mocks for used methods"),

@@ -327,7 +327,7 @@ extension AccountSession: Feature {
       where currentAccount.userID != account.userID
         || (currentAccount.localID != account.localID
           && !accountsDataStore.loadAccounts().contains(currentAccount))
-        ,
+      ,
         let .authorizationRequired(currentAccount)
       where currentAccount.userID != account.userID
         || (currentAccount.localID != account.localID

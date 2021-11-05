@@ -221,7 +221,6 @@ extension FetchDetailsViewResourcesOperation {
               let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
               let name: String = row.name,
               let rawFields: String = row.resourceFields
-
             else { return .failure(.databaseFetchError(databaseErrorMessage: "Failed to unwrap values")) }
 
             let url: String? = row.url
@@ -238,6 +237,69 @@ extension FetchDetailsViewResourcesOperation {
                 username: username,
                 description: description,
                 properties: properties
+              )
+            )
+          } ?? .failure(.databaseFetchError(databaseErrorMessage: "No value"))
+      }
+    }
+  }
+}
+
+public typealias FetchEditViewResourcesOperation = DatabaseOperation<Resource.ID, EditViewResource>
+
+extension FetchEditViewResourcesOperation {
+
+  static func using(
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+  ) -> Self {
+    withConnection(
+      using: connectionPublisher
+    ) { conn, input in
+      let statement: SQLiteStatement = """
+        SELECT
+          *
+        FROM
+          resourceEditView
+        WHERE
+          id == ?1
+        LIMIT
+          1;
+        """
+      return conn.fetch(
+        statement,
+        with: [input.rawValue]
+      ) { rows -> Result<EditViewResource, TheError> in
+        rows
+          .first
+          .map { row -> Result<EditViewResource, TheError> in
+            guard
+              let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
+              let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
+              let name: String = row.name,
+              let resourceTypeID: ResourceType.ID = row.resourceTypeID.map(ResourceType.ID.init(rawValue:)),
+              let resourceTypeSlug: ResourceType.Slug = row.resourceTypeSlug.map(ResourceType.Slug.init(rawValue:)),
+              let resourceTypeName: String = row.resourceTypeName,
+              let rawFields: String = row.resourceFields
+            else { return .failure(.databaseFetchError(databaseErrorMessage: "Failed to unwrap values")) }
+
+            let url: String? = row.url
+            let username: String? = row.username
+            let description: String? = row.description
+
+            return .success(
+              EditViewResource(
+                id: id,
+                type: .init(
+                  id: resourceTypeID,
+                  slug: resourceTypeSlug,
+                  name: resourceTypeName,
+                  fields: ResourceProperty.arrayFrom(rawString: rawFields)
+                ),
+                permission: permission,
+                name: name,
+                url: url,
+                username: username,
+                description: description
               )
             )
           } ?? .failure(.databaseFetchError(databaseErrorMessage: "No value"))

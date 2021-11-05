@@ -38,6 +38,7 @@ final class ResourceEditFormTests: TestCase {
 
   var accountSession: AccountSession!
   var database: AccountDatabase!
+  var resources: Resources!
   var networkClient: NetworkClient!
   var userPGPMessages: UserPGPMessages!
 
@@ -45,6 +46,7 @@ final class ResourceEditFormTests: TestCase {
     super.setUp()
     accountSession = .placeholder
     database = .placeholder
+    resources = .placeholder
     networkClient = .placeholder
     userPGPMessages = .placeholder
   }
@@ -52,6 +54,7 @@ final class ResourceEditFormTests: TestCase {
   override func tearDown() {
     accountSession = nil
     database = nil
+    resources = nil
     networkClient = nil
     userPGPMessages = nil
     super.tearDown()
@@ -63,6 +66,7 @@ final class ResourceEditFormTests: TestCase {
       Just([]).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -90,6 +94,7 @@ final class ResourceEditFormTests: TestCase {
       Just([emptyResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -124,6 +129,7 @@ final class ResourceEditFormTests: TestCase {
       ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -149,6 +155,7 @@ final class ResourceEditFormTests: TestCase {
       Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -178,6 +185,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -205,6 +213,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -237,6 +246,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -271,6 +281,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -300,6 +311,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -326,6 +338,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -355,6 +368,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -385,10 +399,11 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self) 
+        .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     features.use(userPGPMessages)
 
@@ -427,6 +442,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     features.use(networkClient)
     userPGPMessages.encryptMessageForUser = always(
       Fail(error: .testError())
@@ -469,6 +485,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     networkClient.createResourceRequest.execute = always(
       Fail(error: .testError())
         .eraseToAnyPublisher()
@@ -516,6 +533,7 @@ final class ResourceEditFormTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(database)
+    features.use(resources)
     networkClient.createResourceRequest.execute = always(
       Just(
         .init(
@@ -553,6 +571,499 @@ final class ResourceEditFormTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertEqual(result, "resource-id")
+  }
+
+  func test_resourceEdit_fails_whenFetchingEditViewResourceFromDatabaseFails() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(database)
+    features.use(resources)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    var result: TheError?
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_resourceEdit_fails_whenFetchingResourceSecretFails() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Just(
+        .init(
+          id: "resource-id",
+          type: .init(
+            id: "resource-type-id",
+            slug: "resource-slug",
+            name: "resource type",
+            fields: []
+          ),
+          permission: .owner,
+          name: "resource name",
+          url: nil,
+          username: nil,
+          description: nil
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(database)
+    resources.loadResourceSecret = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    var result: TheError?
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_resourceEdit_succeeds_whenLoadingResourceDataSucceeds() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Just(
+        .init(
+          id: "resource-id",
+          type: .init(
+            id: "resource-type-id",
+            slug: "resource-slug",
+            name: "resource type",
+            fields: []
+          ),
+          permission: .owner,
+          name: "resource name",
+          url: nil,
+          username: nil,
+          description: nil
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(database)
+    resources.loadResourceSecret = always(
+      Just(
+        .init(
+          values: ["password": "secret"]
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    var result: Void?
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          result = Void()
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_editResource_updatesResourceType_whenLoadingResourceDataSucceeds() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ])
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Just(
+        .init(
+          id: "resource-id",
+          type: .init(
+            id: "resource-type-id",
+            slug: "resource-slug",
+            name: "resource type",
+            fields: []
+          ),
+          permission: .owner,
+          name: "resource name",
+          url: nil,
+          username: nil,
+          description: nil
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(database)
+    resources.loadResourceSecret = always(
+      Just(
+        .init(
+          values: ["password": "secret"]
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: ResourceType.ID?
+    feature
+      .resourceTypePublisher()
+      .sink(
+        receiveCompletion: { _ in /* NOP */ },
+        receiveValue: { resourceType in
+          result = resourceType.id
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, "resource-type-id")
+  }
+
+  func test_editResource_updatesResourceFieldValues_whenLoadingResourceDataSucceeds() {
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ])
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Just(
+        .init(
+          id: "resource-id",
+          type: .init(
+            id: "resource-type-id",
+            slug: "resource-slug",
+            name: "resource type",
+            fields: [
+              .init(
+                name: "name",
+                typeString: "string",
+                required: true,
+                encrypted: false,
+                maxLength: nil
+              )!
+            ]
+          ),
+          permission: .owner,
+          name: "resource name",
+          url: nil,
+          username: nil,
+          description: nil
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(database)
+    resources.loadResourceSecret = always(
+      Just(
+        .init(
+          values: ["password": "secret"]
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    features.use(networkClient)
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: ResourceFieldValue?
+    feature
+      .fieldValuePublisher(.name)
+      .sink(
+        receiveValue: { validatedName in
+          result = validatedName.value
+        }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.stringValue, "resource name")
+  }
+
+  func test_sendForm_updatesResource_whenEditingResource() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Just(
+        .init(
+          id: "resource-id",
+          type: .init(
+            id: "resource-type-id",
+            slug: "resource-slug",
+            name: "resource type",
+            fields: [
+              .init(
+                name: "name",
+                typeString: "string",
+                required: true,
+                encrypted: false,
+                maxLength: nil
+              )!
+            ]
+          ),
+          permission: .owner,
+          name: "resource name",
+          url: nil,
+          username: nil,
+          description: nil
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(database)
+    resources.loadResourceSecret = always(
+      Just(
+        .init(
+          values: ["password": "secret"]
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    var result: Resource.ID?
+    networkClient.updateResourceRequest.execute = { variable in
+      result = .init(rawValue: variable.resourceID)
+      return Just(
+        .init(
+          header: .mock(),
+          body: .init(
+            resourceID: variable.resourceID
+          )
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    }
+    features.use(networkClient)
+    userPGPMessages.encryptMessageForResourceUsers = always(
+      Just([
+        ("USER_ID", "encrypted message")
+      ])
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    feature
+      .sendForm()
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_sendForm_fails_whenUpdateResourceRequestFails() {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
+        .eraseToAnyPublisher()
+    )
+    features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      Just([
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+    )
+    database.fetchEditViewResourceOperation.execute = always(
+      Just(
+        .init(
+          id: "resource-id",
+          type: .init(
+            id: "resource-type-id",
+            slug: "resource-slug",
+            name: "resource type",
+            fields: [
+              .init(
+                name: "name",
+                typeString: "string",
+                required: true,
+                encrypted: false,
+                maxLength: nil
+              )!
+            ]
+          ),
+          permission: .owner,
+          name: "resource name",
+          url: nil,
+          username: nil,
+          description: nil
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(database)
+    resources.loadResourceSecret = always(
+      Just(
+        .init(
+          values: ["password": "secret"]
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(resources)
+    networkClient.updateResourceRequest.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+    userPGPMessages.encryptMessageForResourceUsers = always(
+      Just([
+        ("USER_ID", "encrypted message")
+      ])
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = testInstance()
+
+    feature
+      .editResource(.init(rawValue: "resource-id"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    feature
+      .sendForm()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
   }
 }
 

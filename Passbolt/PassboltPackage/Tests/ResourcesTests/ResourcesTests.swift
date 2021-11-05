@@ -279,7 +279,7 @@ final class ResourceTests: TestCase {
     feature
       .refreshIfNeeded()
       .sink(
-        receiveCompletion:{ completion in
+        receiveCompletion: { completion in
           guard case let .failure(error) = completion
           else { return }
           result = error

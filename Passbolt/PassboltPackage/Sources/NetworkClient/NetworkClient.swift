@@ -43,6 +43,7 @@ public struct NetworkClient {
   public var yubikeyAuthorizationRequest: YubikeyAuthorizationRequest
   public var userProfileRequest: UserProfileRequest
   public var createResourceRequest: CreateResourceRequest
+  public var updateResourceRequest: UpdateResourceRequest
   public var deleteResourceRequest: DeleteResourceRequest
   public var userListRequest: UserListRequest
   public var updateSession: (NetworkSessionVariable?) -> Void
@@ -268,6 +269,16 @@ extension NetworkClient: Feature {
         mfaRedirectionHandler: mfaRedirectRequest.execute,
         sessionPublisher: domainVariablePublisher
       ),
+      updateResourceRequest: .live(
+        using: networking,
+        with: sessionVariablePublisher
+      )
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainVariablePublisher
+      ),
       deleteResourceRequest: .live(
         using: networking,
         with: sessionVariablePublisher
@@ -315,6 +326,7 @@ extension NetworkClient: Feature {
       yubikeyAuthorizationRequest: .placeholder,
       userProfileRequest: .placeholder,
       createResourceRequest: .placeholder,
+      updateResourceRequest: .placeholder,
       deleteResourceRequest: .placeholder,
       userListRequest: .placeholder,
       updateSession: Commons.placeholder("You have to provide mocks for used methods"),

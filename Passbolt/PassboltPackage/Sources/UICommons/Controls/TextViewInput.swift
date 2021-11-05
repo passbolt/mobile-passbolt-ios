@@ -205,6 +205,7 @@ public class TextViewInput: View {
     accessory: UIView,
     with insets: UIEdgeInsets = .zero
   ) {
+    accessory.removeFromSuperview()
     mut(accessoryContainer) {
       .combined(
         .custom { (subject: View) in

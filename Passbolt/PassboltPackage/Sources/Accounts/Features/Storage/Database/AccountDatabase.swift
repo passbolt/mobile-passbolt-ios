@@ -37,6 +37,7 @@ public struct AccountDatabase {
   public var fetchListViewResources: FetchListViewResourcesOperation
   public var fetchDetailsViewResources: FetchDetailsViewResourcesOperation
   public var fetchResourcesTypesOperation: FetchResourcesTypesOperation
+  public var fetchEditViewResourceOperation: FetchEditViewResourcesOperation
 
   public var featureUnload: () -> Bool
 }
@@ -188,6 +189,7 @@ extension AccountDatabase: Feature {
       fetchListViewResources: FetchListViewResourcesOperation.using(currentConnectionPublisher),
       fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentConnectionPublisher),
       fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentConnectionPublisher),
+      fetchEditViewResourceOperation: FetchEditViewResourcesOperation.using(currentConnectionPublisher),
       featureUnload: featureUnload
     )
   }
@@ -202,6 +204,7 @@ extension AccountDatabase: Feature {
       fetchListViewResources: .placeholder,
       fetchDetailsViewResources: .placeholder,
       fetchResourcesTypesOperation: .placeholder,
+      fetchEditViewResourceOperation: .placeholder,
       featureUnload: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

@@ -21,15 +21,36 @@
 // @since         v1.0
 //
 
-import Environment
+import CommonDataModels
+import Commons
 
-extension SQLiteMigration: CaseIterable {
+public struct EditViewResource {
 
-  public static var allCases: [SQLiteMigration] {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-    ]
+  public typealias ID = Resource.ID
+
+  public let id: ID
+  public var type: ResourceType
+  public var permission: ResourcePermission
+  public var name: String
+  public var url: String?
+  public var username: String?
+  public var description: String?
+
+  public init(
+    id: ID,
+    type: ResourceType,
+    permission: ResourcePermission,
+    name: String,
+    url: String?,
+    username: String?,
+    description: String?
+  ) {
+    self.id = id
+    self.type = type
+    self.permission = permission
+    self.name = name
+    self.url = url
+    self.username = username
+    self.description = description
   }
 }
