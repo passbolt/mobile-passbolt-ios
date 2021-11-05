@@ -61,7 +61,7 @@ public final class SheetContentView: View {
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, overlay.bottomAnchor),
-        .heightAnchor(.lessThanOrEqualTo, heightAnchor, multiplier: 0.5),
+        .heightAnchor(.lessThanOrEqualTo, heightAnchor, multiplier: 0.8),
         .bottomAnchor(.equalTo, bottomAnchor)
       )
     }
