@@ -111,6 +111,7 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.edit" = "Edit password";
 "resource.menu.item.delete.password" = "Delete";
 "resource.menu.item.password" = "Password";
 "resource.menu.item.username" = "Username";
@@ -118,6 +119,7 @@
 "resource.menu.item.url" = "URL";
 "resource.menu.item.field.copied" = "%@ copied!";
 "resource.menu.action.failed" = "%@ failed!";
+"resource.menu.action.edited" = "This password was successfully edited.";
 "resource.menu.action.deleted" = "%@ has been deleted!";
 
 "totp.title.label" = "Two Factor Authentication";
@@ -141,15 +143,3 @@ NFC for this to work.";
 "mfa.unsupported.provider.description" = "Please setup another provider using the web app.
 Contact your administrator for more information.";
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
-
-"resource.create.title" = "Password";
-"resource.create.field.name.label" = "Name";
-"resource.create.field.url.label" = "URL";
-"resource.create.field.username.label" = "Username";
-"resource.create.field.password.label" = "Password";
-"resource.create.field.description.label" = "Description";
-"resource.create.name.field.placeholder" = "Enter a name";
-"resource.create.url.field.placeholder" = "Enter URL";
-"resource.create.username.field.placeholder" = "Enter username";
-"resource.create.password.field.placeholder" = "Enter password";
-"resource.create.description.field.placeholder" = "Enter description";

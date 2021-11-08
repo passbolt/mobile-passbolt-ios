@@ -26,23 +26,26 @@ import CommonDataModels
 import Resources
 import UIComponents
 
-public struct ResourceCreateController {
+public struct ResourceEditController {
 
+  internal var createsNewResource: Bool
   internal var resourcePropertiesPublisher: () -> AnyPublisher<Array<ResourceProperty>, TheError>
   internal var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<String>, Never>
   internal var passwordEntropyPublisher: () -> AnyPublisher<Entropy, Never>
   internal var sendForm: () -> AnyPublisher<Void, TheError>
   internal var setValue: (String, ResourceField) -> AnyPublisher<Void, TheError>
   internal var generatePassword: () -> Void
+  internal var presentExitConfirmation: () -> Void
+  internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var cleanup: () -> Void
 }
 
-extension ResourceCreateController: UIController {
+extension ResourceEditController: UIController {
 
-  public typealias Context = (Resource.ID) -> Void
+  public typealias Context = (editedResource: Resource.ID?, completion: (Resource.ID) -> Void)
 
   public static func instance(
-    in context: @escaping Context,
+    in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
@@ -52,10 +55,41 @@ extension ResourceCreateController: UIController {
     let resourceForm: ResourceEditForm = features.instance()
     let randomGenerator: RandomStringGenerator = features.instance()
 
-    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, TheError> {
+    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, TheError> = .init([])
+    let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
+
+    if let editedResource: Resource.ID = context.editedResource {
       resourceForm
-        .resourceTypePublisher()
-        .map(\.properties)
+        .editResource(editedResource)
+        .sink(
+          receiveCompletion: { completion in
+            guard case let .failure(error) = completion
+            else { return }
+            resourcePropertiesSubject.send(completion: .failure(error))
+          },
+          receiveValue: { /* NOP */  }
+        )
+        .store(in: cancellables)
+    }
+    else {
+      /* NOP */
+    }
+
+    resourceForm
+      .resourceTypePublisher()
+      .map(\.properties)
+      .sink(
+        receiveCompletion: { completion in
+          resourcePropertiesSubject.send(completion: completion)
+        },
+        receiveValue: { properties in
+          resourcePropertiesSubject.send(properties)
+        }
+      )
+      .store(in: cancellables)
+
+    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, TheError> {
+      resourcePropertiesSubject
         .eraseToAnyPublisher()
     }
 
@@ -116,7 +150,7 @@ extension ResourceCreateController: UIController {
         .switchToLatest()
         .handleEvents(
           receiveOutput: { resourceID in
-            context(resourceID)
+            context.completion(resourceID)
           },
           receiveCompletion: { completion in
             guard case .finished = completion
@@ -143,17 +177,28 @@ extension ResourceCreateController: UIController {
         .store(in: cancellables)
     }
 
+    func presentExitConfirmation() {
+      exitConfirmationPresentationSubject.send(true)
+    }
+
+    func exitConfirmationPresentationPublisher() -> AnyPublisher<Bool, Never> {
+      exitConfirmationPresentationSubject.eraseToAnyPublisher()
+    }
+
     func cleanup() {
       features.unload(ResourceEditForm.self)
     }
 
     return Self(
+      createsNewResource: context.editedResource == nil,
       resourcePropertiesPublisher: resourcePropertiesPublisher,
       fieldValuePublisher: fieldValuePublisher,
       passwordEntropyPublisher: passwordEntropyPublisher,
       sendForm: sendForm,
       setValue: setValue(_:for:),
       generatePassword: generatePassword,
+      presentExitConfirmation: presentExitConfirmation,
+      exitConfirmationPresentationPublisher: exitConfirmationPresentationPublisher,
       cleanup: cleanup
     )
   }

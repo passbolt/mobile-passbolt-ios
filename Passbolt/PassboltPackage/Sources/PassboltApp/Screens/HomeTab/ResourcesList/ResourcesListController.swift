@@ -33,6 +33,8 @@ internal struct ResourcesListController {
   internal var addResource: () -> Void
   internal var presentResourceDetails: (ResourcesListViewResourceItem) -> Void
   internal var presentResourceMenu: (ResourcesListViewResourceItem) -> Void
+  internal var presentResourceEdit: (Resource.ID) -> Void
+  internal var resourceEditPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var presentDeleteResourceAlert: (Resource.ID) -> Void
   internal var resourceDetailsPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
   internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
@@ -56,6 +58,7 @@ extension ResourcesListController: UIController {
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
     func refreshResources() -> AnyPublisher<Void, TheError> {
@@ -97,6 +100,14 @@ extension ResourcesListController: UIController {
       resourceCreatePresentationSubject.eraseToAnyPublisher()
     }
 
+    func presentResourceEdit(resourceID: Resource.ID) {
+      resourceEditPresentationSubject.send(resourceID)
+    }
+
+    func resourceEditPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
+      resourceEditPresentationSubject.eraseToAnyPublisher()
+    }
+
     func resourceDeleteAlertPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
       resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
     }
@@ -114,6 +125,8 @@ extension ResourcesListController: UIController {
       addResource: addResource,
       presentResourceDetails: presentResourceDetails,
       presentResourceMenu: presentResourceMenu,
+      presentResourceEdit: presentResourceEdit(resourceID:),
+      resourceEditPresentationPublisher: resourceEditPresentationPublisher,
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceDetailsPresentationPublisher: resourceDetailsPresentationPublisher,
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,

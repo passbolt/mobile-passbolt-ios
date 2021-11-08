@@ -34,7 +34,7 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceCreateControllerTests: TestCase {
+final class ResourceEditControllerTests: TestCase {
 
   private var networkClient: NetworkClient!
   private var resources: Resources!
@@ -60,17 +60,20 @@ final class ResourceCreateControllerTests: TestCase {
   }
 
   func test_resourceFieldsPublisher_publishesFields() {
+    features.use(resources)
     resourceForm.resourceTypePublisher = always(
-      Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+      CurrentValueSubject(defaultResourceType)
         .eraseToAnyPublisher()
     )
-
-    features.use(resources)
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { _ in /* NOP */ }
+      )
+    )
     var result: Array<ResourceField> = .init()
 
     controller
@@ -93,6 +96,68 @@ final class ResourceCreateControllerTests: TestCase {
         .description,
       ]
     )
+  }
+
+  func test_resourceFieldsPublisher_editsGivenResourceInForm_whenEditingExistingResource() {
+    features.use(resources)
+    resourceForm.resourceTypePublisher = always(
+      CurrentValueSubject(defaultResourceType)
+        .eraseToAnyPublisher()
+    )
+    var result: Resource.ID?
+    resourceForm.editResource = { resourceID in
+      result = resourceID
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    let _: ResourceEditController = testInstance(
+      context: (
+        editedResource: "resource-id",
+        completion: { _ in /* NOP */ }
+      )
+    )
+
+    XCTAssertEqual(result, "resource-id")
+  }
+
+  func test_resourceFieldsPublisher_fails_whenEditingExistingResourceFails() {
+    features.use(resources)
+    resourceForm.resourceTypePublisher = always(
+      CurrentValueSubject(defaultResourceType)
+        .eraseToAnyPublisher()
+    )
+    resourceForm.editResource = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(resourceForm)
+    features.use(randomGenerator)
+
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: "resource-id",
+        completion: { _ in /* NOP */ }
+      )
+    )
+    var result: TheError?
+
+    controller
+      .resourcePropertiesPublisher()
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
   }
 
   func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() {
@@ -127,7 +192,12 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { _ in /* NOP */ }
+      )
+    )
 
     controller.generatePassword()
 
@@ -152,7 +222,12 @@ final class ResourceCreateControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { _ in /* NOP */ }
+      )
+    )
     var result: Entropy?
 
     controller.passwordEntropyPublisher()
@@ -186,10 +261,20 @@ final class ResourceCreateControllerTests: TestCase {
       return true
     }
     features.use(resources)
+    resourceForm.resourceTypePublisher = always(
+      Just(defaultResourceType)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { _ in /* NOP */ }
+      )
+    )
 
     controller
       .sendForm()
@@ -216,10 +301,20 @@ final class ResourceCreateControllerTests: TestCase {
       true
     }
     features.use(resources)
+    resourceForm.resourceTypePublisher = always(
+      Just(defaultResourceType)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { _ in /* NOP */ }
+      )
+    )
 
     controller
       .sendForm()
@@ -242,12 +337,20 @@ final class ResourceCreateControllerTests: TestCase {
     )
     resourceForm.featureUnload = { true }
     features.use(resources)
+    resourceForm.resourceTypePublisher = always(
+      Just(defaultResourceType)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
     features.use(resourceForm)
     features.use(randomGenerator)
 
     var result: Resource.ID?
-    let controller: ResourceCreateController = testInstance(
-      context: { id in result = id }
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { id in result = id }
+      )
     )
 
     controller
@@ -259,13 +362,22 @@ final class ResourceCreateControllerTests: TestCase {
   }
 
   func test_resourceForm_isUnloaded_whenCleanupCalled() {
-    resourceForm.featureUnload = always(true)
-
     features.use(resources)
+    resourceForm.resourceTypePublisher = always(
+      Just(defaultResourceType)
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    resourceForm.featureUnload = always(true)
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceCreateController = testInstance(context: { _ in /* NOP */ })
+    let controller: ResourceEditController = testInstance(
+      context: (
+        editedResource: nil,
+        completion: { _ in /* NOP */ }
+      )
+    )
 
     controller.cleanup()
 

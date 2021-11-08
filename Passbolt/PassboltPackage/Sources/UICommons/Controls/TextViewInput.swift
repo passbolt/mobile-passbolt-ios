@@ -27,7 +27,11 @@ import UIKit
 
 public class TextViewInput: View {
 
-  public var textPublisher: AnyPublisher<String, Never> { textSubject.eraseToAnyPublisher() }
+  public var textPublisher: AnyPublisher<String, Never> {
+    textSubject
+    .removeDuplicates()
+    .eraseToAnyPublisher()
+  }
   public var editingDidBeginPublisher: AnyPublisher<Void, Never> { editingDidBeginSubject.eraseToAnyPublisher() }
 
   public var autocapitalizationType: UITextAutocapitalizationType {
@@ -163,6 +167,9 @@ public class TextViewInput: View {
     if let placeholderTopConstraint = placeholderTopConstraint {
       removeConstraint(placeholderTopConstraint)
     }
+    else {
+      /* NOP */
+    }
 
     mut(placeholderLabel) {
       .topAnchor(
@@ -188,6 +195,7 @@ public class TextViewInput: View {
       mut(placeholderLabel) {
         .hidden(true)
       }
+      textSubject.value = validated.value
       textView.text = validated.value
     }
 
@@ -262,6 +270,9 @@ public class TextViewInput: View {
       mut(descriptionLabel) {
         .textColor(dynamic: .primaryText)
       }
+    }
+    mut(placeholderLabel) {
+      .hidden(!textView.text.isEmpty)
     }
   }
 }

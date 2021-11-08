@@ -193,13 +193,20 @@ extension ResourceEditForm: Feature {
                   )
 
               case .description:
+                let stringValue: String
+                if property.encrypted {
+                  stringValue = secret.description ?? ""
+                }
+                else {
+                  stringValue = resource.description ?? ""
+                }
                 formValuesSubject.value[.description] =
                   propertyValidator(
                     for: property
                   )
                   .validate(
                     .init(
-                      fromString: (property.encrypted ? secret.description : resource.description) ?? "",
+                      fromString: stringValue,
                       forType: property.type
                     )
                   )
@@ -341,9 +348,14 @@ extension ResourceEditForm: Feature {
           }
         }
 
-        let encodedSecret: String? =
-          (try? JSONEncoder().encode(secretFieldValues))
-          .flatMap { String(data: $0, encoding: .utf8) }
+        let encodedSecret: String?
+        do {
+          encodedSecret = try String(data: JSONEncoder().encode(secretFieldValues), encoding: .utf8)
+        }
+        catch {
+          return Fail(error: .invalidResourceData(underlyingError: error))
+            .eraseToAnyPublisher()
+        }
 
         guard let encodedSecret: String = encodedSecret
         else {

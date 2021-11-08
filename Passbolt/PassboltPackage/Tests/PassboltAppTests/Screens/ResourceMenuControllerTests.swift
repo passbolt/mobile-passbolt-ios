@@ -66,7 +66,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
     var result: ResourceDetailsController.ResourceDetails?
@@ -99,7 +100,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
     var result: Array<ResourceMenuController.Action>!
@@ -136,7 +138,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -166,7 +169,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -197,7 +201,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -227,7 +232,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -265,7 +271,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -295,7 +302,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -330,7 +338,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { _ in }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { _ in /* NOP */ }
       )
     )
 
@@ -362,9 +371,8 @@ final class ResourceMenuControllerTests: TestCase {
     let controller: ResourceMenuController = testInstance(
       context: (
         resourceID: detailsViewResource.id,
-        showDeleteAlert: { resourceID in
-          result = resourceID
-        }
+        showEdit: { _ in /* NOP */ },
+        showDeleteAlert: { resourceID in result = resourceID }
       )
     )
 

@@ -46,9 +46,7 @@ extension ResourceDetailsController {
       }
     }
 
-    internal typealias ID = Tagged<String, ResourceDetails>
-
-    internal let id: ID
+    internal let id: Resource.ID
     internal var permission: Permission
     internal var name: String
     internal var url: String?

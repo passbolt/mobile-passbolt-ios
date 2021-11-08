@@ -27,25 +27,23 @@ import Commons
 import Features
 import UICommons
 
-public final class ResourceCreateView: KeyboardAwareView {
+public final class ResourceEditView: KeyboardAwareView {
 
   internal typealias FieldWithView = (field: ResourceField, view: View)
 
   internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
-  internal var lockTapPublisher: AnyPublisher<Void, Never> { lockButton.tapPublisher }
+  internal var lockTapPublisher: AnyPublisher<Bool, Never> { lockTapSubject.eraseToAnyPublisher() }
   internal var createTapPublisher: AnyPublisher<Void, Never> { createButton.tapPublisher }
 
-  internal var lockAnchor: UIView { lockButton }
-
+  private let lockTapSubject: PassthroughSubject<Bool, Never> = .init()
   private let scrolledStack: ScrolledStackView = .init()
   private let entropyView: EntropyView = .init()
   private let generateButton: ImageButton = .init()
-  private let lockButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
   private var fieldViews: Dictionary<ResourceField, View> = .init()
 
-  internal required init() {
+  internal required init(createsNewResource: Bool) {
     super.init()
 
     mut(scrolledStack) {
@@ -64,17 +62,11 @@ public final class ResourceCreateView: KeyboardAwareView {
     mut(createButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "resource.form.create.button.title", inBundle: .commons)
-      )
-    }
-
-    mut(lockButton) {
-      .combined(
-        .enabled(),
-        .image(named: .lock, from: .uiCommons),
-        .tintColor(dynamic: .iconAlternative),
-        .aspectRatio(1),
-        .widthAnchor(.equalTo, constant: 14)
+        .when(
+          createsNewResource,
+          then: .text(localized: "resource.form.create.button.title", inBundle: .commons),
+          else: .text(localized: "resource.form.update.button.title", inBundle: .commons)
+        )
       )
     }
 
@@ -82,13 +74,18 @@ public final class ResourceCreateView: KeyboardAwareView {
       .combined(
         .imageContentMode(.center),
         .imageInsets(.init(top: 8, left: 8, bottom: -8, right: -8)),
-        .image(named: .magicWand, from: .uiCommons),
+        .image(named: .dice, from: .uiCommons),
         .tintColor(dynamic: .iconAlternative),
         .backgroundColor(dynamic: .divider),
         .border(dynamic: .divider, width: 1),
         .cornerRadius(4)
       )
     }
+  }
+
+  @available(*, unavailable)
+  required init() {
+    unreachable("use init(createsNewResource:)")
   }
 
   internal func update(with properties: Array<ResourceProperty>) {
@@ -109,8 +106,8 @@ public final class ResourceCreateView: KeyboardAwareView {
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .localized(
-                          "resource.create.name.field.placeholder",
-                          inBundle: .main,
+                          "resource.edit.name.field.placeholder",
+                          inBundle: .sharedUIComponents,
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -118,7 +115,7 @@ public final class ResourceCreateView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.create.field.name.label", inBundle: .main)
+                    description: .text(localized: "resource.edit.field.name.label", inBundle: .sharedUIComponents)
                   )
                 }
               )
@@ -138,8 +135,8 @@ public final class ResourceCreateView: KeyboardAwareView {
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .localized(
-                          "resource.create.url.field.placeholder",
-                          inBundle: .main,
+                          "resource.edit.url.field.placeholder",
+                          inBundle: .sharedUIComponents,
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -147,7 +144,7 @@ public final class ResourceCreateView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.create.field.url.label", inBundle: .main)
+                    description: .text(localized: "resource.edit.field.url.label", inBundle: .sharedUIComponents)
                   )
                 }
               )
@@ -167,8 +164,8 @@ public final class ResourceCreateView: KeyboardAwareView {
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .localized(
-                          "resource.create.username.field.placeholder",
-                          inBundle: .main,
+                          "resource.edit.username.field.placeholder",
+                          inBundle: .sharedUIComponents,
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -176,7 +173,7 @@ public final class ResourceCreateView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.create.field.username.label", inBundle: .main)
+                    description: .text(localized: "resource.edit.field.username.label", inBundle: .sharedUIComponents)
                   )
                 }
               )
@@ -196,8 +193,8 @@ public final class ResourceCreateView: KeyboardAwareView {
                       .primaryStyle(),
                       .attributedPlaceholderString(
                         .localized(
-                          "resource.create.password.field.placeholder",
-                          inBundle: .main,
+                          "resource.edit.password.field.placeholder",
+                          inBundle: .sharedUIComponents,
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -205,7 +202,7 @@ public final class ResourceCreateView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.create.field.password.label", inBundle: .main)
+                    description: .text(localized: "resource.edit.field.password.label", inBundle: .sharedUIComponents)
                   )
                 }
               )
@@ -220,8 +217,8 @@ public final class ResourceCreateView: KeyboardAwareView {
                 .isRequired(resourceProperty.required),
                 .attributedPlaceholder(
                   .localized(
-                    "resource.create.description.field.placeholder",
-                    inBundle: .main,
+                    "resource.edit.description.field.placeholder",
+                    inBundle: .sharedUIComponents,
                     font: .inter(ofSize: 14, weight: .medium),
                     color: .secondaryText
                   )
@@ -232,7 +229,30 @@ public final class ResourceCreateView: KeyboardAwareView {
                     text: .formStyle()
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.create.field.description.label", inBundle: .main)
+                    description: .text(
+                      localized: "resource.edit.field.description.label",
+                      inBundle: .sharedUIComponents
+                    )
+                  )
+                  input.set(
+                    accessory: Mutation<ImageButton>
+                      .combined(
+                        .enabled(),
+                        .action { [weak self] in
+                          self?.lockTapSubject.send(resourceProperty.encrypted)
+                        },
+                        .image(
+                          named: resourceProperty.encrypted
+                            ? .lockedLock
+                            : .unlockedLock,
+                          from: .uiCommons
+                        ),
+                        .tintColor(dynamic: .iconAlternative),
+                        .aspectRatio(1),
+                        .widthAnchor(.equalTo, constant: 14)
+                      )
+                      .instantiate(),
+                    with: .zero
                   )
                 }
               )
@@ -303,16 +323,7 @@ public final class ResourceCreateView: KeyboardAwareView {
                 .append(container),
                 .appendSpace(of: 4)
               )
-
-            case .description:
-              if let textViewInput = fieldView.value as? TextViewInput {
-                textViewInput.set(
-                  accessory: self.lockButton,
-                  with: .zero
-                )
-              }
-
-              fallthrough
+              
             case _:
               return .combined(
                 .append(fieldView.value),

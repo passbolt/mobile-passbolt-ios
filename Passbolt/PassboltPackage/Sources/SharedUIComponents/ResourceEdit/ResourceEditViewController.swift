@@ -24,10 +24,10 @@
 import UICommons
 import UIComponents
 
-public final class ResourceCreateViewController: PlainViewController, UIComponent {
+public final class ResourceEditViewController: PlainViewController, UIComponent {
 
-  public typealias View = ResourceCreateView
-  public typealias Controller = ResourceCreateController
+  public typealias View = ResourceEditView
+  public typealias Controller = ResourceEditController
 
   public static func instance(
     using controller: Controller,
@@ -39,7 +39,7 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
     )
   }
 
-  public private(set) lazy var contentView: View = .init()
+  public private(set) lazy var contentView: View = .init(createsNewResource: controller.createsNewResource)
   public let components: UIComponentFactory
   private let controller: Controller
 
@@ -57,18 +57,34 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
 
   public func setupView() {
     mut(navigationItem) {
-      .combined(
-        .title(localized: "resource.create.title", inBundle: .main),
-        .leftBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .backStyle(),
-              .action { [weak self] in
-                self?.controller.cleanup()
-                self?.pop(if: Self.self)
-              }
-            )
-            .instantiate()
+      .when(
+        controller.createsNewResource,
+        then: .combined(
+          .title(localized: "resource.edit.create.title", inBundle: .sharedUIComponents),
+          .leftBarButtonItem(
+            Mutation<UIBarButtonItem>
+              .combined(
+                .backStyle(),
+                .action { [weak self] in
+                  self?.controller.cleanup()
+                  self?.pop(if: Self.self)
+                }
+              )
+              .instantiate()
+          )
+        ),
+        else: .combined(
+          .title(localized: "resource.edit.title", inBundle: .sharedUIComponents),
+          .leftBarButtonItem(
+            Mutation<UIBarButtonItem>
+              .combined(
+                .backStyle(),
+                .action { [weak self] in
+                  self?.controller.presentExitConfirmation()
+                }
+              )
+              .instantiate()
+          )
         )
       )
     }
@@ -80,13 +96,18 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
     controller
       .resourcePropertiesPublisher()
       .receive(on: RunLoop.main)
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          guard case .failure = completion
-          else { return }
-
+      .handleErrors(
+        (
+          [.canceled],
+          handler: { _ in true }
+        ),
+        defaultHandler: { [weak self] _ in
           self?.presentErrorSnackbar()
-        },
+          self?.pop(if: Self.self)
+        }
+      )
+      .sink(
+        receiveCompletion: { _ in /* NOP */ },
         receiveValue: { [weak self] properties in
           self?.contentView.update(with: properties)
           self?.setupFieldSubscriptions()
@@ -141,12 +162,6 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
             guard case .finished = ending
             else { return }
 
-            self?.presentInfoSnackbar(
-              localizableKey: "resource.form.new.password.created",
-              inBundle: .commons,
-              presentationMode: .global
-            )
-
             self?.pop(if: Self.self)
           }
           .mapToVoid()
@@ -165,15 +180,34 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
       .store(in: cancellables)
 
     contentView.lockTapPublisher
-      .sink(receiveValue: { [weak self] in
+      .sink(receiveValue: { [weak self] encrypted in
         self?.presentInfoSnackbar(
-          localizableKey: "resource.form.description.encrypted",
-          inBundle: .commons,
-          presentationMode: (self?.contentView.lockAnchor).map { .anchor($0) } ?? .local
+          localizableKey: encrypted
+            ? "resource.form.description.encrypted"
+            : "resource.form.description.unencrypted",
+          inBundle: .commons
         )
       })
       .store(in: cancellables)
 
+    self.controller
+      .exitConfirmationPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] presented in
+        if presented {
+          self?.present(
+            ResourceEditExitConfirmationAlert.self,
+            in: { [weak self] in
+              self?.controller.cleanup()
+              self?.pop(if: Self.self)
+            }
+          )
+        }
+        else {
+          self?.dismiss(ResourceEditExitConfirmationAlert.self)
+        }
+      }
+      .store(in: cancellables)
   }
 
   private func setupFieldSubscriptions() {
@@ -199,7 +233,8 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
             )
             .merge(
               with:
-                self.showErrorSubject  // the subject is used as a trigger for showing error on the form, initially no errors are shown
+                // the subject is used as a trigger for showing error on the form, initially no errors are shown
+                self.showErrorSubject
                 .map { fieldValuePublisher.first() }
                 .switchToLatest()
             )
@@ -212,7 +247,9 @@ public final class ResourceCreateViewController: PlainViewController, UIComponen
             })
             .store(in: self.fieldCancellables)
 
-          self.contentView.fieldValuePublisher(for: resourceProperty.field)
+          self.contentView
+            .fieldValuePublisher(for: resourceProperty.field)
+            .removeDuplicates()
             .map { [unowned self] value -> AnyPublisher<Void, TheError> in
               self.controller.setValue(value, resourceProperty.field)
             }

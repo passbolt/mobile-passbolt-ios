@@ -147,6 +147,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           ResourceMenuViewController.self,
           in: (
             resourceID: resourceID,
+            showEdit: self.controller.presentResourceEdit,
             showDeleteAlert: self.controller.presentDeleteResourceAlert
           )
         )
@@ -158,13 +159,49 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         self?.push(
-          ResourceCreateViewController.self,
-          in: { _ in /* NOP */ }
+          ResourceEditViewController.self,
+          in: (
+            editedResource: nil,
+            completion: { _ in
+              DispatchQueue.main.async {
+                self?.presentInfoSnackbar(
+                  localizableKey: "resource.form.new.password.created",
+                  inBundle: .main,
+                  presentationMode: .global
+                )
+              }
+            }
+          )
         )
       }
       .store(in: cancellables)
 
-    controller.resourceDeleteAlertPresentationPublisher()
+    controller
+      .resourceEditPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [unowned self] resourceID in
+        self.dismiss(ResourceMenuViewController.self) {
+          self.push(
+            ResourceEditViewController.self,
+            in: (
+              editedResource: resourceID,
+              completion: { [weak self] _ in
+                DispatchQueue.main.async {
+                  self?.presentInfoSnackbar(
+                    localizableKey: "resource.menu.action.edited",
+                    inBundle: .main,
+                    presentationMode: .global
+                  )
+                }
+              }
+            )
+          )
+        }
+      }
+      .store(in: cancellables)
+
+    controller
+      .resourceDeleteAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
         self.dismiss(ResourceMenuViewController.self) {

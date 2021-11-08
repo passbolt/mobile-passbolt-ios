@@ -145,15 +145,18 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         self?.push(
-          ResourceCreateViewController.self,
-          in: { [weak self] resourceID in
-            guard let self = self else { return }
-            self.controller
-              .selectResource(resourceID)
-              .eraseToAnyPublisher()
-              .sinkDrop()
-              .store(in: self.cancellables)
-          }
+          ResourceEditViewController.self,
+          in: (
+            editedResource: nil,
+            completion: { [weak self] resourceID in
+              guard let self = self else { return }
+              self.controller
+                .selectResource(resourceID)
+                .eraseToAnyPublisher()
+                .sinkDrop()
+                .store(in: self.cancellables)
+            }
+          )
         )
       }
       .store(in: cancellables)

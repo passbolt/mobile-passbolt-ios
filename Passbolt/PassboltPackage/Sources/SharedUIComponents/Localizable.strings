@@ -31,3 +31,19 @@
 "server.not.reachable.alert.title" = "Server was not reachable!";
 "server.not.reachable.alert.message.server.placeholder" = "Server";
 "server.not.reachable.alert.message" = "%@ cannot be reached. Please try again";
+
+"resource.edit.create.title" = "Password";
+"resource.edit.title" = "Edit password";
+"resource.edit.field.name.label" = "Name";
+"resource.edit.field.url.label" = "URL";
+"resource.edit.field.username.label" = "Username";
+"resource.edit.field.password.label" = "Password";
+"resource.edit.field.description.label" = "Description";
+"resource.edit.name.field.placeholder" = "Enter a name";
+"resource.edit.url.field.placeholder" = "Enter URL";
+"resource.edit.username.field.placeholder" = "Enter username";
+"resource.edit.password.field.placeholder" = "Enter password";
+"resource.edit.description.field.placeholder" = "Enter description";
+"resource.edit.exit.confirmation.message" = "Your modifications won’t be saved.";
+"resource.edit.exit.confirmation.button.edit.title" = "Edit";
+"resource.edit.exit.confirmation.button.revert.title" = "Revert";

@@ -36,7 +36,8 @@ extension ImageNameConstant {
   public static var exit: Self { "Exit" }
   public static var info: Self { "Info" }
   public static var key: Self { "Key" }
-  public static var lock: Self { "Lock" }
+  public static var lockedLock: Self { "LockedLock" }
+  public static var unlockedLock: Self { "UnlockedLock" }
   public static var people: Self { "People" }
   public static var disclosureIndicator: Self { "DisclosureIndicator" }
   public static var biometricsIcon: Self { "BiometricsIcon" }
@@ -54,7 +55,8 @@ extension ImageNameConstant {
   public static var eyeSlash: Self { "EyeSlash" }
   public static var description: Self { "Description" }
   public static var user: Self { "User" }
-  public static var magicWand: Self { "MagicWand" }
+  public static var dice: Self { "Dice" }
+  public static var edit: Self { "Edit" }
 }
 
 extension DynamicImage {

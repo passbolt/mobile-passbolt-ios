@@ -116,7 +116,7 @@ internal final class SettingsView: ScrolledStackView {
       .combined(
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
-          subject.applyOn(icon: .image(named: .lock, from: .uiCommons))
+          subject.applyOn(icon: .image(named: .lockedLock, from: .uiCommons))
           subject.applyOn(label: .text(localized: "account.settings.privacy.policy"))
           subject.addDisclosureIndicator()
         }

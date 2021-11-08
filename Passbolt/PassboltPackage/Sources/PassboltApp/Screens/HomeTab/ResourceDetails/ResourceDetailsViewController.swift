@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import SharedUIComponents
 import UIComponents
 
 internal final class ResourceDetailsViewController: PlainViewController, UIComponent {
@@ -91,6 +92,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           ResourceMenuViewController.self,
           in: (
             resourceID: resourceID,
+            showEdit: self.controller.presentResourceEdit,
             showDeleteAlert: self.controller.presentDeleteResourceAlert
           )
         )
@@ -124,10 +126,11 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   )
                 )
               )
-            },
-            receiveCompletion: { [weak self] completion in
-              guard case .failure = completion
-              else { return }
+            }
+          )
+          .handleErrors(
+            ([.canceled, .authorizationRequired], handler: { _ in return true }),
+            defaultHandler: { [weak self] _ in
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(
@@ -137,8 +140,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   .instantiate(),
                 hideAfter: 2
               )
-            }
-          )
+            })
           .mapToVoid()
           .replaceError(with: Void())
       }
@@ -211,6 +213,30 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .sinkDrop()
       .store(in: cancellables)
 
+    controller
+      .resourceEditPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [unowned self] resourceID in
+        self.dismiss(ResourceMenuViewController.self) {
+          self.push(
+            ResourceEditViewController.self,
+            in: (
+              editedResource: resourceID,
+              completion: { [weak self] _ in
+                DispatchQueue.main.async {
+                  self?.presentInfoSnackbar(
+                    localizableKey: "resource.menu.action.edited",
+                    inBundle: .main,
+                    presentationMode: .global
+                  )
+                }
+              }
+            )
+          )
+        }
+      }
+      .store(in: cancellables)
+
     controller.resourceDeleteAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
@@ -225,7 +251,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 }
                 .handleErrors(
                   (
-                    [.canceled],
+                    [.canceled, .authorizationRequired],
                     handler: { _ in true /* NOP */ }
                   ),
                   defaultHandler: { [weak self] _ in

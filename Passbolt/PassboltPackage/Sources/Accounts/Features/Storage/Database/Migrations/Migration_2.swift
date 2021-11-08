@@ -63,6 +63,10 @@ extension SQLiteMigration {
             resourceTypesFields
           ON
             resourceFields.id == resourceTypesFields.resourceFieldID
+          JOIN
+            resourceTypes
+          ON
+            resourceTypes.id == resourceTypesFields.resourceTypeID
           WHERE
             resources.resourceTypeID == resourceTypes.id
         )

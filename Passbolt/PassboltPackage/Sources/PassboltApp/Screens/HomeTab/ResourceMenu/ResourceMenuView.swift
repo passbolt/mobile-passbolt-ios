@@ -146,6 +146,15 @@ internal final class ResourceMenuView: View {
           .text(localized: "resource.menu.item.copy.description")
         }
 
+      case .edit:
+        mut(item.imageView) {
+          .image(named: .edit, from: .uiCommons)
+        }
+
+        mut(item.titleLabel) {
+          .text(localized: "resource.menu.item.edit")
+        }
+
       case .delete:
         mut(item.imageView) {
           .combined(
