@@ -41,10 +41,9 @@ internal final class TransferSignInExitConfirmationViewController:
           handler: {}
         ),
         .action(
-          localized: .yes,
-          inBundle: .commons,
+          localized: "code.scanning.exit.confirmation.confirm.button.title",
+          inBundle: .main,
           style: .destructive,
-          accessibilityIdentifier: "alert.button.exit",
           handler: controller.exit
         )
       )
