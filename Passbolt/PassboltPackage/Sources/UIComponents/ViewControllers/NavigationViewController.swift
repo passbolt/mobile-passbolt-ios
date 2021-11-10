@@ -157,10 +157,6 @@ open class NavigationViewController: UINavigationController {
     return super.popViewController(animated: animated)
   }
 
-  open override var viewControllers: [UIViewController] {
-    didSet { print(viewControllers) }
-  }
-
   open override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
     viewControllers.forEach { viewController in
       (viewController as? CustomPresentableUIComponent)?.customPresentationSetup()

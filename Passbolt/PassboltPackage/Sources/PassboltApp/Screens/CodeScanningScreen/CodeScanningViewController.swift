@@ -159,8 +159,16 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
             case .some(_ as AuthorizationNavigationViewController):
               self?.pop(to: AccountSelectionViewController.self)
 
-            case .some, .none:
-              self?.popToRoot()
+            case .some:
+              if self?.pop(to: AccountSelectionViewController.self) ?? false {
+                /* NOP */
+              }
+              else {
+                self?.popToRoot()
+              }
+
+            case .none:
+              self?.dismiss(Self.self)
             }
 
           case .failure(.duplicateAccount):
