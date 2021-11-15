@@ -140,7 +140,8 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   .instantiate(),
                 hideAfter: 2
               )
-            })
+            }
+          )
           .mapToVoid()
           .replaceError(with: Void())
       }

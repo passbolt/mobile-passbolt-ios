@@ -70,7 +70,6 @@ extension AuthorizationController: UIController {
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let accountNotFoundScreenPresentationSubject: PassthroughSubject<Account, Never> = .init()
-    let serverNotReachableScreenPresentationSubject: PassthroughSubject<URLString, Never> = .init()
     let validator: Validator<String> = .nonEmpty(
       errorLocalizationKey: "authorization.passphrase.error",
       bundle: .commons

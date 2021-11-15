@@ -323,7 +323,7 @@ public final class ResourceEditView: KeyboardAwareView {
                 .append(container),
                 .appendSpace(of: 4)
               )
-              
+
             case _:
               return .combined(
                 .append(fieldView.value),
@@ -375,7 +375,7 @@ public final class ResourceEditView: KeyboardAwareView {
   ) -> AnyPublisher<String, Never> {
     guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
     else {
-      return Empty(completeImmediately: true)
+      return Empty()
         .eraseToAnyPublisher()
     }
 
@@ -383,7 +383,7 @@ public final class ResourceEditView: KeyboardAwareView {
     case .name, .uri, .username, .password:
       guard let textInput: TextInput = fieldView as? TextInput
       else {
-        return Empty(completeImmediately: true)
+        return Empty()
           .eraseToAnyPublisher()
       }
 
@@ -392,7 +392,7 @@ public final class ResourceEditView: KeyboardAwareView {
     case .description:
       guard let textViewInput: TextViewInput = fieldView as? TextViewInput
       else {
-        return Empty(completeImmediately: true)
+        return Empty()
           .eraseToAnyPublisher()
       }
 
@@ -400,7 +400,7 @@ public final class ResourceEditView: KeyboardAwareView {
 
     case let .undefined(name):
       assertionFailure("Undefined field: \(name)")
-      return Empty(completeImmediately: true)
+      return Empty()
         .eraseToAnyPublisher()
     }
   }

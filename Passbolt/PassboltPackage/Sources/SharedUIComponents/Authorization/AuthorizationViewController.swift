@@ -80,81 +80,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .sink(receiveCompletion: { [unowned self] _ in
         guard signInCancellable == nil
         else { return }
-        self.signInCancellable = self.controller
-          .biometricSignIn()
-          .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { [weak self] completion in
-            guard case let .failure(error) = completion
-            else { return }
-
-            guard
-              error.identifier == .invalidServerFingerprint,
-              let accountID: Account.LocalID = error.accountID,
-              let fingerprint: Fingerprint = error.serverFingerprint
-            else {
-              return
-            }
-
-            self?.signInCancellable = nil
-            self?.navigateToInvalidServerFingerprint(
-              accountID: accountID,
-              fingerprint: fingerprint
-            )
-          })
-          .handleStart { [weak self] in
-            self?.present(overlay: LoaderOverlayView())
-          }
-          .handleErrors(
-            (
-              [.canceled, .notFound, .invalidServerFingerprint, .notFound],
-              handler: { _ in true /* NOP */ }
-            ),
-            (
-              [.serverNotReachable],
-              handler: { [weak self] error in
-                self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: error.url
-                )
-                return true
-              }
-            ),
-            (
-              [.invalidPassphraseError],
-              handler: { [weak self] _ in
-                self?.presentErrorSnackbar(
-                  localizableKey: "sign.in.error.passphrase.invalid.message",
-                  inBundle: .commons,
-                  hideAfter: 5
-                )
-                return true
-              }
-            ),
-            (
-              [.biometricsChanged],
-              handler: { [weak self] _ in
-                self?.presentErrorSnackbar(
-                  localizableKey: "sign.in.error.biometrics.changed.message",
-                  inBundle: .commons,
-                  hideAfter: 5
-                )
-                return true
-              }
-            ),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
-            }
-          )
-          .handleEnd { [weak self] ending in
-            if ending != .canceled {
-              self?.signInCancellable = nil
-            }
-            else {
-              /* NOP */
-            }
-            self?.dismissOverlay()
-          }
-          .sinkDrop()
+        self.signInCancellable = self.handleSignInAction(
+          self.controller
+            .biometricSignIn
+        )
       })
       .store(in: cancellables)
   }
@@ -264,81 +193,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .sink { [unowned self] in
         guard signInCancellable == nil
         else { return }
-        self.signInCancellable = self.controller
-          .signIn()
-          .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { [weak self] completion in
-            guard case let .failure(error) = completion
-            else { return }
-
-            guard
-              error.identifier == .invalidServerFingerprint,
-              let accountID: Account.LocalID = error.accountID,
-              let fingerprint: Fingerprint = error.serverFingerprint
-            else {
-              return
-            }
-
-            self?.signInCancellable = nil
-            self?.navigateToInvalidServerFingerprint(
-              accountID: accountID,
-              fingerprint: fingerprint
-            )
-          })
-          .handleStart { [weak self] in
-            self?.present(overlay: LoaderOverlayView())
-          }
-          .handleErrors(
-            (
-              [.canceled, .notFound, .invalidServerFingerprint, .notFound],
-              handler: { _ in true /* NOP */ }
-            ),
-            (
-              [.serverNotReachable],
-              handler: { [weak self] error in
-                self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: error.url
-                )
-                return true
-              }
-            ),
-            (
-              [.invalidPassphraseError],
-              handler: { [weak self] _ in
-                self?.presentErrorSnackbar(
-                  localizableKey: "sign.in.error.passphrase.invalid.message",
-                  inBundle: .commons,
-                  hideAfter: 5
-                )
-                return true
-              }
-            ),
-            (
-              [.biometricsChanged],
-              handler: { [weak self] _ in
-                self?.presentErrorSnackbar(
-                  localizableKey: "sign.in.error.biometrics.changed.message",
-                  inBundle: .commons,
-                  hideAfter: 5
-                )
-                return true
-              }
-            ),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
-            }
-          )
-          .handleEnd { [weak self] ending in
-            if ending != .canceled {
-              self?.signInCancellable = nil
-            }
-            else {
-              /* NOP */
-            }
-            self?.dismissOverlay()
-          }
-          .sinkDrop()
+        self.signInCancellable = self.handleSignInAction(
+          self.controller
+            .signIn
+        )
       }
       .store(in: cancellables)
 
@@ -347,80 +205,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .sink { [unowned self] in
         guard signInCancellable == nil
         else { return }
-        self.signInCancellable = self.controller
-          .biometricSignIn()
-          .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { [weak self] completion in
-            guard case let .failure(error) = completion
-            else { return }
-            guard
-              error.identifier == .invalidServerFingerprint,
-              let accountID: Account.LocalID = error.accountID,
-              let fingerprint: Fingerprint = error.serverFingerprint
-            else {
-              return
-            }
-
-            self?.signInCancellable = nil
-            self?.navigateToInvalidServerFingerprint(
-              accountID: accountID,
-              fingerprint: fingerprint
-            )
-          })
-          .handleStart { [weak self] in
-            self?.present(overlay: LoaderOverlayView())
-          }
-          .handleErrors(
-            (
-              [.canceled, .notFound, .invalidServerFingerprint, .notFound],
-              handler: { _ in true /* NOP */ }
-            ),
-            (
-              [.serverNotReachable],
-              handler: { [weak self] error in
-                self?.present(
-                  ServerNotReachableAlertViewController.self,
-                  in: error.url
-                )
-                return true
-              }
-            ),
-            (
-              [.invalidPassphraseError],
-              handler: { [weak self] _ in
-                self?.presentErrorSnackbar(
-                  localizableKey: "sign.in.error.passphrase.invalid.message",
-                  inBundle: .commons,
-                  hideAfter: 5
-                )
-                return true
-              }
-            ),
-            (
-              [.biometricsChanged],
-              handler: { [weak self] _ in
-                self?.presentErrorSnackbar(
-                  localizableKey: "sign.in.error.biometrics.changed.message",
-                  inBundle: .commons,
-                  hideAfter: 5
-                )
-                return true
-              }
-            ),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
-            }
-          )
-          .handleEnd { [weak self] ending in
-            if ending != .canceled {
-              self?.signInCancellable = nil
-            }
-            else {
-              /* NOP */
-            }
-            self?.dismissOverlay()
-          }
-          .sinkDrop()
+        self.signInCancellable = self.handleSignInAction(
+          self.controller
+            .biometricSignIn
+        )
       }
       .store(in: cancellables)
 
@@ -469,5 +257,83 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       ServerFingerprintViewController.self,
       in: (accountID: accountID, fingerprint: fingerprint)
     )
+  }
+
+  private func handleSignInAction(
+    _ signInAction: () -> AnyPublisher<Bool, TheError>
+  ) -> AnyCancellable {
+    signInAction()
+      .receive(on: RunLoop.main)
+      .handleEvents(receiveCompletion: { [weak self] completion in
+        guard case let .failure(error) = completion
+        else { return }
+        guard
+          error.identifier == .invalidServerFingerprint,
+          let accountID: Account.LocalID = error.accountID,
+          let fingerprint: Fingerprint = error.serverFingerprint
+        else {
+          return
+        }
+
+        self?.signInCancellable = nil
+        self?.navigateToInvalidServerFingerprint(
+          accountID: accountID,
+          fingerprint: fingerprint
+        )
+      })
+      .handleStart { [weak self] in
+        self?.present(overlay: LoaderOverlayView())
+      }
+      .handleErrors(
+        (
+          [.canceled, .notFound, .invalidServerFingerprint],
+          handler: { _ in true /* NOP */ }
+        ),
+        (
+          [.serverNotReachable],
+          handler: { [weak self] error in
+            self?.present(
+              ServerNotReachableAlertViewController.self,
+              in: error.url
+            )
+            return true
+          }
+        ),
+        (
+          [.invalidPassphraseError],
+          handler: { [weak self] _ in
+            self?.presentErrorSnackbar(
+              localizableKey: "sign.in.error.passphrase.invalid.message",
+              inBundle: .commons,
+              hideAfter: 5
+            )
+            return true
+          }
+        ),
+        (
+          [.biometricsChanged],
+          handler: { [weak self] _ in
+            self?.presentErrorSnackbar(
+              localizableKey: "sign.in.error.biometrics.changed.message",
+              inBundle: .commons,
+              hideAfter: 5
+            )
+            return true
+          }
+        ),
+        defaultHandler: { [weak self] _ in
+          self?.presentErrorSnackbar()
+        }
+      )
+      .handleEnd { [weak self] ending in
+        if ending != .canceled {
+          self?.signInCancellable = nil
+        }
+        else {
+          /* NOP */
+        }
+        self?.dismissOverlay()
+      }
+      .sinkDrop()
   }
 }

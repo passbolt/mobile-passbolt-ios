@@ -294,7 +294,7 @@ extension ResourceEditForm: Feature {
               .eraseToAnyPublisher()
           }
           else {
-            return Empty(completeImmediately: true)
+            return Empty()
               .eraseToAnyPublisher()
           }
         }

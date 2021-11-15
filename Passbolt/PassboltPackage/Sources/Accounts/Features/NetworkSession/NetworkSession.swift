@@ -133,7 +133,7 @@ extension NetworkSession: Feature {
     }
 
     func fetchServerPublicKeys(accountID: Account.LocalID) -> AnyPublisher<ServerPublicKeys, TheError> {
-      Publishers.Zip(
+      Publishers.CombineLatest(
         fetchServerPublicPGPKey(),
         fetchServerPublicRSAKey()
       )
