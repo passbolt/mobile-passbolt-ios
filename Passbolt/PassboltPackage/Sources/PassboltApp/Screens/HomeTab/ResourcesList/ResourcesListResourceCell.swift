@@ -57,12 +57,14 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
     let iconContainer: ContainerView<View> = .init(
       contentView: iconView,
       mutation: .combined(
+        .userInteractionEnabled(false),
         .heightAnchor(.equalTo, constant: 40),
         .widthAnchor(.equalTo, constant: 40)
       )
     )
     mut(iconContainer) {
       .combined(
+        .userInteractionEnabled(false),
         .backgroundColor(.clear),
         .cornerRadius(8, masksToBounds: true),
         .subview(of: contentButton),

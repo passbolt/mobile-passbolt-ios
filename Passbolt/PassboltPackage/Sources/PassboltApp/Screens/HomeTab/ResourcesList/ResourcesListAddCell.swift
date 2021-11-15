@@ -50,7 +50,8 @@ internal final class ResourcesListAddCell: CollectionViewCell {
       mutation: .combined(
         .image(named: .plus, from: .uiCommons),
         .tintColor(.white),
-        .contentMode(.scaleAspectFit)
+        .contentMode(.scaleAspectFit),
+        .userInteractionEnabled(false)
       ),
       edges: UIEdgeInsets(
         top: 8,
@@ -61,6 +62,7 @@ internal final class ResourcesListAddCell: CollectionViewCell {
     )
     mut(iconContainer) {
       .combined(
+        .userInteractionEnabled(false),
         .backgroundColor(dynamic: .primaryBlue),
         .cornerRadius(8),
         .subview(of: contentButton),
