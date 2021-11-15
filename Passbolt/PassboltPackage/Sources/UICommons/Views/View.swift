@@ -37,12 +37,9 @@ open class View: UIView {
     }
   }
 
-  public lazy var dynamicBorderColor: DynamicColor = .always(
-    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
-  )
-  {
+  public var dynamicBorderColor: DynamicColor? {
     didSet {
-      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+      self.layer.borderColor = dynamicBorderColor?(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
 
@@ -73,5 +70,6 @@ open class View: UIView {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.layer.borderColor = dynamicBorderColor?(in: interfaceStyle).cgColor
   }
 }

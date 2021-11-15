@@ -27,22 +27,40 @@ public final class ImageButton: Button {
 
   public lazy var dynamicImage: DynamicImage = .default(self.imageView.image) {
     didSet {
-      guard (!isPressed || dynamicPressedImage == nil) && isEnabled else { return }
-      self.imageView.dynamicImage = dynamicImage
+      if (!isPressed || dynamicPressedImage == nil) && (isEnabled || dynamicDisabledImage == nil) {
+        self.imageView.dynamicImage = dynamicImage
+      }
+      else {
+        /* NOP */
+      }
     }
   }
 
   public var dynamicPressedImage: DynamicImage? {
     didSet {
-      guard isPressed && isEnabled else { return }
-      self.imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
+      if let dynamicPressedImage: DynamicImage = dynamicPressedImage, isPressed && isEnabled {
+        self.imageView.dynamicImage = dynamicPressedImage
+      }
+      else if isPressed && isEnabled {
+        self.imageView.dynamicImage = dynamicImage
+      }
+      else {
+        /* NOP */
+      }
     }
   }
 
   public var dynamicDisabledImage: DynamicImage? {
     didSet {
-      guard !isEnabled else { return }
-      self.imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
+      if let dynamicDisabledImage: DynamicImage = dynamicDisabledImage, !isEnabled {
+        self.imageView.dynamicImage = dynamicDisabledImage
+      }
+      else if !isEnabled {
+        self.imageView.dynamicImage = dynamicImage
+      }
+      else {
+        /* NOP */
+      }
     }
   }
 
