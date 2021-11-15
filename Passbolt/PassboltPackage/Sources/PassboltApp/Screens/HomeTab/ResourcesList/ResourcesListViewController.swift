@@ -166,7 +166,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
               DispatchQueue.main.async {
                 self?.presentInfoSnackbar(
                   localizableKey: "resource.form.new.password.created",
-                  inBundle: .main,
+                  inBundle: .commons,
                   presentationMode: .global
                 )
               }

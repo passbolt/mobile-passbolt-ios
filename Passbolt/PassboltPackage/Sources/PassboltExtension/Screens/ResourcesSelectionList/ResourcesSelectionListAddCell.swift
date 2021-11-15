@@ -61,6 +61,7 @@ internal final class ResourcesSelectionListAddCell: CollectionViewCell {
     )
     mut(iconContainer) {
       .combined(
+        .userInteractionEnabled(false),
         .backgroundColor(dynamic: .primaryBlue),
         .cornerRadius(8),
         .subview(of: contentButton),
