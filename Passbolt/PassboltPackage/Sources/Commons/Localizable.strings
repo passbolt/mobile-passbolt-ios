@@ -82,6 +82,7 @@
 "resource.form.field.error.empty" = "The field cannot be empty";
 "resource.from.field.error.invalid.value" = "The value for this field is invalid";
 "resource.form.field.error.max.length" = "The maximum length has been exceeded.";
+"resource.form.field.error.invalid" = "The field value invalid";
 "resource.form.error.invalid" = "The form is invalid";
 
 "resource.form.password.strength" = "Password strength";

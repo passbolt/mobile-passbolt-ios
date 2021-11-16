@@ -53,7 +53,7 @@ extension Validator where Value: Collection {
   public static func minLength(
     _ minLength: UInt,
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: String,
+    errorLocalizationKey: StaticString,
     bundle: Bundle
   ) -> Self {
     Self { value in
@@ -79,7 +79,7 @@ extension Validator where Value: Collection {
   public static func maxLength(
     _ maxLength: UInt,
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: String,
+    errorLocalizationKey: StaticString,
     bundle: Bundle
   ) -> Self {
     Self { value in

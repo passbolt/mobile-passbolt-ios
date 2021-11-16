@@ -199,13 +199,19 @@ public class TextViewInput: View {
       textView.text = validated.value
     }
 
-    if let localizationKey: StaticString = validated.errors.first?.localizationKey,
-      let localizationBundle: Bundle = validated.errors.first?.localizationBundle
-    {
-      errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
+    if validated.isValid {
+      errorMessage = nil
     }
     else {
-      errorMessage = nil
+      if let localizationKey: StaticString = validated.errors.first?.localizationKey,
+        let localizationBundle: Bundle = validated.errors.first?.localizationBundle
+      {
+        errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
+      }
+      else {
+        // fallback to display error anyway
+        errorMessage = (localizationKey: "resource.form.field.error.invalid", bundle: .commons)
+      }
     }
   }
 
