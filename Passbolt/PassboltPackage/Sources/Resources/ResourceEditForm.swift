@@ -350,7 +350,14 @@ extension ResourceEditForm: Feature {
 
         let encodedSecret: String?
         do {
-          encodedSecret = try String(data: JSONEncoder().encode(secretFieldValues), encoding: .utf8)
+          if secretFieldValues.count == 1,
+            let password: ResourceFieldValue = secretFieldValues["password"]
+          {
+            encodedSecret = password.stringValue
+          }
+          else {
+            encodedSecret = try String(data: JSONEncoder().encode(secretFieldValues), encoding: .utf8)
+          }
         }
         catch {
           return Fail(error: .invalidResourceData(underlyingError: error))
