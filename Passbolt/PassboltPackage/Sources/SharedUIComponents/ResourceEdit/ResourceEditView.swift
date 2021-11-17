@@ -64,7 +64,11 @@ public final class ResourceEditView: KeyboardAwareView {
         .primaryStyle(),
         .when(
           createsNewResource,
-          then: .text(localized: "resource.form.create.button.title", inBundle: .commons),
+          then: .when(
+            isInExtensionContext,
+            then: .text(localized: "resource.form.create.and.fill.button.title", inBundle: .commons),
+            else: .text(localized: "resource.form.create.button.title", inBundle: .commons)
+          ),
           else: .text(localized: "resource.form.update.button.title", inBundle: .commons)
         )
       )

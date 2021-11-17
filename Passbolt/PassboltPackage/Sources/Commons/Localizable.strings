@@ -92,6 +92,7 @@
 "resource.form.strength.strong" = "strong";
 "resource.form.strength.very.strong" = "very strong";
 "resource.form.create.button.title" = "Create";
+"resource.form.create.and.fill.button.title" = "Create and fill";
 "resource.form.update.button.title" = "Save";
 "resource.form.new.password.created" = "New password has been created";
 "resource.form.description.encrypted" = "Description is encrypted";
