@@ -38,8 +38,8 @@ extension ResourceMenuController {
   internal enum Action: CaseIterable {
     case openURL
     case copyURL
-    case copyPassword
     case copyUsername
+    case copyPassword
     case copyDescription
     case edit
     case delete
