@@ -176,8 +176,36 @@ internal final class ResourceMenuView: View {
 
     mut(stack) {
       .forEach(in: menuItems) { item in
-        .append(item)
+        .when(
+          item.operation == .openURL,
+          then: .combined(
+            .append(ResourceMenuDividerView()),
+            .append(item)
+          ),
+          else: .when(
+            item.operation == .copyDescription
+              && menuItems
+                .contains(where: { [.edit, .delete].contains($0.operation) }),
+            then: .combined(
+              .append(item),
+              .append(ResourceMenuDividerView())
+            ),
+            else: .append(item)
+          )
+        )
       }
+    }
+  }
+}
+
+private final class ResourceMenuDividerView: View {
+
+  override func setup() {
+    mut(self) {
+      .combined(
+        .backgroundColor(dynamic: .divider),
+        .heightAnchor(.equalTo, constant: 1)
+      )
     }
   }
 }
