@@ -89,8 +89,8 @@ internal final class EntropyView: View {
       color = .background
     case Entropy.veryWeakPassword..<Entropy.weakPassword:
       key = "resource.form.strength.very.weak"
-      multiplier = 0.2
-      color = .background
+      multiplier = 0.1
+      color = .divider
     case Entropy.weakPassword..<Entropy.fairPassword:
       key = "resource.form.strength.weak"
       multiplier = 0.4
