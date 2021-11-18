@@ -323,18 +323,21 @@ extension AccountSession: Feature {
       authorizationCancellable = nil
 
       switch sessionState {
-      case let .authorized(currentAccount)
-      where currentAccount.userID != account.userID
-        || (currentAccount.localID != account.localID
-          && !accountsDataStore.loadAccounts().contains(currentAccount))
-      ,
-        let .authorizationRequired(currentAccount)
-      where currentAccount.userID != account.userID
-        || (currentAccount.localID != account.localID
-          && !accountsDataStore.loadAccounts().contains(currentAccount)):
-        diagnostics.debugLog("Signing out \(currentAccount.localID)")
-        // signout from current account on switching accounts
-        _clearCurrentSession()
+      case let .authorized(currentAccount),
+        let .authorizedMFARequired(currentAccount, _),
+        let .authorizationRequired(currentAccount):
+        if currentAccount.userID != account.userID
+          || (currentAccount.userID == account.userID && currentAccount.domain != account.domain)
+          || (currentAccount.localID != account.localID && !accountsDataStore.loadAccounts().contains(currentAccount))
+        {
+          diagnostics.debugLog("Signing out \(currentAccount.localID)")
+          // signout from current account on switching accounts
+          _clearCurrentSession()
+        }
+        else {
+          break
+        }
+
       case _:
         break
       }

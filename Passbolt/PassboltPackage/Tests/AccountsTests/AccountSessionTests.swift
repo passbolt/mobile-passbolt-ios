@@ -1052,6 +1052,88 @@ final class AccountSessionTests: TestCase {
     XCTAssertNotNil(result)
   }
 
+  func test_authorize_closesPreviousSession_whenSwitchingAccountWithMFARequired() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
+    accountsDataStore.loadAccounts = always([])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>([.totp]))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    var result: Void?
+    networkSession.closeSession = {
+      result = Void()
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_authorize_closesPreviousSession_whenSwitchingAccountWithAccountIDCollision() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
+    accountsDataStore.loadAccounts = always([])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
+    features.use(passphraseCache)
+    features.use(networkClient)
+    networkSession.createSession = always(
+      Just(Array<MFAProvider>())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    var result: Void?
+    networkSession.closeSession = {
+      result = Void()
+      return Just(Void())
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    }
+    features.use(networkSession)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccountAlternativeWithIDCollision, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
   func test_authorize_doesNotClosePreviousSession_whenSwitchingSameAccount() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccountAlternative])
@@ -1287,8 +1369,15 @@ private let validAccount: Account = .init(
 
 private let validAccountAlternative: Account = .init(
   localID: .init(rawValue: UUID.testAlt.uuidString),
-  domain: "https://passbolt.dev",
+  domain: "https://alt.passbolt.dev",
   userID: "USER_ID_ALT",
+  fingerprint: "FINGERPRINT_ALT"
+)
+
+private let validAccountAlternativeWithIDCollision: Account = .init(
+  localID: .init(rawValue: UUID.testAlt.uuidString),
+  domain: "https://alt.passbolt.dev",
+  userID: "USER_ID", // colliding ID
   fingerprint: "FINGERPRINT_ALT"
 )
 
