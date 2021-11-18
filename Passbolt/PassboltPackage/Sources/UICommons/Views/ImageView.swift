@@ -31,9 +31,9 @@ public class ImageView: UIImageView {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
+  public var dynamicTintColor: DynamicColor? {
     didSet {
-      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+      self.tintColor = dynamicTintColor?(in: traitCollection.userInterfaceStyle)
     }
   }
   public lazy var dynamicImage: DynamicImage = .default(self.image) {
@@ -42,12 +42,9 @@ public class ImageView: UIImageView {
     }
   }
 
-  public lazy var dynamicBorderColor: DynamicColor = .always(
-    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
-  )
-  {
+  public var dynamicBorderColor: DynamicColor? {
     didSet {
-      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+      self.layer.borderColor = dynamicBorderColor?(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
 
@@ -104,8 +101,8 @@ public class ImageView: UIImageView {
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
-    self.tintColor = dynamicTintColor(in: interfaceStyle)
-    self.layer.borderColor = dynamicBorderColor(in: interfaceStyle).cgColor
+    self.tintColor = dynamicTintColor?(in: interfaceStyle)
+    self.layer.borderColor = dynamicBorderColor?(in: interfaceStyle).cgColor
   }
 
   private func updateImages() {

@@ -26,11 +26,11 @@ import UIKit
 
 public final class ProgressView: View {
 
-  override public var dynamicTintColor: DynamicColor {
+  override public var dynamicTintColor: DynamicColor? {
     get { super.dynamicTintColor }
     set {
       super.dynamicTintColor = newValue
-      progressBar.dynamicBackgroundColor = newValue
+      progressBar.dynamicBackgroundColor = newValue ?? .background
     }
   }
   override public var intrinsicContentSize: CGSize { UIView.layoutFittingExpandedSize }
@@ -47,7 +47,7 @@ public final class ProgressView: View {
     }
     mut(progressBar) {
       .combined(
-        .backgroundColor(dynamic: dynamicTintColor),
+        .backgroundColor(dynamic: dynamicTintColor ?? .background),
         .subview(of: self),
         .cornerRadius(4, masksToBounds: true),
         .topAnchor(.equalTo, topAnchor),

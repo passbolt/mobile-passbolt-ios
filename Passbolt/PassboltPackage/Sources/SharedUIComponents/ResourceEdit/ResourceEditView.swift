@@ -253,7 +253,7 @@ public final class ResourceEditView: KeyboardAwareView {
                         ),
                         .tintColor(dynamic: .iconAlternative),
                         .aspectRatio(1),
-                        .widthAnchor(.equalTo, constant: 14)
+                        .heightAnchor(.equalTo, constant: 16)
                       )
                       .instantiate(),
                     with: .zero

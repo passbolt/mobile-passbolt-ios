@@ -31,9 +31,9 @@ open class ScrolledStackView: UIScrollView {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
+  public var dynamicTintColor: DynamicColor? {
     didSet {
-      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+      self.tintColor = dynamicTintColor?(in: traitCollection.userInterfaceStyle)
     }
   }
 
@@ -145,6 +145,6 @@ open class ScrolledStackView: UIScrollView {
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
-    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor?(in: interfaceStyle)
   }
 }

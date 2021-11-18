@@ -234,6 +234,8 @@ public final class SecureTextInput: TextInput {
       .combined(
         .accessibilityIdentifier("input.secure.button.eye"),
         .tintColor(dynamic: .icon),
+        .widthAnchor(.equalTo, constant: 18),
+        .aspectRatio(1),
         .action { [weak self] in
           guard let self = self else { return }
           self.textField.isSecureTextEntry.toggle()

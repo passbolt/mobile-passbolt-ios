@@ -12,7 +12,7 @@ public final class LoaderOverlayView: View {
     let containerView: View =
       Mutation
       .combined(
-        .backgroundColor(dynamic: .divider),
+        .backgroundColor(dynamic: .backgroundAlert),
         .cornerRadius(8, masksToBounds: true),
         .subview(of: self),
         .widthAnchor(.equalTo, constant: 96),

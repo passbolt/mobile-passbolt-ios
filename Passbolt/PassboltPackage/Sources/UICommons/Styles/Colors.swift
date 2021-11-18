@@ -157,6 +157,19 @@ public struct DynamicColor {
     }
   }
 
+  /// Default/Light: #860000 Dark: #860000
+  public static var secondaryDarkRed: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0x860000)
+
+      case .light, _:
+        return UIColor(0x860000)
+      }
+    }
+  }
+
   /// Default/Light: #FAC600 Dark: #FAC600
   public static var secondaryGray: Self {
     Self { userInterfaceStyle in
@@ -326,12 +339,25 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #000000, alpha 0.4 Dark: #888888, alpha 0.4
+  /// Default/Light: #DDDDDD Dark: #282828
+  public static var backgroundAlert: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0x282828)
+
+      case .light, _:
+        return UIColor(0xDDDDDD)
+      }
+    }
+  }
+
+  /// Default/Light: #000000, alpha 0.4 Dark: #000000, alpha 0.6
   public static var overlayBackground: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0x484848).withAlphaComponent(0.2)
+        return UIColor(0x000000).withAlphaComponent(0.6)
 
       case .light, _:
         return UIColor(0x000000).withAlphaComponent(0.4)
@@ -365,12 +391,12 @@ public struct DynamicColor {
     }
   }
 
-  /// Default/Light: #333333 Dark: #777777
+  /// Default/Light: #333333 Dark: #FFFFFF
   public static var iconAlternative: Self {
     Self { userInterfaceStyle in
       switch userInterfaceStyle {
       case .dark:
-        return UIColor(0x777777)
+        return UIColor(0xFFFFFF)
 
       case .light, _:
         return UIColor(0x333333)

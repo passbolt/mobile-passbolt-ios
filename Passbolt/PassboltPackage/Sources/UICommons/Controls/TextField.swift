@@ -31,9 +31,9 @@ open class TextField: UITextField {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
+  public var dynamicTintColor: DynamicColor? {
     didSet {
-      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+      self.tintColor = dynamicTintColor?(in: traitCollection.userInterfaceStyle)
     }
   }
   public lazy var dynamicTextColor: DynamicColor = .always(self.textColor) {
@@ -42,7 +42,7 @@ open class TextField: UITextField {
     }
   }
 
-  public lazy var dynamicBorderColor: DynamicColor? = nil {
+  public var dynamicBorderColor: DynamicColor? = nil {
     didSet {
       self.layer.borderColor = dynamicBorderColor?(in: traitCollection.userInterfaceStyle).cgColor
     }
@@ -102,7 +102,7 @@ open class TextField: UITextField {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.layer.borderColor = dynamicBorderColor?(in: interfaceStyle).cgColor
-    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor?(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
     if let attributedPlaceholderString = attributedPlaceholderString?.nsAttributedString(in: interfaceStyle) {
       self.attributedPlaceholder = attributedPlaceholderString

@@ -87,8 +87,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           self?.contentView.applyOn(biometricsToggle: .hidden(false))
 
         case let .touchID(enabled):
-          #warning("TODO - change symbol to image when available")
-          self?.contentView.applyOn(biometricsImage: .image(symbol: .touchID))
+          self?.contentView.applyOn(biometricsImage: .image(named: .touchID))
           self?.contentView.applyOn(biometricsLabel: .text(localized: "account.settings.biometrics.touch.id"))
           self?.contentView.applyOn(
             biometricsSwitch: .custom { (subject: UISwitch) in

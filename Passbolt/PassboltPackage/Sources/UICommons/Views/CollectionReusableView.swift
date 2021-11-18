@@ -32,18 +32,15 @@ open class CollectionReusableView: UICollectionReusableView {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
+  public var dynamicTintColor: DynamicColor? {
     didSet {
-      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+      self.tintColor = dynamicTintColor?(in: traitCollection.userInterfaceStyle)
     }
   }
 
-  public lazy var dynamicBorderColor: DynamicColor = .always(
-    .init(cgColor: self.layer.borderColor ?? UIColor.clear.cgColor)
-  )
-  {
+  public var dynamicBorderColor: DynamicColor? {
     didSet {
-      self.layer.borderColor = dynamicBorderColor(in: traitCollection.userInterfaceStyle).cgColor
+      self.layer.borderColor = dynamicBorderColor?(in: traitCollection.userInterfaceStyle).cgColor
     }
   }
 
@@ -77,7 +74,7 @@ open class CollectionReusableView: UICollectionReusableView {
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
-    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor?(in: interfaceStyle)
   }
 }
 

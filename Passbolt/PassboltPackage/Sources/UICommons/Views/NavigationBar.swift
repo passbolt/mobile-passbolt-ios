@@ -30,9 +30,9 @@ public final class NavigationBar: UINavigationBar {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
+  public var dynamicTintColor: DynamicColor? {
     didSet {
-      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+      self.tintColor = dynamicTintColor?(in: traitCollection.userInterfaceStyle)
     }
   }
   public lazy var dynamicBarTintColor: DynamicColor = .always(self.barTintColor) {
@@ -70,7 +70,7 @@ public final class NavigationBar: UINavigationBar {
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
-    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor?(in: interfaceStyle)
     self.barTintColor = dynamicBarTintColor(in: interfaceStyle)
     self.titleTextAttributes = [
       .foregroundColor: dynamicTitleColor(in: interfaceStyle),

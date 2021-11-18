@@ -42,6 +42,7 @@ extension ImageNameConstant {
   public static var disclosureIndicator: Self { "DisclosureIndicator" }
   public static var biometricsIcon: Self { "BiometricsIcon" }
   public static var faceID: Self { "FaceID" }
+  public static var touchID: Self { "TouchID" }
   public static var more: Self { "More" }
   public static var close: Self { "Close" }
   public static var search: Self { "Search" }

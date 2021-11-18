@@ -31,9 +31,9 @@ open class Label: UILabel {
       self.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
     }
   }
-  public lazy var dynamicTintColor: DynamicColor = .always(self.tintColor) {
+  public var dynamicTintColor: DynamicColor? {
     didSet {
-      self.tintColor = dynamicTintColor(in: traitCollection.userInterfaceStyle)
+      self.tintColor = dynamicTintColor?(in: traitCollection.userInterfaceStyle)
     }
   }
   public lazy var dynamicTextColor: DynamicColor = .always(self.textColor) {
@@ -74,7 +74,7 @@ open class Label: UILabel {
   private func updateColors() {
     let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
-    self.tintColor = dynamicTintColor(in: interfaceStyle)
+    self.tintColor = dynamicTintColor?(in: interfaceStyle)
     self.textColor = dynamicTextColor(in: interfaceStyle)
     if let attributedString: AttributedString = attributedString {
       self.attributedText = attributedString.nsAttributedString(in: interfaceStyle)
