@@ -63,6 +63,7 @@ extension AccountTransfer: Feature {
     cancellables: Cancellables
   ) -> AccountTransfer {
     let diagnostics: Diagnostics = features.instance()
+    diagnostics.diagnosticLog("Beginning new account transfer...")
     #if DEBUG
     let mdmSupport: MDMSupport = features.instance()
     #endif
@@ -179,6 +180,7 @@ extension AccountTransfer: Feature {
       _ payload: String,
       using features: FeatureFactory
     ) -> AnyPublisher<Never, TheError> {
+      diagnostics.diagnosticLog("Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
       case var .success(updatedState):
         // if we have config we can ask for profile,
@@ -202,6 +204,7 @@ extension AccountTransfer: Feature {
 
           guard !accountAlreadyStored
           else {
+            diagnostics.diagnosticLog("...duplicate account detected, aborting!")
             requestCancelation(
               with: configuration,
               lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
@@ -214,7 +217,6 @@ extension AccountTransfer: Feature {
               features.unload(Self.self)
             })
             .ignoreOutput()
-            .collectErrorLog(using: diagnostics)
             .sink(receiveCompletion: { _ in })
             .store(in: cancellables)
 
@@ -224,6 +226,7 @@ extension AccountTransfer: Feature {
 
           guard !updatedState.scanningFinished
           else {
+            diagnostics.diagnosticLog("...missing profile data, aborting!")
             transferState
               .send(
                 completion: .failure(
@@ -237,6 +240,7 @@ extension AccountTransfer: Feature {
               .eraseToAnyPublisher()
           }
 
+          diagnostics.diagnosticLog("...processing succeeded, continuing transfer...")
           return requestNextPageWithUserProfile(
             for: updatedState,
             using: networkClient
@@ -260,6 +264,7 @@ extension AccountTransfer: Feature {
           .eraseToAnyPublisher()
         }
         else {
+          diagnostics.diagnosticLog("...processing succeeded, continuing transfer...")
           return requestNextPage(
             for: updatedState,
             using: networkClient
@@ -272,12 +277,21 @@ extension AccountTransfer: Feature {
           .eraseToAnyPublisher()
         }
       case let .failure(error)
-      where error.identifier == .canceled
-        || error.identifier == .accountTransferScanningRecoverableError:
+      where error.identifier == .canceled:
+        diagnostics.diagnosticLog("...processing canceled!")
         return Fail<Never, TheError>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
+
+      case let .failure(error)
+      where error.identifier == .accountTransferScanningRecoverableError:
+        diagnostics.diagnosticLog("...processing failed, recoverable!")
+        return Fail<Never, TheError>(error: error)
+          .collectErrorLog(using: diagnostics)
+          .eraseToAnyPublisher()
+
       case let .failure(error):
+        diagnostics.diagnosticLog("...processing failed, aborting!")
         if let configuration: AccountTransferConfiguration = transferState.value.configuration {
           return requestCancelation(
             with: configuration,
@@ -310,11 +324,13 @@ extension AccountTransfer: Feature {
     }
 
     func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, TheError> {
+      diagnostics.diagnosticLog("Completing account transfer...")
       guard
         let configuration = transferState.value.configuration,
         let account = transferState.value.account,
         let profile = transferState.value.profile
       else {
+        diagnostics.diagnosticLog("...missing required data!")
         return Fail<Never, TheError>(
           error: .accountTransferScanningRecoverableError(
             context: "account-transfer-complete-invalid-state"
@@ -338,18 +354,21 @@ extension AccountTransfer: Feature {
         .handleEvents(receiveCompletion: { [weak features] completion in
           switch completion {
           case .finished:
+            diagnostics.diagnosticLog("...account transfer succeeded!")
             transferState.send(completion: .finished)
             features?.unload(Self.self)
           case let .failure(error)
           where error.identifier == .duplicateAccount:
+            diagnostics.diagnosticLog("...account transfer failed!")
             transferState.send(completion: .failure(error))
             features?.unload(Self.self)
 
           case .failure:
-            break
+            diagnostics.diagnosticLog("...account transfer failed!")
           }
         })
         .ignoreOutput()
+        .collectErrorLog(using: diagnostics)
         .eraseToAnyPublisher()
     }
 
@@ -381,6 +400,7 @@ extension AccountTransfer: Feature {
     }
 
     func featureUnload() -> Bool {
+      diagnostics.diagnosticLog("...account transfer process closed!")
       #if DEBUG
       _ =
         progressPublisher

@@ -120,6 +120,7 @@ extension Accounts: Feature {
               .setFailureType(to: TheError.self)
               .eraseToAnyPublisher()
           case let .failure(error):
+            diagnostics.diagnosticLog("...failed to store account data...")
             diagnostics.debugLog(
               "Failed to save account: \(account.localID)"
                 + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
@@ -136,6 +137,7 @@ extension Accounts: Feature {
     func remove(
       account: Account
     ) -> Result<Void, TheError> {
+      diagnostics.diagnosticLog("Removing local account data...")
       dataStore.deleteAccount(account.localID)
       session
         .statePublisher()
@@ -152,7 +154,7 @@ extension Accounts: Feature {
           }
         }
         .store(in: cancellables)
-
+      diagnostics.diagnosticLog("...removing local account data succeeded!")
       return .success
     }
 

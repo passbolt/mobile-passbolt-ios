@@ -34,7 +34,7 @@ import func os.raise
 public struct Diagnostics {
 
   public var debugLog: (String) -> Void
-  public var diagnosticLog: (StaticString) -> Void
+  public var diagnosticLog: (StaticString, StaticString?) -> Void
   public var measurePerformance: (StaticString) -> TimeMeasurement
   public var uniqueID: () -> String
   public var breakpoint: () -> Void
@@ -71,8 +71,13 @@ extension Diagnostics: Feature {
         )
         #endif
       },
-      diagnosticLog: { message in
-        os_log(.info, log: diagnosticLog, message)
+      diagnosticLog: { message, argument in
+        if let argument: CVarArg = argument?.description {
+          os_log(.info, log: diagnosticLog, message, argument)
+        }
+        else {
+          os_log(.info, log: diagnosticLog, message)
+        }
       },
       measurePerformance: { name in
         let id: String = uuidGenerator().uuidString
@@ -119,11 +124,18 @@ extension Diagnostics: Feature {
 
 extension Diagnostics {
 
+  public func diagnosticLog(
+    _ message: StaticString,
+    variable: StaticString? = nil
+  ) {
+    self.diagnosticLog(message, variable)
+  }
+
   // drop all diagnostics
   public static var disabled: Self {
     Self(
       debugLog: { _ in },
-      diagnosticLog: { _ in },
+      diagnosticLog: { _, _ in },
       measurePerformance: { _ in
         TimeMeasurement(event: { _ in }, end: {})
       },

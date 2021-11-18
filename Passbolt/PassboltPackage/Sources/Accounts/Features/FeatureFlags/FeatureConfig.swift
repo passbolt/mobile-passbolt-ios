@@ -153,9 +153,14 @@ extension FeatureConfig: Feature {
           .eraseToAnyPublisher()
       }
 
-      return networkClient.configRequest.make()
+      diagnostics.diagnosticLog("Fetching server configuration...")
+
+      return networkClient
+        .configRequest
+        .make()
         .map { (response: ConfigResponse) in
           handle(response: response)
+          diagnostics.diagnosticLog("...server configuration fetched!")
           return Void()
         }
         .collectErrorLog(using: diagnostics)

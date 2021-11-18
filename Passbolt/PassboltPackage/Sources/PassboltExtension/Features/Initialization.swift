@@ -42,14 +42,14 @@ extension Initialization: Feature {
 
     // swift-format-ignore: NoLeadingUnderscores
     func _initialize(with features: FeatureFactory) {
-      diagnostics.debugLog("Initializing...")
-      defer { diagnostics.debugLog("... initialization completed") }
+      diagnostics.diagnosticLog("Initializing the app extension...")
+      defer { diagnostics.diagnosticLog("...app extension initialization completed!") }
       defer { features.unload(Initialization.self) }
       // initialize application extension features here
+      analytics()
     }
     let initialize: () -> Void = { [unowned features] in
-      analytics()
-      return _initialize(with: features)
+      _initialize(with: features)
     }
 
     func featureUnload() -> Bool {

@@ -82,6 +82,7 @@ extension NetworkSession: Feature {
     let pgp: PGP = environment.pgp
     let signatureVerification: SignatureVerfication = environment.signatureVerfication
 
+    let diagnostics: Diagnostics = features.instance()
     let accountDataStore: AccountsDataStore = features.instance()
     let fingerprintStorage: FingerprintStorage = features.instance()
     let networkClient: NetworkClient = features.instance()
@@ -116,6 +117,9 @@ extension NetworkSession: Feature {
       networkClient
         .serverPGPPublicKeyRequest
         .make()
+        .handleEvents(receiveSubscription: { _ in
+          diagnostics.diagnosticLog("...fetching server public PGP key...")
+        })
         .map { response in
           ArmoredPGPPublicKey(rawValue: response.body.keyData)
         }
@@ -126,6 +130,9 @@ extension NetworkSession: Feature {
       networkClient
         .serverRSAPublicKeyRequest
         .make()
+        .handleEvents(receiveSubscription: { _ in
+          diagnostics.diagnosticLog("...fetching server public RSA key...")
+        })
         .map { response in
           ArmoredRSAPublicKey(rawValue: response.body.keyData)
         }
@@ -146,6 +153,7 @@ extension NetworkSession: Feature {
           serverFingerprint = fingerprint
 
         case let .failure(error):
+          diagnostics.diagnosticLog("...server public PGP key fingerprint extraction failed!")
           return Fail(error: error)
             .eraseToAnyPublisher()
         }
@@ -155,6 +163,7 @@ extension NetworkSession: Feature {
           existingFingerprint = fingerprint
 
         case .failure:
+          diagnostics.diagnosticLog("...server public PGP key fingerprint loading failed!")
           return Fail(
             error: .invalidServerFingerprint(
               accountID: accountID,
@@ -168,6 +177,7 @@ extension NetworkSession: Feature {
           switch pgp.verifyPublicKeyFingerprint(publicPGP, fingerprint) {
           case let .success(match):
             if match {
+              diagnostics.diagnosticLog("...server public PGP key fingerprint verification succeeded...")
               return Just(
                 ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
               )
@@ -175,6 +185,7 @@ extension NetworkSession: Feature {
               .eraseToAnyPublisher()
             }
             else {
+              diagnostics.diagnosticLog("...server public PGP key fingerprint verification failed!")
               return Fail(
                 error: .invalidServerFingerprint(
                   accountID: accountID,
@@ -190,13 +201,16 @@ extension NetworkSession: Feature {
           }
         }
         else {
+          diagnostics.diagnosticLog("...server public PGP key fingerprint verification skipped...")
           switch fingerprintStorage.storeServerFingerprint(accountID, serverFingerprint) {
           case let .failure(error):
+            diagnostics.diagnosticLog("...server public PGP key fingerprint save failed!")
             return Fail(error: error)
               .eraseToAnyPublisher()
           case _:
             break
           }
+          diagnostics.diagnosticLog("...server public PGP key fingerprint saved...")
           return Just(
             ServerPublicKeys(publicPGP: publicPGP, pgpFingerprint: serverFingerprint, rsa: rsa)
           )
@@ -229,6 +243,7 @@ extension NetworkSession: Feature {
 
         guard let encoded: String = .init(bytes: challengeData, encoding: .utf8)
         else {
+          diagnostics.diagnosticLog("...sign in challenge encoding failed!")
           return Fail<ArmoredPGPMessage, TheError>(
             error: .signInError()
               .appending(context: "Failed to encode challenge to string")
@@ -238,6 +253,7 @@ extension NetworkSession: Feature {
         encodedChallenge = encoded
       }
       catch {
+        diagnostics.diagnosticLog("...sign in challenge encoding failed!")
         return Fail<ArmoredPGPMessage, TheError>(
           error: .signInError(underlyingError: error)
             .appending(context: "Failed to encode challenge")
@@ -258,6 +274,7 @@ extension NetworkSession: Feature {
         encryptedAndSignedChallenge = result
 
       case let .failure(error):
+        diagnostics.diagnosticLog("...sign in challenge encryption with signature failed!")
         return Fail<ArmoredPGPMessage, TheError>(
           error: error.appending(logMessage: "Failed to encrypt and sign challenge")
         )
@@ -315,6 +332,7 @@ extension NetworkSession: Feature {
         decryptedResponsePayload = result
 
       case let .failure(error):
+        diagnostics.diagnosticLog("...server response decryption failed!")
         return Fail<Tokens, TheError>(
           error: error.appending(logMessage: "Unable to decrypt and verify response")
         )
@@ -328,12 +346,14 @@ extension NetworkSession: Feature {
         tokens = try decoder.decode(Tokens.self, from: tokenData)
       }
       catch {
+        diagnostics.diagnosticLog("...server response tokens decoding failed!")
         return Fail<Tokens, TheError>.init(
           error: .signInError(underlyingError: error)
         )
         .eraseToAnyPublisher()
       }
 
+      diagnostics.diagnosticLog("...received session tokens...")
       return Just<Tokens>(tokens)
         .setFailureType(to: TheError.self)
         .eraseToAnyPublisher()
@@ -385,6 +405,7 @@ extension NetworkSession: Feature {
         accessToken = jwt
 
       case let .failure(error):
+        diagnostics.diagnosticLog("...session tokens decoding failed!")
         return Fail<SessionTokensWithMFAProviders, TheError>(
           error: error.appending(logMessage: "Failed to prepare for signature verification")
         )
@@ -398,6 +419,7 @@ extension NetworkSession: Feature {
         let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
         let signedData: Data = accessToken.signedPayload.data(using: .utf8)
       else {
+        diagnostics.diagnosticLog("...session tokens verification failed!")
         return Fail<SessionTokensWithMFAProviders, TheError>(
           error: .signInError()
             .appending(logMessage: "Failed to prepare for signature verification")
@@ -407,6 +429,7 @@ extension NetworkSession: Feature {
 
       switch signatureVerification.verify(signedData, signature, key) {
       case .success:
+        diagnostics.diagnosticLog("...session tokens signature verification succeeded...")
         return Just(
           SessionTokensWithMFAProviders(
             tokens: NetworkSessionTokens(
@@ -422,6 +445,7 @@ extension NetworkSession: Feature {
         .eraseToAnyPublisher()
 
       case let .failure(error):
+        diagnostics.diagnosticLog("...session tokens signature verification failed!")
         return Fail<SessionTokensWithMFAProviders, TheError>(
           error: error.appending(logMessage: "Signature verification failed")
         )
@@ -505,7 +529,6 @@ extension NetworkSession: Feature {
         }
         .switchToLatest()
         .handleEvents(receiveOutput: { (tokens: NetworkSessionTokens, _: Array<MFAProvider>) in
-
           var copyTokens: NetworkSessionTokens = tokens
           copyTokens.mfaToken = mfaToken
           sessionTokensSubject.send(copyTokens)
@@ -523,6 +546,7 @@ extension NetworkSession: Feature {
     ) -> AnyPublisher<Void, TheError> {
       switch authorization {
       case let .totp(otp):
+        diagnostics.diagnosticLog("...verifying otp...")
         return networkClient
           .totpAuthorizationRequest
           .make(using: .init(totp: otp, remember: storeLocally))
@@ -544,6 +568,7 @@ extension NetworkSession: Feature {
           .eraseToAnyPublisher()
 
       case let .yubikeyOTP(otp):
+        diagnostics.diagnosticLog("...verifying yubikey otp...")
         return networkClient
           .yubikeyAuthorizationRequest
           .make(using: .init(otp: otp, remember: storeLocally))

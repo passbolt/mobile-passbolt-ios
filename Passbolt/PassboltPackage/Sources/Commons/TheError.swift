@@ -27,8 +27,8 @@ import struct Foundation.OSStatus
 // "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them"
 public struct TheError: Error {
 
-  public typealias ID = Tagged<String, TheError>
-  public typealias Extension = Tagged<String, ID>
+  public typealias ID = Tagged<StaticString, TheError>
+  public typealias Extension = Tagged<StaticString, ID>
 
   public let identifier: ID
   public let underlyingError: Error?

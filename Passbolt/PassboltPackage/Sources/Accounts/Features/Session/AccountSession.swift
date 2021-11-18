@@ -286,6 +286,7 @@ extension AccountSession: Feature {
     // session state change triggers.
     // swift-format-ignore: NoLeadingUnderscores
     let _clearCurrentSession: () -> Void = { [unowned features] in
+      diagnostics.diagnosticLog("Clearing current session state...")
       passphraseCache.clear()
       features.unload(AccountDatabase.self)
 
@@ -342,7 +343,8 @@ extension AccountSession: Feature {
         break
       }
 
-      diagnostics.debugLog("Signing in \(account.localID)")
+      diagnostics.diagnosticLog("Beginning authorization...")
+      diagnostics.debugLog("Signing in to: \(account.localID)")
 
       // since we are trying to sign in we change current session state
       // to a new one with authorizationRequired state to indicate
@@ -359,14 +361,18 @@ extension AccountSession: Feature {
       let armoredPrivateKey: ArmoredPGPPrivateKey
       switch authorizationMethod {
       case let .adHoc(pass, privateKey):
+        diagnostics.diagnosticLog("...using ad-hoc credentials...")
         passphrase = pass
         armoredPrivateKey = privateKey
       case let .passphrase(value):
+        diagnostics.diagnosticLog("...using passphrase...")
         passphrase = value
         switch accountsDataStore.loadAccountPrivateKey(account.localID) {
         case let .success(armoredKey):
+          diagnostics.diagnosticLog("...account private key found...")
           armoredPrivateKey = armoredKey
         case let .failure(error):
+          diagnostics.diagnosticLog("...account private key unavailable!")
           diagnostics.debugLog(
             "Failed to retrieve private key for account: \(account.localID)"
               + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
@@ -376,17 +382,22 @@ extension AccountSession: Feature {
         }
 
       case .biometrics:
+        diagnostics.diagnosticLog("...using biometrics...")
         switch accountsDataStore.loadAccountPassphrase(account.localID) {
         case let .success(value):
+          diagnostics.diagnosticLog("...account passphrase found...")
           passphrase = value
         case let .failure(error):
+          diagnostics.diagnosticLog("...account passphrase unavailable!")
           return Fail<Bool, TheError>(error: error)
             .eraseToAnyPublisher()
         }
         switch accountsDataStore.loadAccountPrivateKey(account.localID) {
         case let .success(armoredKey):
+          diagnostics.diagnosticLog("...account private key found...")
           armoredPrivateKey = armoredKey
         case let .failure(error):
+          diagnostics.diagnosticLog("...account private key unavailable!")
           diagnostics.debugLog(
             "Failed to retrieve private key for account: \(account.localID)"
               + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
@@ -423,9 +434,11 @@ extension AccountSession: Feature {
               )
 
             if mfaProviders.isEmpty {
+              diagnostics.diagnosticLog("...authorization succeeded!")
               sessionState = .authorized(account)
             }
             else {
+              diagnostics.diagnosticLog("...MFA authorization required!")
               sessionState = .authorizedMFARequired(account, providers: mfaProviders)
               requestMFA(with: mfaProviders)
             }
@@ -452,7 +465,9 @@ extension AccountSession: Feature {
       method: MFAAuthorizationMethod,
       rememberDevice: Bool
     ) -> AnyPublisher<Void, TheError> {
-      sessionStateSubject
+      diagnostics.diagnosticLog("Beginning MFA authorization...")
+      return
+        sessionStateSubject
         .first()
         .map { (sessionState: State) -> AnyPublisher<Void, TheError> in
           let account: Account
@@ -460,6 +475,7 @@ extension AccountSession: Feature {
           case let .authorized(currentAccount), let .authorizedMFARequired(currentAccount, _):
             account = currentAccount
           case .authorizationRequired, .none:
+            diagnostics.diagnosticLog("...authorization required!")
             return Fail<Void, TheError>(error: .authorizationRequired())
               .eraseToAnyPublisher()
           }
@@ -477,10 +493,12 @@ extension AccountSession: Feature {
                   // to read the state and update it under same lock
                   // to avoid invalid session state
                   state = .authorized(account)
+                  diagnostics.diagnosticLog("...MFA authorization succeeded!")
                   return Just(Void())
                     .setFailureType(to: TheError.self)
                     .eraseToAnyPublisher()
                 case _:
+                  diagnostics.diagnosticLog("...MFA authorization failed!")
                   return Fail<Void, TheError>(error: .authorizationRequired())
                     .eraseToAnyPublisher()
                 }

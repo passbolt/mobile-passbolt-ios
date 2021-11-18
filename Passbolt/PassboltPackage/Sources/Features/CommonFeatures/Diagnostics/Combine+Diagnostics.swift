@@ -28,22 +28,20 @@ extension Publisher where Failure == TheError {
   public func collectErrorLog(
     withPrefix prefix: StaticString = "",
     using diagnostics: Diagnostics
-  ) -> AnyPublisher<Output, Failure> {
-    #if DEBUG
+  ) -> Publishers.HandleEvents<Self> {
     handleEvents(receiveCompletion: { completion in
       switch completion {
       case .finished, .failure(.canceled):
         break
 
       case let .failure(error):
+        #if DEBUG
         diagnostics.debugLog("\(prefix)\(error.debugDescription)")
+        #else
+        diagnostics.diagnosticLog("Error: %{public}s", variable: error.identifier.rawValue)
+        #endif
       }
     })
-    .eraseToAnyPublisher()
-    #else
-    #warning("TODO: we might need to store some information in regular diagnostic log")
-    return eraseToAnyPublisher()
-    #endif
   }
 }
 

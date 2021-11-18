@@ -590,7 +590,7 @@ extension AccountsDataStore: Feature {
           }
         }
         .mapError { error in
-          diagnostics.diagnosticLog("Failed to load passphrase from keychain")
+          diagnostics.diagnosticLog("...failed to load passphrase from keychain...")
           diagnostics.debugLog(error.description)
           if error.identifier == .missingPassphrase {
             // Ensure that account profile has biometrics disabled
