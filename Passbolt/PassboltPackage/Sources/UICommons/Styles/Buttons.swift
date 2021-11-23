@@ -67,8 +67,7 @@ extension Mutation where Subject: UIBarButtonItem {
   public static func placeholderStyle() -> Self {
     .combined(
       .style(.plain),
-      .image(named: .navigationBarPlaceholder, from: .uiCommons),
-      .tintColor(.clear)
+      .image(named: .navigationBarPlaceholder, from: .uiCommons)
     )
   }
 

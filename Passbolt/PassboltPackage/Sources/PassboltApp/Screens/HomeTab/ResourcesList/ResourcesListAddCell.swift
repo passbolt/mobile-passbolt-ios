@@ -49,7 +49,7 @@ internal final class ResourcesListAddCell: CollectionViewCell {
       contentView: .init(),
       mutation: .combined(
         .image(named: .plus, from: .uiCommons),
-        .tintColor(.white),
+        .tintColor(dynamic: .primaryButtonText),
         .contentMode(.scaleAspectFit),
         .userInteractionEnabled(false)
       ),
