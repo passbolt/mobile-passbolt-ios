@@ -111,7 +111,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         )
       case .faceID:
         self?.contentView.applyOn(
-          biometricButton: .image(named: .faceID)
+          biometricButton: .image(named: .faceID, from: .uiCommons)
         )
         self?.contentView.applyOn(
           biometricButtonContainer: .hidden(false)
@@ -119,7 +119,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self?.autoLoginPromptSubject.send(completion: .finished)
       case .touchID:
         self?.contentView.applyOn(
-          biometricButton: .image(named: .touchID)
+          biometricButton: .image(named: .touchID, from: .uiCommons)
         )
         self?.contentView.applyOn(
           biometricButtonContainer: .hidden(false)
