@@ -8,7 +8,13 @@ DERIVED_DATA=Passbolt/DerivedData
 ARCHIVE_PATH=Passbolt.xcarchive
 IPA_PATH=Passbolt.ipa
 EXPORT_OPTIONS=Tools/export-options.plist
-BUILD := $(shell date +%s)
+
+ifdef CI_PIPELINE_IID
+	BUILD := $(CI_PIPELINE_IID)
+else
+	BUILD = $(shell date +%s)
+endif
+
 TEST_PLATFORM = iOS Simulator,name=iPhone 12
 
 clean:
@@ -25,13 +31,22 @@ test:
 	xcodebuild -project $(PROJECT_PATH) -scheme Passbolt -destination platform="$(TEST_PLATFORM)" -resultBundlePath TestResults.xcresult -derivedDataPath $(DERIVED_DATA) test -enableCodeCoverage YES || exit -1
 	xcrun xccov view --report TestResults.xcresult --only-targets > test-coverage-report.txt
 
-qa_build_publish: 
+qa_build_validation:
+	rm -rf *.ipa
+	rm -rf *.xcarchive
+	cd Passbolt; agvtool new-version -all $(BUILD)
+	xcodebuild archive -project $(PROJECT_PATH) -scheme Passbolt -configuration Release -archivePath $(ARCHIVE_PATH) -derivedDataPath $(DERIVED_DATA)
+	xcodebuild -exportArchive -archivePath $(ARCHIVE_PATH) -exportPath $(IPA_PATH) -exportOptionsPlist  $(EXPORT_OPTIONS)
+	xcrun altool --validate-app -f $(IPA_PATH)/Passbolt.ipa -u $(ASC_USER) --apiKey $(ASC_KEY) --apiIssuer $(ASC_KEY_ISSUER) --type ios
+	
+qa_build_publish:
 	rm -rf *.ipa
 	rm -rf *.xcarchive
 	cd Passbolt; agvtool new-version -all $(BUILD)
 	xcodebuild archive -project $(PROJECT_PATH) -scheme Passbolt -configuration Release -archivePath $(ARCHIVE_PATH) -derivedDataPath $(DERIVED_DATA)
 	xcodebuild -exportArchive -archivePath $(ARCHIVE_PATH) -exportPath $(IPA_PATH) -exportOptionsPlist  $(EXPORT_OPTIONS)
 	xcrun altool --upload-app -f $(IPA_PATH)/Passbolt.ipa -u $(ASC_USER) --apiKey $(ASC_KEY) --apiIssuer $(ASC_KEY_ISSUER) --type ios
+	echo "Uploaded build: $(BUILD)"
 
 lint:
 	swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report

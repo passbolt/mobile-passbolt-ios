@@ -1,9 +1,10 @@
 stages:
   - static_analysis
   - test
+  - qa_build_validation
   - qa_build
 
-.lint: # Disabling lint - due to a crash in swift-format - https://github.com/apple/swift-format/pull/267
+lint:
   stage: static_analysis
   script:
     make lint
@@ -12,7 +13,6 @@ stages:
       - lint-report
     expire_in: 1 week
   only:
-    - branches
     - merge_request
   tags:
     - ios
@@ -27,7 +27,15 @@ unit_tests:
       - test-coverage-report.txt
     expire_in: 1 week
   only:
-    - branches
+    - merge_request
+  tags:
+    - ios
+
+qa_build_validation:
+  stage: qa_build_validation
+  script:
+    make qa_build_validation
+  only:
     - merge_request
   tags:
     - ios
