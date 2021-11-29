@@ -50,5 +50,6 @@ qa_build_upload:
     expire_in: 1 week
   only:
     - develop
+    - /^release.*$/
   tags:
     - ios
