@@ -113,8 +113,9 @@ extension JWT {
     type: T.Type,
     from input: String?
   ) -> Result<T, TheError> {
-    guard let value = input,
-      let preprocessed = value.base64DecodeFromURLEncoded(options: .ignoreUnknownCharacters)
+    guard
+      let value = input,
+      let preprocessed: Data = value.base64DecodeFromURLEncoded()
     else {
       return .failure(.jwtError())
     }
