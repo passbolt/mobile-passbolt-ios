@@ -31,17 +31,17 @@ internal final class TransferSignInExitConfirmationViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "code.scanning.exit.confirmation.title"),
-        .message(localized: "code.scanning.exit.confirmation.message"),
+        .title(localized: "transfer.account.exit.confirmation.title"),
+        .message(localized: "transfer.account.exit.confirmation.message"),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          localized: "transfer.account.exit.confirmation.cancel.button.title",
+          inBundle: .main,
           style: .cancel,
           accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
-          localized: "code.scanning.exit.confirmation.confirm.button.title",
+          localized: "transfer.account.exit.confirmation.confirm.button.title",
           inBundle: .main,
           style: .destructive,
           handler: controller.exit

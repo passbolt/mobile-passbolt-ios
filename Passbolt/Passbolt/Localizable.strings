@@ -29,8 +29,6 @@
 "welcome.no.account" = "I don’t have an account";
 "welcome.no.account.alert.title" = "How to create an account?";
 "welcome.no.account.alert.text" = "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension.";
-"code.scanning.exit.confirmation.title" = "Are you sure?";
-"code.scanning.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
 "code.scanning.exit.confirmation.confirm.button.title" = "Stop scanning";
 "code.scanning.help.title" = "Scanning QR codes";
 "code.scanning.help.message" = "You will see a sequence of QR codes. We will scan these codes until the progress bar is full. then you will be able to login!";
@@ -55,6 +53,10 @@
 "transfer.account.result.already.linked.title" = "Account is already linked to the device.";
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
 "transfer.account.result.error.title" = "Something went wrong!";
+"transfer.account.exit.confirmation.title" = "Are you sure?";
+"transfer.account.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
+"transfer.account.exit.confirmation.cancel.button.title" = "Continue setup";
+"transfer.account.exit.confirmation.confirm.button.title" = "Cancel setup";
 
 "biometrics.usage.reason" = "Biometrics can be used to save your passphrase securely.";
 
