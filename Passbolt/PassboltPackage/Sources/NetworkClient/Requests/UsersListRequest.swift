@@ -25,18 +25,18 @@ import Commons
 import Environment
 
 public typealias UserListRequest =
-  NetworkRequest<AuthorizedSessionVariable, UserListRequestVariable, UserListRequestResponse>
+  NetworkRequest<AuthorizedNetworkSessionVariable, UserListRequestVariable, UserListRequestResponse>
 
 extension UserListRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/users.json"),
           .whenSome(
             requestVariable.resourceIDFilter,
@@ -46,7 +46,7 @@ extension UserListRequest {
             else: .none
           ),
           .queryItem("api-version", value: "v2"),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
             then: { mfaToken in

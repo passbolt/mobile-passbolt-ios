@@ -25,18 +25,18 @@ import Commons
 import Environment
 
 public typealias ServerPGPPublicKeyRequest =
-  NetworkRequest<DomainSessionVariable, ServerPGPPublicKeyVariable, ServerPGPPublicKeyResponse>
+  NetworkRequest<EmptyNetworkSessionVariable, ServerPGPPublicKeyVariable, ServerPGPPublicKeyResponse>
 
 extension ServerPGPPublicKeyRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
-      template: .init { sessionVariable, _ in
+      template: .init { _, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/auth/verify.json"),
           .method(.get)
         )
@@ -48,7 +48,16 @@ extension ServerPGPPublicKeyRequest {
   }
 }
 
-public typealias ServerPGPPublicKeyVariable = Void
+public struct ServerPGPPublicKeyVariable {
+  public var domain: URLString
+
+  public init(
+    domain: URLString
+  ) {
+    self.domain = domain
+  }
+}
+
 public typealias ServerPGPPublicKeyResponse = CommonResponse<ServerPGPPublicKeyResponseBody>
 
 public struct ServerPGPPublicKeyResponseBody: Decodable {

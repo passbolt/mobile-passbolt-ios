@@ -38,7 +38,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   var fingerprintStorage: FingerprintStorage!
   var verificationToken: UUID!
   var refreshToken: UUID!
-  var domain: String!
+  var domain: URLString!
   var passphrase: Passphrase!
   var tokens: Tokens!
 
@@ -55,7 +55,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     passphrase = "SECRET PASSPHRASE"
     tokens = .init(
       version: "1.0.0",
-      domain: domain,
+      domain: domain.rawValue,
       verificationToken: verificationToken.uuidString,
       accessToken: validToken,
       refreshToken: refreshToken.uuidString
@@ -77,6 +77,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
     features.environment.pgp.extractFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     features.environment.signatureVerfication.verify = always(.success(Void()))
+
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
 
     networkClient.serverRSAPublicKeyRequest = .respondingWith(
       .init(
@@ -104,7 +106,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
     )
 
-    networkClient.setTokensPublisher = always(Void())
+    networkClient.setSessionStatePublisher = always(Void())
+
+    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
+    fingerprintStorage.storeServerFingerprint = always(.success(()))
   }
 
   override func tearDown() {
@@ -119,9 +124,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createSession_succeeds_withHappyPath() {
-    accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
-    fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
     features.use(networkClient)
@@ -133,7 +135,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -167,7 +168,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -199,7 +199,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -232,7 +231,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -266,7 +264,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -300,7 +297,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -334,7 +330,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -369,7 +364,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -402,7 +396,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -439,7 +432,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -472,7 +464,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -526,7 +517,10 @@ final class NetworkSessionCreateSessionTests: TestCase {
       result = mfaToken
       return .success
     }
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
+    fingerprintStorage.loadServerFingerprint = always(.success(nil))
+    fingerprintStorage.storeServerFingerprint = always(.success)
     features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
@@ -537,6 +531,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
 
     networkSession
       .createMFAToken(
@@ -550,7 +552,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     XCTAssertEqual(result, .init(rawValue: "mfa_token"))
   }
 
-  func test_createMFAToken_fails_whenTOTPRequestFails() {
+  func test_createMFAToken_fails_whenThereIsNoMatchingSession() {
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
 
@@ -561,6 +563,47 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+    networkSession
+      .createMFAToken(
+        validAccount,
+        .totp("totp"),
+        true
+      )
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: {}
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .missingSessionError)
+  }
+
+  func test_createMFAToken_fails_whenTOTPRequestFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
 
     var result: TheError?
     networkSession
@@ -583,6 +626,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createMFAToken_fails_whenYubikeyOTPRequestFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
 
@@ -593,6 +637,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
 
     var result: TheError?
     networkSession
@@ -615,6 +667,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createMFAToken_fails_whenMFATokenStoreFails() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
     accountsDataStore.storeAccountMFAToken = always(.failure(TheError.testError()))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
@@ -627,6 +680,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
 
     var result: TheError?
     networkSession
@@ -649,6 +710,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createMFAToken_succeeds_whenAllTOTPOperationsSucceed() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
     accountsDataStore.storeAccountMFAToken = always(.success)
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
@@ -661,6 +723,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
 
     var result: Void?
     networkSession
@@ -683,6 +753,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   }
 
   func test_createMFAToken_succeeds_whenAllYubikeyOTPOperationsSucceed() {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
     accountsDataStore.storeAccountMFAToken = always(.success)
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
@@ -695,6 +766,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
 
     var result: Void?
     networkSession
@@ -743,7 +822,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -780,7 +858,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -813,7 +890,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -842,7 +918,6 @@ final class NetworkSessionCreateSessionTests: TestCase {
     networkSession
       .createSession(
         validAccount,
-        domain,
         pgpPrivateKey,
         passphrase
       )
@@ -850,6 +925,181 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertEqual(storedFingerprint?.rawValue, serverPGPPublicKeyFingerprint)
+  }
+
+  func test_sessionRefresh_fails_whenThereIsNoMatchingSession() {
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+
+    var result: TheError?
+    networkSession
+      .refreshSessionIfNeeded(validAccount)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .missingSessionError)
+  }
+
+  func test_sessionRefresh_isSkipped_whenAccessTokenIsStillValid() {
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    var result: Void?
+    networkClient.refreshSessionRequest.execute = { _ in
+      result = Void()
+      return Just(
+        RefreshSessionResponse(
+          accessToken: "invalid JWT",
+          refreshToken: "refreshToken"
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    }
+
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    networkSession
+      .refreshSessionIfNeeded(validAccount)
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
+  }
+
+  func test_sessionRefresh_fails_whenAccessTokenIsNotValidJWT() {
+    // make current session (after create session) expired so it will allow session refresh
+    environment.time.timestamp = always(1_638_374_700)
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    networkClient.refreshSessionRequest.execute = always(
+      Just(
+        RefreshSessionResponse(
+          accessToken: "invalid JWT",
+          refreshToken: "refreshToken"
+        )
+      )
+      .setFailureType(to: TheError.self)
+      .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    networkSession
+      .refreshSessionIfNeeded(validAccount)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .jwtError)
+  }
+
+  func test_sessionRefresh_fails_whenSessionRefreshRequestFails() {
+    // make current session (after create session) expired so it will allow session refresh
+    environment.time.timestamp = always(1_638_374_700)
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    networkClient.refreshSessionRequest.execute = always(
+      Fail(error: .testError())
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    networkSession
+      .refreshSessionIfNeeded(validAccount)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_sessionRefresh_succeeds_withHappyPath() {
+    features.use(accountsDataStore)
+    features.use(fingerprintStorage)
+    networkClient.refreshSessionRequest.execute = always(
+      Just(RefreshSessionResponse(accessToken: validToken, refreshToken: "refreshToken"))
+        .setFailureType(to: TheError.self)
+        .eraseToAnyPublisher()
+    )
+    features.use(networkClient)
+
+    let networkSession: NetworkSession = testInstance()
+    networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    networkSession
+      .refreshSessionIfNeeded(validAccount)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { /* NOP */  }
+      )
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
   }
 }
 

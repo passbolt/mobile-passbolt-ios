@@ -32,7 +32,7 @@ public struct Accounts {
   // Saves account data if authorization succeeds and creates session.
   public var transferAccount:
     (
-      _ domain: String,
+      _ domain: URLString,
       _ userID: String,
       _ username: String,
       _ firstName: String,
@@ -67,7 +67,7 @@ extension Accounts: Feature {
     }
 
     func transferAccount(
-      domain: String,
+      domain: URLString,
       userID: String,
       username: String,
       firstName: String,

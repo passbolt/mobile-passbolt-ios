@@ -26,18 +26,18 @@ import Commons
 import Crypto
 import Environment
 
-public typealias SignInRequest = NetworkRequest<DomainSessionVariable, SignInRequestVariable, SignInResponse>
+public typealias SignInRequest = NetworkRequest<EmptyNetworkSessionVariable, SignInRequestVariable, SignInResponse>
 
 extension SignInRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/auth/jwt/login.json"),
           .method(.post),
           .whenSome(
@@ -58,15 +58,18 @@ extension SignInRequest {
 
 public struct SignInRequestVariable {
 
+  public var domain: URLString
   public var userID: String
   public var challenge: ArmoredPGPMessage
   public var mfaToken: MFAToken?
 
   public init(
+    domain: URLString,
     userID: String,
     challenge: ArmoredPGPMessage,
     mfaToken: MFAToken?
   ) {
+    self.domain = domain
     self.userID = userID
     self.challenge = challenge
     self.mfaToken = mfaToken
@@ -160,7 +163,11 @@ public struct Tokens: Codable, Equatable {
 }
 
 extension NetworkResponseDecoding
-where Response == SignInResponse, SessionVariable == DomainSessionVariable, RequestVariable == SignInRequestVariable {
+where
+  Response == SignInResponse,
+  SessionVariable == EmptyNetworkSessionVariable,
+  RequestVariable == SignInRequestVariable
+{
 
   fileprivate static func signInResponse() -> Self {
     Self { sessionVariable, requestVariable, httpResponse -> Result<SignInResponse, TheError> in

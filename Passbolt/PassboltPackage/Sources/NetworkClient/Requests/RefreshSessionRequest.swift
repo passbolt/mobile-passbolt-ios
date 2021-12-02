@@ -25,48 +25,131 @@ import Commons
 import Environment
 
 public typealias RefreshSessionRequest =
-  NetworkRequest<DomainSessionVariable, RefreshSessionRequestVariable, RefreshSessionResponse>
+  NetworkRequest<EmptyNetworkSessionVariable, RefreshSessionRequestVariable, RefreshSessionResponse>
 
 extension RefreshSessionRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/auth/jwt/refresh.json"),
           .method(.post),
-          .jsonBody(from: requestVariable)
-          // warning - missing MFA token
+          .jsonBody(
+            from: RefreshSessionRequestBody(
+              userID: requestVariable.userID,
+              refreshToken: requestVariable.refreshToken
+            )
+          ),
+          .whenSome(
+            requestVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          )
         )
       },
-      responseDecoder: .bodyAsJSON(),
+      responseDecoder: .sessionRefreshResponse(),
       using: networking,
       with: sessionVariablePublisher
     )
   }
 }
 
-public struct RefreshSessionRequestVariable: Encodable {
+public struct RefreshSessionRequestVariable {
 
+  public var domain: URLString
   public var userID: String
   public var refreshToken: String
+  public var mfaToken: String?
+
+  public init(
+    domain: URLString,
+    userID: String,
+    refreshToken: String,
+    mfaToken: String?
+  ) {
+    self.domain = domain
+    self.userID = userID
+    self.refreshToken = refreshToken
+    self.mfaToken = mfaToken
+  }
+}
+
+private struct RefreshSessionRequestBody: Encodable {
+
+  fileprivate var userID: String
+  fileprivate var refreshToken: String
 
   private enum CodingKeys: String, CodingKey {
     case userID = "user_id"
     case refreshToken = "refresh_token"
   }
+}
+
+public struct RefreshSessionResponse {
+
+  public var accessToken: String
+  public var refreshToken: String
 
   public init(
-    userID: String,
+    accessToken: String,
     refreshToken: String
   ) {
-    self.userID = userID
+    self.accessToken = accessToken
     self.refreshToken = refreshToken
   }
 }
 
-public typealias RefreshSessionResponse = CommonResponse<SignInResponseBody>
+public struct RefreshSessionResponseBody: Decodable {
+
+  public var accessToken: String
+
+  private enum CodingKeys: String, CodingKey {
+    case accessToken = "access_token"
+  }
+
+  public init(
+    accessToken: String
+  ) {
+    self.accessToken = accessToken
+  }
+}
+
+extension NetworkResponseDecoding
+where
+  Response == RefreshSessionResponse,
+  SessionVariable == EmptyNetworkSessionVariable,
+  RequestVariable == RefreshSessionRequestVariable
+{
+
+  fileprivate static func sessionRefreshResponse() -> Self {
+    Self { sessionVariable, requestVariable, httpResponse -> Result<RefreshSessionResponse, TheError> in
+
+      guard
+        let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
+        let refreshTokenBounds: Range<String.Index> = cookieHeaderValue.range(of: "refresh_token=")
+      else { return .failure(.httpError(.invalidResponse)) }
+      let refreshToken: String = .init(
+        cookieHeaderValue[refreshTokenBounds.upperBound...]
+          .prefix(
+            while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+          )
+      )
+
+      return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<RefreshSessionResponseBody>>
+        .bodyAsJSON()
+        .decode(sessionVariable, requestVariable, httpResponse)
+        .map { body -> RefreshSessionResponse in
+          RefreshSessionResponse(
+            accessToken: body.body.accessToken,
+            refreshToken: refreshToken
+          )
+        }
+    }
+  }
+}

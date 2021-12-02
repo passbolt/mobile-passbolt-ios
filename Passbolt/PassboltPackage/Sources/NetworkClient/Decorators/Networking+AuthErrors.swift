@@ -30,7 +30,7 @@ extension NetworkRequest {
     authorizationRequest: @escaping () -> Void,
     mfaRequest: @escaping (Array<MFAProvider>) -> Void,
     mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheError>,
-    sessionPublisher: AnyPublisher<DomainSessionVariable, TheError>
+    sessionPublisher: AnyPublisher<DomainNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       execute: { variable in
@@ -39,18 +39,20 @@ extension NetworkRequest {
             if error.identifier == .redirect,
               let location = error.redirectLocation.map(URLString.init(rawValue:))
             {
-
               return
                 sessionPublisher
-                .map { URLString(rawValue: $0.domain) }
+                .map(\.domain)
                 .map { domain -> AnyPublisher<Response, TheError> in
                   if URLString.domain(forURL: location, matches: domain),
                     location.hasSuffix("/mfa/verify/error.json")
                   {
                     return mfaRedirectionHandler(.init())
                       .map { _ -> AnyPublisher<Response, TheError> in
-                        Fail(error: .internalInconsistency().appending(context: "MFA Redirect response invalid"))
-                          .eraseToAnyPublisher()
+                        Fail(
+                          error: .internalInconsistency()
+                            .appending(context: "MFA Redirect response invalid")
+                        )
+                        .eraseToAnyPublisher()
                       }
                       .switchToLatest()
                       .eraseToAnyPublisher()

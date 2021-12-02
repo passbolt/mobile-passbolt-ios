@@ -30,7 +30,6 @@ import UIComponents
 
 import struct Foundation.Data
 
-#warning("TODO add missing tests")
 internal struct TransferSignInController {
 
   internal var accountProfilePublisher: () -> AnyPublisher<AccountTransfer.AccountDetails, Never>

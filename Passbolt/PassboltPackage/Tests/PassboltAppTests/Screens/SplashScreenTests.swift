@@ -61,7 +61,6 @@ final class SplashScreenTests: TestCase {
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() {
     accountDataStore.loadLastUsedAccount = always(nil)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -87,7 +86,6 @@ final class SplashScreenTests: TestCase {
   func test_navigateToAccountSetup_whenNoStoredAccounts() {
     accountDataStore.loadLastUsedAccount = always(nil)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -114,7 +112,6 @@ final class SplashScreenTests: TestCase {
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withLastUsedAccount_andNotAuthorized() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.none(lastUsed: account)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -141,7 +138,6 @@ final class SplashScreenTests: TestCase {
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -168,7 +164,6 @@ final class SplashScreenTests: TestCase {
   func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -195,7 +190,6 @@ final class SplashScreenTests: TestCase {
   func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -222,7 +216,6 @@ final class SplashScreenTests: TestCase {
   func test_navigationDestinationPublisher_publishesHome_whenRetryFetchConfigurationSucceeds() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)
@@ -264,7 +257,6 @@ final class SplashScreenTests: TestCase {
   func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() {
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
-    networkClient.updateSession = { _ in }
     features.use(networkClient)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     features.use(accountSession)

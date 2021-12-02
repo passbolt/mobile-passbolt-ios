@@ -27,22 +27,27 @@ import Environment
 import Foundation
 
 public typealias TOTPAuthorizationRequest =
-  NetworkRequest<AuthorizedSessionVariable, TOTPAuthorizationRequestVariable, TOTPAuthorizationResponse>
+  NetworkRequest<DomainNetworkSessionVariable, TOTPAuthorizationRequestVariable, TOTPAuthorizationResponse>
 
 extension TOTPAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/mfa/verify/totp.json"),
           .method(.post),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
-          .jsonBody(from: requestVariable)
+          .header("Authorization", value: "Bearer \(requestVariable.accessToken)"),
+          .jsonBody(
+            from: TOTPAuthorizationRequestBody(
+              totp: requestVariable.totp,
+              remember: requestVariable.remember
+            )
+          )
         )
       },
       responseDecoder: .mfaCookie,
@@ -52,7 +57,24 @@ extension TOTPAuthorizationRequest {
   }
 }
 
-public struct TOTPAuthorizationRequestVariable: Encodable {
+public struct TOTPAuthorizationRequestVariable {
+
+  public var accessToken: String
+  public var totp: String
+  public var remember: Bool
+
+  public init(
+    accessToken: String,
+    totp: String,
+    remember: Bool
+  ) {
+    self.accessToken = accessToken
+    self.totp = totp
+    self.remember = remember
+  }
+}
+
+public struct TOTPAuthorizationRequestBody: Encodable {
 
   public var totp: String
   public var remember: Bool

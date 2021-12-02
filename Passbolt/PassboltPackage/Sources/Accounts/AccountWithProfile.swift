@@ -22,6 +22,7 @@
 //
 
 import CommonDataModels
+import Commons
 import Crypto
 
 // Read only composite of Account and AccountProfile for displaying authorization and account list.
@@ -29,7 +30,7 @@ public struct AccountWithProfile {
 
   public let localID: Account.LocalID
   public let userID: Account.UserID
-  public let domain: String
+  public let domain: URLString
   public let label: String
   public let username: String
   public let firstName: String
@@ -41,7 +42,7 @@ public struct AccountWithProfile {
   public init(
     localID: Account.LocalID,
     userID: Account.UserID,
-    domain: String,
+    domain: URLString,
     label: String,
     username: String,
     firstName: String,

@@ -27,22 +27,22 @@ import Environment
 import struct Foundation.UUID
 
 public typealias ResourcesRequest = NetworkRequest<
-  AuthorizedSessionVariable, ResourcesRequestVariable, ResourcesRequestResponse
+  AuthorizedNetworkSessionVariable, ResourcesRequestVariable, ResourcesRequestResponse
 >
 
 extension ResourcesRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/resources.json"),
           .queryItem("contain[permission]", value: "1"),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
             then: { mfaToken in

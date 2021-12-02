@@ -25,21 +25,21 @@ import Commons
 import Environment
 
 internal typealias MFARedirectRequest =
-  NetworkRequest<AuthorizedSessionVariable, MFARedirectRequestVariable, MFARedirectResponse>
+  NetworkRequest<AuthorizedNetworkSessionVariable, MFARedirectRequestVariable, MFARedirectResponse>
 
 extension MFARedirectRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/mfa/verify/error.json"),
           .method(.get),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)")
+          .header("Authorization", value: "Bearer \(sessionVariable.accessToken)")
         )
       },
       responseDecoder: .bodyAsJSON(),

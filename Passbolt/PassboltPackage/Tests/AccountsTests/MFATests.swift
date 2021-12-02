@@ -45,11 +45,7 @@ final class MFATests: TestCase {
     super.tearDown()
   }
 
-  func test_authorizeUsingYubikey_succeeds_whenAuthorized() {
-    accountSession.statePublisher = always(
-      Just(.authorized(account))
-        .eraseToAnyPublisher()
-    )
+  func test_authorizeUsingYubikey_succeeds_whenMFAAuthorizeSucceeds() {
     accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
@@ -64,7 +60,7 @@ final class MFATests: TestCase {
     }
 
     let feature: MFA = testInstance()
-    var result: Void!
+    var result: Void?
 
     feature.authorizeUsingYubikey(false)
       .sink(
@@ -79,16 +75,7 @@ final class MFATests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_authorizeUsingYubikey_fails_whenReadNFC_fails() {
-    accountSession.statePublisher = always(
-      Just(.authorized(account))
-        .eraseToAnyPublisher()
-    )
-    accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    )
+  func test_authorizeUsingYubikey_fails_whenReadNFCFails() {
     features.use(accountSession)
 
     environment.yubikey.readNFC = always(
@@ -97,7 +84,7 @@ final class MFATests: TestCase {
     )
 
     let feature: MFA = testInstance()
-    var result: TheError!
+    var result: TheError?
 
     feature.authorizeUsingYubikey(false)
       .sink(
@@ -112,85 +99,10 @@ final class MFATests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .yubikey)
+    XCTAssertEqual(result?.identifier, .yubikey)
   }
 
-  func test_authorizeUsingYubikey_succeeds_whenAuthorizedMFARequired() {
-    accountSession.statePublisher = always(
-      Just(.authorizedMFARequired(account, providers: [.totp]))
-        .eraseToAnyPublisher()
-    )
-    accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-
-    environment.yubikey.readNFC = {
-      Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-
-    let feature: MFA = testInstance()
-    var result: Void!
-
-    feature.authorizeUsingYubikey(false)
-      .sink(
-        receiveCompletion: { _ in
-        },
-        receiveValue: { value in
-          result = value
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_authorizeUsingYubikey_fails_whenAuthorizedRequired() {
-    accountSession.statePublisher = always(
-      Just(.authorizationRequired(account))
-        .eraseToAnyPublisher()
-    )
-    accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-
-    environment.yubikey.readNFC = {
-      Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-
-    let feature: MFA = testInstance()
-    var result: TheError!
-
-    feature.authorizeUsingYubikey(false)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
-  }
-
-  func test_authorizeUsingTOTP_succeeds_whenAuthorized() {
-    accountSession.statePublisher = always(
-      Just(.authorized(account))
-        .eraseToAnyPublisher()
-    )
+  func test_authorizeUsingTOTP_succeeds_whenMFAAuthorizeSucceeds() {
     accountSession.mfaAuthorize = always(
       Just(())
         .setFailureType(to: TheError.self)
@@ -199,7 +111,7 @@ final class MFATests: TestCase {
     features.use(accountSession)
 
     let feature: MFA = testInstance()
-    var result: Void!
+    var result: Void?
 
     feature.authorizeUsingTOTP("totp", false)
       .sink(
@@ -212,65 +124,6 @@ final class MFATests: TestCase {
       .store(in: cancellables)
 
     XCTAssertNotNil(result)
-  }
-
-  func test_authorizeUsingTOTP_succeeds_whenAuthorizedMFARequired() {
-    accountSession.statePublisher = always(
-      Just(.authorizedMFARequired(account, providers: [.totp]))
-        .eraseToAnyPublisher()
-    )
-    accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-
-    let feature: MFA = testInstance()
-    var result: Void!
-
-    feature.authorizeUsingTOTP("totp", false)
-      .sink(
-        receiveCompletion: { _ in
-        },
-        receiveValue: { value in
-          result = value
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_authorizeUsingTOTP_fails_whenAuthorizationRequired() {
-    accountSession.statePublisher = always(
-      Just(.authorizationRequired(account))
-        .eraseToAnyPublisher()
-    )
-    accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-
-    let feature: MFA = testInstance()
-    var result: TheError!
-
-    feature.authorizeUsingTOTP("totp", false)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
   }
 }
 

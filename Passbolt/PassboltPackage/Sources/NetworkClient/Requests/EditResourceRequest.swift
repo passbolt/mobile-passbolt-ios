@@ -27,21 +27,21 @@ import Environment
 import struct Foundation.Data
 
 public typealias UpdateResourceRequest = NetworkRequest<
-  AuthorizedSessionVariable, UpdateResourceRequestVariable, UpdateResourceRequestResponse
+  AuthorizedNetworkSessionVariable, UpdateResourceRequestVariable, UpdateResourceRequestResponse
 >
 
 extension UpdateResourceRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/resources/\(requestVariable.resourceID).json"),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
             then: { mfaToken in

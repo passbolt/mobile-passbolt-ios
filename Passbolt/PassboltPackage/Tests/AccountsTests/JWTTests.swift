@@ -28,27 +28,7 @@ import XCTest
 @testable import Crypto
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class JWTTests: XCTestCase {
-
-  var features: FeatureFactory!
-  var cancellables: Cancellables!
-
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-
-  override func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    cancellables = .init()
-  }
-
-  override func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
-  }
+final class JWTTests: TestCase {
 
   func test_decodeValidToken_Succeeds() {
     let jwt: JWT = try! .from(rawValue: validToken).get()

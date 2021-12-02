@@ -945,8 +945,8 @@ private let otherValidAccountProfile: AccountProfile = .init(
 )
 
 // swift-format-ignore: NeverUseForceTry
-private let validSessionTokens: NetworkSessionTokens = .init(
-  accountLocalID: validAccount.localID,
+private let validSessionTokens: NetworkSessionState = .init(
+  account: validAccount,
   accessToken: try! JWT.from(rawValue: validToken).get(),
   refreshToken: "REFRESH_TOKEN"
 )

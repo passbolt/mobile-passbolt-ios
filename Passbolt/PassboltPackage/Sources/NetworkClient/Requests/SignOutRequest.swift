@@ -24,18 +24,18 @@
 import Commons
 import Environment
 
-public typealias SignOutRequest = NetworkRequest<DomainSessionVariable, SignOutRequestVariable, Void>
+public typealias SignOutRequest = NetworkRequest<EmptyNetworkSessionVariable, SignOutRequestVariable, Void>
 
 extension SignOutRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/auth/jwt/logout.json"),
           .method(.post),
           .jsonBody(from: requestVariable)
@@ -50,13 +50,18 @@ extension SignOutRequest {
 
 public struct SignOutRequestVariable: Encodable {
 
+  public var domain: URLString  // not encoded into json
   public var refreshToken: String
 
   private enum CodingKeys: String, CodingKey {
     case refreshToken = "refresh_token"
   }
 
-  public init(refreshToken: String) {
+  public init(
+    domain: URLString,
+    refreshToken: String
+  ) {
+    self.domain = domain
     self.refreshToken = refreshToken
   }
 }

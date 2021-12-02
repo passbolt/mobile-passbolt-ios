@@ -26,18 +26,18 @@ import Crypto
 import Environment
 
 public typealias ServerJWKSRequest =
-  NetworkRequest<DomainSessionVariable, ServerJWKSVariable, ServerJWKSResponse>
+  NetworkRequest<EmptyNetworkSessionVariable, ServerJWKSRequestVariable, ServerJWKSRequestResponse>
 
 extension ServerJWKSRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
-      template: .init { sessionVariable, _ in
+      template: .init { _, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/auth/jwt/jwks.json"),
           .method(.get)
         )
@@ -49,8 +49,18 @@ extension ServerJWKSRequest {
   }
 }
 
-public typealias ServerJWKSVariable = Void
-public typealias ServerJWKSResponse = ServerJWKSResponseBody
+public struct ServerJWKSRequestVariable {
+
+  public var domain: URLString
+
+  public init(
+    domain: URLString
+  ) {
+    self.domain = domain
+  }
+}
+
+public typealias ServerJWKSRequestResponse = ServerJWKSResponseBody
 
 public struct ServerJWKSResponseBody: Decodable {
 

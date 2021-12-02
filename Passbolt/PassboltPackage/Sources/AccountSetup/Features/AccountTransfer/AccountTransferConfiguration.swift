@@ -33,7 +33,7 @@ internal struct AccountTransferConfiguration {
   internal var pagesCount: Int
   internal var userID: String
   internal var authenticationToken: String
-  internal var domain: String
+  internal var domain: URLString
   internal var hash: String
 }
 
@@ -60,7 +60,7 @@ extension AccountTransferConfiguration {
     }
 
     if  // here we verify if it is valid url
-    let urlComponents: URLComponents = .init(string: decoded.domain),
+    let urlComponents: URLComponents = .init(string: decoded.domain.rawValue),
       urlComponents.scheme == "https"  // we don't allow http servers since we can't handle it
     {
       return .success(decoded)

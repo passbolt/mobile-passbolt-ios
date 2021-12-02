@@ -89,7 +89,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .sink { [weak self] details in
         self?.contentView.applyOn(name: .text("\(details.label)"))
         self?.contentView.applyOn(email: .text(details.username))
-        self?.contentView.applyOn(url: .text(details.domain))
+        self?.contentView.applyOn(url: .text(details.domain.rawValue))
         self?.contentView.applyOn(biometricButtonContainer: .hidden(true))
       }
       .store(in: cancellables)

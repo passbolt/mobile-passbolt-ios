@@ -32,10 +32,10 @@ import XCTest
 final class NetworkRequestTests: XCTestCase {
 
   var cancellables: Cancellables!
-  var sessionSubject: PassthroughSubject<NetworkSessionVariable, TheError>!
-  var domainSubject: PassthroughSubject<DomainSessionVariable, TheError>!
+  var sessionSubject: PassthroughSubject<AuthorizedNetworkSessionVariable, TheError>!
+  var domainSubject: PassthroughSubject<DomainNetworkSessionVariable, TheError>!
   var networking: Networking!
-  var request: NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable>!
+  var request: NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable>!
 
   override func setUp() {
     super.setUp()
@@ -136,7 +136,14 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
 
     XCTAssertEqual(completionError?.identifier, .httpError)
   }
@@ -169,7 +176,14 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
 
     XCTAssertEqual(completionError?.identifier, .serverNotReachable)
     XCTAssertEqual(completionError?.url, url)
@@ -203,7 +217,14 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
 
     XCTAssertEqual(completionError?.identifier, .serverNotReachable)
     XCTAssertEqual(completionError?.url, url)
@@ -245,7 +266,14 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
 
     XCTAssertEqual(bodySent, bodyReceived)
   }
@@ -278,8 +306,15 @@ final class NetworkRequestTests: XCTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
-    domainSubject.send(DomainSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
+    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
 
     XCTAssertNotNil(result)
   }
@@ -312,8 +347,15 @@ final class NetworkRequestTests: XCTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
-    domainSubject.send(DomainSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
+    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
 
     XCTAssertNil(result)
   }
@@ -346,8 +388,15 @@ final class NetworkRequestTests: XCTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
-    domainSubject.send(DomainSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
+    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
 
     XCTAssertNil(result)
   }
@@ -380,8 +429,15 @@ final class NetworkRequestTests: XCTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
-    domainSubject.send(DomainSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
+    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
 
     XCTAssertNil(result)
   }
@@ -414,8 +470,15 @@ final class NetworkRequestTests: XCTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
-    domainSubject.send(DomainSessionVariable(domain: "https://passbolt.com"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
+    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
 
     XCTAssertNil(result)
   }
@@ -448,13 +511,20 @@ final class NetworkRequestTests: XCTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    sessionSubject.send(NetworkSessionVariable(domain: ""))
-    domainSubject.send(DomainSessionVariable(domain: "https://bolt.com/mfa/verify/error.json"))
+    sessionSubject
+      .send(
+        AuthorizedNetworkSessionVariable(
+          domain: "https://passbolt.com",
+          accessToken: "",
+          mfaToken: ""
+        )
+      )
+    domainSubject.send(DomainNetworkSessionVariable(domain: ""))
 
     XCTAssertNil(result)
   }
 
-  func prepareRequest() -> NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable> {
+  func prepareRequest() -> NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in
         .combined(
@@ -470,7 +540,7 @@ final class NetworkRequestTests: XCTestCase {
 
   func prepareRequest(
     mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheError>
-  ) -> NetworkRequest<NetworkSessionVariable, TestCodable, TestCodable> {
+  ) -> NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in
         .combined(

@@ -24,6 +24,6 @@
 import Foundation
 
 extension SymbolNameConstant {
-  
+
   public static var noSign: Self { "nosign" }
 }

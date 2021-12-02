@@ -25,18 +25,18 @@ import Commons
 import Environment
 
 public typealias ServerRSAPublicKeyRequest =
-  NetworkRequest<DomainSessionVariable, ServerRSAPublicKeyVariable, ServerRSAPublicKeyResponse>
+  NetworkRequest<EmptyNetworkSessionVariable, ServerRSAPublicKeyVariable, ServerRSAPublicKeyResponse>
 
 extension ServerRSAPublicKeyRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
-      template: .init { sessionVariable, _ in
+      template: .init { _, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/auth/jwt/rsa.json"),
           .method(.get)
         )
@@ -48,7 +48,16 @@ extension ServerRSAPublicKeyRequest {
   }
 }
 
-public typealias ServerRSAPublicKeyVariable = Void
+public struct ServerRSAPublicKeyVariable {
+
+  public var domain: URLString
+
+  public init(
+    domain: URLString
+  ) {
+    self.domain = domain
+  }
+}
 public typealias ServerRSAPublicKeyResponse = CommonResponse<ServerRSAPublicKeyResponseBody>
 
 public struct ServerRSAPublicKeyResponseBody: Decodable {

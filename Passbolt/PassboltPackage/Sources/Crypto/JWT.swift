@@ -78,8 +78,11 @@ extension JWT {
     return components.joined(separator: ".")
   }
 
-  public func isExpired(timestamp: Int) -> Bool {
-    timestamp > payload.expiration
+  public func isExpired(
+    timestamp: Int,
+    leeway: UInt = 0
+  ) -> Bool {
+    timestamp + Int(leeway) > payload.expiration
   }
 }
 
@@ -138,3 +141,5 @@ extension JWT {
     }
   }
 }
+
+extension JWT: Equatable {}

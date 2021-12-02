@@ -49,7 +49,7 @@ extension AccountTransfer {
 
   public struct AccountDetails {
 
-    public let domain: String
+    public let domain: URLString
     public let label: String
     public let username: String
   }

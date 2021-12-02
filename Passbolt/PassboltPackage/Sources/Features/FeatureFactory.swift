@@ -122,5 +122,31 @@ extension FeatureFactory {
 extension FeatureFactory {
 
   public static var autoLoadFeatures: Bool = true
+
+  public func usePlaceholder<F>(
+    for featureType: F.Type
+  ) where F: Feature {
+    featuresAccessLock.lock()
+    defer { featuresAccessLock.unlock() }
+    features[F.featureIdentifier] = (feature: F.placeholder, cancellables: .init())
+  }
+
+  public func patch<F, P>(
+    _ keyPath: WritableKeyPath<F, P>,
+    with updated: P
+  ) where F: Feature {
+    featuresAccessLock.lock()
+    defer { featuresAccessLock.unlock() }
+    if var loaded: F = features[F.featureIdentifier]?.feature as? F {
+      loaded[keyPath: keyPath] = updated
+      features[F.featureIdentifier]?.feature = loaded
+    }
+    else {
+      var feature: F = .placeholder
+      feature[keyPath: keyPath] = updated
+      features[F.featureIdentifier] = (feature: feature, cancellables: .init())
+    }
+
+  }
 }
 #endif

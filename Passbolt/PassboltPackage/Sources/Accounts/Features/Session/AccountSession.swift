@@ -28,39 +28,6 @@ import NetworkClient
 
 import class Foundation.NSRecursiveLock
 
-public enum AuthorizationPromptRequest {
-
-  case passphraseRequest(account: Account, message: LocalizedMessage?)
-  case mfaRequest(account: Account, providers: Array<MFAProvider>)
-
-  public var account: Account {
-    switch self {
-    case let .passphraseRequest(account, _):
-      return account
-    case let .mfaRequest(account, _):
-      return account
-    }
-  }
-
-  public var message: LocalizedMessage? {
-    switch self {
-    case let .passphraseRequest(_, message):
-      return message
-    case .mfaRequest:
-      return .none
-    }
-  }
-
-  public var mfaProviders: Array<MFAProvider> {
-    switch self {
-    case .passphraseRequest:
-      return []
-    case let .mfaRequest(_, providers):
-      return providers
-    }
-  }
-}
-
 public struct AccountSession {
   // Publishes current account and associated network session token.
   public var statePublisher: () -> AnyPublisher<State, Never>
@@ -126,42 +93,11 @@ extension AccountSession: Feature {
     let networkClient: NetworkClient = features.instance()
     let networkSession: NetworkSession = features.instance()
 
-    let authorizationCancellableLock: NSRecursiveLock = .init()
-    // swift-format-ignore: NoLeadingUnderscores
-    var _authorizationCancellable: AnyCancellable?
-    var authorizationCancellable: AnyCancellable? {
-      get {
-        authorizationCancellableLock.lock()
-        defer { authorizationCancellableLock.unlock() }
-        return _authorizationCancellable
-      }
-      set {
-        authorizationCancellableLock.lock()
-        _authorizationCancellable = newValue
-        authorizationCancellableLock.unlock()
-      }
-    }
-    let signOutCancellableLock: NSRecursiveLock = .init()
-    // swift-format-ignore: NoLeadingUnderscores
-    var _signOutCancellable: AnyCancellable?
-    var signOutCancellable: AnyCancellable? {
-      get {
-        signOutCancellableLock.lock()
-        defer { signOutCancellableLock.unlock() }
-        return _signOutCancellable
-      }
-      set {
-        signOutCancellableLock.lock()
-        _signOutCancellable = newValue
-        signOutCancellableLock.unlock()
-      }
-    }
-
     let sessionStateSubject: CurrentValueSubject<State, Never> = .init(
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
     let sessionStateLock: NSRecursiveLock = .init()
-    // synchonizing access to session state due to race conditions
+    // synchronizing access to session state due to possible race conditions
     // CurrentValueSubject is thread safe but in some cases
     // we have to ensure state changes happen in sync with previous value
     // while other threads might try to access it in the mean time
@@ -177,10 +113,28 @@ extension AccountSession: Feature {
         sessionStateLock.unlock()
       }
     }
-    func withSessionState<Returned>(_ access: (inout State) -> Returned) -> Returned {
+    func withSessionState<Returned>(
+      _ access: (inout State) -> Returned
+    ) -> Returned {
       sessionStateLock.lock()
       defer { sessionStateLock.unlock() }
-      return access(&sessionStateSubject.value)
+      var value: State = sessionStateSubject.value
+      defer { sessionStateSubject.send(value) }
+      return access(&value)
+    }
+    // swift-format-ignore: NoLeadingUnderscores
+    var _authorizationCancellable: AnyCancellable?
+    var authorizationCancellable: AnyCancellable? {
+      get {
+        sessionStateLock.lock()
+        defer { sessionStateLock.unlock() }
+        return _authorizationCancellable
+      }
+      set {
+        sessionStateLock.lock()
+        _authorizationCancellable = newValue
+        sessionStateLock.unlock()
+      }
     }
 
     let sessionStatePublisher: AnyPublisher<State, Never> =
@@ -200,23 +154,6 @@ extension AccountSession: Feature {
     })
 
     networkClient.setMFARequest(requestMFA(with:))
-
-    // connect current account base url / domain with network client
-    // to perform requests in correct contexts
-    sessionStatePublisher
-      .map { state -> NetworkSessionVariable? in
-        switch state {
-        case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
-          return NetworkSessionVariable(domain: account.domain)
-
-        case .none:
-          return nil
-        }
-      }
-      .sink { sessionVariable in
-        networkClient.updateSession(sessionVariable)
-      }
-      .store(in: cancellables)
 
     // bind passphrase cache expiration with authorizationRequired state change
     sessionStatePublisher
@@ -286,18 +223,19 @@ extension AccountSession: Feature {
     // session state change triggers.
     // swift-format-ignore: NoLeadingUnderscores
     let _clearCurrentSession: () -> Void = { [unowned features] in
-      diagnostics.diagnosticLog("Clearing current session state...")
+      diagnostics.diagnosticLog("Clearing current session state.")
+      authorizationCancellable = nil
       passphraseCache.clear()
       features.unload(AccountDatabase.self)
 
       switch sessionState {
       case .authorized, .authorizationRequired, .authorizedMFARequired:
-        signOutCancellable =
-          networkSession
+        networkSession
           .closeSession()
           .collectErrorLog(using: diagnostics)
           .ignoreOutput()
           .sinkDrop()
+          .store(in: cancellables)
 
       case .none:
         break  // do nothing
@@ -319,146 +257,205 @@ extension AccountSession: Feature {
       account: Account,
       authorizationMethod: AuthorizationMethod
     ) -> AnyPublisher<Bool, TheError> {
-      // cancel previous authorization if any
-      // there can't be more than a single ongoing authorization
-      authorizationCancellable = nil
-
-      switch sessionState {
-      case let .authorized(currentAccount),
-        let .authorizedMFARequired(currentAccount, _),
-        let .authorizationRequired(currentAccount):
-        if currentAccount.userID != account.userID
-          || (currentAccount.userID == account.userID && currentAccount.domain != account.domain)
-          || (currentAccount.localID != account.localID && !accountsDataStore.loadAccounts().contains(currentAccount))
-        {
-          diagnostics.debugLog("Signing out \(currentAccount.localID)")
-          // signout from current account on switching accounts
-          _clearCurrentSession()
-        }
-        else {
-          break
-        }
-
-      case _:
-        break
-      }
-
       diagnostics.diagnosticLog("Beginning authorization...")
       diagnostics.debugLog("Signing in to: \(account.localID)")
 
-      // since we are trying to sign in we change current session state
-      // to a new one with authorizationRequired state to indicate
-      // that we are signing in and to change network client base url / domain
-      sessionState = .authorizationRequired(account)
+      return withSessionState { sessionState in
+        // cancel previous authorization if any
+        // there can't be more than a single ongoing authorization
+        // intentionally using variable without lock,
+        // required locking is made for the scope of this function
+        _authorizationCancellable = nil
 
-      #warning("TODO: [PAS-154] verify if token is expired and reuse or use session refresh if needed")
-      #warning("TODO: [PAS-160] temporarily disable token refresh, always sign in")
+        switch sessionState {
+        case let .authorized(currentAccount),
+          let .authorizedMFARequired(currentAccount, _),
+          let .authorizationRequired(currentAccount):
+          if currentAccount.userID != account.userID
+            || (currentAccount.userID == account.userID && currentAccount.domain != account.domain)
+            || (currentAccount.localID != account.localID && !accountsDataStore.loadAccounts().contains(currentAccount))
+          {
+            diagnostics.diagnosticLog("...switching account...")
+            diagnostics.debugLog("Signing out \(currentAccount.localID)")
+            // signout from current account on switching accounts
+            _clearCurrentSession()
+          }
+          else {
+            break
+          }
 
-      // sign in process
-
-      // prepare passphrase and armored private key
-      let passphrase: Passphrase
-      let armoredPrivateKey: ArmoredPGPPrivateKey
-      switch authorizationMethod {
-      case let .adHoc(pass, privateKey):
-        diagnostics.diagnosticLog("...using ad-hoc credentials...")
-        passphrase = pass
-        armoredPrivateKey = privateKey
-      case let .passphrase(value):
-        diagnostics.diagnosticLog("...using passphrase...")
-        passphrase = value
-        switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-        case let .success(armoredKey):
-          diagnostics.diagnosticLog("...account private key found...")
-          armoredPrivateKey = armoredKey
-        case let .failure(error):
-          diagnostics.diagnosticLog("...account private key unavailable!")
-          diagnostics.debugLog(
-            "Failed to retrieve private key for account: \(account.localID)"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-          )
-          return Fail<Bool, TheError>(error: error)
-            .eraseToAnyPublisher()
+        case .none:
+          break
         }
 
-      case .biometrics:
-        diagnostics.diagnosticLog("...using biometrics...")
-        switch accountsDataStore.loadAccountPassphrase(account.localID) {
-        case let .success(value):
-          diagnostics.diagnosticLog("...account passphrase found...")
+        // since we are trying to sign in we change current session state
+        // to a new one with authorizationRequired state to indicate
+        // that we are signing in and to change network client base url / domain if needed
+        sessionState = .authorizationRequired(account)
+
+        // prepare passphrase and armored private key
+        let passphrase: Passphrase
+        let armoredPrivateKey: ArmoredPGPPrivateKey
+        switch authorizationMethod {
+        case let .adHoc(pass, privateKey):
+          diagnostics.diagnosticLog("...using ad-hoc credentials...")
+          passphrase = pass
+          armoredPrivateKey = privateKey
+        case let .passphrase(value):
+          diagnostics.diagnosticLog("...using passphrase...")
           passphrase = value
+          switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+          case let .success(armoredKey):
+            diagnostics.diagnosticLog("...account private key found...")
+            armoredPrivateKey = armoredKey
+          case let .failure(error):
+            diagnostics.diagnosticLog("...account private key unavailable!")
+            diagnostics.debugLog(
+              "Failed to retrieve private key for account: \(account.localID)"
+                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+            )
+            return Fail<Bool, TheError>(error: error)
+              .eraseToAnyPublisher()
+          }
+
+        case .biometrics:
+          diagnostics.diagnosticLog("...using biometrics...")
+          switch accountsDataStore.loadAccountPassphrase(account.localID) {
+          case let .success(value):
+            diagnostics.diagnosticLog("...account passphrase found...")
+            passphrase = value
+          case let .failure(error):
+            diagnostics.diagnosticLog("...account passphrase unavailable!")
+            return Fail<Bool, TheError>(error: error)
+              .eraseToAnyPublisher()
+          }
+          switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+          case let .success(armoredKey):
+            diagnostics.diagnosticLog("...account private key found...")
+            armoredPrivateKey = armoredKey
+          case let .failure(error):
+            diagnostics.diagnosticLog("...account private key unavailable!")
+            diagnostics.debugLog(
+              "Failed to retrieve private key for account: \(account.localID)"
+                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+            )
+            return Fail<Bool, TheError>(error: error)
+              .eraseToAnyPublisher()
+          }
+        }
+
+        // verify passphrase
+        switch pgp.verifyPassphrase(armoredPrivateKey, passphrase) {
+        case .success:
+          break  // continue process
+
         case let .failure(error):
-          diagnostics.diagnosticLog("...account passphrase unavailable!")
-          return Fail<Bool, TheError>(error: error)
+          diagnostics.diagnosticLog("...invalid passphrase!")
+          return Fail(error: error)
             .eraseToAnyPublisher()
         }
-        switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-        case let .success(armoredKey):
-          diagnostics.diagnosticLog("...account private key found...")
-          armoredPrivateKey = armoredKey
-        case let .failure(error):
-          diagnostics.diagnosticLog("...account private key unavailable!")
-          diagnostics.debugLog(
-            "Failed to retrieve private key for account: \(account.localID)"
-              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+
+        func createSession() -> AnyPublisher<Bool, TheError> {
+          networkSession
+            .createSession(
+              account,
+              armoredPrivateKey,
+              passphrase
+            )
+            .handleEvents(
+              receiveOutput: { mfaProviders in
+                accountsDataStore.storeLastUsedAccount(account.localID)
+                passphraseCache
+                  .store(
+                    passphrase,
+                    account.localID,
+                    .init(
+                      timeIntervalSince1970: .init(time.timestamp())
+                        + PassphraseCache.defaultExpirationTimeInterval
+                    )
+                  )
+
+                if mfaProviders.isEmpty {
+                  diagnostics.diagnosticLog("...authorization succeeded!")
+                  withSessionState { sessionState in
+                    sessionState = .authorized(account)
+                  }
+                }
+                else {
+                  diagnostics.diagnosticLog("...MFA authorization required!")
+                  withSessionState { sessionState in
+                    sessionState = .authorizedMFARequired(account, providers: mfaProviders)
+                  }
+                  requestMFA(with: mfaProviders)
+                }
+              }
+            )
+            .map { mfaProviders in
+              !mfaProviders.isEmpty  // if array is not empty MFA authorization is required
+            }
+            .eraseToAnyPublisher()
+        }
+
+        func refreshSessionIfNeeded() -> AnyPublisher<Void, TheError> {
+          networkSession
+            .refreshSessionIfNeeded(account)
+            .handleEvents(
+              receiveOutput: {
+                passphraseCache
+                  .store(
+                    passphrase,
+                    account.localID,
+                    .init(
+                      timeIntervalSince1970: .init(time.timestamp())
+                        + PassphraseCache.defaultExpirationTimeInterval
+                    )
+                  )
+                withSessionState { sessionState in
+                  sessionState = .authorized(account)
+                }
+                diagnostics.diagnosticLog("...authorization succeeded!")
+              }
+            )
+            .eraseToAnyPublisher()
+        }
+
+        // to ensure that only single authorization is in progress
+        // we delegate result to the additional subject
+        // and control cancellation internally
+        let authorizationResultSubject: PassthroughSubject<Bool, TheError> = .init()
+
+        // check if session can be refreshed for provided account
+        if networkSession.sessionRefreshAvailable(account) {
+          authorizationCancellable =
+            refreshSessionIfNeeded()
+            // MFA in response is not possible, it is handled by error path
+            .map { false }
+            .catch { error -> AnyPublisher<Bool, TheError> in
+              if case .canceled = error {
+                return Fail(error: error)
+                  .eraseToAnyPublisher()
+              }
+              else {
+                return createSession()
+              }
+            }
+            .subscribe(authorizationResultSubject)
+        }
+        else {
+          authorizationCancellable = createSession()
+            .subscribe(authorizationResultSubject)
+        }
+
+        return
+          authorizationResultSubject
+          .handleEvents(
+            receiveCancel: {
+              authorizationCancellable?.cancel()
+              diagnostics.diagnosticLog("...authorization canceled!")
+            }
           )
-          return Fail<Bool, TheError>(error: error)
-            .eraseToAnyPublisher()
-        }
+          .eraseToAnyPublisher()
       }
-
-      // to ensure that only single authorization is in progress
-      // we delegate result to the additional subject
-      // and control cancellation internally
-      let signInResultSubject: PassthroughSubject<Bool, TheError> = .init()
-
-      authorizationCancellable =
-        networkSession
-        .createSession(
-          account,
-          account.domain,
-          armoredPrivateKey,
-          passphrase
-        )
-        .handleEvents(
-          receiveOutput: { mfaProviders in
-            accountsDataStore.storeLastUsedAccount(account.localID)
-            passphraseCache
-              .store(
-                passphrase,
-                account.localID,
-                .init(
-                  timeIntervalSince1970: .init(time.timestamp())
-                    + PassphraseCache.defaultExpirationTimeInterval
-                )
-              )
-
-            if mfaProviders.isEmpty {
-              diagnostics.diagnosticLog("...authorization succeeded!")
-              sessionState = .authorized(account)
-            }
-            else {
-              diagnostics.diagnosticLog("...MFA authorization required!")
-              sessionState = .authorizedMFARequired(account, providers: mfaProviders)
-              requestMFA(with: mfaProviders)
-            }
-          }
-        )
-        .map { mfaProviders in
-          !mfaProviders.isEmpty  // if array is not empty MFA authorization is required
-        }
-        .subscribe(signInResultSubject)
-
-      return
-        signInResultSubject
-        .handleEvents(
-          receiveCancel: {
-            // When we cancel authorization we have to
-            // cancel internal authorization publisher as well
-            authorizationCancellable = nil
-          }
-        )
-        .eraseToAnyPublisher()
     }
 
     func mfaAuthorize(
@@ -466,46 +463,47 @@ extension AccountSession: Feature {
       rememberDevice: Bool
     ) -> AnyPublisher<Void, TheError> {
       diagnostics.diagnosticLog("Beginning MFA authorization...")
-      return
-        sessionStateSubject
-        .first()
-        .map { (sessionState: State) -> AnyPublisher<Void, TheError> in
-          let account: Account
-          switch sessionState {
-          case let .authorized(currentAccount), let .authorizedMFARequired(currentAccount, _):
-            account = currentAccount
-          case .authorizationRequired, .none:
-            diagnostics.diagnosticLog("...authorization required!")
-            return Fail<Void, TheError>(error: .authorizationRequired())
-              .eraseToAnyPublisher()
-          }
+      let account: Account
+      switch sessionState {
+      case let .authorized(currentAccount),
+        let .authorizedMFARequired(currentAccount, _),
+        let .authorizationRequired(currentAccount):
+        account = currentAccount
+      case .none:
+        diagnostics.diagnosticLog("...authorization required!")
+        return Fail<Void, TheError>(error: .authorizationRequired())
+          .eraseToAnyPublisher()
+      }
 
-          return
-            networkSession
-            .createMFAToken(account, method, rememberDevice)
-            .map { _ -> AnyPublisher<Void, TheError> in
-              withSessionState { state -> AnyPublisher<Void, TheError> in
-                switch sessionStateSubject.value {
-                case let .authorized(currentAccount) where currentAccount == account,
-                  let .authorizedMFARequired(currentAccount, _) where currentAccount == account:
-                  // here we make side effect in this map
-                  // unfortunately due to race condition we have
-                  // to read the state and update it under same lock
-                  // to avoid invalid session state
-                  state = .authorized(account)
-                  diagnostics.diagnosticLog("...MFA authorization succeeded!")
-                  return Just(Void())
-                    .setFailureType(to: TheError.self)
-                    .eraseToAnyPublisher()
-                case _:
-                  diagnostics.diagnosticLog("...MFA authorization failed!")
-                  return Fail<Void, TheError>(error: .authorizationRequired())
-                    .eraseToAnyPublisher()
-                }
-              }
+      return
+        networkSession
+        .createMFAToken(account, method, rememberDevice)
+        .map { _ -> AnyPublisher<Void, TheError> in
+          withSessionState { state -> AnyPublisher<Void, TheError> in
+            switch state {
+            case let .authorized(currentAccount) where currentAccount == account,
+              let .authorizedMFARequired(currentAccount, _) where currentAccount == account:
+              // here we make side effect in this map
+              // unfortunately due to race condition we have
+              // to read the state and update it under same lock
+              // to avoid invalid session state
+              state = .authorized(account)
+              diagnostics.diagnosticLog("...MFA authorization succeeded!")
+              return Just(Void())
+                .setFailureType(to: TheError.self)
+                .eraseToAnyPublisher()
+
+            case .authorized, .authorizedMFARequired:
+              diagnostics.diagnosticLog("...MFA authorization failed due to account switch!")
+              return Fail<Void, TheError>(error: .sessionClosed())
+                .eraseToAnyPublisher()
+
+            case .none, .authorizationRequired:
+              diagnostics.diagnosticLog("...MFA authorization failed!")
+              return Fail<Void, TheError>(error: .authorizationRequired())
+                .eraseToAnyPublisher()
             }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+          }
         }
         .switchToLatest()
         .eraseToAnyPublisher()
@@ -515,148 +513,137 @@ extension AccountSession: Feature {
       _ encryptedMessage: String,
       publicKey: ArmoredPGPPublicKey?
     ) -> AnyPublisher<String, TheError> {
-      sessionStatePublisher
-        .first()
-        .map { sessionState -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
-          switch sessionState {
-          case let .authorized(account), let .authorizedMFARequired(account, _):
-            switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-            case let .success(armoredKey):
-              return
-                passphraseCache
-                .passphrasePublisher(account.localID)
-                .first()
+      switch sessionState {
+      case let .authorized(account), let .authorizedMFARequired(account, _):
+        switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+        case let .success(armoredKey):
+          return
+            passphraseCache
+            .passphrasePublisher(account.localID)
+            .first()
+            .setFailureType(to: TheError.self)
+            .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
+              guard let passphrase: Passphrase = passphrase
+              else {
+                requestAuthorization(message: nil)
+                return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
+                  .eraseToAnyPublisher()
+              }
+              return Just((armoredKey, passphrase))
                 .setFailureType(to: TheError.self)
-                .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
-                  guard let passphrase: Passphrase = passphrase
-                  else {
-                    requestAuthorization(message: nil)
-                    return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
-                      .eraseToAnyPublisher()
-                  }
-                  return Just((armoredKey, passphrase))
-                    .setFailureType(to: TheError.self)
-                    .eraseToAnyPublisher()
-                }
-                .switchToLatest()
-                .eraseToAnyPublisher()
-
-            case let .failure(error):
-              diagnostics.debugLog(
-                "Failed to retrieve private key for account: \(account.localID)"
-                  + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-              )
-              return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: error)
                 .eraseToAnyPublisher()
             }
+            .switchToLatest()
+            .map {
+              (armoredPrivateKey: ArmoredPGPPrivateKey, passphrase: Passphrase) -> AnyPublisher<String, TheError> in
+              let decryptionResult: Result<String, TheError>
+              if let publicKey: ArmoredPGPPublicKey = publicKey {
+                decryptionResult = pgp.decryptAndVerify(
+                  encryptedMessage,
+                  passphrase,
+                  armoredPrivateKey,
+                  publicKey
+                )
+              }
+              else {
+                decryptionResult = pgp.decrypt(
+                  encryptedMessage,
+                  passphrase,
+                  armoredPrivateKey
+                )
+              }
 
-          case .authorizationRequired, .none:
-            requestAuthorization(message: nil)
-            return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
-              .eraseToAnyPublisher()
-          }
+              switch decryptionResult {
+              case let .success(decrypted):
+                return Just(decrypted)
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+
+              case let .failure(error):
+                return Fail<String, TheError>(error: error)
+                  .eraseToAnyPublisher()
+              }
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+
+        case let .failure(error):
+          diagnostics.debugLog(
+            "Failed to retrieve private key for account: \(account.localID)"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
+          )
+          return Fail<String, TheError>(error: error)
+            .eraseToAnyPublisher()
         }
-        .switchToLatest()
-        .map { armoredPrivateKey, passphrase -> AnyPublisher<String, TheError> in
-          let decryptionResult: Result<String, TheError>
-          if let publicKey: ArmoredPGPPublicKey = publicKey {
-            decryptionResult = pgp.decryptAndVerify(
-              encryptedMessage,
-              passphrase,
-              armoredPrivateKey,
-              publicKey
-            )
-          }
-          else {
-            decryptionResult = pgp.decrypt(
-              encryptedMessage,
-              passphrase,
-              armoredPrivateKey
-            )
-          }
 
-          switch decryptionResult {
-          case let .success(decrypted):
-            return Just(decrypted)
-              .setFailureType(to: TheError.self)
-              .eraseToAnyPublisher()
-
-          case let .failure(error):
-            return Fail<String, TheError>(error: error)
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+      case .authorizationRequired, .none:
+        requestAuthorization(message: nil)
+        return Fail<String, TheError>(error: .authorizationRequired())
+          .eraseToAnyPublisher()
+      }
     }
 
     func encryptAndSignMessage(
       _ message: String,
       publicKey: ArmoredPGPPublicKey
     ) -> AnyPublisher<ArmoredPGPMessage, TheError> {
-      sessionStatePublisher
-        .first()
-        .map { sessionState -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
-          switch sessionState {
-          case let .authorized(account), let .authorizedMFARequired(account, _):
-            switch accountsDataStore.loadAccountPrivateKey(account.localID) {
-            case let .success(armoredKey):
-              return
-                passphraseCache
-                .passphrasePublisher(account.localID)
-                .first()
+      switch sessionState {
+      case let .authorized(account), let .authorizedMFARequired(account, _):
+        switch accountsDataStore.loadAccountPrivateKey(account.localID) {
+        case let .success(armoredKey):
+          return
+            passphraseCache
+            .passphrasePublisher(account.localID)
+            .first()
+            .setFailureType(to: TheError.self)
+            .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
+              guard let passphrase: Passphrase = passphrase
+              else {
+                requestAuthorization(message: nil)
+                return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
+                  .eraseToAnyPublisher()
+              }
+              return Just((armoredKey, passphrase))
                 .setFailureType(to: TheError.self)
-                .map { passphrase -> AnyPublisher<(ArmoredPGPPrivateKey, Passphrase), TheError> in
-                  guard let passphrase: Passphrase = passphrase
-                  else {
-                    requestAuthorization(message: nil)
-                    return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
-                      .eraseToAnyPublisher()
-                  }
-                  return Just((armoredKey, passphrase))
-                    .setFailureType(to: TheError.self)
-                    .eraseToAnyPublisher()
-                }
-                .switchToLatest()
-                .eraseToAnyPublisher()
-
-            case let .failure(error):
-              diagnostics.debugLog(
-                "Failed to retrieve private key for account: \(account.localID)"
-                  + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-              )
-              return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: error)
                 .eraseToAnyPublisher()
             }
+            .switchToLatest()
+            .map { armoredPrivateKey, passphrase -> AnyPublisher<ArmoredPGPMessage, TheError> in
+              let encryptionResult: Result<String, TheError> = pgp.encryptAndSign(
+                message,
+                passphrase,
+                armoredPrivateKey,
+                publicKey
+              )
 
-          case .authorizationRequired, .none:
-            requestAuthorization(message: nil)
-            return Fail<(ArmoredPGPPrivateKey, Passphrase), TheError>(error: .authorizationRequired())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .map { armoredPrivateKey, passphrase -> AnyPublisher<ArmoredPGPMessage, TheError> in
-          let encryptionResult: Result<String, TheError> = pgp.encryptAndSign(
-            message,
-            passphrase,
-            armoredPrivateKey,
-            publicKey
+              switch encryptionResult {
+              case let .success(encrypted):
+                return Just(.init(rawValue: encrypted))
+                  .setFailureType(to: TheError.self)
+                  .eraseToAnyPublisher()
+
+              case let .failure(error):
+                return Fail<ArmoredPGPMessage, TheError>(error: error)
+                  .eraseToAnyPublisher()
+              }
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
+
+        case let .failure(error):
+          diagnostics.debugLog(
+            "Failed to retrieve private key for account: \(account.localID)"
+              + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
           )
-
-          switch encryptionResult {
-          case let .success(encrypted):
-            return Just(.init(rawValue: encrypted))
-              .setFailureType(to: TheError.self)
-              .eraseToAnyPublisher()
-
-          case let .failure(error):
-            return Fail<ArmoredPGPMessage, TheError>(error: error)
-              .eraseToAnyPublisher()
-          }
+          return Fail<ArmoredPGPMessage, TheError>(error: error)
+            .eraseToAnyPublisher()
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+
+      case .authorizationRequired, .none:
+        requestAuthorization(message: nil)
+        return Fail<ArmoredPGPMessage, TheError>(error: .authorizationRequired())
+          .eraseToAnyPublisher()
+      }
     }
 
     func authorizationPromptPresentationPublisher() -> AnyPublisher<AuthorizationPromptRequest, Never> {
@@ -665,7 +652,7 @@ extension AccountSession: Feature {
     }
 
     func requestAuthorization(message: LocalizedMessage?) {
-      switch sessionStateSubject.value {
+      switch sessionState {
       case let .authorized(account), let .authorizedMFARequired(account, _):
         passphraseCache.clear()
         authorizationPromptPresentationSubject.send(
@@ -727,3 +714,36 @@ extension AccountSession {
   }
 }
 #endif
+
+public enum AuthorizationPromptRequest {
+
+  case passphraseRequest(account: Account, message: LocalizedMessage?)
+  case mfaRequest(account: Account, providers: Array<MFAProvider>)
+
+  public var account: Account {
+    switch self {
+    case let .passphraseRequest(account, _):
+      return account
+    case let .mfaRequest(account, _):
+      return account
+    }
+  }
+
+  public var message: LocalizedMessage? {
+    switch self {
+    case let .passphraseRequest(_, message):
+      return message
+    case .mfaRequest:
+      return .none
+    }
+  }
+
+  public var mfaProviders: Array<MFAProvider> {
+    switch self {
+    case .passphraseRequest:
+      return []
+    case let .mfaRequest(_, providers):
+      return providers
+    }
+  }
+}

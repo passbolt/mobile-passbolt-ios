@@ -34,11 +34,6 @@ final class NetworkingDecoratorsTests: XCTestCase {
   var diagnostics: Diagnostics!
   var cancellables: Cancellables!
 
-  override class func setUp() {
-    super.setUp()
-    FeatureFactory.autoLoadFeatures = false
-  }
-
   override func setUp() {
     super.setUp()
     diagnostics = .placeholder

@@ -21,25 +21,18 @@
 // @since         v1.0
 //
 
+import Commons
+
 public typealias EmptyNetworkSessionVariable = Void
 
-public struct NetworkSessionVariable {
+public struct DomainNetworkSessionVariable {
 
-  internal var domain: String
-
-  public init(domain: String) {
-    self.domain = domain
-  }
+  internal var domain: URLString
 }
 
-public struct AuthorizedSessionVariable {
+public struct AuthorizedNetworkSessionVariable {
 
-  internal var domain: String
-  internal var authorizationToken: String
+  internal var domain: URLString
+  internal var accessToken: String
   internal var mfaToken: String?
-}
-
-public struct DomainSessionVariable {
-
-  internal var domain: String
 }

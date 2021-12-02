@@ -35,7 +35,7 @@ public struct Account {
   public typealias LocalID = Tagged<String, UserID>
 
   public let localID: LocalID
-  public let domain: String
+  public let domain: URLString
   public let userID: UserID
   public let fingerprint: Fingerprint
 }

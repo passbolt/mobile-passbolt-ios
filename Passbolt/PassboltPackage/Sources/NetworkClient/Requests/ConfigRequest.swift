@@ -27,18 +27,18 @@ import Environment
 import struct Foundation.URL
 
 public typealias ConfigRequest =
-  NetworkRequest<DomainSessionVariable, ConfigRequestVariable, ConfigResponse>
+  NetworkRequest<DomainNetworkSessionVariable, ConfigRequestVariable, ConfigResponse>
 
 extension ConfigRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/settings.json"),
           .method(.get),
           .queryItem("api-version", value: "v2")

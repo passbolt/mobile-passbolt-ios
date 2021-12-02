@@ -167,7 +167,7 @@ internal final class AccountNotFoundView: ScrolledStackView {
       .text(accountWithProfile.username)
     }
     mut(accountDomainLabel) {
-      .text(accountWithProfile.domain)
+      .text(accountWithProfile.domain.rawValue)
     }
   }
 }

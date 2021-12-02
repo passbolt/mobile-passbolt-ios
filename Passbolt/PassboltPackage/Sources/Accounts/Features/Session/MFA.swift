@@ -41,44 +41,18 @@ extension MFA: Feature {
     let accountSession: AccountSession = features.instance()
 
     func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, TheError> {
-      accountSession
-        .statePublisher()
-        .first()
-        .map { state -> AnyPublisher<Void, TheError> in
-          switch state {
-          case .authorized, .authorizedMFARequired:
-            return
-              yubikey
-              .readNFC()
-              .map { otp in
-                accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
-          case .none, .authorizationRequired:
-            return Fail(error: .authorizationRequired())
-              .eraseToAnyPublisher()
-          }
+      return
+        yubikey
+        .readNFC()
+        .map { otp in
+          accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
         }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
 
     func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, TheError> {
-      accountSession
-        .statePublisher()
-        .first()
-        .map { state -> AnyPublisher<Void, TheError> in
-          switch state {
-          case .authorized, .authorizedMFARequired:
-            return accountSession.mfaAuthorize(.totp(totp), saveLocally)
-          case .none, .authorizationRequired:
-            return Fail(error: .authorizationRequired())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+      accountSession.mfaAuthorize(.totp(totp), saveLocally)
     }
 
     return Self(

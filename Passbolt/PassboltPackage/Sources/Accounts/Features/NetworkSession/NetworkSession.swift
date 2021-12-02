@@ -30,15 +30,15 @@ import NetworkClient
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
+import class Foundation.NSRecursiveLock
 
 internal struct NetworkSession {
 
-  // returns nonempty Array<MFAProvider> if MFA required
-  // otherwise empty (even if MFA is enabled but current token was valid)
+  // returns nonempty Array<MFAProvider> if MFA authorization is required
+  // otherwise empty (including case when MFA is enabled but current token was valid)
   internal var createSession:
     (
       _ account: Account,
-      _ domain: String,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
     ) -> AnyPublisher<Array<MFAProvider>, TheError>
@@ -49,8 +49,8 @@ internal struct NetworkSession {
       _ authorization: AccountSession.MFAAuthorizationMethod,
       _ storeLocally: Bool
     ) -> AnyPublisher<Void, TheError>
-
-  internal var refreshSession: () -> AnyPublisher<NetworkSessionTokens, TheError>
+  internal var sessionRefreshAvailable: (Account) -> Bool
+  internal var refreshSessionIfNeeded: (Account) -> AnyPublisher<Void, TheError>
   internal var closeSession: () -> AnyPublisher<Void, TheError>
 }
 
@@ -67,7 +67,7 @@ extension NetworkSession {
   fileprivate typealias ServerPublicKeysWithSignInTokensAndMFAStatus = (
     serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool
   )
-  fileprivate typealias SessionTokensWithMFAProviders = (tokens: NetworkSessionTokens, mfaProviders: Array<MFAProvider>)
+  fileprivate typealias SessionStateWithMFAProviders = (state: NetworkSessionState, mfaProviders: Array<MFAProvider>)
 }
 
 extension NetworkSession: Feature {
@@ -77,6 +77,9 @@ extension NetworkSession: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let encoder: JSONEncoder = .init()
+    let decoder: JSONDecoder = .init()
+
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
     let time: Time = environment.time
     let pgp: PGP = environment.pgp
@@ -87,36 +90,96 @@ extension NetworkSession: Feature {
     let fingerprintStorage: FingerprintStorage = features.instance()
     let networkClient: NetworkClient = features.instance()
 
-    let sessionTokensSubject: CurrentValueSubject<NetworkSessionTokens?, Never> = .init(nil)
+    let sessionAccessLock: NSRecursiveLock = .init()
+    let sessionStateSubject: CurrentValueSubject<NetworkSessionState?, Never> = .init(nil)
+    // synchonizing access to session tokens due to possible race conditions
+    // CurrentValueSubject is thread safe but in some cases
+    // we have to ensure state changes happen in sync with previous value
+    // while other threads might try to access it in the mean time
+    var sessionState: NetworkSessionState? {
+      get {
+        sessionAccessLock.lock()
+        defer { sessionAccessLock.unlock() }
+        return sessionStateSubject.value
+      }
+      set {
+        sessionAccessLock.lock()
+        sessionStateSubject.value = newValue
+        sessionAccessLock.unlock()
+      }
+    }
+    func withSessionState<Returned>(
+      _ access: (inout NetworkSessionState?) -> Returned
+    ) -> Returned {
+      sessionAccessLock.lock()
+      defer { sessionAccessLock.unlock() }
+      var value: NetworkSessionState? = sessionStateSubject.value
+      defer { sessionStateSubject.send(value) }
+      return access(&value)
+    }
 
-    let encoder: JSONEncoder = .init()
-    let decoder: JSONDecoder = .init()
+    // swift-format-ignore: NoLeadingUnderscores
+    var _ongoingSessionRefresh: (resultPublisher: AnyPublisher<Void, TheError>, cancellable: AnyCancellable)?
+    var ongoingSessionRefresh: (resultPublisher: AnyPublisher<Void, TheError>, cancellable: AnyCancellable)? {
+      get {
+        sessionAccessLock.lock()
+        defer { sessionAccessLock.unlock() }
+        return _ongoingSessionRefresh
+      }
+      set {
+        sessionAccessLock.lock()
+        _ongoingSessionRefresh = newValue
+        sessionAccessLock.unlock()
+      }
+    }
 
     networkClient
-      .setTokensPublisher(
-        sessionTokensSubject
-          .map { (sessionTokens: NetworkSessionTokens?) -> NetworkClient.Tokens? in
-            sessionTokens
-              .map { sessionTokens in
-                NetworkClient.Tokens(
-                  accessToken: sessionTokens.accessToken.rawValue,
-                  isExpired: {
-                    sessionTokens
-                      .accessToken
-                      .isExpired(timestamp: time.timestamp())
-                  },
-                  refreshToken: sessionTokens.refreshToken.rawValue,
-                  mfaToken: sessionTokens.mfaToken?.rawValue
+      .setSessionStatePublisher(
+        sessionStateSubject
+          .removeDuplicates()
+          .map { (sessionState: NetworkSessionState?) -> AnyPublisher<NetworkClient.SessionState?, Never> in
+            guard let sessionState: NetworkSessionState = sessionState
+            else {
+              return Just(nil)
+                .eraseToAnyPublisher()
+            }
+            let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken
+            // we are giving the token 5 second leeway to avoid making network requests
+            // with a token that is about to expire since it might result in unauthorized response
+            guard !accessToken.isExpired(timestamp: time.timestamp(), leeway: 5)
+            else {
+              return refreshSessionIfNeeded(account: sessionState.account)
+                .ignoreOutput()  // on success it should recompute whole map and result should not be needed
+                .map { _ -> NetworkClient.SessionState? in /* NOP */ }
+                .replaceError(  // in case of error treat it as no access token
+                  with: NetworkClient.SessionState(
+                    domain: sessionState.account.domain,
+                    accessToken: nil,
+                    mfaToken: nil  // there is no point of using MFA without access token
+                  )
                 )
-              }
+                .eraseToAnyPublisher()
+            }
+
+            return Just(
+              NetworkClient.SessionState(
+                domain: sessionState.account.domain,
+                accessToken: accessToken.rawValue,
+                mfaToken: sessionState.mfaToken?.rawValue
+              )
+            )
+            .eraseToAnyPublisher()
           }
+          .switchToLatest()
           .eraseToAnyPublisher()
       )
 
-    func fetchServerPublicPGPKey() -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
+    func fetchServerPublicPGPKey(
+      domain: URLString
+    ) -> AnyPublisher<ArmoredPGPPublicKey, TheError> {
       networkClient
         .serverPGPPublicKeyRequest
-        .make()
+        .make(using: .init(domain: domain))
         .handleEvents(receiveSubscription: { _ in
           diagnostics.diagnosticLog("...fetching server public PGP key...")
         })
@@ -126,10 +189,12 @@ extension NetworkSession: Feature {
         .eraseToAnyPublisher()
     }
 
-    func fetchServerPublicRSAKey() -> AnyPublisher<ArmoredRSAPublicKey, TheError> {
+    func fetchServerPublicRSAKey(
+      domain: URLString
+    ) -> AnyPublisher<ArmoredRSAPublicKey, TheError> {
       networkClient
         .serverRSAPublicKeyRequest
-        .make()
+        .make(using: .init(domain: domain))
         .handleEvents(receiveSubscription: { _ in
           diagnostics.diagnosticLog("...fetching server public RSA key...")
         })
@@ -139,10 +204,13 @@ extension NetworkSession: Feature {
         .eraseToAnyPublisher()
     }
 
-    func fetchServerPublicKeys(accountID: Account.LocalID) -> AnyPublisher<ServerPublicKeys, TheError> {
+    func fetchServerPublicKeys(
+      accountID: Account.LocalID,
+      domain: URLString
+    ) -> AnyPublisher<ServerPublicKeys, TheError> {
       Publishers.CombineLatest(
-        fetchServerPublicPGPKey(),
-        fetchServerPublicRSAKey()
+        fetchServerPublicPGPKey(domain: domain),
+        fetchServerPublicRSAKey(domain: domain)
       )
       .map { (publicPGP: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
         var existingFingerprint: Fingerprint? = nil
@@ -223,7 +291,7 @@ extension NetworkSession: Feature {
     }
 
     func prepareSignInChallenge(
-      domain: String,
+      domain: URLString,
       verificationToken: String,
       challengeExpiration: Int,
       serverPublicPGPKey: ArmoredPGPPublicKey,
@@ -233,7 +301,7 @@ extension NetworkSession: Feature {
       let challenge: SignInRequestChallenge = .init(
         version: "1.0.0",  // Protocol version 1.0.0
         token: verificationToken,
-        domain: domain,
+        domain: domain.rawValue,
         expiration: challengeExpiration
       )
 
@@ -291,6 +359,7 @@ extension NetworkSession: Feature {
     }
 
     func signIn(
+      domain: URLString,
       userID: Account.UserID,
       challenge: ArmoredPGPMessage,
       mfaToken: MFAToken?
@@ -299,6 +368,7 @@ extension NetworkSession: Feature {
         .signInRequest
         .make(
           using: .init(
+            domain: domain,
             userID: userID.rawValue,
             challenge: challenge,
             mfaToken: mfaToken
@@ -360,6 +430,7 @@ extension NetworkSession: Feature {
     }
 
     func signInAndDecryptVerifyResponse(
+      domain: URLString,
       userID: Account.UserID,
       signInChallenge: ArmoredPGPMessage,
       mfaToken: MFAToken?,
@@ -368,6 +439,7 @@ extension NetworkSession: Feature {
       passphrase: Passphrase
     ) -> AnyPublisher<SignInTokensWithMFAStatus, TheError> {
       signIn(
+        domain: domain,
         userID: userID,
         challenge: signInChallenge,
         mfaToken: mfaToken
@@ -398,7 +470,7 @@ extension NetworkSession: Feature {
       serverPublicRSAKey: ArmoredRSAPublicKey,
       verificationToken: String,
       challengeExpiration: Int
-    ) -> AnyPublisher<SessionTokensWithMFAProviders, TheError> {
+    ) -> AnyPublisher<SessionStateWithMFAProviders, TheError> {
       let accessToken: JWT
       switch JWT.from(rawValue: signInTokens.accessToken) {
       case let .success(jwt):
@@ -406,7 +478,7 @@ extension NetworkSession: Feature {
 
       case let .failure(error):
         diagnostics.diagnosticLog("...session tokens decoding failed!")
-        return Fail<SessionTokensWithMFAProviders, TheError>(
+        return Fail<SessionStateWithMFAProviders, TheError>(
           error: error.appending(logMessage: "Failed to prepare for signature verification")
         )
         .eraseToAnyPublisher()
@@ -420,7 +492,7 @@ extension NetworkSession: Feature {
         let signedData: Data = accessToken.signedPayload.data(using: .utf8)
       else {
         diagnostics.diagnosticLog("...session tokens verification failed!")
-        return Fail<SessionTokensWithMFAProviders, TheError>(
+        return Fail<SessionStateWithMFAProviders, TheError>(
           error: .signInError()
             .appending(logMessage: "Failed to prepare for signature verification")
         )
@@ -431,11 +503,11 @@ extension NetworkSession: Feature {
       case .success:
         diagnostics.diagnosticLog("...session tokens signature verification succeeded...")
         return Just(
-          SessionTokensWithMFAProviders(
-            tokens: NetworkSessionTokens(
-              accountLocalID: account.localID,
+          SessionStateWithMFAProviders(
+            state: NetworkSessionState(
+              account: account,
               accessToken: accessToken,
-              refreshToken: NetworkSessionTokens.RefreshToken(rawValue: signInTokens.refreshToken),
+              refreshToken: NetworkSessionState.RefreshToken(rawValue: signInTokens.refreshToken),
               mfaToken: mfaToken
             ),
             mfaProviders: signInTokens.mfaProviders.map { mfaToken == .none ? $0 : [] } ?? []
@@ -446,7 +518,7 @@ extension NetworkSession: Feature {
 
       case let .failure(error):
         diagnostics.diagnosticLog("...session tokens signature verification failed!")
-        return Fail<SessionTokensWithMFAProviders, TheError>(
+        return Fail<SessionStateWithMFAProviders, TheError>(
           error: error.appending(logMessage: "Signature verification failed")
         )
         .eraseToAnyPublisher()
@@ -455,10 +527,12 @@ extension NetworkSession: Feature {
 
     func createSession(
       account: Account,
-      domain: String,
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Array<MFAProvider>, TheError> {
+      ongoingSessionRefresh?.cancellable.cancel()
+      withSessionState { sessionState in sessionState = nil }
+
       let verificationToken: String = uuidGenerator().uuidString
       let challengeExpiration: Int  // 120s is verification token's lifetime
       = time.timestamp() + 120
@@ -468,10 +542,10 @@ extension NetworkSession: Feature {
         .loadAccountMFAToken(account.localID)
         .get()  // we don't care about the errors here
 
-      return fetchServerPublicKeys(accountID: account.localID)
+      return fetchServerPublicKeys(accountID: account.localID, domain: account.domain)
         .map { (serverPublicKeys: ServerPublicKeys) -> AnyPublisher<ServerPublicKeysWithSignInChallenge, TheError> in
           prepareSignInChallenge(
-            domain: domain,
+            domain: account.domain,
             verificationToken: verificationToken,
             challengeExpiration: challengeExpiration,
             serverPublicPGPKey: serverPublicKeys.publicPGP,
@@ -492,6 +566,7 @@ extension NetworkSession: Feature {
             ServerPublicKeysWithSignInTokensAndMFAStatus, TheError
           > in
           signInAndDecryptVerifyResponse(
+            domain: account.domain,
             userID: account.userID,
             signInChallenge: signInChallenge,
             mfaToken: mfaToken,
@@ -511,7 +586,7 @@ extension NetworkSession: Feature {
         .switchToLatest()
         .map {
           (serverPublicKeys: ServerPublicKeys, signInTokens: Tokens, mfaTokenIsValid: Bool) -> AnyPublisher<
-            SessionTokensWithMFAProviders, TheError
+            SessionStateWithMFAProviders, TheError
           > in
           decodeVerifySignInTokens(
             account: account,
@@ -528,12 +603,14 @@ extension NetworkSession: Feature {
           .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .handleEvents(receiveOutput: { (tokens: NetworkSessionTokens, _: Array<MFAProvider>) in
-          var copyTokens: NetworkSessionTokens = tokens
-          copyTokens.mfaToken = mfaToken
-          sessionTokensSubject.send(copyTokens)
+        .handleEvents(receiveOutput: { (state: NetworkSessionState, _: Array<MFAProvider>) in
+          var stateCopy: NetworkSessionState = state
+          stateCopy.mfaToken = mfaToken
+          withSessionState { sessionState in
+            sessionState = stateCopy
+          }
         })
-        .map { (_: NetworkSessionTokens, mfaProviders: Array<MFAProvider>) -> Array<MFAProvider> in
+        .map { (_: NetworkSessionState, mfaProviders: Array<MFAProvider>) -> Array<MFAProvider> in
           mfaProviders
         }
         .eraseToAnyPublisher()
@@ -544,91 +621,268 @@ extension NetworkSession: Feature {
       authorization: AccountSession.MFAAuthorizationMethod,
       storeLocally: Bool
     ) -> AnyPublisher<Void, TheError> {
-      switch authorization {
-      case let .totp(otp):
-        diagnostics.diagnosticLog("...verifying otp...")
-        return networkClient
-          .totpAuthorizationRequest
-          .make(using: .init(totp: otp, remember: storeLocally))
-          .map(\.mfaToken)
-          .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
-            if storeLocally {
-              return
-                accountDataStore
-                .storeAccountMFAToken(account.localID, token)
-                .map {
-                  sessionTokensSubject.value?.mfaToken = token
-                }
-            }
-            else {
-              sessionTokensSubject.value?.mfaToken = token
-              return .success
-            }
-          }
-          .eraseToAnyPublisher()
+      withSessionState { sessionState in
+        guard let sessionState: NetworkSessionState = sessionState
+        else {
+          diagnostics.diagnosticLog("...missing session for mfa auth!")
+          return Fail(error: .missingSessionError()).eraseToAnyPublisher()
+        }
+        guard sessionState.account == account
+        else {
+          diagnostics.diagnosticLog("...invalid account for mfa auth!")
+          return Fail(error: .sessionClosed()).eraseToAnyPublisher()
+        }
+        let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken
 
-      case let .yubikeyOTP(otp):
-        diagnostics.diagnosticLog("...verifying yubikey otp...")
-        return networkClient
-          .yubikeyAuthorizationRequest
-          .make(using: .init(otp: otp, remember: storeLocally))
-          .map(\.mfaToken)
-          .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
-            if storeLocally {
-              return
-                accountDataStore
-                .storeAccountMFAToken(account.localID, token)
-                .map {
-                  sessionTokensSubject.value?.mfaToken = token
+        switch authorization {
+        case let .totp(otp):
+          diagnostics.diagnosticLog("...verifying otp...")
+          return networkClient
+            .totpAuthorizationRequest
+            .make(
+              using: .init(
+                accessToken: accessToken.rawValue,
+                totp: otp,
+                remember: storeLocally
+              )
+            )
+            .map(\.mfaToken)
+            .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
+              withSessionState { sessionState in
+                guard sessionState?.account == account
+                else {
+                  diagnostics.diagnosticLog("...invalid account for mfa auth!")
+                  return .failure(.sessionClosed())
                 }
+                if storeLocally {
+                  return
+                    accountDataStore
+                    .storeAccountMFAToken(account.localID, token)
+                    .map {
+                      sessionState?.mfaToken = token
+                    }
+                }
+                else {
+                  sessionState?.mfaToken = token
+                  return .success
+                }
+              }
             }
-            else {
-              sessionTokensSubject.value?.mfaToken = token
-              return .success
+            .eraseToAnyPublisher()
+
+        case let .yubikeyOTP(otp):
+          diagnostics.diagnosticLog("...verifying yubikey otp...")
+          return networkClient
+            .yubikeyAuthorizationRequest
+            .make(
+              using: .init(
+                accessToken: accessToken.rawValue,
+                otp: otp,
+                remember: storeLocally
+              )
+            )
+            .map(\.mfaToken)
+            .flatMapResult { (token: MFAToken) -> Result<Void, TheError> in
+              withSessionState { sessionState in
+                guard sessionState?.account == account
+                else {
+                  diagnostics.diagnosticLog("...invalid account for mfa auth!")
+                  return .failure(.sessionClosed())
+                }
+                if storeLocally {
+                  return
+                    accountDataStore
+                    .storeAccountMFAToken(account.localID, token)
+                    .map {
+                      sessionState?.mfaToken = token
+                    }
+                }
+                else {
+                  sessionState?.mfaToken = token
+                  return .success
+                }
+              }
             }
-          }
-          .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
+        }
       }
     }
 
-    func refreshSession() -> AnyPublisher<NetworkSessionTokens, TheError> {
-      #warning("TODO: [PAS-160] token refresh disabled, please always sign in")
-      Commons.placeholder("TODO: to complete [PAS-160]")
+    func refreshSessionIfNeeded(account: Account) -> AnyPublisher<Void, TheError> {
+      diagnostics.diagnosticLog("Refreshing session...")
+      return withSessionState { sessionState -> AnyPublisher<Void, TheError> in
+        if let ongoingRequest: AnyPublisher<Void, TheError> = _ongoingSessionRefresh?.resultPublisher {
+          return ongoingRequest
+        }
+        else {
+          guard let sessionState: NetworkSessionState = sessionState
+          else {
+            diagnostics.diagnosticLog("...missing session for session refresh!")
+            return Fail(error: .missingSessionError())
+              .eraseToAnyPublisher()
+          }
+          guard sessionState.account == account
+          else {
+            diagnostics.diagnosticLog("...invalid account for session refresh!")
+            return Fail(error: .sessionClosed())
+              .eraseToAnyPublisher()
+          }
+          // we are giving the token 5 second leeway to avoid making network requests
+          // with a token that is about to expire since it might result in unauthorized response
+          guard sessionState.accessToken.isExpired(timestamp: time.timestamp(), leeway: 5)
+          else {
+            diagnostics.diagnosticLog("... session refresh not required, reusing current session!")
+            return Just(Void())  // if current access token is valid there is no need to refresh
+              .setFailureType(to: TheError.self)
+              .eraseToAnyPublisher()
+          }
+          guard let refreshToken: NetworkSessionState.RefreshToken = sessionState.refreshToken
+          else {
+            diagnostics.diagnosticLog("...missing refresh token for session refresh!")
+            return Fail(error: .missingSessionError())
+              .eraseToAnyPublisher()
+          }
+
+          let sessionRefreshSubject: PassthroughSubject<Void, TheError> = .init()
+
+          let sessionRefreshCancellable: AnyCancellable =
+            fetchServerPublicRSAKey(domain: account.domain)
+            .map { (serverPublicRSAKey: ArmoredRSAPublicKey) -> AnyPublisher<Void, TheError> in
+              diagnostics.diagnosticLog("...requesting token refresh...")
+              return networkClient
+                .refreshSessionRequest
+                .make(
+                  using: .init(
+                    domain: account.domain,
+                    userID: sessionState.account.userID.rawValue,
+                    refreshToken: refreshToken.rawValue,
+                    mfaToken: sessionState.mfaToken?.rawValue
+                  )
+                )
+                .flatMapResult { (response: RefreshSessionResponse) -> Result<Void, TheError> in
+                  let accessToken: JWT
+                  switch JWT.from(rawValue: response.accessToken) {
+                  case let .success(jwt):
+                    accessToken = jwt
+
+                  case let .failure(error):
+                    diagnostics.diagnosticLog("...jwt access token decoding failed!")
+                    return .failure(error)
+                  }
+
+                  guard
+                    let key: Data = Data(base64Encoded: serverPublicRSAKey.stripArmoredFormat()),
+                    let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
+                    let signedData: Data = accessToken.signedPayload.data(using: .utf8)
+                  else {
+                    diagnostics.diagnosticLog("...jwt access token verification not possible!")
+                    return .failure(.signInError())
+                  }
+
+                  switch signatureVerification.verify(signedData, signature, key) {
+                  case .success:
+                    diagnostics.diagnosticLog("...jwt access token verification succeeded...")
+                    return withSessionState { sessionState in
+                      guard sessionState?.account == account
+                      else {
+                        diagnostics.diagnosticLog("...session refresh failed due to account switch!")
+                        return .failure(.sessionClosed())
+                      }
+                      sessionState?.accessToken = accessToken
+                      sessionState?.refreshToken = .init(rawValue: response.refreshToken)
+                      diagnostics.diagnosticLog("...session refresh succeeded!")
+                      return .success
+                    }
+                  case let .failure(error):
+                    diagnostics.diagnosticLog("...jwt access token verification failed!")
+                    return .failure(error)
+                  }
+                }
+                .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .subscribe(sessionRefreshSubject)
+
+          let sessionRefreshResultPublisher: AnyPublisher<Void, TheError> =
+            sessionRefreshSubject
+            .handleErrors(
+              ([.canceled], handler: { _ in /* NOP */ true }),
+              defaultHandler: { _ in
+                withSessionState { sessionTokens in
+                  sessionTokens = nil  // close session if refresh fails, it will require to sign in again
+                }
+              }
+            )
+            .handleEvents(
+              receiveCancel: {
+                // When we cancel session refresh we have to
+                // cancel internal publisher as well
+                sessionRefreshCancellable.cancel()
+                diagnostics.diagnosticLog("...background session refresh canceled!")
+              }
+            )
+            .handleEnd({ ending in
+              ongoingSessionRefresh = nil
+              guard case .failed = ending else { return }
+              withSessionState { sessionState in
+                sessionState?.refreshToken = nil
+              }
+            })
+            .share()
+            .eraseToAnyPublisher()
+
+          _ongoingSessionRefresh = (
+            resultPublisher: sessionRefreshResultPublisher,
+            cancellable: sessionRefreshCancellable
+          )
+
+          return sessionRefreshResultPublisher
+
+        }
+      }
+    }
+
+    func sessionRefreshAvailable(_ account: Account) -> Bool {
+      withSessionState { sessionState in
+        sessionState?.account == account
+          && sessionState?.refreshToken != nil
+      }
     }
 
     func closeSession() -> AnyPublisher<Void, TheError> {
-      sessionTokensSubject
-        .first()
-        .map { sessionTokens -> AnyPublisher<Void, TheError> in
-          if let refreshToken: NetworkSessionTokens.RefreshToken = sessionTokens?.refreshToken {
-            sessionTokensSubject.send(nil)
-            return networkClient
-              .signOutRequest
-              .make(
-                using: SignOutRequestVariable(
-                  refreshToken: refreshToken.rawValue
-                )
+      withSessionState { sessionState -> AnyPublisher<Void, TheError> in
+        if let domain: URLString = sessionState?.account.domain,
+          let refreshToken: NetworkSessionState.RefreshToken = sessionState?.refreshToken
+        {
+          sessionState = nil
+          return networkClient
+            .signOutRequest
+            .make(
+              using: SignOutRequestVariable(
+                domain: domain,
+                refreshToken: refreshToken.rawValue
               )
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail<Void, TheError>(
-              error: .missingSessionError()
-                .appending(
-                  logMessage: "Sign out attempt failed without active session"
-                )
             )
             .eraseToAnyPublisher()
-          }
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+        else {
+          sessionState = nil
+          return Fail<Void, TheError>(
+            error: .missingSessionError()
+              .appending(
+                logMessage: "Sign out attempt failed without active session"
+              )
+          )
+          .eraseToAnyPublisher()
+        }
+      }
     }
 
     return Self(
-      createSession: createSession(account:domain:armoredPrivateKey:passphrase:),
+      createSession: createSession(account:armoredPrivateKey:passphrase:),
       createMFAToken: createMFAToken(account:authorization:storeLocally:),
-      refreshSession: refreshSession,
+      sessionRefreshAvailable: sessionRefreshAvailable,
+      refreshSessionIfNeeded: refreshSessionIfNeeded,
       closeSession: closeSession
     )
   }
@@ -641,7 +895,8 @@ extension NetworkSession {
     Self(
       createSession: Commons.placeholder("You have to provide mocks for used methods"),
       createMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
-      refreshSession: Commons.placeholder("You have to provide mocks for used methods"),
+      sessionRefreshAvailable: Commons.placeholder("You have to provide mocks for used methods"),
+      refreshSessionIfNeeded: Commons.placeholder("You have to provide mocks for used methods"),
       closeSession: Commons.placeholder("You have to provide mocks for used methods")
     )
   }

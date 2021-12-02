@@ -103,7 +103,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
     .sink { [weak self] accountWithProfile, biometricsState in
       self?.contentView.applyOn(name: .text("\(accountWithProfile.label)"))
       self?.contentView.applyOn(email: .text(accountWithProfile.username))
-      self?.contentView.applyOn(url: .text(accountWithProfile.domain))
+      self?.contentView.applyOn(url: .text(accountWithProfile.domain.rawValue))
       switch biometricsState {
       case .unavailable:
         self?.contentView.applyOn(

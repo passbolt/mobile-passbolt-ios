@@ -24,13 +24,15 @@
 import Commons
 import Crypto
 
-public struct NetworkSessionTokens {
+public struct NetworkSessionState {
 
   public typealias AccessToken = JWT
   public typealias RefreshToken = Tagged<String, Self>
 
-  public let accountLocalID: Account.LocalID
+  public let account: Account
   public var accessToken: AccessToken
-  public var refreshToken: RefreshToken
+  public var refreshToken: RefreshToken?
   public var mfaToken: MFAToken?
 }
+
+extension NetworkSessionState: Equatable {}

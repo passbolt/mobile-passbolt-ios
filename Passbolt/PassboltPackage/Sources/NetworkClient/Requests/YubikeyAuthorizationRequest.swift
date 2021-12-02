@@ -26,22 +26,27 @@ import Crypto
 import Environment
 
 public typealias YubikeyAuthorizationRequest =
-  NetworkRequest<AuthorizedSessionVariable, YubikeyAuthorizationRequestVariable, YubikeyAuthorizationResponse>
+  NetworkRequest<DomainNetworkSessionVariable, YubikeyAuthorizationRequestVariable, YubikeyAuthorizationResponse>
 
 extension YubikeyAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .path("/mfa/verify/yubikey.json"),
           .method(.post),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
-          .jsonBody(from: requestVariable)
+          .header("Authorization", value: "Bearer \(requestVariable.accessToken)"),
+          .jsonBody(
+            from: YubikeyAuthorizationRequestBody(
+              otp: requestVariable.otp,
+              remember: requestVariable.remember
+            )
+          )
         )
       },
       responseDecoder: .mfaCookie,
@@ -51,7 +56,24 @@ extension YubikeyAuthorizationRequest {
   }
 }
 
-public struct YubikeyAuthorizationRequestVariable: Encodable {
+public struct YubikeyAuthorizationRequestVariable {
+
+  public var accessToken: String
+  public var otp: String
+  public var remember: Bool
+
+  public init(
+    accessToken: String,
+    otp: String,
+    remember: Bool
+  ) {
+    self.accessToken = accessToken
+    self.otp = otp
+    self.remember = remember
+  }
+}
+
+public struct YubikeyAuthorizationRequestBody: Encodable {
 
   public var otp: String
   public var remember: Bool

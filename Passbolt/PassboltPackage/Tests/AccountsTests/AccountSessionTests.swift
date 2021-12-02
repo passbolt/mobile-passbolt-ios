@@ -37,7 +37,6 @@ final class AccountSessionTests: TestCase {
   var accountsDataStore: AccountsDataStore!
   var passphraseCache: PassphraseCache!
   var networkClient: NetworkClient!
-  var networkSession: NetworkSession!
 
   override func setUp() {
     super.setUp()
@@ -47,26 +46,27 @@ final class AccountSessionTests: TestCase {
     networkClient = .placeholder
     networkClient.setAuthorizationRequest = always(Void())
     networkClient.setMFARequest = always(Void())
-    networkClient.updateSession = always(Void())
-    networkSession = .placeholder
+    networkClient.setSessionStatePublisher = always(Void())
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
     environment.time.timestamp = always(0)
+    environment.pgp.verifyPassphrase = always(.success)
   }
 
   override func tearDown() {
     accountsDataStore = nil
     passphraseCache = nil
     networkClient = nil
-    networkSession = nil
     super.tearDown()
   }
 
   func test_statePublisher_publishesNoneState_initially() {
-    accountsDataStore.loadLastUsedAccount = always(.none)
-    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.loadLastUsedAccount,
+      with: always(.none)
+    )
     features.use(passphraseCache)
     features.use(networkClient)
-    features.use(networkSession)
+    features.usePlaceholder(for: NetworkSession.self)
 
     let feature: AccountSession = testInstance()
 
@@ -82,11 +82,13 @@ final class AccountSessionTests: TestCase {
   }
 
   func test_statePublisher_publishesLastUsedAccount_initially() {
-    accountsDataStore.loadLastUsedAccount = always(validAccount)
-    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.loadLastUsedAccount,
+      with: always(validAccount)
+    )
     features.use(passphraseCache)
     features.use(networkClient)
-    features.use(networkSession)
+    features.usePlaceholder(for: NetworkSession.self)
 
     let feature: AccountSession = testInstance()
 
@@ -112,12 +114,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -149,17 +157,26 @@ final class AccountSessionTests: TestCase {
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    networkSession.closeSession = always(
-      Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -194,17 +211,26 @@ final class AccountSessionTests: TestCase {
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    networkSession.closeSession = always(
-      Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -238,17 +264,26 @@ final class AccountSessionTests: TestCase {
     passphraseCache.passphrasePublisher = always(passphraseCacheSubject.eraseToAnyPublisher())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    networkSession.closeSession = always(
-      Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -276,7 +311,7 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(passphraseCache)
     features.use(networkClient)
-    features.use(networkSession)
+    features.usePlaceholder(for: NetworkSession.self)
 
     let feature: AccountSession = testInstance()
 
@@ -307,12 +342,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -348,12 +389,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     environment.pgp.decrypt = always(.failure(.testError()))
 
@@ -391,12 +438,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     environment.pgp.decrypt = always(.success("decrypted"))
 
@@ -431,12 +484,18 @@ final class AccountSessionTests: TestCase {
     passphraseCache.passphrasePublisher = always(passphraseCacheSubject.eraseToAnyPublisher())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -470,8 +529,17 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(Fail(error: .testError()).eraseToAnyPublisher())
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Fail(error: .testError())
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -500,12 +568,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -538,12 +612,26 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -573,12 +661,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>([.totp]))
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>([.totp]))
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -604,12 +698,18 @@ final class AccountSessionTests: TestCase {
     passphraseCache.store = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -639,12 +739,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -671,12 +777,18 @@ final class AccountSessionTests: TestCase {
     passphraseCache.store = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -703,12 +815,18 @@ final class AccountSessionTests: TestCase {
     passphraseCache.store = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -739,12 +857,18 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -774,19 +898,28 @@ final class AccountSessionTests: TestCase {
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -812,7 +945,7 @@ final class AccountSessionTests: TestCase {
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    features.use(networkSession)
+    features.usePlaceholder(for: NetworkSession.self)
 
     let feature: AccountSession = testInstance()
 
@@ -834,7 +967,7 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(passphraseCache)
     features.use(networkClient)
-    features.use(networkSession)
+    features.usePlaceholder(for: NetworkSession.self)
 
     let feature: AccountSession = testInstance()
 
@@ -853,7 +986,7 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(passphraseCache)
     features.use(networkClient)
-    features.use(networkSession)
+    features.usePlaceholder(for: NetworkSession.self)
 
     let feature: AccountSession = testInstance()
 
@@ -880,12 +1013,18 @@ final class AccountSessionTests: TestCase {
     passphraseCache.clear = always(Void())
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -922,17 +1061,26 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    networkSession.closeSession = always(
-      Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -972,17 +1120,26 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    networkSession.closeSession = always(
-      Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1023,19 +1180,28 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1064,19 +1230,28 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>([.totp]))
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1105,19 +1280,28 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1145,19 +1329,28 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1185,19 +1378,28 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1225,19 +1427,28 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: Void?
-    networkSession.closeSession = {
-      result = Void()
-      return Just(Void())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.closeSession,
+      with: {
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1263,12 +1474,19 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
     )
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+
     let appLifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
     environment.appLifeCycle.lifeCyclePublisher = always(appLifeCycleSubject.eraseToAnyPublisher())
 
@@ -1296,12 +1514,25 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(passphraseCache)
     features.use(networkClient)
-
-    networkSession.createMFAToken = { account, authorization, remember in
-      return Empty()
-        .eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+    features.patch(
+      \NetworkSession.createMFAToken,
+      with: always(
+        Empty()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1330,17 +1561,26 @@ final class AccountSessionTests: TestCase {
     )
     features.use(passphraseCache)
     features.use(networkClient)
-    networkSession.createSession = always(
-      Just(Array<MFAProvider>())
-        .setFailureType(to: TheError.self)
-        .eraseToAnyPublisher()
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
     )
     var result: (account: Account, authorization: AccountSession.MFAAuthorizationMethod, remember: Bool)?
-    networkSession.createMFAToken = { account, authorization, remember in
-      result = (account, authorization, remember)
-      return Empty().eraseToAnyPublisher()
-    }
-    features.use(networkSession)
+    features.patch(
+      \NetworkSession.createMFAToken,
+      with: { account, authorization, remember in
+        result = (account, authorization, remember)
+        return Empty().eraseToAnyPublisher()
+      }
+    )
 
     let feature: AccountSession = testInstance()
 
@@ -1357,6 +1597,186 @@ final class AccountSessionTests: TestCase {
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.authorization, .totp("OTP"))
     XCTAssertEqual(result?.remember, false)
+  }
+
+  func test_authorize_fails_whenSessionRefreshIsAvailableAndPassphraseIsNotValid() {
+    environment.pgp.verifyPassphrase = always(.failure(.testError()))
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
+    features.use(passphraseCache)
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(true)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    var result: TheError?
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_authorize_fallbacksToCreateSession_whenSessionRefreshIsAvailableAndSessionRefreshFails() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
+    features.use(passphraseCache)
+    features.use(networkClient)
+    var result: Void?
+    features.patch(
+      \NetworkSession.createSession,
+      with: { _, _, _ in
+        result = Void()
+        return Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(true)
+    )
+    features.patch(
+      \NetworkSession.refreshSessionIfNeeded,
+      with: always(
+        Fail(error: .testError())
+          .eraseToAnyPublisher()
+      )
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_authorize_doesSessionRefresh_whenSessionRefreshIsAvailableAndPassphraseIsValid() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
+    features.use(passphraseCache)
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(true)
+    )
+    var result: Void?
+    features.patch(
+      \NetworkSession.refreshSessionIfNeeded,
+      with: { _ in
+        result = Void()
+        return Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      }
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_authorize_succeeds_whenSessionRefreshSucceeds() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    features.use(accountsDataStore)
+    passphraseCache.store = always(Void())
+    passphraseCache.clear = always(Void())
+    passphraseCache.passphrasePublisher = always(
+      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
+    )
+    features.use(passphraseCache)
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(true)
+    )
+    features.patch(
+      \NetworkSession.refreshSessionIfNeeded,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+
+    let feature: AccountSession = testInstance()
+
+    var result: Void?
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sink(
+        receiveCompletion: { completion in
+          guard case .finished = completion
+          else { return }
+          result = Void()
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
   }
 }
 
@@ -1377,12 +1797,12 @@ private let validAccountAlternative: Account = .init(
 private let validAccountAlternativeWithIDCollision: Account = .init(
   localID: .init(rawValue: UUID.testAlt.uuidString),
   domain: "https://alt.passbolt.dev",
-  userID: "USER_ID", // colliding ID
+  userID: "USER_ID",  // colliding ID
   fingerprint: "FINGERPRINT_ALT"
 )
 
-private let validSessionTokens: NetworkSessionTokens = .init(
-  accountLocalID: validAccount.localID,
+private let validSessionTokens: NetworkSessionState = .init(
+  account: validAccount,
   accessToken: validJWTToken,
   refreshToken: "refresh_token"
 )

@@ -25,18 +25,18 @@ import Commons
 import Environment
 
 public typealias UserProfileRequest =
-  NetworkRequest<AuthorizedSessionVariable, UserProfileRequestVariable, UserProfileRequestResponse>
+  NetworkRequest<AuthorizedNetworkSessionVariable, UserProfileRequestVariable, UserProfileRequestResponse>
 
 extension UserProfileRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
         .combined(
-          .url(string: sessionVariable.domain),
+          .url(string: sessionVariable.domain.rawValue),
           .whenSome(
             requestVariable.userID,
             then: { userID in
@@ -44,7 +44,7 @@ extension UserProfileRequest {
             },
             else: .path("/users/me.json")
           ),
-          .header("Authorization", value: "Bearer \(sessionVariable.authorizationToken)"),
+          .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
             then: { mfaToken in

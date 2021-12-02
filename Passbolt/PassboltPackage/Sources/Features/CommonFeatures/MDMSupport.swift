@@ -36,7 +36,7 @@ extension MDMSupport {
   public struct TransferedAccount: Decodable {
 
     public let userID: String
-    public let domain: String
+    public let domain: URLString
     public let username: String
     public let firstName: String
     public let lastName: String
@@ -89,7 +89,7 @@ extension MDMSupport: Feature {
         + "-----END PGP PRIVATE KEY BLOCK-----"
       return TransferedAccount(
         userID: userID,
-        domain: domain,
+        domain: .init(rawValue: domain),
         username: username,
         firstName: firstName,
         lastName: lastName,

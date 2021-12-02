@@ -37,7 +37,7 @@ extension AccountTransferUpdateRequest {
     Self(
       template: .init { _, requestVariable in
         .combined(
-          .url(string: requestVariable.domain),
+          .url(string: requestVariable.domain.rawValue),
           .path("/mobile/transfers/\(requestVariable.transferID)/\(requestVariable.authenticationToken).json"),
           .method(.put),
           .when(
@@ -61,7 +61,7 @@ extension AccountTransferUpdateRequest {
 
 public struct AccountTransferUpdateRequestVariable {
 
-  public var domain: String
+  public var domain: URLString
   public var authenticationToken: String
   public var transferID: String
   public var currentPage: Int
@@ -69,7 +69,7 @@ public struct AccountTransferUpdateRequestVariable {
   public var requestUserProfile: Bool
 
   public init(
-    domain: String,
+    domain: URLString,
     authenticationToken: String,
     transferID: String,
     currentPage: Int,

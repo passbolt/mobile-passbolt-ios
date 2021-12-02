@@ -46,18 +46,16 @@ public struct NetworkClient {
   public var updateResourceRequest: UpdateResourceRequest
   public var deleteResourceRequest: DeleteResourceRequest
   public var userListRequest: UserListRequest
-  public var updateSession: (NetworkSessionVariable?) -> Void
-  public var setTokensPublisher: (AnyPublisher<Tokens?, Never>) -> Void
+  public var setSessionStatePublisher: (AnyPublisher<SessionState?, Never>) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
   public var setMFARequest: (@escaping (Array<MFAProvider>) -> Void) -> Void
 }
 
 extension NetworkClient {
 
-  public typealias Tokens = (
-    accessToken: String,
-    isExpired: () -> Bool,
-    refreshToken: String,
+  public typealias SessionState = (
+    domain: URLString,
+    accessToken: String?,
     mfaToken: String?
   )
 }
@@ -71,81 +69,82 @@ extension NetworkClient: Feature {
   ) -> NetworkClient {
     let networking: Networking = environment.networking
 
-    let sessionSubject: CurrentValueSubject<NetworkSessionVariable?, Never> = .init(nil)
-    let tokensSubject: CurrentValueSubject<AnyPublisher<Tokens?, Never>, Never> = .init(Empty().eraseToAnyPublisher())
+    let sessionStatePublisherSubject: CurrentValueSubject<AnyPublisher<SessionState?, Never>, Never> =
+      .init(PassthroughSubject().eraseToAnyPublisher())
+    let sessionStatePublisher: AnyPublisher<SessionState?, Never> =
+      sessionStatePublisherSubject
+      .switchToLatest()
+      .eraseToAnyPublisher()
 
     // accessed without lock - always set during loading initial features, before use
     var authorizationRequest: (() -> Void) = unreachable("Authorization request has to be assigned before use.")
     // accessed without lock - always set during loading initial features, before use
     var mfaRequest: ((Array<MFAProvider>) -> Void) = unreachable("MFA request has to be assigned before use.")
-
     let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
       .setFailureType(to: TheError.self)
       .eraseToAnyPublisher()
 
-    let sessionVariablePublisher: AnyPublisher<AuthorizedSessionVariable, TheError> =
-      sessionSubject
-      .combineLatest(tokensSubject.switchToLatest())
-      .map {
-        (session: NetworkSessionVariable?, tokens: NetworkClient.Tokens?) -> AnyPublisher<
-          AuthorizedSessionVariable, TheError
-        > in
-        if let session: NetworkSessionVariable = session,
-          let authorizationToken: String = tokens?.accessToken,
-          !(tokens?.isExpired() ?? true)
-        {
+    let authorizedNetworkSessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError> =
+      sessionStatePublisher
+      .map { (sessionState: SessionState?) -> AnyPublisher<AuthorizedNetworkSessionVariable?, TheError> in
+        guard let sessionState: SessionState = sessionState
+        else {
+          return Fail(error: .missingSession())
+            .eraseToAnyPublisher()
+        }
+        if let accessToken: String = sessionState.accessToken {
           return Just(
-            AuthorizedSessionVariable(
-              domain: session.domain,
-              authorizationToken: authorizationToken,
-              mfaToken: tokens?.mfaToken
+            AuthorizedNetworkSessionVariable(
+              domain: sessionState.domain,
+              accessToken: accessToken,
+              mfaToken: sessionState.mfaToken
             )
           )
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
         }
         else {
-          #warning("""
-          TODO: [PAS-160]
-          - trigger session refresh if expired or when token is missing
-          we might however react on specific error
-          in order to trigger it from given context - to verify
-          """)
-
-          // Currently there's no session refresh
-          authorizationRequest()
-          return Fail<AuthorizedSessionVariable, TheError>(error: .missingSession())
+          requestAuthorization()
+          return Just(nil)  // it will wait for the authorization
+            .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
         }
       }
       .switchToLatest()
+      .filterMapOptional()
       .eraseToAnyPublisher()
 
-    let domainVariablePublisher: AnyPublisher<DomainSessionVariable, TheError> =
-      sessionSubject
-      .map { session -> AnyPublisher<DomainSessionVariable, TheError> in
-        if let session: NetworkSessionVariable = session {
-          return Just(DomainSessionVariable(domain: session.domain))
+    let domainNetworkSessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheError> =
+      sessionStatePublisher
+      .map { sessionState -> AnyPublisher<DomainNetworkSessionVariable, TheError> in
+        if let sessionState: SessionState = sessionState {
+          return Just(DomainNetworkSessionVariable(domain: sessionState.domain))
             .setFailureType(to: TheError.self)
             .eraseToAnyPublisher()
         }
         else {
-          return Fail<DomainSessionVariable, TheError>(error: .missingSession())
+          return Fail(error: .missingSession())
             .eraseToAnyPublisher()
         }
       }
       .switchToLatest()
       .eraseToAnyPublisher()
 
-    func setTokens(publisher: AnyPublisher<Tokens?, Never>) {
-      tokensSubject.send(publisher)
+    func setSessionStatePublisher(
+      _ sessionStatePublisher: AnyPublisher<SessionState?, Never>
+    ) {
+      sessionStatePublisherSubject.send(sessionStatePublisher)
     }
 
-    func setAuthorizationRequest(_ request: @escaping () -> Void) {
+    func setAuthorization(
+      request: @escaping () -> Void
+    ) {
       authorizationRequest = request
     }
 
-    func setMFARequest(_ request: @escaping (Array<MFAProvider>) -> Void) {
+    func setMFA(
+      request: @escaping (Array<MFAProvider>) -> Void
+    ) {
       mfaRequest = request
     }
 
@@ -159,7 +158,7 @@ extension NetworkClient: Feature {
 
     let mfaRedirectRequest: MFARedirectRequest = .live(
       using: networking,
-      with: sessionVariablePublisher
+      with: authorizedNetworkSessionVariablePublisher
     )
 
     return Self(
@@ -173,136 +172,141 @@ extension NetworkClient: Feature {
       ),
       serverPGPPublicKeyRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
       ),
       serverPublicKeyRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
       ),
       serverRSAPublicKeyRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
       ),
       signInRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
       ),
       signOutRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
       ),
       refreshSessionRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: emptySessionVariablePublisher
+      )
+      .withAuthErrors(
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       configRequest: .live(
         using: networking,
-        with: domainVariablePublisher
+        with: domainNetworkSessionVariablePublisher
       ),
       resourcesRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       resourcesTypesRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       resourceSecretRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       totpAuthorizationRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: domainNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       yubikeyAuthorizationRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: domainNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       userProfileRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       createResourceRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       updateResourceRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       deleteResourceRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       userListRequest: .live(
         using: networking,
-        with: sessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
-        sessionPublisher: domainVariablePublisher
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
-      updateSession: sessionSubject.send(_:),
-      setTokensPublisher: setTokens(publisher:),
-      setAuthorizationRequest: setAuthorizationRequest(_:),
-      setMFARequest: setMFARequest(_:)
+      setSessionStatePublisher: setSessionStatePublisher(_:),
+      setAuthorizationRequest: setAuthorization(request:),
+      setMFARequest: setMFA(request:)
     )
   }
 
@@ -329,8 +333,7 @@ extension NetworkClient: Feature {
       updateResourceRequest: .placeholder,
       deleteResourceRequest: .placeholder,
       userListRequest: .placeholder,
-      updateSession: Commons.placeholder("You have to provide mocks for used methods"),
-      setTokensPublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      setSessionStatePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"),
       setMFARequest: Commons.placeholder("You have to provide mocks for used methods")
     )
