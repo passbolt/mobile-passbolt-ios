@@ -128,7 +128,17 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           .sendForm()
           .receive(on: RunLoop.main)
           .handleStart { [weak self] in
-            self?.present(overlay: LoaderOverlayView())
+            self?.present(
+              overlay: LoaderOverlayView(
+                longLoadingMessage: (
+                  message: LocalizedMessage(
+                    key: .loadingLong,
+                    bundle: .commons
+                  ),
+                  delay: 15
+                )
+              )
+            )
           }
           .handleErrors(
             (

@@ -165,7 +165,17 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
           .receive(on: RunLoop.main)
           .handleEvents(
             receiveSubscription: { [weak self] _ in
-              self?.present(overlay: LoaderOverlayView())
+              self?.present(
+                overlay: LoaderOverlayView(
+                  longLoadingMessage: (
+                    message: LocalizedMessage(
+                      key: .loadingLong,
+                      bundle: .commons
+                    ),
+                    delay: 5
+                  )
+                )
+              )
             },
             receiveCompletion: { [weak self] _ in
               self?.dismissOverlay()

@@ -282,7 +282,17 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         )
       })
       .handleStart { [weak self] in
-        self?.present(overlay: LoaderOverlayView())
+        self?.present(
+          overlay: LoaderOverlayView(
+            longLoadingMessage: (
+              message: LocalizedMessage(
+                key: .loadingLong,
+                bundle: .commons
+              ),
+              delay: 5
+            )
+          )
+        )
       }
       .handleErrors(
         (

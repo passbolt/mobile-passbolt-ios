@@ -28,6 +28,7 @@
 "generic.cancel" = "Cancel";
 "generic.remove" = "Remove";
 "generic.loading" = "Loading...";
+"generic.loading.long" = "It is taking longer than usual...";
 "generic.continue" = "Continue";
 "generic.retry" = "Retry";
 "generic.delete" = "Delete";

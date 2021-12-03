@@ -248,7 +248,17 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self.controller.resourceDeletionPublisher(resourceID)
                 .receive(on: RunLoop.main)
                 .handleStart { [weak self] in
-                  self?.present(overlay: LoaderOverlayView())
+                  self?.present(
+                    overlay: LoaderOverlayView(
+                      longLoadingMessage: (
+                        message: LocalizedMessage(
+                          key: .loadingLong,
+                          bundle: .commons
+                        ),
+                        delay: 5
+                      )
+                    )
+                  )
                 }
                 .handleErrors(
                   (

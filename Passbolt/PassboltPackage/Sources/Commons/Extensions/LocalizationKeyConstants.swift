@@ -30,6 +30,7 @@ extension LocalizationKeyConstant {
   public static let cancel: Self = "generic.cancel"
   public static let remove: Self = "generic.remove"
   public static let loading: Self = "generic.loading"
+  public static let loadingLong: Self = "generic.loading.long"
   public static let `continue`: Self = "generic.continue"
   public static let retry: Self = "generic.retry"
   public static let delete: Self = "generic.delete"

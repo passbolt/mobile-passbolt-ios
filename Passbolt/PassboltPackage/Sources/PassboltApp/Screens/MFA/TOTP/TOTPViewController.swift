@@ -118,7 +118,17 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
           self?.dismissOverlay()
         case .processing:
           self?.view.endEditing(true)
-          self?.present(overlay: LoaderOverlayView())
+          self?.present(
+            overlay: LoaderOverlayView(
+              longLoadingMessage: (
+                message: LocalizedMessage(
+                  key: .loadingLong,
+                  bundle: .commons
+                ),
+                delay: 15
+              )
+            )
+          )
         case let .error(error) where error.identifier == .invalidPasteValue:
           self?.dismissOverlay()
           self?.presentErrorSnackbar(localizableKey: .invalidPasteValue, inBundle: .commons)
