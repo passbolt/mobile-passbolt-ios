@@ -27,17 +27,20 @@ public class TextButton: Button {
 
   public lazy var dynamicTextColor: DynamicColor = .always(self.textColor) {
     didSet {
-      self.textColor = dynamicTextColor(in: traitCollection.userInterfaceStyle)
+      guard !isPressed, isEnabled else { return }
+      label.dynamicTextColor = dynamicTextColor
     }
   }
   public lazy var dynamicPressedTextColor: DynamicColor = .always(self.pressedTextColor) {
     didSet {
-      self.pressedTextColor = dynamicPressedTextColor(in: traitCollection.userInterfaceStyle)
+      guard isPressed, isEnabled else { return }
+      label.dynamicTextColor = dynamicPressedTextColor
     }
   }
   public lazy var dynamicDisabledTextColor: DynamicColor = .always(self.disabledTextColor) {
     didSet {
-      self.disabledTextColor = dynamicDisabledTextColor(in: traitCollection.userInterfaceStyle)
+      guard !isEnabled else { return }
+      label.dynamicTextColor = dynamicDisabledTextColor
     }
   }
 
@@ -50,22 +53,22 @@ public class TextButton: Button {
 
   override internal func pressed() {
     super.pressed()
-    label.textColor = pressedTextColor
+    label.dynamicTextColor = dynamicPressedTextColor
   }
 
   override internal func released() {
     super.released()
-    label.textColor = textColor
+    label.dynamicTextColor = dynamicTextColor
   }
 
   override internal func enabled() {
     super.enabled()
-    label.textColor = textColor
+    label.dynamicTextColor = dynamicTextColor
   }
 
   override internal func disabled() {
     super.disabled()
-    label.textColor = disabledTextColor
+    label.dynamicTextColor = dynamicDisabledTextColor
   }
 
   public var text: String {
@@ -129,14 +132,6 @@ public class TextButton: Button {
       labelBottomConstraint?.constant = newValue.bottom
       labelTrailingConstraint?.constant = newValue.trailing
     }
-  }
-
-  override internal func updateColors() {
-    super.updateColors()
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-    self.textColor = dynamicTextColor(in: interfaceStyle)
-    self.pressedTextColor = dynamicPressedTextColor(in: interfaceStyle)
-    self.disabledTextColor = dynamicDisabledTextColor(in: interfaceStyle)
   }
 
   private var labelTopConstraint: NSLayoutConstraint?
