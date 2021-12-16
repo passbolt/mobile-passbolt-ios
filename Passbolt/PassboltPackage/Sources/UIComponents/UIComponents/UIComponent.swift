@@ -26,6 +26,7 @@ import UIKit
 public protocol AnyUIComponent: UIViewController {
 
   var lazyView: UIView { get }
+  var components: UIComponentFactory { get }
 
   func setup()
   func setupView()
@@ -44,7 +45,6 @@ public protocol UIComponent: AnyUIComponent {
   ) -> Self
 
   var contentView: View { get }
-  var components: UIComponentFactory { get }
 }
 
 extension UIComponent {

@@ -77,6 +77,9 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
         .set(\.tabBarDynamicUnselectedItemTintColor, to: .icon)
       )
     }
+    mut(self.view) {
+      .backgroundColor(.none)
+    }
     Mutation<UITabBar>
       .combined(
         .set(\.isTranslucent, to: false),

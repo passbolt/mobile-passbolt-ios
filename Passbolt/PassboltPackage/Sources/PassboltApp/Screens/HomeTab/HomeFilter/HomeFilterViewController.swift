@@ -110,8 +110,15 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
     controller
       .accountMenuPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.push(AccountSelectionViewController.self, in: .init(value: true))
+      .sink { [weak self] accountWithProfile in
+        guard let self = self else { return }
+        self.presentSheet(
+          AccountMenuViewController.self,
+          in: (
+            accountWithProfile: accountWithProfile,
+            parentComponent: self
+          )
+        )
       }
       .store(in: cancellables)
   }

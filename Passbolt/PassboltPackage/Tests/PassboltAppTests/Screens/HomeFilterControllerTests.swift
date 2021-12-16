@@ -34,26 +34,22 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class HomeFilterControllerTests: TestCase {
 
-  var accountSettings: AccountSettings!
   var networkClient: NetworkClient!
 
   override func setUp() {
     super.setUp()
 
-    accountSettings = .placeholder
+    features.usePlaceholder(for: AccountSettings.self)
     networkClient = .placeholder
   }
 
   override func tearDown() {
     super.tearDown()
 
-    accountSettings = nil
     networkClient = nil
   }
 
   func test_accountMenuPresentationPublisher_doesNotPublishInitially() {
-
-    features.use(accountSettings)
     features.use(networkClient)
 
     let controller: HomeFilterController = testInstance()
@@ -61,7 +57,7 @@ final class HomeFilterControllerTests: TestCase {
     var result: Void?
     controller
       .accountMenuPresentationPublisher()
-      .sink {
+      .sink { _ in
         result = Void()
       }
       .store(in: cancellables)
@@ -70,8 +66,13 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_accountMenuPresentationPublisher_publishesWhenRequested() {
-
-    features.use(accountSettings)
+    features
+      .patch(
+        \AccountSettings.currentAccountProfilePublisher,
+        with: always(
+          Just(validAccountWithProfile).eraseToAnyPublisher()
+        )
+      )
     features.use(networkClient)
 
     let controller: HomeFilterController = testInstance()
@@ -79,7 +80,7 @@ final class HomeFilterControllerTests: TestCase {
     var result: Void?
     controller
       .accountMenuPresentationPublisher()
-      .sink {
+      .sink { _ in
         result = Void()
       }
       .store(in: cancellables)
@@ -90,11 +91,14 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_avatarImagePublisher_publishesImageData_fromMediaDownload() {
-    accountSettings.currentAccountProfilePublisher = always(
-      Just(validAccountProfile)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSettings)
+    features
+      .patch(
+        \AccountSettings.currentAccountProfilePublisher,
+        with: always(
+          Just(validAccountWithProfile)
+            .eraseToAnyPublisher()
+        )
+      )
     let data: Data = Data([0x65, 0x66])
     networkClient.mediaDownload.execute = always(
       Just(data)
@@ -117,11 +121,14 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_avatarImagePublisher_fails_whenMediaDownloadFails() {
-    accountSettings.currentAccountProfilePublisher = always(
-      Just(validAccountProfile)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSettings)
+    features
+      .patch(
+        \AccountSettings.currentAccountProfilePublisher,
+        with: always(
+          Just(validAccountWithProfile)
+            .eraseToAnyPublisher()
+        )
+      )
     networkClient.mediaDownload.execute = always(
       Fail<Data, TheError>(error: .testError())
         .eraseToAnyPublisher()
@@ -144,7 +151,6 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_searchTextPublisher_publishesEmptyTextInitially() {
-    features.use(accountSettings)
     features.use(networkClient)
 
     let controller: HomeFilterController = testInstance()
@@ -161,7 +167,6 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_searchTextPublisher_publishesTextUpdates() {
-    features.use(accountSettings)
     features.use(networkClient)
 
     let controller: HomeFilterController = testInstance()
@@ -180,7 +185,6 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_resourcesFilterPublisher_publishesEmptyFilterInitially() {
-    features.use(accountSettings)
     features.use(networkClient)
 
     let controller: HomeFilterController = testInstance()
@@ -197,7 +201,6 @@ final class HomeFilterControllerTests: TestCase {
   }
 
   func test_resourcesFilterPublisher_publishesUpdatesOnTextUpdates() {
-    features.use(accountSettings)
     features.use(networkClient)
 
     let controller: HomeFilterController = testInstance()
@@ -216,6 +219,13 @@ final class HomeFilterControllerTests: TestCase {
   }
 }
 
+private let validAccount: Account = .init(
+  localID: .init(rawValue: UUID.test.uuidString),
+  domain: "passbolt.com",
+  userID: .init(rawValue: UUID.test.uuidString),
+  fingerprint: "fingerprint"
+)
+
 private let validAccountProfile: AccountProfile = .init(
   accountID: .init(rawValue: UUID.test.uuidString),
   label: "firstName lastName",
@@ -224,4 +234,9 @@ private let validAccountProfile: AccountProfile = .init(
   lastName: "lastName",
   avatarImageURL: "avatarImagePath",
   biometricsEnabled: false
+)
+
+private let validAccountWithProfile: AccountWithProfile = .init(
+  account: validAccount,
+  profile: validAccountProfile
 )

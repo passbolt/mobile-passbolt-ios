@@ -31,13 +31,13 @@ public struct AccountWithProfile {
   public let localID: Account.LocalID
   public let userID: Account.UserID
   public let domain: URLString
-  public let label: String
-  public let username: String
-  public let firstName: String
-  public let lastName: String
-  public let avatarImageURL: String
+  public var label: String
+  public var username: String
+  public var firstName: String
+  public var lastName: String
+  public var avatarImageURL: String
   public let fingerprint: Fingerprint
-  public let biometricsEnabled: Bool
+  public var biometricsEnabled: Bool
 
   public init(
     localID: Account.LocalID,
@@ -66,12 +66,44 @@ public struct AccountWithProfile {
 
 extension AccountWithProfile {
 
+  public init(
+    account: Account,
+    profile: AccountProfile
+  ) {
+    assert(account.localID == profile.accountID)
+    self.init(
+      localID: account.localID,
+      userID: account.userID,
+      domain: account.domain,
+      label: profile.label,
+      username: profile.username,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      avatarImageURL: profile.avatarImageURL,
+      fingerprint: account.fingerprint,
+      biometricsEnabled: profile.biometricsEnabled
+    )
+  }
+
   public var account: Account {
     Account(
       localID: localID,
       domain: domain,
       userID: userID,
       fingerprint: fingerprint
+    )
+  }
+
+  public var profile: AccountProfile {
+    AccountProfile(
+      accountID: localID,
+      label: label,
+      username: username,
+      firstName: firstName,
+      lastName: lastName,
+      avatarImageURL: avatarImageURL,
+      biometricsEnabled: biometricsEnabled,
+      settings: .init()  // not used yet
     )
   }
 }

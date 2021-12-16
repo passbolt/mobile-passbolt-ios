@@ -608,12 +608,12 @@ final class AccountSettingsTests: TestCase {
     features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
-    var result: AccountProfile!
+    var result: AccountProfile?
 
     feature
       .currentAccountProfilePublisher()
-      .sink { profile in
-        result = profile
+      .sink { accountWithProfile in
+        result = accountWithProfile.profile
       }
       .store(in: cancellables)
 
@@ -650,8 +650,8 @@ final class AccountSettingsTests: TestCase {
 
     feature
       .currentAccountProfilePublisher()
-      .sink { profile in
-        results.append(profile)
+      .sink { accountWithProfile in
+        results.append(accountWithProfile.profile)
       }
       .store(in: cancellables)
 

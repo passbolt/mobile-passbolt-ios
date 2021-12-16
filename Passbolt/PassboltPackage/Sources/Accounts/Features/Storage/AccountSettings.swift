@@ -36,7 +36,7 @@ public struct AccountSettings {
   public var setAvatarImageURL: (String) -> AnyPublisher<Void, TheError>
   public var accountWithProfile: (Account) -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
-  public var currentAccountProfilePublisher: () -> AnyPublisher<AccountProfile, Never>
+  public var currentAccountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
 }
 
 extension AccountSettings: Feature {
@@ -53,18 +53,18 @@ extension AccountSettings: Feature {
     let passphraseCache: PassphraseCache = features.instance()
     let networkClient: NetworkClient = features.instance()
 
-    let currentAccountProfileSubject: CurrentValueSubject<AccountProfile?, Never> = .init(nil)
+    let currentAccountProfileSubject: CurrentValueSubject<AccountWithProfile?, Never> = .init(nil)
 
     accountSession
       .statePublisher()
-      .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountProfile?, Never>? in
+      .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountWithProfile?, Never>? in
         switch sessionState {
         case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
-          let initialProfilePublisher: AnyPublisher<AccountProfile?, Never>
+          let initialProfilePublisher: AnyPublisher<AccountWithProfile?, Never>
 
           switch accountsDataStore.loadAccountProfile(account.localID) {
           case let .success(accountProfile):
-            initialProfilePublisher = Just(accountProfile)
+            initialProfilePublisher = Just(.init(account: account, profile: accountProfile))
               .eraseToAnyPublisher()
 
           case let .failure(error):
@@ -74,14 +74,14 @@ extension AccountSettings: Feature {
               .eraseToAnyPublisher()
           }
 
-          let profileUpdatesPublisher: AnyPublisher<AccountProfile?, Never> =
+          let profileUpdatesPublisher: AnyPublisher<AccountWithProfile?, Never> =
             accountsDataStore
             .updatedAccountIDsPublisher()
             .filter { $0 == account.localID }
-            .compactMap { (accountID: Account.LocalID) -> AnyPublisher<AccountProfile?, Never> in
+            .compactMap { (accountID: Account.LocalID) -> AnyPublisher<AccountWithProfile?, Never> in
               switch accountsDataStore.loadAccountProfile(accountID) {
               case let .success(accountProfile):
-                return Just(accountProfile)
+                return Just(.init(account: account, profile: accountProfile))
                   .eraseToAnyPublisher()
 
               case let .failure(error):
@@ -338,7 +338,7 @@ extension AccountSettings: Feature {
       }
     }
 
-    let accountProfilePublisher: AnyPublisher<AccountProfile, Never> =
+    let accountProfilePublisher: AnyPublisher<AccountWithProfile, Never> =
       currentAccountProfileSubject
       .filterMapOptional()
       .removeDuplicates()

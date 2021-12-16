@@ -35,7 +35,7 @@ internal struct HomeFilterController {
   internal var searchTextPublisher: () -> AnyPublisher<String, Never>
   internal var avatarImagePublisher: () -> AnyPublisher<Data?, Never>
   internal var presentAccountMenu: () -> Void
-  internal var accountMenuPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var accountMenuPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
 }
 
 extension HomeFilterController: UIController {
@@ -86,8 +86,15 @@ extension HomeFilterController: UIController {
       accountMenuPresentationSubject.send()
     }
 
-    func accountMenuPresentationPublisher() -> AnyPublisher<Void, Never> {
-      accountMenuPresentationSubject.eraseToAnyPublisher()
+    func accountMenuPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
+      accountMenuPresentationSubject
+        .map {
+          accountSettings
+            .currentAccountProfilePublisher()
+            .first()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
     }
 
     return Self(

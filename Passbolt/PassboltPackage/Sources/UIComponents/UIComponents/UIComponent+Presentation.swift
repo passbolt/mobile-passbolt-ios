@@ -24,7 +24,7 @@
 import Commons
 import UIKit
 
-extension UIComponent {
+extension AnyUIComponent {
 
   public func replaceWindowRoot<Component>(
     with type: Component.Type,
@@ -100,18 +100,11 @@ extension UIComponent {
     _ type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true,
-    insets: UIEdgeInsets = .zero,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
-    var presentedLeaf: UIViewController = self
-    while let next: UIViewController = presentedLeaf.presentedViewController {
-      presentedLeaf = next
-    }
-
-    let sheet: SheetViewController<Component> = components.instance(in: context)
-
-    presentedLeaf.present(
-      sheet,
+    present(
+      SheetViewController<Component>.self,
+      in: context,
       animated: animated,
       completion: completion
     )
@@ -152,7 +145,10 @@ extension UIComponent {
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
-    guard let navigationController = navigationController ?? self as? UINavigationController
+    guard
+      let navigationController = self as? UINavigationController
+        ?? navigationController
+        ?? presentingViewController?.navigationController
     else { unreachable("It is programmer error to push without navigation controller") }
     CATransaction.begin()
     CATransaction.setCompletionBlock(completion)
@@ -280,6 +276,9 @@ extension UIComponent {
     CATransaction.commit()
     return true
   }
+}
+
+extension UIComponent {
 
   public func addChild<Component>(
     _ type: Component.Type,

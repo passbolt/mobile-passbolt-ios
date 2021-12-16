@@ -61,14 +61,15 @@ internal final class AccountSelectionCell: CollectionViewCell {
 
     mut(indicator) {
       .combined(
-        .subview(of: contentView),
-        .topAnchor(.equalTo, contentView.topAnchor, constant: 12),
-        .leadingAnchor(.equalTo, contentView.leadingAnchor, constant: 40),
+        .hidden(true),
         .backgroundColor(dynamic: .secondaryGreen),
-        .widthAnchor(.equalTo, constant: 12),
-        .heightAnchor(.equalTo, constant: 12),
+        .border(dynamic: .background, width: 2),
         .cornerRadius(6, masksToBounds: true),
-        .hidden(true)
+        .subview(of: contentView),
+        .topAnchor(.equalTo, icon.topAnchor),
+        .trailingAnchor(.equalTo, icon.trailingAnchor),
+        .widthAnchor(.equalTo, constant: 12),
+        .heightAnchor(.equalTo, constant: 12)
       )
     }
 

@@ -27,7 +27,10 @@ import class Foundation.NSRecursiveLock
 
 public final class FeatureFactory {
 
-  private typealias FeatureInstance = (feature: Any, cancellables: Cancellables)
+  private struct FeatureInstance {
+    var feature: Any
+    var cancellables: Cancellables
+  }
 
   #if DEBUG  // debug builds allow change and access to environment for mocking and debug
   public var environment: Environment
@@ -74,7 +77,7 @@ extension FeatureFactory {
         using: self,
         cancellables: featureCancellables
       )
-      features[F.featureIdentifier] = FeatureInstance(
+      features[F.featureIdentifier] = .init(
         feature: loaded,
         cancellables: featureCancellables
       )
@@ -110,7 +113,7 @@ extension FeatureFactory {
       features[F.featureIdentifier] == nil,
       "Feature should not be replaced after initialization"
     )
-    features[F.featureIdentifier] = FeatureInstance(
+    features[F.featureIdentifier] = .init(
       feature: feature,
       cancellables: cancellables
     )
@@ -128,7 +131,7 @@ extension FeatureFactory {
   ) where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    features[F.featureIdentifier] = (feature: F.placeholder, cancellables: .init())
+    features[F.featureIdentifier] = .init(feature: F.placeholder, cancellables: .init())
   }
 
   public func patch<F, P>(
@@ -137,14 +140,22 @@ extension FeatureFactory {
   ) where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    if var loaded: F = features[F.featureIdentifier]?.feature as? F {
+    if let instance: FeatureInstance = features[F.featureIdentifier],
+      var loaded: F = instance.feature as? F
+    {
       loaded[keyPath: keyPath] = updated
-      features[F.featureIdentifier]?.feature = loaded
+      features[F.featureIdentifier] = .init(
+        feature: loaded,
+        cancellables: instance.cancellables
+      )
     }
     else {
       var feature: F = .placeholder
       feature[keyPath: keyPath] = updated
-      features[F.featureIdentifier] = (feature: feature, cancellables: .init())
+      features[F.featureIdentifier] = .init(
+        feature: feature,
+        cancellables: .init()
+      )
     }
 
   }

@@ -71,7 +71,7 @@ final class ResourcesFilterControllerTests: TestCase {
   func test_avatarImagePublisher_publishesImageData_fromMediaDownload() {
     features.use(accountSession)
     accountSettings.currentAccountProfilePublisher = always(
-      Just(validAccountProfile)
+      Just(validAccountWithProfile)
         .eraseToAnyPublisher()
     )
     features.use(accountSettings)
@@ -99,7 +99,7 @@ final class ResourcesFilterControllerTests: TestCase {
   func test_avatarImagePublisher_fails_whenMediaDownloadFails() {
     features.use(accountSession)
     accountSettings.currentAccountProfilePublisher = always(
-      Just(validAccountProfile)
+      Just(validAccountWithProfile)
         .eraseToAnyPublisher()
     )
     features.use(accountSettings)
@@ -201,6 +201,13 @@ final class ResourcesFilterControllerTests: TestCase {
   }
 }
 
+private let validAccount: Account = .init(
+  localID: .init(rawValue: UUID.test.uuidString),
+  domain: "passbolt.com",
+  userID: .init(rawValue: UUID.test.uuidString),
+  fingerprint: "fingerprint"
+)
+
 private let validAccountProfile: AccountProfile = .init(
   accountID: .init(rawValue: UUID.test.uuidString),
   label: "firstName lastName",
@@ -209,4 +216,9 @@ private let validAccountProfile: AccountProfile = .init(
   lastName: "lastName",
   avatarImageURL: "avatarImagePath",
   biometricsEnabled: false
+)
+
+private let validAccountWithProfile: AccountWithProfile = .init(
+  account: validAccount,
+  profile: validAccountProfile
 )

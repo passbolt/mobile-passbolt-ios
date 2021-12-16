@@ -145,3 +145,8 @@ NFC for this to work.";
 "mfa.unsupported.provider.description" = "Please setup another provider using the web app.
 Contact your administrator for more information.";
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
+
+"account.menu.title" = "Switch account";
+"account.menu.account.details.button.title" = "See details";
+"account.menu.sign.out.button.title" = "Sign out";
+"account.menu.manage.accounts.button.title" = "Manage accounts";
