@@ -96,13 +96,16 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
     controller
       .accountDetailsPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] account in
+      .sink { [weak self] accountWithProfile in
         guard let self = self else { return }
         self.dismiss(
           SheetViewController<AccountMenuViewController>.self,
           completion: {
-            #warning("[PAS-474] TODO:FIXME:present account details")
-            self.controller.parentComponent.push(PlaceholderViewController.self)
+            self.controller.parentComponent
+              .push(
+                AccountDetailsViewController.self,
+                in: accountWithProfile
+              )
           }
         )
       }
@@ -123,7 +126,6 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self.dismiss(
           SheetViewController<AccountMenuViewController>.self,
           completion: {
-            #warning("TODO: verify if we should have back option to 'manage' list")
             self.controller.parentComponent
               .push(
                 AuthorizationViewController.self,

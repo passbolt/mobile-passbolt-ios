@@ -180,7 +180,7 @@ final class AccountMenuControllerTests: TestCase {
       )
     )
 
-    var result: Account?
+    var result: AccountWithProfile?
     controller
       .accountDetailsPresentationPublisher()
       .sink { account in
@@ -190,7 +190,7 @@ final class AccountMenuControllerTests: TestCase {
 
     controller.presentAccountDetails()
 
-    XCTAssertEqual(result, validAccount)
+    XCTAssertEqual(result, validAccountWithProfile)
   }
 
   func test_accountSwitchPresentationPublisher_doesNotPublishInitially() {

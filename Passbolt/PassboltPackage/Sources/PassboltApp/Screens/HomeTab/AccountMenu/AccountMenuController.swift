@@ -37,7 +37,7 @@ internal struct AccountMenuController {
   internal var dismiss: () -> Void
   internal var dismissPublisher: () -> AnyPublisher<Void, Never>
   internal var presentAccountDetails: () -> Void
-  internal var accountDetailsPresentationPublisher: () -> AnyPublisher<Account, Never>
+  internal var accountDetailsPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
   internal var signOut: () -> Void
   internal var presentAccountSwitch: (Account) -> Void
   internal var accountSwitchPresentationPublisher: () -> AnyPublisher<Account, Never>
@@ -142,13 +142,15 @@ extension AccountMenuController: UIController {
       dismissSubject.eraseToAnyPublisher()
     }
 
-    let accountDetailsPresentationSubject: PassthroughSubject<Account, Never> = .init()
+    let accountDetailsPresentationSubject: PassthroughSubject<AccountWithProfile, Never> = .init()
     func presentAccountDetails() {
-      accountDetailsPresentationSubject.send(context.accountWithProfile.account)
+      accountDetailsPresentationSubject
+        .send(context.accountWithProfile)
     }
 
-    func accountDetailsPresentationPublisher() -> AnyPublisher<Account, Never> {
-      accountDetailsPresentationSubject.eraseToAnyPublisher()
+    func accountDetailsPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
+      accountDetailsPresentationSubject
+        .eraseToAnyPublisher()
     }
 
     func signOut() {

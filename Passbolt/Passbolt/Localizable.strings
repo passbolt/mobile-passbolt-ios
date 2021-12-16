@@ -150,3 +150,11 @@ Contact your administrator for more information.";
 "account.menu.account.details.button.title" = "See details";
 "account.menu.sign.out.button.title" = "Sign out";
 "account.menu.manage.accounts.button.title" = "Manage accounts";
+
+"account.details.title" = "Account details";
+"account.details.field.label.title" = "Label";
+"account.details.field.label.editing.info" = "Label will be displayed in the account list and for authentication";
+"account.details.field.name.title" = "Name";
+"account.details.field.email.title" = "Email";
+"account.details.field.url.title" = "Organization URL";
+"account.details.button.save.title" = "Save";

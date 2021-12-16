@@ -25,7 +25,7 @@ import AegithalosCocoa
 
 public final class ContainerView<ContentView: UIView>: View {
 
-  private let contentView: ContentView
+  public let contentView: ContentView
 
   public init(
     contentView: ContentView,

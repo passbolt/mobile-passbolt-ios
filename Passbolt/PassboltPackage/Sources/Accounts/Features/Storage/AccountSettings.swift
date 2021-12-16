@@ -31,8 +31,12 @@ import struct Foundation.URL
 
 public struct AccountSettings {
 
+  // for current account
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
+  // for current account
   public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheError>
+  public var setAccountLabel: (String, Account) -> Result<Void, TheError>
+  // for current account
   public var setAvatarImageURL: (String) -> AnyPublisher<Void, TheError>
   public var accountWithProfile: (Account) -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
@@ -287,6 +291,19 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
+    func setAccountLabel(
+      _ label: String,
+      for account: Account
+    ) -> Result<Void, TheError> {
+      accountsDataStore
+        .loadAccountProfile(account.localID)
+        .flatMap { accountProfile in
+          var updatedAccountProfile: AccountProfile = accountProfile
+          updatedAccountProfile.label = label
+          return accountsDataStore.updateAccountProfile(updatedAccountProfile)
+        }
+    }
+
     func setAvatarImageURL(
       _ url: String
     ) -> AnyPublisher<Void, TheError> {
@@ -347,6 +364,7 @@ extension AccountSettings: Feature {
     return Self(
       biometricsEnabledPublisher: { biometricsEnabledPublisher },
       setBiometricsEnabled: setBiometrics(enabled:),
+      setAccountLabel: setAccountLabel(_:for:),
       setAvatarImageURL: setAvatarImageURL(_:),
       accountWithProfile: accountWithProfile(for:),
       updatedAccountIDsPublisher: accountsDataStore
@@ -362,6 +380,7 @@ extension AccountSettings {
     Self(
       biometricsEnabledPublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setBiometricsEnabled: Commons.placeholder("You have to provide mocks for used methods"),
+      setAccountLabel: Commons.placeholder("You have to provide mocks for used methods"),
       setAvatarImageURL: Commons.placeholder("You have to provide mocks for used methods"),
       accountWithProfile: Commons.placeholder("You have to provide mocks for used methods"),
       updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
