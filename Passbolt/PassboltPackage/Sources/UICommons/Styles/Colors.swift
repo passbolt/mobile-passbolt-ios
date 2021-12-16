@@ -326,6 +326,19 @@ public struct DynamicColor {
     }
   }
 
+  /// Default/Light: #FFFFFF Dark: #282828
+  public static var sheetBackground: Self {
+    Self { userInterfaceStyle in
+      switch userInterfaceStyle {
+      case .dark:
+        return UIColor(0x282828)
+
+      case .light, _:
+        return UIColor(0xFFFFFF)
+      }
+    }
+  }
+
   /// Default/Light: #FFFFFF Dark: #0F0F0F
   public static var backgroundAlternative: Self {
     Self { userInterfaceStyle in

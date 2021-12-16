@@ -50,7 +50,7 @@ public final class SheetContentView: View {
 
     mut(container) {
       .combined(
-        .backgroundColor(dynamic: .background),
+        .backgroundColor(dynamic: .sheetBackground),
         .shadow(color: .black, opacity: 0),
         .cornerRadius(
           8,

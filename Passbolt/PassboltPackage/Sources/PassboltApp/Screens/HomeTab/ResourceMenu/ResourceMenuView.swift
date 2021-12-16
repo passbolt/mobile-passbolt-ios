@@ -46,7 +46,7 @@ internal final class ResourceMenuView: View {
 
     mut(self) {
       .combined(
-        .backgroundColor(dynamic: .background),
+        .backgroundColor(.clear),
         .subview(titleLabel, button, stack)
       )
     }
@@ -233,7 +233,7 @@ internal final class ResourceMenuItemView: Button {
 
     mut(self) {
       .combined(
-        .backgroundColor(dynamic: .background),
+        .backgroundColor(.clear),
         .subview(imageView, titleLabel)
       )
     }
