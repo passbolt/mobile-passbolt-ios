@@ -23,6 +23,9 @@
 
 import Darwin
 
+// Enables debugger delay protection, naming only for slight obfuscation.
+// Passbolt does not use any analytics solution.
+// swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals, NoLeadingUnderscores
 public func analytics() {
   #if DEBUG
   /* NOP */

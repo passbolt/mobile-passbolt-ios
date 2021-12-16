@@ -101,3 +101,7 @@
 
 "form.field.error.max.length" = "The maximum length has been exceeded.";
 "form.error.invalid" = "The form is invalid";
+
+"feedback.alert.title" = "Device may be jailbroken";
+"feedback.alert.message" = "We suspect your device may be jailbroken. Please be aware that it lowers overall device security and can be maliciously used to acquire your passwords.";
+"feedback.alert.button.title" = "I understand";

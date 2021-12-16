@@ -70,48 +70,54 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   }
 
   private func navigate(to destination: Controller.Destination) {
-    switch destination {
-    case let .accountSelection(lastAccount, message):
-      replaceWindowRoot(
-        with: AuthorizationNavigationViewController.self,
-        in: (
-          account: lastAccount,
-          message: message
+    showFeedbackAlertIfNeeded { [weak self] in
+      switch destination {
+      case let .accountSelection(lastAccount, message):
+        self?.replaceWindowRoot(
+          with: AuthorizationNavigationViewController.self,
+          in: (
+            account: lastAccount,
+            message: message
+          )
         )
-      )
-
-    case .accountSetup:
-      replaceWindowRoot(with: WelcomeNavigationViewController.self)
-
-    case .diagnostics:
-      Commons.placeholder("TODO: diagnostics screen")
-
-    case .home:
-      replaceWindowRoot(with: MainTabsViewController.self)
-
-    case let .mfaAuthorization(mfaProviders):
-      if mfaProviders.isEmpty {
-        replaceWindowRoot(
-          with: PlainNavigationViewController<UnsupportedMFAViewController>.self
+        
+      case .accountSetup:
+        self?.replaceWindowRoot(
+          with: WelcomeNavigationViewController.self
         )
-      }
-      else {
-        replaceWindowRoot(
-          with: PlainNavigationViewController<MFARootViewController>.self,
-          in: mfaProviders
+        
+      case .diagnostics:
+        Commons.placeholder("TODO: diagnostics screen")
+        
+      case .home:
+        self?.replaceWindowRoot(
+          with: MainTabsViewController.self
         )
-      }
-
-    case .featureConfigFetchError:
-      present(
-        ErrorViewController.self,
-        in: { [weak self] in
-          guard let self = self
-          else { return Empty().eraseToAnyPublisher() }
-
-          return self.controller.retryFetchConfiguration()
+        
+      case let .mfaAuthorization(mfaProviders):
+        if mfaProviders.isEmpty {
+          self?.replaceWindowRoot(
+            with: PlainNavigationViewController<UnsupportedMFAViewController>.self
+          )
         }
-      )
+        else {
+          self?.replaceWindowRoot(
+            with: PlainNavigationViewController<MFARootViewController>.self,
+            in: mfaProviders
+          )
+        }
+        
+      case .featureConfigFetchError:
+        self?.present(
+          ErrorViewController.self,
+          in: { [weak self] in
+            guard let self = self
+            else { return Empty().eraseToAnyPublisher() }
+            
+            return self.controller.retryFetchConfiguration()
+          }
+        )
+      }
     }
   }
 }
