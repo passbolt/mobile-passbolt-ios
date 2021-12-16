@@ -39,7 +39,7 @@ extension AccountTransferUpdateRequest {
         .combined(
           .url(string: requestVariable.domain.rawValue),
           .path("/mobile/transfers/\(requestVariable.transferID)/\(requestVariable.authenticationToken).json"),
-          .method(.put),
+          .method(.post),
           .when(
             requestVariable.requestUserProfile,
             then: .queryItem("contain[user.profile]", value: "1")
