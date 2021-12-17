@@ -106,7 +106,7 @@ extension AccountSelectionController: UIController {
 
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
               account: accountWithProfile.account,
-              title: "\(accountWithProfile.firstName) \(accountWithProfile.lastName)",
+              title: accountWithProfile.label,
               subtitle: accountWithProfile.username,
               isCurrentAccount: isCurrentAccount(),
               imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
