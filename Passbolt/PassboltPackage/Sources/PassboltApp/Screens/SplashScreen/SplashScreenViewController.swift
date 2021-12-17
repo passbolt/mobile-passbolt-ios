@@ -70,7 +70,7 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
   }
 
   private func navigate(to destination: Controller.Destination) {
-    showFeedbackAlertIfNeeded { [weak self] in
+    showFeedbackAlertIfNeeded(presentationAnchor: self) { [weak self] in
       switch destination {
       case let .accountSelection(lastAccount, message):
         self?.replaceWindowRoot(

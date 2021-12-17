@@ -58,6 +58,7 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
     controller.destinationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] destination in
+        showFeedbackAlertIfNeeded(presentationAnchor: self) { [unowned self] in
         children.forEach {
           $0.willMove(toParent: nil)
           $0.view.removeFromSuperview()
@@ -66,30 +67,50 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
 
         switch destination {
         case let .authorization(account):
-          let navigationViewController: AuthorizationNavigationViewController = self.components.instance(
-            in: (account: account, mode: .signIn)
-          )
-
-          replaceContent(with: navigationViewController)
+          self.replaceContent(
+            with: self.components
+              .instance(
+                of: AuthorizationNavigationViewController.self,
+                in: (account: account, mode: .signIn)
+              )
+            )
 
         case let .accountSelection(.some(lastUsedAccount)):
-          let navigationViewController: AuthorizationNavigationViewController = self.components.instance(
-            in: (account: lastUsedAccount, mode: .switchAccount)
-          )
 
-          replaceContent(with: navigationViewController)
+
+          self.replaceContent(
+            with: self.components
+              .instance(
+              of: AuthorizationNavigationViewController.self,
+              in: (account: lastUsedAccount, mode: .switchAccount)
+            )
+          )
 
         case .accountSelection(.none):
-          let navigationViewController: AuthorizationNavigationViewController = self.components.instance(
-            in: (account: nil, mode: .signIn)
-          )
-
-          replaceContent(with: navigationViewController)
+          self.replaceContent(
+            with: self.components
+              .instance(
+                of: AuthorizationNavigationViewController.self,
+                in: (account: nil, mode: .signIn)
+              )
+            )
 
         case .home:
-          replaceContent(with: components.instance(of: ResourcesNavigationViewController.self))
+          self.replaceContent(
+            with: self.components
+              .instance(
+                of: ResourcesNavigationViewController.self
+              )
+            )
+
         case .mfaRequired:
-          replaceContent(with: components.instance(of: PlainNavigationViewController<MFARequiredViewController>.self))
+          self.replaceContent(
+            with: self.components
+              .instance(
+                of: PlainNavigationViewController<MFARequiredViewController>.self
+              )
+            )
+        }
         }
       }
       .store(in: cancellables)

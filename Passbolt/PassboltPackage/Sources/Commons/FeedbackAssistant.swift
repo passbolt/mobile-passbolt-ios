@@ -174,7 +174,10 @@ public func checkFeedbackAssistant() -> Bool {
 }
 
 private var feedbackAlertPresented: Bool = false
-public func showFeedbackAlertIfNeeded(completion: @escaping () -> Void) {
+public func showFeedbackAlertIfNeeded(
+  presentationAnchor: UIViewController? = nil,
+  completion: @escaping () -> Void
+) {
   dispatchPrecondition(condition: .onQueue(.main))
   guard !feedbackAlertPresented else { return completion() }
   feedbackAlertPresented = true
@@ -189,13 +192,16 @@ public func showFeedbackAlertIfNeeded(completion: @escaping () -> Void) {
     .first?
     .windows
 
-  let window: UIWindow? =
-    windows?
-    .first(where: \.isKeyWindow)
+  let anchor: UIViewController? =
+    presentationAnchor
     ?? windows?
-    .first
+    .first(where: \.isKeyWindow)?
+    .rootViewController
+    ?? windows?
+    .first?
+    .rootViewController
 
-  guard let window: UIWindow = window
+  guard let anchor: UIViewController = anchor
   else { return completion() }
   
   let alert: UIAlertController = .init(
@@ -211,10 +217,9 @@ public func showFeedbackAlertIfNeeded(completion: @escaping () -> Void) {
     )
   )
 
-  window.rootViewController?
-    .present(
-      alert,
-      animated: true,
-      completion: nil
-    )
+  anchor.present(
+    alert,
+    animated: true,
+    completion: nil
+  )
 }
