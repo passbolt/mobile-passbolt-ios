@@ -73,7 +73,7 @@ internal final class AccountMenuView: View {
 
     mut(self) {
       .combined(
-        .backgroundColor(dynamic: .background)
+        .backgroundColor(.clear)
       )
     }
 
