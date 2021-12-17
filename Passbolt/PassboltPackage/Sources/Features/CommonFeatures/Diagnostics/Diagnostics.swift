@@ -25,16 +25,17 @@ import Environment
 
 import struct Foundation.Date
 import struct Foundation.UUID
-import class os.OSLog
+import OSLog
 import let os.SIGTRAP
-import func os.os_log
-import func os.os_signpost
+//import func os.os_log
+//import func os.os_signpost
 import func os.raise
 
 public struct Diagnostics {
 
   public var debugLog: (String) -> Void
-  public var diagnosticLog: (StaticString, StaticString?) -> Void
+  public var diagnosticLog: (StaticString, DiagnosticMessageVariable) -> Void
+  public var collectedLogs: () -> Array<String>
   public var measurePerformance: (StaticString) -> TimeMeasurement
   public var uniqueID: () -> String
   public var breakpoint: () -> Void
@@ -47,6 +48,13 @@ extension Diagnostics {
     public let event: (StaticString) -> Void
     public let end: () -> Void
   }
+
+  public enum DiagnosticMessageVariable {
+
+    case none
+    case variable(StaticString)
+    case variables(StaticString, StaticString)
+  }
 }
 
 extension Diagnostics: Feature {
@@ -56,9 +64,7 @@ extension Diagnostics: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Diagnostics {
-    #if DEBUG
     let time: Time = environment.time
-    #endif
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
     let diagnosticLog: OSLog = .init(subsystem: "com.passbolt.mobile", category: "diagnostic")
     let perfomanceLog: OSLog = .init(subsystem: "com.passbolt.mobile.performance", category: .pointsOfInterest)
@@ -71,12 +77,47 @@ extension Diagnostics: Feature {
         )
         #endif
       },
-      diagnosticLog: { message, argument in
-        if let argument: CVarArg = argument?.description {
-          os_log(.info, log: diagnosticLog, message, argument)
-        }
-        else {
+      diagnosticLog: { message, variables in
+        switch variables {
+        case .none:
           os_log(.info, log: diagnosticLog, message)
+
+        case let .variable(string):
+          os_log(.info, log: diagnosticLog, message, string.description)
+
+        case let .variables(first, second):
+          os_log(.info, log: diagnosticLog, message, first.description, second.description)
+        }
+      },
+      collectedLogs: {
+        if #available(iOS 15.0, *) {
+          do {
+            let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
+            let dateFormatter: DateFormatter = .init()
+            dateFormatter.timeZone = .current
+            dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss Z"
+            return
+              try logStore
+              .getEntries(
+                at: logStore
+                  .position(
+                    date: time
+                      .dateNow()
+                      .addingTimeInterval(-60 * 60 /* last hour */)),
+                matching: NSPredicate(
+                  format: "category == %@",
+                  argumentArray: ["diagnostic"]
+                )
+              )
+              .map { logEntry in
+                "[\(dateFormatter.string(from: logEntry.date))] \(logEntry.composedMessage)"
+              }
+          }
+          catch {
+            return ["Logs are not available"]
+          }
+        } else {
+          return ["Logs are available from iOS 15+"]
         }
       },
       measurePerformance: { name in
@@ -128,7 +169,15 @@ extension Diagnostics {
     _ message: StaticString,
     variable: StaticString? = nil
   ) {
-    self.diagnosticLog(message, variable)
+    self.diagnosticLog(message, variable.map { .variable($0) } ?? .none)
+  }
+
+  public func diagnosticLog(
+    _ message: StaticString,
+    variables first: StaticString,
+    _ second: StaticString
+  ) {
+    self.diagnosticLog(message, .variables(first, second))
   }
 
   // drop all diagnostics
@@ -136,6 +185,7 @@ extension Diagnostics {
     Self(
       debugLog: { _ in },
       diagnosticLog: { _, _ in },
+      collectedLogs: { [] },
       measurePerformance: { _ in
         TimeMeasurement(event: { _ in }, end: {})
       },
@@ -153,6 +203,7 @@ extension Diagnostics {
     Self(
       debugLog: Commons.placeholder("You have to provide mocks for used methods"),
       diagnosticLog: Commons.placeholder("You have to provide mocks for used methods"),
+      collectedLogs: Commons.placeholder("You have to provide mocks for used methods"),
       measurePerformance: Commons.placeholder("You have to provide mocks for used methods"),
       uniqueID: Commons.placeholder("You have to provide mocks for used methods"),
       breakpoint: Commons.placeholder("You have to provide mocks for used methods")

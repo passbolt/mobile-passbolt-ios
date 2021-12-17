@@ -32,3 +32,23 @@ public enum HTTPError: Error {
   case canceled
   case other(Error)
 }
+
+extension HTTPError {
+
+  public var diagnosticDescription: StaticString {
+    switch self {
+    case .invalidRequest:
+      return "invalidRequest"
+    case .invalidResponse:
+      return "invalidResponse"
+    case .timeout:
+      return "timeout"
+    case .cannotConnect:
+      return "cannotConnect"
+    case .canceled:
+      return "canceled"
+    case .other:
+      return "other"
+    }
+  }
+}

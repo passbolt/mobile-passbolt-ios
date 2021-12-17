@@ -22,6 +22,7 @@
 //
 
 import Commons
+import Environment
 
 extension Publisher where Failure == TheError {
 
@@ -38,7 +39,21 @@ extension Publisher where Failure == TheError {
         #if DEBUG
         diagnostics.debugLog("\(prefix)\(error.debugDescription)")
         #else
-        diagnostics.diagnosticLog("Error: %{public}s", variable: error.identifier.rawValue)
+        if let httpError: HTTPError = error.underlyingError as? HTTPError {
+          diagnostics
+            .diagnosticLog(
+              "Error: %{public}s %{public}s",
+              variables: error.identifier.rawValue,
+              httpError.diagnosticDescription
+            )
+        }
+        else {
+          diagnostics
+            .diagnosticLog(
+              "Error: %{public}s",
+              variable: error.identifier.rawValue
+            )
+        }
         #endif
       }
     })
