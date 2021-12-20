@@ -97,6 +97,7 @@
 "account.settings.manage.accounts" = "Manage accounts";
 "account.settings.terms" = "Terms & Conditions";
 "account.settings.privacy.policy" = "Privacy policy";
+"account.settings.logs" = "Access the logs";
 "account.settings.sign.out" = "Sign out";
 "account.settings.biometrics.error" = "Failed to set biometrics.";
 "account.settings.alert.title" = "Are you sure?";

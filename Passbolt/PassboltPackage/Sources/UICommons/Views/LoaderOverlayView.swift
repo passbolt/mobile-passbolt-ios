@@ -94,7 +94,6 @@ public final class LoaderOverlayView: View {
   ) {
     super.willMove(toWindow: newWindow)
     if newWindow != nil {
-      activityIndicator.startAnimating()
       if let longLoadingLabel: (label: Label, delay: TimeInterval) = longLoadingLabel {
         timer = .scheduledTimer(withTimeInterval: longLoadingLabel.delay, repeats: false) { [weak self] _ in
           DispatchQueue.main.async { [weak self] in
@@ -116,7 +115,6 @@ public final class LoaderOverlayView: View {
       }
     }
     else {
-      activityIndicator.stopAnimating()
       timer = nil
       if let longLoadingLabel: (label: Label, delay: TimeInterval) = longLoadingLabel {
         longLoadingLabel.label.removeFromSuperview()

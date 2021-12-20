@@ -43,6 +43,7 @@ open class TestCase: XCTestCase {
     super.setUp()
     features = .init(environment: testEnvironment())
     features.use(Diagnostics.disabled)
+    features.environment.asyncExecutors = .immediate
     cancellables = .init()
   }
 

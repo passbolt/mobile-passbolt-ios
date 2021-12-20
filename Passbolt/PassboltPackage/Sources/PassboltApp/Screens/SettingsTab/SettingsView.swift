@@ -31,6 +31,7 @@ internal final class SettingsView: ScrolledStackView {
   internal var privacyPolicyTapPublisher: AnyPublisher<Void, Never> { privacyPolicyItem.tapPublisher }
   internal var signOutTapPublisher: AnyPublisher<Void, Never> { signOutItem.tapPublisher }
   internal var biometricsTapPublisher: AnyPublisher<Void, Never> { biometricsToggle.tapPublisher }
+  internal var logsTapPublisher: AnyPublisher<Void, Never> { logsItem.tapPublisher }
 
   private let biometricsItem: SettingsItemView = .init()
   private let biometricsSwitch: UISwitch = .init()
@@ -39,6 +40,7 @@ internal final class SettingsView: ScrolledStackView {
   private let manageAccountsItem: SettingsItemView = .init()
   private let termsItem: SettingsItemView = .init()
   private let privacyPolicyItem: SettingsItemView = .init()
+  private let logsItem: SettingsItemView = .init()
   private let signOutItem: SettingsItemView = .init()
 
   @available(*, unavailable, message: "Use init(termsHidden:privacyPolicyHidden:)")
@@ -123,6 +125,17 @@ internal final class SettingsView: ScrolledStackView {
       )
     }
 
+    mut(logsItem) {
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .custom { (subject: SettingsItemView) in
+          subject.applyOn(icon: .image(named: .bug, from: .uiCommons))
+          subject.applyOn(label: .text(localized: "account.settings.logs"))
+          subject.addDisclosureIndicator()
+        }
+      )
+    }
+
     mut(signOutItem) {
       .combined(
         .backgroundColor(dynamic: .background),
@@ -150,6 +163,7 @@ internal final class SettingsView: ScrolledStackView {
           !privacyPolicyHidden,
           then: .append(privacyPolicyItem)
         ),
+        .append(logsItem),
         .append(signOutItem),
         .appendFiller(minSize: 20)
       )

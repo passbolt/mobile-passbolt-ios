@@ -47,3 +47,5 @@
 "resource.edit.exit.confirmation.message" = "Your modifications won’t be saved.";
 "resource.edit.exit.confirmation.button.edit.title" = "Edit";
 "resource.edit.exit.confirmation.button.revert.title" = "Revert";
+
+"help.logs.viewer.title" = "Logs";

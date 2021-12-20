@@ -21,41 +21,36 @@
 // @since         v1.0
 //
 
-import UIKit
+import Environment
 
-public final class ActivityIndicator: UIActivityIndicatorView {
+public struct Executors {
 
-  public lazy var dynamicColor: DynamicColor = .always(self.tintColor) {
-    didSet {
-      self.color = dynamicColor(in: traitCollection.userInterfaceStyle)
-    }
-  }
+  public var newBackgroundExecutor: () -> AsyncExecutor
+}
 
-  override public func traitCollectionDidChange(
-    _ previousTraitCollection: UITraitCollection?
-  ) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    guard traitCollection != previousTraitCollection
-    else { return }
-    updateColors()
-  }
+extension Executors: Feature {
 
-  private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-    self.color = dynamicColor(in: interfaceStyle)
-  }
+  public static func load(
+    in environment: Environment,
+    using features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let asyncExecutors: AsyncExecutors = environment.asyncExecutors
 
-  public override func willMove(toWindow newWindow: UIWindow?) {
-    super.willMove(toWindow: newWindow)
-
-    guard newWindow != nil else { return }
-    startAnimating()
-  }
-
-  public override func didMoveToWindow() {
-    super.didMoveToWindow()
-
-    guard window == nil else { return }
-    stopAnimating()
+    return Self(
+      newBackgroundExecutor: asyncExecutors.newBackgroundExecutor
+    )
   }
 }
+
+#if DEBUG
+extension Executors {
+
+  public static var placeholder: Self {
+    Self(
+      newBackgroundExecutor: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif
+

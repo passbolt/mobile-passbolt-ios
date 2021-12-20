@@ -23,6 +23,7 @@
 
 import UICommons
 import UIComponents
+import SharedUIComponents
 
 internal final class SettingsViewController: PlainViewController, UIComponent {
 
@@ -159,6 +160,26 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
       }
       .switchToLatest()
       .sink { /* */  }
+      .store(in: cancellables)
+
+    contentView
+      .logsTapPublisher
+      .sink { [weak self] in
+        self?.controller.openLogsViewer()
+      }
+      .store(in: cancellables)
+
+    controller
+      .logsViewerPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] present in
+        if present {
+          self?.push(LogsViewerViewController.self)
+        }
+        else {
+          self?.pop(if: LogsViewerViewController.self)
+        }
+      }
       .store(in: cancellables)
 
     contentView

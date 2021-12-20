@@ -55,7 +55,8 @@ internal struct ApplicationExtension {
       Camera.live(),
       ExternalURLOpener.live(),
       Yubikey.unavailable(),
-      Randomness.system()
+      Randomness.system(),
+      AsyncExecutors.libDispatch()
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

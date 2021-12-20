@@ -52,10 +52,10 @@ final class AccountDetailsControllerTests: TestCase {
     features
       .patch(
         \NetworkClient.mediaDownload,
-         with: .respondingWith(
+        with: .respondingWith(
           MediaDownloadResponse(),
           storeVariableIn: &result
-         )
+        )
       )
     let controller: AccountDetailsController = testInstance(
       context: validAccountWithProfile
@@ -156,7 +156,7 @@ final class AccountDetailsControllerTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: { /* NOP */ }
+        receiveValue: { /* NOP */  }
       )
       .store(in: cancellables)
 
@@ -167,17 +167,16 @@ final class AccountDetailsControllerTests: TestCase {
     var result: String?
     features.patch(
       \AccountSettings.setAccountLabel,
-       with: { label, _ in
-         result = label
-         return .success
-       }
+      with: { label, _ in
+        result = label
+        return .success
+      }
     )
     let controller: AccountDetailsController = testInstance(
       context: validAccountWithProfile
     )
 
     controller.updateCurrentAccountLabel("")
-
 
     controller
       .saveChanges()
@@ -190,7 +189,7 @@ final class AccountDetailsControllerTests: TestCase {
   func test_saveChanges_fails_whenLabelSaveFails() {
     features.patch(
       \AccountSettings.setAccountLabel,
-       with: always(.failure(.testError()))
+      with: always(.failure(.testError()))
     )
 
     let controller: AccountDetailsController = testInstance(
@@ -206,7 +205,7 @@ final class AccountDetailsControllerTests: TestCase {
           else { return }
           result = error
         },
-        receiveValue: { /* NOP */ }
+        receiveValue: { /* NOP */  }
       )
       .store(in: cancellables)
 
@@ -217,10 +216,10 @@ final class AccountDetailsControllerTests: TestCase {
     var result: String?
     features.patch(
       \AccountSettings.setAccountLabel,
-       with: { label, _ in
-         result = label
-         return .success
-       }
+      with: { label, _ in
+        result = label
+        return .success
+      }
     )
     let controller: AccountDetailsController = testInstance(
       context: validAccountWithProfile

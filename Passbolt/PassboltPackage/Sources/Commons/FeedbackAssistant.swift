@@ -203,7 +203,7 @@ public func showFeedbackAlertIfNeeded(
 
   guard let anchor: UIViewController = anchor
   else { return completion() }
-  
+
   let alert: UIAlertController = .init(
     title: NSLocalizedString("feedback.alert.title", bundle: .commons, comment: ""),
     message: NSLocalizedString("feedback.alert.message", bundle: .commons, comment: ""),

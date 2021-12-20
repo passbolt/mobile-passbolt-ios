@@ -20,6 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
+import SharedUIComponents
 import UIComponents
 
 internal final class SplashScreenViewController: PlainViewController, UIComponent {
@@ -80,20 +81,22 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
             message: message
           )
         )
-        
+
       case .accountSetup:
         self?.replaceWindowRoot(
           with: WelcomeNavigationViewController.self
         )
-        
+
       case .diagnostics:
-        Commons.placeholder("TODO: diagnostics screen")
-        
+        self?.replaceWindowRoot(
+          with: PlainNavigationViewController<LogsViewerViewController>.self
+        )
+
       case .home:
         self?.replaceWindowRoot(
           with: MainTabsViewController.self
         )
-        
+
       case let .mfaAuthorization(mfaProviders):
         if mfaProviders.isEmpty {
           self?.replaceWindowRoot(
@@ -106,14 +109,14 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
             in: mfaProviders
           )
         }
-        
+
       case .featureConfigFetchError:
         self?.present(
           ErrorViewController.self,
           in: { [weak self] in
             guard let self = self
             else { return Empty().eraseToAnyPublisher() }
-            
+
             return self.controller.retryFetchConfiguration()
           }
         )

@@ -48,7 +48,7 @@ final class SettingsScreenTests: TestCase {
     biometry = .placeholder
     featureFlags = .placeholder
     linkOpener = .placeholder
-
+    featureFlags.config = always(nil)
     features.use(AccountSession.placeholder)
   }
 
@@ -59,7 +59,6 @@ final class SettingsScreenTests: TestCase {
   func test_biometricsStatePublisher_publishesStateNone_whenProfileHasBiometricsDisabled_andBiometricsIsUnconfigured() {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(autoFill)
@@ -84,7 +83,6 @@ final class SettingsScreenTests: TestCase {
     currentAccountWithProfile.biometricsEnabled = true
     accountSettings.currentAccountProfilePublisher = always(Just(currentAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(autoFill)
@@ -108,7 +106,6 @@ final class SettingsScreenTests: TestCase {
   {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(autoFill)
@@ -134,7 +131,6 @@ final class SettingsScreenTests: TestCase {
     currentAccountWithProfile.biometricsEnabled = true
     accountSettings.currentAccountProfilePublisher = always(Just(currentAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(autoFill)
@@ -158,7 +154,6 @@ final class SettingsScreenTests: TestCase {
   {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(autoFill)
@@ -189,7 +184,6 @@ final class SettingsScreenTests: TestCase {
     accountProfilePublisher.send(currentAccountWithProfile)
     accountSettings.setBiometricsEnabled = always(Empty().eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(autoFill)
@@ -215,7 +209,6 @@ final class SettingsScreenTests: TestCase {
     accountSettings.setBiometricsEnabled = always(Empty().eraseToAnyPublisher())
     accountSettings.biometricsEnabledPublisher = always(Just(true).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)
@@ -345,7 +338,6 @@ final class SettingsScreenTests: TestCase {
   func test_signOutAlertPresentationPublisherPublishes_whenPresentSignOutAlertCalled() {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)
@@ -368,7 +360,6 @@ final class SettingsScreenTests: TestCase {
 
   func test_autoFillPublisher_publishesTrue_whenAutoFill_isEnabled() {
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)
@@ -389,7 +380,6 @@ final class SettingsScreenTests: TestCase {
 
   func test_autoFillPublisher_publishesFalse_whenAutoFill_isDisabled() {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    featureFlags.config = always(nil)
     features.use(accountSettings)
     features.use(biometry)
     features.use(linkOpener)
@@ -466,6 +456,48 @@ final class SettingsScreenTests: TestCase {
     let result: Bool = controller.privacyPolicyEnabled()
 
     XCTAssertEqual(result, false)
+  }
+
+  func test_logsViewerPresentationPublisher_doesNotPublishInitially() {
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    var result: Bool?
+
+    controller
+      .logsViewerPresentationPublisher()
+      .sink { presented in
+        result = presented
+      }
+      .store(in: cancellables)
+
+    XCTAssertNil(result)
+  }
+
+  func test_logsViewerPresentationPublisher_publishesTrue_whenCallingOpenLogsViewer() {
+    features.use(accountSettings)
+    features.use(biometry)
+    features.use(linkOpener)
+    features.use(autoFill)
+    features.use(featureFlags)
+
+    let controller: SettingsController = testInstance()
+    var result: Bool?
+
+    controller
+      .logsViewerPresentationPublisher()
+      .sink { presented in
+        result = presented
+      }
+      .store(in: cancellables)
+
+    controller.openLogsViewer()
+
+    XCTAssertTrue(result ?? false)
   }
 }
 

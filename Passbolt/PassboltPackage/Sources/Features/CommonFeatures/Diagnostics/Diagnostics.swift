@@ -22,10 +22,10 @@
 //
 
 import Environment
+import OSLog
 
 import struct Foundation.Date
 import struct Foundation.UUID
-import OSLog
 import let os.SIGTRAP
 //import func os.os_log
 //import func os.os_signpost
@@ -94,16 +94,19 @@ extension Diagnostics: Feature {
           do {
             let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
             let dateFormatter: DateFormatter = .init()
-            dateFormatter.timeZone = .current
-            dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss Z"
+            dateFormatter.timeZone = .init(secondsFromGMT: 0)
+            dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
             return
               try logStore
               .getEntries(
-                at: logStore
+                at:
+                  logStore
                   .position(
-                    date: time
+                    date:
+                      time
                       .dateNow()
-                      .addingTimeInterval(-60 * 60 /* last hour */)),
+                      .addingTimeInterval(-60 * 60 /* last hour */)
+                  ),
                 matching: NSPredicate(
                   format: "category == %@",
                   argumentArray: ["diagnostic"]
@@ -116,7 +119,8 @@ extension Diagnostics: Feature {
           catch {
             return ["Logs are not available"]
           }
-        } else {
+        }
+        else {
           return ["Logs are available from iOS 15+"]
         }
       },

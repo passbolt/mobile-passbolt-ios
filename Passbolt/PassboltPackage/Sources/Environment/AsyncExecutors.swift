@@ -21,41 +21,51 @@
 // @since         v1.0
 //
 
-import UIKit
+import Commons
+import Dispatch
 
-public final class ActivityIndicator: UIActivityIndicatorView {
+public typealias AsyncExecutor = (@escaping () -> Void) -> Void
 
-  public lazy var dynamicColor: DynamicColor = .always(self.tintColor) {
-    didSet {
-      self.color = dynamicColor(in: traitCollection.userInterfaceStyle)
-    }
-  }
+public struct AsyncExecutors: EnvironmentElement {
 
-  override public func traitCollectionDidChange(
-    _ previousTraitCollection: UITraitCollection?
-  ) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    guard traitCollection != previousTraitCollection
-    else { return }
-    updateColors()
-  }
+  public var newBackgroundExecutor: () -> AsyncExecutor
+}
 
-  private func updateColors() {
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-    self.color = dynamicColor(in: interfaceStyle)
-  }
+extension AsyncExecutors {
 
-  public override func willMove(toWindow newWindow: UIWindow?) {
-    super.willMove(toWindow: newWindow)
-
-    guard newWindow != nil else { return }
-    startAnimating()
-  }
-
-  public override func didMoveToWindow() {
-    super.didMoveToWindow()
-
-    guard window == nil else { return }
-    stopAnimating()
+  public static func libDispatch() -> Self {
+    Self(
+      newBackgroundExecutor: {
+        { task in
+          DispatchQueue(label: "com.passbolt.async.executors.background")
+            .async(execute: task)
+        }
+      }
+    )
   }
 }
+
+extension Environment {
+
+  public var asyncExecutors: AsyncExecutors {
+    get { element(AsyncExecutors.self) }
+    set { use(newValue) }
+  }
+}
+
+#if DEBUG
+extension AsyncExecutors {
+
+  public static var immediate: Self {
+    Self(
+      newBackgroundExecutor: {
+        { task in task() }
+      }
+    )
+  }
+
+  public static var placeholder: Self {
+    Self(newBackgroundExecutor: Commons.placeholder("You have to provide mocks for used methods"))
+  }
+}
+#endif

@@ -31,6 +31,8 @@ internal struct SettingsController {
   internal var toggleBiometrics: () -> AnyPublisher<Never, TheError>
   internal var openTerms: () -> AnyPublisher<Bool, Never>
   internal var openPrivacyPolicy: () -> AnyPublisher<Bool, Never>
+  internal var openLogsViewer: () -> Void
+  internal var logsViewerPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var disableBiometrics: () -> AnyPublisher<Never, TheError>
   internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var autoFillEnabledPublisher: () -> AnyPublisher<Bool, Never>
@@ -82,6 +84,7 @@ extension SettingsController: UIController {
 
     let presentBiometricsAlertSubject: PassthroughSubject<Void, Never> = .init()
     let presentSignOutAlertSubject: PassthroughSubject<Void, Never> = .init()
+    let presentLogsViewerSubject: PassthroughSubject<Bool, Never> = .init()
 
     func biometricsStatePublisher() -> AnyPublisher<BiometricsState, Never> {
       Publishers.CombineLatest(
@@ -144,6 +147,10 @@ extension SettingsController: UIController {
       return linkOpener.openLink(url)
     }
 
+    func openLogsViewer() {
+      presentLogsViewerSubject.send(true)
+    }
+
     func disableBiometrics() -> AnyPublisher<Never, TheError> {
       accountSettings
         .setBiometricsEnabled(false)
@@ -173,6 +180,8 @@ extension SettingsController: UIController {
       toggleBiometrics: toggleBiometrics,
       openTerms: openTerms,
       openPrivacyPolicy: openPrivacyPolicy,
+      openLogsViewer: openLogsViewer,
+      logsViewerPresentationPublisher: presentLogsViewerSubject.eraseToAnyPublisher,
       disableBiometrics: disableBiometrics,
       signOutAlertPresentationPublisher: presentSignOutAlertSubject.eraseToAnyPublisher,
       autoFillEnabledPublisher: autoFillEnabledPublisher,
