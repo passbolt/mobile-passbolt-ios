@@ -25,6 +25,36 @@ import Commons
 import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertTrue(
+  _ expression: @autoclosure () throws -> Bool?,
+  _ message: @autoclosure () -> String = "",
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  XCTAssertTrue(
+    try expression() ?? false,
+    message(),
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertFalse(
+  _ expression: @autoclosure () throws -> Bool?,
+  _ message: @autoclosure () -> String = "",
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  XCTAssertFalse(
+    try expression() ?? true,
+    message(),
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
 public func XCTAssertSuccess<T, E>(
   _ result: Result<T, E>,
   _ file: StaticString = #filePath,

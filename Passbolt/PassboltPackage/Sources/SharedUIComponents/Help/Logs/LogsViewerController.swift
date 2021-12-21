@@ -64,9 +64,9 @@ extension LogsViewerController: UIController {
         .send(
           "Passbolt:\n"
             + (logsCacheSubject
-            .value?
-            .joined(separator: "\n")
-            ?? "N/A")
+              .value?
+              .joined(separator: "\n")
+              ?? "N/A")
         )
     }
 

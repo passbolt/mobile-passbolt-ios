@@ -54,7 +54,6 @@ extension AccountSettings: Feature {
     let accountsDataStore: AccountsDataStore = features.instance()
     let diagnostics: Diagnostics = features.instance()
     let permissions: OSPermissions = features.instance()
-    let passphraseCache: PassphraseCache = features.instance()
     let networkClient: NetworkClient = features.instance()
 
     let currentAccountProfileSubject: CurrentValueSubject<AccountWithProfile?, Never> = .init(nil)
@@ -213,79 +212,19 @@ extension AccountSettings: Feature {
         .ensureBiometricsPermission()
         .setFailureType(to: TheError.self)
         .map { permissionGranted -> AnyPublisher<Void, TheError> in
-          guard permissionGranted
-          else {
-            return Fail<Void, TheError>(error: .permissionRequired().appending(context: "biometrics"))
-              .eraseToAnyPublisher()
+          if permissionGranted {
+            return
+              accountSession
+              .storePassphraseWithBiometry(enabled)
+              .asPublisher
           }
-          return
-            accountSession
-            .statePublisher()
-            .first()
-            .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheError> in
-              let account: Account
-
-              switch sessionState {
-              case let .authorized(theAccount):
-                account = theAccount
-              case let .authorizedMFARequired(theAccount, _):
-                account = theAccount
-              case _:
-                accountSession.requestAuthorizationPrompt(
-                  .init(key: "authorization.prompt.biometrics.set.reason", bundle: .main)
-                )
-
-                return Fail<Void, TheError>(error: .authorizationRequired())
-                  .eraseToAnyPublisher()
-              }
-              if enabled {
-                return
-                  passphraseCache
-                  .passphrasePublisher(account.localID)
-                  .first()
-                  .map { passphrase -> AnyPublisher<Void, TheError> in
-                    if let passphrase: Passphrase = passphrase {
-                      let passphraseStoreResult: Result<Void, TheError> =
-                        accountsDataStore
-                        .storeAccountPassphrase(account.localID, passphrase)
-                      switch passphraseStoreResult {
-                      case .success:
-                        return Just(Void())
-                          .setFailureType(to: TheError.self)
-                          .eraseToAnyPublisher()
-                      case let .failure(error):
-                        return Fail<Void, TheError>(error: error)
-                          .eraseToAnyPublisher()
-                      }
-                    }
-                    else {
-                      #warning("TODO: determine if waiting for authorization could be implemented here")
-                      accountSession.requestAuthorizationPrompt(
-                        .init(key: "authorization.prompt.biometrics.set.reason", bundle: .main)
-                      )
-                      return Fail<Void, TheError>(error: .authorizationRequired())
-                        .eraseToAnyPublisher()
-                    }
-                  }
-                  .switchToLatest()
-                  .eraseToAnyPublisher()
-              }
-              else {
-                let passphraseDeleteResult: Result<Void, TheError> =
-                  accountsDataStore
-                  .deleteAccountPassphrase(account.localID)
-                switch passphraseDeleteResult {
-                case .success:
-                  return Just(Void()).setFailureType(to: TheError.self)
-                    .eraseToAnyPublisher()
-                case let .failure(error):
-                  return Fail<Void, TheError>(error: error)
-                    .eraseToAnyPublisher()
-                }
-              }
-            }
-            .switchToLatest()
+          else {
+            return Fail<Void, TheError>(
+              error: .permissionRequired()
+                .appending(context: "biometrics")
+            )
             .eraseToAnyPublisher()
+          }
         }
         .switchToLatest()
         .eraseToAnyPublisher()

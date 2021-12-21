@@ -57,7 +57,7 @@ internal struct NetworkSession {
 extension NetworkSession {
 
   fileprivate typealias ServerPublicKeys = (
-    publicPGP: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: ArmoredRSAPublicKey
+    publicPGP: ArmoredPGPPublicKey, pgpFingerprint: Fingerprint, rsa: PEMRSAPublicKey
   )
   fileprivate typealias ServerPublicKeysWithSignInChallenge = (
     serverPublicKeys: ServerPublicKeys, signInChallenge: ArmoredPGPMessage
@@ -191,7 +191,7 @@ extension NetworkSession: Feature {
 
     func fetchServerPublicRSAKey(
       domain: URLString
-    ) -> AnyPublisher<ArmoredRSAPublicKey, TheError> {
+    ) -> AnyPublisher<PEMRSAPublicKey, TheError> {
       networkClient
         .serverRSAPublicKeyRequest
         .make(using: .init(domain: domain))
@@ -199,7 +199,7 @@ extension NetworkSession: Feature {
           diagnostics.diagnosticLog("...fetching server public RSA key...")
         })
         .map { response in
-          ArmoredRSAPublicKey(rawValue: response.body.keyData)
+          PEMRSAPublicKey(rawValue: response.body.keyData)
         }
         .eraseToAnyPublisher()
     }
@@ -212,7 +212,7 @@ extension NetworkSession: Feature {
         fetchServerPublicPGPKey(domain: domain),
         fetchServerPublicRSAKey(domain: domain)
       )
-      .map { (publicPGP: ArmoredPGPPublicKey, rsa: ArmoredRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
+      .map { (publicPGP: ArmoredPGPPublicKey, rsa: PEMRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheError> in
         var existingFingerprint: Fingerprint? = nil
         var serverFingerprint: Fingerprint
 
@@ -467,7 +467,7 @@ extension NetworkSession: Feature {
       account: Account,
       signInTokens: Tokens,
       mfaToken: MFAToken?,
-      serverPublicRSAKey: ArmoredRSAPublicKey,
+      serverPublicRSAKey: PEMRSAPublicKey,
       verificationToken: String,
       challengeExpiration: Int
     ) -> AnyPublisher<SessionStateWithMFAProviders, TheError> {
@@ -487,7 +487,6 @@ extension NetworkSession: Feature {
       guard
         verificationToken == signInTokens.verificationToken,
         challengeExpiration > time.timestamp(),
-        let key: Data = Data(base64Encoded: serverPublicRSAKey.stripArmoredFormat()),
         let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
         let signedData: Data = accessToken.signedPayload.data(using: .utf8)
       else {
@@ -499,7 +498,7 @@ extension NetworkSession: Feature {
         .eraseToAnyPublisher()
       }
 
-      switch signatureVerification.verify(signedData, signature, key) {
+      switch signatureVerification.verify(signedData, signature, serverPublicRSAKey) {
       case .success:
         diagnostics.diagnosticLog("...session tokens signature verification succeeded...")
         return Just(
@@ -604,10 +603,10 @@ extension NetworkSession: Feature {
         }
         .switchToLatest()
         .handleEvents(receiveOutput: { (state: NetworkSessionState, _: Array<MFAProvider>) in
-          var stateCopy: NetworkSessionState = state
-          stateCopy.mfaToken = mfaToken
-          withSessionState { sessionState in
-            sessionState = stateCopy
+          var newSession: NetworkSessionState = state
+          newSession.mfaToken = mfaToken
+          withSessionState { (sessionState: inout NetworkSessionState?) -> Void in
+            sessionState = newSession
           }
         })
         .map { (_: NetworkSessionState, mfaProviders: Array<MFAProvider>) -> Array<MFAProvider> in
@@ -747,7 +746,7 @@ extension NetworkSession: Feature {
 
           let sessionRefreshCancellable: AnyCancellable =
             fetchServerPublicRSAKey(domain: account.domain)
-            .map { (serverPublicRSAKey: ArmoredRSAPublicKey) -> AnyPublisher<Void, TheError> in
+            .map { (serverPublicRSAKey: PEMRSAPublicKey) -> AnyPublisher<Void, TheError> in
               diagnostics.diagnosticLog("...requesting token refresh...")
               return networkClient
                 .refreshSessionRequest
@@ -771,7 +770,6 @@ extension NetworkSession: Feature {
                   }
 
                   guard
-                    let key: Data = Data(base64Encoded: serverPublicRSAKey.stripArmoredFormat()),
                     let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
                     let signedData: Data = accessToken.signedPayload.data(using: .utf8)
                   else {
@@ -779,7 +777,7 @@ extension NetworkSession: Feature {
                     return .failure(.signInError())
                   }
 
-                  switch signatureVerification.verify(signedData, signature, key) {
+                  switch signatureVerification.verify(signedData, signature, serverPublicRSAKey) {
                   case .success:
                     diagnostics.diagnosticLog("...jwt access token verification succeeded...")
                     return withSessionState { sessionState in

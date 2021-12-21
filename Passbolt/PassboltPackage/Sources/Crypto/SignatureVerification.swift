@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonDataModels
 import Commons
 import Foundation
 import Security
@@ -32,15 +33,47 @@ public struct SignatureVerfication {
     (
       _ input: Data,
       _ signature: Data,
-      _ key: Data
+      _ key: PEMRSAPublicKey
     ) -> Result<Void, TheError>
 }
 
 extension SignatureVerfication {
 
   public static func rssha256() -> Self {
-    Self { input, signature, key in
+    Self { input, signature, pemKey in
+
+      let key: Data? = pemKey
+        .rawValue
+        .replacingOccurrences(
+          of: "\r",
+          with: ""
+        )
+        .split(
+          separator: "\n"
+        )
+        .filter {
+          !($0.trimmingCharacters(
+            in: .whitespacesAndNewlines
+          )
+          .isEmpty  // remove empty lines
+            || $0.hasPrefix("-----")  // remove header and footer
+            || $0.contains(":")  // remove header values
+            )
+        }
+        .joined(separator: "")
+        .base64DecodeFromURLEncoded()
+
+      guard let key: Data = key
+      else { return .failure(.invalidInputDataError()) }
+
       var error: Unmanaged<CFError>?
+      guard
+        !input.isEmpty,
+        !signature.isEmpty
+      else {
+        return .failure(.invalidInputDataError())
+      }
+
       let inputData: CFData = input as CFData
       let signatureData: CFData = signature as CFData
 

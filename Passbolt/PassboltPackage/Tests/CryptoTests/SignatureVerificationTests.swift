@@ -34,11 +34,10 @@ final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withExistingToken_Succeeds() {
     let verification: SignatureVerfication = .rssha256()
-    let key: String = publicKey.stripArmoredFormat()
 
     var components: Array<String> = validToken.components(separatedBy: ".")
 
-    guard let keyData: Data = .init(base64Encoded: key),
+    guard
       let signature: Data = components.popLast()?.base64DecodeFromURLEncoded(),
       let signedData: Data = components.joined(separator: ".").data(using: .utf8)
     else {
@@ -49,7 +48,7 @@ final class SignatureVerificationTests: XCTestCase {
     let result: Result<Void, TheError> = verification.verify(
       signedData,
       signature,
-      keyData
+      publicKey
     )
 
     XCTAssertSuccess(result)
@@ -57,11 +56,10 @@ final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withToken_InvalidSignature_Fails() {
     let verification: SignatureVerfication = .rssha256()
-    let key: String = publicKey.stripArmoredFormat()
 
     var components: Array<String> = tokenWithInvalidSignature.components(separatedBy: ".")
 
-    guard let keyData: Data = .init(base64Encoded: key),
+    guard
       let signature: Data = components.popLast()?.base64DecodeFromURLEncoded(),
       let signedData: Data = components.joined(separator: ".").data(using: .utf8)
     else {
@@ -73,7 +71,7 @@ final class SignatureVerificationTests: XCTestCase {
       case let Result.failure(error) = verification.verify(
         signedData,
         signature,
-        keyData
+        publicKey
       )
     else {
       XCTFail("Unexpected success")
@@ -85,11 +83,10 @@ final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withToken_MissingSignature_Fails() {
     let verification: SignatureVerfication = .rssha256()
-    let key: String = publicKey.stripArmoredFormat()
 
     var components: Array<String> = tokenWithNoSignature.components(separatedBy: ".")
 
-    guard let keyData: Data = .init(base64Encoded: key),
+    guard
       let signature: Data = components.popLast()?.base64DecodeFromURLEncoded(),
       let signedData: Data = components.joined(separator: ".").data(using: .utf8)
     else {
@@ -101,7 +98,7 @@ final class SignatureVerificationTests: XCTestCase {
       case let Result.failure(error) = verification.verify(
         signedData,
         signature,
-        keyData
+        publicKey
       )
     else {
       XCTFail("Unexpected success")
@@ -113,11 +110,10 @@ final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withExistingToken_andServerRSAPublicKey_Succeeds() {
     let verification: SignatureVerfication = .rssha256()
-    let key: String = shortRsaPublicKey.stripArmoredFormat()
 
     var components: Array<String> = shortJwt.components(separatedBy: ".")
 
-    guard let keyData: Data = .init(base64Encoded: key),
+    guard
       let signature: Data = components.popLast()?.base64DecodeFromURLEncoded(),
       let signedData: Data = components.joined(separator: ".").data(using: .utf8)
     else {
@@ -128,7 +124,7 @@ final class SignatureVerificationTests: XCTestCase {
     let result: Result<Void, TheError> = verification.verify(
       signedData,
       signature,
-      keyData
+      shortRsaPublicKey
     )
 
     XCTAssertSuccess(result)
@@ -136,11 +132,10 @@ final class SignatureVerificationTests: XCTestCase {
 
   func test_verification_withExistingToken_andLongerServerRSAPublicKey_Succeeds() {
     let verification: SignatureVerfication = .rssha256()
-    let key: String = longRsaPublicKey.stripArmoredFormat()
 
     var components: Array<String> = longJwt.components(separatedBy: ".")
 
-    guard let keyData: Data = .init(base64Encoded: key),
+    guard
       let signature: Data = components.popLast()?.base64DecodeFromURLEncoded(),
       let signedData: Data = components.joined(separator: ".").data(using: .utf8)
     else {
@@ -151,7 +146,7 @@ final class SignatureVerificationTests: XCTestCase {
     let result: Result<Void, TheError> = verification.verify(
       signedData,
       signature,
-      keyData
+      longPublicKey
     )
 
     XCTAssertSuccess(result)
@@ -170,7 +165,8 @@ private let tokenWithNoSignature: String = """
   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpb3MiLCJleHAiOjE1MTYyMzkwMjIsImlzcyI6IlBhc3Nib2x0Iiwic3ViIjoiMTIzNDU2Nzg5MCJ9
   """
 
-private let publicKey: ArmoredRSAPublicKey = """
+private let publicKey: PEMRSAPublicKey =
+  """
   -----BEGIN PUBLIC KEY-----
   MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA07sAMRiJeGl2djgb7pYB
   yWsYQ8kPH4HfTdQHj21980spnhPp1kUL7/jNUoMC8g+AbvL+5JZvC6d8QPHbJaup
@@ -191,14 +187,14 @@ private let shortJwt: String = """
   eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvcGFzc2JvbHQuZGV2XC8iLCJzdWIiOiI4ZDA0Y2Y5OC03MTZiLTVmNmQtOWZlOC1jMTMwZjg5OTI2NDYiLCJleHAiOjE2MjM2NzY2Njd9.nepYHRPJZP90UVLTLCLvDSIg_HKqvkg-K0ZwlXrVoaqsGmMnkdbN79OOiEB4faek794XIUmytKcPSNg3-qE7pIi3l6fo4ImJjU-HkLgChWT84KGjq67kMA4hBuM0dar2T6fDrI7hWzWN3HvqTJ0B5qEJDAq1ja6t9at6wE5cfLA
   """
 
-private let shortRsaPublicKey: ArmoredRSAPublicKey = """
-    -----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJUs/H6KlixD3zmn/XRZUtphuS\n+LKOsgdmRH/+pE0L2u/Gb7mqHy5Yy6u10zXduLQiGAeNqJrEwsrjvWOYKqvyZvMW\n9L1eUuVFVum8MlNvLK5XDx+U3uVs6vflqYXeaxNhKW31IQRy7O9bd8/BYbxDqSes\n7OGbB3Qhpu2eb1TIhQIDAQAB\n-----END PUBLIC KEY-----\n
+private let shortRsaPublicKey: PEMRSAPublicKey =
+  """
+  -----BEGIN PUBLIC KEY-----\n\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJUs/H6KlixD3zmn/XRZUtphuS\n+LKOsgdmRH/+pE0L2u/Gb7mqHy5Yy6u10zXduLQiGAeNqJrEwsrjvWOYKqvyZvMW\n9L1eUuVFVum8MlNvLK5XDx+U3uVs6vflqYXeaxNhKW31IQRy7O9bd8/BYbxDqSes\n7OGbB3Qhpu2eb1TIhQIDAQAB\n-----END PUBLIC KEY-----\n
   """
 
 private let longJwt: String = """
   eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvcGFzc2JvbHQuZGV2XC8iLCJzdWIiOiI4ZDA0Y2Y5OC03MTZiLTVmNmQtOWZlOC1jMTMwZjg5OTI2NDYiLCJleHAiOjE2MjM2Nzg5ODN9.GR5eJhMpTKbL12-6hpxSK2LImFvdcyrd-I8qJ8fTaKlygAHe60UFg5d4HyFj1FTyBgxw2Y719L5l6LUNKeG90nuTKinw4012GJKRXWVHRReoh8YThQlAO9Xyx3C9VdCBdoyMORV7ppvHBAyr0jiXjM1nMF2VQ1HEhLqELjMfvEOTc03H6xbC4ZBagGDMzahe8KEpClMMcSCptUfT5gObTYDMNPkTuyIEGB2jR3VfTUCtlIwOfZ85Hmh_qkFwqJbF5zHRkiNgq7ss-m5_HCQosWDN86wK-xBmG98E0LThV4HVvSGB3m0xTdp20uZKtuey93TRl12X8yPsNDEdOCHMp3bc7nAf3y9hqYRf74nxDDAtFVbh1Oo3dw97J22RvtiH_m-78mQTsDax3ayFCt9li2Qsw-RhdzsVdEqkXguJMl_dcPfR4uhJBzLPDYTjw8wHJqngB4-vZpnaOEV-XXze0iyBeNaJar80QCN2FhUDP6oUfkYwUL522N8r-3friUlPWQpZm7MrVW1Mt5EJyC_38kiEJnT8DfsNkJxhOt34vGXbKyTe43tQE_VlNif4M_wmOGXWhEUxDq1KklvLo2qkT6DhW0XkMBVLd64PO-CVtjQ_f5RbmZCkSQhtFu_C9ewfVDvKP-U0e0NWC6gNUiH4K4zlP-kB_NIeoatpyzvDT1I
   """
 
-private let longRsaPublicKey: ArmoredRSAPublicKey = """
-  -----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1JfiaaGxGmTB9FuHLyIp\neQFWEBmANy9Sy3ijkg7XFXy2EFiB547vijStrAme2W+wrMDhEvBNUoOSuLaIkddv\nKJ5mUgNk75MKVNf+OJMRzeu/zRMrLciNG57V7n+mO0pMgjnfJFPlNn7GTX0knozV\nd/J1OdVr4fZTDcOmwy4W1JDSSNnSt1zdJxwVBiBTQGigTbwyg1BoN1a4QMmty6xX\nZBDtxKTGc+H1Bmkx2AcCFii5ePTv4fRYwcCdmW5DpFExGldHC/S3l+iRUT0FfrgL\n/M18ruU2pLeweIOfLaChCr8m8KnK5ByLZF2FtXOB0BPehleY6lvX8KgoIlRD35Dr\nf/VhuuHfj00a+2mBvTNzmjGljxBGvQ7v43zV5mFsoXTn+BXxq6HeavYKN1bKDDBC\n05JItIoke1aaPo5zleFlZwmCHNva2h+//iLDdEH2JjsIxzGOJv0Rb8isTLo5NMU4\nrUJwQ38V9TFzwrLcgUzT7Rf4W6cK4VKm6N3fDKar9mvmqNOyFGSFy6KSoc+Woszc\nivQOUs2hManLs560RNCMcjAtAcppxB3i6q7EwKOoKUEGIRHRAt3dXF1B68rErmJk\nm7VHaejSBsp53Ale1Ux+QK3knmY3shdGHA1FRX5uLic33Yc1DyjI2ywA8YhYsm/x\ngPNVo1AEfr4ADYdu04Mwr4MCAwEAAQ==\n-----END PUBLIC KEY-----\n
-  """
+private let longPublicKey: PEMRSAPublicKey =
+  "-----BEGIN PUBLIC KEY-----\nHEADER: value\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1JfiaaGxGmTB9FuHLyIp\neQFWEBmANy9Sy3ijkg7XFXy2EFiB547vijStrAme2W+wrMDhEvBNUoOSuLaIkddv\nKJ5mUgNk75MKVNf+OJMRzeu/zRMrLciNG57V7n+mO0pMgjnfJFPlNn7GTX0knozV\nd/J1OdVr4fZTDcOmwy4W1JDSSNnSt1zdJxwVBiBTQGigTbwyg1BoN1a4QMmty6xX\nZBDtxKTGc+H1Bmkx2AcCFii5ePTv4fRYwcCdmW5DpFExGldHC/S3l+iRUT0FfrgL\n/M18ruU2pLeweIOfLaChCr8m8KnK5ByLZF2FtXOB0BPehleY6lvX8KgoIlRD35Dr\nf/VhuuHfj00a+2mBvTNzmjGljxBGvQ7v43zV5mFsoXTn+BXxq6HeavYKN1bKDDBC\n05JItIoke1aaPo5zleFlZwmCHNva2h+//iLDdEH2JjsIxzGOJv0Rb8isTLo5NMU4\nrUJwQ38V9TFzwrLcgUzT7Rf4W6cK4VKm6N3fDKar9mvmqNOyFGSFy6KSoc+Woszc\nivQOUs2hManLs560RNCMcjAtAcppxB3i6q7EwKOoKUEGIRHRAt3dXF1B68rErmJk\nm7VHaejSBsp53Ale1Ux+QK3knmY3shdGHA1FRX5uLic33Yc1DyjI2ywA8YhYsm/x\ngPNVo1AEfr4ADYdu04Mwr4MCAwEAAQ==\n-----END PUBLIC KEY-----\n"

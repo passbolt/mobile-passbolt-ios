@@ -36,8 +36,6 @@ final class AccountSettingsTests: TestCase {
   var accountSession: AccountSession!
   var accountsDataStore: AccountsDataStore!
   var permissions: OSPermissions!
-  var passphraseCache: PassphraseCache!
-  var networkClient: NetworkClient!
 
   override func setUp() {
     super.setUp()
@@ -45,10 +43,9 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore = .placeholder
     accountsDataStore.updateAccountProfile = always(.success)
     permissions = .placeholder
-    passphraseCache = .placeholder
-    networkClient = .placeholder
-    networkClient.userProfileRequest.execute = always(
-      Just(
+    features.patch(
+      \NetworkClient.userProfileRequest,
+      with: .respondingWith(
         .init(
           header: .mock(),
           body: .init(
@@ -66,8 +63,6 @@ final class AccountSettingsTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheError.self)
-      .eraseToAnyPublisher()
     )
   }
 
@@ -75,8 +70,6 @@ final class AccountSettingsTests: TestCase {
     accountSession = nil
     accountsDataStore = nil
     permissions = nil
-    passphraseCache = nil
-    networkClient = nil
     super.tearDown()
   }
 
@@ -91,12 +84,10 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
-    var result: Bool!
+    var result: Bool?
     feature
       .biometricsEnabledPublisher()
       .sink { enabled in
@@ -119,12 +110,10 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
-    var result: Bool!
+    var result: Bool?
     feature
       .biometricsEnabledPublisher()
       .dropFirst()
@@ -146,19 +135,15 @@ final class AccountSettingsTests: TestCase {
     )
     features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.failure(.testError()))
-    accountsDataStore.storeAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Just(validAccount.localID).eraseToAnyPublisher())
 
     features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
-    var result: Bool!
+    var result: Bool?
     feature
       .biometricsEnabledPublisher()
       .sink { enabled in
@@ -175,19 +160,19 @@ final class AccountSettingsTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.patch(
+      \AccountSession.storePassphraseWithBiometry,
+      with: always(.success)
+    )
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.storeAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError!
+    var result: TheError?
     feature
       .setBiometricsEnabled(true)
       .sink(
@@ -208,19 +193,20 @@ final class AccountSettingsTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.patch(
+      \AccountSession.storePassphraseWithBiometry,
+      with: always(.success)
+    )
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
     features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError!
+    var result: TheError?
     feature
       .setBiometricsEnabled(false)
       .sink(
@@ -235,207 +221,7 @@ final class AccountSettingsTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_setBiometricsEnabled_failsDisabling_withNoSession() {
-    accountSession.statePublisher = always(
-      Just(.none(lastUsed: validAccount))
-        .eraseToAnyPublisher()
-    )
-    accountSession.requestAuthorizationPrompt = { _ in }
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.deleteAccountPassphrase = always(.success)
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(false)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
-  }
-
-  func test_setBiometricsEnabled_failsDisabling_withSessionAuthorizationRequired() {
-    accountSession.statePublisher = always(
-      Just(.authorizationRequired(validAccount))
-        .eraseToAnyPublisher()
-    )
-    accountSession.requestAuthorizationPrompt = { _ in }
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.deleteAccountPassphrase = always(.success)
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(false)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
-  }
-
-  func test_setBiometricsEnabled_failsDisabling_whenPasphraseDeleteFails() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.deleteAccountPassphrase = always(.failure(.testError()))
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(false)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .testError)
-  }
-
-  func test_setBiometricsEnabled_failsEnabling_withNoSession() {
-    accountSession.statePublisher = always(
-      Just(.none(lastUsed: validAccount))
-        .eraseToAnyPublisher()
-    )
-    accountSession.requestAuthorizationPrompt = { _ in }
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.storeAccountPassphrase = always(.success)
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(true)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
-  }
-
-  func test_setBiometricsEnabled_failsEnabling_withSessionAuthorizationRequired() {
-    accountSession.statePublisher = always(
-      Just(.authorizationRequired(validAccount))
-        .eraseToAnyPublisher()
-    )
-    accountSession.requestAuthorizationPrompt = { _ in }
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.storeAccountPassphrase = always(.success)
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(true)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
-  }
-
-  func test_setBiometricsEnabled_failsEnabling_whenProfileSaveFails() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.storeAccountPassphrase = always(.failure(.testError()))
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(true)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .testError)
-  }
-
-  func test_setBiometricsEnabled_failsEnabling_withNoBiometricsPermission() {
+  func test_setBiometricsEnabled_fails_withNoBiometricsPermission() {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
@@ -447,9 +233,6 @@ final class AccountSettingsTests: TestCase {
     features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(false).eraseToAnyPublisher())
     features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -468,130 +251,6 @@ final class AccountSettingsTests: TestCase {
     XCTAssertEqual(result.identifier, .permissionRequired)
   }
 
-  func test_setBiometricsEnabled_failsEnabling_withPassphraseMissing() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    accountSession.requestAuthorizationPrompt = { _ in }
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.storeAccountPassphrase = always(.success)
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just(nil).eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    var result: TheError!
-    feature
-      .setBiometricsEnabled(true)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .authorizationRequired)
-  }
-
-  func test_setBiometricsEnabled_savesPassphrase_whenEnabling() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    var result: Passphrase!
-    accountsDataStore.storeAccountPassphrase = { _, passphrase in
-      result = passphrase
-      return .success
-    }
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    feature
-      .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { _ in }, receiveValue: {})
-      .store(in: cancellables)
-
-    XCTAssertEqual(result, "PASSPHRASE")
-  }
-
-  func test_setBiometricsEnabled_savesPassphraseForCurrentAccount_whenEnabling() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    var result: Account.LocalID!
-    accountsDataStore.storeAccountPassphrase = { accountID, _ in
-      result = accountID
-      return .success
-    }
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    feature
-      .setBiometricsEnabled(true)
-      .sink(receiveCompletion: { _ in }, receiveValue: {})
-      .store(in: cancellables)
-
-    XCTAssertEqual(result, validAccount.localID)
-  }
-
-  func test_setBiometricsEnabled_deletesPassphraseForCurrentAccount_whenDisabling() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    var result: Account.LocalID!
-    accountsDataStore.deleteAccountPassphrase = { accountID in
-      result = accountID
-      return .success
-    }
-    accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
-    features.use(permissions)
-    passphraseCache.passphrasePublisher = always(Just("PASSPHRASE").eraseToAnyPublisher())
-    features.use(passphraseCache)
-    features.use(networkClient)
-
-    let feature: AccountSettings = testInstance()
-
-    feature
-      .setBiometricsEnabled(false)
-      .sink(receiveCompletion: { _ in }, receiveValue: {})
-      .store(in: cancellables)
-
-    XCTAssertEqual(result, validAccount.localID)
-  }
-
   func test_currentAccountProfilePublisher_publishesInitialProfile() {
     accountSession.statePublisher = always(
       CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
@@ -604,8 +263,6 @@ final class AccountSettingsTests: TestCase {
     )
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
     var result: AccountProfile?
@@ -642,8 +299,6 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
     var results: Array<AccountProfile> = .init()
@@ -673,8 +328,6 @@ final class AccountSettingsTests: TestCase {
     )
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -702,8 +355,6 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -732,8 +383,6 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -762,8 +411,6 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -793,8 +440,6 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    features.use(networkClient)
 
     let feature: AccountSettings = testInstance()
 
@@ -824,32 +469,34 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    var result: Void?
-    networkClient.userProfileRequest.execute = { _ in
-      result = Void()
-      return Just(
-        .init(
-          header: .mock(),
-          body: .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "https://passbolt.com/image.jpg"
-                )
-              )
-            ),
-            gpgKey: .init(armoredKey: "armored-public-key")
-          )
-        )
-      )
-      .setFailureType(to: TheError.self)
-      .eraseToAnyPublisher()
+
+    var requestVariable: UserProfileRequestVariable? {
+      didSet { result = Void() }
     }
-    features.use(networkClient)
+    var result: Void?
+    features.patch(
+      \NetworkClient.userProfileRequest,
+      with:
+        .respondingWith(
+          .init(
+            header: .mock(),
+            body: .init(
+              id: "user-id",
+              profile: .init(
+                firstName: "firstName",
+                lastName: "lastName",
+                avatar: .init(
+                  url: .init(
+                    medium: "https://passbolt.com/image.jpg"
+                  )
+                )
+              ),
+              gpgKey: .init(armoredKey: "armored-public-key")
+            )
+          ),
+          storeVariableIn: &requestVariable
+        )
+    )
 
     let feature: AccountSettings = testInstance()
     _ = feature  // silence warning
@@ -872,32 +519,34 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
     features.use(permissions)
-    features.use(passphraseCache)
-    var result: Int = 0
-    networkClient.userProfileRequest.execute = { _ in
-      result += 1
-      return Just(
-        .init(
-          header: .mock(),
-          body: .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "https://passbolt.com/image.jpg"
-                )
-              )
-            ),
-            gpgKey: .init(armoredKey: "armored-public-key")
-          )
-        )
-      )
-      .setFailureType(to: TheError.self)
-      .eraseToAnyPublisher()
+
+    var requestVariable: UserProfileRequestVariable? {
+      didSet { result += 1 }
     }
-    features.use(networkClient)
+    var result: Int = 0
+    features.patch(
+      \NetworkClient.userProfileRequest,
+      with:
+        .respondingWith(
+          .init(
+            header: .mock(),
+            body: .init(
+              id: "user-id",
+              profile: .init(
+                firstName: "firstName",
+                lastName: "lastName",
+                avatar: .init(
+                  url: .init(
+                    medium: "https://passbolt.com/image.jpg"
+                  )
+                )
+              ),
+              gpgKey: .init(armoredKey: "armored-public-key")
+            )
+          ),
+          storeVariableIn: &requestVariable
+        )
+    )
 
     let feature: AccountSettings = testInstance()
     _ = feature  // silence warning

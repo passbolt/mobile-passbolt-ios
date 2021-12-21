@@ -62,7 +62,6 @@ extension AccountDatabase: Feature {
     let diagnostics: Diagnostics = features.instance()
     let accountSession: AccountSession = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
-    let passphraseCache: PassphraseCache = features.instance()
 
     let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, TheError> = .init(nil)
 
@@ -72,58 +71,39 @@ extension AccountDatabase: Feature {
         switch sessionState {
         case let .authorized(account), let .authorizedMFARequired(account, _):
           if databaseConnectionSubject.value == nil {
-            return
-              passphraseCache
-              .passphrasePublisher(account.localID)
-              .first()
-              .map { passphrase -> String? in
-                if let passphraseData: Data = passphrase?.rawValue.data(using: .utf8) {
-                  // prepare hash from passphrase
-                  // to be used as database key
-                  return
-                    SHA512
-                    .hash(data: passphraseData)
-                    .compactMap { String(format: "%02x", $0) }
-                    .joined()
-                }
-                else {
-                  diagnostics.diagnosticLog(
-                    "Failed to open database for account due to invalid or missing database key"
-                  )
-                  return nil
-                }
-              }
-              .map { databaseKey -> AnyPublisher<DatabaseConnection?, Never> in
-                guard let databaseKey: String = databaseKey
-                else {
-                  // can't open without key
-                  return Just(nil)
-                    .eraseToAnyPublisher()
-                }
+            let databaseKey: String
+            if let key: String = accountSession.databaseKey() {
+              databaseKey = key
+            }
+            else {
+              diagnostics.diagnosticLog(
+                "Failed to open database for account due to invalid or missing database key"
+              )
+              // can't open without key
+              return Just(nil)
+                .eraseToAnyPublisher()
+            }
 
-                // create new database connection
-                switch accountsDataStore.accountDatabaseConnection(account.localID, databaseKey) {
-                case let .success(connection):
-                  return Just((accountID: account.localID, connection: connection))
-                    .eraseToAnyPublisher()
-                case let .failure(error) where error.identifier == .databaseMigrationError:
-                  diagnostics.debugLog(
-                    "Failed to migrate database for account: \(account.localID), deleting...\n"
-                      + error.description
-                  )
-                  return Just(nil)
-                    .eraseToAnyPublisher()
-                case let .failure(error):
-                  diagnostics.debugLog(
-                    "Failed to open database for account: \(account.localID)\n"
-                      + error.description
-                  )
-                  return Just(nil)
-                    .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .eraseToAnyPublisher()
+            // create new database connection
+            switch accountsDataStore.accountDatabaseConnection(account.localID, databaseKey) {
+            case let .success(connection):
+              return Just((accountID: account.localID, connection: connection))
+                .eraseToAnyPublisher()
+            case let .failure(error) where error.identifier == .databaseMigrationError:
+              diagnostics.debugLog(
+                "Failed to migrate database for account: \(account.localID), deleting...\n"
+                  + error.description
+              )
+              return Just(nil)
+                .eraseToAnyPublisher()
+            case let .failure(error):
+              diagnostics.debugLog(
+                "Failed to open database for account: \(account.localID)\n"
+                  + error.description
+              )
+              return Just(nil)
+                .eraseToAnyPublisher()
+            }
           }
           else if databaseConnectionSubject.value?.accountID != account.localID {
             assertionFailure("AccountDatabase has to be unloaded when switching account")

@@ -65,6 +65,10 @@ let package = Package(
       ]
     ),
     .library(
+      name: "TestExtensions",
+      targets: ["TestExtensions"]
+    ),
+    .library(
       name: "UICommons",
       targets: ["UICommons"]
     ),

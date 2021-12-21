@@ -29,5 +29,5 @@ public typealias ArmoredPGPPrivateKey = Tagged<String, ArmoredPGPPrivateKeyTag>
 public enum ArmoredPGPPublicKeyTag {}
 public typealias ArmoredPGPPublicKey = Tagged<String, ArmoredPGPPublicKeyTag>
 
-public enum ArmoredRSAPublicKeyTag {}
-public typealias ArmoredRSAPublicKey = Tagged<String, ArmoredRSAPublicKeyTag>
+public enum PEMRSAPublicKeyTag {}
+public typealias PEMRSAPublicKey = Tagged<String, PEMRSAPublicKeyTag>

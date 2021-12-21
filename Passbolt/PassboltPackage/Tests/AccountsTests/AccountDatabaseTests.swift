@@ -33,21 +33,18 @@ final class AccountDatabaseTests: TestCase {
 
   var accountSession: AccountSession!
   var accountsDataStore: AccountsDataStore!
-  var passphraseCache: PassphraseCache!
   var databaseConnection: SQLiteConnection!
 
   override func setUp() {
     super.setUp()
     accountSession = .placeholder
     accountsDataStore = .placeholder
-    passphraseCache = .placeholder
     databaseConnection = .placeholder
   }
 
   override func tearDown() {
     accountSession = nil
     accountsDataStore = nil
-    passphraseCache = nil
     databaseConnection = nil
     super.tearDown()
   }
@@ -58,11 +55,10 @@ final class AccountDatabaseTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.patch(\AccountSession.databaseKey, with: always("database key"))
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
@@ -78,11 +74,10 @@ final class AccountDatabaseTests: TestCase {
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.databaseKey = always("database key")
     features.use(accountSession)
     accountsDataStore.accountDatabaseConnection = always(.failure(.testError()))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
@@ -112,8 +107,6 @@ final class AccountDatabaseTests: TestCase {
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
@@ -144,8 +137,6 @@ final class AccountDatabaseTests: TestCase {
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
@@ -176,8 +167,6 @@ final class AccountDatabaseTests: TestCase {
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
@@ -205,15 +194,15 @@ final class AccountDatabaseTests: TestCase {
         .publisher
         .eraseToAnyPublisher()
     )
+
     features.use(accountSession)
+    features.patch(\AccountSession.databaseKey, with: always("database key"))
     databaseConnection.fetch = always(
       .success([SQLiteRow(values: ["lastUpdateTimestamp": 0])])
     )
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
@@ -240,6 +229,7 @@ final class AccountDatabaseTests: TestCase {
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
+    accountSession.databaseKey = always(nil)
     features.use(accountSession)
     databaseConnection.fetch = always(
       .success([SQLiteRow(values: ["lastUpdateTimestamp": 0])])
@@ -247,12 +237,10 @@ final class AccountDatabaseTests: TestCase {
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just(nil).eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheError!
+    var result: TheError?
 
     feature
       .fetchLastUpdate()
@@ -266,7 +254,7 @@ final class AccountDatabaseTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .databaseConnectionClosed)
+    XCTAssertEqual(result?.identifier, .databaseConnectionClosed)
   }
 
   func test_anyOperation_isExecuted_whenSessionIsAuthorized() {
@@ -276,14 +264,13 @@ final class AccountDatabaseTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
+    features.patch(\AccountSession.databaseKey, with: always("database key"))
     databaseConnection.fetch = always(
       .success([SQLiteRow(values: ["lastUpdateTimestamp": 0])])
     )
     databaseConnection.enqueueOperation = { $0() }
     accountsDataStore.accountDatabaseConnection = always(.success(self.databaseConnection))
     features.use(accountsDataStore)
-    passphraseCache.passphrasePublisher = always(Just("passphrase").eraseToAnyPublisher())
-    features.use(passphraseCache)
 
     let feature: AccountDatabase = testInstance()
 

@@ -35,14 +35,12 @@ import XCTest
 final class AccountSessionTests: TestCase {
 
   var accountsDataStore: AccountsDataStore!
-  var passphraseCache: PassphraseCache!
   var networkClient: NetworkClient!
 
   override func setUp() {
     super.setUp()
     accountsDataStore = .placeholder
     accountsDataStore.loadLastUsedAccount = always(validAccount)
-    passphraseCache = .placeholder
     networkClient = .placeholder
     networkClient.setAuthorizationRequest = always(Void())
     networkClient.setMFARequest = always(Void())
@@ -54,7 +52,6 @@ final class AccountSessionTests: TestCase {
 
   override func tearDown() {
     accountsDataStore = nil
-    passphraseCache = nil
     networkClient = nil
     super.tearDown()
   }
@@ -64,7 +61,6 @@ final class AccountSessionTests: TestCase {
       \AccountsDataStore.loadLastUsedAccount,
       with: always(.none)
     )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
 
@@ -86,7 +82,6 @@ final class AccountSessionTests: TestCase {
       \AccountsDataStore.loadLastUsedAccount,
       with: always(validAccount)
     )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
 
@@ -108,11 +103,6 @@ final class AccountSessionTests: TestCase {
   func test_statePublisher_publishesAuthorized_whenAuthorizationSucceeds() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -147,15 +137,52 @@ final class AccountSessionTests: TestCase {
     XCTAssertEqual(result, validAccount)
   }
 
+  func test_statePublisher_publishesAuthorizationRequired_whenAppGoesIntoBackgroundWithSession() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    features.use(accountsDataStore)
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+       with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+       )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+       with: always(false)
+    )
+    let lifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
+    features.environment.appLifeCycle.lifeCyclePublisher = {
+      lifeCycleSubject.eraseToAnyPublisher()
+    }
+
+    let feature: AccountSession = testInstance()
+
+    var result: Account?
+    feature
+      .statePublisher()
+      .sink { state in
+        guard case let .authorizationRequired(account) = state
+        else { return }
+        result = account
+      }
+      .store(in: cancellables)
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    lifeCycleSubject.send(.didEnterBackground)
+
+    XCTAssertEqual(result, validAccount)
+  }
+
   func test_statePublisher_publishesNone_whenClosingSession() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    passphraseCache.clear = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -204,12 +231,6 @@ final class AccountSessionTests: TestCase {
   func test_statePublisher_publishesNoLastUsedAccount_whenClosingSession() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    passphraseCache.clear = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -255,14 +276,58 @@ final class AccountSessionTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_statePublisher_publishesAuthorizationRequired_whenPassphraseCacheIsCleared() {
+  func test_statePublisher_publishesAuthorizationRequired_whenPassphraseCacheIsExpired() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    let passphraseCacheSubject: CurrentValueSubject<Passphrase?, Never> = .init("passphrase")
-    passphraseCache.passphrasePublisher = always(passphraseCacheSubject.eraseToAnyPublisher())
-    features.use(passphraseCache)
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+    features.patch(
+      \NetworkSession.closeSession,
+      with: always(
+        Just(Void())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    var currentTimestamp: Int = 0
+    environment.time.timestamp = always(currentTimestamp)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    currentTimestamp = 5 * 60  // expired time
+
+    var result: Account?
+    feature
+      .statePublisher()
+      .sink { state in
+        guard case let .authorizationRequired(account) = state
+        else { return }
+        result = account
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(result, validAccount)
+  }
+
+  func test_decryptMessage_fails_whenPassphraseCacheIsExpired() {
+    accountsDataStore.storeLastUsedAccount = always(Void())
+    features.use(accountsDataStore)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -285,6 +350,9 @@ final class AccountSessionTests: TestCase {
       )
     )
 
+    var currentTimestamp: Int = 0
+    environment.time.timestamp = always(currentTimestamp)
+
     let feature: AccountSession = testInstance()
 
     feature
@@ -292,24 +360,26 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: Account?
+    currentTimestamp = 5 * 60  // expired time
+
+    var result: TheError?
     feature
-      .statePublisher()
-      .sink { state in
-        guard case let .authorizationRequired(account) = state
-        else { return }
-        result = account
-      }
+      .decryptMessage("encrypted message", nil)
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          result = error
+        },
+        receiveValue: { _ in }
+      )
       .store(in: cancellables)
 
-    passphraseCacheSubject.send(nil)
-
-    XCTAssertEqual(result, validAccount)
+    XCTAssertEqual(result?.identifier, .authorizationRequired)
   }
 
   func test_decryptMessage_fails_withoutActiveSession() {
     features.use(accountsDataStore)
-    features.use(passphraseCache)
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
 
@@ -335,12 +405,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase")
-        .eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -382,12 +446,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase")
-        .eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -431,12 +489,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase")
-        .eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -478,11 +530,8 @@ final class AccountSessionTests: TestCase {
     test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenDecryptMessage_fails_withSessionAuthorizationRequired()
   {
     accountsDataStore.storeLastUsedAccount = always(Void())
+    accountsDataStore.loadAccountPrivateKey = always(.success("PRIVATE KEY"))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    let passphraseCacheSubject: CurrentValueSubject<Passphrase?, Never> = .init("passphrase")
-    passphraseCache.passphrasePublisher = always(passphraseCacheSubject.eraseToAnyPublisher())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -496,6 +545,9 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.sessionRefreshAvailable,
       with: always(false)
     )
+
+    var currentTimestamp: Int = 0
+    environment.time.timestamp = always(currentTimestamp)
 
     let feature: AccountSession = testInstance()
 
@@ -512,7 +564,7 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    passphraseCacheSubject.send(nil)
+    currentTimestamp = 5 * 60  // expired time
 
     feature
       .decryptMessage("message", nil)
@@ -527,7 +579,6 @@ final class AccountSessionTests: TestCase {
 
   func test_authorize_fails_whenSessionCreateFails() {
     features.use(accountsDataStore)
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -562,11 +613,6 @@ final class AccountSessionTests: TestCase {
   func test_authorize_succeeds_whenSessionCreateSucceeds() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -606,11 +652,6 @@ final class AccountSessionTests: TestCase {
   func test_authorize_succeedsWithAuthorized_whenSessionCreateSucceedsWithNoMFAProviders() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -655,11 +696,6 @@ final class AccountSessionTests: TestCase {
   func test_authorize_succeedsWithAuthorizedMFARequired_whenSessionCreateSucceedsWithMFAProviders() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -695,8 +731,6 @@ final class AccountSessionTests: TestCase {
   func test_authorize_fails_whenPrivateKeyIsInaccessibleWhileUsingPassphrase() {
     accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -733,11 +767,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -774,8 +803,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.loadAccountPassphrase = always(.success("passphrase"))
     accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -812,8 +839,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.loadAccountPassphrase = always(.failure(.testError()))
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -851,11 +876,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.loadAccountPassphrase = always(.success("passphrase"))
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -891,12 +911,6 @@ final class AccountSessionTests: TestCase {
   func test_close_callsNetworkSessionClose() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    passphraseCache.clear = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -942,8 +956,6 @@ final class AccountSessionTests: TestCase {
   func test_close_doesNothing_withoutActiveSession() {
     accountsDataStore.loadLastUsedAccount = always(nil)
     features.use(accountsDataStore)
-    passphraseCache.clear = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
 
@@ -965,7 +977,6 @@ final class AccountSessionTests: TestCase {
 
   func test_authorizationPromptPresentationPublisher_doesNotPublish_initially() {
     features.use(accountsDataStore)
-    features.use(passphraseCache)
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
 
@@ -984,7 +995,6 @@ final class AccountSessionTests: TestCase {
 
   func test_authorizationPromptPresentationPublisher_doesNotPublish_whenRequestingExplicitlyWithoutActiveSession() {
     features.use(accountsDataStore)
-    features.use(passphraseCache)
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
 
@@ -1006,12 +1016,6 @@ final class AccountSessionTests: TestCase {
   func test_authorizationPromptPresentationPublisher_publishesRequest_whenRequestingExplicitly() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    passphraseCache.clear = always(Void())
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1047,19 +1051,11 @@ final class AccountSessionTests: TestCase {
     XCTAssertEqual(result?.message?.key.rawValue, "message")
   }
 
-  // test appLifeCycle change
-
   func test_authorize_succeeds_whenSwitchingSession() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1109,225 +1105,10 @@ final class AccountSessionTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_statePublisher_publishesAuthorizationRequiredForNewAccount_whenTryingToSwitchSession() {
-    accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadAccounts = always([])
-    features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
-      \NetworkSession.closeSession,
-      with: always(
-        Just(Void())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: Account?
-    feature
-      .statePublisher()
-      .dropFirst()
-      .first()
-      .sink { state in
-        guard case let .authorizationRequired(account) = state
-        else { return }
-        result = account
-      }
-      .store(in: cancellables)
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    XCTAssertEqual(result, validAccount)
-  }
-
-  func test_authorize_closesPreviousSession_whenSwitchingAccount() {
-    accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
-    accountsDataStore.loadAccounts = always([])
-    features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    var result: Void?
-    features.patch(
-      \NetworkSession.closeSession,
-      with: {
-        result = Void()
-        return Just(Void())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      }
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_authorize_closesPreviousSession_whenSwitchingAccountWithMFARequired() {
-    accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
-    accountsDataStore.loadAccounts = always([])
-    features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    var result: Void?
-    features.patch(
-      \NetworkSession.closeSession,
-      with: {
-        result = Void()
-        return Just(Void())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      }
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_authorize_closesPreviousSession_whenSwitchingAccountWithAccountIDCollision() {
-    accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
-    accountsDataStore.loadAccounts = always([])
-    features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    var result: Void?
-    features.patch(
-      \NetworkSession.closeSession,
-      with: {
-        result = Void()
-        return Just(Void())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      }
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    feature
-      .authorize(validAccountAlternativeWithIDCollision, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_authorize_doesNotClosePreviousSession_whenSwitchingSameAccount() {
+  func test_authorize_doesNotClosePreviousSession_whenSwitchingToSameAccount() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccountAlternative])
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1367,112 +1148,9 @@ final class AccountSessionTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_authorize_doesClosePreviousSession_whenSwitchingToNotStoredAccount() {
-    accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadAccounts = always([validAccountAlternative])
-    features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    var result: Void?
-    features.patch(
-      \NetworkSession.closeSession,
-      with: {
-        result = Void()
-        return Just(Void())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      }
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_authorize_doesClosePreviousSession_whenSwitchingToAlreadyStoredAccount() {
-    accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    var result: Void?
-    features.patch(
-      \NetworkSession.closeSession,
-      with: {
-        result = Void()
-        return Just(Void())
-          .setFailureType(to: TheError.self)
-          .eraseToAnyPublisher()
-      }
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
   func test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenApplicationWillEnterForeground() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1512,7 +1190,6 @@ final class AccountSessionTests: TestCase {
 
   func test_mfaAuthorization_fails_withNoActiveSession() {
     features.use(accountsDataStore)
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1555,11 +1232,6 @@ final class AccountSessionTests: TestCase {
   func test_mfaAuthorization_isForwardedToNetworkSession() {
     accountsDataStore.storeLastUsedAccount = always(Void())
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1604,12 +1276,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1646,12 +1312,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     var result: Void?
     features.patch(
@@ -1689,12 +1349,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1733,12 +1387,6 @@ final class AccountSessionTests: TestCase {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
-    passphraseCache.store = always(Void())
-    passphraseCache.clear = always(Void())
-    passphraseCache.passphrasePublisher = always(
-      CurrentValueSubject<Passphrase?, Never>("passphrase").eraseToAnyPublisher()
-    )
-    features.use(passphraseCache)
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
@@ -1775,6 +1423,526 @@ final class AccountSessionTests: TestCase {
         receiveValue: { _ in /* NOP */ }
       )
       .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsStore_withoutSession() {
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    features.use(accountsDataStore)
+    features.use(networkClient)
+    features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = testInstance()
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(true)
+
+    XCTAssertFailure(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsStore_whenPassphraseExpires() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+
+    var currentTimestamp: Int = 0
+    environment.time.timestamp = always(currentTimestamp)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    currentTimestamp = 5 * 60  // expired time
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(true)
+
+    XCTAssertFailure(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsStore_whenPassphraseStoreFails() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeAccountPassphrase,
+      with: always(.failure(.testError()))
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(true)
+
+    XCTAssertFailure(result)
+  }
+
+  func test_storePassphraseWithBiometry_succeedsStore_whenPassphraseStoreSucceeds() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeAccountPassphrase,
+      with: always(.success)
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(true)
+
+    XCTAssertSuccess(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsDelete_withoutSession() {
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    features.use(accountsDataStore)
+    features.use(networkClient)
+    features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = testInstance()
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(false)
+
+    XCTAssertFailure(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsDelete_whenPassphraseStoreFails() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.deleteAccountPassphrase,
+      with: always(.failure(.testError()))
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(false)
+
+    XCTAssertFailure(result)
+  }
+
+  func test_storePassphraseWithBiometry_succeedsDelete_whenPassphraseDeleteSucceeds() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.deleteAccountPassphrase,
+      with: always(.success)
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+      with: always(false)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let result: Result<Void, TheError> =
+      feature
+      .storePassphraseWithBiometry(false)
+
+    XCTAssertSuccess(result)
+  }
+
+  func test_encryptAndSignMessage_fails_withoutSession() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = testInstance()
+
+    var result: TheError?
+    feature
+      .encryptAndSignMessage("message", "public key")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .authorizationRequired)
+  }
+
+  func test_encryptAndSignMessage_fails_whenLoadingPrivateKeyFails() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+       with: always(.failure(.testError()))
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+       with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+       )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+       with: always(false)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    feature
+      .encryptAndSignMessage("message", "public key")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_encryptAndSignMessage_fails_whenEncryptAndSignFails() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+       with: always(.success("private key"))
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+       with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+       )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+       with: always(false)
+    )
+    environment.pgp.encryptAndSign = always(.failure(.testError()))
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: TheError?
+    feature
+      .encryptAndSignMessage("message", "public key")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .failure(error) = completion else { return }
+          result = error
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertEqual(result?.identifier, .testError)
+  }
+
+  func test_encryptAndSignMessage_succeeds_withHappyPath() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+       with: always(.success("private key"))
+    )
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+       with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+       )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+       with: always(false)
+    )
+    environment.pgp.encryptAndSign = always(.success("encrypted"))
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    var result: Void?
+    feature
+      .encryptAndSignMessage("message", "public key")
+      .sink(
+        receiveCompletion: { completion in
+          guard case let .finished = completion else { return }
+          result = Void()
+        },
+        receiveValue: { _ in /* NOP */ }
+      )
+      .store(in: cancellables)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_databaseKey_isNone_withoutSession() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = testInstance()
+
+    let result: String? = feature.databaseKey()
+
+    XCTAssertNil(result)
+  }
+
+  func test_databaseKey_isNone_whenPassphraseCacheExpires() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+       with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+       )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+       with: always(false)
+    )
+
+    var currentTimestamp: Int = 0
+    environment.time.timestamp = always(currentTimestamp)
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    currentTimestamp = 5 * 60  // expired time
+
+    let result: String? = feature.databaseKey()
+
+    XCTAssertNil(result)
+  }
+
+  func test_databaseKey_isAvailable_withValidSession() {
+    features.use(accountsDataStore)
+    features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+       with: always(Void())
+    )
+    features.patch(
+      \AccountsDataStore.loadAccounts,
+       with: always([validAccount, validAccountAlternative])
+    )
+    features.use(networkClient)
+    features.patch(
+      \NetworkSession.createSession,
+       with: always(
+        Just(Array<MFAProvider>())
+          .setFailureType(to: TheError.self)
+          .eraseToAnyPublisher()
+       )
+    )
+    features.patch(
+      \NetworkSession.sessionRefreshAvailable,
+       with: always(false)
+    )
+
+    let feature: AccountSession = testInstance()
+
+    feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+      .sinkDrop()
+      .store(in: cancellables)
+
+    let result: String? = feature.databaseKey()
 
     XCTAssertNotNil(result)
   }

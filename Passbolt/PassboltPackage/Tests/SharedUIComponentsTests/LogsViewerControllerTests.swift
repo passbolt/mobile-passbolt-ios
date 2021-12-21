@@ -35,7 +35,7 @@ final class LogsViewerControllerTests: TestCase {
     super.setUp()
     features.patch(
       \Executors.newBackgroundExecutor,
-       with: AsyncExecutors.immediate.newBackgroundExecutor
+      with: AsyncExecutors.immediate.newBackgroundExecutor
     )
   }
 
@@ -74,7 +74,7 @@ final class LogsViewerControllerTests: TestCase {
   func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() {
     features.patch(
       \Diagnostics.collectedLogs,
-       with: always([])
+      with: always([])
     )
 
     let controller: LogsViewerController = testInstance()
@@ -125,7 +125,7 @@ final class LogsViewerControllerTests: TestCase {
   func test_shareMenuPresentationPublisher_publishesJoinedLogs_afterCallingPresentShareMenu_withLogsInCache() {
     features.patch(
       \Diagnostics.collectedLogs,
-       with: always(["test", "another"])
+      with: always(["test", "another"])
     )
 
     let controller: LogsViewerController = testInstance()

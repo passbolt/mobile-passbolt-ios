@@ -77,7 +77,7 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
   public func activate() {
     controller.refreshLogs()
   }
-  
+
   private func setupSubscriptions() {
     controller
       .logsPublisher()
