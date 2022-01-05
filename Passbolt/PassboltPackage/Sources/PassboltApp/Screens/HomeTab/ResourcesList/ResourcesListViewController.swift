@@ -143,7 +143,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         guard let self = self
         else { return }
 
-        self.presentSheet(
+        self.presentSheetMenu(
           ResourceMenuViewController.self,
           in: (
             resourceID: resourceID,
@@ -165,8 +165,10 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
             completion: { _ in
               DispatchQueue.main.async {
                 self?.presentInfoSnackbar(
-                  localizableKey: "resource.form.new.password.created",
-                  inBundle: .commons,
+                  .localized(
+                    key: "resource.form.new.password.created",
+                    bundle: .commons
+                  ),
                   presentationMode: .global
                 )
               }
@@ -180,7 +182,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .resourceEditPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
-        self.dismiss(ResourceMenuViewController.self) {
+        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
           self.push(
             ResourceEditViewController.self,
             in: (
@@ -188,8 +190,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
               completion: { [weak self] _ in
                 DispatchQueue.main.async {
                   self?.presentInfoSnackbar(
-                    localizableKey: "resource.menu.action.edited",
-                    inBundle: .main,
+                    .localized(key: "resource.menu.action.edited"),
                     presentationMode: .global
                   )
                 }
@@ -204,7 +205,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .resourceDeleteAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
-        self.dismiss(ResourceMenuViewController.self) {
+        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
           self.present(
             ResourceDeleteAlert.self,
             in: { [unowned self] in
@@ -214,7 +215,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                   self?.present(
                     overlay: LoaderOverlayView(
                       longLoadingMessage: (
-                        message: LocalizedMessage(
+                        message: .localized(
                           key: .loadingLong,
                           bundle: .commons
                         ),
@@ -239,9 +240,8 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                   else { return }
 
                   self?.presentInfoSnackbar(
-                    localizableKey: "resource.menu.action.deleted",
-                    inBundle: .main,
-                    arguments: [
+                    .localized("resource.menu.action.deleted"),
+                    with: [
                       NSLocalizedString("resource.menu.item.password", comment: "")
                     ]
                   )

@@ -87,7 +87,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
       present(
         snackbar: Mutation<UICommons.View>
           .snackBarMessage(
-            localized: "code.scanning.begin",
+            .localized("code.scanning.begin"),
             backgroundColor: .background,
             textColor: .primaryText
           )
@@ -130,7 +130,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         self?.present(
           snackbar: Mutation<UICommons.View>
             .snackBarMessage(
-              localized: "code.scanning.processing.in.progress",
+              .localized("code.scanning.processing.in.progress"),
               backgroundColor: .background,
               textColor: .primaryText
             )
@@ -159,7 +159,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
             else { return false }
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: "code.scanning.processing.invalid.code")
+                .snackBarErrorMessage(.localized("code.scanning.processing.invalid.code"))
                 .instantiate(),
               hideAfter: 3
             )
@@ -169,7 +169,9 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         defaultHandler: { [weak self] _ in
           self?.present(
             snackbar: Mutation<UICommons.View>
-              .snackBarErrorMessage(localized: "code.scanning.processing.error")
+              .snackBarErrorMessage(
+                .localized("code.scanning.processing.error")
+              )
               .instantiate(),
             hideAfter: 3
           )

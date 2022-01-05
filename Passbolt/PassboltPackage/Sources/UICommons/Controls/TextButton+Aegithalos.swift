@@ -66,6 +66,15 @@ extension Mutation where Subject: TextButton {
     }
   }
 
+  public static func text(
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.text = displayable.string(with: arguments)
+    }
+  }
+
   public static func textColor(_ textColor: UIColor) -> Self {
     .custom { (subject: Subject) in subject.textColor = textColor }
   }

@@ -28,10 +28,15 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ValidatorTests: XCTestCase {
 
-  private let messageKeyInvalid: StaticString = "key.invalid"
+  private let messageKeyInvalid: LocalizedString.Key = "key.invalid"
 
   func test_nonEmptyValidator_withNonEmptyValue_Succeeds() {
-    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: messageKeyInvalid, bundle: .commons)
+    let validator: Validator<String> = .nonEmpty(
+      displayable: .localized(
+        key: messageKeyInvalid,
+        bundle: .commons
+      )
+    )
     let validated: Validated<String> = validator.validate("NonEmptyString")
 
     XCTAssertTrue(validated.isValid)
@@ -39,7 +44,12 @@ final class ValidatorTests: XCTestCase {
   }
 
   func test_nonEmptyValidator_withEmptyValue_Fails() {
-    let validator: Validator<String> = .nonEmpty(errorLocalizationKey: messageKeyInvalid, bundle: .commons)
+    let validator: Validator<String> = .nonEmpty(
+      displayable: .localized(
+        key: messageKeyInvalid,
+        bundle: .commons
+      )
+    )
     let validated: Validated<String> = validator.validate("")
 
     XCTAssertFalse(validated.isValid)

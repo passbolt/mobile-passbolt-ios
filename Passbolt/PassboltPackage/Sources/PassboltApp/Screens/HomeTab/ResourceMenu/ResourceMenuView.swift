@@ -25,15 +25,12 @@ import UICommons
 
 internal final class ResourceMenuView: View {
 
-  internal var closeButtonTapPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
   internal var itemTappedPublisher: AnyPublisher<ResourceMenuController.Action, Never> {
     itemTappedSubject.eraseToAnyPublisher()
   }
 
   private let itemTappedSubject: PassthroughSubject<ResourceMenuController.Action, Never> = .init()
 
-  private let titleLabel: Label = .init()
-  private let button: ImageButton = .init()
   private let stack: ScrolledStackView = .init()
 
   @available(*, unavailable)
@@ -44,49 +41,16 @@ internal final class ResourceMenuView: View {
   internal required init() {
     super.init()
 
-    mut(self) {
-      .combined(
-        .backgroundColor(.clear),
-        .subview(titleLabel, button, stack)
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .font(.inter(ofSize: 20, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .trailingAnchor(.equalTo, button.leadingAnchor, constant: -8),
-        .topAnchor(.equalTo, topAnchor, constant: 16),
-        .bottomAnchor(.equalTo, stack.topAnchor)
-      )
-    }
-
-    mut(button) {
-      .combined(
-        .image(named: .close, from: .uiCommons),
-        .tintColor(dynamic: .primaryText),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
-        .topAnchor(.equalTo, topAnchor, constant: 16),
-        .widthAnchor(.equalTo, constant: 20),
-        .heightAnchor(.equalTo, constant: 20)
-      )
-    }
-
     mut(stack) {
       .combined(
         .isLayoutMarginsRelativeArrangement(true),
+        .subview(of: self),
+        .topAnchor(.equalTo, topAnchor),
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .bottomAnchor(.equalTo, bottomAnchor),
-        .contentInset(.init(top: 16, left: 16, bottom: 16, right: 16))
+        .contentInset(.init(top: 0, left: 16, bottom: 0, right: 16))
       )
-    }
-  }
-
-  internal func update(title: String) {
-    mut(titleLabel) {
-      .text(title)
     }
   }
 
@@ -177,21 +141,14 @@ internal final class ResourceMenuView: View {
     mut(stack) {
       .forEach(in: menuItems) { item in
         .when(
-          item.operation == .openURL,
+          item.operation == .copyDescription
+          && menuItems
+            .contains(where: { [.edit, .delete].contains($0.operation) }),
           then: .combined(
-            .append(ResourceMenuDividerView()),
-            .append(item)
+            .append(item),
+            .append(ResourceMenuDividerView())
           ),
-          else: .when(
-            item.operation == .copyDescription
-              && menuItems
-                .contains(where: { [.edit, .delete].contains($0.operation) }),
-            then: .combined(
-              .append(item),
-              .append(ResourceMenuDividerView())
-            ),
-            else: .append(item)
-          )
+          else: .append(item)
         )
       }
     }

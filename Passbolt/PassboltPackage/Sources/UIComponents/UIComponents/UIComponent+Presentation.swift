@@ -98,12 +98,26 @@ extension AnyUIComponent {
 
   public func presentSheet<Component>(
     _ type: Component.Type,
-    in context: Component.Controller.Context,
+    in context: SheetViewController<Component>.Controller.Context,
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
     present(
       SheetViewController<Component>.self,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func presentSheetMenu<Component>(
+    _ type: Component.Type,
+    in context: SheetMenuViewController<Component>.Controller.Context,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    present(
+      SheetMenuViewController<Component>.self,
       in: context,
       animated: animated,
       completion: completion
@@ -295,13 +309,15 @@ extension UIComponent {
     )
   }
 
+  @discardableResult
   public func addChild<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
     viewSetup: (_ parent: Self.View, _ child: Component.View) -> Void,
     animations: ((_ parent: Self.View, _ child: Component.View) -> Void)? = nil,
     completion: (() -> Void)? = nil
-  ) where Component: UIComponent {
+  ) -> Component
+  where Component: UIComponent {
     let childComponent: Component =
       components
       .instance(
@@ -330,6 +346,8 @@ extension UIComponent {
       childComponent.didMove(toParent: self)
       completion?()
     }
+
+    return childComponent
   }
 
   public func replaceChild<Replaced, Replacing>(

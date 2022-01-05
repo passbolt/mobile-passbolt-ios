@@ -11,9 +11,9 @@ public final class LoaderOverlayView: View {
   private let longLoadingLabel: (label: Label, delay: TimeInterval)?
 
   public init(
-    longLoadingMessage: (message: LocalizedMessage, delay: TimeInterval)? = nil
+    longLoadingMessage: (message: DisplayableString, delay: TimeInterval)? = nil
   ) {
-    if let longLoadingMessage: (message: LocalizedMessage, delay: TimeInterval) = longLoadingMessage {
+    if let longLoadingMessage: (message: DisplayableString, delay: TimeInterval) = longLoadingMessage {
       let longLabel: Label = .init()
       mut(longLabel) {
         .combined(
@@ -26,10 +26,7 @@ public final class LoaderOverlayView: View {
           .lineBreakMode(.byTruncatingTail),
           .numberOfLines(1),
           .textColor(dynamic: .primaryButtonText),
-          .text(
-            localized: longLoadingMessage.message.key,
-            inBundle: longLoadingMessage.message.bundle
-          )
+          .text(displayable: longLoadingMessage.message)
         )
       }
       self.longLoadingLabel = (label: longLabel, delay: longLoadingMessage.delay)

@@ -82,8 +82,10 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
             self?.present(
               snackbar: Mutation<UICommons.View>
                 .snackBarErrorMessage(
-                  localized: .genericError,
-                  inBundle: .commons
+                  .localized(
+                    key: .genericError,
+                    bundle: .commons
+                  )
                 )
                 .instantiate(),
               hideAfter: 2

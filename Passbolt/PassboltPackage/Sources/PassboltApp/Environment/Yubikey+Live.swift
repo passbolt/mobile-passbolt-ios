@@ -35,10 +35,9 @@ extension Yubikey {
       let otpPublisher: PassthroughSubject<String, TheError> = .init()
 
       NFCReader.readOTP(
-        instructionMessage: NSLocalizedString("yubikey.scan.instruction", bundle: .main, comment: ""),
-        successMessage: NSLocalizedString("yubikey.scan.success", bundle: .main, comment: "")
+        instructionMessage: DisplayableString.localized("yubikey.scan.instruction").string(),
+        successMessage: DisplayableString.localized("yubikey.scan.success").string()
       ) { readResult in
-
         switch readResult {
         case let .success(otp):
           otpPublisher.send(otp)

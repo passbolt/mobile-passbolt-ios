@@ -168,7 +168,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               self?.present(
                 overlay: LoaderOverlayView(
                   longLoadingMessage: (
-                    message: LocalizedMessage(
+                    message: .localized(
                       key: .loadingLong,
                       bundle: .commons
                     ),
@@ -190,8 +190,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(
-                    localized: "sign.in.error.message",
-                    inBundle: .commons
+                    .localized(
+                      key: "sign.in.error.message",
+                      bundle: .commons
+                    )
                   )
                   .instantiate(),
                 hideAfter: 2

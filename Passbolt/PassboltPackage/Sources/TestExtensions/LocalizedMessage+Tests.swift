@@ -23,13 +23,13 @@
 
 import Commons
 
-extension LocalizedMessage {
+extension DisplayableString {
 
   public static func testMessage(
     key: StaticString = "testLocalizationKey",
     bundle: Bundle = .commons
   ) -> Self {
-    .init(
+    .localized(
       key: .init(stringLiteral: key),
       bundle: bundle
     )

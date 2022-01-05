@@ -252,27 +252,6 @@ final class AccountMenuControllerTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_dismissPublisher_publishesAfterCallingDismiss() {
-    let controller: AccountMenuController = testInstance(
-      context: (
-        accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
-      )
-    )
-
-    var result: Void?
-    controller
-      .dismissPublisher()
-      .sink {
-        result = Void()
-      }
-      .store(in: cancellables)
-
-    controller.dismiss()
-
-    XCTAssertNotNil(result)
-  }
-
   func test_manageAccountsPresentationPublisher_doesNotPublishInitially() {
     let controller: AccountMenuController = testInstance(
       context: (

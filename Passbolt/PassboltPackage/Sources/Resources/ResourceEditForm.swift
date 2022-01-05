@@ -237,7 +237,12 @@ extension ResourceEditForm: Feature {
         return zip(
           {
             if property.required {
-              return .nonEmpty(errorLocalizationKey: "resource.form.field.error.empty", bundle: .commons)
+              return .nonEmpty(
+                displayable: .localized(
+                  key: "resource.form.field.error.empty",
+                  bundle: .commons
+                )
+              )
             }
             else {
               return .alwaysValid
@@ -247,8 +252,10 @@ extension ResourceEditForm: Feature {
           // some high value to prevent too big values
           .maxLength(
             UInt(property.maxLength ?? 10000),
-            errorLocalizationKey: "resource.form.field.error.max.length",
-            bundle: .commons
+            displayable: .localized(
+              key: "resource.form.field.error.max.length",
+              bundle: .commons
+            )
           )
         )
         .contraMap { resourceFieldValue -> String in
@@ -337,8 +344,15 @@ extension ResourceEditForm: Feature {
           }
           guard validatedValue.isValid
           else {
-            return Fail(error: .validationError("resource.form.error.invalid", bundle: .commons))
-              .eraseToAnyPublisher()
+            return Fail(
+              error: .validationError(
+                displayable: .localized(
+                  key: "resource.form.error.invalid",
+                  bundle: .commons
+                )
+              )
+            )
+            .eraseToAnyPublisher()
           }
           if property.encrypted {
             secretFieldValues[key.rawValue] = validatedValue.value
@@ -404,7 +418,7 @@ extension ResourceEditForm: Feature {
 
               case .authorizationRequired, .none:
                 accountSession.requestAuthorizationPrompt(
-                  .init(key: "authorization.prompt.refresh.session.reason", bundle: .main)
+                  .localized("authorization.prompt.refresh.session.reason")
                 )
                 return Fail(error: .authorizationRequired())
                   .eraseToAnyPublisher()
@@ -448,7 +462,7 @@ extension ResourceEditForm: Feature {
 
               case .authorizationRequired, .none:
                 accountSession.requestAuthorizationPrompt(
-                  .init(key: "authorization.prompt.refresh.session.reason", bundle: .main)
+                  .localized("authorization.prompt.refresh.session.reason")
                 )
                 return Fail(error: .authorizationRequired())
                   .eraseToAnyPublisher()

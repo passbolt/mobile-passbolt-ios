@@ -66,10 +66,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
             else { return }
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(
-                  localized: .genericError,
-                  inBundle: .commons
-                )
+                .snackBarErrorMessage()
                 .instantiate(),
               hideAfter: 2
             )
@@ -124,10 +121,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
             else { return }
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(
-                  localized: .genericError,
-                  inBundle: .commons
-                )
+                .snackBarErrorMessage()
                 .instantiate(),
               hideAfter: 2
             )

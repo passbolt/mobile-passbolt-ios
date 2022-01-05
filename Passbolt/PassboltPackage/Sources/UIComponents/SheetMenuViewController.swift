@@ -22,20 +22,29 @@
 //
 
 import Commons
+import UICommons
 import UIKit
 
-public final class SheetContentView: View {
+public final class SheetMenuContentView: View {
 
-  internal var backgroundTapPublisher: AnyPublisher<Void, Never> { backgroundTapSubject.eraseToAnyPublisher() }
+  internal var closeActionPublisher: AnyPublisher<Void, Never> {
+    closeActionSubject.eraseToAnyPublisher()
+  }
 
-  private let backgroundTapSubject: PassthroughSubject<Void, Never> = .init()
+  private let closeActionSubject: PassthroughSubject<Void, Never> = .init()
+  private let titleLabel: Label = .init()
+  private let content: View = .init()
   private let container: View = .init()
 
   public required init() {
     super.init()
 
-    let overlay: View =
-      Mutation
+    mut(self) {
+      .backgroundColor(dynamic: .overlayBackground)
+    }
+
+    let overlay: View = .init()
+    mut(overlay) {
       .combined(
         .subview(of: self),
         .backgroundColor(.clear),
@@ -43,12 +52,12 @@ public final class SheetContentView: View {
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, topAnchor),
         .tapGesture { [weak self] _ in
-          self?.backgroundTapSubject.send()
+          self?.closeActionSubject.send()
         }
       )
-      .instantiate()
+    }
 
-    mut(container) {
+    mut(content) {
       .combined(
         .backgroundColor(dynamic: .sheetBackground),
         .shadow(color: .black, opacity: 0),
@@ -66,9 +75,60 @@ public final class SheetContentView: View {
       )
     }
 
-    mut(self) {
-      .backgroundColor(dynamic: .overlayBackground)
+    mut(titleLabel) {
+      .combined(
+        .lineBreakMode(.byTruncatingTail),
+        .font(.inter(ofSize: 20, weight: .semibold)),
+        .textColor(dynamic: .primaryText),
+        .numberOfLines(1),
+        .subview(of: content),
+        .leadingAnchor(.equalTo, content.leadingAnchor, constant: 16),
+        .topAnchor(.equalTo, content.topAnchor, constant: 16)
+      )
     }
+
+    let closeButton: ImageButton = .init()
+    mut(closeButton) {
+      .combined(
+        .image(named: .close, from: .uiCommons),
+        .tintColor(dynamic: .primaryText),
+        .action { [weak self] in
+          self?.closeActionSubject.send()
+        },
+        .subview(of: content),
+        .leadingAnchor(.equalTo, titleLabel.trailingAnchor, constant: 8),
+        .trailingAnchor(.equalTo, content.trailingAnchor, constant: -16),
+        .centerYAnchor(.equalTo, titleLabel.centerYAnchor),
+        .widthAnchor(.equalTo, constant: 24),
+        .heightAnchor(.equalTo, constant: 24)
+      )
+    }
+
+    let divider: View = .init()
+    mut(divider) {
+      .combined(
+        .backgroundColor(dynamic: .divider),
+        .subview(of: content),
+        .heightAnchor(.equalTo, constant: 1),
+        .leadingAnchor(.equalTo, content.leadingAnchor, constant: 16),
+        .trailingAnchor(.equalTo, content.trailingAnchor, constant: -16),
+        .topAnchor(.equalTo, closeButton.bottomAnchor, constant: 8)
+      )
+    }
+
+    mut(container) {
+      .combined(
+        .subview(of: content),
+        .leadingAnchor(.equalTo, content.leadingAnchor),
+        .trailingAnchor(.equalTo, content.trailingAnchor),
+        .topAnchor(.equalTo, divider.bottomAnchor),
+        .bottomAnchor(.equalTo, content.bottomAnchor)
+      )
+    }
+  }
+
+  public func setTitle(_ text: String) {
+    titleLabel.text = text
   }
 
   public func setContent(view: UIView) {
@@ -83,12 +143,12 @@ public final class SheetContentView: View {
   }
 }
 
-public struct SheetController<ContentContext> {
+public struct SheetMenuController<ContentContext> {
 
   public var contentContext: ContentContext
 }
 
-extension SheetController: UIController {
+extension SheetMenuController: UIController {
 
   public typealias Context = ContentContext
 
@@ -96,17 +156,17 @@ extension SheetController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> SheetController<ContentContext> {
+  ) -> SheetMenuController<Context> {
     Self(
       contentContext: context
     )
   }
 }
 
-public final class SheetViewController<Content: UIComponent>: PlainViewController, UIComponent {
+public final class SheetMenuViewController<Content: UIComponent>: PlainViewController, UIComponent {
 
-  public typealias View = SheetContentView
-  public typealias Controller = SheetController<Content.Controller.Context>
+  public typealias View = SheetMenuContentView
+  public typealias Controller = SheetMenuController<Content.Controller.Context>
 
   public static func instance(
     using controller: Controller,
@@ -118,10 +178,11 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
     )
   }
 
-  public let contentView: SheetContentView = .init()
+  public private(set) lazy var contentView: View = .init()
   public var components: UIComponentFactory
 
   private let controller: Controller
+  private var observationToken: NSKeyValueObservation?
 
   internal init(
     using controller: Controller,
@@ -135,7 +196,7 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
   }
 
   public func setupView() {
-    addChild(
+    let child: Content = addChild(
       Content.self,
       in: controller.contentContext,
       viewSetup: { parentView, childView in
@@ -143,11 +204,22 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
       }
     )
 
+    observationToken = child.observe(\.title, options: [.initial, .new]) { [weak self] _, change in
+      guard
+        let newValue: String? = change.newValue,
+        newValue != change.oldValue,
+        let childTitle: String = newValue
+      else { return }
+
+      self?.contentView.setTitle(childTitle)
+    }
+
     setupSubscriptions()
   }
 
   private func setupSubscriptions() {
-    contentView.backgroundTapPublisher
+    contentView
+      .closeActionPublisher
       .sink { [weak self] in
         self?.dismiss(Self.self)
       }

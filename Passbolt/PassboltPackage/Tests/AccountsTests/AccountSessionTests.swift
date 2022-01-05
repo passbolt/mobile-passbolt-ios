@@ -1008,7 +1008,7 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.requestAuthorizationPrompt(.init(key: "message", bundle: .main))
+    feature.requestAuthorizationPrompt(.testMessage())
 
     XCTAssertNil(result)
   }
@@ -1045,10 +1045,10 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.requestAuthorizationPrompt(.init(key: "message", bundle: .main))
+    feature.requestAuthorizationPrompt(.testMessage())
 
     XCTAssertEqual(result?.account, validAccount)
-    XCTAssertEqual(result?.message?.key.rawValue, "message")
+    XCTAssertEqual(result?.message?.string(), "testLocalizationKey")
   }
 
   func test_authorize_succeeds_whenSwitchingSession() {

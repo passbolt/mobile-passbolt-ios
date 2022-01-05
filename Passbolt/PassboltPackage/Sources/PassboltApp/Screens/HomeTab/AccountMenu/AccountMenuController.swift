@@ -34,7 +34,6 @@ internal struct AccountMenuController {
     () -> AnyPublisher<
       Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)>, Never
     >
-  internal var dismiss: () -> Void
   internal var dismissPublisher: () -> AnyPublisher<Void, Never>
   internal var presentAccountDetails: () -> Void
   internal var accountDetailsPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
@@ -180,7 +179,6 @@ extension AccountMenuController: UIController {
       parentComponent: context.parentComponent,
       currentAcountAvatarImagePublisher: currentAcountAvatarImagePublisher,
       accountsListPublisher: accountsListPublisher,
-      dismiss: dismiss,
       dismissPublisher: dismissPublisher,
       presentAccountDetails: presentAccountDetails,
       accountDetailsPresentationPublisher: accountDetailsPresentationPublisher,

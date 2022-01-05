@@ -37,7 +37,7 @@ extension WindowController {
 
     case useInitialScreenState(for: Account?)
     case useCachedScreenState(for: Account)
-    case requestPassphrase(Account, message: LocalizedMessage?)
+    case requestPassphrase(Account, message: DisplayableString?)
     case requestMFA(Account, providers: Array<MFAProvider>)
   }
 }

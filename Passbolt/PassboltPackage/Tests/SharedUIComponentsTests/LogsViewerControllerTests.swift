@@ -89,7 +89,7 @@ final class LogsViewerControllerTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, [])
+    XCTAssertEqual(result, [""])
   }
 
   func test_shareMenuPresentationPublisher_doesNotPublishesInitially() {

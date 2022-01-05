@@ -91,4 +91,13 @@ extension Mutation where Subject: ErrorMessageView {
       )
     )
   }
+
+  internal static func text(
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.setText(displayable.string(with: arguments))
+    }
+  }
 }

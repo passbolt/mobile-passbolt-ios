@@ -57,29 +57,26 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
   }
 
   private func setupSubscriptions() {
-    controller.resourceDetailsPublisher()
+    controller
+      .resourceDetailsPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] completion in
-        guard case .failure = completion
-        else { return }
-        self?.presentingViewController?.presentErrorSnackbar()
-        self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
-      } receiveValue: { [weak self] resourceDetails in
-        self?.contentView.update(title: resourceDetails.name)
-      }
+      .sink(
+        receiveCompletion: { [weak self] completion in
+          guard case .failure = completion
+          else { return }
+          self?.presentingViewController?.presentErrorSnackbar()
+          self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+        },
+        receiveValue: { [weak self] resourceDetails in
+          self?.title = resourceDetails.name
+        }
+      )
       .store(in: cancellables)
 
     controller.availableActionsPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] operations in
         self?.contentView.update(operations: operations)
-      }
-      .store(in: cancellables)
-
-    contentView
-      .closeButtonTapPublisher
-      .sink { [weak self] in
-        self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
       }
       .store(in: cancellables)
 
@@ -97,36 +94,32 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
 
             case .copyURL:
               self?.presentingViewController?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.url", comment: "")
                 ]
               )
 
             case .copyPassword:
               self?.presentingViewController?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.password", comment: "")
                 ]
               )
 
             case .copyUsername:
               self?.presentingViewController?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.username", comment: "")
                 ]
               )
 
             case .copyDescription:
               self?.presentingViewController?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.description", comment: "")
                 ]
               )
@@ -139,7 +132,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
             }
           )
           .handleEnd { [weak self] _ in
-            self?.dismiss(SheetViewController<ResourceMenuViewController>.self)
+            self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
           }
           .mapToVoid()
           .replaceError(with: Void())

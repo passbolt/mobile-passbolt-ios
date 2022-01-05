@@ -112,7 +112,7 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
       .receive(on: RunLoop.main)
       .sink { [weak self] accountWithProfile in
         guard let self = self else { return }
-        self.presentSheet(
+        self.presentSheetMenu(
           AccountMenuViewController.self,
           in: (
             accountWithProfile: accountWithProfile,

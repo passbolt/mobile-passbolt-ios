@@ -51,8 +51,8 @@ public struct AccountSession {
   // Publishes current account ID each time access to its private key
   // is required and cannot be handled automatically (passphrase cache is expired)
   public var authorizationPromptPresentationPublisher: () -> AnyPublisher<AuthorizationPromptRequest, Never>
-  // Manual trigger for authorization prompt
-  public var requestAuthorizationPrompt: (LocalizedMessage?) -> Void
+  // Manual trigger for authorization prompt with proivided message.
+  public var requestAuthorizationPrompt: (DisplayableString?) -> Void
   // Closes current session and removes associated temporary data.
   // Not required for account switch, in that case use `authorize` with different account.
   public var close: () -> Void
@@ -207,10 +207,7 @@ extension AccountSession: Feature {
     // we could automatically refresh session in background
     networkClient.setAuthorizationRequest({
       requestAuthorization(
-        message: .init(
-          key: "authorization.prompt.refresh.session.reason",
-          bundle: .main
-        )
+        message: .localized("authorization.prompt.refresh.session.reason")
       )
     })
 
@@ -736,7 +733,7 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
     }
 
-    func requestAuthorization(message: LocalizedMessage?) {
+    func requestAuthorization(message: DisplayableString?) {
       withSessionState { sessionState in
         switch sessionState {
         case let .authorized(account, _, _), let .authorizedMFARequired(account, _, _, _):
@@ -812,7 +809,7 @@ extension AccountSession {
 
 public enum AuthorizationPromptRequest {
 
-  case passphraseRequest(account: Account, message: LocalizedMessage?)
+  case passphraseRequest(account: Account, message: DisplayableString?)
   case mfaRequest(account: Account, providers: Array<MFAProvider>)
 
   public var account: Account {
@@ -824,7 +821,7 @@ public enum AuthorizationPromptRequest {
     }
   }
 
-  public var message: LocalizedMessage? {
+  public var message: DisplayableString? {
     switch self {
     case let .passphraseRequest(_, message):
       return message

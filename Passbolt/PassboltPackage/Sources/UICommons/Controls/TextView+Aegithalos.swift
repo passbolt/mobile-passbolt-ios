@@ -49,4 +49,13 @@ extension Mutation where Subject: TextView {
   ) -> Self {
     .custom { (subject: Subject) in subject.attributedString = attributedString }
   }
+
+  public static func text(
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.text = displayable.string(with: arguments)
+    }
+  }
 }

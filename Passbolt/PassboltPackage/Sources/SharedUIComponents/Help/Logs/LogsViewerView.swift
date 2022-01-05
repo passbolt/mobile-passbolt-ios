@@ -58,6 +58,7 @@ public final class LogsViewerView: CollectionView<SingleSection, LogsViewerLogIt
 
 public struct LogsViewerLogItem: Hashable {
 
+  private let id: UUID = .init()  // we want them to be always unique
   public var log: String
 }
 

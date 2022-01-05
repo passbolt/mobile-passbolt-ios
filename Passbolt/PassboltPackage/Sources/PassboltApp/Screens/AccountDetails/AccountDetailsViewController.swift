@@ -100,21 +100,23 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
               [.validation],
               handler: { [weak self] error in
                 guard
-                  let localizationKey = error.localizationKey,
-                  let localizationBundle = error.localizationBundle
+                  let displayable: DisplayableString = error.displayableString,
+                  let displayableArguments: Array<CVarArg> = error.displayableStringArguments
                 else { return false }
 
                 self?.presentErrorSnackbar(
-                  localizableKey: .init(stringLiteral: localizationKey),
-                  inBundle: localizationBundle
+                  displayable,
+                  with: displayableArguments
                 )
                 return true
               }
             ),
             defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar(
-                localizableKey: .genericError,
-                inBundle: .commons
+                .localized(
+                  key: .genericError,
+                  bundle: .commons
+                )
               )
             }
           )

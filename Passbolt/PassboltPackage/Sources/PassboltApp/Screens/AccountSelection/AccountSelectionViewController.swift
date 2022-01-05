@@ -120,16 +120,20 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           guard case .failure = self.controller.removeAccount(item.account)
           else {
             return self.presentInfoSnackbar(
-              localizableKey: "account.selection.account.removed",
-              inBundle: .commons
+              .localized(
+                key: "account.selection.account.removed",
+                bundle: .commons
+              )
             )
           }
 
           self.present(
             snackbar: Mutation<View>
               .snackBarErrorMessage(
-                localized: .genericError,
-                inBundle: .commons
+                .localized(
+                  key: .genericError,
+                  bundle: .commons
+                )
               )
               .instantiate(),
             hideAfter: 2
@@ -155,7 +159,9 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
       .receive(on: RunLoop.main)
       .sink { [weak self] accountTransferInProgress in
         if accountTransferInProgress {
-          self?.presentErrorSnackbar(localizableKey: "error.another.account.transfer.in.progress", inBundle: .main)
+          self?.presentErrorSnackbar(
+            .localized("error.another.account.transfer.in.progress")
+          )
         }
         else {
           self?.push(TransferInfoScreenViewController.self)

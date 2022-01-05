@@ -54,7 +54,7 @@ public class TextInput: View {
   public var textFieldCenterYAnchor: NSLayoutYAxisAnchor { textField.centerYAnchor }
 
   fileprivate let textField: TextField = .init()
-  private var errorMessage: (localizationKey: StaticString, bundle: Bundle)? {
+  private var errorMessage: (displayable: DisplayableString, arguments: Array<CVarArg>)? {
     didSet { updatePresentation() }
   }
 
@@ -155,25 +155,31 @@ public class TextInput: View {
       errorMessage = nil
     }
     else {
-      if let localizationKey: StaticString = validated.errors.first?.localizationKey,
-        let localizationBundle: Bundle = validated.errors.first?.localizationBundle
+      if let displayable: DisplayableString = validated.errors.first?.displayableString,
+        let displayableArguments: Array<CVarArg> = validated.errors.first?.displayableStringArguments
       {
-        errorMessage = (localizationKey: localizationKey, bundle: localizationBundle)
+        errorMessage = (displayable: displayable, arguments: displayableArguments)
       }
       else {
         // fallback to display error anyway
-        errorMessage = (localizationKey: "resource.form.field.error.invalid", bundle: .commons)
+        errorMessage = (
+          displayable: .localized(
+            key: "resource.form.field.error.invalid",
+            bundle: .commons
+          ),
+          arguments: .init()
+        )
       }
     }
   }
 
   private func updatePresentation() {
-    if let (localizationKey, bundle): (StaticString, Bundle) = errorMessage {
+    if let message: (displayable: DisplayableString, arguments: Array<CVarArg>) = errorMessage {
       mut(errorMessageView) {
         .combined(
           .text(
-            localized: localizationKey,
-            inBundle: bundle
+            displayable: message.displayable,
+            with: message.arguments
           ),
           .isHidden(false)
         )

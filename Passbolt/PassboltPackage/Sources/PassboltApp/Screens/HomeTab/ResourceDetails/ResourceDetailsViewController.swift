@@ -85,10 +85,11 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
         self?.contentView.update(with: resourceDetailsWithConfig)
       }
 
-    controller.resourceMenuPresentationPublisher()
+    controller
+      .resourceMenuPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
-        self.presentSheet(
+        self.presentSheetMenu(
           ResourceMenuViewController.self,
           in: (
             resourceID: resourceID,
@@ -99,7 +100,8 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       }
       .store(in: cancellables)
 
-    contentView.toggleEncryptedFieldTapPublisher
+    contentView
+      .toggleEncryptedFieldTapPublisher
       .map { [unowned self] field in
         self.controller.toggleDecrypt(field)
           .receive(on: RunLoop.main)
@@ -134,8 +136,10 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self?.present(
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(
-                    localized: .genericError,
-                    inBundle: .commons
+                    .localized(
+                      key: .genericError,
+                      bundle: .commons
+                    )
                   )
                   .instantiate(),
                 hideAfter: 2
@@ -162,36 +166,32 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
 
             case .uri:
               self?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.url", comment: "")
                 ]
               )
 
             case .password:
               self?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.password", comment: "")
                 ]
               )
 
             case .username:
               self?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.username", comment: "")
                 ]
               )
 
             case .description:
               self?.presentInfoSnackbar(
-                localizableKey: "resource.menu.item.field.copied",
-                inBundle: .main,
-                arguments: [
+                .localized("resource.menu.item.field.copied"),
+                with: [
                   NSLocalizedString("resource.menu.item.description", comment: "")
                 ]
               )
@@ -218,7 +218,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .resourceEditPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
-        self.dismiss(ResourceMenuViewController.self) {
+        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
           self.push(
             ResourceEditViewController.self,
             in: (
@@ -226,8 +226,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               completion: { [weak self] _ in
                 DispatchQueue.main.async {
                   self?.presentInfoSnackbar(
-                    localizableKey: "resource.menu.action.edited",
-                    inBundle: .main,
+                    .localized("resource.menu.action.edited"),
                     presentationMode: .global
                   )
                 }
@@ -241,7 +240,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
     controller.resourceDeleteAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [unowned self] resourceID in
-        self.dismiss(ResourceMenuViewController.self) {
+        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
           self.present(
             ResourceDeleteAlert.self,
             in: { [unowned self] in
@@ -251,7 +250,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   self?.present(
                     overlay: LoaderOverlayView(
                       longLoadingMessage: (
-                        message: LocalizedMessage(
+                        message: .localized(
                           key: .loadingLong,
                           bundle: .commons
                         ),
@@ -278,12 +277,11 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   else { return }
 
                   self?.presentInfoSnackbar(
-                    localizableKey: "resource.menu.action.deleted",
-                    inBundle: .main,
-                    presentationMode: .global,
-                    arguments: [
+                    .localized(key: "resource.menu.action.deleted"),
+                    with: [
                       NSLocalizedString("resource.menu.item.password", comment: "")
-                    ]
+                    ],
+                    presentationMode: .global
                   )
 
                   self?.pop(if: Self.self)

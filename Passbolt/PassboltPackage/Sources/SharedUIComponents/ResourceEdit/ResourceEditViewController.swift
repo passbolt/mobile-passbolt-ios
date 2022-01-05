@@ -131,7 +131,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
             self?.present(
               overlay: LoaderOverlayView(
                 longLoadingMessage: (
-                  message: LocalizedMessage(
+                  message: .localized(
                     key: .loadingLong,
                     bundle: .commons
                   ),
@@ -151,13 +151,13 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
                 self?.showErrorSubject.send()
 
                 guard
-                  let localizationKey = error.localizationKey,
-                  let localizationBundle = error.localizationBundle
+                  let displayable = error.displayableString,
+                  let displayableArguments = error.displayableStringArguments
                 else { return false }
 
                 self?.presentErrorSnackbar(
-                  localizableKey: .init(stringLiteral: localizationKey),
-                  inBundle: localizationBundle
+                  displayable,
+                  with: displayableArguments
                 )
                 return true
               }
@@ -192,10 +192,12 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
     contentView.lockTapPublisher
       .sink(receiveValue: { [weak self] encrypted in
         self?.presentInfoSnackbar(
-          localizableKey: encrypted
-            ? "resource.form.description.encrypted"
-            : "resource.form.description.unencrypted",
-          inBundle: .commons
+          .localized(
+            key: encrypted
+              ? "resource.form.description.encrypted"
+              : "resource.form.description.unencrypted",
+            bundle: .commons
+          )
         )
       })
       .store(in: cancellables)

@@ -64,12 +64,10 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
   }
 
   internal func setupView() {
-    contentView
-      .closeTapPublisher
-      .sink { [unowned self] in
-        self.controller.dismiss()
-      }
-      .store(in: cancellables)
+    title =
+      DisplayableString
+      .localized("account.menu.title")
+      .string()
 
     controller
       .dismissPublisher()

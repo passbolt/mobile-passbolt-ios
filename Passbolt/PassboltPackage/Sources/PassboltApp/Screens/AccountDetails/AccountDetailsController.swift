@@ -50,8 +50,10 @@ extension AccountDetailsController: UIController {
     let accountLabelValidator: Validator<String> =
       .maxLength(
         80,
-        errorLocalizationKey: "form.field.error.max.length",
-        bundle: .commons
+        displayable: .localized(
+          key: "form.field.error.max.length",
+          bundle: .commons
+        )
       )
 
     let currentAccountLabelSubject: CurrentValueSubject<Validated<String>, Never> = .init(
@@ -93,7 +95,14 @@ extension AccountDetailsController: UIController {
             label = validatedLabel.value
           }
           else {
-            return .failure(.validationError("form.error.invalid", bundle: .commons))
+            return .failure(
+              .validationError(
+                displayable: .localized(
+                  key: "form.error.invalid",
+                  bundle: .commons
+                )
+              )
+            )
           }
           return
             accountSettings

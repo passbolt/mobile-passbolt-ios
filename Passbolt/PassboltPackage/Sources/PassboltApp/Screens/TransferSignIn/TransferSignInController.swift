@@ -76,8 +76,10 @@ extension TransferSignInController: UIController {
     let presentationDestinationSubject: PassthroughSubject<Destination, TheError> = .init()
 
     let validator: Validator<String> = .nonEmpty(
-      errorLocalizationKey: "authorization.passphrase.error",
-      bundle: .commons
+      displayable: .localized(
+        key: "authorization.passphrase.error",
+        bundle: .commons
+      )
     )
 
     accountTransfer

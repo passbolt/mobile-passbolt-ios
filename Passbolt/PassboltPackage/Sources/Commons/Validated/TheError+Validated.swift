@@ -27,15 +27,15 @@ extension TheError {
 
   #warning("TODO: resolve conflict with TheError+NetworkClient")
   public static func validationError(
-    _ localizationKey: StaticString,
-    bundle: Bundle
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
   ) -> Self {
     Self(
       identifier: .validation,
       underlyingError: nil,
       extensions: [
-        .localizationKey: localizationKey,
-        .localizationBundle: bundle,
+        .displayableString: displayable,
+        .displayableStringArguments: arguments,
       ]
     )
   }

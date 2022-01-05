@@ -68,7 +68,7 @@ internal final class MFARequiredViewController: PlainViewController, UIComponent
             self.present(
               snackbar: Mutation<UICommons.View>
                 .snackBarErrorMessage(
-                  localized: "generic.failed.open.app"
+                  .localized("generic.failed.open.app")
                 )
                 .instantiate()
             )

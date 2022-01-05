@@ -131,7 +131,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
             guard !value else { return }
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: .genericError)
+                .snackBarErrorMessage(.localized(key: .genericError))
                 .instantiate(),
               hideAfter: 2
             )
@@ -151,7 +151,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
             guard !value else { return }
             self?.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: .genericError)
+                .snackBarErrorMessage(.localized(key: .genericError))
                 .instantiate(),
               hideAfter: 2
             )
@@ -220,7 +220,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
                 self.present(
                   snackbar: Mutation<UICommons.View>
-                    .snackBarErrorMessage(localized: "account.settings.biometrics.error")
+                    .snackBarErrorMessage(.localized(key: "account.settings.biometrics.error"))
                     .instantiate(),
                   hideAfter: 2
                 )
@@ -247,7 +247,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
             self.present(
               snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(localized: "account.settings.biometrics.error")
+                .snackBarErrorMessage(.localized(key: "account.settings.biometrics.error"))
                 .instantiate(),
               hideAfter: 2
             )

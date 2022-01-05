@@ -26,15 +26,15 @@ import OSLog
 
 import struct Foundation.Date
 import struct Foundation.UUID
+import class UIKit.UIDevice
 import let os.SIGTRAP
-//import func os.os_log
-//import func os.os_signpost
 import func os.raise
 
 public struct Diagnostics {
 
   public var debugLog: (String) -> Void
   public var diagnosticLog: (StaticString, DiagnosticMessageVariable) -> Void
+  public var deviceInfo: () -> String
   public var collectedLogs: () -> Array<String>
   public var measurePerformance: (StaticString) -> TimeMeasurement
   public var uniqueID: () -> String
@@ -69,6 +69,39 @@ extension Diagnostics: Feature {
     let diagnosticLog: OSLog = .init(subsystem: "com.passbolt.mobile", category: "diagnostic")
     let perfomanceLog: OSLog = .init(subsystem: "com.passbolt.mobile.performance", category: .pointsOfInterest)
 
+    func hardwareModel() -> String {
+      var systemInfo: utsname = .init()
+      uname(&systemInfo)
+      let machineMirror = Mirror(reflecting: systemInfo.machine)
+      return machineMirror.children.reduce("") { identifier, element in
+        guard let value = element.value as? Int8, value != 0 else { return identifier }
+        return identifier + String(UnicodeScalar(UInt8(value)))
+      }
+    }
+
+    func osVersion() -> String {
+      UIDevice.current.systemVersion
+    }
+
+    func appVersion() -> String {
+      Bundle.main
+        .infoDictionary?["CFBundleShortVersionString"]
+        as? String
+        ?? "?.?.?"
+    }
+
+    func diskSpace() -> String {
+      (try? URL(
+        fileURLWithPath: "/"
+      )
+      .resourceValues(
+        forKeys: [.volumeAvailableCapacityForImportantUsageKey]
+      ))?
+      .volumeAvailableCapacityForImportantUsage
+      .map { "\($0) bytes" }
+        ?? "N/A"
+    }
+
     return Self(
       debugLog: { message in
         #if DEBUG
@@ -88,6 +121,14 @@ extension Diagnostics: Feature {
         case let .variables(first, second):
           os_log(.info, log: diagnosticLog, message, first.description, second.description)
         }
+      },
+      deviceInfo: {
+        """
+        Device: \(hardwareModel())
+        OS: \(osVersion())
+        App: \(appVersion())
+        Disk free: \(diskSpace())
+        """
       },
       collectedLogs: {
         if #available(iOS 15.0, *) {
@@ -189,6 +230,7 @@ extension Diagnostics {
     Self(
       debugLog: { _ in },
       diagnosticLog: { _, _ in },
+      deviceInfo: { "" },
       collectedLogs: { [] },
       measurePerformance: { _ in
         TimeMeasurement(event: { _ in }, end: {})
@@ -207,6 +249,7 @@ extension Diagnostics {
     Self(
       debugLog: Commons.placeholder("You have to provide mocks for used methods"),
       diagnosticLog: Commons.placeholder("You have to provide mocks for used methods"),
+      deviceInfo: Commons.placeholder("You have to provide mocks for used methods"),
       collectedLogs: Commons.placeholder("You have to provide mocks for used methods"),
       measurePerformance: Commons.placeholder("You have to provide mocks for used methods"),
       uniqueID: Commons.placeholder("You have to provide mocks for used methods"),

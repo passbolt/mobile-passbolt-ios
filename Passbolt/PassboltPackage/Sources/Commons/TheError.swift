@@ -132,8 +132,8 @@ extension TheError {
     return mutable
   }
 
-  public var localizationKey: StaticString? { extensions[.localizationKey] as? StaticString }
-  public var localizationBundle: Bundle? { extensions[.localizationBundle] as? Bundle }
+  public var displayableString: DisplayableString? { extensions[.displayableString] as? DisplayableString }
+  public var displayableStringArguments: Array<CVarArg>? { extensions[.displayableStringArguments] as? Array<CVarArg> }
 }
 
 extension TheError: CustomStringConvertible {
@@ -221,8 +221,8 @@ extension TheError {
 
 extension TheError.Extension {
 
-  public static var localizationKey: Self { "localizationKey" }
-  public static var localizationBundle: Self { "localizationBundle" }
+  public static var displayableString: Self { "displayableString" }
+  public static var displayableStringArguments: Self { "displayableStringArguments" }
 }
 
 extension TheError.Extension {

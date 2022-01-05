@@ -27,12 +27,12 @@ import UIComponents
 internal struct AuthorizationNavigationController {
 
   internal var selectedAccount: Account?
-  internal var message: LocalizedMessage?
+  internal var message: DisplayableString?
 }
 
 extension AuthorizationNavigationController: UIController {
 
-  internal typealias Context = (account: Account?, message: LocalizedMessage?)
+  internal typealias Context = (account: Account?, message: DisplayableString?)
 
   internal static func instance(
     in context: Context,

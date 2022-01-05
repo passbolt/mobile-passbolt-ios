@@ -27,8 +27,8 @@ extension Validator where Value: Collection {
 
   public static func nonEmpty(
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: StaticString,
-    bundle: Bundle
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
   ) -> Self {
     Self { value in
       if !value.isEmpty {
@@ -41,8 +41,8 @@ extension Validator where Value: Collection {
             identifier: errorIdentifier,
             underlyingError: nil,
             extensions: [
-              .localizationKey: errorLocalizationKey,
-              .localizationBundle: bundle,
+              .displayableString: displayable,
+              .displayableStringArguments: arguments,
             ]
           )
         )
@@ -53,8 +53,8 @@ extension Validator where Value: Collection {
   public static func minLength(
     _ minLength: UInt,
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: StaticString,
-    bundle: Bundle
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
   ) -> Self {
     Self { value in
       if value.count >= minLength {
@@ -67,8 +67,8 @@ extension Validator where Value: Collection {
             identifier: errorIdentifier,
             underlyingError: nil,
             extensions: [
-              .localizationKey: errorLocalizationKey,
-              .localizationBundle: bundle,
+              .displayableString: displayable,
+              .displayableStringArguments: arguments,
             ]
           )
         )
@@ -79,8 +79,8 @@ extension Validator where Value: Collection {
   public static func maxLength(
     _ maxLength: UInt,
     errorIdentifier: TheError.ID = .validation,
-    errorLocalizationKey: StaticString,
-    bundle: Bundle
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
   ) -> Self {
     Self { value in
       if value.count <= maxLength {
@@ -93,8 +93,8 @@ extension Validator where Value: Collection {
             identifier: errorIdentifier,
             underlyingError: nil,
             extensions: [
-              .localizationKey: errorLocalizationKey,
-              .localizationBundle: bundle,
+              .displayableString: displayable,
+              .displayableStringArguments: arguments,
             ]
           )
         )

@@ -27,7 +27,6 @@ import UICommons
 
 internal final class AccountMenuView: View {
 
-  internal var closeTapPublisher: AnyPublisher<Void, Never>
   internal var signOutTapPublisher: AnyPublisher<Void, Never>
   internal var accountDetailsTapPublisher: AnyPublisher<Void, Never>
   internal var accountSwitchTapPublisher: AnyPublisher<Account, Never> {
@@ -58,9 +57,6 @@ internal final class AccountMenuView: View {
   ) {
     self.currentAcountWithProfile = currentAcountWithProfile
 
-    let closeButton: ImageButton = .init()
-    self.closeTapPublisher = closeButton.tapPublisher
-
     let signOutButton: Button = .init()
     self.signOutTapPublisher = signOutButton.tapPublisher
 
@@ -74,33 +70,6 @@ internal final class AccountMenuView: View {
     mut(self) {
       .combined(
         .backgroundColor(.clear)
-      )
-    }
-
-    let titleLabel: Label = .init()
-    mut(titleLabel) {
-      .combined(
-        .numberOfLines(1),
-        .lineBreakMode(.byTruncatingTail),
-        .text(localized: "account.menu.title"),
-        .font(.inter(ofSize: 20, weight: .semibold)),
-        .textColor(dynamic: .primaryText),
-        .subview(of: self),
-        .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .topAnchor(.equalTo, topAnchor, constant: 16)
-      )
-    }
-
-    mut(closeButton) {
-      .combined(
-        .image(named: .close, from: .uiCommons),
-        .tintColor(dynamic: .primaryText),
-        .subview(of: self),
-        .leadingAnchor(.equalTo, titleLabel.trailingAnchor, constant: 8),
-        .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
-        .centerYAnchor(.equalTo, titleLabel.centerYAnchor),
-        .widthAnchor(.equalTo, constant: 24),
-        .heightAnchor(.equalTo, constant: 24)
       )
     }
 
@@ -119,7 +88,7 @@ internal final class AccountMenuView: View {
         .widthAnchor(.equalTo, constant: 40),
         .heightAnchor(.equalTo, constant: 40),
         .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
-        .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 24)
+        .topAnchor(.equalTo, topAnchor, constant: 16)
       )
     }
     mut(View()) {

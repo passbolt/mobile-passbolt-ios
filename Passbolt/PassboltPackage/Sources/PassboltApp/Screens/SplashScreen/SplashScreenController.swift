@@ -35,7 +35,7 @@ extension SplashScreenController {
   internal enum Destination: Equatable {
 
     case accountSetup
-    case accountSelection(Account?, message: LocalizedMessage?)
+    case accountSelection(Account?, message: DisplayableString?)
     case diagnostics
     case home
     case mfaAuthorization(Array<MFAProvider>)
@@ -120,10 +120,7 @@ extension SplashScreenController: UIController {
                 return Just(
                   .accountSelection(
                     account,
-                    message: .init(
-                      key: "authorization.prompt.refresh.session.reason",
-                      bundle: .main
-                    )
+                    message: .localized("authorization.prompt.refresh.session.reason")
                   )
                 )
                 .eraseToAnyPublisher()

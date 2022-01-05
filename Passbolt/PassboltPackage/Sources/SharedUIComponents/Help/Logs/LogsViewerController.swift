@@ -56,7 +56,9 @@ extension LogsViewerController: UIController {
     }
 
     func logsPublisher() -> AnyPublisher<Array<String>?, Never> {
-      logsCacheSubject.eraseToAnyPublisher()
+      logsCacheSubject
+        .map { $0.map { [diagnostics.deviceInfo()] + $0 } }
+        .eraseToAnyPublisher()
     }
 
     func presentShareMenu() {

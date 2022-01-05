@@ -91,8 +91,10 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
             return
           }
           self?.presentErrorSnackbar(
-            localizableKey: "server.fingerprint.save.failed",
-            inBundle: .sharedUIComponents
+            .localized(
+              key: "server.fingerprint.save.failed",
+              bundle: .sharedUIComponents
+            )
           )
         },
         receiveValue: { [weak self] in

@@ -285,7 +285,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self?.present(
           overlay: LoaderOverlayView(
             longLoadingMessage: (
-              message: LocalizedMessage(
+              message: .localized(
                 key: .loadingLong,
                 bundle: .commons
               ),
@@ -313,8 +313,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           [.invalidPassphraseError],
           handler: { [weak self] _ in
             self?.presentErrorSnackbar(
-              localizableKey: "sign.in.error.passphrase.invalid.message",
-              inBundle: .commons,
+              .localized(
+                key: "sign.in.error.passphrase.invalid.message",
+                bundle: .commons
+              ),
               hideAfter: 5
             )
             return true
@@ -324,8 +326,10 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           [.biometricsChanged],
           handler: { [weak self] _ in
             self?.presentErrorSnackbar(
-              localizableKey: "sign.in.error.biometrics.changed.message",
-              inBundle: .commons,
+              .localized(
+                key: "sign.in.error.biometrics.changed.message",
+                bundle: .commons
+              ),
               hideAfter: 5
             )
             return true

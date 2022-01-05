@@ -22,28 +22,25 @@
 //
 
 import AegithalosCocoa
+import Commons
 
 extension Mutation where Subject: View {
 
   public static func snackBarErrorMessage(
-    localized localizationKey: LocalizationKeyConstant,
-    inBundle bundle: Bundle = .main,
-    arguments: Array<CVarArg> = []
+    _ displayable: DisplayableString = .localized(key: .genericError, bundle: .commons),
+    with arguments: Array<CVarArg> = .init()
   ) -> Self {
     snackBarMessage(
-      localized: localizationKey,
-      arguments: arguments,
-      inBundle: bundle,
+      displayable,
+      with: arguments,
       backgroundColor: .secondaryRed,
       textColor: .primaryButtonText
     )
   }
 
   public static func snackBarMessage(
-    localized localizationKey: LocalizationKeyConstant,
-    arguments: Array<CVarArg> = [],
-    tableName: String? = nil,
-    inBundle bundle: Bundle = .main,
+    _ displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init(),
     backgroundColor: DynamicColor,
     textColor: DynamicColor
   ) -> Self {
@@ -69,23 +66,7 @@ extension Mutation where Subject: View {
               ),
               usingSafeArea: false
             ),
-            .custom { (subject: Label) in
-              let localized = NSLocalizedString(
-                localizationKey.rawValue,
-                tableName: tableName,
-                bundle: bundle,
-                comment: ""
-              )
-              if arguments.isEmpty {
-                subject.text = localized
-              }
-              else {
-                subject.text = String(
-                  format: localized,
-                  arguments: arguments
-                )
-              }
-            }
+            .text(displayable: displayable, with: arguments)
           )
           .instantiate()
       }

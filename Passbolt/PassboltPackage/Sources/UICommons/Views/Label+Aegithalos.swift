@@ -22,6 +22,7 @@
 //
 
 import AegithalosCocoa
+import Commons
 
 extension Mutation where Subject: Label {
 
@@ -41,5 +42,14 @@ extension Mutation where Subject: Label {
 
   public static func textColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicTextColor = color }
+  }
+
+  public static func text(
+    displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) -> Self {
+    .custom { (subject: Subject) in
+      subject.text = displayable.string(with: arguments)
+    }
   }
 }

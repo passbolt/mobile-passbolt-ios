@@ -22,6 +22,7 @@
 //
 
 import AegithalosCocoa
+import Commons
 
 public enum SnackbarPresentationMode {
 
@@ -33,17 +34,15 @@ public enum SnackbarPresentationMode {
 extension UIViewController {
 
   public func presentErrorSnackbar(
-    localizableKey: LocalizationKeyConstant = .genericError,
-    inBundle: Bundle = .commons,
-    arguments: Array<CVarArg> = [],
+    _ displayable: DisplayableString = .localized(key: .genericError, bundle: .commons),
+    with arguments: Array<CVarArg> = .init(),
     hideAfter: TimeInterval = 2
   ) {
     present(
       snackbar: Mutation<UICommons.View>
         .snackBarErrorMessage(
-          localized: localizableKey,
-          inBundle: inBundle,
-          arguments: arguments
+          displayable,
+          with: arguments
         )
         .instantiate(),
       hideAfter: hideAfter
@@ -51,17 +50,15 @@ extension UIViewController {
   }
 
   public func presentInfoSnackbar(
-    localizableKey: LocalizationKeyConstant = .genericError,
-    inBundle: Bundle = .commons,
-    presentationMode: SnackbarPresentationMode = .local,
-    arguments: Array<CVarArg> = []
+    _ displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init(),
+    presentationMode: SnackbarPresentationMode = .local
   ) {
     present(
       snackbar: Mutation<UICommons.View>
         .snackBarMessage(
-          localized: localizableKey,
-          arguments: arguments,
-          inBundle: inBundle,
+          displayable,
+          with: arguments,
           backgroundColor: .primaryText,
           textColor: .primaryTextAlternative
         )
