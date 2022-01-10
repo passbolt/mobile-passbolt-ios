@@ -55,28 +55,5 @@ internal final class MFARequiredViewController: PlainViewController, UIComponent
 
   internal func setupView() {
     customPresentationSetup()
-    setupSubscriptions()
-  }
-
-  private func setupSubscriptions() {
-    contentView.tapPublisher
-      .map { [unowned self] _ -> AnyPublisher<Bool, Never> in
-        self.controller.openApp()
-          .handleEvents(receiveOutput: { didOpen in
-            guard !didOpen else { return }
-
-            self.present(
-              snackbar: Mutation<UICommons.View>
-                .snackBarErrorMessage(
-                  .localized("generic.failed.open.app")
-                )
-                .instantiate()
-            )
-          })
-          .eraseToAnyPublisher()
-      }
-      .switchToLatest()
-      .sinkDrop()
-      .store(in: cancellables)
   }
 }

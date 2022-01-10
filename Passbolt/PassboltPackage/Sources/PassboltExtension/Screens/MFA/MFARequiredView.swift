@@ -25,12 +25,9 @@ import UICommons
 
 internal final class MFARequiredView: ScrolledStackView {
 
-  internal let tapPublisher: AnyPublisher<Void, Never>
-
   private let resultView: ResultView = .init()
 
   required init() {
-    tapPublisher = resultView.buttonTapPublisher
     super.init()
 
     mut(self) {
@@ -50,7 +47,7 @@ internal final class MFARequiredView: ScrolledStackView {
     )
 
     resultView.applyOn(
-      button: .text(localized: "generic.open.app", inBundle: .main)
+      button: .hidden(true)
     )
 
     mut(self) {

@@ -63,12 +63,5 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
         self?.controller.closeConfiguration()
       }
       .store(in: cancellables)
-
-    contentView
-      .backToAppTapPublisher
-      .sink { [weak self] in
-        self?.controller.goBackToApp()
-      }
-      .store(in: cancellables)
   }
 }

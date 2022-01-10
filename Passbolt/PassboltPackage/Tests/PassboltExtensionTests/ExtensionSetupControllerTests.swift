@@ -59,20 +59,4 @@ final class ExtensionSetupControllerTests: TestCase {
 
     XCTAssertNotNil(result)
   }
-
-  func test_goBackToApp_opensApplication() {
-    features.use(extensionContext)
-    var result: Void!
-    linkOpener.openApp = {
-      result = Void()
-      return Just(true).eraseToAnyPublisher()
-    }
-    features.use(linkOpener)
-
-    let controller: ExtensionSetupController = testInstance()
-
-    controller.goBackToApp()
-
-    XCTAssertNotNil(result)
-  }
 }

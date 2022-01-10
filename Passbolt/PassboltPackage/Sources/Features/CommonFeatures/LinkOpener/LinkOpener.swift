@@ -28,7 +28,6 @@ import Foundation
 public struct LinkOpener {
 
   public var openLink: (URL) -> AnyPublisher<Bool, Never>
-  public var openApp: () -> AnyPublisher<Bool, Never>
   public var openAppSettings: () -> AnyPublisher<Bool, Never>
   public var openSystemSettings: () -> AnyPublisher<Bool, Never>
 }
@@ -44,7 +43,6 @@ extension LinkOpener: Feature {
 
     return Self(
       openLink: externalURLOpener.openLink,
-      openApp: externalURLOpener.openApp,
       openAppSettings: externalURLOpener.openAppSettings,
       openSystemSettings: externalURLOpener.openSystemSettings
     )
@@ -55,7 +53,6 @@ extension LinkOpener: Feature {
   public static var placeholder: Self {
     Self(
       openLink: Commons.placeholder("You have to provide mocks for used methods"),
-      openApp: Commons.placeholder("You have to provide mocks for used methods"),
       openAppSettings: Commons.placeholder("You have to provide mocks for used methods"),
       openSystemSettings: Commons.placeholder("You have to provide mocks for used methods")
     )

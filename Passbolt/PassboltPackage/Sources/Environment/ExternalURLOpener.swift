@@ -30,7 +30,6 @@ import struct Foundation.URL
 public struct ExternalURLOpener: EnvironmentElement {
 
   public var openLink: (URL) -> AnyPublisher<Bool, Never>
-  public var openApp: () -> AnyPublisher<Bool, Never>
   public var openAppSettings: () -> AnyPublisher<Bool, Never>
   public var openSystemSettings: () -> AnyPublisher<Bool, Never>
 }
@@ -60,10 +59,6 @@ extension ExternalURLOpener {
 
     return Self(
       openLink: openUrl,
-      openApp: {
-        // swift-format-ignore: NeverForceUnwrap
-        openUrl(URL(string: "passbolt:")!)
-      },
       openAppSettings: {
         // swift-format-ignore: NeverForceUnwrap
         openUrl(URL(string: UIApplication.openSettingsURLString)!)
@@ -91,7 +86,6 @@ extension ExternalURLOpener {
   public static var placeholder: Self {
     Self(
       openLink: Commons.placeholder("You have to provide mocks for used methods"),
-      openApp: Commons.placeholder("You have to provide mocks for used methods"),
       openAppSettings: Commons.placeholder("You have to provide mocks for used methods"),
       openSystemSettings: Commons.placeholder("You have to provide mocks for used methods")
     )

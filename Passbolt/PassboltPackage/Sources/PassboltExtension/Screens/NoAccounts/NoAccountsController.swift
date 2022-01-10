@@ -23,29 +23,4 @@
 
 import UIComponents
 
-internal struct NoAccountsController {
-
-  internal var openApp: () -> AnyPublisher<Bool, Never>
-}
-
-extension NoAccountsController: UIController {
-
-  internal typealias Context = Void
-
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-
-    let linkOpener: LinkOpener = features.instance()
-
-    func openApp() -> AnyPublisher<Bool, Never> {
-      linkOpener.openApp()
-    }
-
-    return Self(
-      openApp: openApp
-    )
-  }
-}
+internal typealias NoAccountsController = EmptyController<Void>

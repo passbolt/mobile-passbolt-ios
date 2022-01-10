@@ -26,14 +26,11 @@ import UICommons
 internal final class ExtensionSetupView: ScrolledStackView {
 
   internal var closeTapPublisher: AnyPublisher<Void, Never>
-  internal var backToAppTapPublisher: AnyPublisher<Void, Never>
 
   internal required init() {
     let closeButton: TextButton = .init()
-    let backToAppButton: TextButton = .init()
 
     self.closeTapPublisher = closeButton.tapPublisher
-    self.backToAppTapPublisher = backToAppButton.tapPublisher
 
     super.init()
 
@@ -78,13 +75,6 @@ internal final class ExtensionSetupView: ScrolledStackView {
       )
     }
 
-    mut(backToAppButton) {
-      .combined(
-        .linkStyle(),
-        .text(localized: "extension.setup.button.back.to.app")
-      )
-    }
-
     mut(self) {
       .combined(
         .backgroundColor(dynamic: .background),
@@ -96,8 +86,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
         .appendSpace(of: 16),
         .append(infoLabel),
         .appendFiller(minSize: 8),
-        .append(closeButton),
-        .append(backToAppButton)
+        .append(closeButton)
       )
     }
   }

@@ -27,7 +27,6 @@ import UIComponents
 internal struct ExtensionSetupController {
 
   internal var closeConfiguration: () -> Void
-  internal var goBackToApp: () -> Void
 }
 
 extension ExtensionSetupController: UIController {
@@ -46,18 +45,8 @@ extension ExtensionSetupController: UIController {
       autofillExtensionContext.completeExtensionConfiguration()
     }
 
-    func goBackToApp() {
-      linkOpener
-        .openApp()
-        .ignoreOutput()
-        .sink(receiveCompletion: { _ in })
-        // it will close extension and release all memory, no need for dedicated cancellables
-        .store(in: cancellables)
-    }
-
     return Self(
-      closeConfiguration: closeConfiguration,
-      goBackToApp: goBackToApp
+      closeConfiguration: closeConfiguration
     )
   }
 }

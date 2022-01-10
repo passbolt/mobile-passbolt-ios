@@ -22,13 +22,8 @@
 //
 
 // Passbolt autofill extension
-"generic.open.app" = "Open Passbolt App";
-"generic.failed.open.app" = "Failed to open the Passbolt App";
-
 "extension.setup.title" = "Passbolt Autofill enabled!";
 "extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
-"extension.setup.button.close" = "";
-"extension.setup.button.back.to.app" = "Go to the app";
 
 "account.selection.switch.account.title" = "Switch the account";
 "account.selection.switch.account.subtitle" = "Select an account to switch!";
