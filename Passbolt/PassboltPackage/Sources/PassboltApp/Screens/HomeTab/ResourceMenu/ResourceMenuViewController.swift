@@ -65,7 +65,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
           guard case .failure = completion
           else { return }
           self?.presentingViewController?.presentErrorSnackbar()
-          self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+          self?.dismiss(ResourceMenuViewController.self)
         },
         receiveValue: { [weak self] resourceDetails in
           self?.title = resourceDetails.name
@@ -88,9 +88,11 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] in
             switch action {
-            // Actions handled elsewhere
-            case .openURL, .edit, .delete:
-              break
+            case .edit, .delete:
+              break  // Actions handled elsewhere
+
+            case .openURL:
+              self?.dismiss(ResourceMenuViewController.self)
 
             case .copyURL:
               self?.presentingViewController?.presentInfoSnackbar(
@@ -99,6 +101,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
                   NSLocalizedString("resource.menu.item.url", comment: "")
                 ]
               )
+              self?.dismiss(ResourceMenuViewController.self)
 
             case .copyPassword:
               self?.presentingViewController?.presentInfoSnackbar(
@@ -107,6 +110,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
                   NSLocalizedString("resource.menu.item.password", comment: "")
                 ]
               )
+              self?.dismiss(ResourceMenuViewController.self)
 
             case .copyUsername:
               self?.presentingViewController?.presentInfoSnackbar(
@@ -115,6 +119,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
                   NSLocalizedString("resource.menu.item.username", comment: "")
                 ]
               )
+              self?.dismiss(ResourceMenuViewController.self)
 
             case .copyDescription:
               self?.presentingViewController?.presentInfoSnackbar(
@@ -123,17 +128,15 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
                   NSLocalizedString("resource.menu.item.description", comment: "")
                 ]
               )
+              self?.dismiss(ResourceMenuViewController.self)
             }
           })
           .handleErrors(
             ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
             defaultHandler: { [weak self] _ in
-              self?.presentingViewController?.presentErrorSnackbar()
+              self?.presentErrorSnackbar()
             }
           )
-          .handleEnd { [weak self] _ in
-            self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
-          }
           .mapToVoid()
           .replaceError(with: Void())
           .eraseToAnyPublisher()

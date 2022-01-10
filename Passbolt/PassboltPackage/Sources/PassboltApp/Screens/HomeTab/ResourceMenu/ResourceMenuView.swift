@@ -142,8 +142,8 @@ internal final class ResourceMenuView: View {
       .forEach(in: menuItems) { item in
         .when(
           item.operation == .copyDescription
-          && menuItems
-            .contains(where: { [.edit, .delete].contains($0.operation) }),
+            && menuItems
+              .contains(where: { [.edit, .delete].contains($0.operation) }),
           then: .combined(
             .append(item),
             .append(ResourceMenuDividerView())

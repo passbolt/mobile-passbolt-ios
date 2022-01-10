@@ -129,20 +129,24 @@ extension AnyUIComponent {
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
-    var presentedLeaf: UIViewController = self
-    while let next: UIViewController = presentedLeaf.presentedViewController {
-      if next is Component {
-        break
+    var current: UIViewController = self
+    repeat {
+      if current is Component {
+        return current
+          .presentingViewController?
+          .dismiss(
+            animated: animated,
+            completion: completion
+          )
+          ?? Void()
+      }
+      else if let next: UIViewController = current.presentedViewController {
+        current = next
       }
       else {
-        presentedLeaf = next
+        break
       }
-    }
-
-    presentedLeaf.presentingViewController?.dismiss(
-      animated: animated,
-      completion: completion
-    )
+    } while true
   }
 
   public func push<Component>(

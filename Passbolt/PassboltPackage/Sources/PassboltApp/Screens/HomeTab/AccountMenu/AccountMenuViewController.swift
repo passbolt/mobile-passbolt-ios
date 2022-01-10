@@ -73,7 +73,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .dismissPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.dismiss(SheetViewController<AccountMenuViewController>.self)
+        self?.dismiss(AccountMenuViewController.self)
       }
       .store(in: cancellables)
 
@@ -97,7 +97,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .sink { [weak self] accountWithProfile in
         guard let self = self else { return }
         self.dismiss(
-          SheetViewController<AccountMenuViewController>.self,
+          AccountMenuViewController.self,
           completion: {
             self.controller.parentComponent
               .push(
@@ -122,7 +122,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .sink { [weak self] account in
         guard let self = self else { return }
         self.dismiss(
-          SheetViewController<AccountMenuViewController>.self,
+          AccountMenuViewController.self,
           completion: {
             self.controller.parentComponent
               .push(
@@ -147,7 +147,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .sink { [weak self] in
         guard let self = self else { return }
         self.dismiss(
-          SheetViewController<AccountMenuViewController>.self,
+          AccountMenuViewController.self,
           completion: {
             self.controller.parentComponent
               .push(
