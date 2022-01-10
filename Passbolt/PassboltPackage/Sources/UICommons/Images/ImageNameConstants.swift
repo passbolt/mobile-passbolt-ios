@@ -59,6 +59,7 @@ extension ImageNameConstant {
   public static var dice: Self { "Dice" }
   public static var edit: Self { "Edit" }
   public static var bug: Self { "Bug" }
+  public static var camera: Self { "Camera" }
 }
 
 extension DynamicImage {

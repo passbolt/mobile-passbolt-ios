@@ -67,6 +67,19 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       )
     }
 
+    mut(navigationItem) {
+      .rightBarButtonItem(
+        Mutation<UIBarButtonItem>
+          .combined(
+            .image(named: .help, from: .uiCommons),
+            .action { [weak self] in
+              self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+            }
+          )
+          .instantiate()
+      )
+    }
+
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }

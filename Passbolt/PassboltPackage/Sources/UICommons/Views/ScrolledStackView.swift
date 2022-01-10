@@ -147,4 +147,6 @@ open class ScrolledStackView: UIScrollView {
     self.backgroundColor = dynamicBackgroundColor(in: interfaceStyle)
     self.tintColor = dynamicTintColor?(in: interfaceStyle)
   }
+
+  open override var intrinsicContentSize: CGSize { stackView.intrinsicContentSize }
 }

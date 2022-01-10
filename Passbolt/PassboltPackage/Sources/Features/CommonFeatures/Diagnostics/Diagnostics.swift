@@ -90,18 +90,6 @@ extension Diagnostics: Feature {
         ?? "?.?.?"
     }
 
-    func diskSpace() -> String {
-      (try? URL(
-        fileURLWithPath: "/"
-      )
-      .resourceValues(
-        forKeys: [.volumeAvailableCapacityForImportantUsageKey]
-      ))?
-      .volumeAvailableCapacityForImportantUsage
-      .map { "\($0) bytes" }
-        ?? "N/A"
-    }
-
     return Self(
       debugLog: { message in
         #if DEBUG
@@ -127,7 +115,7 @@ extension Diagnostics: Feature {
         Device: \(hardwareModel())
         OS: \(osVersion())
         App: \(appVersion())
-        Disk free: \(diskSpace())
+        ----------
         """
       },
       collectedLogs: {

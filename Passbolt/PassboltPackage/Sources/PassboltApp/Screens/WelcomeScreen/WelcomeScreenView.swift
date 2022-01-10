@@ -99,6 +99,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
 
     mut(self) {
       .combined(
+        .backgroundColor(dynamic: .background),
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
         .contentInset(.init(top: 0, left: 16, bottom: 8, right: 16)),

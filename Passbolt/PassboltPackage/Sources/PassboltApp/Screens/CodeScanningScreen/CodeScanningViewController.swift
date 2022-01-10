@@ -21,6 +21,7 @@
 // @since         v1.0
 
 import UIComponents
+import SharedUIComponents
 
 internal final class CodeScanningViewController: PlainViewController, UIComponent {
 
@@ -129,10 +130,28 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
         if presented {
-          self?.present(CodeScanningHelpViewController.self)
+          self?.presentSheetMenu(
+            HelpMenuViewController.self,
+            in: [
+              .init(
+                iconName: .camera,
+                iconBundle: .uiCommons,
+                title: .localized("code.scanning.help.menu.button.title"),
+                handler: { [weak self] in
+                  self?.dismiss(
+                    HelpMenuViewController.self,
+                    completion: { [weak self] in
+                      self?.present(CodeScanningHelpViewController.self)
+                    }
+                  )
+                }
+              )
+            ]
+          )
+
         }
         else {
-          self?.dismiss(CodeScanningExitConfirmationViewController.self)
+          self?.dismiss(HelpMenuViewController.self)
         }
       }
       .store(in: cancellables)

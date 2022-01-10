@@ -57,6 +57,19 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
   }
 
   internal func setupView() {
+    mut(navigationItem) {
+      .rightBarButtonItem(
+        Mutation<UIBarButtonItem>
+          .combined(
+            .image(named: .help, from: .uiCommons),
+            .action { [weak self] in
+              self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+            }
+          )
+          .instantiate()
+      )
+    }
+
     setupSubscriptions()
   }
 

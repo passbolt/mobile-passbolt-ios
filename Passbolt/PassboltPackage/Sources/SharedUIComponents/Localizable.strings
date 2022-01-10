@@ -49,3 +49,7 @@
 "resource.edit.exit.confirmation.button.revert.title" = "Revert";
 
 "help.logs.viewer.title" = "Logs";
+
+"help.menu.title" = "Help";
+"help.menu.show.logs.action.title" = "Access the logs";
+"help.menu.show.web.help.action.title" = "Visit help site";

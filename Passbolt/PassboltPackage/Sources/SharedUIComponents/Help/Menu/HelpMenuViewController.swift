@@ -19,18 +19,23 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import AccountSetup
+import UICommons
 import UIComponents
-import SharedUIComponents
 
-internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
+public final class HelpMenuViewController: PlainViewController, UIComponent {
 
-  internal typealias View = WelcomeScreenView
-  internal typealias Controller = WelcomeScreenController
+  public typealias View = HelpMenuView
+  public typealias Controller = HelpMenuController
 
-  internal static func instance(
-    using controller: WelcomeScreenController,
+  public private(set) lazy var contentView: View = .init()
+
+  public let components: UIComponentFactory
+  private let controller: Controller
+
+  public static func instance(
+    using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
     Self(
@@ -39,12 +44,7 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     )
   }
 
-  internal private(set) lazy var contentView: WelcomeScreenView = .init()
-  internal let components: UIComponentFactory
-
-  private let controller: WelcomeScreenController
-
-  internal init(
+  public init(
     using controller: Controller,
     with components: UIComponentFactory
   ) {
@@ -53,60 +53,43 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     super.init()
   }
 
-  internal func setupView() {
-    mut(navigationItem) {
-      .rightBarButtonItem(
-        Mutation<UIBarButtonItem>
-          .combined(
-            .image(named: .help, from: .uiCommons),
-            .action { [weak self] in
-              self?.presentSheetMenu(HelpMenuViewController.self, in: [])
-            }
-          )
-          .instantiate()
+  public func setupView() {
+    title = DisplayableString
+      .localized(
+        key: "help.menu.title",
+        bundle: .sharedUIComponents
       )
-    }
+      .string()
+
+    contentView.setActions(controller.actions())
 
     setupSubscriptions()
   }
 
   private func setupSubscriptions() {
-    contentView.tapAccountPublisher
+    controller
+      .logsPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.controller.pushTransferInfo()
-      }
-      .store(in: cancellables)
-
-    contentView.tapNoAccountPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        self?.controller.presentNoAccountAlert()
-      }
-      .store(in: cancellables)
-
-    controller.noAccountAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] presented in
-        guard let self = self else { return }
-        if presented {
-          self.present(
-            WelcomeScreenNoAccountAlertViewController.self,
-            in: self.controller.dismissNoAccountAlert
+        if let parent: AnyUIComponent = self?.presentingViewController as? AnyUIComponent {
+          self?.dismiss(
+            Self.self,
+            completion: {
+              parent.present(PlainNavigationViewController<LogsViewerViewController>.self)
+            }
           )
         }
         else {
-          self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
+          self?.present(PlainNavigationViewController<LogsViewerViewController>.self)
         }
       }
       .store(in: cancellables)
 
-    controller.pushTransferInfoPublisher()
+    controller
+      .websiteHelpPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        guard let self = self else { return }
-        let viewController: TransferInfoScreenViewController = self.components.instance()
-        self.navigationController?.pushViewController(viewController, animated: true)
+        self?.dismiss(Self.self)
       }
       .store(in: cancellables)
   }

@@ -60,14 +60,28 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
         .rightBarButtonItem(
           Mutation<UIBarButtonItem>.combined(
             .style(.done),
-            .image(symbol: "square.and.arrow.up"),
-            .tintColor(.black),
+            .image(named: .open, from: .uiCommons),
             .action { [weak self] in
               self?.controller.presentShareMenu()
             }
           )
           .instantiate()
+        ),
+        .when(
+          navigationController?.viewControllers.count == 1,
+          then:
+              .leftBarButtonItem(
+                Mutation<UIBarButtonItem>.combined(
+                  .style(.done),
+                  .image(named: .close, from: .uiCommons),
+                  .action { [weak self] in
+                    self?.dismiss(Self.self)
+                  }
+                )
+                  .instantiate()
+              )
         )
+        
       )
     }
 
