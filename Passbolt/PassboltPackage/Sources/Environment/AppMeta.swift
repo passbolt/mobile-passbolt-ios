@@ -21,29 +21,57 @@
 // @since         v1.0
 //
 
-@testable import Crypto
-@testable import UIComponents
+import Commons
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder,
-    Database.placeholder,
-    Files.placeholder,
-    AutoFillExtension.placeholder,
-    SystemPasteboard.placeholder,
-    Yubikey.placeholder,
-    AppMeta.placeholder
-  )
+import class Foundation.Bundle
+
+public struct AppMeta: EnvironmentElement {
+
+  public var bundleID: () -> String
+  public var version: () -> String
+
+  public init(
+    bundleID: @escaping () -> String,
+    version: @escaping () -> String
+  ) {
+    self.bundleID = bundleID
+    self.version = version
+  }
 }
+
+extension AppMeta {
+
+  public static var live: Self {
+    Self(
+      bundleID: {
+        Bundle.main.infoDictionary?["CFBundleIdentifier"] as? String
+          ?? "???"
+      },
+      version: {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+          ?? "?.?.?"
+      }
+    )
+  }
+}
+
+extension Environment {
+
+  public var appMeta: AppMeta {
+    get { element(AppMeta.self) }
+    set { use(newValue) }
+  }
+}
+
+#if DEBUG
+extension AppMeta {
+
+  // placeholder implementation for mocking and testing, unavailable in release
+  public static var placeholder: Self {
+    Self(
+      bundleID: Commons.placeholder("You have to provide mocks for used methods"),
+      version: Commons.placeholder("You have to provide mocks for used methods")
+    )
+  }
+}
+#endif

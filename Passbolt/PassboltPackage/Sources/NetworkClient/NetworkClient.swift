@@ -46,6 +46,7 @@ public struct NetworkClient {
   public var updateResourceRequest: UpdateResourceRequest
   public var deleteResourceRequest: DeleteResourceRequest
   public var userListRequest: UserListRequest
+  public var appVersionsAvailableRequest: AppVersionsAvailableRequest
   public var setSessionStatePublisher: (AnyPublisher<SessionState?, Never>) -> Void
   public var setAccessTokenInvalidation: (@escaping () -> Void) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
@@ -330,6 +331,10 @@ extension NetworkClient: Feature {
         mfaRedirectionHandler: mfaRedirectRequest.execute,
         sessionPublisher: domainNetworkSessionVariablePublisher
       ),
+      appVersionsAvailableRequest: .live(
+        using: networking,
+        with: emptySessionVariablePublisher
+      ),
       setSessionStatePublisher: setSessionStatePublisher(_:),
       setAccessTokenInvalidation: setAccessTokenInvalidation(method:),
       setAuthorizationRequest: setAuthorization(request:),
@@ -360,6 +365,7 @@ extension NetworkClient: Feature {
       updateResourceRequest: .placeholder,
       deleteResourceRequest: .placeholder,
       userListRequest: .placeholder,
+      appVersionsAvailableRequest: .placeholder,
       setSessionStatePublisher: Commons.placeholder("You have to provide mocks for used methods"),
       setAccessTokenInvalidation: Commons.placeholder("You have to provide mocks for used methods"),
       setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"),

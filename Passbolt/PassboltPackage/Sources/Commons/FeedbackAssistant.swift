@@ -184,42 +184,12 @@ public func showFeedbackAlertIfNeeded(
   guard checkFeedbackAssistant()
   else { return completion() }
 
-  let windows: Array<UIWindow>? = UIApplication
-    .shared
-    .connectedScenes
-    .filter { $0.activationState == .foregroundActive }
-    .compactMap { $0 as? UIWindowScene }
-    .first?
-    .windows
-
-  let anchor: UIViewController? =
-    presentationAnchor
-    ?? windows?
-    .first(where: \.isKeyWindow)?
-    .rootViewController
-    ?? windows?
-    .first?
-    .rootViewController
-
-  guard let anchor: UIViewController = anchor
-  else { return completion() }
-
-  let alert: UIAlertController = .init(
-    title: NSLocalizedString("feedback.alert.title", bundle: .commons, comment: ""),
-    message: NSLocalizedString("feedback.alert.message", bundle: .commons, comment: ""),
-    preferredStyle: .alert
-  )
-  alert.addAction(
-    .init(
-      title: NSLocalizedString("feedback.alert.button.title", bundle: .commons, comment: ""),
-      style: .default,
-      handler: { _ in completion() }
+  UIApplication
+    .showInfoAlert(
+      title: .localized(key: "feedback.alert.title", bundle: .commons),
+      message: .localized(key: "feedback.alert.message", bundle: .commons),
+      buttonTitle: .localized(key: "feedback.alert.button.title", bundle: .commons),
+      presentationAnchor: presentationAnchor,
+      completion: completion
     )
-  )
-
-  anchor.present(
-    alert,
-    animated: true,
-    completion: nil
-  )
 }

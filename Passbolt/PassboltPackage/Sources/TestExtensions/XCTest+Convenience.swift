@@ -187,3 +187,139 @@ public func XCTAssertFailureNotEqual<T, E>(
     )
   }
 }
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertThrows<T>(
+  _ errorType: Error.Type = Error.self,
+  _ test: @escaping () async throws -> T,
+  _ file: StaticString = #filePath,
+  _ line: UInt = #line
+) {
+  let sem: DispatchSemaphore = .init(value: 0)
+  Task {
+    do {
+      _ = try await test()
+      XCTFail(
+        "Unexpected success",
+        file: file,
+        line: line
+      )
+    }
+    catch let error {
+      if errorType == Error.self || type(of: error) == errorType {
+        /* NOP */
+      }
+      else {
+        XCTFail(
+          "Unexpected error: \(error)",
+          file: file,
+          line: line
+        )
+      }
+    }
+    sem.signal()
+  }
+  sem.wait()
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertThrows<T>(
+  _ errorType: TheError.Type,
+  identifier: TheError.ID,
+  _ test: @escaping () async throws -> T,
+  _ file: StaticString = #filePath,
+  _ line: UInt = #line
+) {
+  let sem: DispatchSemaphore = .init(value: 0)
+  Task {
+    do {
+      _ = try await test()
+      XCTFail(
+        "Unexpected success",
+        file: file,
+        line: line
+      )
+    }
+    catch let error as TheError {
+      if error.identifier == identifier {
+        /* NOP */
+      }
+      else {
+        XCTFail(
+          "Unexpected error: \(error)",
+          file: file,
+          line: line
+        )
+      }
+    }
+    catch let error {
+      XCTFail(
+        "Unexpected error: \(error)",
+        file: file,
+        line: line
+      )
+    }
+    sem.signal()
+  }
+  sem.wait()
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertTrue(
+  _ message: @autoclosure @escaping () -> String = "",
+  _ test: @escaping () async throws -> Bool,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  let sem: DispatchSemaphore = .init(value: 0)
+  Task {
+    do {
+      let result: Bool = try await test()
+      XCTAssertTrue(
+        result,
+        message(),
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        message(),
+        file: file,
+        line: line
+      )
+    }
+    sem.signal()
+  }
+  sem.wait()
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertFalse(
+  _ message: @autoclosure @escaping () -> String = "",
+  _ test: @escaping () async throws -> Bool,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  let sem: DispatchSemaphore = .init(value: 0)
+  Task {
+    do {
+      let result: Bool = try await test()
+      XCTAssertFalse(
+        result,
+        message(),
+        file: file,
+        line: line
+      )
+    }
+    catch {
+      XCTFail(
+        message(),
+        file: file,
+        line: line
+      )
+    }
+    sem.signal()
+  }
+  sem.wait()
+}

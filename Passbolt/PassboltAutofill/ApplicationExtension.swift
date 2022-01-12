@@ -56,7 +56,8 @@ internal struct ApplicationExtension {
       ExternalURLOpener.live(),
       Yubikey.unavailable(),
       Randomness.system(),
-      AsyncExecutors.libDispatch()
+      AsyncExecutors.libDispatch(),
+      AppMeta.live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

@@ -28,6 +28,7 @@ internal struct SplashScreenController {
 
   internal var navigationDestinationPublisher: () -> AnyPublisher<Destination, Never>
   internal var retryFetchConfiguration: () -> AnyPublisher<Void, TheError>
+  internal var shouldDisplayUpdateAlert: () async -> Bool
 }
 
 extension SplashScreenController {
@@ -55,6 +56,7 @@ extension SplashScreenController: UIController {
     let accounts: Accounts = features.instance()
     let accountSession: AccountSession = features.instance()
     let featureFlags: FeatureConfig = features.instance()
+    let updateCheck: UpdateCheck = features.instance()
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
@@ -137,9 +139,22 @@ extension SplashScreenController: UIController {
       .eraseToAnyPublisher()
     }
 
+    func shouldDisplayUpdateAlert() async -> Bool {
+      guard await updateCheck.checkRequired()
+      else { return false }
+
+      do {
+        return try await updateCheck.updateAvailable()
+      }
+      catch {
+        return false
+      }
+    }
+
     return Self(
       navigationDestinationPublisher: destinationPublisher,
-      retryFetchConfiguration: retryFetchConfiguration
+      retryFetchConfiguration: retryFetchConfiguration,
+      shouldDisplayUpdateAlert: shouldDisplayUpdateAlert
     )
   }
 }

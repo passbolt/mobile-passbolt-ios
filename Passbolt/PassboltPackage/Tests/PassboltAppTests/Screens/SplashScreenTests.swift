@@ -59,6 +59,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(nil)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -84,6 +85,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToAccountSetup_whenNoStoredAccounts() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(nil)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -110,6 +112,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withLastUsedAccount_andNotAuthorized() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -136,6 +139,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -162,6 +166,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -188,6 +193,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -214,6 +220,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigationDestinationPublisher_publishesHome_whenRetryFetchConfigurationSucceeds() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     features.use(networkClient)
@@ -255,6 +262,7 @@ final class SplashScreenTests: TestCase {
   }
 
   func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() {
+    features.usePlaceholder(for: UpdateCheck.self)
     accountDataStore.loadLastUsedAccount = always(account)
     features.use(accountDataStore)
     features.use(networkClient)

@@ -21,29 +21,56 @@
 // @since         v1.0
 //
 
-@testable import Crypto
-@testable import UIComponents
+import UIKit
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder,
-    Database.placeholder,
-    Files.placeholder,
-    AutoFillExtension.placeholder,
-    SystemPasteboard.placeholder,
-    Yubikey.placeholder,
-    AppMeta.placeholder
-  )
+extension UIApplication {
+
+  public static func showInfoAlert(
+    title: DisplayableString,
+    message: DisplayableString,
+    buttonTitle: DisplayableString,
+    presentationAnchor: UIViewController? = nil,
+    completion: @escaping () -> Void
+  ) {
+    dispatchPrecondition(condition: .onQueue(.main))
+
+    let windows: Array<UIWindow>? = UIApplication
+      .shared
+      .connectedScenes
+      .filter { $0.activationState == .foregroundActive }
+      .compactMap { $0 as? UIWindowScene }
+      .first?
+      .windows
+
+    let anchor: UIViewController? =
+      presentationAnchor
+      ?? windows?
+      .first(where: \.isKeyWindow)?
+      .rootViewController
+      ?? windows?
+      .first?
+      .rootViewController
+
+    guard let anchor: UIViewController = anchor
+    else { return completion() }
+
+    let alert: UIAlertController = .init(
+      title: title.string(),
+      message: message.string(),
+      preferredStyle: .alert
+    )
+    alert.addAction(
+      .init(
+        title: buttonTitle.string(),
+        style: .default,
+        handler: { _ in completion() }
+      )
+    )
+
+    anchor.present(
+      alert,
+      animated: true,
+      completion: nil
+    )
+  }
 }

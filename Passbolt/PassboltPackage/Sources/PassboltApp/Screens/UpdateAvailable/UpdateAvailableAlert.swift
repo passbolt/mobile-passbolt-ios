@@ -21,29 +21,42 @@
 // @since         v1.0
 //
 
-@testable import Crypto
-@testable import UIComponents
+import UIComponents
 
-public func testEnvironment() -> Environment {
-  Environment(
-    Time.placeholder,
-    UUIDGenerator.placeholder,
-    Logger.placeholder,
-    Networking.placeholder,
-    Preferences.placeholder,
-    Keychain.placeholder,
-    Biometrics.placeholder,
-    Camera.placeholder,
-    ExternalURLOpener.placeholder,
-    AppLifeCycle.placeholder,
-    PGP.placeholder,
-    SignatureVerfication.placeholder,
-    MDMConfig.placeholder,
-    Database.placeholder,
-    Files.placeholder,
-    AutoFillExtension.placeholder,
-    SystemPasteboard.placeholder,
-    Yubikey.placeholder,
-    AppMeta.placeholder
-  )
+internal final class UpdateAvailableViewController: AlertViewController<UpdateAvailableController>, UIComponent {
+
+  internal func setup() {
+    mut(self) {
+      .combined(
+        .title(localized: "update.available.title"),
+        .message(localized: "update.available.message"),
+        .action(
+          localized: .gotIt,
+          inBundle: .commons,
+          style: .cancel,
+          handler: { [weak self] in self?.controller.completion() }
+        )
+      )
+    }
+  }
+}
+
+internal struct UpdateAvailableController {
+
+  internal var completion: () -> Void
+}
+
+extension UpdateAvailableController: UIController {
+
+  internal typealias Context = () -> Void
+
+  internal static func instance(
+    in context: @escaping Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    Self(
+      completion: context
+    )
+  }
 }

@@ -101,6 +101,18 @@ extension NetworkRequest {
   }
 
   public static func respondingWith(
+    _ publisher: AnyPublisher<Response, TheError>,
+    storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
+  ) -> Self {
+    Self(
+      execute: { variable in
+        requestVariableReference?.pointee = variable
+        return publisher
+      }
+    )
+  }
+
+  public static func respondingWith(
     _ response: Response,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {

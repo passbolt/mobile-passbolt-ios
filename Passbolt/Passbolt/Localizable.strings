@@ -160,3 +160,6 @@ Contact your administrator for more information.";
 "account.details.field.email.title" = "E-mail";
 "account.details.field.url.title" = "Organization URL";
 "account.details.button.save.title" = "Save";
+
+"update.available.title" = "New version available!";
+"update.available.message" = "Please update the Passbolt app to the latest version from the App Store";

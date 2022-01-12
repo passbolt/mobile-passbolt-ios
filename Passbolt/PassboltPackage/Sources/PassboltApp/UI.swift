@@ -23,6 +23,7 @@
 
 import UIComponents
 
+@MainActor
 public final class UI {
 
   private var windows: Dictionary<String, Window> = .init()

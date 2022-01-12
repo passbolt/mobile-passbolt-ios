@@ -28,6 +28,7 @@ import Foundation
 import NFC
 import PassboltApp
 
+@MainActor
 internal struct Application {
   
   internal let ui: UI
@@ -54,7 +55,8 @@ internal struct Application {
       SystemPasteboard.uiPasteboard(),
       Yubikey.live(),
       Randomness.system(),
-      AsyncExecutors.libDispatch()
+      AsyncExecutors.libDispatch(),
+      AppMeta.live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)

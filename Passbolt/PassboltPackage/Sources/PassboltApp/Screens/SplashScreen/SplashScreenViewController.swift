@@ -65,7 +65,21 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
       .delay(for: 0.3, scheduler: RunLoop.main)
       .receive(on: RunLoop.main)
       .sink { [weak self] destination in
-        self?.navigate(to: destination)
+        Task { [weak self] in
+          let presentUpdateAlert: Bool = await self?.controller.shouldDisplayUpdateAlert() ?? false
+          if presentUpdateAlert {
+            self?.present(
+              UpdateAvailableViewController.self,
+              in: { [weak self] in
+                self?.navigate(to: destination)
+              }
+            )
+          }
+          else {
+            self?.navigate(to: destination)
+          }
+        }
+
       }
       .store(in: cancellables)
   }

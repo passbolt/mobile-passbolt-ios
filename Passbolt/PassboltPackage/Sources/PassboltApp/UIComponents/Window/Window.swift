@@ -23,6 +23,7 @@
 
 import UIComponents
 
+@MainActor
 internal final class Window {
 
   private static let transitionDuration: TimeInterval = 0.3
@@ -55,6 +56,7 @@ internal final class Window {
       .screenStateDispositionPublisher()
       // ensure that previous animations/transitions complete and only latest transition is applied
       .debounce(for: .seconds(Self.transitionDuration), scheduler: RunLoop.main)
+      .receive(on: RunLoop.main)
       .sink(
         receiveValue: { [weak self] disposition in
           guard let self = self else { return }
