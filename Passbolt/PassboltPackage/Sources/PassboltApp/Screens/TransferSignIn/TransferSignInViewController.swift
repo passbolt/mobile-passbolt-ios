@@ -71,6 +71,16 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
         .title(
           localized: "sign.in.title",
           inBundle: .commons
+        ),
+        .rightBarButtonItem(
+          Mutation<UIBarButtonItem>
+            .combined(
+              .image(named: .help, from: .uiCommons),
+              .action { [weak self] in
+                self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+              }
+            )
+            .instantiate()
         )
       )
     }
