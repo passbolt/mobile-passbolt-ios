@@ -37,7 +37,7 @@ extension RefreshSessionRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/auth/jwt/refresh.json"),
+          .pathSuffix("/auth/jwt/refresh.json"),
           .method(.post),
           .jsonBody(
             from: RefreshSessionRequestBody(

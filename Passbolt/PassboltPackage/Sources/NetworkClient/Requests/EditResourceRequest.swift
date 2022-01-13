@@ -40,7 +40,7 @@ extension UpdateResourceRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/resources/\(requestVariable.resourceID).json"),
+          .pathSuffix("/resources/\(requestVariable.resourceID).json"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,

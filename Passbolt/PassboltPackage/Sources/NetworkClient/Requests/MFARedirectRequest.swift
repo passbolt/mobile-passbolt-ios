@@ -37,7 +37,7 @@ extension MFARedirectRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/mfa/verify/error.json"),
+          .pathSuffix("/mfa/verify/error.json"),
           .method(.get),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)")
         )

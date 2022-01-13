@@ -39,7 +39,7 @@ extension ConfigRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/settings.json"),
+          .pathSuffix("/settings.json"),
           .method(.get),
           .queryItem("api-version", value: "v2")
         )

@@ -38,7 +38,7 @@ extension SignInRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/auth/jwt/login.json"),
+          .pathSuffix("/auth/jwt/login.json"),
           .method(.post),
           .whenSome(
             requestVariable.mfaToken,

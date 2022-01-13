@@ -38,7 +38,7 @@ extension ServerJWKSRequest {
       template: .init { _, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/auth/jwt/jwks.json"),
+          .pathSuffix("/auth/jwt/jwks.json"),
           .method(.get)
         )
       },

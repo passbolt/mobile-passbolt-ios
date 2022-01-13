@@ -37,7 +37,7 @@ extension ServerPGPPublicKeyRequest {
       template: .init { _, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/auth/verify.json"),
+          .pathSuffix("/auth/verify.json"),
           .method(.get)
         )
       },

@@ -38,7 +38,7 @@ extension YubikeyAuthorizationRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/mfa/verify/yubikey.json"),
+          .pathSuffix("/mfa/verify/yubikey.json"),
           .method(.post),
           .header("Authorization", value: "Bearer \(requestVariable.accessToken)"),
           .jsonBody(

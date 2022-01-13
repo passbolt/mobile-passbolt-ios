@@ -38,7 +38,7 @@ extension AccountTransferUpdateRequest {
       template: .init { _, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/mobile/transfers/\(requestVariable.transferID)/\(requestVariable.authenticationToken).json"),
+          .pathSuffix("/mobile/transfers/\(requestVariable.transferID)/\(requestVariable.authenticationToken).json"),
           .method(.post),
           .when(
             requestVariable.requestUserProfile,

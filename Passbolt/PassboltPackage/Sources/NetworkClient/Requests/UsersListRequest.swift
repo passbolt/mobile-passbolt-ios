@@ -37,7 +37,7 @@ extension UserListRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/users.json"),
+          .pathSuffix("/users.json"),
           .whenSome(
             requestVariable.resourceIDFilter,
             then: { resourceID in

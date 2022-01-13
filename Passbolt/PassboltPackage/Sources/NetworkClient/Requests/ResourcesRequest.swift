@@ -40,7 +40,7 @@ extension ResourcesRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/resources.json"),
+          .pathSuffix("/resources.json"),
           .queryItem("contain[permission]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(

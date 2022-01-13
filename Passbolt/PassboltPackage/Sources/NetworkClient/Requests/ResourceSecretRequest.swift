@@ -37,7 +37,7 @@ extension ResourceSecretRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/secrets/resource/\(requestVariable.resourceID).json"),
+          .pathSuffix("/secrets/resource/\(requestVariable.resourceID).json"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,

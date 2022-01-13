@@ -40,9 +40,9 @@ extension UserProfileRequest {
           .whenSome(
             requestVariable.userID,
             then: { userID in
-              .path("/users/\(userID).json")
+              .pathSuffix("/users/\(userID).json")
             },
-            else: .path("/users/me.json")
+            else: .pathSuffix("/users/me.json")
           ),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(

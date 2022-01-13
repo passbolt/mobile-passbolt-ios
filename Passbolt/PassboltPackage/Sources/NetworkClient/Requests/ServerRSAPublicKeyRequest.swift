@@ -37,7 +37,7 @@ extension ServerRSAPublicKeyRequest {
       template: .init { _, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/auth/jwt/rsa.json"),
+          .pathSuffix("/auth/jwt/rsa.json"),
           .method(.get)
         )
       },

@@ -36,7 +36,7 @@ extension SignOutRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: requestVariable.domain.rawValue),
-          .path("/auth/jwt/logout.json"),
+          .pathSuffix("/auth/jwt/logout.json"),
           .method(.post),
           .jsonBody(from: requestVariable)
         )

@@ -40,7 +40,7 @@ extension ResourcesTypesRequest {
       template: .init { sessionVariable, requestVariable in
         .combined(
           .url(string: sessionVariable.domain.rawValue),
-          .path("/resource-types.json"),
+          .pathSuffix("/resource-types.json"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
