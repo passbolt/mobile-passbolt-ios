@@ -353,11 +353,11 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         }
       )
       .handleEnd { [weak self] ending in
-        if ending != .canceled {
-          self?.signInCancellable = nil
+        if case .canceled = ending {
+          /* NOP */
         }
         else {
-          /* NOP */
+          self?.signInCancellable = nil
         }
         self?.dismissOverlay()
       }

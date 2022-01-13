@@ -23,10 +23,10 @@
 
 import Combine
 
-public enum PublisherEnding: Equatable {
+public enum PublisherEnding {
 
   case finished
-  case failed
+  case failed(Error)
   case canceled
 }
 
@@ -41,8 +41,8 @@ extension Publisher {
         case .finished:
           handler(.finished)
 
-        case .failure:
-          handler(.failed)
+        case let .failure(error):
+          handler(.failed(error))
         }
       },
       receiveCancel: {
