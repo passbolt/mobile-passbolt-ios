@@ -47,6 +47,7 @@ public struct NetworkClient {
   public var deleteResourceRequest: DeleteResourceRequest
   public var userListRequest: UserListRequest
   public var setSessionStatePublisher: (AnyPublisher<SessionState?, Never>) -> Void
+  public var setAccessTokenInvalidation: (@escaping () -> Void) -> Void
   public var setAuthorizationRequest: (@escaping () -> Void) -> Void
   public var setMFARequest: (@escaping (Array<MFAProvider>) -> Void) -> Void
 }
@@ -76,6 +77,10 @@ extension NetworkClient: Feature {
       .switchToLatest()
       .eraseToAnyPublisher()
 
+    // accessed without lock - always set during loading initial features, before use
+    var accessTokenInvalidaton: (() -> Void) = unreachable(
+      "Access token invalidaton method has to be assigned before use."
+    )
     // accessed without lock - always set during loading initial features, before use
     var authorizationRequest: (() -> Void) = unreachable("Authorization request has to be assigned before use.")
     // accessed without lock - always set during loading initial features, before use
@@ -136,6 +141,12 @@ extension NetworkClient: Feature {
       sessionStatePublisherSubject.send(sessionStatePublisher)
     }
 
+    func setAccessTokenInvalidation(
+      method: @escaping () -> Void
+    ) {
+      accessTokenInvalidaton = method
+    }
+
     func setAuthorization(
       request: @escaping () -> Void
     ) {
@@ -146,6 +157,10 @@ extension NetworkClient: Feature {
       request: @escaping (Array<MFAProvider>) -> Void
     ) {
       mfaRequest = request
+    }
+
+    func invalidateAccessToken() {
+      accessTokenInvalidaton()
     }
 
     func requestAuthorization() {
@@ -195,6 +210,7 @@ extension NetworkClient: Feature {
         with: emptySessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -209,6 +225,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -219,6 +236,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -229,6 +247,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -239,6 +258,7 @@ extension NetworkClient: Feature {
         with: domainNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -249,6 +269,7 @@ extension NetworkClient: Feature {
         with: domainNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -259,6 +280,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -269,6 +291,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -279,6 +302,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -289,6 +313,7 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
@@ -299,12 +324,14 @@ extension NetworkClient: Feature {
         with: authorizedNetworkSessionVariablePublisher
       )
       .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
         authorizationRequest: requestAuthorization,
         mfaRequest: requestMFA,
         mfaRedirectionHandler: mfaRedirectRequest.execute,
         sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       setSessionStatePublisher: setSessionStatePublisher(_:),
+      setAccessTokenInvalidation: setAccessTokenInvalidation(method:),
       setAuthorizationRequest: setAuthorization(request:),
       setMFARequest: setMFA(request:)
     )
@@ -334,6 +361,7 @@ extension NetworkClient: Feature {
       deleteResourceRequest: .placeholder,
       userListRequest: .placeholder,
       setSessionStatePublisher: Commons.placeholder("You have to provide mocks for used methods"),
+      setAccessTokenInvalidation: Commons.placeholder("You have to provide mocks for used methods"),
       setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"),
       setMFARequest: Commons.placeholder("You have to provide mocks for used methods")
     )

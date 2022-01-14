@@ -70,18 +70,18 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
         .when(
           navigationController?.viewControllers.count == 1,
           then:
-              .leftBarButtonItem(
-                Mutation<UIBarButtonItem>.combined(
-                  .style(.done),
-                  .image(named: .close, from: .uiCommons),
-                  .action { [weak self] in
-                    self?.dismiss(Self.self)
-                  }
-                )
-                  .instantiate()
+            .leftBarButtonItem(
+              Mutation<UIBarButtonItem>.combined(
+                .style(.done),
+                .image(named: .close, from: .uiCommons),
+                .action { [weak self] in
+                  self?.dismiss(Self.self)
+                }
               )
+              .instantiate()
+            )
         )
-        
+
       )
     }
 

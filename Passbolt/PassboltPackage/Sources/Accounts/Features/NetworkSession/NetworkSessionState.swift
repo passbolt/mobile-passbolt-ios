@@ -30,7 +30,7 @@ public struct NetworkSessionState {
   public typealias RefreshToken = Tagged<String, Self>
 
   public let account: Account
-  public var accessToken: AccessToken
+  public var accessToken: AccessToken?
   public var refreshToken: RefreshToken?
   public var mfaToken: MFAToken?
 }

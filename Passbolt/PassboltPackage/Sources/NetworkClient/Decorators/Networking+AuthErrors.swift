@@ -27,6 +27,7 @@ import Environment
 extension NetworkRequest {
 
   internal func withAuthErrors(
+    invalidateAccessToken: @escaping () -> Void,
     authorizationRequest: @escaping () -> Void,
     mfaRequest: @escaping (Array<MFAProvider>) -> Void,
     mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheError>,
@@ -72,6 +73,7 @@ extension NetworkRequest {
           }
           .mapError { (error: TheError) -> TheError in
             if error.identifier == .missingSession {
+              invalidateAccessToken()
               authorizationRequest()
             }
             else if error.identifier == .mfaRequired {

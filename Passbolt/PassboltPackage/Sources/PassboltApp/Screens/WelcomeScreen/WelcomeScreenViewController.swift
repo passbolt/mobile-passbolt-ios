@@ -21,8 +21,8 @@
 // @since         v1.0
 
 import AccountSetup
-import UIComponents
 import SharedUIComponents
+import UIComponents
 
 internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
 

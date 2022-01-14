@@ -134,19 +134,30 @@ extension NetworkSession: Feature {
     }
 
     networkClient
+      .setAccessTokenInvalidation(
+        {
+          withSessionState { session in
+            session?.accessToken = nil
+          }
+        }
+      )
+
+    networkClient
       .setSessionStatePublisher(
         sessionStateSubject
           .removeDuplicates()
           .map { (sessionState: NetworkSessionState?) -> AnyPublisher<NetworkClient.SessionState?, Never> in
-            guard let sessionState: NetworkSessionState = sessionState
+            guard
+              let sessionState: NetworkSessionState = sessionState
             else {
               return Just(nil)
                 .eraseToAnyPublisher()
             }
-            let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken
             // we are giving the token 5 second leeway to avoid making network requests
             // with a token that is about to expire since it might result in unauthorized response
-            guard !accessToken.isExpired(timestamp: time.timestamp(), leeway: 5)
+            guard
+              let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken,
+              !accessToken.isExpired(timestamp: time.timestamp(), leeway: 5)
             else {
               return refreshSessionIfNeeded(account: sessionState.account)
                 .ignoreOutput()  // on success it should recompute whole map and result should not be needed
@@ -621,7 +632,9 @@ extension NetworkSession: Feature {
       storeLocally: Bool
     ) -> AnyPublisher<Void, TheError> {
       withSessionState { sessionState in
-        guard let sessionState: NetworkSessionState = sessionState
+        guard
+          let sessionState: NetworkSessionState = sessionState,
+          let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken  // there might be session refresh attempt here
         else {
           diagnostics.diagnosticLog("...missing session for mfa auth!")
           return Fail(error: .missingSessionError()).eraseToAnyPublisher()
@@ -631,7 +644,6 @@ extension NetworkSession: Feature {
           diagnostics.diagnosticLog("...invalid account for mfa auth!")
           return Fail(error: .sessionClosed()).eraseToAnyPublisher()
         }
-        let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken
 
         switch authorization {
         case let .totp(otp):
@@ -714,7 +726,8 @@ extension NetworkSession: Feature {
           return ongoingRequest
         }
         else {
-          guard let sessionState: NetworkSessionState = sessionState
+          guard
+            let sessionState: NetworkSessionState = sessionState
           else {
             diagnostics.diagnosticLog("...missing session for session refresh!")
             return Fail(error: .missingSessionError())
@@ -728,7 +741,7 @@ extension NetworkSession: Feature {
           }
           // we are giving the token 5 second leeway to avoid making network requests
           // with a token that is about to expire since it might result in unauthorized response
-          guard sessionState.accessToken.isExpired(timestamp: time.timestamp(), leeway: 5)
+          guard sessionState.accessToken?.isExpired(timestamp: time.timestamp(), leeway: 5) ?? true
           else {
             diagnostics.diagnosticLog("... session refresh not required, reusing current session!")
             return Just(Void())  // if current access token is valid there is no need to refresh

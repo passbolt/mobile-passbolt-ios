@@ -54,7 +54,8 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
   }
 
   public func setupView() {
-    title = DisplayableString
+    title =
+      DisplayableString
       .localized(
         key: "help.menu.title",
         bundle: .sharedUIComponents

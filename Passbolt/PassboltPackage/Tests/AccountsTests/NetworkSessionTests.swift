@@ -106,6 +106,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
     )
 
+    networkClient.setAccessTokenInvalidation = always(Void())
     networkClient.setSessionStatePublisher = always(Void())
 
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))

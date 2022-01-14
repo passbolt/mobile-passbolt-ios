@@ -20,8 +20,8 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 
-import UIComponents
 import SharedUIComponents
+import UIComponents
 
 internal final class CodeScanningViewController: PlainViewController, UIComponent {
 

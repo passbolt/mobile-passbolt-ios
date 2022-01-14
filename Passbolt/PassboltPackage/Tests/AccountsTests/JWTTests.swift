@@ -106,6 +106,11 @@ final class JWTTests: TestCase {
     let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
     XCTAssertTrue(jwt.isExpired(timestamp: 2_000_000_000))
   }
+
+  func test_tokenIsExpiredEarlierWithLeeway() {
+    let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
+    XCTAssertTrue(jwt.isExpired(timestamp: 1_516_239_012, leeway: 10))
+  }
 }
 
 private let validToken: String = """

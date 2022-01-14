@@ -553,6 +553,7 @@ final class NetworkRequestTests: XCTestCase {
       with: sessionSubject.eraseToAnyPublisher()
     )
     .withAuthErrors(
+      invalidateAccessToken: { /* NOP */  },
       authorizationRequest: { /* NOP */  },
       mfaRequest: { _ in /* NOP */ },
       mfaRedirectionHandler: mfaRedirectionHandler,

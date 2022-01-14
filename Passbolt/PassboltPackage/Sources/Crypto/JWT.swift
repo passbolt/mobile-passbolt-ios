@@ -82,7 +82,7 @@ extension JWT {
     timestamp: Int,
     leeway: UInt = 0
   ) -> Bool {
-    timestamp + Int(leeway) > payload.expiration
+    timestamp + Int(leeway) >= payload.expiration
   }
 }
 

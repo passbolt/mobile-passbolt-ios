@@ -143,15 +143,15 @@ final class AccountSessionTests: TestCase {
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
-       with: always(
+      with: always(
         Just(Array<MFAProvider>())
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.patch(
       \NetworkSession.sessionRefreshAvailable,
-       with: always(false)
+      with: always(false)
     )
     let lifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
     features.environment.appLifeCycle.lifeCyclePublisher = {
@@ -1672,11 +1672,11 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
@@ -1702,28 +1702,28 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always(.failure(.testError()))
+      with: always(.failure(.testError()))
     )
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
-       with: always(
+      with: always(
         Just(Array<MFAProvider>())
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.patch(
       \NetworkSession.sessionRefreshAvailable,
-       with: always(false)
+      with: always(false)
     )
 
     let feature: AccountSession = testInstance()
@@ -1752,28 +1752,28 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always(.success("private key"))
+      with: always(.success("private key"))
     )
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
-       with: always(
+      with: always(
         Just(Array<MFAProvider>())
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.patch(
       \NetworkSession.sessionRefreshAvailable,
-       with: always(false)
+      with: always(false)
     )
     environment.pgp.encryptAndSign = always(.failure(.testError()))
 
@@ -1803,28 +1803,28 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always(.success("private key"))
+      with: always(.success("private key"))
     )
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
-       with: always(
+      with: always(
         Just(Array<MFAProvider>())
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.patch(
       \NetworkSession.sessionRefreshAvailable,
-       with: always(false)
+      with: always(false)
     )
     environment.pgp.encryptAndSign = always(.success("encrypted"))
 
@@ -1854,11 +1854,11 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.usePlaceholder(for: NetworkSession.self)
@@ -1874,24 +1874,24 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
-       with: always(
+      with: always(
         Just(Array<MFAProvider>())
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.patch(
       \NetworkSession.sessionRefreshAvailable,
-       with: always(false)
+      with: always(false)
     )
 
     var currentTimestamp: Int = 0
@@ -1915,24 +1915,24 @@ final class AccountSessionTests: TestCase {
     features.use(accountsDataStore)
     features.patch(
       \AccountsDataStore.storeLastUsedAccount,
-       with: always(Void())
+      with: always(Void())
     )
     features.patch(
       \AccountsDataStore.loadAccounts,
-       with: always([validAccount, validAccountAlternative])
+      with: always([validAccount, validAccountAlternative])
     )
     features.use(networkClient)
     features.patch(
       \NetworkSession.createSession,
-       with: always(
+      with: always(
         Just(Array<MFAProvider>())
           .setFailureType(to: TheError.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.patch(
       \NetworkSession.sessionRefreshAvailable,
-       with: always(false)
+      with: always(false)
     )
 
     let feature: AccountSession = testInstance()
