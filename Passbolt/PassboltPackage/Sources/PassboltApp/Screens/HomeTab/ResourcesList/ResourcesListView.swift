@@ -61,7 +61,24 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
       )
     }
 
-    self.emptyStateView = EmptyStateView()
+    let emptyView: EmptyStateView = .init()
+    emptyView.isUserInteractionEnabled = true
+    self.emptyStateView = emptyView
+    mut(ResourcesListAddButton()) {
+      .combined(
+        .set(
+          \ResourcesListAddButton.tapAction,
+          to: { [weak self] in
+            self?.addTapSubject.send()
+          }
+        ),
+        .subview(of: emptyView),
+        .heightAnchor(.equalTo, constant: 64),
+        .topAnchor(.equalTo, self.topAnchor),
+        .leadingAnchor(.equalTo, self.leadingAnchor),
+        .trailingAnchor(.equalTo, self.trailingAnchor)
+      )
+    }
   }
 
   override internal func setupCell(

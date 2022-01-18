@@ -23,24 +23,16 @@
 
 import UICommons
 
-internal final class ResourcesListAddCell: CollectionViewCell {
+internal final class ResourcesListAddButton: Button {
 
-  private var tapAction: (() -> Void)?
+  internal var tapAction: (() -> Void)?
 
-  override internal func setup() {
-    super.setup()
+  internal required init() {
+    super.init()
 
     mut(self) {
-      .backgroundColor(dynamic: .background)
-    }
-
-    let contentButton: Button = .init()
-    mut(contentButton) {
       .combined(
         .backgroundColor(.clear),
-        .subview(of: contentView),
-        .heightAnchor(.equalTo, constant: 64),
-        .edges(equalTo: contentView, usingSafeArea: false),
         .action { [weak self] in self?.tapAction?() }
       )
     }
@@ -65,10 +57,10 @@ internal final class ResourcesListAddCell: CollectionViewCell {
         .userInteractionEnabled(false),
         .backgroundColor(dynamic: .primaryBlue),
         .cornerRadius(8),
-        .subview(of: contentButton),
-        .leadingAnchor(.equalTo, contentButton.leadingAnchor, constant: 16),
-        .topAnchor(.equalTo, contentButton.topAnchor, constant: 12),
-        .bottomAnchor(.equalTo, contentButton.bottomAnchor, constant: -12),
+        .subview(of: self),
+        .leadingAnchor(.equalTo, self.leadingAnchor, constant: 16),
+        .topAnchor(.equalTo, self.topAnchor, constant: 12),
+        .bottomAnchor(.equalTo, self.bottomAnchor, constant: -12),
         .widthAnchor(.equalTo, constant: 40),
         .heightAnchor(.equalTo, constant: 40)
       )
@@ -80,24 +72,42 @@ internal final class ResourcesListAddCell: CollectionViewCell {
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .text(localized: .create, inBundle: .commons),
-        .subview(of: contentButton),
+        .subview(of: self),
         .centerYAnchor(.equalTo, iconContainer.centerYAnchor),
         .leadingAnchor(.equalTo, iconContainer.trailingAnchor, constant: 12),
-        .trailingAnchor(.equalTo, contentButton.trailingAnchor, constant: -12)
+        .trailingAnchor(.equalTo, self.trailingAnchor, constant: -12)
       )
     }
+  }
+}
 
+internal final class ResourcesListAddCell: CollectionViewCell {
+
+  private let contentButton: ResourcesListAddButton = .init()
+
+  override internal func setup() {
+    mut(self) {
+      .backgroundColor(dynamic: .background)
+    }
+
+    mut(contentButton) {
+      .combined(
+        .subview(of: contentView),
+        .heightAnchor(.equalTo, constant: 64),
+        .edges(equalTo: contentView, usingSafeArea: false)
+      )
+    }
   }
 
   internal func setup(
     tapAction: @escaping (() -> Void)
   ) {
-    self.tapAction = tapAction
+    self.contentButton.tapAction = tapAction
   }
 
   override internal func prepareForReuse() {
     super.prepareForReuse()
 
-    self.tapAction = nil
+    self.contentButton.tapAction = nil
   }
 }

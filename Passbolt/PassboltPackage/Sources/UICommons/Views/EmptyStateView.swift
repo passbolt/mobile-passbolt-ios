@@ -43,7 +43,7 @@ open class EmptyStateView: View {
         .textAlignment(.center),
         .font(.inter(ofSize: 20, weight: .semibold)),
         .subview(of: self),
-        .topAnchor(.equalTo, self.topAnchor),
+        .topAnchor(.greaterThanOrEqualTo, self.topAnchor),
         .leadingAnchor(.equalTo, self.leadingAnchor),
         .trailingAnchor(.equalTo, self.trailingAnchor)
       )
@@ -62,9 +62,10 @@ open class EmptyStateView: View {
       .combined(
         .subview(of: self),
         .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 8),
-        .leadingAnchor(.equalTo, self.leadingAnchor),
-        .trailingAnchor(.equalTo, self.trailingAnchor),
-        .bottomAnchor(.equalTo, self.bottomAnchor)
+        .leadingAnchor(.equalTo, leadingAnchor),
+        .trailingAnchor(.equalTo, trailingAnchor),
+        .centerYAnchor(.equalTo, centerYAnchor),
+        .bottomAnchor(.lessThanOrEqualTo, bottomAnchor)
       )
     }
 

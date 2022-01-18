@@ -59,8 +59,11 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
         .combined(
           .hidden(wasHidden),
           .subview(of: self),
-          .centerYAnchor(.equalTo, centerYAnchor),
-          .centerXAnchor(.equalTo, centerXAnchor),
+          .topAnchor(.equalTo, topAnchor, constant: 16),
+          .bottomAnchor(.equalTo, bottomAnchor, constant: -16),
+          .heightAnchor(.equalTo, heightAnchor, constant: -32),
+          .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
+          .trailingAnchor(.equalTo, trailingAnchor, constant: -16),
           .widthAnchor(.equalTo, self.widthAnchor, constant: -32)
         )
       }

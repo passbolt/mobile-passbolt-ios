@@ -84,7 +84,13 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .resourcesListPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] resources in
-        let items: Array<ResourcesListViewItem> = [.add] + resources.map { .resource($0) }
+        let items: Array<ResourcesListViewItem>
+        if resources.isEmpty {
+          items = []
+        }
+        else {
+          items = [.add] + resources.map { .resource($0) }
+        }
         self?.contentView.update(data: items)
       }
       .store(in: self.cancellables)
