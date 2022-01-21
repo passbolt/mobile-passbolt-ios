@@ -110,10 +110,11 @@ public struct AccountSelectionAddAccountCellItem: Hashable {
 extension AccountSelectionAddAccountCellItem {
 
   public static let `default`: Self = .init(
-    title: NSLocalizedString(
-      "account.selection.add.account.footer.title",
-      bundle: .commons,
-      comment: ""
-    )
+    title:
+      DisplayableString
+      .localized(
+        key: "account.selection.add.account.footer.title"
+      )
+      .string()
   )
 }

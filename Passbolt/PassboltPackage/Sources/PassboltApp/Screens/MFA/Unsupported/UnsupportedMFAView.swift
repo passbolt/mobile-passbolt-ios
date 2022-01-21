@@ -50,12 +50,12 @@ internal final class UnsupportedMFAView: View {
       )
     resultView
       .applyOn(
-        title: .text(localized: "mfa.unsupported.provider.title", inBundle: .main)
+        title: .text(displayable: .localized(key: "mfa.unsupported.provider.title"))
       )
 
     resultView
       .applyOn(
-        message: .text(localized: "mfa.unsupported.provider.description", inBundle: .main)
+        message: .text(displayable: .localized(key: "mfa.unsupported.provider.description"))
       )
 
     resultView

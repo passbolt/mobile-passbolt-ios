@@ -42,31 +42,6 @@ extension Mutation where Subject: TextButton {
   }
 
   public static func text(
-    localized key: LocalizationKeyConstant,
-    fromTable tableName: String? = nil,
-    inBundle bundle: Bundle = Bundle.main,
-    arguments: CVarArg...
-  ) -> Self {
-    Self { (subject: Subject) in
-      let localized: String = NSLocalizedString(
-        key.rawValue,
-        tableName: tableName,
-        bundle: bundle,
-        comment: ""
-      )
-      if arguments.isEmpty {
-        subject.text = localized
-      }
-      else {
-        subject.text = String(
-          format: localized,
-          arguments: arguments
-        )
-      }
-    }
-  }
-
-  public static func text(
     displayable: DisplayableString,
     with arguments: Array<CVarArg> = .init()
   ) -> Self {

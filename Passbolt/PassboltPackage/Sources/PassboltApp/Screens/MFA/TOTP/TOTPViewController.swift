@@ -122,8 +122,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
             overlay: LoaderOverlayView(
               longLoadingMessage: (
                 message: .localized(
-                  key: .loadingLong,
-                  bundle: .commons
+                  key: .loadingLong
                 ),
                 delay: 15
               )
@@ -133,8 +132,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
           self?.dismissOverlay()
           self?.presentErrorSnackbar(
             .localized(
-              key: .invalidPasteValue,
-              bundle: .commons
+              key: .invalidPasteValue
             )
           )
         case let .error(error) where error.identifier == .validationError:

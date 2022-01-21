@@ -62,8 +62,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
   public func setupView() {
     mut(self) {
       .title(
-        localized: "authorization.title",
-        inBundle: .commons
+        .localized(key: "authorization.title")
       )
     }
 
@@ -299,8 +298,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           overlay: LoaderOverlayView(
             longLoadingMessage: (
               message: .localized(
-                key: .loadingLong,
-                bundle: .commons
+                key: .loadingLong
               ),
               delay: 5
             )
@@ -327,8 +325,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           handler: { [weak self] _ in
             self?.presentErrorSnackbar(
               .localized(
-                key: "sign.in.error.passphrase.invalid.message",
-                bundle: .commons
+                key: "sign.in.error.passphrase.invalid.message"
               ),
               hideAfter: 5
             )
@@ -340,8 +337,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           handler: { [weak self] _ in
             self?.presentErrorSnackbar(
               .localized(
-                key: "sign.in.error.biometrics.changed.message",
-                bundle: .commons
+                key: "sign.in.error.biometrics.changed.message"
               ),
               hideAfter: 5
             )

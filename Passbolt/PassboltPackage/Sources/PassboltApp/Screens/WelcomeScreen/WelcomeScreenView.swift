@@ -64,7 +64,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
-        .text(localized: "welcome.title"),
+        .text(displayable: .localized(key: "welcome.title")),
         .accessibilityIdentifier("welcome.title.label")
       )
     }
@@ -76,7 +76,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
         .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
-        .text(localized: "welcome.description"),
+        .text(displayable: .localized(key: "welcome.description")),
         .accessibilityIdentifier("welcome.description.label")
       )
     }
@@ -84,7 +84,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     mut(accountButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "welcome.connect.to.account"),
+        .text(displayable: .localized(key: "welcome.connect.to.account")),
         .accessibilityIdentifier("welcome.connect.account.button")
       )
     }
@@ -92,7 +92,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     mut(noAccountButton) {
       .combined(
         .linkStyle(),
-        .text(localized: "welcome.no.account"),
+        .text(displayable: .localized(key: "welcome.no.account")),
         .accessibilityIdentifier("welcome.no.account.button")
       )
     }

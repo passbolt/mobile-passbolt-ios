@@ -21,24 +21,23 @@
 // @since         v1.0
 //
 
-import struct AegithalosCocoa.LocalizationKeyConstant
 import class Foundation.Bundle
 import func Foundation.NSLocalizedString
 
+/// Note: Two instances of ``LocalizedString`` are treated as equal
+/// when their key, table and bundle are equal. Arguments are not taken
+/// into account when checking instance eqality.
 public struct LocalizedString {
-
-  public typealias Key = LocalizationKeyConstant
 
   public static func localized(
     key: Key,
     tableName: String? = .none,
-    bundle: Bundle = .main,
     arguments: Array<CVarArg> = .init()
   ) -> Self {
     Self(
       key: key,
       tableName: tableName,
-      bundle: bundle,
+      bundle: .localization,  // we are forcing all strings to be located in this bundle
       arguments: arguments
     )
   }
@@ -97,7 +96,9 @@ extension LocalizedString: Hashable {
     lhs.key.rawValue == rhs.key.rawValue
       && lhs.bundle == rhs.bundle
       && lhs.tableName == rhs.tableName
-    // can't really check arguments, skipping
+    // can't really check arguments,
+    // localized strings pointing to the same string are treated
+    // as equal ignoting arguments
   }
 
   public func hash(into hasher: inout Hasher) {
@@ -118,8 +119,23 @@ extension LocalizedString: ExpressibleByStringLiteral {
         stringLiteral: stringLiteral
       ),
       tableName: .none,
-      bundle: .main,
+      bundle: .localization,
       arguments: .init()
     )
+  }
+}
+
+extension LocalizedString {
+
+  public struct Key {
+
+    public var rawValue: String
+  }
+}
+
+extension LocalizedString.Key: ExpressibleByStringLiteral {
+
+  public init(stringLiteral value: StaticString) {
+    self.rawValue = "\(value)"
   }
 }

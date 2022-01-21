@@ -75,24 +75,6 @@ extension Mutation where Subject: ErrorMessageView {
   }
 
   internal static func text(
-    localized localizationKey: StaticString,
-    fromTable tableName: String? = nil,
-    inBundle bundle: Bundle = Bundle.main,
-    value: String = "",
-    localizationComment comment: String = ""
-  ) -> Self {
-    text(
-      NSLocalizedString(
-        localizationKey.description,
-        tableName: tableName,
-        bundle: bundle,
-        value: value,
-        comment: comment
-      )
-    )
-  }
-
-  internal static func text(
     displayable: DisplayableString,
     with arguments: Array<CVarArg> = .init()
   ) -> Self {

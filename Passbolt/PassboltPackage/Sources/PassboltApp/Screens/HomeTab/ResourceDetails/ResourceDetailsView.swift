@@ -118,7 +118,9 @@ internal final class ResourceDetailsView: ScrolledStackView {
         contentButtonMutation = .action { [weak self] in
           self?.copyFieldNameTapSubject.send(property.field)
         }
-        titleMutation = .text(localized: "resource.detail.field.username", inBundle: .commons)
+        titleMutation = .text(
+          displayable: .localized(key: "resource.detail.field.username")
+        )
         valueMutation = .combined(
           .userInteractionEnabled(false),
           .when(
@@ -138,7 +140,11 @@ internal final class ResourceDetailsView: ScrolledStackView {
         contentButtonMutation = .action { [weak self] in
           self?.copyFieldNameTapSubject.send(property.field)
         }
-        titleMutation = .text(localized: "resource.detail.field.passphrase", inBundle: .commons)
+        titleMutation = .text(
+          displayable: .localized(
+            key: "resource.detail.field.passphrase"
+          )
+        )
         valueMutation = .combined(
           .userInteractionEnabled(false),
           .when(
@@ -168,21 +174,22 @@ internal final class ResourceDetailsView: ScrolledStackView {
         contentButtonMutation = .action { [weak self] in
           self?.copyFieldNameTapSubject.send(property.field)
         }
-        titleMutation = .text(localized: "resource.detail.field.uri", inBundle: .commons)
+        titleMutation = .text(
+          displayable: .localized(
+            key: "resource.detail.field.uri"
+          )
+        )
         valueMutation = .combined(
           .userInteractionEnabled(true),
           .when(
             property.encrypted,
             then: .text(encryptedPlaceholder),
             else: .attributedString(
-              .string(
-                resourceDetails.url ?? "",
-                attributes: .init(
-                  font: .inter(ofSize: 14, weight: .medium),
-                  color: .primaryBlue,
-                  isLink: true
-                ),
-                tail: .terminator
+              .displayable(
+                .raw(resourceDetails.url ?? ""),
+                font: .inter(ofSize: 14, weight: .medium),
+                color: .primaryBlue,
+                isLink: true
               )
             )
           )
@@ -199,7 +206,11 @@ internal final class ResourceDetailsView: ScrolledStackView {
         contentButtonMutation = .action { [weak self] in
           self?.copyFieldNameTapSubject.send(property.field)
         }
-        titleMutation = .text(localized: "resource.detail.field.description", inBundle: .commons)
+        titleMutation = .text(
+          displayable: .localized(
+            key: "resource.detail.field.description"
+          )
+        )
         valueMutation = .combined(
           .combined(
             .userInteractionEnabled(false),

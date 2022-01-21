@@ -23,6 +23,7 @@
 
 import Darwin
 import Foundation
+import Localization
 import UIKit
 
 // Check for a jailbreak, returns true if device is jailbroken.
@@ -186,9 +187,9 @@ public func showFeedbackAlertIfNeeded(
 
   UIApplication
     .showInfoAlert(
-      title: .localized(key: "feedback.alert.title", bundle: .commons),
-      message: .localized(key: "feedback.alert.message", bundle: .commons),
-      buttonTitle: .localized(key: "feedback.alert.button.title", bundle: .commons),
+      title: .localized(key: "feedback.alert.title"),
+      message: .localized(key: "feedback.alert.message"),
+      buttonTitle: .localized(key: "feedback.alert.button.title"),
       presentationAnchor: presentationAnchor,
       completion: completion
     )

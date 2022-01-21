@@ -62,14 +62,13 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
       )
     contentView
       .applyOn(
-        title: .text(localized: "transfer.account.result.success.title")
+        title: .text(displayable: .localized(key: "transfer.account.result.success.title"))
       )
     contentView
       .applyOn(
         button: .combined(
           .text(
-            localized: .continue,
-            inBundle: .commons
+            displayable: .localized(key: .continue)
           ),
           .action(controller.continue)
         )

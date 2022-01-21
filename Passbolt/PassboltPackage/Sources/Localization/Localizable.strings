@@ -21,7 +21,108 @@
 // @since         v1.0
 //
 
-// Passbolt application
+// Shared and commons
+
+"generic.done" = "Done";
+"generic.yes" = "Yes";
+"generic.cancel" = "Cancel";
+"generic.remove" = "Remove";
+"generic.loading" = "Loading...";
+"generic.loading.long" = "It is taking longer than usual...";
+"generic.continue" = "Continue";
+"generic.retry" = "Retry";
+"generic.delete" = "Delete";
+"generic.got.it" = "Got it";
+"generic.settings" = "Settings";
+"generic.disable" = "Disable";
+"generic.sign.out" = "Sign out";
+"generic.refresh" = "Refresh";
+"generic.create" = "Create";
+"generic.empty.list" = "There are no results";
+"generic.paste.value.invalid" = "Trying to paste invalid value";
+"generic.are.you.sure" = "Are you sure?";
+
+"account.selection.title" = "Welcome back!";
+"account.selection.subtitle" = "Choose an account to sign in!";
+"account.selection.remove.account.button.title" = "Remove an account from this device";
+"account.selection.add.account.footer.title" = "Add new account";
+"account.selection.remove.account.title" = "Unlink an account";
+"account.selection.remove.account.subtitle" = "Choose an account to unlink.";
+"account.selection.remove.alert.title" = "Are you sure ?";
+"account.selection.remove.alert.message" = "This will remove your account from this device. Your passwords will not be deleted.";
+"account.selection.account.removed" = "The account has been removed from this device.";
+
+"authorization.button.title" = "Sign In";
+"authorization.forgot.passphrase.button.title" = "I forgot my passphrase";
+"authorization.forgot.passphrase.alert.title" = "Did you forgot your passphrase?";
+"authorization.forgot.passphrase.alert.message" = "Unfortunately you cannot access your data if you do not remember your passphrase. Please contact your administrator to unlock your account.";
+"authorization.passphrase.description.text" = "Passphrase";
+"authorization.title" = "Enter your passphrase";
+
+"sign.in.title" = "Enter your passphrase";
+
+"resource.list.username.empty.placeholder" = "no username";
+
+"resource.detail.field.username" = "Username";
+"resource.detail.field.passphrase" = "Password";
+"resource.detail.field.uri" = "Website URL";
+"resource.detail.field.description" = "Description";
+"resource.details.copied" = "%@ copied!";
+"resource.details.value" = "Value";
+
+"server.key.fingerprint.changed.title" = "Sorry, the server key has changed.";
+"server.key.fingerprint.changed.description" = "For security reasons please check with your administrator that this is a change that they initiated. The new fingerprint:";
+"server.key.fingerprint.accept.check" = "Yes, I checked and it is all fine.";
+"server.key.fingerprint.accept.new.key" = "Accept new key";
+
+"resource.form.password.strength" = "Password strength";
+"resource.form.strength.very.weak" = "very weak";
+"resource.form.strength.weak" = "weak";
+"resource.form.strength.fair" = "fair";
+"resource.form.strength.strong" = "strong";
+"resource.form.strength.very.strong" = "very strong";
+"resource.form.create.button.title" = "Create";
+"resource.form.create.and.fill.button.title" = "Create and fill";
+"resource.form.update.button.title" = "Save";
+"resource.form.new.password.created" = "New password has been created";
+"resource.form.description.encrypted" = "Description is encrypted";
+"resource.form.description.unencrypted" = "Description is not encrypted";
+
+"feedback.alert.title" = "Device may be jailbroken";
+"feedback.alert.message" = "We suspect your device may be jailbroken. Please be aware that it lowers overall device security and can be maliciously used to acquire your passwords.";
+"feedback.alert.button.title" = "I understand";
+
+"account.not.found.title.label" = "The account doesn’t exist";
+"account.not.found.message.label" = "The account has been deleted";
+"account.not.found.action.button.title" = "Connect to an existing account";
+
+"server.not.reachable.alert.title" = "Server was not reachable!";
+"server.not.reachable.alert.message.server.placeholder" = "Server";
+"server.not.reachable.alert.message" = "%@ cannot be reached. Please try again";
+
+"resource.edit.create.title" = "Password";
+"resource.edit.title" = "Edit password";
+"resource.edit.field.name.label" = "Name";
+"resource.edit.field.url.label" = "URL";
+"resource.edit.field.username.label" = "Username";
+"resource.edit.field.password.label" = "Password";
+"resource.edit.field.description.label" = "Description";
+"resource.edit.name.field.placeholder" = "Enter a name";
+"resource.edit.url.field.placeholder" = "Enter URL";
+"resource.edit.username.field.placeholder" = "Enter username";
+"resource.edit.password.field.placeholder" = "Enter password";
+"resource.edit.description.field.placeholder" = "Enter description";
+"resource.edit.exit.confirmation.message" = "Your modifications won’t be saved.";
+"resource.edit.exit.confirmation.button.edit.title" = "Edit";
+"resource.edit.exit.confirmation.button.revert.title" = "Revert";
+
+"help.logs.viewer.title" = "Logs";
+
+"help.menu.title" = "Help";
+"help.menu.show.logs.action.title" = "Access the logs";
+"help.menu.show.web.help.action.title" = "Visit help site";
+
+// Main application
 
 "welcome.title" = "Welcome!";
 "welcome.description" = "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device.";
@@ -37,7 +138,7 @@
 "code.scanning.begin" = "Aim the camera at the QR Codes";
 "code.scanning.processing.in.progress" = "Scanning... keep going!";
 "code.scanning.processing.invalid.code" = "It’s not the Passbolt QR. Try again!";
-"code.scanning.processing.error" = "Something went wrong, please try again.";
+
 
 "transfer.account.title" = "Transfer account details";
 "transfer.account.description" = "Scan QR codes to transfer your account details";
@@ -53,7 +154,7 @@
 "transfer.account.result.success.title" = "Your information has been transferred!";
 "transfer.account.result.already.linked.title" = "Account is already linked to the device.";
 "transfer.account.result.canceled.title" = "Transfer has been canceled.";
-"transfer.account.result.error.title" = "Something went wrong!";
+
 "transfer.account.exit.confirmation.title" = "Are you sure?";
 "transfer.account.exit.confirmation.message" = "If you leave, you will need to scan QR codes again.";
 "transfer.account.exit.confirmation.cancel.button.title" = "Continue setup";
@@ -100,7 +201,7 @@
 "account.settings.privacy.policy" = "Privacy policy";
 "account.settings.logs" = "Access the logs";
 "account.settings.sign.out" = "Sign out";
-"account.settings.biometrics.error" = "Failed to set biometrics.";
+
 "account.settings.alert.title" = "Are you sure?";
 "account.settings.biometrics.alert.message" = "After disabling Face ID you will need to login by using your passphrase.";
 "account.settings.signout.alert.message" = "If you sign out you will need to set up your account again on this device.";
@@ -122,7 +223,7 @@
 "resource.menu.item.description" = "Description";
 "resource.menu.item.url" = "URL";
 "resource.menu.item.field.copied" = "%@ copied!";
-"resource.menu.action.failed" = "%@ failed!";
+
 "resource.menu.action.edited" = "This password was successfully edited.";
 "resource.menu.action.deleted" = "%@ has been deleted!";
 
@@ -130,7 +231,6 @@
 "totp.message.label" = "Enter the verification code:";
 "totp.paste.otp.button.label" = "Paste code";
 "totp.remember.device.toggle.label" = "Remember this device for 30 days";
-"totp.wrong.code.error" = "Wrong code";
 
 "yubikey.scan.instruction" = "Place your Yubikey on your device.";
 "yubikey.scan.success" = "Scan success";
@@ -138,15 +238,12 @@
 "mfa.yubikey.description" = "Please note that your Yubikey must support
 NFC for this to work.";
 "mfa.yubikey.scan" = "Scan your Yubikey";
-"mfa.yubikey.scan.failed" = "Scan failed";
 "mfa.yubikey.nfc.not.supported" = "This device does not support NFC.";
-"mfa.yubikey.generic.error" = "Something went wrong";
 "mfa.provider.try.another" = "Try with another provider";
 "mfa.remember.token" = "Remember this device for 30 days";
 "mfa.unsupported.provider.title" = "Your MFA provider is not supported";
 "mfa.unsupported.provider.description" = "Please setup another provider using the web app.
 Contact your administrator for more information.";
-"error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
 
 "account.menu.title" = "Switch account";
 "account.menu.account.details.button.title" = "See details";
@@ -163,3 +260,47 @@ Contact your administrator for more information.";
 
 "update.available.title" = "New version available!";
 "update.available.message" = "Please update the Passbolt app to the latest version from the App Store";
+
+// Autofill extension
+
+"autofill.extension.setup.completed.title" = "Passbolt Autofill enabled!";
+"autofill.extension.setup.completed.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
+
+"autofill.extension.account.selection.switch.account.title" = "Switch the account";
+"autofill.extension.account.selection.switch.account.subtitle" = "Select an account to switch!";
+"autofill.extension.account.selection.sign.in.title" = "You are not logged in";
+"autofill.extension.account.selection.sign.in.subtitle" = "Select an account to sign in!";
+
+"autofill.extension.no.accounts.title" =  "No account found!";
+"autofill.extension.no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials afterwards.";
+
+"autofill.extension.resource.list.title" = "Choose password";
+"autofill.extension.resource.list.section.suggested.title" = "Suggested passwords";
+"autofill.extension.resource.list.section.all.title" = "Other passwords";
+
+"autofill.extension.autofill.extension.resources.search.placeholder" = "Search in passbolt...";
+
+"mfa.required.title" = "MFA is required";
+"autofill.extension.mfa.required.description" = "Please use the Passbolt app to finalise your authentication.";
+
+// Errors
+
+"generic.error" = "Something went wrong!";
+"generic.error.retry" = "Something went wrong, please try again.";
+"sign.in.error.message" = "Sign in failed";
+"sign.in.error.biometrics.changed.message" = "It seems that your device biometrics has changed. Please, enter your passphrase and configure biometrics again";
+"sign.in.error.passphrase.invalid.message" = "Invalid passphrase.";
+"server.fingerprint.save.failed" = "Failed to save server fingerprint.";
+"form.field.error.max.length" = "The maximum length has been exceeded.";
+"form.error.invalid" = "The form is invalid";
+"resource.form.field.error.empty" = "The field cannot be empty";
+"resource.from.field.error.invalid.value" = "The value for this field is invalid";
+"resource.form.field.error.max.length" = "The maximum length has been exceeded.";
+"resource.form.field.error.invalid" = "The field value invalid";
+"resource.form.error.invalid" = "The form is invalid";
+"authorization.passphrase.error" = "Passphrase is wrong!";
+"account.settings.biometrics.error" = "Failed to set biometrics.";
+"totp.wrong.code.error" = "Wrong code";
+"error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
+"resource.menu.action.failed" = "%@ failed!";
+"mfa.yubikey.scan.failed" = "Scan failed";

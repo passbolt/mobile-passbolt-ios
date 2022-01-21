@@ -86,6 +86,12 @@ let package = Package(
         "Environment"
       ]
     ),
+    .library(
+      name: "Localization",
+      targets: [
+        "Localization"
+      ]
+    ),
   ],
   dependencies: [
     .package(
@@ -138,10 +144,8 @@ let package = Package(
     .target(
       name: "Commons",
       dependencies: [
-        .product(name: "AegithalosCocoa", package: "Aegithalos")
-      ],
-      resources: [
-        .process("Localizable.strings")
+        "Localization",
+        .product(name: "AegithalosCocoa", package: "Aegithalos"),
       ]
     ),
     .testTarget(
@@ -224,6 +228,13 @@ let package = Package(
       dependencies: [
         "Environment",
         "TestExtensions",
+      ]
+    ),
+    .target(
+      name: "Localization",
+      dependencies: [],
+      resources: [
+        .process("Localizable.strings")
       ]
     ),
     .target(
@@ -312,9 +323,6 @@ let package = Package(
         "Accounts",
         "Resources",
         "UIComponents",
-      ],
-      resources: [
-        .process("Localizable.strings")
       ]
     ),
     .testTarget(

@@ -77,8 +77,7 @@ extension TransferSignInController: UIController {
 
     let validator: Validator<String> = .nonEmpty(
       displayable: .localized(
-        key: "authorization.passphrase.error",
-        bundle: .commons
+        key: "authorization.passphrase.error"
       )
     )
 

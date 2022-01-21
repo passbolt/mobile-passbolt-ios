@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Localization
+
 import class Foundation.Bundle
 
 extension TheError {

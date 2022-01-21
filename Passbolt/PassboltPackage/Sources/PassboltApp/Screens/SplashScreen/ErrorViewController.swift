@@ -68,8 +68,7 @@ final class ErrorViewController: PlainViewController, UIComponent {
                 overlay: LoaderOverlayView(
                   longLoadingMessage: (
                     message: .localized(
-                      key: .loadingLong,
-                      bundle: .commons
+                      key: .loadingLong
                     ),
                     delay: 5
                   )
@@ -89,8 +88,7 @@ final class ErrorViewController: PlainViewController, UIComponent {
           snackbar: Mutation<UICommons.View>
             .snackBarErrorMessage(
               .localized(
-                key: .genericError,
-                bundle: .commons
+                key: .genericError
               )
             )
             .instantiate()

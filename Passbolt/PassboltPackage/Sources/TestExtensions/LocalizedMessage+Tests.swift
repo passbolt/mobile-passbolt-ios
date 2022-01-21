@@ -26,12 +26,10 @@ import Commons
 extension DisplayableString {
 
   public static func testMessage(
-    key: StaticString = "testLocalizationKey",
-    bundle: Bundle = .commons
+    key: LocalizedString.Key = "testLocalizationKey"
   ) -> Self {
     .localized(
-      key: .init(stringLiteral: key),
-      bundle: bundle
+      key: key
     )
   }
 }

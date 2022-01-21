@@ -212,8 +212,7 @@ public class TextViewInput: View {
         // fallback to display error anyway
         errorMessage = (
           displayable: .localized(
-            key: "resource.form.field.error.invalid",
-            bundle: .commons
+            key: "resource.form.field.error.invalid"
           ),
           arguments: .init()
         )

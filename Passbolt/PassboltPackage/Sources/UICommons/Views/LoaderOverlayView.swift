@@ -59,7 +59,7 @@ public final class LoaderOverlayView: View {
         .lineBreakMode(.byTruncatingTail),
         .numberOfLines(1),
         .textColor(dynamic: .primaryText),
-        .text(localized: .loading, inBundle: .commons),
+        .text(displayable: .localized(key: .loading)),
         .subview(of: containerView),
         .leadingAnchor(.equalTo, containerView.leadingAnchor, constant: 8),
         .trailingAnchor(.equalTo, containerView.trailingAnchor, constant: -8),

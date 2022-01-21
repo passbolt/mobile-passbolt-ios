@@ -72,8 +72,7 @@ extension AuthorizationController: UIController {
     let accountNotFoundScreenPresentationSubject: PassthroughSubject<Account, Never> = .init()
     let validator: Validator<String> = .nonEmpty(
       displayable: .localized(
-        key: "authorization.passphrase.error",
-        bundle: .commons
+        key: "authorization.passphrase.error"
       )
     )
 

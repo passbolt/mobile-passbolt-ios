@@ -21,55 +21,44 @@
 // @since         v1.0
 //
 
-import Resources
-import UICommons
-import UIComponents
+import AegithalosCocoa
+import Commons
 
-internal final class ResourceEditExitConfirmationAlert:
-  AlertViewController<ResourceEditExitConfirmationAlertController>, UIComponent
-{
+extension Mutation where Subject: UIAlertController {
 
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(.localized(key: .areYouSure)),
-        .message(.localized(key: "resource.edit.exit.confirmation.message")),
-        .action(
-          .localized(
-            key: "resource.edit.exit.confirmation.button.edit.title"
-          ),
-          style: .cancel,
-          handler: {}
-        ),
-        .action(
-          .localized(
-            key: "resource.edit.exit.confirmation.button.revert.title"
-          ),
-          style: .default,
-          handler: controller.exit
-        )
-      )
+  @inlinable public static func title(
+    _ displayableString: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) -> Self {
+    Self { (subject: Subject) in
+      subject.title = displayableString.string(with: arguments)
     }
   }
-}
 
-internal struct ResourceEditExitConfirmationAlertController {
-
-  internal var exit: () -> Void
-}
-
-extension ResourceEditExitConfirmationAlertController: UIController {
-
-  internal typealias Context = () -> Void
-
-  internal static func instance(
-    in context: @escaping Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
+  @inlinable public static func message(
+    _ displayableString: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
   ) -> Self {
+    Self { (subject: Subject) in
+      subject.message = displayableString.string(with: arguments)
+    }
+  }
 
-    return Self(
-      exit: context
-    )
+  @inlinable public static func action(
+    _ displayableString: DisplayableString,
+    with arguments: Array<CVarArg> = .init(),
+    style: UIAlertAction.Style = .default,
+    accessibilityIdentifier: String? = nil,
+    handler: @escaping () -> Void
+  ) -> Self {
+    Self { (subject: Subject) in
+      let action = UIAlertAction(
+        title: displayableString.string(with: arguments),
+        style: style,
+        handler: { _ in handler() }
+      )
+      action.accessibilityIdentifier = accessibilityIdentifier
+      subject.addAction(action)
+    }
   }
 }

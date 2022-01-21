@@ -31,7 +31,7 @@ open class ErrorStateView: ScrolledStackView {
 
     mut(titleLabel) {
       .combined(
-        .text(localized: .genericError, inBundle: .commons),
+        .text(displayable: .localized(key: .genericError)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .font(.inter(ofSize: 20, weight: .semibold))

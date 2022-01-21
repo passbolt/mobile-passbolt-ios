@@ -60,7 +60,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
   internal func setupView() {
     mut(self) {
-      .title(localized: "account.settings.title")
+      .title(.localized(key: "account.settings.title"))
     }
 
     setupSubscriptions()
@@ -74,12 +74,16 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
         switch biometricState {
         case .none:
           self?.contentView.applyOn(biometricsImage: .image(named: .unavailable, from: .uiCommons))
-          self?.contentView.applyOn(biometricsLabel: .text(localized: "account.settings.biometrics.unavailable"))
+          self?.contentView.applyOn(
+            biometricsLabel: .text(displayable: .localized(key: "account.settings.biometrics.unavailable"))
+          )
           self?.contentView.applyOn(biometricsToggle: .hidden(true))
 
         case let .faceID(enabled):
           self?.contentView.applyOn(biometricsImage: .image(named: .faceID, from: .uiCommons))
-          self?.contentView.applyOn(biometricsLabel: .text(localized: "account.settings.biometrics.face.id"))
+          self?.contentView.applyOn(
+            biometricsLabel: .text(displayable: .localized(key: "account.settings.biometrics.face.id"))
+          )
           self?.contentView.applyOn(
             biometricsSwitch: .custom { (subject: UISwitch) in
               subject.setOn(enabled, animated: true)
@@ -89,7 +93,9 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
         case let .touchID(enabled):
           self?.contentView.applyOn(biometricsImage: .image(named: .touchID, from: .uiCommons))
-          self?.contentView.applyOn(biometricsLabel: .text(localized: "account.settings.biometrics.touch.id"))
+          self?.contentView.applyOn(
+            biometricsLabel: .text(displayable: .localized(key: "account.settings.biometrics.touch.id"))
+          )
           self?.contentView.applyOn(
             biometricsSwitch: .custom { (subject: UISwitch) in
               subject.setOn(enabled, animated: true)

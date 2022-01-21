@@ -56,7 +56,7 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
     }
     mut(tabBarItem) {
       .combined(
-        .title(localized: "tab.home"),
+        .title(.localized(key: "tab.home")),
         .image(named: .homeTab, from: .uiCommons)
       )
     }

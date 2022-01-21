@@ -71,8 +71,7 @@ public final class ServerFingerprintView: ScrolledStackView {
         .numberOfLines(0),
         .lineBreakMode(.byWordWrapping),
         .text(
-          localized: "server.key.fingerprint.changed.title",
-          inBundle: .commons
+          displayable: .localized(key: "server.key.fingerprint.changed.title")
         ),
         .subview(of: container),
         .leadingAnchor(.equalTo, container.layoutMarginsGuide.leadingAnchor),
@@ -89,8 +88,7 @@ public final class ServerFingerprintView: ScrolledStackView {
         .numberOfLines(0),
         .lineBreakMode(.byWordWrapping),
         .text(
-          localized: "server.key.fingerprint.changed.description",
-          inBundle: .commons
+          displayable: .localized(key: "server.key.fingerprint.changed.description")
         ),
         .subview(of: container),
         .leadingAnchor(.equalTo, container.layoutMarginsGuide.leadingAnchor),
@@ -126,7 +124,11 @@ public final class ServerFingerprintView: ScrolledStackView {
     checkedLabel.applyOn(
       label: .combined(
         .font(.inter(ofSize: 14)),
-        .text(localized: "server.key.fingerprint.accept.check", inBundle: .commons),
+        .text(
+          displayable: .localized(
+            key: "server.key.fingerprint.accept.check"
+          )
+        ),
         .textColor(dynamic: .secondaryText)
       )
     )
@@ -135,8 +137,9 @@ public final class ServerFingerprintView: ScrolledStackView {
       .combined(
         .primaryStyle(),
         .text(
-          localized: "server.key.fingerprint.accept.new.key",
-          inBundle: .commons
+          displayable: .localized(
+            key: "server.key.fingerprint.accept.new.key"
+          )
         )
       )
     }

@@ -134,8 +134,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           else {
             return self.presentInfoSnackbar(
               .localized(
-                key: "account.selection.account.removed",
-                bundle: .commons
+                key: "account.selection.account.removed"
               )
             )
           }
@@ -144,8 +143,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
             snackbar: Mutation<View>
               .snackBarErrorMessage(
                 .localized(
-                  key: .genericError,
-                  bundle: .commons
+                  key: .genericError
                 )
               )
               .instantiate(),

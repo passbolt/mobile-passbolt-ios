@@ -60,7 +60,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
       .when(
         controller.createsNewResource,
         then: .combined(
-          .title(localized: "resource.edit.create.title", inBundle: .sharedUIComponents),
+          .title(.localized(key: "resource.edit.create.title")),
           .leftBarButtonItem(
             Mutation<UIBarButtonItem>
               .combined(
@@ -74,7 +74,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           )
         ),
         else: .combined(
-          .title(localized: "resource.edit.title", inBundle: .sharedUIComponents),
+          .title(.localized(key: "resource.edit.title")),
           .leftBarButtonItem(
             Mutation<UIBarButtonItem>
               .combined(
@@ -132,8 +132,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               overlay: LoaderOverlayView(
                 longLoadingMessage: (
                   message: .localized(
-                    key: .loadingLong,
-                    bundle: .commons
+                    key: .loadingLong
                   ),
                   delay: 15
                 )
@@ -195,8 +194,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           .localized(
             key: encrypted
               ? "resource.form.description.encrypted"
-              : "resource.form.description.unencrypted",
-            bundle: .commons
+              : "resource.form.description.unencrypted"
           )
         )
       })

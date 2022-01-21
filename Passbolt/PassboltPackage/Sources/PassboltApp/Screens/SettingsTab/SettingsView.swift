@@ -86,7 +86,7 @@ internal final class SettingsView: ScrolledStackView {
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .key, from: .uiCommons))
-          subject.applyOn(label: .text(localized: "account.settings.autofill"))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.autofill")))
           subject.addDisclosureIndicator()
         }
       )
@@ -97,7 +97,7 @@ internal final class SettingsView: ScrolledStackView {
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .people, from: .uiCommons))
-          subject.applyOn(label: .text(localized: "account.settings.manage.accounts"))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.manage.accounts")))
           subject.addDisclosureIndicator()
         }
       )
@@ -108,7 +108,7 @@ internal final class SettingsView: ScrolledStackView {
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .info, from: .uiCommons))
-          subject.applyOn(label: .text(localized: "account.settings.terms"))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.terms")))
           subject.addDisclosureIndicator()
         }
       )
@@ -119,7 +119,7 @@ internal final class SettingsView: ScrolledStackView {
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .lockedLock, from: .uiCommons))
-          subject.applyOn(label: .text(localized: "account.settings.privacy.policy"))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.privacy.policy")))
           subject.addDisclosureIndicator()
         }
       )
@@ -130,7 +130,7 @@ internal final class SettingsView: ScrolledStackView {
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .bug, from: .uiCommons))
-          subject.applyOn(label: .text(localized: "account.settings.logs"))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.logs")))
           subject.addDisclosureIndicator()
         }
       )
@@ -141,7 +141,7 @@ internal final class SettingsView: ScrolledStackView {
         .backgroundColor(dynamic: .background),
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .exit, from: .uiCommons))
-          subject.applyOn(label: .text(localized: "account.settings.sign.out"))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.sign.out")))
           subject.addDisclosureIndicator()
         }
       )

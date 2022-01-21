@@ -51,7 +51,7 @@ internal final class CodeReaderView: View {
       }
       Mutation<Label>
         .combined(
-          .text(localized: "code.scanning.camera.unavailable"),
+          .text(displayable: .localized(key: "code.scanning.camera.unavailable")),
           .numberOfLines(0),
           .textColor(dynamic: .primaryText),
           .font(.inter(ofSize: 16, weight: .bold)),

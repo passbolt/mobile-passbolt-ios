@@ -52,8 +52,7 @@ internal final class ErrorView: View {
       .combined(
         .primaryStyle(),
         .text(
-          localized: .refresh,
-          inBundle: .commons
+          displayable: .localized(key: .refresh)
         ),
         .subview(of: self),
         .topAnchor(.equalTo, errorStateView.bottomAnchor, constant: 30),
@@ -66,8 +65,7 @@ internal final class ErrorView: View {
       .combined(
         .primaryStyle(),
         .text(
-          localized: .signOut,
-          inBundle: .commons
+          displayable: .localized(key: .signOut)
         ),
         .subview(of: self),
         .topAnchor(.equalTo, refreshButton.bottomAnchor, constant: 15),

@@ -72,43 +72,43 @@ internal final class EntropyView: View {
         .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
         .font(.inter(ofSize: 14, weight: .medium)),
         .textColor(dynamic: .tertiaryText),
-        .text(localized: "resource.form.password.strength", inBundle: .commons)
+        .text(displayable: .localized(key: "resource.form.password.strength"))
       )
     }
   }
 
   internal func update(entropy: Entropy) {
     let multiplier: CGFloat
-    let key: StaticString
+    let localizedStirng: LocalizedString
     let color: DynamicColor
 
     switch entropy {
     case Entropy.zero..<Entropy.veryWeakPassword:
-      key = "resource.form.password.strength"
+      localizedStirng = .localized(key: "resource.form.password.strength")
       multiplier = 1
       color = .background
     case Entropy.veryWeakPassword..<Entropy.weakPassword:
-      key = "resource.form.strength.very.weak"
+      localizedStirng = .localized(key: "resource.form.strength.very.weak")
       multiplier = 0.1
       color = .secondaryDarkRed
     case Entropy.weakPassword..<Entropy.fairPassword:
-      key = "resource.form.strength.weak"
+      localizedStirng = .localized(key: "resource.form.strength.weak")
       multiplier = 0.4
       color = .secondaryRed
     case Entropy.fairPassword..<Entropy.strongPassword:
-      key = "resource.form.strength.fair"
+      localizedStirng = .localized(key: "resource.form.strength.fair")
       multiplier = 0.6
       color = .secondaryOrange
     case Entropy.strongPassword..<Entropy.veryStrongPassword:
-      key = "resource.form.strength.strong"
+      localizedStirng = .localized(key: "resource.form.strength.strong")
       multiplier = 0.8
       color = .secondaryGreen
     case Entropy.veryStrongPassword..<Entropy.greatestFinite:
-      key = "resource.form.strength.very.strong"
+      localizedStirng = .localized(key: "resource.form.strength.very.strong")
       multiplier = 1
       color = .secondaryGreen
     case _:
-      key = "resource.form.password.strength"
+      localizedStirng = .localized(key: "resource.form.password.strength")
       multiplier = 1
       color = .background
     }
@@ -121,7 +121,7 @@ internal final class EntropyView: View {
     }
 
     mut(label) {
-      .text(localized: .init(stringLiteral: key), inBundle: .commons)
+      .text(displayable: .localized(localizedStirng))
     }
 
     mut(indicator) {

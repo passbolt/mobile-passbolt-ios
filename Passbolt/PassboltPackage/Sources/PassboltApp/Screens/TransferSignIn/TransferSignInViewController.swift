@@ -69,8 +69,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             .instantiate()
         ),
         .title(
-          localized: "sign.in.title",
-          inBundle: .commons
+          .localized(key: "sign.in.title")
         ),
         .rightBarButtonItem(
           Mutation<UIBarButtonItem>
@@ -179,8 +178,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 overlay: LoaderOverlayView(
                   longLoadingMessage: (
                     message: .localized(
-                      key: .loadingLong,
-                      bundle: .commons
+                      key: .loadingLong
                     ),
                     delay: 5
                   )
@@ -201,8 +199,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(
                     .localized(
-                      key: "sign.in.error.message",
-                      bundle: .commons
+                      key: "sign.in.error.message"
                     )
                   )
                   .instantiate(),

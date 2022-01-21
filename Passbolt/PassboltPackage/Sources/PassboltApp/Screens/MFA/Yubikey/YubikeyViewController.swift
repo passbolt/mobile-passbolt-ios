@@ -92,7 +92,7 @@ internal final class YubikeyViewController: PlainViewController, UIComponent {
               )
             case _:
               self?.parent?.presentErrorSnackbar(
-                .localized("mfa.yubikey.generic.error")
+                .localized(key: .genericError)
               )
             }
           })

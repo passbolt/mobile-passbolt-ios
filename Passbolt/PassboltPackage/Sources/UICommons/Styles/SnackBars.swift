@@ -27,7 +27,7 @@ import Commons
 extension Mutation where Subject: View {
 
   public static func snackBarErrorMessage(
-    _ displayable: DisplayableString = .localized(key: .genericError, bundle: .commons),
+    _ displayable: DisplayableString = .localized(key: .genericError),
     with arguments: Array<CVarArg> = .init()
   ) -> Self {
     snackBarMessage(

@@ -70,8 +70,7 @@ extension HelpMenuController: UIController {
           iconName: .bug,
           iconBundle: .uiCommons,
           title: .localized(
-            key: "help.menu.show.logs.action.title",
-            bundle: .sharedUIComponents
+            key: "help.menu.show.logs.action.title"
           ),
           handler: logsPresentationSubject.send
         ),
@@ -79,8 +78,7 @@ extension HelpMenuController: UIController {
           iconName: .open,
           iconBundle: .uiCommons,
           title: .localized(
-            key: "help.menu.show.web.help.action.title",
-            bundle: .sharedUIComponents
+            key: "help.menu.show.web.help.action.title"
           ),
           handler: websiteHelpPresentationSubject.send
         ),

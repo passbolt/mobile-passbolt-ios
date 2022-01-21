@@ -137,8 +137,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(
                     .localized(
-                      key: .genericError,
-                      bundle: .commons
+                      key: .genericError
                     )
                   )
                   .instantiate(),
@@ -251,8 +250,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                     overlay: LoaderOverlayView(
                       longLoadingMessage: (
                         message: .localized(
-                          key: .loadingLong,
-                          bundle: .commons
+                          key: .loadingLong
                         ),
                         delay: 5
                       )

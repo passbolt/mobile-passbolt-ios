@@ -65,13 +65,13 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
     case .canceled:
       contentView
         .applyOn(
-          title: .text(localized: "transfer.account.result.canceled.title")
+          title: .text(displayable: .localized(key: "transfer.account.result.canceled.title"))
         )
 
     case _:
       contentView
         .applyOn(
-          title: .text(localized: "transfer.account.result.error.title")
+          title: .text(displayable: .localized(key: .genericError))
         )
     }
 
@@ -79,8 +79,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       .applyOn(
         button: .combined(
           .text(
-            localized: .continue,
-            inBundle: .commons
+            displayable: .localized(key: .continue)
           ),
           .action(controller.continue)
         )

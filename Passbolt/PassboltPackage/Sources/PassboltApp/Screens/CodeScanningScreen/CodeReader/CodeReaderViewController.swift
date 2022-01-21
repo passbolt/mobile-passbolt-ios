@@ -170,7 +170,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           self?.present(
             snackbar: Mutation<UICommons.View>
               .snackBarErrorMessage(
-                .localized("code.scanning.processing.error")
+                .localized(key: .genericErrorRetry)
               )
               .instantiate(),
             hideAfter: 3

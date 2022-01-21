@@ -28,11 +28,10 @@ internal final class UpdateAvailableViewController: AlertViewController<UpdateAv
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "update.available.title"),
-        .message(localized: "update.available.message"),
+        .title(.localized(key: "update.available.title")),
+        .message(.localized(key: "update.available.message")),
         .action(
-          localized: .gotIt,
-          inBundle: .commons,
+          .localized(key: .gotIt),
           style: .cancel,
           handler: { [weak self] in self?.controller.completion() }
         )

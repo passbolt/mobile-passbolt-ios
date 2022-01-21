@@ -51,8 +51,7 @@ extension AccountDetailsController: UIController {
       .maxLength(
         80,
         displayable: .localized(
-          key: "form.field.error.max.length",
-          bundle: .commons
+          key: "form.field.error.max.length"
         )
       )
 
@@ -98,8 +97,7 @@ extension AccountDetailsController: UIController {
             return .failure(
               .validationError(
                 displayable: .localized(
-                  key: "form.error.invalid",
-                  bundle: .commons
+                  key: "form.error.invalid"
                 )
               )
             )

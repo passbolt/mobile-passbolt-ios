@@ -79,7 +79,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
           )
           input.applyOn(
             description: .text(
-              localized: "account.details.field.label.title"
+              displayable: .localized(key: "account.details.field.label.title")
             )
           )
         }
@@ -88,7 +88,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
     let editingInfoLabel: Label = .init()
     mut(editingInfoLabel) {
       .combined(
-        .text(localized: "account.details.field.label.editing.info"),
+        .text(displayable: .localized(key: "account.details.field.label.editing.info")),
         .font(.inter(ofSize: 12, weight: .regular)),
         .textColor(dynamic: .secondaryText),
         .numberOfLines(0)
@@ -98,7 +98,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
     let saveChangesButton: TextButton = .init()
     mut(saveChangesButton) {
       .combined(
-        .text(localized: "account.details.button.save.title"),
+        .text(displayable: .localized(key: "account.details.button.save.title")),
         .primaryStyle(),
         .action { saveChangesSubject.send() }
       )
@@ -124,7 +124,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
             .combined(
               Mutation<Label>
                 .combined(
-                  .text(localized: "account.details.field.name.title")
+                  .text(displayable: .localized(key: "account.details.field.name.title"))
                 )
                 .contramap(\KeyValueView.titleLabel),
               Mutation<TextView>
@@ -141,7 +141,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
             .combined(
               Mutation<Label>
                 .combined(
-                  .text(localized: "account.details.field.email.title")
+                  .text(displayable: .localized(key: "account.details.field.email.title"))
                 )
                 .contramap(\KeyValueView.titleLabel),
               Mutation<TextView>
@@ -158,7 +158,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
             .combined(
               Mutation<Label>
                 .combined(
-                  .text(localized: "account.details.field.url.title")
+                  .text(displayable: .localized(key: "account.details.field.url.title"))
                 )
                 .contramap(\KeyValueView.titleLabel),
               Mutation<TextView>

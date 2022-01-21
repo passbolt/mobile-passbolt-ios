@@ -22,69 +22,47 @@
 //
 
 import AegithalosCocoa
+import Commons
 
 public enum AttributedString {
 
-  indirect case string(String, attributes: Attributes, tail: AttributedString)
+  indirect case string(DisplayableString, attributes: Attributes, tail: AttributedString)
   case terminator
 }
 
 extension AttributedString {
 
-  public static func localized(
-    _ localizationKey: LocalizationKeyConstant,
-    fromTable tableName: String? = nil,
-    inBundle bundle: Bundle = Bundle.main,
-    arguments: CVarArg...,
+  public static func displayable(
+    _ displayableString: DisplayableString,
     font: UIFont,
-    color: DynamicColor
+    color: DynamicColor,
+    isLink: Bool = false
   ) -> Self {
-    let localized: String = .init(
-      format: NSLocalizedString(
-        localizationKey.rawValue,
-        tableName: tableName,
-        bundle: bundle,
-        comment: ""
-      ),
-      arguments: arguments
-    )
-
-    return .string(
-      localized,
+    .string(
+      displayableString,
       attributes: Attributes(
         font: font,
-        color: color
+        color: color,
+        isLink: isLink
       ),
       tail: .terminator
     )
   }
 
-  public static func localized(
-    _ localizationKey: LocalizationKeyConstant,
-    withBoldSubstringLocalized boldLocalizationKey: LocalizationKeyConstant,
-    fromTable tableName: String? = nil,
-    inBundle bundle: Bundle = Bundle.main,
+  public static func displayable(
+    _ displayableString: DisplayableString,
+    withBoldSubstring boldDisplayableString: DisplayableString,
     fontSize: CGFloat,
     color: DynamicColor
   ) -> Self {
-    let string: String = NSLocalizedString(
-      localizationKey.rawValue,
-      tableName: tableName,
-      bundle: bundle,
-      comment: ""
-    )
+    let string: String = displayableString.string()
+    let boldSubstring: String = boldDisplayableString.string()
 
-    let boldSubstring: String = NSLocalizedString(
-      boldLocalizationKey.rawValue,
-      tableName: tableName,
-      bundle: bundle,
-      comment: ""
-    )
     guard let substringRange = string.range(of: boldSubstring)
     else {
-      assertionFailure("Invalid localized substring: \(boldLocalizationKey) for: \(localizationKey)")
+      assertionFailure("Invalid localized substring: \(boldDisplayableString) for: \(displayableString)")
       return .string(
-        string,
+        .raw(string),
         attributes: Attributes(
           font: .inter(ofSize: fontSize, weight: .regular),
           color: color
@@ -97,19 +75,19 @@ extension AttributedString {
     let splitedStringTail: String = .init(string[substringRange.upperBound..<string.endIndex])
 
     return .string(
-      splitedStringHead,
+      .raw(splitedStringHead),
       attributes: Attributes(
         font: .inter(ofSize: fontSize, weight: .regular),
         color: color
       ),
       tail: .string(
-        boldSubstring,
+        .raw(boldSubstring),
         attributes: Attributes(
           font: .inter(ofSize: fontSize, weight: .bold),
           color: color
         ),
         tail: .string(
-          splitedStringTail,
+          .raw(splitedStringTail),
           attributes: Attributes(
             font: .inter(ofSize: fontSize, weight: .regular),
             color: color
@@ -129,7 +107,8 @@ extension AttributedString {
     switch self {
     case .terminator:
       return NSAttributedString()
-    case let .string(string, attributes: attributes, tail: tail):
+    case let .string(displayableString, attributes: attributes, tail: tail):
+      let string: String = displayableString.string()
       var stringAttributes: Dictionary<NSAttributedString.Key, Any>? = [
         .font: attributes.font,
         .foregroundColor: attributes.color(in: interfaceStyle),
@@ -159,7 +138,7 @@ extension AttributedString: CustomStringConvertible {
     case .terminator:
       return ""
     case let .string(string, attributes: _, tail: tail):
-      return string + tail.description
+      return string.string() + tail.description
     }
   }
 }

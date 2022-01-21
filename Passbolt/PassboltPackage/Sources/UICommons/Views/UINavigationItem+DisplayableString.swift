@@ -21,23 +21,17 @@
 // @since         v1.0
 //
 
-// Passbolt autofill extension
-"extension.setup.title" = "Passbolt Autofill enabled!";
-"extension.setup.info" = "Once you've filled out a form, simply tap on the entry filed and the Autofill you enabled will suggest filling it from the login credentials you’ve already added to the Passbolt app.";
+import AegithalosCocoa
+import Commons
 
-"account.selection.switch.account.title" = "Switch the account";
-"account.selection.switch.account.subtitle" = "Select an account to switch!";
-"account.selection.sign.in.title" = "You are not logged in";
-"account.selection.sign.in.subtitle" = "Select an account to sign in!";
+extension Mutation where Subject: UINavigationItem {
 
-"no.accounts.title" =  "No account found!";
-"no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials afterwards.";
-
-"resource.list.title" = "Choose password";
-"resource.list.section.suggested.title" = "Suggested passwords";
-"resource.list.section.all.title" = "Other passwords";
-
-"resources.search.placeholder" = "Search in passbolt...";
-
-"mfa.required.title" = "MFA is required";
-"mfa.required.description" = "Please use the Passbolt app to finalise your authentication.";
+  @inlinable public static func title(
+    _ displayableString: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) -> Self {
+    Self { (subject: Subject) in
+      subject.title = displayableString.string(with: arguments)
+    }
+  }
+}

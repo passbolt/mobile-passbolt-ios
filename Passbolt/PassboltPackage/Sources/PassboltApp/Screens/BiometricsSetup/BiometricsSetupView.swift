@@ -74,7 +74,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
-        .text(localized: "biometrics.setup.description"),
+        .text(displayable: .localized(key: "biometrics.setup.description")),
         .accessibilityIdentifier("biometrics.setup.description.label")
       )
     }
@@ -82,7 +82,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     mut(setupButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "biometrics.setup.setup.button"),
+        .text(displayable: .localized(key: "biometrics.setup.setup.button")),
         .accessibilityIdentifier("biometrics.setup.setup..button")
       )
     }
@@ -90,7 +90,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     mut(skipButton) {
       .combined(
         .linkStyle(),
-        .text(localized: "biometrics.setup.later.button"),
+        .text(displayable: .localized(key: "biometrics.setup.later.button")),
         .accessibilityIdentifier("biometrics.setup.later.button")
       )
     }
@@ -126,10 +126,10 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .image(dynamic: .touchIDSetup)
       }
       mut(titleLabel) {
-        .text(localized: "biometrics.setup.title.finger")
+        .text(displayable: .localized(key: "biometrics.setup.title.finger"))
       }
       mut(setupButton) {
-        .text(localized: "biometrics.setup.setup.button.finger")
+        .text(displayable: .localized(key: "biometrics.setup.setup.button.finger"))
       }
 
     case .configuredFaceID:
@@ -137,10 +137,10 @@ internal final class BiometricsSetupView: ScrolledStackView {
         .image(dynamic: .faceIDSetup)
       }
       mut(titleLabel) {
-        .text(localized: "biometrics.setup.title.face")
+        .text(displayable: .localized(key: "biometrics.setup.title.face"))
       }
       mut(setupButton) {
-        .text(localized: "biometrics.setup.setup.button.face")
+        .text(displayable: .localized(key: "biometrics.setup.setup.button.face"))
       }
     }
   }

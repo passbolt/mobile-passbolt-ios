@@ -57,8 +57,7 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
     title =
       DisplayableString
       .localized(
-        key: "help.menu.title",
-        bundle: .sharedUIComponents
+        key: "help.menu.title"
       )
       .string()
 

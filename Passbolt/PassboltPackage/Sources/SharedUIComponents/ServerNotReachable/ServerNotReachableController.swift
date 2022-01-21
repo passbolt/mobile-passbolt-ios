@@ -33,22 +33,23 @@ public final class ServerNotReachableAlertViewController:
     mut(self) {
       .combined(
         .title(
-          localized: "server.not.reachable.alert.title",
-          inBundle: .sharedUIComponents
+          .localized(key: "server.not.reachable.alert.title")
         ),
         .message(
-          localized: "server.not.reachable.alert.message",
-          inBundle: .sharedUIComponents,
-          arguments: controller.serverURL?.rawValue
-            ?? NSLocalizedString(
-              "server.not.reachable.alert.message.server.placeholder",
-              bundle: .sharedUIComponents,
-              comment: ""
-            )
+          .localized(key: "server.not.reachable.alert.message"),
+          with: [
+            controller.serverURL?.rawValue
+              ?? LocalizedString
+              .localized(
+                key: "server.not.reachable.alert.message.server.placeholder"
+              )
+              .resolve()
+          ]
         ),
         .action(
-          localized: .gotIt,
-          inBundle: .commons,
+          .localized(
+            key: .gotIt
+          ),
           style: .default,
           handler: {}
         )

@@ -71,7 +71,7 @@ internal final class ResourceMenuView: View {
         }
 
         mut(item.titleLabel) {
-          .text(localized: "resource.menu.item.open.url")
+          .text(displayable: .localized(key: "resource.menu.item.open.url"))
         }
 
       case .copyURL:
@@ -80,7 +80,7 @@ internal final class ResourceMenuView: View {
         }
 
         mut(item.titleLabel) {
-          .text(localized: "resource.menu.item.copy.url")
+          .text(displayable: .localized(key: "resource.menu.item.copy.url"))
         }
 
       case .copyPassword:
@@ -89,7 +89,7 @@ internal final class ResourceMenuView: View {
         }
 
         mut(item.titleLabel) {
-          .text(localized: "resource.menu.item.copy.password")
+          .text(displayable: .localized(key: "resource.menu.item.copy.password"))
         }
 
       case .copyUsername:
@@ -98,7 +98,7 @@ internal final class ResourceMenuView: View {
         }
 
         mut(item.titleLabel) {
-          .text(localized: "resource.menu.item.copy.username")
+          .text(displayable: .localized(key: "resource.menu.item.copy.username"))
         }
 
       case .copyDescription:
@@ -107,7 +107,7 @@ internal final class ResourceMenuView: View {
         }
 
         mut(item.titleLabel) {
-          .text(localized: "resource.menu.item.copy.description")
+          .text(displayable: .localized(key: "resource.menu.item.copy.description"))
         }
 
       case .edit:
@@ -116,7 +116,7 @@ internal final class ResourceMenuView: View {
         }
 
         mut(item.titleLabel) {
-          .text(localized: "resource.menu.item.edit")
+          .text(displayable: .localized(key: "resource.menu.item.edit"))
         }
 
       case .delete:
@@ -129,7 +129,7 @@ internal final class ResourceMenuView: View {
 
         mut(item.titleLabel) {
           .combined(
-            .text(localized: "resource.menu.item.delete.password"),
+            .text(displayable: .localized(key: "resource.menu.item.delete.password")),
             .textColor(dynamic: .secondaryRed)
           )
         }

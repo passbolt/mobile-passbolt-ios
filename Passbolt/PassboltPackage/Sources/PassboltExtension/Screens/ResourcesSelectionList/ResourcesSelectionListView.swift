@@ -108,15 +108,15 @@ internal final class ResourcesSelectionListView: CollectionView<
       ) as? ResourcesSelectionListSectionHeader
     switch section {
     case .add:
-      header?.setTitle(localized: nil)
+      header?.setTitle(nil)
       return header
 
     case .suggested:
-      header?.setTitle(localized: "resource.list.section.suggested.title")
+      header?.setTitle(.localized(key: "autofill.extension.resource.list.section.suggested.title"))
       return header
 
     case .all:
-      header?.setTitle(localized: "resource.list.section.all.title")
+      header?.setTitle(.localized(key: "autofill.extension.resource.list.section.all.title"))
       return header
     }
   }

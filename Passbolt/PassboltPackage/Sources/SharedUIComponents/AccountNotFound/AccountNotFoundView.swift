@@ -60,7 +60,7 @@ internal final class AccountNotFoundView: ScrolledStackView {
     let titleLabel: Label = .init()
     mut(titleLabel) {
       .combined(
-        .text(localized: "account.not.found.title.label", inBundle: .sharedUIComponents),
+        .text(displayable: .localized(key: "account.not.found.title.label")),
         .font(.inter(ofSize: 24, weight: .regular)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
@@ -76,7 +76,7 @@ internal final class AccountNotFoundView: ScrolledStackView {
     let messageLabel: Label = .init()
     mut(messageLabel) {
       .combined(
-        .text(localized: "account.not.found.message.label", inBundle: .sharedUIComponents),
+        .text(displayable: .localized(key: "account.not.found.message.label")),
         .font(.inter(ofSize: 14, weight: .light)),
         .textColor(dynamic: .secondaryText),
         .numberOfLines(0),
@@ -147,7 +147,7 @@ internal final class AccountNotFoundView: ScrolledStackView {
     let actionButton: TextButton = .init()
     mut(actionButton) {
       .combined(
-        .text(localized: "account.not.found.action.button.title", inBundle: .sharedUIComponents),
+        .text(displayable: .localized(key: "account.not.found.action.button.title")),
         .action(actionTapSubject.send),
         .subview(of: self),
         .primaryStyle(),

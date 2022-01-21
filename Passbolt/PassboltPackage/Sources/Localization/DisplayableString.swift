@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import struct AegithalosCocoa.LocalizationKeyConstant
 import class Foundation.Bundle
 import func Foundation.NSLocalizedString
 
@@ -45,14 +44,13 @@ extension DisplayableString {
   public static func localized(
     key: LocalizedString.Key,
     tableName: String? = .none,
-    bundle: Bundle = .main,
     arguments: Array<CVarArg> = .init()
   ) -> Self {
     .localized(
       .init(
         key: key,
         tableName: tableName,
-        bundle: bundle,
+        bundle: .localization,  // we are forcing all strings to be located in this bundle
         arguments: arguments
       )
     )
@@ -60,8 +58,8 @@ extension DisplayableString {
 
   public func string(
     with arguments: Array<CVarArg> = .init(),
-    localizaton: @escaping (_ key: LocalizationKeyConstant, _ tableName: String?, _ bundle: Bundle) -> String = {
-      (key: LocalizationKeyConstant, tableName: String?, bundle: Bundle) -> String in
+    localizaton: @escaping (_ key: LocalizedString.Key, _ tableName: String?, _ bundle: Bundle) -> String = {
+      (key: LocalizedString.Key, tableName: String?, bundle: Bundle) -> String in
       NSLocalizedString(
         key.rawValue,
         tableName: tableName,

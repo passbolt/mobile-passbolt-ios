@@ -30,18 +30,16 @@ internal final class CodeScanningExitConfirmationViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "transfer.account.exit.confirmation.title"),
-        .message(localized: "transfer.account.exit.confirmation.message"),
+        .title(.localized(key: "transfer.account.exit.confirmation.title")),
+        .message(.localized(key: "transfer.account.exit.confirmation.message")),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          .localized(key: .cancel),
           style: .cancel,
           accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
-          localized: "code.scanning.exit.confirmation.confirm.button.title",
-          inBundle: .main,
+          .localized(key: "code.scanning.exit.confirmation.confirm.button.title"),
           style: .destructive,
           accessibilityIdentifier: "alert.button.exit",
           handler: controller.exit

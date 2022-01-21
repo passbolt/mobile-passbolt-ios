@@ -21,55 +21,28 @@
 // @since         v1.0
 //
 
-import Resources
-import UICommons
-import UIComponents
+// localized string keys constants
+extension LocalizedString.Key {
 
-internal final class ResourceEditExitConfirmationAlert:
-  AlertViewController<ResourceEditExitConfirmationAlertController>, UIComponent
-{
-
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .title(.localized(key: .areYouSure)),
-        .message(.localized(key: "resource.edit.exit.confirmation.message")),
-        .action(
-          .localized(
-            key: "resource.edit.exit.confirmation.button.edit.title"
-          ),
-          style: .cancel,
-          handler: {}
-        ),
-        .action(
-          .localized(
-            key: "resource.edit.exit.confirmation.button.revert.title"
-          ),
-          style: .default,
-          handler: controller.exit
-        )
-      )
-    }
-  }
-}
-
-internal struct ResourceEditExitConfirmationAlertController {
-
-  internal var exit: () -> Void
-}
-
-extension ResourceEditExitConfirmationAlertController: UIController {
-
-  internal typealias Context = () -> Void
-
-  internal static func instance(
-    in context: @escaping Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-
-    return Self(
-      exit: context
-    )
-  }
+  // MARK: Generic
+  public static let done: Self = "generic.done"
+  public static let yes: Self = "generic.yes"
+  public static let cancel: Self = "generic.cancel"
+  public static let remove: Self = "generic.remove"
+  public static let loading: Self = "generic.loading"
+  public static let loadingLong: Self = "generic.loading.long"
+  public static let `continue`: Self = "generic.continue"
+  public static let retry: Self = "generic.retry"
+  public static let delete: Self = "generic.delete"
+  public static let gotIt: Self = "generic.got.it"
+  public static let settings: Self = "generic.settings"
+  public static let genericError: Self = "generic.error"
+  public static let genericErrorRetry: Self = "generic.error.retry"
+  public static let disable: Self = "generic.disable"
+  public static let signOut: Self = "generic.sign.out"
+  public static let refresh: Self = "generic.refresh"
+  public static let create: Self = "generic.create"
+  public static let emptyList: Self = "generic.empty.list"
+  public static let invalidPasteValue: Self = "generic.paste.value.invalid"
+  public static let areYouSure: Self = "generic.are.you.sure"
 }

@@ -198,7 +198,7 @@ internal final class AccountMenuView: View {
     let accountDetailsButtonLabel: Label = .init()
     mut(accountDetailsButtonLabel) {
       .combined(
-        .text(localized: "account.menu.account.details.button.title"),
+        .text(displayable: .localized(key: "account.menu.account.details.button.title")),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .userInteractionEnabled(false),
@@ -253,7 +253,7 @@ internal final class AccountMenuView: View {
     let signOutButtonLabel: Label = .init()
     mut(signOutButtonLabel) {
       .combined(
-        .text(localized: "account.menu.sign.out.button.title"),
+        .text(displayable: .localized(key: "account.menu.sign.out.button.title")),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .userInteractionEnabled(false),
@@ -304,7 +304,7 @@ internal final class AccountMenuView: View {
     let manageAccountsButtonLabel: Label = .init()
     mut(manageAccountsButtonLabel) {
       .combined(
-        .text(localized: "account.menu.manage.accounts.button.title"),
+        .text(displayable: .localized(key: "account.menu.manage.accounts.button.title")),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .userInteractionEnabled(false),

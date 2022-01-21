@@ -114,7 +114,7 @@ final class UpdateCheckTests: TestCase {
   func test_checkRequired_returnsTrue_whenCheckingFails() {
     features.patch(
       \NetworkClient.appVersionsAvailableRequest,
-       with: .failingWith(.testError())
+      with: .failingWith(.testError())
     )
     environment.appMeta.version = always("")
 
@@ -132,7 +132,7 @@ final class UpdateCheckTests: TestCase {
   func test_checkRequired_returnsFalse_whenCheckingSucceeds() {
     features.patch(
       \NetworkClient.appVersionsAvailableRequest,
-       with: .respondingWith(.init(results: [.init(version: "1.2.3")]))
+      with: .respondingWith(.init(results: [.init(version: "1.2.3")]))
     )
     environment.appMeta.version = always("1.2.3")
 

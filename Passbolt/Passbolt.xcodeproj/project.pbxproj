@@ -24,7 +24,6 @@
 /* Begin PBXBuildFile section */
 		424C5B7E26319B2F006B7C9F /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424C5B7D26319B2F006B7C9F /* Application.swift */; };
 		426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */; };
-		4296293F2680B67F00520B02 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4296293E2680B67F00520B02 /* Localizable.strings */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
 		DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DD38F94A261746C500A6C627 /* Assets.xcassets */; };
@@ -36,7 +35,6 @@
 		DD59A9C82625A37500736D43 /* PassboltExtension in Frameworks */ = {isa = PBXBuildFile; productRef = DD59A9C72625A37500736D43 /* PassboltExtension */; };
 		DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */; };
 		DD8979C6270F13E600D95978 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = DD8979C5270F13E600D95978 /* Settings.bundle */; };
-		DD8A0DD6264927EA0079673A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD8A0DD5264927EA0079673A /* Localizable.strings */; };
 		DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB2A674263B09500014C895 /* Launch Screen.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -67,7 +65,6 @@
 /* Begin PBXFileReference section */
 		424C5B7D26319B2F006B7C9F /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationExtension.swift; sourceTree = "<group>"; };
-		4296293E2680B67F00520B02 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD38F941261746C400A6C627 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DD38F943261746C400A6C627 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -83,7 +80,6 @@
 		DD673CFC26F0B58C0051EEB5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DD87927E262983CF006ECC0A /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		DD8979C5270F13E600D95978 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
-		DD8A0DD5264927EA0079673A /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		DDB2A674263B09500014C895 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -140,7 +136,6 @@
 				DD38F94A261746C500A6C627 /* Assets.xcassets */,
 				DD38F94F261746C500A6C627 /* Info.plist */,
 				DDB2A674263B09500014C895 /* Launch Screen.storyboard */,
-				DD8A0DD5264927EA0079673A /* Localizable.strings */,
 				DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */,
 				DD8979C5270F13E600D95978 /* Settings.bundle */,
 			);
@@ -162,7 +157,6 @@
 				DD38F96A26174BB700A6C627 /* Info.plist */,
 				DD38F96B26174BB700A6C627 /* PassboltAutofill.entitlements */,
 				426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */,
-				4296293E2680B67F00520B02 /* Localizable.strings */,
 			);
 			path = PassboltAutofill;
 			sourceTree = "<group>";
@@ -262,7 +256,6 @@
 				DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */,
 				DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */,
 				DD8979C6270F13E600D95978 /* Settings.bundle in Resources */,
-				DD8A0DD6264927EA0079673A /* Localizable.strings in Resources */,
 				DD38F94B261746C500A6C627 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -271,7 +264,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4296293F2680B67F00520B02 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

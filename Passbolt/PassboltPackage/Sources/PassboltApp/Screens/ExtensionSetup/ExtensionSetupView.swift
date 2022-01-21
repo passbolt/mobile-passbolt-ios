@@ -47,7 +47,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
     mut(titleLabel) {
       .combined(
         .titleStyle(),
-        .text(localized: "extension.setup.title")
+        .text(displayable: .localized(key: "extension.setup.title"))
       )
     }
 
@@ -61,9 +61,9 @@ internal final class ExtensionSetupView: ScrolledStackView {
         ),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "extension.setup.settings.step",
-              withBoldSubstringLocalized: "extension.setup.settings.step.bold",
+            .displayable(
+              .localized(key: "extension.setup.settings.step"),
+              withBoldSubstring: .localized(key: "extension.setup.settings.step.bold"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -82,9 +82,9 @@ internal final class ExtensionSetupView: ScrolledStackView {
         ),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "extension.setup.keyboard.step",
-              withBoldSubstringLocalized: "extension.setup.keyboard.step.bold",
+            .displayable(
+              .localized(key: "extension.setup.keyboard.step"),
+              withBoldSubstring: .localized(key: "extension.setup.keyboard.step.bold"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -103,9 +103,9 @@ internal final class ExtensionSetupView: ScrolledStackView {
         ),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "extension.setup.switch.step",
-              withBoldSubstringLocalized: "extension.setup.switch.step.bold",
+            .displayable(
+              .localized(key: "extension.setup.switch.step"),
+              withBoldSubstring: .localized(key: "extension.setup.switch.step.bold"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -124,9 +124,9 @@ internal final class ExtensionSetupView: ScrolledStackView {
         ),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "extension.setup.keychain.step",
-              withBoldSubstringLocalized: "extension.setup.keychain.step.bold",
+            .displayable(
+              .localized(key: "extension.setup.keychain.step"),
+              withBoldSubstring: .localized(key: "extension.setup.keychain.step.bold"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -145,9 +145,9 @@ internal final class ExtensionSetupView: ScrolledStackView {
         ),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "extension.setup.passbolt.step",
-              withBoldSubstringLocalized: "extension.setup.passbolt.step.bold",
+            .displayable(
+              .localized(key: "extension.setup.passbolt.step"),
+              withBoldSubstring: .localized(key: "extension.setup.passbolt.step.bold"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -170,7 +170,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
     mut(setupButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "extension.setup.setup.button"),
+        .text(displayable: .localized(key: "extension.setup.setup.button")),
         .accessibilityIdentifier("extension.setup.setup.button")
       )
     }
@@ -178,7 +178,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
     mut(skipButton) {
       .combined(
         .linkStyle(),
-        .text(localized: "extension.setup.later.button"),
+        .text(displayable: .localized(key: "extension.setup.later.button")),
         .accessibilityIdentifier("extension.setup.later.button")
       )
     }

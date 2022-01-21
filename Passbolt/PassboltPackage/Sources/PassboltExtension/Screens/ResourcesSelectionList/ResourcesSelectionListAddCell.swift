@@ -78,7 +78,7 @@ internal final class ResourcesSelectionListAddCell: CollectionViewCell {
         .numberOfLines(1),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
-        .text(localized: .create, inBundle: .commons),
+        .text(displayable: .localized(key: .create)),
         .subview(of: contentButton),
         .centerYAnchor(.equalTo, iconContainer.centerYAnchor),
         .leadingAnchor(.equalTo, iconContainer.trailingAnchor, constant: 12),

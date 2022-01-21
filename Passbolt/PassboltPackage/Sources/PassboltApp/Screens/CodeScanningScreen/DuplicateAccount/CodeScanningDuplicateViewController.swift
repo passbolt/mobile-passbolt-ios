@@ -63,14 +63,13 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
       )
     contentView
       .applyOn(
-        title: .text(localized: "transfer.account.result.already.linked.title")
+        title: .text(displayable: .localized(key: "transfer.account.result.already.linked.title"))
       )
     contentView
       .applyOn(
         button: .combined(
           .text(
-            localized: .continue,
-            inBundle: .commons
+            displayable: .localized(key: .continue)
           ),
           .action(controller.continue)
         )

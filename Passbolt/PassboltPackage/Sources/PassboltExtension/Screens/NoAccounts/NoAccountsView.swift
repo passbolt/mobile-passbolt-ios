@@ -63,7 +63,7 @@ internal final class NoAccountsView: ScrolledStackView {
         .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
-        .text(localized: "no.accounts.title"),
+        .text(displayable: .localized(key: "autofill.extension.no.accounts.title")),
         .accessibilityIdentifier("no.accounts.title.label")
       )
     }
@@ -75,7 +75,7 @@ internal final class NoAccountsView: ScrolledStackView {
         .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
-        .text(localized: "no.accounts.description"),
+        .text(displayable: .localized(key: "autofill.extension.no.accounts.description")),
         .accessibilityIdentifier("no.accounts.description.label")
       )
     }

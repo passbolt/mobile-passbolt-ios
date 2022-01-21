@@ -30,17 +30,15 @@ internal final class TransferInfoCameraRequiredAlertViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "transfer.account.camera.access.alert.title"),
-        .message(localized: "transfer.account.camera.access.alert.text"),
+        .title(.localized(key: "transfer.account.camera.access.alert.title")),
+        .message(.localized(key: "transfer.account.camera.access.alert.text")),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          .localized(key: .cancel),
           accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
-          localized: .settings,
-          inBundle: .commons,
+          .localized(key: .settings),
           accessibilityIdentifier: "alert.button.dismiss",
           handler: controller.showSettings
         )

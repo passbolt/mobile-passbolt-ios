@@ -153,7 +153,7 @@ internal final class AccountSelectionView: View {
 
     mut(removeLabel) {
       .combined(
-        .text(localized: "account.selection.remove.account.button.title", inBundle: .commons),
+        .text(displayable: .localized(key: "account.selection.remove.account.button.title")),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .trailingAnchor(.lessThanOrEqualTo, removeContainer.trailingAnchor, constant: -40),
@@ -165,7 +165,7 @@ internal final class AccountSelectionView: View {
       .combined(
         .primaryStyle(),
         .hidden(true),
-        .text(localized: .done, inBundle: .commons),
+        .text(displayable: .localized(key: .done)),
         .accessibilityIdentifier("account.selection.done.button")
       )
     }
@@ -190,15 +190,13 @@ internal final class AccountSelectionView: View {
     case .selection:
       mut(titleLabel) {
         .text(
-          localized: "account.selection.title",
-          inBundle: .commons
+          displayable: .localized(key: "account.selection.title")
         )
       }
 
       mut(subTitleLabel) {
         .text(
-          localized: "account.selection.subtitle",
-          inBundle: .commons
+          displayable: .localized(key: "account.selection.subtitle")
         )
       }
 
@@ -213,15 +211,13 @@ internal final class AccountSelectionView: View {
     case .removal:
       mut(titleLabel) {
         .text(
-          localized: "account.selection.remove.account.title",
-          inBundle: .commons
+          displayable: .localized(key: "account.selection.remove.account.title")
         )
       }
 
       mut(subTitleLabel) {
         .text(
-          localized: "account.selection.remove.account.subtitle",
-          inBundle: .commons
+          displayable: .localized(key: "account.selection.remove.account.subtitle")
         )
       }
 

@@ -34,7 +34,7 @@ public enum SnackbarPresentationMode {
 extension UIViewController {
 
   public func presentErrorSnackbar(
-    _ displayable: DisplayableString = .localized(key: .genericError, bundle: .commons),
+    _ displayable: DisplayableString = .localized(key: .genericError),
     with arguments: Array<CVarArg> = .init(),
     hideAfter: TimeInterval = 2
   ) {

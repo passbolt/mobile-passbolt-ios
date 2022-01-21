@@ -33,8 +33,7 @@ final class ValidatorTests: XCTestCase {
   func test_nonEmptyValidator_withNonEmptyValue_Succeeds() {
     let validator: Validator<String> = .nonEmpty(
       displayable: .localized(
-        key: messageKeyInvalid,
-        bundle: .commons
+        key: messageKeyInvalid
       )
     )
     let validated: Validated<String> = validator.validate("NonEmptyString")
@@ -46,8 +45,7 @@ final class ValidatorTests: XCTestCase {
   func test_nonEmptyValidator_withEmptyValue_Fails() {
     let validator: Validator<String> = .nonEmpty(
       displayable: .localized(
-        key: messageKeyInvalid,
-        bundle: .commons
+        key: messageKeyInvalid
       )
     )
     let validated: Validated<String> = validator.validate("")

@@ -59,7 +59,7 @@ internal final class SettingsTabViewController: NavigationViewController, UIComp
     }
     mut(tabBarItem) {
       .combined(
-        .title(localized: "tab.settings"),
+        .title(.localized(key: "tab.settings")),
         .image(named: .settingsTab, from: .uiCommons)
       )
     }

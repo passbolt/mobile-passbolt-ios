@@ -88,8 +88,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
                 snackbar: Mutation<UICommons.View>
                   .snackBarErrorMessage(
                     .localized(
-                      key: .genericError,
-                      bundle: .commons
+                      key: .genericError
                     )
                   )
                   .instantiate(),

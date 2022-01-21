@@ -56,7 +56,7 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
   public func setupView() {
     mut(self.navigationItem) {
       .combined(
-        .title(localized: "help.logs.viewer.title", inBundle: .sharedUIComponents),
+        .title(.localized(key: "help.logs.viewer.title")),
         .rightBarButtonItem(
           Mutation<UIBarButtonItem>.combined(
             .style(.done),

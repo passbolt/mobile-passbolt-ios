@@ -75,7 +75,7 @@ internal final class TOTPView: KeyboardAwareView {
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .numberOfLines(1),
-        .text(localized: "totp.title.label"),
+        .text(displayable: .localized(key: "totp.title.label")),
         .set(\.adjustsFontSizeToFitWidth, to: true),
         .set(\.minimumScaleFactor, to: 0.5),
         .subview(of: self),
@@ -92,7 +92,7 @@ internal final class TOTPView: KeyboardAwareView {
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .numberOfLines(1),
-        .text(localized: "totp.message.label"),
+        .text(displayable: .localized(key: "totp.message.label")),
         .subview(of: self),
         .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16),
         .leadingAnchor(.equalTo, leadingAnchor, constant: 16),
@@ -126,7 +126,7 @@ internal final class TOTPView: KeyboardAwareView {
         .textColor(dynamic: .primaryBlue),
         .textAlignment(.natural),
         .numberOfLines(1),
-        .text(localized: "totp.paste.otp.button.label"),
+        .text(displayable: .localized(key: "totp.paste.otp.button.label")),
         .subview(of: pasteOTPButton),
         .leadingAnchor(.equalTo, pasteOTPButton.leadingAnchor),
         .topAnchor(.equalTo, pasteOTPButton.topAnchor),
@@ -161,7 +161,7 @@ internal final class TOTPView: KeyboardAwareView {
               .textColor(dynamic: .primaryText),
               .textAlignment(.natural),
               .numberOfLines(1),
-              .text(localized: "totp.remember.device.toggle.label")
+              .text(displayable: .localized(key: "totp.remember.device.toggle.label"))
             )
           )
         }

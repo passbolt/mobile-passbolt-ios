@@ -32,17 +32,15 @@ internal final class SignOutAlertViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "account.settings.alert.title"),
-        .message(localized: "account.settings.signout.alert.message"),
+        .title(.localized(key: "account.settings.alert.title")),
+        .message(.localized(key: "account.settings.signout.alert.message")),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          .localized(key: .cancel),
           style: .cancel,
           handler: {}
         ),
         .action(
-          localized: .signOut,
-          inBundle: .commons,
+          .localized(key: .signOut),
           style: .destructive,
           accessibilityIdentifier: "button.close",
           handler: controller.exit

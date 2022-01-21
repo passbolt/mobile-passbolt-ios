@@ -172,8 +172,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
               DispatchQueue.main.async {
                 self?.presentInfoSnackbar(
                   .localized(
-                    key: "resource.form.new.password.created",
-                    bundle: .commons
+                    key: "resource.form.new.password.created"
                   ),
                   presentationMode: .global
                 )
@@ -222,8 +221,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                     overlay: LoaderOverlayView(
                       longLoadingMessage: (
                         message: .localized(
-                          key: .loadingLong,
-                          bundle: .commons
+                          key: .loadingLong
                         ),
                         delay: 5
                       )

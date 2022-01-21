@@ -39,11 +39,11 @@ internal final class MFARequiredView: ScrolledStackView {
     )
 
     resultView.applyOn(
-      title: .text(localized: "mfa.required.title", inBundle: .main)
+      title: .text(displayable: .localized(key: "mfa.required.title"))
     )
 
     resultView.applyOn(
-      message: .text(localized: "mfa.required.description", inBundle: .main)
+      message: .text(displayable: .localized(key: "autofill.extension.mfa.required.description"))
     )
 
     resultView.applyOn(

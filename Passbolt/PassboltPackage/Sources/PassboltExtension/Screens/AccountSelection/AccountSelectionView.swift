@@ -87,20 +87,20 @@ internal final class AccountSelectionView: View {
     switch mode {
     case .signIn:
       mut(titleLabel) {
-        .text(localized: "account.selection.switch.account.title")
+        .text(displayable: .localized(key: "autofill.extension.account.selection.switch.account.title"))
       }
 
       mut(subTitleLabel) {
-        .text(localized: "account.selection.switch.account.subtitle")
+        .text(displayable: .localized(key: "autofill.extension.account.selection.switch.account.subtitle"))
       }
 
     case .switchAccount:
       mut(titleLabel) {
-        .text(localized: "account.selection.sign.in.title")
+        .text(displayable: .localized(key: "autofill.extension.account.selection.sign.in.title"))
       }
 
       mut(subTitleLabel) {
-        .text(localized: "account.selection.sign.in.subtitle")
+        .text(displayable: .localized(key: "autofill.extension.account.selection.sign.in.subtitle"))
       }
     }
 

@@ -23,6 +23,7 @@
 
 import AegithalosCocoa
 import Combine
+import Commons
 
 public final class TextSearchView: View {
 
@@ -135,9 +136,13 @@ public final class TextSearchView: View {
         .set(\.clearButtonMode, to: .never),
         .set(\.returnKeyType, to: .search),
         .attributedPlaceholderString(
-          .localized(
-            "resources.search.placeholder",
-            inBundle: .main,
+          .displayable(
+            .localized(
+              key:
+                isInExtensionContext
+                ? "autofill.extension.autofill.extension.resources.search.placeholder"
+                : "resources.search.placeholder"
+            ),
             font: .inter(ofSize: 14, weight: .regular),
             color: .secondaryText
           )

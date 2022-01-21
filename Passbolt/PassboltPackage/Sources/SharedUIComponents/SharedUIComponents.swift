@@ -22,10 +22,3 @@
 //
 
 @_exported import UIComponents
-
-import class Foundation.Bundle
-
-extension Bundle {
-
-  public static var sharedUIComponents: Bundle { Bundle.module }
-}

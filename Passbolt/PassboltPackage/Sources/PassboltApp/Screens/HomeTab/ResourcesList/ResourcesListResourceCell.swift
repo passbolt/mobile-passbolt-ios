@@ -144,7 +144,7 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
       mut(self.subtitleLabel) {
         .combined(
           .font(.interItalic(ofSize: 12, weight: .regular)),
-          .text(localized: "resource.list.username.empty.placeholder", inBundle: .commons)
+          .text(displayable: .localized(key: "resource.list.username.empty.placeholder"))
         )
       }
     }

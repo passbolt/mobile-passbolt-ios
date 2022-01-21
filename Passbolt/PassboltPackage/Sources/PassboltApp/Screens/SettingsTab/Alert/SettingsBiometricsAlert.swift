@@ -32,17 +32,15 @@ internal final class DisableBiometricsAlertViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "account.settings.alert.title"),
-        .message(localized: "account.settings.biometrics.alert.message"),
+        .title(.localized(key: "account.settings.alert.title")),
+        .message(.localized(key: "account.settings.biometrics.alert.message")),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          .localized(key: .cancel),
           style: .cancel,
           handler: {}
         ),
         .action(
-          localized: .disable,
-          inBundle: .commons,
+          .localized(key: .disable),
           style: .destructive,
           accessibilityIdentifier: "button.close",
           handler: controller.disable

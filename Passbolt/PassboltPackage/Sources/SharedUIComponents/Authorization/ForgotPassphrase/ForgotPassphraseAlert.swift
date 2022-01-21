@@ -31,16 +31,13 @@ public final class ForgotPassphraseAlertViewController:
     mut(self) {
       .combined(
         .title(
-          localized: "authorization.forgot.passphrase.alert.title",
-          inBundle: .commons
+          .localized(key: "authorization.forgot.passphrase.alert.title")
         ),
         .message(
-          localized: "authorization.forgot.passphrase.alert.message",
-          inBundle: .commons
+          .localized(key: "authorization.forgot.passphrase.alert.message")
         ),
         .action(
-          localized: .gotIt,
-          inBundle: .commons,
+          .localized(key: .gotIt),
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: {}

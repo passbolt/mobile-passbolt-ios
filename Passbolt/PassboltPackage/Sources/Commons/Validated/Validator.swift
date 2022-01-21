@@ -22,6 +22,7 @@
 //
 
 import Foundation
+import Localization
 
 public struct Validator<Value> {
 

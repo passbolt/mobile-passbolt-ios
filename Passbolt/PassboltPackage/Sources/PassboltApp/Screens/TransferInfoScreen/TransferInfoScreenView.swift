@@ -39,7 +39,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
       .combined(
         .font(.inter(ofSize: 14)),
         .textColor(dynamic: .primaryText),
-        .text(localized: "transfer.account.description")
+        .text(displayable: .localized(key: "transfer.account.description"))
       )
     }
 
@@ -64,8 +64,8 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .iconView(icon(number: 1)),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "transfer.account.info.step.first",
+            .displayable(
+              .localized(key: "transfer.account.info.step.first"),
               font: .inter(
                 ofSize: 14,
                 weight: .regular
@@ -83,9 +83,9 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .iconView(icon(number: 2)),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "transfer.account.info.step.second",
-              withBoldSubstringLocalized: "transfer.account.info.step.second.distinct",
+            .displayable(
+              .localized(key: "transfer.account.info.step.second"),
+              withBoldSubstring: .localized(key: "transfer.account.info.step.second.distinct"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -100,9 +100,9 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .iconView(icon(number: 3)),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "transfer.account.info.step.third",
-              withBoldSubstringLocalized: "transfer.account.info.step.third.distinct",
+            .displayable(
+              .localized(key: "transfer.account.info.step.third"),
+              withBoldSubstring: .localized(key: "transfer.account.info.step.third.distinct"),
               fontSize: 14,
               color: .secondaryText
             )
@@ -117,8 +117,8 @@ public final class TransferInfoScreenView: ScrolledStackView {
         .iconView(icon(number: 4)),
         .label(
           mutatation: .attributedString(
-            .localized(
-              "transfer.account.info.step.fourth",
+            .displayable(
+              .localized(key: "transfer.account.info.step.fourth"),
               font: .inter(
                 ofSize: 14,
                 weight: .regular
@@ -154,7 +154,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
     mut(button) {
       .combined(
         .primaryStyle(),
-        .text(localized: "transfer.account.scan.qr.button"),
+        .text(displayable: .localized(key: "transfer.account.scan.qr.button")),
         .accessibilityIdentifier("button.transfer.account")
       )
     }

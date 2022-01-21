@@ -27,11 +27,10 @@ internal final class CodeScanningHelpViewController: AlertViewController<CodeSca
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "code.scanning.help.title"),
-        .message(localized: "code.scanning.help.message"),
+        .title(.localized(key: "code.scanning.help.title")),
+        .message(.localized(key: "code.scanning.help.message")),
         .action(
-          localized: .gotIt,
-          inBundle: .commons,
+          .localized(key: .gotIt),
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: {}

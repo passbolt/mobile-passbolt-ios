@@ -64,22 +64,22 @@ internal final class BiometricsInfoView: ScrolledStackView {
 
     mut(titleLabel) {
       .combined(
-        .text(localized: "biometrics.info.title"),
+        .text(displayable: .localized(key: "biometrics.info.title")),
         .titleStyle(),
-        .text(localized: "biometrics.info.title"),
+        .text(displayable: .localized(key: "biometrics.info.title")),
         .accessibilityIdentifier("biometrics.info.title.label")
       )
     }
 
     mut(descriptionLabel) {
       .combined(
-        .text(localized: "biometrics.info.description"),
+        .text(displayable: .localized(key: "biometrics.info.description")),
         .font(.inter(ofSize: 14)),
         .lineBreakMode(.byWordWrapping),
         .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
-        .text(localized: "biometrics.info.description"),
+        .text(displayable: .localized(key: "biometrics.info.description")),
         .accessibilityIdentifier("biometrics.info.description.label")
       )
     }
@@ -87,16 +87,16 @@ internal final class BiometricsInfoView: ScrolledStackView {
     mut(setupButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: "biometrics.info.setup.button"),
+        .text(displayable: .localized(key: "biometrics.info.setup.button")),
         .accessibilityIdentifier("biometrics.info.setup.button")
       )
     }
 
     mut(skipButton) {
       .combined(
-        .text(localized: "biometrics.info.setup.button"),
+        .text(displayable: .localized(key: "biometrics.info.setup.button")),
         .linkStyle(),
-        .text(localized: "biometrics.info.later.button"),
+        .text(displayable: .localized(key: "biometrics.info.later.button")),
         .accessibilityIdentifier("biometrics.info.later.button")
       )
     }

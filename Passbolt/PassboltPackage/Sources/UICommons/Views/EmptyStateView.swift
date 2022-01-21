@@ -22,6 +22,7 @@
 //
 
 import AegithalosCocoa
+import Commons
 
 open class EmptyStateView: View {
 
@@ -29,8 +30,7 @@ open class EmptyStateView: View {
   internal let imageView: ImageView = .init()
 
   public init(
-    labelLocalizationKey: LocalizationKeyConstant = .emptyList,
-    labelLocalizationBundle: Bundle = .commons
+    labelString: DisplayableString = .localized(key: .emptyList)
   ) {
     super.init()
 
@@ -38,7 +38,7 @@ open class EmptyStateView: View {
       .combined(
         .numberOfLines(0),
         .lineBreakMode(.byWordWrapping),
-        .text(localized: labelLocalizationKey, inBundle: labelLocalizationBundle),
+        .text(displayable: labelString),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
         .font(.inter(ofSize: 20, weight: .semibold)),

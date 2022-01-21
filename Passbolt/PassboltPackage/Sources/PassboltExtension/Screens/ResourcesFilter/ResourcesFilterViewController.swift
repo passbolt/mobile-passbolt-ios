@@ -60,7 +60,7 @@ internal final class ResourcesFilterViewController: PlainViewController, UICompo
 
   private func setupNavigationView() {
     mut(self.navigationItem) {
-      .title(localized: "resource.list.title", inBundle: .main)
+      .title(.localized(key: "autofill.extension.resource.list.title"))
     }
   }
 

@@ -31,10 +31,9 @@ internal final class CodeScanningCameraInaccessibleViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "code.scanning.camera.unavailable"),
+        .title(.localized(key: "code.scanning.camera.unavailable")),
         .action(
-          localized: .gotIt,
-          inBundle: .commons,
+          .localized(key: .gotIt),
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: controller.exit

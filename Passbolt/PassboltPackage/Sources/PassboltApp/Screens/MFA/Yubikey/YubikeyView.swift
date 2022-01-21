@@ -57,7 +57,7 @@ internal final class YubikeyView: View {
         .topAnchor(.equalTo, imageView.bottomAnchor, constant: 24),
         .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
-        .text(localized: "mfa.yubikey.title", inBundle: .main),
+        .text(displayable: .localized(key: "mfa.yubikey.title")),
         .textAlignment(.center)
       )
     }
@@ -70,7 +70,7 @@ internal final class YubikeyView: View {
         .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16),
         .font(.inter(ofSize: 14)),
         .textColor(dynamic: .primaryText),
-        .text(localized: "mfa.yubikey.description", inBundle: .main),
+        .text(displayable: .localized(key: "mfa.yubikey.description")),
         .numberOfLines(0),
         .lineBreakMode(.byWordWrapping),
         .textAlignment(.center)
@@ -89,8 +89,7 @@ internal final class YubikeyView: View {
               .font(.inter(ofSize: 14, weight: .semibold)),
               .textColor(dynamic: .primaryText),
               .text(
-                localized: "mfa.remember.token",
-                inBundle: .main
+                displayable: .localized(key: "mfa.remember.token")
               )
             )
           )
@@ -106,7 +105,7 @@ internal final class YubikeyView: View {
         .topAnchor(.equalTo, labeledSwitch.bottomAnchor, constant: 38),
         .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
         .primaryStyle(),
-        .text(localized: "mfa.yubikey.scan", inBundle: .main)
+        .text(displayable: .localized(key: "mfa.yubikey.scan"))
       )
     }
   }

@@ -56,7 +56,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
     mut(titleLabel) {
       .combined(
         .titleStyle(),
-        .text(localized: "extension.setup.title")
+        .text(displayable: .localized(key: "autofill.extension.setup.completed.title"))
       )
     }
 
@@ -64,14 +64,14 @@ internal final class ExtensionSetupView: ScrolledStackView {
     mut(infoLabel) {
       .combined(
         .infoStyle(),
-        .text(localized: "extension.setup.info")
+        .text(displayable: .localized(key: "autofill.extension.setup.completed.info"))
       )
     }
 
     mut(closeButton) {
       .combined(
         .primaryStyle(),
-        .text(localized: .done, inBundle: .commons)
+        .text(displayable: .localized(key: .done))
       )
     }
 

@@ -239,8 +239,7 @@ extension ResourceEditForm: Feature {
             if property.required {
               return .nonEmpty(
                 displayable: .localized(
-                  key: "resource.form.field.error.empty",
-                  bundle: .commons
+                  key: "resource.form.field.error.empty"
                 )
               )
             }
@@ -253,8 +252,7 @@ extension ResourceEditForm: Feature {
           .maxLength(
             UInt(property.maxLength ?? 10000),
             displayable: .localized(
-              key: "resource.form.field.error.max.length",
-              bundle: .commons
+              key: "resource.form.field.error.max.length"
             )
           )
         )
@@ -347,8 +345,7 @@ extension ResourceEditForm: Feature {
             return Fail(
               error: .validationError(
                 displayable: .localized(
-                  key: "resource.form.error.invalid",
-                  bundle: .commons
+                  key: "resource.form.error.invalid"
                 )
               )
             )

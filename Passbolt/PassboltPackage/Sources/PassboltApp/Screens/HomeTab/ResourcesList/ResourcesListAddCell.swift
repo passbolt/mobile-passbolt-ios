@@ -71,7 +71,7 @@ internal final class ResourcesListAddButton: Button {
         .numberOfLines(1),
         .font(.inter(ofSize: 14, weight: .semibold)),
         .textColor(dynamic: .primaryText),
-        .text(localized: .create, inBundle: .commons),
+        .text(displayable: .localized(key: .create)),
         .subview(of: self),
         .centerYAnchor(.equalTo, iconContainer.centerYAnchor),
         .leadingAnchor(.equalTo, iconContainer.trailingAnchor, constant: 12),

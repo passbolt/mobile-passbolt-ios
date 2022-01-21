@@ -66,10 +66,22 @@ public final class ResourceEditView: KeyboardAwareView {
           createsNewResource,
           then: .when(
             isInExtensionContext,
-            then: .text(localized: "resource.form.create.and.fill.button.title", inBundle: .commons),
-            else: .text(localized: "resource.form.create.button.title", inBundle: .commons)
+            then: .text(
+              displayable: .localized(
+                key: "resource.form.create.and.fill.button.title"
+              )
+            ),
+            else: .text(
+              displayable: .localized(
+                key: "resource.form.create.button.title"
+              )
+            )
           ),
-          else: .text(localized: "resource.form.update.button.title", inBundle: .commons)
+          else: .text(
+            displayable: .localized(
+              key: "resource.form.update.button.title"
+            )
+          )
         )
       )
     }
@@ -109,9 +121,10 @@ public final class ResourceEditView: KeyboardAwareView {
                     text: .combined(
                       .primaryStyle(),
                       .attributedPlaceholderString(
-                        .localized(
-                          "resource.edit.name.field.placeholder",
-                          inBundle: .sharedUIComponents,
+                        .displayable(
+                          .localized(
+                            key: "resource.edit.name.field.placeholder"
+                          ),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -119,7 +132,7 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.edit.field.name.label", inBundle: .sharedUIComponents)
+                    description: .text(displayable: .localized(key: "resource.edit.field.name.label"))
                   )
                 }
               )
@@ -138,9 +151,8 @@ public final class ResourceEditView: KeyboardAwareView {
                     text: .combined(
                       .primaryStyle(),
                       .attributedPlaceholderString(
-                        .localized(
-                          "resource.edit.url.field.placeholder",
-                          inBundle: .sharedUIComponents,
+                        .displayable(
+                          .localized(key: "resource.edit.url.field.placeholder"),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -148,7 +160,7 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.edit.field.url.label", inBundle: .sharedUIComponents)
+                    description: .text(displayable: .localized(key: "resource.edit.field.url.label"))
                   )
                 }
               )
@@ -167,9 +179,8 @@ public final class ResourceEditView: KeyboardAwareView {
                     text: .combined(
                       .primaryStyle(),
                       .attributedPlaceholderString(
-                        .localized(
-                          "resource.edit.username.field.placeholder",
-                          inBundle: .sharedUIComponents,
+                        .displayable(
+                          .localized(key: "resource.edit.username.field.placeholder"),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -177,7 +188,7 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.edit.field.username.label", inBundle: .sharedUIComponents)
+                    description: .text(displayable: .localized(key: "resource.edit.field.username.label"))
                   )
                 }
               )
@@ -196,9 +207,8 @@ public final class ResourceEditView: KeyboardAwareView {
                     text: .combined(
                       .primaryStyle(),
                       .attributedPlaceholderString(
-                        .localized(
-                          "resource.edit.password.field.placeholder",
-                          inBundle: .sharedUIComponents,
+                        .displayable(
+                          .localized(key: "resource.edit.password.field.placeholder"),
                           font: .inter(ofSize: 14, weight: .medium),
                           color: .secondaryText
                         )
@@ -206,7 +216,7 @@ public final class ResourceEditView: KeyboardAwareView {
                     )
                   )
                   input.applyOn(
-                    description: .text(localized: "resource.edit.field.password.label", inBundle: .sharedUIComponents)
+                    description: .text(displayable: .localized(key: "resource.edit.field.password.label"))
                   )
                 }
               )
@@ -220,9 +230,8 @@ public final class ResourceEditView: KeyboardAwareView {
               .combined(
                 .isRequired(resourceProperty.required),
                 .attributedPlaceholder(
-                  .localized(
-                    "resource.edit.description.field.placeholder",
-                    inBundle: .sharedUIComponents,
+                  .displayable(
+                    .localized(key: "resource.edit.description.field.placeholder"),
                     font: .inter(ofSize: 14, weight: .medium),
                     color: .secondaryText
                   )
@@ -234,8 +243,7 @@ public final class ResourceEditView: KeyboardAwareView {
                   )
                   input.applyOn(
                     description: .text(
-                      localized: "resource.edit.field.description.label",
-                      inBundle: .sharedUIComponents
+                      displayable: .localized(key: "resource.edit.field.description.label")
                     )
                   )
                   input.set(

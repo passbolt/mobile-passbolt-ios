@@ -29,11 +29,10 @@ internal final class WelcomeScreenNoAccountAlertViewController:
   internal func setup() {
     mut(self) {
       .combined(
-        .title(localized: "welcome.no.account.alert.title"),
-        .message(localized: "welcome.no.account.alert.text"),
+        .title(.localized(key: "welcome.no.account.alert.title")),
+        .message(.localized(key: "welcome.no.account.alert.text")),
         .action(
-          localized: .gotIt,
-          inBundle: .commons,
+          .localized(key: .gotIt),
           accessibilityIdentifier: "alert.button.close",
           handler: controller.dismiss
         )

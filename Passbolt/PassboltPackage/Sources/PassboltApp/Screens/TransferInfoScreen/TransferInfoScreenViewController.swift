@@ -55,7 +55,7 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
 
   internal func setupView() {
     mut(self) {
-      .title(localized: "transfer.account.title")
+      .title(.localized(key: "transfer.account.title"))
     }
 
     setupSubscriptions()

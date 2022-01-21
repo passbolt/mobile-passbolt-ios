@@ -22,10 +22,4 @@
 //
 
 @_exported import Combine
-
-import class Foundation.Bundle
-
-extension Bundle {
-
-  public static var commons: Bundle { Bundle.module }
-}
+@_exported import Localization

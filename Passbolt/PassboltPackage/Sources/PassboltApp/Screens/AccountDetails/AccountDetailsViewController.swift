@@ -54,7 +54,7 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
 
   internal func setupView() {
     mut(self) {
-      .title(localized: "account.details.title")
+      .title(.localized(key: "account.details.title"))
     }
     setupSubscriptions()
   }
@@ -114,8 +114,7 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
             defaultHandler: { [weak self] _ in
               self?.presentErrorSnackbar(
                 .localized(
-                  key: .genericError,
-                  bundle: .commons
+                  key: .genericError
                 )
               )
             }

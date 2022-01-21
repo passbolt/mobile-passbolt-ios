@@ -33,16 +33,14 @@ internal final class ResourceDeleteAlert:
   internal func setup() {
     mut(self) {
       .combined(
-        .message(localized: .areYouSure, inBundle: .commons),
+        .message(.localized(key: .areYouSure)),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          .localized(key: .cancel),
           style: .cancel,
           handler: {}
         ),
         .action(
-          localized: .delete,
-          inBundle: .commons,
+          .localized(key: .delete),
           style: .destructive,
           accessibilityIdentifier: "button.close",
           handler: controller.delete

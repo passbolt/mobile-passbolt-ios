@@ -31,23 +31,19 @@ internal final class RemoveAccountAlertViewController:
     mut(self) {
       .combined(
         .title(
-          localized: "account.selection.remove.alert.title",
-          inBundle: .commons
+          .localized(key: "account.selection.remove.alert.title")
         ),
         .message(
-          localized: "account.selection.remove.alert.message",
-          inBundle: .commons
+          .localized(key: "account.selection.remove.alert.message")
         ),
         .action(
-          localized: .cancel,
-          inBundle: .commons,
+          .localized(key: .cancel),
           style: .cancel,
           accessibilityIdentifier: "button.close",
           handler: {}
         ),
         .action(
-          localized: .remove,
-          inBundle: .commons,
+          .localized(key: .remove),
           style: .destructive,
           accessibilityIdentifier: "button.remove",
           handler: controller.removeAccount

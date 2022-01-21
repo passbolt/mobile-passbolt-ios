@@ -60,12 +60,11 @@ internal final class ResourcesSelectionListSectionHeader: CollectionReusableView
   }
 
   internal func setTitle(
-    localized localizationKey: LocalizationKeyConstant?,
-    inBundle bundle: Bundle = .main
+    _ displayable: DisplayableString?
   ) {
-    if let localizationKey: LocalizationKeyConstant = localizationKey {
+    if let displayableString: DisplayableString = displayable {
       mut(label) {
-        .text(localized: localizationKey, inBundle: bundle)
+        .text(displayable: displayableString)
       }
       heightConstraint?.constant = 44
     }

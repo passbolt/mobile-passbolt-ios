@@ -22,6 +22,7 @@
 //
 
 import Foundation
+import Localization
 
 extension Validator where Value: Collection {
 

@@ -47,8 +47,7 @@ internal final class MFARootView: KeyboardAwareView {
       .combined(
         .linkStyle(),
         .text(
-          localized: "mfa.provider.try.another",
-          inBundle: .main
+          displayable: .localized(key: "mfa.provider.try.another")
         ),
         .hidden(hideButton)
       )
