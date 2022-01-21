@@ -151,7 +151,7 @@ final class AccountTransferTests: TestCase {
 
     accountTransfer.cancelTransfer()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -181,7 +181,7 @@ final class AccountTransferTests: TestCase {
 
     processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -208,7 +208,7 @@ final class AccountTransferTests: TestCase {
 
     let accountTransfer: AccountTransfer = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
@@ -232,7 +232,7 @@ final class AccountTransferTests: TestCase {
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
     features.use(accounts)
-    var result: TheError?
+    var result: TheErrorLegacy?
     let accountTransfer: AccountTransfer = testInstance()
 
     accountTransfer
@@ -329,7 +329,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePartInvalidVersionByte)
@@ -355,7 +355,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
@@ -381,7 +381,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePartInvalidPageNumber)
@@ -407,7 +407,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePart0InvalidConfiguration)
@@ -433,7 +433,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePart0InvalidJSON)
@@ -461,7 +461,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePart0InvalidDomain)
@@ -489,7 +489,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     processPart(qrCodePart0InvalidHash, using: accountTransfer)
     processPart(qrCodePart1, using: accountTransfer)
@@ -523,7 +523,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     processPart(qrCodePart0, using: accountTransfer)
     processPart(qrCodePart1Invalid, using: accountTransfer)
@@ -557,7 +557,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     processPart(qrCodePart0, using: accountTransfer)
     processPart(qrCodePart1, using: accountTransfer)
@@ -591,7 +591,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     processPart(qrCodePart0NoHash, using: accountTransfer)
     processPart(qrCodePart1, using: accountTransfer)
@@ -625,7 +625,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     processPart(qrCodePart0, using: accountTransfer)
     processPart(qrCodePart1Modified, using: accountTransfer)
@@ -698,7 +698,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
 
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     processPart(qrCodePart0, using: accountTransfer)
     processPart(qrCodePart1, using: accountTransfer)
@@ -734,7 +734,7 @@ final class AccountTransferTests: TestCase {
     let accountTransfer: AccountTransfer = testInstance()
 
     processPart(qrCodePart0, using: accountTransfer)
-    var result: TheError?
+    var result: TheErrorLegacy?
     accountTransfer
       .processPayload(qrCodePart0)
       .sink(
@@ -760,7 +760,7 @@ final class AccountTransferTests: TestCase {
     accounts.storedAccounts = always([validAccount])
     features.use(accounts)
     let accountTransfer: AccountTransfer = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     accountTransfer
       .processPayload(qrCodePart0)
@@ -807,7 +807,7 @@ final class AccountTransferTests: TestCase {
     features.use(accounts)
     let accountTransfer: AccountTransfer = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     accountTransfer
       .progressPublisher()
       .sink(

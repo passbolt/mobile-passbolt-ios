@@ -86,7 +86,7 @@ final class FingerprintStorageTests: TestCase {
     features.use(accountDataStore)
 
     let feature: FingerprintStorage = testInstance()
-    var result: TheError? = nil
+    var result: TheErrorLegacy? = nil
 
     switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
     case .success:
@@ -131,7 +131,7 @@ final class FingerprintStorageTests: TestCase {
     features.use(accountDataStore)
 
     let feature: FingerprintStorage = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     switch feature.storeServerFingerprint(.init(rawValue: "ACCOUNT_ID"), .init(rawValue: "FINGERPRINT")) {
     case .success:

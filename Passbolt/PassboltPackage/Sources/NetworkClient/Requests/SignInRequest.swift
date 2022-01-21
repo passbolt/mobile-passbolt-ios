@@ -32,7 +32,7 @@ extension SignInRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -170,7 +170,7 @@ where
 {
 
   fileprivate static func signInResponse() -> Self {
-    Self { sessionVariable, requestVariable, httpResponse -> Result<SignInResponse, TheError> in
+    Self { sessionVariable, requestVariable, httpResponse -> Result<SignInResponse, TheErrorLegacy> in
       let mfaTokenIsValid: Bool
       if let mfaToken: MFAToken = requestVariable.mfaToken {
         if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],

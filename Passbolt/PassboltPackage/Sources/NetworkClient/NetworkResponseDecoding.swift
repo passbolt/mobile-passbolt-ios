@@ -30,7 +30,7 @@ import class Foundation.JSONSerialization
 
 internal struct NetworkResponseDecoding<SessionVariable, RequestVariable, Response> {
 
-  internal var decode: (SessionVariable, RequestVariable, HTTPResponse) -> Result<Response, TheError>
+  internal var decode: (SessionVariable, RequestVariable, HTTPResponse) -> Result<Response, TheErrorLegacy>
 }
 
 extension NetworkResponseDecoding where Response == Void {
@@ -84,7 +84,7 @@ extension NetworkResponseDecoding where Response == String {
 
 extension NetworkResponseDecoding {
 
-  internal static func decodeBadRequest(response: HTTPResponse) -> Result<Response, TheError> {
+  internal static func decodeBadRequest(response: HTTPResponse) -> Result<Response, TheErrorLegacy> {
     do {
       guard
         let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(

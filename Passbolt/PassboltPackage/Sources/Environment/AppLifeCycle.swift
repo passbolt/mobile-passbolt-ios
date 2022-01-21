@@ -95,7 +95,7 @@ extension Environment {
 extension AppLifeCycle {
   public static var placeholder: Self {
     Self(
-      lifeCyclePublisher: Commons.placeholder("You have to provide mocks for used methods")
+      lifeCyclePublisher: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

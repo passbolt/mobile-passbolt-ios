@@ -50,7 +50,7 @@ open class View: UIView {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   open func setup() {

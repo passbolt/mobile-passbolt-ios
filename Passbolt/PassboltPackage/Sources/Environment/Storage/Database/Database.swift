@@ -31,7 +31,7 @@ public struct Database: EnvironmentElement {
       _ path: String,
       _ key: String,
       _ migrations: Array<SQLiteMigration>
-    ) -> Result<SQLiteConnection, TheError>
+    ) -> Result<SQLiteConnection, TheErrorLegacy>
 }
 
 extension Database {
@@ -65,7 +65,7 @@ extension Environment {
 extension Database {
   public static var placeholder: Self {
     Self(
-      openConnection: Commons.placeholder("You have to provide mocks for used methods")
+      openConnection: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

@@ -68,7 +68,7 @@ final class SplashScreenTests: TestCase {
     accounts.verifyStorageDataIntegrity = always(.failure(.testError()))
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
 
@@ -95,7 +95,7 @@ final class SplashScreenTests: TestCase {
     accounts.storedAccounts = always([])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
 
@@ -122,7 +122,7 @@ final class SplashScreenTests: TestCase {
     accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
 
@@ -149,7 +149,7 @@ final class SplashScreenTests: TestCase {
     accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
 
@@ -176,7 +176,7 @@ final class SplashScreenTests: TestCase {
     accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
 
@@ -203,7 +203,7 @@ final class SplashScreenTests: TestCase {
     accounts.storedAccounts = always([account])
     features.use(accounts)
     featureConfig.fetchIfNeeded = always(
-      Fail<Void, TheError>(error: .testError()).eraseToAnyPublisher()
+      Fail<Void, TheErrorLegacy>(error: .testError()).eraseToAnyPublisher()
     )
     features.use(featureConfig)
 
@@ -237,7 +237,7 @@ final class SplashScreenTests: TestCase {
         return Fail(error: .testError()).eraseToAnyPublisher()
       }
 
-      return Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      return Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     }
 
     features.use(featureConfig)

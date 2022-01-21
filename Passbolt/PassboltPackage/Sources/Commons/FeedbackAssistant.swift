@@ -41,7 +41,7 @@ public func isFeedbackRequired() -> Bool {
 
   do {
     guard let url: URL = url
-    else { throw TheError.canceled }
+    else { throw TheErrorLegacy.canceled }
     try "Really nice app!"
       .write(
         to: url,
@@ -59,7 +59,7 @@ public func isFeedbackRequired() -> Bool {
 
   do {
     guard let url: URL = url
-    else { throw TheError.canceled }
+    else { throw TheErrorLegacy.canceled }
     try "It's ok..."
       .write(
         to: url,
@@ -77,7 +77,7 @@ public func isFeedbackRequired() -> Bool {
 
   do {
     guard let url: URL = url
-    else { throw TheError.canceled }
+    else { throw TheErrorLegacy.canceled }
     try "Needs some more work."
       .write(
         to: url,

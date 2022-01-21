@@ -31,29 +31,29 @@ import let LocalAuthentication.errSecAuthFailed
 
 internal struct AccountsDataStore {
 
-  internal var verifyDataIntegrity: () -> Result<Void, TheError>
+  internal var verifyDataIntegrity: () -> Result<Void, TheErrorLegacy>
   internal var loadAccounts: () -> Array<Account>
   internal var loadLastUsedAccount: () -> Account?
   internal var storeLastUsedAccount: (Account.LocalID) -> Void
-  internal var storeAccount: (Account, AccountProfile, ArmoredPGPPrivateKey) -> Result<Void, TheError>
-  internal var loadAccountPrivateKey: (Account.LocalID) -> Result<ArmoredPGPPrivateKey, TheError>
-  internal var storeAccountPassphrase: (Account.LocalID, Passphrase) -> Result<Void, TheError>
-  internal var loadAccountPassphrase: (Account.LocalID) -> Result<Passphrase, TheError>
-  internal var deleteAccountPassphrase: (Account.LocalID) -> Result<Void, TheError>
-  internal var storeAccountMFAToken: (Account.LocalID, MFAToken) -> Result<Void, TheError>
-  internal var loadAccountMFAToken: (Account.LocalID) -> Result<MFAToken?, TheError>
-  internal var deleteAccountMFAToken: (Account.LocalID) -> Result<Void, TheError>
-  internal var loadAccountProfile: (Account.LocalID) -> Result<AccountProfile, TheError>
-  internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheError>
+  internal var storeAccount: (Account, AccountProfile, ArmoredPGPPrivateKey) -> Result<Void, TheErrorLegacy>
+  internal var loadAccountPrivateKey: (Account.LocalID) -> Result<ArmoredPGPPrivateKey, TheErrorLegacy>
+  internal var storeAccountPassphrase: (Account.LocalID, Passphrase) -> Result<Void, TheErrorLegacy>
+  internal var loadAccountPassphrase: (Account.LocalID) -> Result<Passphrase, TheErrorLegacy>
+  internal var deleteAccountPassphrase: (Account.LocalID) -> Result<Void, TheErrorLegacy>
+  internal var storeAccountMFAToken: (Account.LocalID, MFAToken) -> Result<Void, TheErrorLegacy>
+  internal var loadAccountMFAToken: (Account.LocalID) -> Result<MFAToken?, TheErrorLegacy>
+  internal var deleteAccountMFAToken: (Account.LocalID) -> Result<Void, TheErrorLegacy>
+  internal var loadAccountProfile: (Account.LocalID) -> Result<AccountProfile, TheErrorLegacy>
+  internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheErrorLegacy>
   internal var deleteAccount: (Account.LocalID) -> Void
   internal var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   internal var accountDatabaseConnection:
     (
       _ accountID: Account.LocalID,
       _ key: String
-    ) -> Result<SQLiteConnection, TheError>
-  internal var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheError>
-  internal var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheError>
+    ) -> Result<SQLiteConnection, TheErrorLegacy>
+  internal var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheErrorLegacy>
+  internal var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy>
 }
 
 extension AccountsDataStore: Feature {
@@ -83,7 +83,7 @@ extension AccountsDataStore: Feature {
         fatalError(error.description)
       }
     }
-    func ensureDataIntegrity() -> Result<Void, TheError> {
+    func ensureDataIntegrity() -> Result<Void, TheErrorLegacy> {
       let timeMeasurement: Diagnostics.TimeMeasurement = diagnostics.measurePerformance("Data integrity check")
       lock.lock()
       diagnostics.diagnosticLog("Verifying data integrity...")
@@ -333,7 +333,7 @@ extension AccountsDataStore: Feature {
         return .failure(error)
       }
 
-      let storedDatabasesResult: Result<Array<Account.LocalID>, TheError> =
+      let storedDatabasesResult: Result<Array<Account.LocalID>, TheErrorLegacy> =
         files
         .contentsOfDirectory(applicationDataDirectory)
         .map { contents -> Array<Account.LocalID> in
@@ -368,7 +368,7 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
 
       for accountID in databasesToRemove {
-        let fileDeletionResult: Result<Void, TheError> = _databaseURL(
+        let fileDeletionResult: Result<Void, TheErrorLegacy> = _databaseURL(
           forAccountWithID: accountID
         )
         .flatMap { url in
@@ -409,7 +409,7 @@ extension AccountsDataStore: Feature {
       lock.lock()
       defer { lock.unlock() }
 
-      let keychainLoadResult: Result<Array<Account>, TheError> = environment
+      let keychainLoadResult: Result<Array<Account>, TheErrorLegacy> = environment
         .keychain
         .loadAll(
           Account.self,
@@ -438,7 +438,7 @@ extension AccountsDataStore: Feature {
           for: .lastUsedAccount
         )
         .flatMap { accountID in
-          let keychainResult: Result<Account?, TheError> = environment
+          let keychainResult: Result<Account?, TheErrorLegacy> = environment
             .keychain
             .loadFirst(
               Account.self,
@@ -468,7 +468,7 @@ extension AccountsDataStore: Feature {
       account: Account,
       profile: AccountProfile,
       armoredKey: ArmoredPGPPrivateKey
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       // data integrity check performs cleanup in case of partial success
       lock.lock()
       defer {
@@ -502,7 +502,7 @@ extension AccountsDataStore: Feature {
 
     func loadAccountPrivateKey(
       for accountID: Account.LocalID
-    ) -> Result<ArmoredPGPPrivateKey, TheError> {
+    ) -> Result<ArmoredPGPPrivateKey, TheErrorLegacy> {
       lock.lock()
       defer { lock.unlock() }
 
@@ -525,7 +525,7 @@ extension AccountsDataStore: Feature {
     func storePassphrase(
       for accountID: Account.LocalID,
       passphrase: Passphrase
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       lock.lock()
       defer { lock.unlock() }
 
@@ -570,7 +570,7 @@ extension AccountsDataStore: Feature {
 
     func loadPassphrase(
       for accountID: Account.LocalID
-    ) -> Result<Passphrase, TheError> {
+    ) -> Result<Passphrase, TheErrorLegacy> {
       // in case of failure we should change flag biometricsEnabled to false and propagate change
       lock.lock()
       defer { lock.unlock() }
@@ -601,7 +601,7 @@ extension AccountsDataStore: Feature {
                 AccountProfile.self,
                 matching: .accountProfileQuery(for: accountID)
               )
-              .flatMap { (accountProfile: AccountProfile?) -> Result<Void, TheError> in
+              .flatMap { (accountProfile: AccountProfile?) -> Result<Void, TheErrorLegacy> in
                 if var updatedAccountProfile: AccountProfile = accountProfile {
                   guard updatedAccountProfile.biometricsEnabled
                   else { return .success }
@@ -634,7 +634,7 @@ extension AccountsDataStore: Feature {
 
     func deletePassphrase(
       for accountID: Account.LocalID
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       lock.lock()
       defer { lock.unlock() }
 
@@ -673,7 +673,7 @@ extension AccountsDataStore: Feature {
     func storeAccountMFAToken(
       accountID: Account.LocalID,
       token: MFAToken
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       environment
         .keychain
         .save(token, for: .accountMFATokenQuery(for: accountID))
@@ -681,7 +681,7 @@ extension AccountsDataStore: Feature {
 
     func loadAccountMFAToken(
       accountID: Account.LocalID
-    ) -> Result<MFAToken?, TheError> {
+    ) -> Result<MFAToken?, TheErrorLegacy> {
       environment
         .keychain
         .loadFirst(matching: .accountMFATokenQuery(for: accountID))
@@ -689,7 +689,7 @@ extension AccountsDataStore: Feature {
 
     func deleteAccountMFAToken(
       accountID: Account.LocalID
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       environment
         .keychain
         .delete(matching: .accountMFATokenQuery(for: accountID))
@@ -697,7 +697,7 @@ extension AccountsDataStore: Feature {
 
     func loadAccountProfile(
       for accountID: Account.LocalID
-    ) -> Result<AccountProfile, TheError> {
+    ) -> Result<AccountProfile, TheErrorLegacy> {
       lock.lock()
       defer { lock.unlock() }
 
@@ -716,7 +716,7 @@ extension AccountsDataStore: Feature {
 
     func update(
       accountProfile: AccountProfile
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       lock.lock()
 
       let accountsList: Array<Account.LocalID> = environment
@@ -772,7 +772,7 @@ extension AccountsDataStore: Feature {
         /* */
       }
 
-      var results: Array<Result<Void, TheError>> = .init()
+      var results: Array<Result<Void, TheErrorLegacy>> = .init()
       results.append(
         environment
           .keychain
@@ -821,7 +821,7 @@ extension AccountsDataStore: Feature {
     // swift-format-ignore: NoLeadingUnderscores
     func _databaseURL(
       forAccountWithID accountID: Account.LocalID
-    ) -> Result<URL, TheError> {
+    ) -> Result<URL, TheErrorLegacy> {
       files.applicationDataDirectory()
         .map { dir in
           dir
@@ -829,7 +829,7 @@ extension AccountsDataStore: Feature {
             .appendingPathExtension("sqlite")
         }
         .mapError { error in
-          TheError.databaseConnectionError(
+          TheErrorLegacy.databaseConnectionError(
             underlyingError: error,
             databaseErrorMessage: "Cannot access database file"
           )
@@ -839,7 +839,7 @@ extension AccountsDataStore: Feature {
     func prepareDatabaseConnection(
       forAccountWithID accountID: Account.LocalID,
       key: String
-    ) -> Result<SQLiteConnection, TheError> {
+    ) -> Result<SQLiteConnection, TheErrorLegacy> {
       let databaseURL: URL
       switch _databaseURL(forAccountWithID: accountID) {
       case let .success(path):
@@ -871,12 +871,12 @@ extension AccountsDataStore: Feature {
         }
     }
 
-    func storeServerFingerprint(accountID: Account.LocalID, fingerprint: Fingerprint) -> Result<Void, TheError> {
+    func storeServerFingerprint(accountID: Account.LocalID, fingerprint: Fingerprint) -> Result<Void, TheErrorLegacy> {
       keychain
         .save(fingerprint, for: .serverFingerprintQuery(for: accountID))
     }
 
-    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheError> {
+    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy> {
       keychain
         .loadFirst(Fingerprint.self, matching: .serverFingerprintQuery(for: accountID))
     }
@@ -907,25 +907,25 @@ extension AccountsDataStore: Feature {
   #if DEBUG
   internal static var placeholder: Self {
     Self(
-      verifyDataIntegrity: Commons.placeholder("You have to provide mocks for used methods"),
-      loadAccounts: Commons.placeholder("You have to provide mocks for used methods"),
-      loadLastUsedAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      storeLastUsedAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      storeAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      loadAccountPrivateKey: Commons.placeholder("You have to provide mocks for used methods"),
-      storeAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
-      loadAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
-      deleteAccountPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
-      storeAccountMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
-      loadAccountMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
-      deleteAccountMFAToken: Commons.placeholder("You have to provide mocks for used methods"),
-      loadAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
-      updateAccountProfile: Commons.placeholder("You have to provide mocks for used methods"),
-      deleteAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDatabaseConnection: Commons.placeholder("You have to provide mocks for used methods"),
-      storeServerFingerprint: Commons.placeholder("You have to provide mocks for used methods"),
-      loadServerFingerprint: Commons.placeholder("You have to provide mocks for used methods")
+      verifyDataIntegrity: unimplemented("You have to provide mocks for used methods"),
+      loadAccounts: unimplemented("You have to provide mocks for used methods"),
+      loadLastUsedAccount: unimplemented("You have to provide mocks for used methods"),
+      storeLastUsedAccount: unimplemented("You have to provide mocks for used methods"),
+      storeAccount: unimplemented("You have to provide mocks for used methods"),
+      loadAccountPrivateKey: unimplemented("You have to provide mocks for used methods"),
+      storeAccountPassphrase: unimplemented("You have to provide mocks for used methods"),
+      loadAccountPassphrase: unimplemented("You have to provide mocks for used methods"),
+      deleteAccountPassphrase: unimplemented("You have to provide mocks for used methods"),
+      storeAccountMFAToken: unimplemented("You have to provide mocks for used methods"),
+      loadAccountMFAToken: unimplemented("You have to provide mocks for used methods"),
+      deleteAccountMFAToken: unimplemented("You have to provide mocks for used methods"),
+      loadAccountProfile: unimplemented("You have to provide mocks for used methods"),
+      updateAccountProfile: unimplemented("You have to provide mocks for used methods"),
+      deleteAccount: unimplemented("You have to provide mocks for used methods"),
+      updatedAccountIDsPublisher: unimplemented("You have to provide mocks for used methods"),
+      accountDatabaseConnection: unimplemented("You have to provide mocks for used methods"),
+      storeServerFingerprint: unimplemented("You have to provide mocks for used methods"),
+      loadServerFingerprint: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

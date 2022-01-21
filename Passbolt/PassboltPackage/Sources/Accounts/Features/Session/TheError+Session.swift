@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func authorizationRequired(
     underlyingError: Error? = nil
@@ -46,7 +46,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let authorizationRequired: Self = "authorizationRequired"
   public static let sessionClosed: Self = "sessionClosed"

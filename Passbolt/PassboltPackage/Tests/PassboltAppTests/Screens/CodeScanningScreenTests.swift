@@ -37,7 +37,7 @@ final class CodeScanningScreenTests: TestCase {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
       Just(.configuration)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
 
@@ -61,7 +61,7 @@ final class CodeScanningScreenTests: TestCase {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
       Just(.configuration)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountTransfer)
@@ -84,7 +84,7 @@ final class CodeScanningScreenTests: TestCase {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
       Just(.configuration)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountTransfer)

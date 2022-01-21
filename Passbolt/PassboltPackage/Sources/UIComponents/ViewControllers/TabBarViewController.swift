@@ -57,11 +57,11 @@ open class TabsViewController: UITabBarController {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public var lazyView: UIView {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override open var childForStatusBarStyle: UIViewController? {

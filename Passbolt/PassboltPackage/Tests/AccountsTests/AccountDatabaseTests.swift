@@ -81,7 +81,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     feature
       .fetchLastUpdate()
@@ -110,7 +110,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     feature
       .fetchLastUpdate()
@@ -140,7 +140,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     feature
       .fetchLastUpdate()
@@ -170,7 +170,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     feature
       .fetchLastUpdate()
@@ -240,7 +240,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     feature
       .fetchLastUpdate()

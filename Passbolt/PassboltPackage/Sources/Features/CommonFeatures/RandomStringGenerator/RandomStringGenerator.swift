@@ -111,8 +111,8 @@ extension RandomStringGenerator {
 
   public static var placeholder: RandomStringGenerator {
     Self(
-      generate: Commons.placeholder("You have to provide mocks for used methods"),
-      entropy: Commons.placeholder("You have to provide mocks for used methods")
+      generate: unimplemented("You have to provide mocks for used methods"),
+      entropy: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

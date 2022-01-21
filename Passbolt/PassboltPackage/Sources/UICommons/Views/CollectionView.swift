@@ -114,12 +114,12 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
 
   @available(*, unavailable)
   public init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   open func setup() {
@@ -170,21 +170,24 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     in section: Section,
     at indexPath: IndexPath
   ) -> CollectionViewCell? {
-    unreachable("\(Self.self).\(#function) should be overriden to be used")
+    // Should override if used
+    unreachable(#function)
   }
 
   open func setupHeader(
     for section: Section,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
-    unreachable("\(Self.self).\(#function) should be overriden to be used")
+    // Should override if used
+    unreachable(#function)
   }
 
   open func setupFooter(
     for section: Section,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
-    unreachable("\(Self.self).\(#function) should be overriden to be used")
+    // Should override if used
+    unreachable(#function)
   }
 
   open func setupSupplementaryView(
@@ -192,7 +195,8 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     for section: Section,
     at indexPath: IndexPath
   ) -> CollectionReusableView? {
-    unreachable("\(Self.self).\(#function) should be overriden to be used")
+    // Should override if used
+    unreachable(#function)
   }
 
   internal func setReorderingEnabled(_ isEnabled: Bool) {
@@ -207,7 +211,7 @@ open class CollectionView<Section: Hashable, Item: Hashable>:
     to destinationSection: Section,
     at destinationIndexPath: IndexPath
   ) {
-    unreachable("\(Self.self).\(#function) should be overriden to be used")
+    unreachable(#function)
   }
 
   private func setupDataSource() -> UICollectionViewDiffableDataSource<Section, Item> {

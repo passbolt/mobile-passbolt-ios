@@ -30,13 +30,13 @@ import struct Foundation.URL
 public struct AutofillExtensionContext {
 
   public var completeWithCredential: (Credential) -> Void
-  public var completeWithError: (TheError) -> Void
+  public var completeWithError: (TheErrorLegacy) -> Void
   public var completeExtensionConfiguration: () -> Void
   public var requestedServiceIdentifiersPublisher: () -> AnyPublisher<Array<ServiceIdentifier>, Never>
 
   public init(
     completeWithCredential: @escaping (Credential) -> Void,
-    completeWithError: @escaping (TheError) -> Void,
+    completeWithError: @escaping (TheErrorLegacy) -> Void,
     completeExtensionConfiguration: @escaping () -> Void,
     requestedServiceIdentifiersPublisher: @escaping () -> AnyPublisher<Array<ServiceIdentifier>, Never>
   ) {
@@ -75,8 +75,7 @@ extension AutofillExtensionContext: Feature {
     cancellables: Cancellables
   ) -> Self {
     unreachable(
-      "\(Self.self) does not support auto loading,"
-        + " it has to be created manually using root ASCredentialProviderViewController instance."
+      "Auto loading is not supported for AutofillExtensionContext, instance has to be created manually using root ASCredentialProviderViewController instance."
     )
   }
 }
@@ -86,10 +85,10 @@ extension AutofillExtensionContext {
 
   public static var placeholder: Self {
     Self(
-      completeWithCredential: Commons.placeholder("You have to provide mocks for used methods"),
-      completeWithError: Commons.placeholder("You have to provide mocks for used methods"),
-      completeExtensionConfiguration: Commons.placeholder("You have to provide mocks for used methods"),
-      requestedServiceIdentifiersPublisher: Commons.placeholder("You have to provide mocks for used methods")
+      completeWithCredential: unimplemented("You have to provide mocks for used methods"),
+      completeWithError: unimplemented("You have to provide mocks for used methods"),
+      completeExtensionConfiguration: unimplemented("You have to provide mocks for used methods"),
+      requestedServiceIdentifiersPublisher: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

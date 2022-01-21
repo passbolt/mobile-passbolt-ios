@@ -52,7 +52,7 @@ open class AlertViewController<Controller: UIController>: UIAlertController {
   public private(set) var controller: Controller! = nil
 
   public var contentView: UIView {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override open func viewDidLoad() {

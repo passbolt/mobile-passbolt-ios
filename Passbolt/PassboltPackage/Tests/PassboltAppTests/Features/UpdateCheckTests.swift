@@ -41,7 +41,7 @@ final class UpdateCheckTests: TestCase {
 
     let feature: UpdateCheck = testInstance()
 
-    XCTAssertThrows(TheError.self, identifier: .versionCheckFailed) {
+    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
       try await feature.updateAvailable()
     }
   }
@@ -55,7 +55,7 @@ final class UpdateCheckTests: TestCase {
 
     let feature: UpdateCheck = testInstance()
 
-    XCTAssertThrows(TheError.self, identifier: .versionCheckFailed) {
+    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
       try await feature.updateAvailable()
     }
   }
@@ -69,7 +69,7 @@ final class UpdateCheckTests: TestCase {
 
     let feature: UpdateCheck = testInstance()
 
-    XCTAssertThrows(TheError.self, identifier: .versionCheckFailed) {
+    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
       try await feature.updateAvailable()
     }
   }
@@ -83,7 +83,7 @@ final class UpdateCheckTests: TestCase {
 
     let feature: UpdateCheck = testInstance()
 
-    XCTAssertThrows(TheError.self, identifier: .versionCheckFailed) {
+    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
       try await feature.updateAvailable()
     }
   }
@@ -97,7 +97,7 @@ final class UpdateCheckTests: TestCase {
 
     let feature: UpdateCheck = testInstance()
 
-    XCTAssertThrows(TheError.self, identifier: .versionCheckFailed) {
+    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
       try await feature.updateAvailable()
     }
   }

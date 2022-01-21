@@ -30,25 +30,25 @@ extension NetworkRequest {
     invalidateAccessToken: @escaping () -> Void,
     authorizationRequest: @escaping () -> Void,
     mfaRequest: @escaping (Array<MFAProvider>) -> Void,
-    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheError>,
-    sessionPublisher: AnyPublisher<DomainNetworkSessionVariable, TheError>
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheErrorLegacy>,
+    sessionPublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy>
   ) -> Self {
     Self(
       execute: { variable in
         self.execute(variable)
-          .catch { error -> AnyPublisher<Response, TheError> in
+          .catch { error -> AnyPublisher<Response, TheErrorLegacy> in
             if error.identifier == .redirect,
               let location = error.redirectLocation.map(URLString.init(rawValue:))
             {
               return
                 sessionPublisher
                 .map(\.domain)
-                .map { domain -> AnyPublisher<Response, TheError> in
+                .map { domain -> AnyPublisher<Response, TheErrorLegacy> in
                   if URLString.domain(forURL: location, matches: domain),
                     location.hasSuffix("/mfa/verify/error.json")
                   {
                     return mfaRedirectionHandler(.init())
-                      .map { _ -> AnyPublisher<Response, TheError> in
+                      .map { _ -> AnyPublisher<Response, TheErrorLegacy> in
                         Fail(
                           error: .internalInconsistency()
                             .appending(context: "MFA Redirect response invalid")
@@ -71,7 +71,7 @@ extension NetworkRequest {
                 .eraseToAnyPublisher()
             }
           }
-          .mapError { (error: TheError) -> TheError in
+          .mapError { (error: TheErrorLegacy) -> TheErrorLegacy in
             if error.identifier == .missingSession {
               invalidateAccessToken()
               authorizationRequest()

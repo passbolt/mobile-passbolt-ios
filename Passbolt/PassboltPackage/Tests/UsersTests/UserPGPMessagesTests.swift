@@ -63,7 +63,7 @@ final class UserPGPMessagesTests: TestCase {
 
     let feature: UserPGPMessages = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptMessageForUser("user-id", "message")
       .sink(
@@ -117,14 +117,14 @@ final class UserPGPMessagesTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
     let feature: UserPGPMessages = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptMessageForUser("user-id", "message")
       .sink(
@@ -182,14 +182,14 @@ final class UserPGPMessagesTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
     let feature: UserPGPMessages = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptMessageForUser("user-id", "message")
       .sink(
@@ -222,7 +222,7 @@ final class UserPGPMessagesTests: TestCase {
     )
     accountSession.encryptAndSignMessage = always(
       Just("encrypted-armored-message")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -248,7 +248,7 @@ final class UserPGPMessagesTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -280,7 +280,7 @@ final class UserPGPMessagesTests: TestCase {
 
     let feature: UserPGPMessages = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptMessageForResourceUsers("resource-id", "message")
       .sink(
@@ -340,14 +340,14 @@ final class UserPGPMessagesTests: TestCase {
           ]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
     let feature: UserPGPMessages = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptMessageForResourceUsers("resource-id", "message")
       .sink(
@@ -407,14 +407,14 @@ final class UserPGPMessagesTests: TestCase {
           ]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
 
     let feature: UserPGPMessages = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptMessageForResourceUsers("resource-id", "message")
       .sink(
@@ -447,7 +447,7 @@ final class UserPGPMessagesTests: TestCase {
     )
     accountSession.encryptAndSignMessage = always(
       Just("encrypted-armored-message")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -490,7 +490,7 @@ final class UserPGPMessagesTests: TestCase {
           ]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)

@@ -86,13 +86,13 @@ extension NetworkClient: Feature {
     var authorizationRequest: (() -> Void) = unreachable("Authorization request has to be assigned before use.")
     // accessed without lock - always set during loading initial features, before use
     var mfaRequest: ((Array<MFAProvider>) -> Void) = unreachable("MFA request has to be assigned before use.")
-    let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError> = Just(Void())
-      .setFailureType(to: TheError.self)
+    let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy> = Just(Void())
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
 
-    let authorizedNetworkSessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError> =
+    let authorizedNetworkSessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheErrorLegacy> =
       sessionStatePublisher
-      .map { (sessionState: SessionState?) -> AnyPublisher<AuthorizedNetworkSessionVariable?, TheError> in
+      .map { (sessionState: SessionState?) -> AnyPublisher<AuthorizedNetworkSessionVariable?, TheErrorLegacy> in
         guard let sessionState: SessionState = sessionState
         else {
           return Fail(error: .missingSession())
@@ -106,13 +106,13 @@ extension NetworkClient: Feature {
               mfaToken: sessionState.mfaToken
             )
           )
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
         }
         else {
           requestAuthorization()
           return Just(nil)  // it will wait for the authorization
-            .setFailureType(to: TheError.self)
+            .setFailureType(to: TheErrorLegacy.self)
             .eraseToAnyPublisher()
         }
       }
@@ -120,12 +120,12 @@ extension NetworkClient: Feature {
       .filterMapOptional()
       .eraseToAnyPublisher()
 
-    let domainNetworkSessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheError> =
+    let domainNetworkSessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy> =
       sessionStatePublisher
-      .map { sessionState -> AnyPublisher<DomainNetworkSessionVariable, TheError> in
+      .map { sessionState -> AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy> in
         if let sessionState: SessionState = sessionState {
           return Just(DomainNetworkSessionVariable(domain: sessionState.domain))
-            .setFailureType(to: TheError.self)
+            .setFailureType(to: TheErrorLegacy.self)
             .eraseToAnyPublisher()
         }
         else {
@@ -366,10 +366,10 @@ extension NetworkClient: Feature {
       deleteResourceRequest: .placeholder,
       userListRequest: .placeholder,
       appVersionsAvailableRequest: .placeholder,
-      setSessionStatePublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      setAccessTokenInvalidation: Commons.placeholder("You have to provide mocks for used methods"),
-      setAuthorizationRequest: Commons.placeholder("You have to provide mocks for used methods"),
-      setMFARequest: Commons.placeholder("You have to provide mocks for used methods")
+      setSessionStatePublisher: unimplemented("You have to provide mocks for used methods"),
+      setAccessTokenInvalidation: unimplemented("You have to provide mocks for used methods"),
+      setAuthorizationRequest: unimplemented("You have to provide mocks for used methods"),
+      setMFARequest: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

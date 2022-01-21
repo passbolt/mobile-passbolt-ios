@@ -54,7 +54,7 @@ public class TextInput: View {
   public var textFieldCenterYAnchor: NSLayoutYAxisAnchor { textField.centerYAnchor }
 
   fileprivate let textField: TextField = .init()
-  private var errorMessage: (displayable: DisplayableString, arguments: Array<CVarArg>)? {
+  private var errorMessage: DisplayableString? {
     didSet { updatePresentation() }
   }
 
@@ -155,31 +155,23 @@ public class TextInput: View {
       errorMessage = nil
     }
     else {
-      if let displayable: DisplayableString = validated.errors.first?.displayableString,
-        let displayableArguments: Array<CVarArg> = validated.errors.first?.displayableStringArguments
-      {
-        errorMessage = (displayable: displayable, arguments: displayableArguments)
+      if let displayable: DisplayableString = validated.displayableErrorMessage {
+        errorMessage = displayable
       }
       else {
         // fallback to display error anyway
-        errorMessage = (
-          displayable: .localized(
-            "resource.form.field.error.invalid"
-          ),
-          arguments: .init()
+        errorMessage = .localized(
+          "resource.form.field.error.invalid"
         )
       }
     }
   }
 
   private func updatePresentation() {
-    if let message: (displayable: DisplayableString, arguments: Array<CVarArg>) = errorMessage {
+    if let message: DisplayableString = errorMessage {
       mut(errorMessageView) {
         .combined(
-          .text(
-            displayable: message.displayable,
-            with: message.arguments
-          ),
+          .text(displayable: message),
           .isHidden(false)
         )
       }

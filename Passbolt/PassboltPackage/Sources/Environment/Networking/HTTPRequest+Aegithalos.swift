@@ -172,7 +172,7 @@ extension Mutation where Subject == HTTPRequest {
         request.body = try JSONEncoder().encode(body)
       }
       catch {
-        unreachable("Failing request body encoding - \(error)")
+        unreachable("Failing request body encoding")
       }
       #else
       request.body = (try? JSONEncoder().encode(body)) ?? Data()

@@ -51,7 +51,7 @@ extension Randomness {
 
   public static var placeholder: Self {
     Self(
-      nextRandom: Commons.placeholder("You have to provide mocks for used methods")
+      nextRandom: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

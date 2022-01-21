@@ -57,7 +57,7 @@ extension UUIDGenerator {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      uuid: Commons.placeholder("You have to provide mocks for used methods")
+      uuid: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

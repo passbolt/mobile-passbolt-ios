@@ -99,7 +99,7 @@ extension MainTabsViewController: UITabBarControllerDelegate {
     didSelect viewController: UIViewController
   ) {
     guard let tab = MainTab(rawValue: selectedIndex)
-    else { unreachable("Internal inconsistency - Invalid \(Self.self) state") }
+    else { unreachable("Internal inconsistency - Invalid state") }
     controller.setActiveTab(tab)
   }
 }

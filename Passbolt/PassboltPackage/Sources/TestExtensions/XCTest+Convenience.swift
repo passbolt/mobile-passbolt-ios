@@ -224,8 +224,8 @@ public func XCTAssertThrows<T>(
 
 // swift-format-ignore: AlwaysUseLowerCamelCase
 public func XCTAssertThrows<T>(
-  _ errorType: TheError.Type,
-  identifier: TheError.ID,
+  _ errorType: TheErrorLegacy.Type,
+  identifier: TheErrorLegacy.ID,
   _ test: @escaping () async throws -> T,
   _ file: StaticString = #filePath,
   _ line: UInt = #line
@@ -240,7 +240,7 @@ public func XCTAssertThrows<T>(
         line: line
       )
     }
-    catch let error as TheError {
+    catch let error as TheErrorLegacy {
       if error.identifier == identifier {
         /* NOP */
       }

@@ -74,7 +74,7 @@ extension AutoFill {
 
   public static var placeholder: AutoFill {
     Self(
-      extensionEnabledStatePublisher: Commons.placeholder("You have to provide mocks for used methods")
+      extensionEnabledStatePublisher: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

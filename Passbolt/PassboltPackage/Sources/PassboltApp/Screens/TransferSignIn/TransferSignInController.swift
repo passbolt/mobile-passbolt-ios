@@ -36,12 +36,12 @@ internal struct TransferSignInController {
   internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
   internal var updatePassphrase: (String) -> Void
   internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
-  internal var completeTransfer: () -> AnyPublisher<Never, TheError>
+  internal var completeTransfer: () -> AnyPublisher<Never, TheErrorLegacy>
   internal var presentForgotPassphraseAlert: () -> Void
   internal var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
   internal var presentExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, TheError>
+  internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, TheErrorLegacy>
 }
 
 extension TransferSignInController {
@@ -73,7 +73,7 @@ extension TransferSignInController: UIController {
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
-    let presentationDestinationSubject: PassthroughSubject<Destination, TheError> = .init()
+    let presentationDestinationSubject: PassthroughSubject<Destination, TheErrorLegacy> = .init()
 
     let validator: Validator<String> = .nonEmpty(
       displayable: .localized(
@@ -149,7 +149,7 @@ extension TransferSignInController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func completeTransfer() -> AnyPublisher<Never, TheError> {
+    func completeTransfer() -> AnyPublisher<Never, TheErrorLegacy> {
       passphraseSubject
         .map(Passphrase.init(rawValue:))
         .map(accountTransfer.completeTransfer)
@@ -174,7 +174,7 @@ extension TransferSignInController: UIController {
       exitConfirmationPresentationSubject.eraseToAnyPublisher()
     }
 
-    func presentationDestinationPublisher() -> AnyPublisher<Destination, TheError> {
+    func presentationDestinationPublisher() -> AnyPublisher<Destination, TheErrorLegacy> {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
 

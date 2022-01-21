@@ -54,19 +54,19 @@ extension UpdateCheck: Feature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      checkRequired: Commons.placeholder("You have to provide mocks for used methods"),
-      updateAvailable: Commons.placeholder("You have to provide mocks for used methods")
+      checkRequired: unimplemented("You have to provide mocks for used methods"),
+      updateAvailable: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static var versionCheckFailed: Self { "versionCheckFailed" }
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func versionCheckFailed(
     underlyingError: Error? = nil
@@ -178,16 +178,16 @@ fileprivate actor UpdateChecker {
               continuation.resume(returning: version)
             }
             else {
-              continuation.resume(throwing: TheError.versionCheckFailed())
+              continuation.resume(throwing: TheErrorLegacy.versionCheckFailed())
             }
           },
           receiveCompletion: { completion in
             guard case let .failure(error) = completion
             else { return }
-            continuation.resume(throwing: TheError.versionCheckFailed(underlyingError: error))
+            continuation.resume(throwing: TheErrorLegacy.versionCheckFailed(underlyingError: error))
           },
           receiveCancel: {
-            continuation.resume(throwing: TheError.canceled)
+            continuation.resume(throwing: TheErrorLegacy.canceled)
           }
         )
         .sinkDrop()
@@ -217,7 +217,7 @@ fileprivate actor UpdateChecker {
       let latestPatch: Int = latestVersionParts.popLast(),
       let latestMinor: Int = latestVersionParts.popLast(),
       let latestMajor: Int = latestVersionParts.popLast()
-    else { throw TheError.versionCheckFailed() }
+    else { throw TheErrorLegacy.versionCheckFailed() }
 
     guard currentMajor == latestMajor
     else { return currentMajor < latestMajor }

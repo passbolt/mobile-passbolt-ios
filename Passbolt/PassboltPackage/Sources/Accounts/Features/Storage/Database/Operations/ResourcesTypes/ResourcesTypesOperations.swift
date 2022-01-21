@@ -8,7 +8,7 @@ public typealias StoreResourcesTypesOperation = DatabaseOperation<Array<Resource
 extension StoreResourcesTypesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -16,7 +16,7 @@ extension StoreResourcesTypesOperation {
       // iterate over resources types to insert or update
       for resourceType in input {
         // cleanup existing types as preparation for update
-        let result: Result<Void, TheError> =
+        let result: Result<Void, TheErrorLegacy> =
           conn
           .execute(
             cleanFieldsStatement,
@@ -43,7 +43,7 @@ extension StoreResourcesTypesOperation {
         // iterate over fields for given resource type
         for field in resourceType.properties {
           // insert fields for type (previous were deleted, no need for update)
-          let result: Result<Int, TheError> =
+          let result: Result<Int, TheErrorLegacy> =
             conn
             .execute(
               insertFieldStatement,
@@ -74,7 +74,7 @@ extension StoreResourcesTypesOperation {
           switch result {
           case let .success(fieldID):
             // insert association between type and newly added field
-            let result: Result<Void, TheError> =
+            let result: Result<Void, TheErrorLegacy> =
               conn
               .execute(
                 insertTypeFieldStatement,
@@ -107,7 +107,7 @@ public typealias FetchResourcesTypesOperation = DatabaseOperation<Void, Array<Re
 extension FetchResourcesTypesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
   ) -> Self {
     withConnection(
       using: connectionPublisher

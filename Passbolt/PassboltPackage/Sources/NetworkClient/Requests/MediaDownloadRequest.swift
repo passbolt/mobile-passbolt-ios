@@ -34,7 +34,7 @@ extension MediaDownloadRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy>
   ) -> Self {
     Self(
       template: .init(cacheResponse: true) { _, requestVariable in

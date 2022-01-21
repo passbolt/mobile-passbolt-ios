@@ -32,8 +32,8 @@ import XCTest
 final class NetworkRequestTests: XCTestCase {
 
   var cancellables: Cancellables!
-  var sessionSubject: PassthroughSubject<AuthorizedNetworkSessionVariable, TheError>!
-  var domainSubject: PassthroughSubject<DomainNetworkSessionVariable, TheError>!
+  var sessionSubject: PassthroughSubject<AuthorizedNetworkSessionVariable, TheErrorLegacy>!
+  var domainSubject: PassthroughSubject<DomainNetworkSessionVariable, TheErrorLegacy>!
   var networking: Networking!
   var request: NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable>!
 
@@ -83,8 +83,8 @@ final class NetworkRequestTests: XCTestCase {
 
   func test_request_withSessionError_fails() {
     request = prepareRequest()
-    let errorSent: TheError = .testError()
-    var completionError: TheError? = nil
+    let errorSent: TheErrorLegacy = .testError()
+    var completionError: TheErrorLegacy? = nil
 
     request
       .make(using: .sample)
@@ -116,7 +116,7 @@ final class NetworkRequestTests: XCTestCase {
     }
 
     request = prepareRequest()
-    var completionError: TheError? = nil
+    var completionError: TheErrorLegacy? = nil
 
     request
       .make(using: .sample)
@@ -156,7 +156,7 @@ final class NetworkRequestTests: XCTestCase {
     }
 
     request = prepareRequest()
-    var completionError: TheError? = nil
+    var completionError: TheErrorLegacy? = nil
 
     request
       .make(using: .sample)
@@ -197,7 +197,7 @@ final class NetworkRequestTests: XCTestCase {
     }
 
     request = prepareRequest()
-    var completionError: TheError? = nil
+    var completionError: TheErrorLegacy? = nil
 
     request
       .make(using: .sample)
@@ -297,7 +297,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     })
 
@@ -338,7 +338,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     })
 
@@ -379,7 +379,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     })
 
@@ -420,7 +420,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     })
 
@@ -461,7 +461,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     })
 
@@ -502,7 +502,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     })
 
@@ -539,7 +539,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func prepareRequest(
-    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheError>
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheErrorLegacy>
   ) -> NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in

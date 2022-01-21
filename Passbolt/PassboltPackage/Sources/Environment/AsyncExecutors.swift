@@ -65,7 +65,7 @@ extension AsyncExecutors {
   }
 
   public static var placeholder: Self {
-    Self(newBackgroundExecutor: Commons.placeholder("You have to provide mocks for used methods"))
+    Self(newBackgroundExecutor: unimplemented("You have to provide mocks for used methods"))
   }
 }
 #endif

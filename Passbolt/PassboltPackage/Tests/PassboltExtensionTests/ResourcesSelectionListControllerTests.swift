@@ -54,7 +54,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() {
     features.use(autofillContext)
     resources.refreshIfNeeded = always(
-      Empty<Void, TheError>(completeImmediately: true)
+      Empty<Void, TheErrorLegacy>(completeImmediately: true)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -82,7 +82,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
   func test_refreshResources_fails_whenResourcesRefreshFails() {
     features.use(autofillContext)
     resources.refreshIfNeeded = always(
-      Fail<Void, TheError>(error: .testError())
+      Fail<Void, TheErrorLegacy>(error: .testError())
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -91,7 +91,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     controller
       .refreshResources()
       .sink(

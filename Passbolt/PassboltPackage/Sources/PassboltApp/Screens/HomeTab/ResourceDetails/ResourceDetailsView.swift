@@ -45,7 +45,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal required init() {
@@ -314,12 +314,12 @@ internal final class ResourceDetailsItemView: Button {
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   @available(*, unavailable, message: "Use init(fieldName:)")
   internal required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal init(field: ResourceField) {

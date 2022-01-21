@@ -27,7 +27,7 @@ import UIComponents
 internal struct SplashScreenController {
 
   internal var navigationDestinationPublisher: () -> AnyPublisher<Destination, Never>
-  internal var retryFetchConfiguration: () -> AnyPublisher<Void, TheError>
+  internal var retryFetchConfiguration: () -> AnyPublisher<Void, TheErrorLegacy>
   internal var shouldDisplayUpdateAlert: () async -> Bool
 }
 
@@ -60,13 +60,13 @@ extension SplashScreenController: UIController {
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    func fetchConfiguration() -> AnyPublisher<Void, TheError> {
+    func fetchConfiguration() -> AnyPublisher<Void, TheErrorLegacy> {
       featureFlags
         .fetchIfNeeded()
         .eraseToAnyPublisher()
     }
 
-    func retryFetchConfiguration() -> AnyPublisher<Void, TheError> {
+    func retryFetchConfiguration() -> AnyPublisher<Void, TheErrorLegacy> {
       fetchConfiguration()
         .handleEvents(receiveCompletion: { completion in
           guard case .finished = completion

@@ -61,7 +61,7 @@ open class TextView: UITextView {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override public func traitCollectionDidChange(

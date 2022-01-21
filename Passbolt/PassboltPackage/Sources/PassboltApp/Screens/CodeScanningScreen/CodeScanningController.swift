@@ -31,7 +31,7 @@ internal struct CodeScanningController {
   internal var presentHelp: () -> Void
   internal var helpPresentationPublisher: () -> AnyPublisher<Bool, Never>
   // We expect this publisher to finish on process success and fail on process error
-  internal var resultPresentationPublisher: () -> AnyPublisher<Never, TheError>
+  internal var resultPresentationPublisher: () -> AnyPublisher<Never, TheErrorLegacy>
 }
 
 extension CodeScanningController: UIController {
@@ -46,7 +46,7 @@ extension CodeScanningController: UIController {
     let accountTransfer: AccountTransfer = features.instance()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
-    let resultPresentationSubject: PassthroughSubject<Never, TheError> = .init()
+    let resultPresentationSubject: PassthroughSubject<Never, TheErrorLegacy> = .init()
 
     accountTransfer
       .progressPublisher()
@@ -100,7 +100,7 @@ extension CodeScanningController: UIController {
       helpPresentationSubject.eraseToAnyPublisher()
     }
 
-    func resultPresentationPublisher() -> AnyPublisher<Never, TheError> {
+    func resultPresentationPublisher() -> AnyPublisher<Never, TheErrorLegacy> {
       resultPresentationSubject.eraseToAnyPublisher()
     }
 

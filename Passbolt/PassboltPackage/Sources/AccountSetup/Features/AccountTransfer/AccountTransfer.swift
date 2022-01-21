@@ -36,11 +36,11 @@ import Dispatch
 
 public struct AccountTransfer {
   // Publishes progess, finishes when process is completed or fails if it becomes interrupted.
-  public var progressPublisher: () -> AnyPublisher<Progress, TheError>
-  public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, TheError>
-  public var processPayload: (String) -> AnyPublisher<Never, TheError>
-  public var completeTransfer: (Passphrase) -> AnyPublisher<Never, TheError>
-  public var avatarPublisher: () -> AnyPublisher<Data, TheError>
+  public var progressPublisher: () -> AnyPublisher<Progress, TheErrorLegacy>
+  public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, TheErrorLegacy>
+  public var processPayload: (String) -> AnyPublisher<Never, TheErrorLegacy>
+  public var completeTransfer: (Passphrase) -> AnyPublisher<Never, TheErrorLegacy>
+  public var avatarPublisher: () -> AnyPublisher<Data, TheErrorLegacy>
   public var cancelTransfer: () -> Void
   public var featureUnload: () -> Bool
 }
@@ -69,7 +69,7 @@ extension AccountTransfer: Feature {
     #endif
     let networkClient: NetworkClient = features.instance()
     let accounts: Accounts = features.instance()
-    let transferState: CurrentValueSubject<AccountTransferState, TheError> = .init(.init())
+    let transferState: CurrentValueSubject<AccountTransferState, TheErrorLegacy> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable  // silence warning
 
@@ -125,7 +125,7 @@ extension AccountTransfer: Feature {
     }
     #endif
 
-    let progressPublisher: AnyPublisher<Progress, TheError> =
+    let progressPublisher: AnyPublisher<Progress, TheErrorLegacy> =
       transferState
       .map { state -> Progress in
         if state.scanningFinished {
@@ -144,7 +144,7 @@ extension AccountTransfer: Feature {
       .collectErrorLog(using: diagnostics)
       .eraseToAnyPublisher()
 
-    let accountDetailsPublisher: AnyPublisher<AccountDetails, TheError> =
+    let accountDetailsPublisher: AnyPublisher<AccountDetails, TheErrorLegacy> =
       transferState
       .compactMap { state in
         guard
@@ -160,7 +160,7 @@ extension AccountTransfer: Feature {
       }
       .eraseToAnyPublisher()
 
-    let mediaPublisher: AnyPublisher<Data, TheError> =
+    let mediaPublisher: AnyPublisher<Data, TheErrorLegacy> =
       transferState
       .compactMap { $0.profile }
       .map {
@@ -179,7 +179,7 @@ extension AccountTransfer: Feature {
     func _processPayload(
       _ payload: String,
       using features: FeatureFactory
-    ) -> AnyPublisher<Never, TheError> {
+    ) -> AnyPublisher<Never, TheErrorLegacy> {
       diagnostics.diagnosticLog("Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
       case var .success(updatedState):
@@ -220,7 +220,7 @@ extension AccountTransfer: Feature {
             .sink(receiveCompletion: { _ in })
             .store(in: cancellables)
 
-            return Fail<Never, TheError>(error: .duplicateAccount())
+            return Fail<Never, TheErrorLegacy>(error: .duplicateAccount())
               .eraseToAnyPublisher()
           }
 
@@ -236,7 +236,7 @@ extension AccountTransfer: Feature {
                 )
               )
             features.unload(Self.self)
-            return Empty<Never, TheError>()
+            return Empty<Never, TheErrorLegacy>()
               .eraseToAnyPublisher()
           }
 
@@ -279,14 +279,14 @@ extension AccountTransfer: Feature {
       case let .failure(error)
       where error.identifier == .canceled:
         diagnostics.diagnosticLog("...processing canceled!")
-        return Fail<Never, TheError>(error: error)
+        return Fail<Never, TheErrorLegacy>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
       case let .failure(error)
       where error.identifier == .accountTransferScanningRecoverableError:
         diagnostics.diagnosticLog("...processing failed, recoverable!")
-        return Fail<Never, TheError>(error: error)
+        return Fail<Never, TheErrorLegacy>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
@@ -312,18 +312,18 @@ extension AccountTransfer: Feature {
         else {  // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
           features.unload(Self.self)
-          return Fail<Never, TheError>(error: error)
+          return Fail<Never, TheErrorLegacy>(error: error)
             .collectErrorLog(using: diagnostics)
             .eraseToAnyPublisher()
         }
       }
     }
 
-    let processPayload: (String) -> AnyPublisher<Never, TheError> = { [unowned features] payload in
+    let processPayload: (String) -> AnyPublisher<Never, TheErrorLegacy> = { [unowned features] payload in
       _processPayload(payload, using: features)
     }
 
-    func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, TheError> {
+    func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, TheErrorLegacy> {
       diagnostics.diagnosticLog("Completing account transfer...")
       guard
         let configuration = transferState.value.configuration,
@@ -331,7 +331,7 @@ extension AccountTransfer: Feature {
         let profile = transferState.value.profile
       else {
         diagnostics.diagnosticLog("...missing required data!")
-        return Fail<Never, TheError>(
+        return Fail<Never, TheErrorLegacy>(
           error: .accountTransferScanningRecoverableError(
             context: "account-transfer-complete-invalid-state"
           )
@@ -430,13 +430,13 @@ extension AccountTransfer: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      progressPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      accountDetailsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      processPayload: Commons.placeholder("You have to provide mocks for used methods"),
-      completeTransfer: Commons.placeholder("You have to provide mocks for used methods"),
-      avatarPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      cancelTransfer: Commons.placeholder("You have to provide mocks for used methods"),
-      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
+      progressPublisher: unimplemented("You have to provide mocks for used methods"),
+      accountDetailsPublisher: unimplemented("You have to provide mocks for used methods"),
+      processPayload: unimplemented("You have to provide mocks for used methods"),
+      completeTransfer: unimplemented("You have to provide mocks for used methods"),
+      avatarPublisher: unimplemented("You have to provide mocks for used methods"),
+      cancelTransfer: unimplemented("You have to provide mocks for used methods"),
+      featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif
@@ -445,7 +445,7 @@ extension AccountTransfer: Feature {
 private func processQRCodePayload(
   _ rawPayload: String,
   in state: AccountTransferState
-) -> Result<AccountTransferState, TheError> {
+) -> Result<AccountTransferState, TheErrorLegacy> {
   // If state is completed (transferFinished) then we don't expect any next page
   guard let expectedPage: Int = state.nextScanningPage
   else {
@@ -467,7 +467,7 @@ private func processQRCodePayload(
 private func decodeQRCodePart(
   _ rawPayload: String,
   expectedPage: Int
-) -> Result<AccountTransferScanningPart, TheError> {
+) -> Result<AccountTransferScanningPart, TheErrorLegacy> {
   switch AccountTransferScanningPart.from(qrCode: rawPayload) {
   case let .success(part):
     // Verify if decoded page number is the same as expected
@@ -505,7 +505,7 @@ private func decodeQRCodePart(
 private func updated(
   state: AccountTransferState,
   with part: AccountTransferScanningPart
-) -> Result<AccountTransferState, TheError> {
+) -> Result<AccountTransferState, TheErrorLegacy> {
   var state: AccountTransferState = state  // make state mutable in scope
   state.scanningParts.append(part)
 
@@ -548,10 +548,10 @@ private func updated(
 private func requestNextPage(
   for state: AccountTransferState,
   using networkClient: NetworkClient
-) -> AnyPublisher<Never, TheError> {
+) -> AnyPublisher<Never, TheErrorLegacy> {
   guard let configuration: AccountTransferConfiguration = state.configuration
   else {
-    return Fail<Never, TheError>(
+    return Fail<Never, TheErrorLegacy>(
       error: .accountTransferScanningError(context: "next-page-request-missing-configuration")
         .appending(logMessage: "Missing account transfer configuration")
     )
@@ -579,10 +579,10 @@ private func requestNextPage(
 private func requestNextPageWithUserProfile(
   for state: AccountTransferState,
   using networkClient: NetworkClient
-) -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheError> {
+) -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheErrorLegacy> {
   guard let configuration: AccountTransferConfiguration = state.configuration
   else {
-    return Fail<AccountTransferUpdateResponseBody.User, TheError>(
+    return Fail<AccountTransferUpdateResponseBody.User, TheErrorLegacy>(
       error: .accountTransferScanningError(context: "next-page-request-missing-configuration")
         .appending(logMessage: "Missing account transfer configuration")
     )
@@ -602,14 +602,14 @@ private func requestNextPageWithUserProfile(
         requestUserProfile: true
       )
     )
-    .map { response -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheError> in
+    .map { response -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheErrorLegacy> in
       if let user: AccountTransferUpdateResponseBody.User = response.body.user {
         return Just(user)
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
       else {
-        return Fail<AccountTransferUpdateResponseBody.User, TheError>(
+        return Fail<AccountTransferUpdateResponseBody.User, TheErrorLegacy>(
           error: .accountTransferScanningError(context: "next-page-request-missing-user-profile")
             .appending(logMessage: "Missing user profile data")
         )
@@ -625,9 +625,9 @@ private func requestCancelation(
   with configuration: AccountTransferConfiguration,
   lastPage: Int,
   using networkClient: NetworkClient,
-  causedByError error: TheError? = nil
-) -> AnyPublisher<Never, TheError> {
-  let responsePublisher: AnyPublisher<Void, TheError> = networkClient
+  causedByError error: TheErrorLegacy? = nil
+) -> AnyPublisher<Never, TheErrorLegacy> {
+  let responsePublisher: AnyPublisher<Void, TheErrorLegacy> = networkClient
     .accountTransferUpdate
     .make(
       using: AccountTransferUpdateRequestVariable(
@@ -641,10 +641,10 @@ private func requestCancelation(
     )
     .mapToVoid()
     .eraseToAnyPublisher()
-  if let error: TheError = error {
+  if let error: TheErrorLegacy = error {
     return
       responsePublisher
-      .flatMap { _ in Fail<Void, TheError>(error: error) }
+      .flatMap { _ in Fail<Void, TheErrorLegacy>(error: error) }
       .ignoreOutput()
       .eraseToAnyPublisher()
   }

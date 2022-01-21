@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func databaseConnectionClosed(
     underlyingError: Error? = nil,
@@ -117,7 +117,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let databaseConnectionClosed: Self = "databaseConnectionClosed"
   public static let databaseConnectionError: Self = "databaseConnectionError"
@@ -128,7 +128,7 @@ extension TheError.ID {
   public static let databaseFetchError: Self = "databaseFetchError"
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static let databaseErrorMessage: Self = "databaseErrorMessage"
 }

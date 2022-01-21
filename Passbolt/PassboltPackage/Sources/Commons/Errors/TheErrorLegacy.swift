@@ -26,10 +26,12 @@ import Localization
 import class Foundation.Bundle
 import struct Foundation.OSStatus
 
-// "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them"
-public struct TheError: Error {
+// Legacy error definition, please switch to `TheError`.
+// `TheErrorLegacy` will be removed after migrating all errors to new system.
+@available(*, deprecated, message: "Please switch to `TheError`")
+public struct TheErrorLegacy: Error {
 
-  public typealias ID = Tagged<StaticString, TheError>
+  public typealias ID = Tagged<StaticString, TheErrorLegacy>
   public typealias Extension = Tagged<StaticString, ID>
 
   public let identifier: ID
@@ -48,6 +50,47 @@ public struct TheError: Error {
 }
 
 extension TheError {
+
+  public var asLegacy: TheErrorLegacy { .from(theError: self) }
+}
+
+extension TheErrorLegacy {
+
+  public static func from(
+    theError: TheError
+  ) -> Self {
+    Self(
+      identifier: .legacyBridge,
+      underlyingError: theError,
+      extensions: [
+        .legacyBridge: theError,
+        .displayableString: theError.displayableMessage,
+        .logMessage: theError.diagnosticMessages.first as Any,
+      ]
+    )
+  }
+
+  public var legacyBridge: TheError? { extensions[.legacyBridge] as? TheError }
+  public func isLegacyBridge<Err: TheError>(
+    for errorType: Err.Type,
+    // additional, optional validation for specific fields check
+    verification: (Err) -> Bool = { _ in true }
+  ) -> Bool {
+    (self.extensions[.legacyBridge] as? Err).map(verification) ?? false
+  }
+}
+
+extension TheErrorLegacy.ID {
+
+  public static var legacyBridge: Self { "legacyBridge" }
+}
+
+extension TheErrorLegacy.Extension {
+
+  public static var legacyBridge: Self { "legacyBridge" }
+}
+
+extension TheErrorLegacy {
 
   public mutating func extend(
     with extension: Extension,
@@ -138,7 +181,7 @@ extension TheError {
   public var displayableStringArguments: Array<CVarArg>? { extensions[.displayableStringArguments] as? Array<CVarArg> }
 }
 
-extension TheError: CustomStringConvertible {
+extension TheErrorLegacy: CustomStringConvertible {
 
   public var description: String {
     #if DEBUG
@@ -150,7 +193,7 @@ extension TheError: CustomStringConvertible {
 }
 
 #if DEBUG
-extension TheError: CustomDebugStringConvertible {
+extension TheErrorLegacy: CustomDebugStringConvertible {
 
   public var debugDescription: String {
     """
@@ -165,24 +208,24 @@ extension TheError: CustomDebugStringConvertible {
 }
 #endif
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func ~= (
-    _ lhs: TheError.ID,
-    _ rhs: TheError
+    _ lhs: TheErrorLegacy.ID,
+    _ rhs: TheErrorLegacy
   ) -> Bool {
     lhs == rhs.identifier
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let canceled: Self = "canceled"
   public static let featureUnavailable: Self = "featureUnavailable"
   public static let internalInconsistency: Self = "internalInconsistency"
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static let logMessage: Self = "logMessage"
   #if DEBUG
@@ -191,7 +234,7 @@ extension TheError.Extension {
   public static let context: Self = "context"
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static let canceled: Self = .init(
     identifier: .canceled,
@@ -221,18 +264,18 @@ extension TheError {
   }
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static var displayableString: Self { "displayableString" }
   public static var displayableStringArguments: Self { "displayableStringArguments" }
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static var osStatus: Self { "osStatus" }
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public var osStatus: OSStatus? { extensions[.osStatus] as? OSStatus }
 }

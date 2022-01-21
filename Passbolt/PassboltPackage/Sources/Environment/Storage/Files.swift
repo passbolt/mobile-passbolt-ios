@@ -26,9 +26,9 @@ import Foundation
 
 public struct Files: EnvironmentElement {
 
-  public var deleteFile: (URL) -> Result<Void, TheError>
-  public var contentsOfDirectory: (URL) -> Result<Array<String>, TheError>
-  public var applicationDataDirectory: () -> Result<URL, TheError>
+  public var deleteFile: (URL) -> Result<Void, TheErrorLegacy>
+  public var contentsOfDirectory: (URL) -> Result<Array<String>, TheErrorLegacy>
+  public var applicationDataDirectory: () -> Result<URL, TheErrorLegacy>
 }
 
 extension Files {
@@ -115,15 +115,15 @@ extension Files {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      deleteFile: Commons.placeholder("You have to provide mocks for used methods"),
-      contentsOfDirectory: Commons.placeholder("You have to provide mocks for used methods"),
-      applicationDataDirectory: Commons.placeholder("You have to provide mocks for used methods")
+      deleteFile: unimplemented("You have to provide mocks for used methods"),
+      contentsOfDirectory: unimplemented("You have to provide mocks for used methods"),
+      applicationDataDirectory: unimplemented("You have to provide mocks for used methods")
     )
   }
 }
 #endif
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func directoryError(
     underlyingError: Error? = nil
@@ -146,7 +146,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let directoryError: Self = "directoryError"
   public static let fileDeletionError: Self = "fileDeletionError"

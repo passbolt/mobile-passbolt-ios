@@ -27,10 +27,10 @@ import LocalAuthentication
 
 public struct Keychain: EnvironmentElement {
 
-  public var load: (KeychainQuery) -> Result<Array<Data>, TheError>
-  public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, TheError>
-  public var save: (Data, KeychainQuery) -> Result<Void, TheError>
-  public var delete: (KeychainQuery) -> Result<Void, TheError>
+  public var load: (KeychainQuery) -> Result<Array<Data>, TheErrorLegacy>
+  public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, TheErrorLegacy>
+  public var save: (Data, KeychainQuery) -> Result<Void, TheErrorLegacy>
+  public var delete: (KeychainQuery) -> Result<Void, TheErrorLegacy>
 }
 
 extension Keychain {
@@ -43,7 +43,7 @@ extension Keychain {
 
     func load(
       matching query: KeychainQuery
-    ) -> Result<Array<Data>, TheError> {
+    ) -> Result<Array<Data>, TheErrorLegacy> {
       let context: LAContext? =
         query.requiresBiometrics
         ? biometricsContext()
@@ -59,7 +59,7 @@ extension Keychain {
 
     func loadMeta(
       matching query: KeychainQuery
-    ) -> Result<Array<KeychainItemMetadata>, TheError> {
+    ) -> Result<Array<KeychainItemMetadata>, TheErrorLegacy> {
       let context: LAContext? =
         query.requiresBiometrics
         ? biometricsContext()
@@ -87,7 +87,7 @@ extension Keychain {
     func save(
       _ data: Data,
       for query: KeychainQuery
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       let context: LAContext? =
         query.requiresBiometrics
         ? biometricsContext()
@@ -104,7 +104,7 @@ extension Keychain {
 
     func delete(
       matching query: KeychainQuery
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       deleteKeychainData(
         for: query.key.rawValue,
         tag: query.tag?.rawValue
@@ -125,7 +125,7 @@ extension Keychain {
   public func loadAll<Value>(
     _: Value.Type = Value.self,
     matching query: KeychainQuery
-  ) -> Result<Array<Value>, TheError>
+  ) -> Result<Array<Value>, TheErrorLegacy>
   where Value: Codable {
     load(query)
       .flatMap { items in
@@ -153,7 +153,7 @@ extension Keychain {
   public func loadFirst<Value>(
     _: Value.Type = Value.self,
     matching query: KeychainQuery
-  ) -> Result<Value?, TheError>
+  ) -> Result<Value?, TheErrorLegacy>
   where Value: Codable {
     load(query)
       .flatMap { items in
@@ -180,14 +180,14 @@ extension Keychain {
 
   public func loadMeta(
     matching query: KeychainQuery
-  ) -> Result<Array<KeychainItemMetadata>, TheError> {
+  ) -> Result<Array<KeychainItemMetadata>, TheErrorLegacy> {
     loadMeta(query)
   }
 
   public func save<Value>(
     _ value: Value,
     for query: KeychainQuery
-  ) -> Result<Void, TheError>
+  ) -> Result<Void, TheErrorLegacy>
   where Value: Codable {
     do {
       return try save(
@@ -207,7 +207,7 @@ extension Keychain {
 
   public func delete(
     matching query: KeychainQuery
-  ) -> Result<Void, TheError> {
+  ) -> Result<Void, TheErrorLegacy> {
     delete(query)
   }
 }
@@ -233,7 +233,7 @@ private func loadKeychainData(
   for key: String,
   tag: String?,
   in context: LAContext? = nil
-) -> Result<Array<Data>, TheError> {
+) -> Result<Array<Data>, TheErrorLegacy> {
   var errorPtr: NSError?
   guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
   else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
@@ -275,7 +275,7 @@ private func loadKeychainMeta(
   for key: String,
   tag: String?,
   in context: LAContext? = nil
-) -> Result<Array<Dictionary<CFString, Any>>, TheError> {
+) -> Result<Array<Dictionary<CFString, Any>>, TheErrorLegacy> {
   var errorPtr: NSError?
   guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
   else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
@@ -318,7 +318,7 @@ private func saveKeychain(
   for key: String,
   tag: String?,
   in context: LAContext? = nil
-) -> Result<Void, TheError> {
+) -> Result<Void, TheErrorLegacy> {
   var errorPtr: NSError?
   guard context?.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &errorPtr) ?? true
   else { return .failure(.keychainError(errSecNotAvailable, underlyingError: errorPtr)) }
@@ -356,7 +356,7 @@ private func saveKeychain(
 private func deleteKeychainData(
   for key: String,
   tag: String?
-) -> Result<Void, TheError> {
+) -> Result<Void, TheErrorLegacy> {
   deleteKeychainKeyQuery(using: key, tag: tag)
     .flatMap { query in
       let status: OSStatus = SecItemDelete(query)
@@ -371,7 +371,7 @@ private func loadKeychainKeyQuery(
   using key: String,
   tag: String?,
   in context: LAContext?
-) -> Result<CFDictionary, TheError> {
+) -> Result<CFDictionary, TheErrorLegacy> {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
@@ -417,7 +417,7 @@ private func loadKeychainMetaQuery(
   using key: String,
   tag: String?,
   in context: LAContext?
-) -> Result<CFDictionary, TheError> {
+) -> Result<CFDictionary, TheErrorLegacy> {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
@@ -464,7 +464,7 @@ private func saveKeychainKeyQuery(
   using key: String,
   tag: String?,
   in context: LAContext?
-) -> Result<CFDictionary, TheError> {
+) -> Result<CFDictionary, TheErrorLegacy> {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   assert(!data.isEmpty, "Cannot save empty data")
 
@@ -511,7 +511,7 @@ private func updateKeychainKeyQuery(
   using key: String,
   tag: String?,
   in context: LAContext?
-) -> Result<CFDictionary, TheError> {
+) -> Result<CFDictionary, TheErrorLegacy> {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
@@ -552,7 +552,7 @@ private func updateKeychainKeyQuery(
 @inline(__always)
 private func updateKeychainKeyAttributes(
   for data: Data
-) -> Result<CFDictionary, TheError> {
+) -> Result<CFDictionary, TheErrorLegacy> {
   assert(!data.isEmpty, "Cannot save empty data")
   return .success([kSecValueData: data] as CFDictionary)
 }
@@ -561,7 +561,7 @@ private func updateKeychainKeyAttributes(
 private func deleteKeychainKeyQuery(
   using key: String,
   tag: String?
-) -> Result<CFDictionary, TheError> {
+) -> Result<CFDictionary, TheErrorLegacy> {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
@@ -590,10 +590,10 @@ extension Keychain {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      load: Commons.placeholder("You have to provide mocks for used methods"),
-      loadMeta: Commons.placeholder("You have to provide mocks for used methods"),
-      save: Commons.placeholder("You have to provide mocks for used methods"),
-      delete: Commons.placeholder("You have to provide mocks for used methods")
+      load: unimplemented("You have to provide mocks for used methods"),
+      loadMeta: unimplemented("You have to provide mocks for used methods"),
+      save: unimplemented("You have to provide mocks for used methods"),
+      delete: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

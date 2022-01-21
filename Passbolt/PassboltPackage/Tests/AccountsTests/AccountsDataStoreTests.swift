@@ -191,7 +191,11 @@ final class AccountsDataStoreTests: TestCase {
   func test_storeAccount_savesDataProperly() {
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
+    let result: Result<Void, TheErrorLegacy> = dataStore.storeAccount(
+      validAccount,
+      validAccountDetails,
+      validPrivateKey
+    )
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -209,7 +213,11 @@ final class AccountsDataStoreTests: TestCase {
 
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
+    let result: Result<Void, TheErrorLegacy> = dataStore.storeAccount(
+      validAccount,
+      validAccountDetails,
+      validPrivateKey
+    )
 
     XCTAssertFailure(result)
   }
@@ -322,7 +330,7 @@ final class AccountsDataStoreTests: TestCase {
 
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
+    let result: Result<Void, TheErrorLegacy> = dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
 
     XCTAssertFailure(result)
   }
@@ -330,7 +338,7 @@ final class AccountsDataStoreTests: TestCase {
   func test_verifyDataIntegrity_succeedsWithNoData() {
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
   }
@@ -357,7 +365,7 @@ final class AccountsDataStoreTests: TestCase {
     ]
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
   }
@@ -426,7 +434,7 @@ final class AccountsDataStoreTests: TestCase {
     ]
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -454,7 +462,7 @@ final class AccountsDataStoreTests: TestCase {
 
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -482,7 +490,7 @@ final class AccountsDataStoreTests: TestCase {
 
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -544,7 +552,7 @@ final class AccountsDataStoreTests: TestCase {
     ]
     let dataStore: AccountsDataStore = testInstance()
 
-    let result: Result<Void, TheError> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(

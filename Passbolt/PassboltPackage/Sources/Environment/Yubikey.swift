@@ -25,10 +25,10 @@ import Commons
 
 public struct Yubikey: EnvironmentElement {
 
-  public var readNFC: () -> AnyPublisher<String, TheError>
+  public var readNFC: () -> AnyPublisher<String, TheErrorLegacy>
 
   public init(
-    readNFC: @escaping () -> AnyPublisher<String, TheError>
+    readNFC: @escaping () -> AnyPublisher<String, TheErrorLegacy>
   ) {
     self.readNFC = readNFC
   }
@@ -46,7 +46,7 @@ extension Yubikey {
 
   public static func unavailable() -> Self {
     Self(
-      readNFC: Fail(error: TheError.featureUnavailable(featureName: "Yubikey"))
+      readNFC: Fail(error: TheErrorLegacy.featureUnavailable(featureName: "Yubikey"))
         .eraseToAnyPublisher
     )
   }
@@ -55,6 +55,6 @@ extension Yubikey {
 extension Yubikey {
 
   public static var placeholder: Self {
-    Self(readNFC: Commons.placeholder("You have to provide mocks for used methods"))
+    Self(readNFC: unimplemented("You have to provide mocks for used methods"))
   }
 }

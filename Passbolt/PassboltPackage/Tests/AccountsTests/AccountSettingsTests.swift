@@ -172,7 +172,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .setBiometricsEnabled(true)
       .sink(
@@ -206,7 +206,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .setBiometricsEnabled(false)
       .sink(
@@ -236,7 +236,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     feature
       .setBiometricsEnabled(true)
       .sink(
@@ -386,7 +386,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(
@@ -414,7 +414,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(
@@ -443,7 +443,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(

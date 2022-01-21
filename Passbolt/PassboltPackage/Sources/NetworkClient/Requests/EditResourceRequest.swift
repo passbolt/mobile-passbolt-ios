@@ -34,7 +34,7 @@ extension UpdateResourceRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheErrorLegacy>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in

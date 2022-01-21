@@ -63,7 +63,7 @@ extension AccountDatabase: Feature {
     let accountSession: AccountSession = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
 
-    let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, TheError> = .init(nil)
+    let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, TheErrorLegacy> = .init(nil)
 
     accountSession
       .statePublisher()
@@ -135,16 +135,16 @@ extension AccountDatabase: Feature {
       }
       .store(in: cancellables)
 
-    let currentConnectionPublisher: AnyPublisher<SQLiteConnection, TheError> =
+    let currentConnectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy> =
       databaseConnectionSubject
-      .map { connection -> AnyPublisher<SQLiteConnection, TheError> in
+      .map { connection -> AnyPublisher<SQLiteConnection, TheErrorLegacy> in
         if let connection: DatabaseConnection = connection {
           return Just(connection.connection)
-            .setFailureType(to: TheError.self)
+            .setFailureType(to: TheErrorLegacy.self)
             .eraseToAnyPublisher()
         }
         else {
-          return Fail<SQLiteConnection, TheError>(
+          return Fail<SQLiteConnection, TheErrorLegacy>(
             error: .databaseConnectionClosed(
               databaseErrorMessage: "There is no active database connection"
             )
@@ -185,7 +185,7 @@ extension AccountDatabase: Feature {
       fetchDetailsViewResources: .placeholder,
       fetchResourcesTypesOperation: .placeholder,
       fetchEditViewResourceOperation: .placeholder,
-      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
+      featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

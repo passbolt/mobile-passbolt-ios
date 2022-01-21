@@ -51,6 +51,6 @@ final class ValidatorTests: XCTestCase {
     let validated: Validated<String> = validator.validate("")
 
     XCTAssertFalse(validated.isValid)
-    XCTAssertEqual(validated.errors.first?.identifier, .validation)
+    XCTAssertEqual(validated.errors.first?.validationRule, "nonEmpty")
   }
 }

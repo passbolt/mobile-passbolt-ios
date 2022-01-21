@@ -67,8 +67,8 @@ extension Initialization: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      initialize: Commons.placeholder("You have to provide mocks for used methods"),
-      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
+      initialize: unimplemented("You have to provide mocks for used methods"),
+      featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

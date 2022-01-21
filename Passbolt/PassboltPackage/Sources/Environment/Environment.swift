@@ -54,7 +54,7 @@ extension Environment {
       return element
     }
     else {
-      unreachable("Trying to use uninitialized environment element: \(E.self)")
+      unreachable("Trying to use uninitialized environment element")
     }
   }
 

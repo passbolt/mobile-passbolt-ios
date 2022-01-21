@@ -51,7 +51,7 @@ final class ResourceListControllerTests: TestCase {
 
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() {
     resources.refreshIfNeeded = always(
-      Empty<Void, TheError>(completeImmediately: true)
+      Empty<Void, TheErrorLegacy>(completeImmediately: true)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -78,7 +78,7 @@ final class ResourceListControllerTests: TestCase {
 
   func test_refreshResources_fails_whenResourcesRefreshFails() {
     resources.refreshIfNeeded = always(
-      Fail<Void, TheError>(error: .testError())
+      Fail<Void, TheErrorLegacy>(error: .testError())
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -87,7 +87,7 @@ final class ResourceListControllerTests: TestCase {
 
     let controller: ResourcesListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     controller
       .refreshResources()
       .sink(
@@ -308,7 +308,7 @@ final class ResourceListControllerTests: TestCase {
     resources.deleteResource = { resourceID in
       resourcesList.removeAll { $0.id == resourceID }
       return Just(())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
 
@@ -318,7 +318,7 @@ final class ResourceListControllerTests: TestCase {
       result = Void()
       return Just(())
         .ignoreOutput()
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(resources)

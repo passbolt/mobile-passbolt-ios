@@ -23,27 +23,29 @@
 
 import Localization
 
-import class Foundation.Bundle
+public struct InvalidForm: TheError {
 
-extension TheError {
-
-  #warning("TODO: resolve conflict with TheError+NetworkClient")
-  public static func validationError(
+  public static func error(
+    _ message: StaticString = "InvalidForm",
+    invalidValues: Array<InvalidValue> = .init(),
     displayable: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
     Self(
-      identifier: .validation,
-      underlyingError: nil,
-      extensions: [
-        .displayableString: displayable,
-        .displayableStringArguments: arguments,
-      ]
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: displayable,
+      invalidValues: invalidValues
     )
   }
-}
 
-extension TheError.ID {
-
-  public static var validation: Self { "validation" }
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
+  public var invalidValues: Array<InvalidValue>
 }

@@ -63,7 +63,7 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just([]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -72,7 +72,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .resourceTypePublisher()
       .sink(
@@ -91,7 +91,7 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([emptyResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just([emptyResourceType]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -100,7 +100,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .resourceTypePublisher()
       .sink(
@@ -126,7 +126,7 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -152,7 +152,7 @@ final class ResourceEditFormTests: TestCase {
   func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just([defaultResourceType]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -181,7 +181,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -209,7 +209,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -242,7 +242,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -277,7 +277,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -287,7 +287,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .setFieldValue(.string("updated"), .undefined(name: "unavailable"))
       .sink(
@@ -307,7 +307,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -344,7 +344,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .sendForm()
       .sink(
@@ -364,7 +364,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -374,7 +374,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .sendForm()
       .sink(
@@ -387,7 +387,7 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .validation)
+    XCTAssertTrue(result?.isLegacyBridge(for: InvalidForm.self))
   }
 
   func test_sendForm_fails_whenNoActiveUserSession() {
@@ -399,7 +399,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -414,7 +414,7 @@ final class ResourceEditFormTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .sendForm()
       .sink(
@@ -438,7 +438,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -457,7 +457,7 @@ final class ResourceEditFormTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .sendForm()
       .sink(
@@ -481,7 +481,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -493,7 +493,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(networkClient)
     userPGPMessages.encryptMessageForUser = always(
       Just("encrypted-message")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(userPGPMessages)
@@ -505,7 +505,7 @@ final class ResourceEditFormTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .sendForm()
       .sink(
@@ -529,7 +529,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -541,13 +541,13 @@ final class ResourceEditFormTests: TestCase {
           body: .init(resourceID: "resource-id")
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
     userPGPMessages.encryptMessageForUser = always(
       Just("encrypted-message")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(userPGPMessages)
@@ -583,7 +583,7 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Fail(error: .testError())
@@ -596,7 +596,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .editResource(.init(rawValue: "resource-id"))
       .sink(
@@ -622,7 +622,7 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -641,7 +641,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -655,7 +655,7 @@ final class ResourceEditFormTests: TestCase {
 
     let feature: ResourceEditForm = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .editResource(.init(rawValue: "resource-id"))
       .sink(
@@ -681,7 +681,7 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -700,7 +700,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -710,7 +710,7 @@ final class ResourceEditFormTests: TestCase {
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -746,7 +746,7 @@ final class ResourceEditFormTests: TestCase {
           fields: []
         )
       ])
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
@@ -766,7 +766,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -776,7 +776,7 @@ final class ResourceEditFormTests: TestCase {
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -815,7 +815,7 @@ final class ResourceEditFormTests: TestCase {
           fields: []
         )
       ])
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
@@ -843,7 +843,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -853,7 +853,7 @@ final class ResourceEditFormTests: TestCase {
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -894,7 +894,7 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -921,7 +921,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -931,7 +931,7 @@ final class ResourceEditFormTests: TestCase {
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -946,7 +946,7 @@ final class ResourceEditFormTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     }
     features.use(networkClient)
@@ -954,7 +954,7 @@ final class ResourceEditFormTests: TestCase {
       Just([
         ("USER_ID", "encrypted message")
       ])
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(userPGPMessages)
@@ -988,7 +988,7 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -1015,7 +1015,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -1025,7 +1025,7 @@ final class ResourceEditFormTests: TestCase {
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -1038,7 +1038,7 @@ final class ResourceEditFormTests: TestCase {
       Just([
         ("USER_ID", "encrypted message")
       ])
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(userPGPMessages)
@@ -1050,7 +1050,7 @@ final class ResourceEditFormTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .sendForm()
       .sink(

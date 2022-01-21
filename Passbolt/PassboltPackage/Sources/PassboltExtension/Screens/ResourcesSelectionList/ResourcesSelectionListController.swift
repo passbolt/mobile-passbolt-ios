@@ -28,7 +28,7 @@ import UIComponents
 
 internal struct ResourcesSelectionListController {
 
-  internal var refreshResources: () -> AnyPublisher<Void, TheError>
+  internal var refreshResources: () -> AnyPublisher<Void, TheErrorLegacy>
   internal var resourcesListPublisher:
     () -> AnyPublisher<
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
@@ -36,7 +36,7 @@ internal struct ResourcesSelectionListController {
     >
   internal var addResource: () -> Void
   internal var resourceCreatePresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var selectResource: (Resource.ID) -> AnyPublisher<Void, TheError>
+  internal var selectResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
 }
 
 extension ResourcesSelectionListController: UIController {
@@ -54,7 +54,7 @@ extension ResourcesSelectionListController: UIController {
 
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
 
-    func refreshResources() -> AnyPublisher<Void, TheError> {
+    func refreshResources() -> AnyPublisher<Void, TheErrorLegacy> {
       resources.refreshIfNeeded()
     }
 
@@ -92,17 +92,17 @@ extension ResourcesSelectionListController: UIController {
 
     func selectResource(
       _ resourceID: Resource.ID
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       resources
         .loadResourceSecret(resourceID)
-        .map { resourceSecret -> AnyPublisher<String, TheError> in
+        .map { resourceSecret -> AnyPublisher<String, TheErrorLegacy> in
           if let password: String = resourceSecret.password {
             return Just(password)
-              .setFailureType(to: TheError.self)
+              .setFailureType(to: TheErrorLegacy.self)
               .eraseToAnyPublisher()
           }
           else {
-            return Fail<String, TheError>(error: .invalidResourceSecret())
+            return Fail<String, TheErrorLegacy>(error: .invalidResourceSecret())
               .eraseToAnyPublisher()
           }
         }

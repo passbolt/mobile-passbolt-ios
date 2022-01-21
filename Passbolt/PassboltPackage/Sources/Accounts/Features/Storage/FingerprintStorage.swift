@@ -28,8 +28,8 @@ import Features
 
 public struct FingerprintStorage {
 
-  public var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheError>
-  public var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheError>
+  public var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy>
+  public var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheErrorLegacy>
 }
 
 extension FingerprintStorage: Feature {
@@ -42,14 +42,14 @@ extension FingerprintStorage: Feature {
 
     let accountDataStore: AccountsDataStore = features.instance()
 
-    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheError> {
+    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy> {
       accountDataStore.loadServerFingerprint(accountID)
     }
 
     func storeServerFingerprint(
       accountID: Account.LocalID,
       fingerprint: Fingerprint
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       accountDataStore.storeServerFingerprint(accountID, fingerprint)
     }
 
@@ -65,8 +65,8 @@ extension FingerprintStorage {
 
   public static var placeholder: FingerprintStorage {
     Self(
-      loadServerFingerprint: Commons.placeholder("You have to provide mocks for used"),
-      storeServerFingerprint: Commons.placeholder("You have to provide mocks for used")
+      loadServerFingerprint: unimplemented("You have to provide mocks for used"),
+      storeServerFingerprint: unimplemented("You have to provide mocks for used")
     )
   }
 }

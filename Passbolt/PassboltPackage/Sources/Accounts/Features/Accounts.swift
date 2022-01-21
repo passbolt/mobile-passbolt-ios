@@ -27,7 +27,7 @@ import Features
 
 public struct Accounts {
 
-  public var verifyStorageDataIntegrity: () -> Result<Void, TheError>
+  public var verifyStorageDataIntegrity: () -> Result<Void, TheErrorLegacy>
   public var storedAccounts: () -> Array<Account>
   // Saves account data if authorization succeeds and creates session.
   public var transferAccount:
@@ -41,8 +41,8 @@ public struct Accounts {
       _ fingerprint: Fingerprint,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) -> AnyPublisher<Void, TheError>
-  public var removeAccount: (Account) -> Result<Void, TheError>
+    ) -> AnyPublisher<Void, TheErrorLegacy>
+  public var removeAccount: (Account) -> Result<Void, TheErrorLegacy>
 }
 
 extension Accounts: Feature {
@@ -58,7 +58,7 @@ extension Accounts: Feature {
     let session: AccountSession = features.instance()
     let dataStore: AccountsDataStore = features.instance()
 
-    func verifyAccountsDataIntegrity() -> Result<Void, TheError> {
+    func verifyAccountsDataIntegrity() -> Result<Void, TheErrorLegacy> {
       dataStore.verifyDataIntegrity()
     }
 
@@ -76,7 +76,7 @@ extension Accounts: Feature {
       fingerprint: Fingerprint,
       armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
 
       let accountAlreadyStored: Bool =
         dataStore
@@ -89,7 +89,7 @@ extension Accounts: Feature {
         )
       guard !accountAlreadyStored
       else {
-        return Fail<Void, TheError>(error: .duplicateAccount())
+        return Fail<Void, TheErrorLegacy>(error: .duplicateAccount())
           .eraseToAnyPublisher()
       }
 
@@ -113,11 +113,11 @@ extension Accounts: Feature {
       return
         session
         .authorize(account, .adHoc(passphrase, armoredKey))
-        .map { _ -> AnyPublisher<Void, TheError> in
+        .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
           switch dataStore.storeAccount(account, accountProfile, armoredKey) {
           case .success:
             return Just(Void())
-              .setFailureType(to: TheError.self)
+              .setFailureType(to: TheErrorLegacy.self)
               .eraseToAnyPublisher()
           case let .failure(error):
             diagnostics.diagnosticLog("...failed to store account data...")
@@ -126,7 +126,7 @@ extension Accounts: Feature {
                 + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
             session.close()  // cleanup session
-            return Fail<Void, TheError>(error: error)
+            return Fail<Void, TheErrorLegacy>(error: error)
               .eraseToAnyPublisher()
           }
         }
@@ -136,7 +136,7 @@ extension Accounts: Feature {
 
     func remove(
       account: Account
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       diagnostics.diagnosticLog("Removing local account data...")
       dataStore.deleteAccount(account.localID)
       session
@@ -180,10 +180,10 @@ extension Accounts: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      verifyStorageDataIntegrity: Commons.placeholder("You have to provide mocks for used methods"),
-      storedAccounts: Commons.placeholder("You have to provide mocks for used methods"),
-      transferAccount: Commons.placeholder("You have to provide mocks for used methods"),
-      removeAccount: Commons.placeholder("You have to provide mocks for used methods")
+      verifyStorageDataIntegrity: unimplemented("You have to provide mocks for used methods"),
+      storedAccounts: unimplemented("You have to provide mocks for used methods"),
+      transferAccount: unimplemented("You have to provide mocks for used methods"),
+      removeAccount: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

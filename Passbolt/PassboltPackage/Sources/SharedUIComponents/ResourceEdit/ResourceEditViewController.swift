@@ -145,19 +145,15 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               handler: { _ in true /* NOP */ }
             ),
             (
-              [.validation],
+              [.legacyBridge],
               handler: { [weak self] error in
                 self?.showErrorSubject.send()
 
                 guard
-                  let displayable = error.displayableString,
-                  let displayableArguments = error.displayableStringArguments
+                  let displayable = error.displayableString
                 else { return false }
 
-                self?.presentErrorSnackbar(
-                  displayable,
-                  with: displayableArguments
-                )
+                self?.presentErrorSnackbar(displayable)
                 return true
               }
             ),
@@ -260,7 +256,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           self.contentView
             .fieldValuePublisher(for: resourceProperty.field)
             .removeDuplicates()
-            .map { [unowned self] value -> AnyPublisher<Void, TheError> in
+            .map { [unowned self] value -> AnyPublisher<Void, TheErrorLegacy> in
               self.controller.setValue(value, resourceProperty.field)
             }
             .switchToLatest()

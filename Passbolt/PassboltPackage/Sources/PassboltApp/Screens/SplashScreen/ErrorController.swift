@@ -32,7 +32,7 @@ internal struct ErrorController {
 
 extension ErrorController: UIController {
 
-  internal typealias Context = () -> AnyPublisher<Void, TheError>
+  internal typealias Context = () -> AnyPublisher<Void, TheErrorLegacy>
 
   internal static func instance(
     in context: @escaping Context,

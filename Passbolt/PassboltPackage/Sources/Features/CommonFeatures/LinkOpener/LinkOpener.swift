@@ -52,15 +52,15 @@ extension LinkOpener: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      openLink: Commons.placeholder("You have to provide mocks for used methods"),
-      openAppSettings: Commons.placeholder("You have to provide mocks for used methods"),
-      openSystemSettings: Commons.placeholder("You have to provide mocks for used methods")
+      openLink: unimplemented("You have to provide mocks for used methods"),
+      openAppSettings: unimplemented("You have to provide mocks for used methods"),
+      openSystemSettings: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func failedToOpenURL(
     underlyingError: Error? = nil
@@ -73,7 +73,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let failedToOpenURL: Self = "failedToOpenURL"
 }

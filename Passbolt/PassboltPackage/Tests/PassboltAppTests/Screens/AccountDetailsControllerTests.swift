@@ -147,7 +147,7 @@ final class AccountDetailsControllerTests: TestCase {
     controller
       .updateCurrentAccountLabel(Array<String>(repeating: "a", count: 81).joined())
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     controller
       .saveChanges()
       .sink(
@@ -159,8 +159,8 @@ final class AccountDetailsControllerTests: TestCase {
         receiveValue: { /* NOP */  }
       )
       .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .validation)
+    
+    XCTAssertTrue(result?.isLegacyBridge(for: InvalidForm.self))
   }
 
   func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() {
@@ -196,7 +196,7 @@ final class AccountDetailsControllerTests: TestCase {
       context: validAccountWithProfile
     )
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     controller
       .saveChanges()
       .sink(

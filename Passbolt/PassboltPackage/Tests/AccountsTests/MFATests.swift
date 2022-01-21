@@ -48,14 +48,14 @@ final class MFATests: TestCase {
   func test_authorizeUsingYubikey_succeeds_whenMFAAuthorizeSucceeds() {
     accountSession.mfaAuthorize = always(
       Just(())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
 
     environment.yubikey.readNFC = {
       Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
 
@@ -79,12 +79,12 @@ final class MFATests: TestCase {
     features.use(accountSession)
 
     environment.yubikey.readNFC = always(
-      Fail(error: TheError.yubikeyError())
+      Fail(error: TheErrorLegacy.yubikeyError())
         .eraseToAnyPublisher()
     )
 
     let feature: MFA = testInstance()
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     feature.authorizeUsingYubikey(false)
       .sink(
@@ -105,7 +105,7 @@ final class MFATests: TestCase {
   func test_authorizeUsingTOTP_succeeds_whenMFAAuthorizeSucceeds() {
     accountSession.mfaAuthorize = always(
       Just(())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)

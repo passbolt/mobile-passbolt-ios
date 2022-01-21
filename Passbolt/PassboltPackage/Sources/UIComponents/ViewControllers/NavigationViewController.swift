@@ -35,7 +35,7 @@ open class NavigationViewController: UINavigationController {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override open var childForStatusBarStyle: UIViewController? {
@@ -43,11 +43,11 @@ open class NavigationViewController: UINavigationController {
   }
 
   public var lazyView: UIView {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public var contentView: UIView {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public lazy var dynamicBackgroundColor: DynamicColor = .background {
@@ -58,7 +58,11 @@ open class NavigationViewController: UINavigationController {
 
   public var navigationBarView: NavigationBar {
     guard let navigationBar = navigationBar as? NavigationBar else {
-      unreachable("Invalid navigation bar type, expected: \(NavigationBar.self), received: \(type(of: navigationBar))")
+      Unreachable
+        .error("Invalid navigation bar type")
+        .recording(NavigationBar.self, for: "expected")
+        .recording(type(of: navigationBar), for: "received")
+        .asFatalError()
     }
 
     return navigationBar

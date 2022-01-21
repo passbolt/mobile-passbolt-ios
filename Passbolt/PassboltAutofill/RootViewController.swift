@@ -38,7 +38,7 @@ internal class RootViewController: ASCredentialProviderViewController {
   
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override internal func prepareCredentialList(

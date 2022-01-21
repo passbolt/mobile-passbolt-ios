@@ -42,7 +42,7 @@ final class JWTTests: TestCase {
   }
 
   func test_decode_withInvalidHeader_Fails() {
-    let result: Result<JWT, TheError> = JWT.from(rawValue: tokenWithInvalidHeader)
+    let result: Result<JWT, TheErrorLegacy> = JWT.from(rawValue: tokenWithInvalidHeader)
 
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
@@ -53,7 +53,7 @@ final class JWTTests: TestCase {
   }
 
   func test_decode_withInvalidPayload_Fails() {
-    let result: Result<JWT, TheError> = JWT.from(rawValue: tokenWithInvalidPayload)
+    let result: Result<JWT, TheErrorLegacy> = JWT.from(rawValue: tokenWithInvalidPayload)
 
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
@@ -64,7 +64,7 @@ final class JWTTests: TestCase {
   }
 
   func test_decode_withEmptyToken_Fails() {
-    let result: Result<JWT, TheError> = JWT.from(rawValue: "")
+    let result: Result<JWT, TheErrorLegacy> = JWT.from(rawValue: "")
 
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
@@ -75,7 +75,7 @@ final class JWTTests: TestCase {
   }
 
   func test_decode_withMissingSignature_Fails() {
-    let result: Result<JWT, TheError> = JWT.from(rawValue: tokenWithoutSignature)
+    let result: Result<JWT, TheErrorLegacy> = JWT.from(rawValue: tokenWithoutSignature)
 
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")
@@ -86,7 +86,7 @@ final class JWTTests: TestCase {
   }
 
   func test_decode_withMalformedToken_Fails() {
-    let result: Result<JWT, TheError> = JWT.from(rawValue: malformedToken)
+    let result: Result<JWT, TheErrorLegacy> = JWT.from(rawValue: malformedToken)
 
     guard case let Result.failure(error) = result else {
       XCTFail("Unexpected success")

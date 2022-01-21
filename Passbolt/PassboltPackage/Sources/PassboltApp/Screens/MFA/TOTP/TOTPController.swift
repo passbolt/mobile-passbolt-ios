@@ -41,7 +41,7 @@ extension TOTPController {
   internal enum StatusChange {
     case idle
     case processing
-    case error(TheError)
+    case error(TheErrorLegacy)
   }
 }
 

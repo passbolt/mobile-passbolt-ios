@@ -64,7 +64,7 @@ extension Environment {
 extension AutoFillExtension {
 
   public static var placeholder: Self {
-    Self(isEnabled: Commons.placeholder("You have to provide mocks for used methods"))
+    Self(isEnabled: unimplemented("You have to provide mocks for used methods"))
   }
 }
 #endif

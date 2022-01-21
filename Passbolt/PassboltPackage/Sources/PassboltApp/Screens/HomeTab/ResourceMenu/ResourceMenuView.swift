@@ -35,7 +35,7 @@ internal final class ResourceMenuView: View {
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal required init() {
@@ -176,12 +176,12 @@ internal final class ResourceMenuItemView: Button {
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   @available(*, unavailable, message: "Use init(operation:)")
   required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal init(operation: ResourceMenuController.Action) {

@@ -33,7 +33,7 @@ internal final class MFARootView: KeyboardAwareView {
 
   @available(*, unavailable, message: "Use init(hideButton:)")
   internal required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal init(hideButton: Bool) {

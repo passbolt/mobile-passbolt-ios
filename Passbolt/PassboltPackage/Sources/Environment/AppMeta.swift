@@ -69,8 +69,8 @@ extension AppMeta {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      bundleID: Commons.placeholder("You have to provide mocks for used methods"),
-      version: Commons.placeholder("You have to provide mocks for used methods")
+      bundleID: unimplemented("You have to provide mocks for used methods"),
+      version: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

@@ -56,7 +56,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_resourceDetailsPublisher_publishes_initially() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(linkOpener)
@@ -90,7 +90,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_availableActionsPublisher_publishesActionAvailable_initially() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(linkOpener)
@@ -118,12 +118,12 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -154,7 +154,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -185,7 +185,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_opensURL_forOpenURLAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -217,7 +217,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -237,7 +237,7 @@ final class ResourceMenuControllerTests: TestCase {
       )
     )
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     controller
       .performAction(.openURL)
       .sink(
@@ -256,7 +256,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -287,7 +287,7 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -318,12 +318,12 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResourceWithoutDescription)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -354,12 +354,12 @@ final class ResourceMenuControllerTests: TestCase {
   func test_performAction_triggersShowDeleteAlert_forDeleteAction() {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResourceWithoutDescription)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)

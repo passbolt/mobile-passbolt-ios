@@ -28,7 +28,7 @@ import UIComponents
 
 internal struct MFARootController {
 
-  internal var mfaProviderPublisher: () -> AnyPublisher<MFAProvider, TheError>
+  internal var mfaProviderPublisher: () -> AnyPublisher<MFAProvider, TheErrorLegacy>
   internal var navigateToOtherMFA: () -> Void
   internal var closeSession: () -> Void
   internal var isProviderSwitchingAvailable: () -> Bool
@@ -45,9 +45,9 @@ extension MFARootController: UIController {
   ) -> MFARootController {
 
     let accountSession: AccountSession = features.instance()
-    let mfaProviderSubject: CurrentValueSubject<MFAProvider?, TheError> = .init(context.first)
+    let mfaProviderSubject: CurrentValueSubject<MFAProvider?, TheErrorLegacy> = .init(context.first)
 
-    func mfaProviderPublisher() -> AnyPublisher<MFAProvider, TheError> {
+    func mfaProviderPublisher() -> AnyPublisher<MFAProvider, TheErrorLegacy> {
       mfaProviderSubject
         .handleEvents(receiveOutput: { provider in
           if provider == nil {

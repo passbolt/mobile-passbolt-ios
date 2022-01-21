@@ -78,14 +78,17 @@ extension Validator {
 
   public static func alwaysInvalid(
     displayable: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
     Self { value in
       .invalid(
         value,
-        errors: TheError.validationError(
+        errors: .alwaysInvalid(
+          value: value,
           displayable: displayable,
-          with: arguments
+          file: file,
+          line: line
         )
       )
     }

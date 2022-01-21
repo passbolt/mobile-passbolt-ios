@@ -235,13 +235,13 @@ extension Diagnostics {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      debugLog: Commons.placeholder("You have to provide mocks for used methods"),
-      diagnosticLog: Commons.placeholder("You have to provide mocks for used methods"),
-      deviceInfo: Commons.placeholder("You have to provide mocks for used methods"),
-      collectedLogs: Commons.placeholder("You have to provide mocks for used methods"),
-      measurePerformance: Commons.placeholder("You have to provide mocks for used methods"),
-      uniqueID: Commons.placeholder("You have to provide mocks for used methods"),
-      breakpoint: Commons.placeholder("You have to provide mocks for used methods")
+      debugLog: unimplemented("You have to provide mocks for used methods"),
+      diagnosticLog: unimplemented("You have to provide mocks for used methods"),
+      deviceInfo: unimplemented("You have to provide mocks for used methods"),
+      collectedLogs: unimplemented("You have to provide mocks for used methods"),
+      measurePerformance: unimplemented("You have to provide mocks for used methods"),
+      uniqueID: unimplemented("You have to provide mocks for used methods"),
+      breakpoint: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

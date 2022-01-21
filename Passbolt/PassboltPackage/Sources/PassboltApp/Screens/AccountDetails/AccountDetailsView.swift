@@ -177,7 +177,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
 
   @available(*, unavailable)
   internal required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal func updateAccountLabel(text: Validated<String>) {

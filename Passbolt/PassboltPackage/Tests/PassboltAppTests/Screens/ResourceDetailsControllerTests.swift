@@ -57,7 +57,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
@@ -93,7 +93,7 @@ final class ResourceDetailsControllerTests: TestCase {
       var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
       detailsViewResourceWithReorderedFields.properties.reverse()
       return Just(detailsViewResourceWithReorderedFields)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(featureConfig)
@@ -142,7 +142,7 @@ final class ResourceDetailsControllerTests: TestCase {
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     controller.resourceDetailsWithConfigPublisher()
       .sink(
@@ -168,7 +168,7 @@ final class ResourceDetailsControllerTests: TestCase {
       Empty().eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
-      Just(resourceSecret).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(resourceSecret).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
     features.use(resources)
@@ -209,7 +209,7 @@ final class ResourceDetailsControllerTests: TestCase {
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = testInstance(context: context)
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     controller
       .toggleDecrypt(.password)
@@ -236,7 +236,7 @@ final class ResourceDetailsControllerTests: TestCase {
       Empty().eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
-      Just(resourceSecret).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(resourceSecret).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(featureConfig)
     features.use(resources)
@@ -299,7 +299,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
@@ -329,7 +329,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
@@ -359,13 +359,13 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(encryptedDescriptionDetailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -394,7 +394,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
@@ -424,13 +424,13 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resources)
@@ -459,7 +459,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(featureConfig)
@@ -494,7 +494,7 @@ final class ResourceDetailsControllerTests: TestCase {
     featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resources.filteredResourcesListPublisher = always(
@@ -504,7 +504,7 @@ final class ResourceDetailsControllerTests: TestCase {
     resources.deleteResource = { resourceID in
       resourcesList.removeAll { $0.id == resourceID }
       return Just(())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
 
@@ -514,7 +514,7 @@ final class ResourceDetailsControllerTests: TestCase {
       result = Void()
       return Just(())
         .ignoreOutput()
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(resources)

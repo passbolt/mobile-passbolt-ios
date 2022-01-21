@@ -1,0 +1,331 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+
+import Localization
+
+/// Common protocol for error instances.
+///
+/// Inspired by: https://github.com/miquido/MQ-iOS
+///
+/// "One Error to rule them all, One Error to handle them, One Error to bring them all, and on the screen bind them."
+public protocol TheError: Error, CustomDebugStringConvertible {
+
+  /// String which can be desplayed to the user when presenting this error on screen.
+  var displayableMessage: DisplayableString { get }
+  /// Diagnostics context containing additional informations related with error.
+  /// Used to prepare diagnostic messages for logger.
+  var context: DiagnosticsContext { get set }
+  /// Stack of diagnostic messages to be used with diagnostic log.
+  /// Default implementaion is based on current `context` value.
+  var diagnosticMessages: Array<StaticString> { get }
+}
+
+extension TheError {
+
+  public var diagnosticMessages: Array<StaticString> {
+    self.context.infoStack.map(\.message)
+  }
+}
+
+extension TheError /* CustomDebugStringConvertible */ {
+
+  public var debugDescription: String {
+    "\(Self.self)\n\(self.displayableMessage.string())\n\(self.context.debugDescription)"
+  }
+}
+
+extension TheError {
+
+  /// Terminate process with this error as the cause.
+  ///
+  /// - Parameters:
+  ///   - message: Optional, additional message associated with process termination.
+  ///   Default is empty.
+  ///   - file: Source code file identifier.
+  ///   Filled automatically based on compile time constants.
+  ///   - line: Line in given source code file.
+  ///   Filled automatically based on compile time constants.
+  public func asFatalError(
+    message: @autoclosure () -> String = .init(),
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Never {
+    fatalError(
+      "\(message())\n\(self.debugDescription)",
+      file: file,
+      line: line
+    )
+  }
+
+  /// Treat this error as the cause of assertion failure.
+  ///
+  /// - Parameters:
+  ///   - message: Optional, additional message associated with assertion failure.
+  ///   Default is empty.
+  ///   - file: Source code file identifier.
+  ///   Filled automatically based on compile time constants.
+  ///   - line: Line in given source code file.
+  ///   Filled automatically based on compile time constants.
+  public func asAssertionFailure(
+    message: @autoclosure () -> String = .init(),
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) {
+    assertionFailure(
+      "\(message())\n\(self.debugDescription)",
+      file: file,
+      line: line
+    )
+  }
+
+  /// Push new info message into context.
+  ///
+  /// - Parameter info: `DiagnosticsInfo` to be pushed on top of the `context` stack.
+  public mutating func push(
+    _ info: DiagnosticsInfo
+  ) {
+    self.context.push(info)
+  }
+
+  /// Make a copy of this error while pushing new info message into context.
+  ///
+  /// - Parameter info: `DiagnosticsInfo` to be pushed on top of the `context` stack.
+  /// - Returns: Copy of this error with additional `DiagnosticsInfo`.
+  public func pushing(
+    _ info: DiagnosticsInfo
+  ) -> Self {
+    var copy: Self = self
+    copy.push(info)
+    return copy
+  }
+
+  /// Record a value associated with last info message.
+  /// Does nothing in nondebug builds. Recording value for a key
+  /// which already holds any value replaces current one.
+  ///
+  /// - Parameters:
+  ///   - value: Value to be recorded.
+  ///   - key: Key identifying recorded value.
+  public mutating func record(
+    _ value: Any,
+    for key: StaticString
+  ) {
+    #if DEBUG
+    // infoStack has always one or more elements
+    self.context.infoStack[self.context.infoStack.startIndex].record(value, for: key)
+    #else
+    /* NOP */
+    #endif
+  }
+
+  /// Make a copy of this error while recording a value associated with last info message.
+  /// Does nothing in nondebug builds. Recording value for a key
+  /// which already holds any value replaces current one.
+  ///
+  /// - Parameters:
+  ///   - value: Value to be recorded.
+  ///   - key: Key identifying recorded value.
+  /// - Returns: Copy of this error with additional value associated with current context.
+  public func recording(
+    _ value: Any,
+    for key: StaticString
+  ) -> Self {
+    #if DEBUG
+    var copy: Self = self
+    copy.record(value, for: key)
+    return copy
+    #else
+    return self
+    #endif
+  }
+}
+
+public struct DiagnosticsContext {
+
+  fileprivate var infoStack: Array<DiagnosticsInfo>
+
+  fileprivate mutating func push(
+    _ info: DiagnosticsInfo
+  ) {
+    self.infoStack.append(info)
+  }
+}
+
+extension DiagnosticsContext {
+
+  /// Create instance of `DiagnosticsContext`.
+  ///
+  /// - Parameter info: `DiagnosticsInfo` used as initial context.
+  /// - Returns: New instance of `DiagnosticsContext`.
+  public static func context(
+    _ info: DiagnosticsInfo
+  ) -> Self {
+    Self(
+      infoStack: [info]
+    )
+  }
+
+  /// Record a value associated with last info message.
+  /// Does nothing in nondebug builds. Recording value for a key
+  /// which already holds any value replaces current one.
+  ///
+  /// - Parameters:
+  ///   - value: Value to be recorded.
+  ///   - key: Key identifying recorded value.
+  public mutating func record(
+    _ value: Any,
+    for key: StaticString
+  ) {
+    #if DEBUG
+    // infoStack has always one or more elements
+    self.infoStack[self.infoStack.startIndex].record(value, for: key)
+    #else
+    /* NOP */
+    #endif
+  }
+
+  /// Make a copy of this context while recording a value associated with last info message.
+  /// Does nothing in nondebug builds.Recording value for a key
+  /// which already holds any value replaces current one.
+  ///
+  /// - Parameters:
+  ///   - value: Value to be recorded.
+  ///   - key: Key identifying recorded value.
+  /// - Returns: Copy of this context with additional value associated.
+  public func recording(
+    _ value: Any,
+    for key: StaticString
+  ) -> Self {
+    #if DEBUG
+    var copy: Self = self
+    copy.record(value, for: key)
+    return copy
+    #else
+    return self
+    #endif
+  }
+}
+
+extension DiagnosticsContext: CustomDebugStringConvertible {
+
+  public var debugDescription: String {
+    "\(Self.self)\n\(self.infoStack.reduce(into: "", { $0.append("\($1.debugDescription)")}))"
+  }
+}
+
+extension DiagnosticsContext {
+
+  internal static func merging(
+    _ head: DiagnosticsContext,
+    _ mid: DiagnosticsContext,
+    _ tail: DiagnosticsContext...
+  ) -> Self {
+    .merging([head, mid] + tail)
+  }
+
+  internal static func merging(
+    _ contexts: Array<DiagnosticsContext>
+  ) -> Self {
+    Self(
+      infoStack: contexts
+        .reduce(
+          into: .init(),
+          { result, context in
+            result.append(contentsOf: context.infoStack)
+          }
+        )
+    )
+  }
+}
+
+public struct DiagnosticsInfo {
+
+  fileprivate let message: StaticString
+  fileprivate let file: StaticString
+  fileprivate let line: UInt
+
+  #if DEBUG
+  private var values: Dictionary<StaticString, Any> = .init()
+  #endif
+}
+
+extension DiagnosticsInfo {
+
+  /// Create instance of `DiagnosticsInfo`.
+  ///
+  /// - Parameters:
+  ///   - message: Diagnostic message. Used to build log messages and describe
+  ///   error context stacks.
+  ///   - file: File context. Filled automatically based on invocation location.
+  ///   - line: Line context. Filled automatically based on invocation location.
+  /// - Returns: New instance of `DiagnosticsInfo`.
+  public static func message(
+    _ message: StaticString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      message: message,
+      file: file,
+      line: line
+    )
+  }
+}
+
+#if DEBUG
+extension DiagnosticsInfo {
+
+  fileprivate mutating func record(
+    _ value: Any,
+    for key: StaticString
+  ) {
+    self.values[key] = value
+  }
+}
+#endif
+
+extension DiagnosticsInfo: CustomStringConvertible {
+
+  public var description: String {
+    "\(self.file):\(self.line)-\(self.message)"
+  }
+}
+
+extension DiagnosticsInfo: CustomDebugStringConvertible {
+
+  public var debugDescription: String {
+    #if DEBUG
+    return "\(self.file):\(self.line)-\(self.message)".appending(
+      self.values
+        .reduce(
+          into: String(),
+          { (result, value) in
+            result.append("\n - \(value.key): \(value.value)")
+          }
+        )
+    )
+    #else
+    return self.description
+    #endif
+  }
+}

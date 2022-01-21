@@ -166,7 +166,7 @@ public final class TextSearchView: View {
 
   @available(*, unavailable)
   public required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public func setText(_ text: String) {

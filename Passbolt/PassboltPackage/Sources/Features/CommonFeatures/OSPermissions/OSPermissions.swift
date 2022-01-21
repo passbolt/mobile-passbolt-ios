@@ -86,8 +86,8 @@ extension OSPermissions: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      ensureCameraPermission: Commons.placeholder("You have to provide mocks for used methods"),
-      ensureBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods")
+      ensureCameraPermission: unimplemented("You have to provide mocks for used methods"),
+      ensureBiometricsPermission: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

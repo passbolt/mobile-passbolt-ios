@@ -36,7 +36,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decoding: NetworkResponseDecoding<Void, Void, Data> = .rawBody
     let expectedBody: Data = Data([0x65, 0x66, 0x67, 0x68])
 
-    let decodingResult: Result<Data, TheError> =
+    let decodingResult: Result<Data, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -56,7 +56,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decoding: NetworkResponseDecoding<Void, Void, String> = .bodyAsString()
     let expectedBody: String = "abcd"
 
-    let decodingResult: Result<String, TheError> =
+    let decodingResult: Result<String, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -75,7 +75,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_bodyAsString_withInvalidString_fails() {
     let decoding: NetworkResponseDecoding<Void, Void, String> = .bodyAsString()
 
-    let decodingResult: Result<String, TheError> =
+    let decodingResult: Result<String, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -95,7 +95,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
     let expectedBody: TestCodable = .sample
 
-    let decodingResult: Result<TestCodable, TheError> =
+    let decodingResult: Result<TestCodable, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -114,7 +114,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_bodyJSON_withInvalidJSON_fails() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheError> =
+    let decodingResult: Result<TestCodable, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -133,7 +133,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_succeesCodes_withStatusOk_succeeds() {
     let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
 
-    let decodingResult: Result<Void, TheError> =
+    let decodingResult: Result<Void, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -152,7 +152,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_succeesCodes_withInvalidStatus_fails() {
     let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
 
-    let decodingResult: Result<Void, TheError> =
+    let decodingResult: Result<Void, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -182,7 +182,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     let httpBody: Data = try! JSONEncoder().encode(response)
 
-    let decodingResult: Result<MFARequiredResponse, TheError> =
+    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -219,7 +219,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     let httpBody: Data = try! JSONEncoder().encode(response)
 
-    let decodingResult: Result<MFARequiredResponse, TheError> =
+    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -244,7 +244,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_mfaErrorDecodingUsingCorruptedData_resultsInForbiddenError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
-    let decodingResult: Result<MFARequiredResponse, TheError> =
+    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -269,7 +269,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_redirectWithLocationHeader_fails_withRedirectError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
-    let decodingResult: Result<MFARequiredResponse, TheError> =
+    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -295,7 +295,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_redirectWithNoLocationHeader_fails_withInvalidResponseError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
-    let decodingResult: Result<MFARequiredResponse, TheError> =
+    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -329,7 +329,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_decodeBadRequest_fromResponse_withEmptyBody_fails_networkResponseDecodingFailedError() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheError> =
+    let decodingResult: Result<TestCodable, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -351,7 +351,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_decodeBadRequest_fromResponse_withEmptyJsonInBody_fails_validationViolationError() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheError> =
+    let decodingResult: Result<TestCodable, TheErrorLegacy> =
       decoding
       .decode(
         Void(),
@@ -373,7 +373,7 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_decodeBadRequest_fromResponse_withValidJsonInBody_fails_validationViolationError() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheError> =
+    let decodingResult: Result<TestCodable, TheErrorLegacy> =
       decoding
       .decode(
         Void(),

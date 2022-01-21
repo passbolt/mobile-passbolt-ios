@@ -33,7 +33,7 @@ extension TOTPAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in

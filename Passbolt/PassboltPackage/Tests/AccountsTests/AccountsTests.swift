@@ -75,7 +75,7 @@ final class AccountsStoreTests: TestCase {
     var accountSession: AccountSession = .placeholder
     accountSession.authorize = always(
       Just(false)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -111,7 +111,7 @@ final class AccountsStoreTests: TestCase {
 
     let accounts: Accounts = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     accounts
       .transferAccount(
         validAccount.domain,

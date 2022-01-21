@@ -24,7 +24,7 @@
 import Commons
 import Environment
 
-extension Publisher where Failure == TheError {
+extension Publisher where Failure == TheErrorLegacy {
 
   public func collectErrorLog(
     withPrefix prefix: StaticString = "",

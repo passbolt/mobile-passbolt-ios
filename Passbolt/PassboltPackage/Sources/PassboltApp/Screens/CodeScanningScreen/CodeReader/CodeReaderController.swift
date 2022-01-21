@@ -25,7 +25,7 @@ import UIComponents
 
 internal struct CodeReaderController {
 
-  internal var processPayload: (String) -> AnyPublisher<Never, TheError>
+  internal var processPayload: (String) -> AnyPublisher<Never, TheErrorLegacy>
 }
 
 extension CodeReaderController: UIController {
@@ -39,7 +39,7 @@ extension CodeReaderController: UIController {
   ) -> Self {
     let accountTransfer: AccountTransfer = features.instance()
 
-    func processPayload(_ payload: String) -> AnyPublisher<Never, TheError> {
+    func processPayload(_ payload: String) -> AnyPublisher<Never, TheErrorLegacy> {
       accountTransfer.processPayload(payload)
     }
 

@@ -101,8 +101,8 @@ extension Camera {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      checkPermission: Commons.placeholder("You have to provide mocks for used methods"),
-      requestPermission: Commons.placeholder("You have to provide mocks for used methods")
+      checkPermission: unimplemented("You have to provide mocks for used methods"),
+      requestPermission: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

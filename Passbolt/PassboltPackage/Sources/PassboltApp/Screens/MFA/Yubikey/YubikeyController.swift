@@ -28,7 +28,7 @@ internal struct YubikeyController {
 
   internal var toggleRememberDevice: () -> Void
   internal var rememberDevicePublisher: () -> AnyPublisher<Bool, Never>
-  internal var authorizeUsingOTP: () -> AnyPublisher<Void, TheError>
+  internal var authorizeUsingOTP: () -> AnyPublisher<Void, TheErrorLegacy>
 }
 
 extension YubikeyController: UIController {
@@ -51,7 +51,7 @@ extension YubikeyController: UIController {
       rememberDeviceSubject.removeDuplicates().eraseToAnyPublisher()
     }
 
-    func authorizeUsingOTP() -> AnyPublisher<Void, TheError> {
+    func authorizeUsingOTP() -> AnyPublisher<Void, TheErrorLegacy> {
       mfa.authorizeUsingYubikey(rememberDeviceSubject.value)
         .eraseToAnyPublisher()
     }

@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func yubikeyError(
     underlyingError: Error? = nil
@@ -36,7 +36,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let yubikey: Self = "yubikey"
 }

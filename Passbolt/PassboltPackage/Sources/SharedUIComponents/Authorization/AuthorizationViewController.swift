@@ -272,7 +272,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
   }
 
   private func handleSignInAction(
-    _ signInAction: () -> AnyPublisher<Bool, TheError>
+    _ signInAction: () -> AnyPublisher<Bool, TheErrorLegacy>
   ) -> AnyCancellable {
     signInAction()
       .receive(on: RunLoop.main)

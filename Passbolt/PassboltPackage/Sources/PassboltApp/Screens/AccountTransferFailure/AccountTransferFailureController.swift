@@ -25,14 +25,14 @@ import UIComponents
 
 internal struct AccountTransferFailureController {
 
-  internal var failureReason: () -> TheError
+  internal var failureReason: () -> TheErrorLegacy
   internal var `continue`: () -> Void
   internal var backPresentationPublisher: () -> AnyPublisher<Never, Never>
 }
 
 extension AccountTransferFailureController: UIController {
 
-  internal typealias Context = TheError
+  internal typealias Context = TheErrorLegacy
 
   internal static func instance(
     in context: Context,

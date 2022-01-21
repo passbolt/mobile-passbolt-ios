@@ -31,7 +31,7 @@ extension RefreshSessionRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -128,7 +128,7 @@ where
 {
 
   fileprivate static func sessionRefreshResponse() -> Self {
-    Self { sessionVariable, requestVariable, httpResponse -> Result<RefreshSessionResponse, TheError> in
+    Self { sessionVariable, requestVariable, httpResponse -> Result<RefreshSessionResponse, TheErrorLegacy> in
 
       guard
         let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],

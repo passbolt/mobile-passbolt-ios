@@ -93,7 +93,7 @@ final class TOTPControllerTests: TestCase {
 
   func test_statusChangePublisher_publishLoading_whenOTPProcessingStarts() {
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheError>()
+      PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     )
     features.use(mfa)
@@ -122,7 +122,7 @@ final class TOTPControllerTests: TestCase {
   func test_statusChangePublisher_publishIdle_whenOTPProcessingFinishes() {
     mfa.authorizeUsingTOTP = always(
       Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(mfa)
@@ -177,7 +177,7 @@ final class TOTPControllerTests: TestCase {
     features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheError>()
+      PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     )
     features.use(mfa)
@@ -204,7 +204,7 @@ final class TOTPControllerTests: TestCase {
     features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheError>()
+      PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     )
     features.use(mfa)
@@ -230,7 +230,7 @@ final class TOTPControllerTests: TestCase {
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheError>()
+      return PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     }
     features.use(mfa)
@@ -247,7 +247,7 @@ final class TOTPControllerTests: TestCase {
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheError>()
+      return PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     }
     features.use(mfa)
@@ -267,7 +267,7 @@ final class TOTPControllerTests: TestCase {
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheError>()
+      return PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     }
     features.use(mfa)
@@ -286,7 +286,7 @@ final class TOTPControllerTests: TestCase {
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheError>()
+      return PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     }
     features.use(mfa)
@@ -303,7 +303,7 @@ final class TOTPControllerTests: TestCase {
     features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheError>()
+      PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     )
     features.use(mfa)
@@ -328,7 +328,7 @@ final class TOTPControllerTests: TestCase {
     features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheError>()
+      PassthroughSubject<Void, TheErrorLegacy>()
         .eraseToAnyPublisher()
     )
     features.use(mfa)

@@ -37,7 +37,7 @@ public struct PGP {
       _ passphrase: Passphrase,
       _ privateKey: ArmoredPGPPrivateKey,
       _ publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, TheError>
+    ) -> Result<String, TheErrorLegacy>
   // Decrypt and verify signature
   public var decryptAndVerify:
     (
@@ -45,51 +45,51 @@ public struct PGP {
       _ passphrase: Passphrase,
       _ privateKey: ArmoredPGPPrivateKey,
       _ publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, TheError>
+    ) -> Result<String, TheErrorLegacy>
   // Encrypt without signing
   public var encrypt:
     (
       _ input: String,
       _ publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, TheError>
+    ) -> Result<String, TheErrorLegacy>
   // Decrypt without verifying signature
   public var decrypt:
     (
       _ input: String,
       _ passphrase: Passphrase,
       _ privateKey: ArmoredPGPPrivateKey
-    ) -> Result<String, TheError>
+    ) -> Result<String, TheErrorLegacy>
   // Sign cleartext message
   public var signMessage:
     (
       _ input: String,
       _ passphrase: Passphrase,
       _ privateKey: ArmoredPGPPrivateKey
-    ) -> Result<String, TheError>
+    ) -> Result<String, TheErrorLegacy>
   // Verify cleartext message
   public var verifyMessage:
     (
       _ input: String,
       _ publicKey: ArmoredPGPPublicKey,
       _ verifyTime: Int64
-    ) -> Result<String, TheError>
+    ) -> Result<String, TheErrorLegacy>
   // Verify if passhrase is correct
   public var verifyPassphrase:
     (
       _ privateKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) -> Result<Void, TheError>
+    ) -> Result<Void, TheErrorLegacy>
 
   public var verifyPublicKeyFingerprint:
     (
       _ publicKey: ArmoredPGPPublicKey,
       _ fingerprint: Fingerprint
-    ) -> Result<Bool, TheError>
+    ) -> Result<Bool, TheErrorLegacy>
 
   public var extractFingerprint:
     (
       _ publicKey: ArmoredPGPPublicKey
-    ) -> Result<Fingerprint, TheError>
+    ) -> Result<Fingerprint, TheErrorLegacy>
 }
 
 extension PGP {
@@ -101,7 +101,7 @@ extension PGP {
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey,
       publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, TheError> {
+    ) -> Result<String, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
@@ -128,7 +128,7 @@ extension PGP {
             "gopenpgp: error in unlocking key"
           )
       {
-        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+        return .failure(.invalidPassphraseError(underlyingError: TheErrorLegacy.pgpError(nsError)))
       }
       else {
         return .failure(.pgpError(nsError))
@@ -140,7 +140,7 @@ extension PGP {
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey,
       publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, TheError> {
+    ) -> Result<String, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
@@ -167,7 +167,7 @@ extension PGP {
             "gopenpgp: error in unlocking key"
           )
       {
-        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+        return .failure(.invalidPassphraseError(underlyingError: TheErrorLegacy.pgpError(nsError)))
       }
       else {
         return .failure(.pgpError(nsError))
@@ -177,7 +177,7 @@ extension PGP {
     func encrypt(
       _ input: String,
       publicKey: ArmoredPGPPublicKey
-    ) -> Result<String, TheError> {
+    ) -> Result<String, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       var error: NSError?
@@ -198,7 +198,7 @@ extension PGP {
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey
-    ) -> Result<String, TheError> {
+    ) -> Result<String, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
@@ -224,7 +224,7 @@ extension PGP {
             "gopenpgp: error in unlocking key"
           )
       {
-        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+        return .failure(.invalidPassphraseError(underlyingError: TheErrorLegacy.pgpError(nsError)))
       }
       else {
         return .failure(.pgpError(nsError))
@@ -235,7 +235,7 @@ extension PGP {
       _ input: String,
       passphrase: Passphrase,
       privateKey: ArmoredPGPPrivateKey
-    ) -> Result<String, TheError> {
+    ) -> Result<String, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       guard let passphraseData: Data = passphrase.rawValue.data(using: .utf8) else {
@@ -261,7 +261,7 @@ extension PGP {
             "gopenpgp: error in unlocking key"
           )
       {
-        return .failure(.invalidPassphraseError(underlyingError: TheError.pgpError(nsError)))
+        return .failure(.invalidPassphraseError(underlyingError: TheErrorLegacy.pgpError(nsError)))
       }
       else {
         return .failure(.pgpError(nsError))
@@ -272,7 +272,7 @@ extension PGP {
       _ input: String,
       publicKey: ArmoredPGPPublicKey,
       verifyTime: Int64
-    ) -> Result<String, TheError> {
+    ) -> Result<String, TheErrorLegacy> {
       guard !input.isEmpty else {
         return .failure(.invalidInputDataError())
       }
@@ -297,7 +297,7 @@ extension PGP {
     func verifyPassphrase(
       privateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       guard
@@ -319,7 +319,7 @@ extension PGP {
     func verifyPublicKeyFingerprint(
       _ publicKey: ArmoredPGPPublicKey,
       fingerprint: Fingerprint
-    ) -> Result<Bool, TheError> {
+    ) -> Result<Bool, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       var error: NSError?
@@ -338,7 +338,7 @@ extension PGP {
 
     func extractFingerprint(
       publicKey: ArmoredPGPPublicKey
-    ) -> Result<Fingerprint, TheError> {
+    ) -> Result<Fingerprint, TheErrorLegacy> {
       defer { Gopenpgp.HelperFreeOSMemory() }
 
       var error: NSError?
@@ -374,15 +374,15 @@ extension PGP {
 
   public static var placeholder: Self {
     Self(
-      encryptAndSign: Commons.placeholder("You have to provide mocks for used methods"),
-      decryptAndVerify: Commons.placeholder("You have to provide mocks for used methods"),
-      encrypt: Commons.placeholder("You have to provide mocks for used methods"),
-      decrypt: Commons.placeholder("You have to provide mocks for used methods"),
-      signMessage: Commons.placeholder("You have to provide mocks for used methods"),
-      verifyMessage: Commons.placeholder("You have to provide mocks for used methods"),
-      verifyPassphrase: Commons.placeholder("You have to provide mocks for used methods"),
-      verifyPublicKeyFingerprint: Commons.placeholder("You have to provide mocks for used methods"),
-      extractFingerprint: Commons.placeholder("You have to provide mocks for used methods")
+      encryptAndSign: unimplemented("You have to provide mocks for used methods"),
+      decryptAndVerify: unimplemented("You have to provide mocks for used methods"),
+      encrypt: unimplemented("You have to provide mocks for used methods"),
+      decrypt: unimplemented("You have to provide mocks for used methods"),
+      signMessage: unimplemented("You have to provide mocks for used methods"),
+      verifyMessage: unimplemented("You have to provide mocks for used methods"),
+      verifyPassphrase: unimplemented("You have to provide mocks for used methods"),
+      verifyPublicKeyFingerprint: unimplemented("You have to provide mocks for used methods"),
+      extractFingerprint: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

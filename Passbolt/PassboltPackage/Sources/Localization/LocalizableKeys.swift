@@ -23,7 +23,6 @@
 
 // localized string keys constants
 extension LocalizedString.Key {
-
   // MARK: Generic
   public static let done: Self = "generic.done"
   public static let yes: Self = "generic.yes"
@@ -36,13 +35,15 @@ extension LocalizedString.Key {
   public static let delete: Self = "generic.delete"
   public static let gotIt: Self = "generic.got.it"
   public static let settings: Self = "generic.settings"
-  public static let genericError: Self = "generic.error"
-  public static let genericErrorRetry: Self = "generic.error.retry"
   public static let disable: Self = "generic.disable"
   public static let signOut: Self = "generic.sign.out"
   public static let refresh: Self = "generic.refresh"
   public static let create: Self = "generic.create"
   public static let emptyList: Self = "generic.empty.list"
-  public static let invalidPasteValue: Self = "generic.paste.value.invalid"
   public static let areYouSure: Self = "generic.are.you.sure"
+  // MARK: Errors
+  public static let invalidPasteValue: Self = "generic.paste.value.invalid"
+  public static let genericError: Self = "generic.error"
+  public static let genericErrorRetry: Self = "generic.error.retry"
+  public static let genericErrorCancelled: Self = "generic.error.cancelled"
 }

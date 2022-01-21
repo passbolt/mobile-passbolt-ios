@@ -34,10 +34,10 @@ public struct AccountSettings {
   // for current account
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
   // for current account
-  public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheError>
-  public var setAccountLabel: (String, Account) -> Result<Void, TheError>
+  public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheErrorLegacy>
+  public var setAccountLabel: (String, Account) -> Result<Void, TheErrorLegacy>
   // for current account
-  public var setAvatarImageURL: (String) -> AnyPublisher<Void, TheError>
+  public var setAvatarImageURL: (String) -> AnyPublisher<Void, TheErrorLegacy>
   public var accountWithProfile: (Account) -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   public var currentAccountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
@@ -156,10 +156,10 @@ extension AccountSettings: Feature {
     func updateProfile(
       for accountID: Account.LocalID,
       _ update: (inout AccountProfile) -> Void
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       var updatedProfile: AccountProfile
 
-      let profileLoadResult: Result<AccountProfile, TheError> =
+      let profileLoadResult: Result<AccountProfile, TheErrorLegacy> =
         accountsDataStore
         .loadAccountProfile(accountID)
 
@@ -168,35 +168,35 @@ extension AccountSettings: Feature {
         updatedProfile = profile
 
       case let .failure(error):
-        return Fail<Void, TheError>(error: error)
+        return Fail<Void, TheErrorLegacy>(error: error)
           .eraseToAnyPublisher()
       }
 
       update(&updatedProfile)
 
-      let profileUpdateResult: Result<Void, TheError> =
+      let profileUpdateResult: Result<Void, TheErrorLegacy> =
         accountsDataStore
         .updateAccountProfile(updatedProfile)
 
       switch profileUpdateResult {
       case .success:
         return Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
 
       case let .failure(error):
-        return Fail<Void, TheError>(error: error)
+        return Fail<Void, TheErrorLegacy>(error: error)
           .eraseToAnyPublisher()
       }
     }
 
     func fetchAccountProfile(
       _ account: Account
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       networkClient
         .userProfileRequest
         .make(using: .init(userID: account.userID.rawValue))
-        .map { response -> AnyPublisher<Void, TheError> in
+        .map { response -> AnyPublisher<Void, TheErrorLegacy> in
           updateProfile(for: account.localID) { profile in
             profile.firstName = response.body.profile.firstName
             profile.lastName = response.body.profile.lastName
@@ -207,11 +207,11 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
-    func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheError> {
+    func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
       permissions
         .ensureBiometricsPermission()
-        .setFailureType(to: TheError.self)
-        .map { permissionGranted -> AnyPublisher<Void, TheError> in
+        .setFailureType(to: TheErrorLegacy.self)
+        .map { permissionGranted -> AnyPublisher<Void, TheErrorLegacy> in
           if permissionGranted {
             return
               accountSession
@@ -219,7 +219,7 @@ extension AccountSettings: Feature {
               .asPublisher
           }
           else {
-            return Fail<Void, TheError>(
+            return Fail<Void, TheErrorLegacy>(
               error: .permissionRequired()
                 .appending(context: "biometrics")
             )
@@ -233,7 +233,7 @@ extension AccountSettings: Feature {
     func setAccountLabel(
       _ label: String,
       for account: Account
-    ) -> Result<Void, TheError> {
+    ) -> Result<Void, TheErrorLegacy> {
       accountsDataStore
         .loadAccountProfile(account.localID)
         .flatMap { accountProfile in
@@ -245,11 +245,11 @@ extension AccountSettings: Feature {
 
     func setAvatarImageURL(
       _ url: String
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       accountSession
         .statePublisher()
         .first()
-        .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheError> in
+        .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheErrorLegacy> in
           let account: Account
           switch sessionState {
           case let .authorized(currentAccount),
@@ -257,7 +257,7 @@ extension AccountSettings: Feature {
             account = currentAccount
 
           case .authorizationRequired, .none:
-            return Fail<Void, TheError>(error: .authorizationRequired())
+            return Fail<Void, TheErrorLegacy>(error: .authorizationRequired())
               .eraseToAnyPublisher()
           }
 
@@ -317,13 +317,13 @@ extension AccountSettings {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      biometricsEnabledPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      setBiometricsEnabled: Commons.placeholder("You have to provide mocks for used methods"),
-      setAccountLabel: Commons.placeholder("You have to provide mocks for used methods"),
-      setAvatarImageURL: Commons.placeholder("You have to provide mocks for used methods"),
-      accountWithProfile: Commons.placeholder("You have to provide mocks for used methods"),
-      updatedAccountIDsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      currentAccountProfilePublisher: Commons.placeholder("You have to provide mocks for used methods")
+      biometricsEnabledPublisher: unimplemented("You have to provide mocks for used methods"),
+      setBiometricsEnabled: unimplemented("You have to provide mocks for used methods"),
+      setAccountLabel: unimplemented("You have to provide mocks for used methods"),
+      setAvatarImageURL: unimplemented("You have to provide mocks for used methods"),
+      accountWithProfile: unimplemented("You have to provide mocks for used methods"),
+      updatedAccountIDsPublisher: unimplemented("You have to provide mocks for used methods"),
+      currentAccountProfilePublisher: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

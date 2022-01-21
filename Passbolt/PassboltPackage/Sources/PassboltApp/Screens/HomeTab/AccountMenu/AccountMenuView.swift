@@ -43,12 +43,12 @@ internal final class AccountMenuView: View {
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   @available(*, unavailable)
   internal required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal init(

@@ -33,7 +33,7 @@ internal struct AccountSelectionController {
   internal var listModePublisher: () -> AnyPublisher<AccountSelectionListMode, Never>
   internal var removeAccountAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var presentRemoveAccountAlert: () -> Void
-  internal var removeAccount: (Account) -> Result<Void, TheError>
+  internal var removeAccount: (Account) -> Result<Void, TheErrorLegacy>
   internal var addAccount: () -> Void
   internal var addAccountPresentationPublisher: () -> AnyPublisher<Bool, Never>
   internal var toggleMode: () -> Void
@@ -140,8 +140,8 @@ extension AccountSelectionController: UIController {
       removeAccountAlertPresentationSubject.send(Void())
     }
 
-    func removeAccount(_ account: Account) -> Result<Void, TheError> {
-      let result: Result<Void, TheError> = accounts.removeAccount(account)
+    func removeAccount(_ account: Account) -> Result<Void, TheErrorLegacy> {
+      let result: Result<Void, TheErrorLegacy> = accounts.removeAccount(account)
       let storedAccounts: Array<AccountWithProfile> =
         accounts
         .storedAccounts()

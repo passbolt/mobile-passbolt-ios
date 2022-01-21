@@ -119,7 +119,7 @@ final class AuthorizationScreenTests: TestCase {
     features.use(accounts)
     accountSession.authorize = always(
       Just(false)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -163,7 +163,7 @@ final class AuthorizationScreenTests: TestCase {
     let controller: AuthorizationController = testInstance(
       context: accountWithBiometry.account
     )
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     controller
       .signIn()
@@ -186,7 +186,7 @@ final class AuthorizationScreenTests: TestCase {
     features.use(accounts)
     accountSession.authorize = always(
       Just(false)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -230,7 +230,7 @@ final class AuthorizationScreenTests: TestCase {
     let controller: AuthorizationController = testInstance(
       context: accountWithBiometry.account
     )
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     controller
       .biometricSignIn()
@@ -255,7 +255,7 @@ final class AuthorizationScreenTests: TestCase {
     features.use(accounts)
     accountSession.authorize = always(
       Just(false)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -286,7 +286,7 @@ final class AuthorizationScreenTests: TestCase {
     features.use(accounts)
     accountSession.authorize = always(
       Just(false)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)

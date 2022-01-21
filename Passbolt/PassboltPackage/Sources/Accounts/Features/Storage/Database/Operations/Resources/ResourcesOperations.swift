@@ -31,7 +31,7 @@ public typealias StoreResourcesOperation = DatabaseOperation<Array<Resource>, Vo
 extension StoreResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -45,7 +45,7 @@ extension StoreResourcesOperation {
       // deleting records selecively becomes implemented.
       //
       // Delete currently stored resources
-      let deletionResult: Result<Void, TheError> =
+      let deletionResult: Result<Void, TheErrorLegacy> =
         conn
         .execute(
           "DELETE FROM resources;"
@@ -61,7 +61,7 @@ extension StoreResourcesOperation {
 
       // Insert or update all new resource
       for resource in input {
-        let result: Result<Void, TheError> =
+        let result: Result<Void, TheErrorLegacy> =
           conn
           .execute(
             upsertResourceStatement,
@@ -93,7 +93,7 @@ public typealias FetchListViewResourcesOperation = DatabaseOperation<ResourcesFi
 extension FetchListViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -194,7 +194,7 @@ public typealias FetchDetailsViewResourcesOperation = DatabaseOperation<Resource
 extension FetchDetailsViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -212,10 +212,10 @@ extension FetchDetailsViewResourcesOperation {
       return conn.fetch(
         statement,
         with: [input.rawValue]
-      ) { rows -> Result<DetailsViewResource, TheError> in
+      ) { rows -> Result<DetailsViewResource, TheErrorLegacy> in
         rows
           .first
-          .map { row -> Result<DetailsViewResource, TheError> in
+          .map { row -> Result<DetailsViewResource, TheErrorLegacy> in
             guard
               let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
               let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
@@ -250,7 +250,7 @@ public typealias FetchEditViewResourcesOperation = DatabaseOperation<Resource.ID
 extension FetchEditViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheError>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -268,10 +268,10 @@ extension FetchEditViewResourcesOperation {
       return conn.fetch(
         statement,
         with: [input.rawValue]
-      ) { rows -> Result<EditViewResource, TheError> in
+      ) { rows -> Result<EditViewResource, TheErrorLegacy> in
         rows
           .first
-          .map { row -> Result<EditViewResource, TheError> in
+          .map { row -> Result<EditViewResource, TheErrorLegacy> in
             guard
               let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
               let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),

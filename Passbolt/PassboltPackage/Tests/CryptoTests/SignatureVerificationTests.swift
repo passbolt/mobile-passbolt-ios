@@ -45,7 +45,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    let result: Result<Void, TheError> = verification.verify(
+    let result: Result<Void, TheErrorLegacy> = verification.verify(
       signedData,
       signature,
       publicKey
@@ -78,7 +78,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, TheError.ID.signatureError)
+    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.signatureError)
   }
 
   func test_verification_withToken_MissingSignature_Fails() {
@@ -105,7 +105,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, TheError.ID.signatureError)
+    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.signatureError)
   }
 
   func test_verification_withExistingToken_andServerRSAPublicKey_Succeeds() {
@@ -121,7 +121,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    let result: Result<Void, TheError> = verification.verify(
+    let result: Result<Void, TheErrorLegacy> = verification.verify(
       signedData,
       signature,
       shortRsaPublicKey
@@ -143,7 +143,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    let result: Result<Void, TheError> = verification.verify(
+    let result: Result<Void, TheErrorLegacy> = verification.verify(
       signedData,
       signature,
       longPublicKey

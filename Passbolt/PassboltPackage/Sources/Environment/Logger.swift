@@ -51,7 +51,7 @@ extension Logger {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      consoleLog: Commons.placeholder("You have to provide mocks for used methods")
+      consoleLog: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

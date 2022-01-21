@@ -27,9 +27,9 @@ import Localization
 extension Validator where Value: Collection {
 
   public static func nonEmpty(
-    errorIdentifier: TheError.ID = .validation,
     displayable: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
     Self { value in
       if !value.isEmpty {
@@ -38,13 +38,11 @@ extension Validator where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: TheError(
-            identifier: errorIdentifier,
-            underlyingError: nil,
-            extensions: [
-              .displayableString: displayable,
-              .displayableStringArguments: arguments,
-            ]
+          errors: .empty(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
           )
         )
       }
@@ -53,9 +51,9 @@ extension Validator where Value: Collection {
 
   public static func minLength(
     _ minLength: UInt,
-    errorIdentifier: TheError.ID = .validation,
     displayable: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
     Self { value in
       if value.count >= minLength {
@@ -64,13 +62,11 @@ extension Validator where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: TheError(
-            identifier: errorIdentifier,
-            underlyingError: nil,
-            extensions: [
-              .displayableString: displayable,
-              .displayableStringArguments: arguments,
-            ]
+          errors: .tooShort(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
           )
         )
       }
@@ -79,9 +75,9 @@ extension Validator where Value: Collection {
 
   public static func maxLength(
     _ maxLength: UInt,
-    errorIdentifier: TheError.ID = .validation,
     displayable: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
     Self { value in
       if value.count <= maxLength {
@@ -90,13 +86,11 @@ extension Validator where Value: Collection {
       else {
         return .invalid(
           value,
-          errors: TheError(
-            identifier: errorIdentifier,
-            underlyingError: nil,
-            extensions: [
-              .displayableString: displayable,
-              .displayableStringArguments: arguments,
-            ]
+          errors: .tooLong(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
           )
         )
       }

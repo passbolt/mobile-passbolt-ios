@@ -32,7 +32,7 @@ internal struct AccountDetailsController {
   internal var currentAcountAvatarImagePublisher: () -> AnyPublisher<Data?, Never>
   internal var updateCurrentAccountLabel: (String) -> Void
   internal var validatedAccountLabelPublisher: () -> AnyPublisher<Validated<String>, Never>
-  internal var saveChanges: () -> AnyPublisher<Void, TheError>
+  internal var saveChanges: () -> AnyPublisher<Void, TheErrorLegacy>
 }
 
 extension AccountDetailsController: UIController {
@@ -81,11 +81,11 @@ extension AccountDetailsController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func saveChanges() -> AnyPublisher<Void, TheError> {
+    func saveChanges() -> AnyPublisher<Void, TheErrorLegacy> {
       currentAccountLabelSubject
         .first()
-        .setFailureType(to: TheError.self)
-        .flatMapResult { validatedLabel -> Result<Void, TheError> in
+        .setFailureType(to: TheErrorLegacy.self)
+        .flatMapResult { validatedLabel -> Result<Void, TheErrorLegacy> in
           let label: String
           if validatedLabel.value.isEmpty {
             label = "\(context.firstName) \(context.lastName)"
@@ -95,11 +95,13 @@ extension AccountDetailsController: UIController {
           }
           else {
             return .failure(
-              .validationError(
-                displayable: .localized(
-                  key: "form.error.invalid"
+              InvalidForm
+                .error(
+                  displayable: .localized(
+                    key: "form.error.invalid"
+                  )
                 )
-              )
+                .asLegacy
             )
           }
           return

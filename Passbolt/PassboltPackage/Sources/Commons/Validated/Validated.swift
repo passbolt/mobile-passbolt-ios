@@ -21,14 +21,16 @@
 // @since         v1.0
 //
 
+import Localization
+
 public struct Validated<Value> {
 
   public let value: Value
-  public private(set) var errors: Array<TheError>
+  public private(set) var errors: Array<InvalidValue>
 
   public init(
     value: Value,
-    errors: Array<TheError>
+    errors: Array<InvalidValue>
   ) {
     self.value = value
     self.errors = errors
@@ -36,7 +38,36 @@ public struct Validated<Value> {
 
   public var isValid: Bool { errors.isEmpty }
 
-  public func withError(_ error: TheError) -> Self {
+  public var displayableErrorMessage: DisplayableString? {
+    errors.first?.displayableMessage
+  }
+
+  public func withError(
+    message: StaticString = "InvalidValue",
+    validationRule: StaticString,
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    var copy: Self = self
+    copy.errors
+      .append(
+        .error(
+          message,
+          validationRule: validationRule,
+          value: value,
+          displayable: displayable,
+          file: file,
+          line: line
+        )
+      )
+    return copy
+  }
+
+  public func withError(
+    _ error: InvalidValue
+  ) -> Self {
     var copy: Self = self
     copy.errors.append(error)
     return copy
@@ -45,7 +76,7 @@ public struct Validated<Value> {
   public func withErrors<Errors>(
     _ errors: Errors
   ) -> Self
-  where Errors: Sequence, Errors.Element == TheError {
+  where Errors: Sequence, Errors.Element == InvalidValue {
     var copy: Self = self
     copy.errors.append(contentsOf: errors)
     return copy
@@ -54,7 +85,9 @@ public struct Validated<Value> {
 
 extension Validated {
 
-  public static func valid(_ value: Value) -> Self {
+  public static func valid(
+    _ value: Value
+  ) -> Self {
     Self(
       value: value,
       errors: []
@@ -63,11 +96,34 @@ extension Validated {
 
   public static func invalid(
     _ value: Value,
-    errors: TheError...
+    errors: InvalidValue...
   ) -> Self {
     Self(
       value: value,
       errors: errors
+    )
+  }
+
+  public static func invalid(
+    message: StaticString = "InvalidValue",
+    validationRule: StaticString,
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      value: value,
+      errors: [
+        .error(
+          message,
+          validationRule: validationRule,
+          value: value,
+          displayable: displayable,
+          file: file,
+          line: line
+        )
+      ]
     )
   }
 }

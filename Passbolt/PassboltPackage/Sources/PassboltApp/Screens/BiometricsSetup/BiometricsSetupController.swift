@@ -28,7 +28,7 @@ internal struct BiometricsSetupController {
 
   internal var destinationPresentationPublisher: () -> AnyPublisher<Destination, Never>
   internal var biometricsStatePublisher: () -> AnyPublisher<Biometrics.State, Never>
-  internal var setupBiometrics: () -> AnyPublisher<Never, TheError>
+  internal var setupBiometrics: () -> AnyPublisher<Never, TheErrorLegacy>
   internal var skipSetup: () -> Void
 }
 
@@ -64,10 +64,10 @@ extension BiometricsSetupController: UIController {
       biometry.biometricsStatePublisher()
     }
 
-    func setupBiometrics() -> AnyPublisher<Never, TheError> {
+    func setupBiometrics() -> AnyPublisher<Never, TheErrorLegacy> {
       accountSettings
         .setBiometricsEnabled(true)
-        .map { autoFill.extensionEnabledStatePublisher().setFailureType(to: TheError.self) }
+        .map { autoFill.extensionEnabledStatePublisher().setFailureType(to: TheErrorLegacy.self) }
         .switchToLatest()
         .handleEvents(receiveOutput: { enabled in
           if enabled {

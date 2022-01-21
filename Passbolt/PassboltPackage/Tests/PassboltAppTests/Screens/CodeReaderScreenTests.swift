@@ -38,7 +38,7 @@ final class CodeReaderScreenTests: TestCase {
     var result: String?
     accountTransfer.processPayload = { payload in
       result = payload
-      return Empty<Never, TheError>()
+      return Empty<Never, TheErrorLegacy>()
         .eraseToAnyPublisher()
     }
     features.use(accountTransfer)

@@ -45,7 +45,7 @@ internal final class SettingsView: ScrolledStackView {
 
   @available(*, unavailable, message: "Use init(termsHidden:privacyPolicyHidden:)")
   required internal init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal init(termsHidden: Bool, privacyPolicyHidden: Bool) {

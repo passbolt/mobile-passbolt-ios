@@ -83,7 +83,7 @@ final class YubikeyControllerTests: TestCase {
   func test_authorizeUsingOTP_succeeds() {
     mfa.authorizeUsingYubikey = always(
       Just(())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(mfa)
@@ -110,7 +110,7 @@ final class YubikeyControllerTests: TestCase {
     features.use(mfa)
 
     let controller: YubikeyController = testInstance()
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     controller.authorizeUsingOTP()
       .sink(

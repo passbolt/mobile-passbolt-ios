@@ -178,7 +178,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
         }
       )
       .handleEnd { [weak self] ending in
-        if case let .failed(error) = ending, (error as? TheError)?.identifier != .canceled {
+        if case let .failed(error) = ending, (error as? TheErrorLegacy)?.identifier != .canceled {
           // Delay unlocking QRCode processing until error message becomes visible for some time.
           // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
           self?.captureMetadataQueue.asyncAfter(deadline: .now() + 1.5) { [weak self] in

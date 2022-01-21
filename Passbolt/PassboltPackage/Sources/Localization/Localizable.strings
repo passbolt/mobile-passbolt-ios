@@ -287,6 +287,7 @@ Contact your administrator for more information.";
 
 "generic.error" = "Something went wrong!";
 "generic.error.retry" = "Something went wrong, please try again.";
+"generic.error.cancelled" = "Operation was cancelled.";
 "sign.in.error.message" = "Sign in failed";
 "sign.in.error.biometrics.changed.message" = "It seems that your device biometrics has changed. Please, enter your passphrase and configure biometrics again";
 "sign.in.error.passphrase.invalid.message" = "Invalid passphrase.";

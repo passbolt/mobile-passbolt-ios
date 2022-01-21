@@ -49,8 +49,8 @@ extension Pasteboard {
 
   public static var placeholder: Pasteboard {
     Self(
-      get: Commons.placeholder("You have to provide mocks for used methods"),
-      put: Commons.placeholder("You have to provide mocks for used methods")
+      get: unimplemented("You have to provide mocks for used methods"),
+      put: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

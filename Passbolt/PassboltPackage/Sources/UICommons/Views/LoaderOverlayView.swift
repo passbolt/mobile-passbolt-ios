@@ -79,7 +79,7 @@ public final class LoaderOverlayView: View {
 
   @available(*, unavailable, message: "use init(fingerprint:")
   public required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   deinit {

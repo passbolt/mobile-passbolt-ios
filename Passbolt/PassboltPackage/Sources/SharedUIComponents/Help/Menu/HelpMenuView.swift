@@ -53,7 +53,7 @@ private final class HelpMenuActionCellView: Button {
 
   @available(*, unavailable, message: "Use init(operation:)")
   required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   fileprivate init(_ action: HelpMenuController.Action) {

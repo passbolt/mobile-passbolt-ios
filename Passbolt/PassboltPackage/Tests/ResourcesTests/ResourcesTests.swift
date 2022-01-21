@@ -49,34 +49,34 @@ final class ResourceTests: TestCase {
     accountDatabase = .placeholder
     accountDatabase.fetchLastUpdate.execute = always(
       Just(Date(timeIntervalSince1970: 0))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     accountDatabase.saveLastUpdate.execute = always(
       Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     accountDatabase.storeResourcesTypes.execute = always(
       Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     accountDatabase.storeResources.execute = always(
       Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
 
     networkClient = .placeholder
     networkClient.resourcesTypesRequest.execute = always(
       Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     networkClient.resourcesRequest.execute = always(
       Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
 
@@ -102,7 +102,7 @@ final class ResourceTests: TestCase {
     networkClient.resourcesTypesRequest.execute = { _ in
       result = Void()
       return Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(networkClient)
@@ -128,7 +128,7 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .refreshIfNeeded()
       .sink(
@@ -150,7 +150,7 @@ final class ResourceTests: TestCase {
     accountDatabase.storeResourcesTypes.execute = { _ in
       result = Void()
       return Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(accountDatabase)
@@ -177,7 +177,7 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .refreshIfNeeded()
       .sink(
@@ -200,7 +200,7 @@ final class ResourceTests: TestCase {
     networkClient.resourcesRequest.execute = { _ in
       result = Void()
       return Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(networkClient)
@@ -226,7 +226,7 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .refreshIfNeeded()
       .sink(
@@ -248,7 +248,7 @@ final class ResourceTests: TestCase {
     accountDatabase.storeResources.execute = { _ in
       result = Void()
       return Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(accountDatabase)
@@ -275,7 +275,7 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .refreshIfNeeded()
       .sink(
@@ -295,7 +295,7 @@ final class ResourceTests: TestCase {
     features.use(accountSession)
     accountDatabase.fetchListViewResources.execute = always(
       Just(testResources)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -322,7 +322,7 @@ final class ResourceTests: TestCase {
     accountDatabase.fetchListViewResources.execute = { filter in
       result = filter
       return Just(testResources)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(accountDatabase)
@@ -345,7 +345,7 @@ final class ResourceTests: TestCase {
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
       Just(resources)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -375,7 +375,7 @@ final class ResourceTests: TestCase {
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
       Just(resources)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -406,7 +406,7 @@ final class ResourceTests: TestCase {
   func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() {
     features.use(accountSession)
     accountDatabase.fetchListViewResources.execute = always(
-      Fail<Array<ListViewResource>, TheError>(error: .testError())
+      Fail<Array<ListViewResource>, TheErrorLegacy>(error: .testError())
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)

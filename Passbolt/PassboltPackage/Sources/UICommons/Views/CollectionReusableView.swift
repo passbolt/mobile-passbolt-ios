@@ -55,7 +55,7 @@ open class CollectionReusableView: UICollectionReusableView {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   open func setup() {

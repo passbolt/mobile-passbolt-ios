@@ -25,8 +25,8 @@ import Features
 
 public struct MFA {
 
-  public var authorizeUsingYubikey: (Bool) -> AnyPublisher<Void, TheError>
-  public var authorizeUsingTOTP: (String, Bool) -> AnyPublisher<Void, TheError>
+  public var authorizeUsingYubikey: (Bool) -> AnyPublisher<Void, TheErrorLegacy>
+  public var authorizeUsingTOTP: (String, Bool) -> AnyPublisher<Void, TheErrorLegacy>
 }
 
 extension MFA: Feature {
@@ -40,7 +40,7 @@ extension MFA: Feature {
     let yubikey: Yubikey = environment.yubikey
     let accountSession: AccountSession = features.instance()
 
-    func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, TheError> {
+    func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
       return
         yubikey
         .readNFC()
@@ -51,7 +51,7 @@ extension MFA: Feature {
         .eraseToAnyPublisher()
     }
 
-    func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, TheError> {
+    func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
       accountSession.mfaAuthorize(.totp(totp), saveLocally)
     }
 
@@ -67,8 +67,8 @@ extension MFA {
 
   public static var placeholder: MFA {
     Self(
-      authorizeUsingYubikey: Commons.placeholder("You have to provide mocks for used methods"),
-      authorizeUsingTOTP: Commons.placeholder("You have to provide mocks for used methods")
+      authorizeUsingYubikey: unimplemented("You have to provide mocks for used methods"),
+      authorizeUsingTOTP: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

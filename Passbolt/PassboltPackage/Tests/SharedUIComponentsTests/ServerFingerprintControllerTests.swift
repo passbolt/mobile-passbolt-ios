@@ -154,7 +154,7 @@ final class ServerFingerprintControllerTests: TestCase {
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
-    var result: TheError!
+    var result: TheErrorLegacy!
 
     controller.toggleFingerprintMarkedAsChecked()
 

@@ -63,7 +63,7 @@ extension FeatureFactory {
       guard Self.autoLoadFeatures
       else {
         // swift-format-ignore: NeverForceUnwrap
-        return placeholder(
+        return unimplemented(
           "Failed to load: \(F.self) "
             + "Auto loading of features is disabled,"
             + "please ensure you have provided instances of required features"

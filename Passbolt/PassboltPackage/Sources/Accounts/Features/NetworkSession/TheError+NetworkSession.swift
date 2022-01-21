@@ -25,7 +25,7 @@ import CommonDataModels
 import Commons
 import Crypto
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func signInError(
     underlyingError: Error? = nil
@@ -63,20 +63,20 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let signInError: Self = "signInError"
   public static let missingSessionError: Self = "missingSessionError"
   public static let invalidServerFingerprint: Self = "invalidServerFingerprint"
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static let accountID: Self = "accountID"
   public static let serverFingerprint: Self = "serverFingerprint"
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public var accountID: Account.LocalID? { extensions[.accountID] as? Account.LocalID }
   public var serverFingerprint: Fingerprint? { extensions[.serverFingerprint] as? Fingerprint }

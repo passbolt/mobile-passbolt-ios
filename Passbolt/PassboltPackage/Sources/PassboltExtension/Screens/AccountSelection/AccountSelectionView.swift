@@ -41,7 +41,7 @@ internal final class AccountSelectionView: View {
 
   @available(*, unavailable, message: "Use init(mode:)")
   internal required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   internal init(

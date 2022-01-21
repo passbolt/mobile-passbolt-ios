@@ -36,7 +36,7 @@ extension AccountTransferScanningPart {
 
   internal static func from(
     qrCode string: String
-  ) -> Result<Self, TheError> {
+  ) -> Result<Self, TheErrorLegacy> {
     var payloadPart: String = string
     guard !string.isEmpty
     else {

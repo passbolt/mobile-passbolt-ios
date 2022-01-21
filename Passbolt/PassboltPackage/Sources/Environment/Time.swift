@@ -65,7 +65,7 @@ extension Time {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      timestamp: Commons.placeholder("You have to provide mocks for used methods")
+      timestamp: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

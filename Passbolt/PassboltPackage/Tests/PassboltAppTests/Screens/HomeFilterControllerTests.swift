@@ -102,7 +102,7 @@ final class HomeFilterControllerTests: TestCase {
     let data: Data = Data([0x65, 0x66])
     networkClient.mediaDownload.execute = always(
       Just(data)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -130,7 +130,7 @@ final class HomeFilterControllerTests: TestCase {
         )
       )
     networkClient.mediaDownload.execute = always(
-      Fail<Data, TheError>(error: .testError())
+      Fail<Data, TheErrorLegacy>(error: .testError())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)

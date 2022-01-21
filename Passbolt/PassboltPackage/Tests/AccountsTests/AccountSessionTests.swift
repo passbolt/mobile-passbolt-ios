@@ -108,7 +108,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -145,7 +145,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -188,7 +188,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -200,7 +200,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.closeSession,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -236,7 +236,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -248,7 +248,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.closeSession,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -284,7 +284,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -296,7 +296,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.closeSession,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -333,7 +333,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -345,7 +345,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.closeSession,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -362,7 +362,7 @@ final class AccountSessionTests: TestCase {
 
     currentTimestamp = 5 * 60  // expired time
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .decryptMessage("encrypted message", nil)
       .sink(
@@ -385,7 +385,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .decryptMessage("encrypted message", nil)
       .sink(
@@ -410,7 +410,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -426,7 +426,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .decryptMessage("encrypted message", nil)
       .sink(
@@ -451,7 +451,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -469,7 +469,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .decryptMessage("encrypted message", nil)
       .sink(
@@ -494,7 +494,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -537,7 +537,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -594,7 +594,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var resultError: TheError?
+    var resultError: TheErrorLegacy?
     feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
       .sink(
@@ -618,7 +618,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -629,7 +629,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var resultError: TheError?
+    var resultError: TheErrorLegacy?
     var result: Void?
     feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
@@ -657,7 +657,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -669,7 +669,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.closeSession,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -701,7 +701,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>([.totp]))
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -736,7 +736,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -747,7 +747,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .authorize(validAccount, .passphrase("passphrase"))
       .sink(
@@ -772,7 +772,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -783,7 +783,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .authorize(validAccount, .passphrase("passphrase"))
       .sink(
@@ -808,7 +808,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -819,7 +819,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .authorize(validAccount, .biometrics)
       .sink(
@@ -844,7 +844,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -855,7 +855,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .authorize(validAccount, .biometrics)
       .sink(
@@ -881,7 +881,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -892,7 +892,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .authorize(validAccount, .biometrics)
       .sink(
@@ -916,7 +916,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -930,7 +930,7 @@ final class AccountSessionTests: TestCase {
       with: {
         result = Void()
         return Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
     )
@@ -1021,7 +1021,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1061,7 +1061,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1073,7 +1073,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.closeSession,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1085,7 +1085,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var resultError: TheError?
+    var resultError: TheErrorLegacy?
     var result: Void?
     feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
@@ -1114,7 +1114,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1128,7 +1128,7 @@ final class AccountSessionTests: TestCase {
       with: {
         result = Void()
         return Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
     )
@@ -1156,7 +1156,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1195,7 +1195,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1213,7 +1213,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .mfaAuthorize(.totp("OTP"), false)
       .sink(
@@ -1237,7 +1237,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1281,7 +1281,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1292,7 +1292,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
       .sink(
@@ -1319,7 +1319,7 @@ final class AccountSessionTests: TestCase {
       with: { _, _, _ in
         result = Void()
         return Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
     )
@@ -1354,7 +1354,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1368,7 +1368,7 @@ final class AccountSessionTests: TestCase {
       with: { _ in
         result = Void()
         return Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
     )
@@ -1392,7 +1392,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1404,7 +1404,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.refreshSessionIfNeeded,
       with: always(
         Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1435,7 +1435,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(true)
 
@@ -1457,7 +1457,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1478,7 +1478,7 @@ final class AccountSessionTests: TestCase {
 
     currentTimestamp = 5 * 60  // expired time
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(true)
 
@@ -1504,7 +1504,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1520,7 +1520,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(true)
 
@@ -1546,7 +1546,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1562,7 +1562,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(true)
 
@@ -1577,7 +1577,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(false)
 
@@ -1603,7 +1603,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1619,7 +1619,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(false)
 
@@ -1645,7 +1645,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1661,7 +1661,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let result: Result<Void, TheError> =
+    let result: Result<Void, TheErrorLegacy> =
       feature
       .storePassphraseWithBiometry(false)
 
@@ -1683,7 +1683,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptAndSignMessage("message", "public key")
       .sink(
@@ -1717,7 +1717,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1733,7 +1733,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptAndSignMessage("message", "public key")
       .sink(
@@ -1767,7 +1767,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1784,7 +1784,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     feature
       .encryptAndSignMessage("message", "public key")
       .sink(
@@ -1818,7 +1818,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1885,7 +1885,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )
@@ -1926,7 +1926,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.createSession,
       with: always(
         Just(Array<MFAProvider>())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       )
     )

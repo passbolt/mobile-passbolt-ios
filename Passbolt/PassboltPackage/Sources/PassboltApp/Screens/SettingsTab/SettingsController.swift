@@ -28,12 +28,12 @@ internal struct SettingsController {
 
   internal var biometricsPublisher: () -> AnyPublisher<BiometricsState, Never>
   internal var biometricsDisableAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var toggleBiometrics: () -> AnyPublisher<Never, TheError>
+  internal var toggleBiometrics: () -> AnyPublisher<Never, TheErrorLegacy>
   internal var openTerms: () -> AnyPublisher<Bool, Never>
   internal var openPrivacyPolicy: () -> AnyPublisher<Bool, Never>
   internal var openLogsViewer: () -> Void
   internal var logsViewerPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var disableBiometrics: () -> AnyPublisher<Never, TheError>
+  internal var disableBiometrics: () -> AnyPublisher<Never, TheErrorLegacy>
   internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
   internal var autoFillEnabledPublisher: () -> AnyPublisher<Bool, Never>
   internal var termsEnabled: () -> Bool
@@ -106,11 +106,11 @@ extension SettingsController: UIController {
       .eraseToAnyPublisher()
     }
 
-    func toggleBiometrics() -> AnyPublisher<Never, TheError> {
+    func toggleBiometrics() -> AnyPublisher<Never, TheErrorLegacy> {
       accountSettings
         .biometricsEnabledPublisher()
         .first()
-        .map { enabled -> AnyPublisher<Never, TheError> in
+        .map { enabled -> AnyPublisher<Never, TheErrorLegacy> in
           if enabled {
             presentBiometricsAlertSubject.send()
             return Empty().eraseToAnyPublisher()
@@ -151,7 +151,7 @@ extension SettingsController: UIController {
       presentLogsViewerSubject.send(true)
     }
 
-    func disableBiometrics() -> AnyPublisher<Never, TheError> {
+    func disableBiometrics() -> AnyPublisher<Never, TheErrorLegacy> {
       accountSettings
         .setBiometricsEnabled(false)
         .ignoreOutput()

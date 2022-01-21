@@ -61,7 +61,7 @@ public final class NavigationView: UIView {}
 extension UIComponent where Self: UINavigationController {
 
   public var contentView: NavigationView {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public func setupView() {}
@@ -70,7 +70,7 @@ extension UIComponent where Self: UINavigationController {
 extension UIComponent where Self: UITabBarController {
 
   public var contentView: NavigationView {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public func setupView() {}

@@ -25,7 +25,7 @@ import CommonDataModels
 import Commons
 import Foundation
 
-extension TheError {
+extension TheErrorLegacy {
 
   internal static func pgpError(
     _ error: NSError?
@@ -74,7 +74,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static var pgpError: Self { "pgpError" }
   public static var invalidPassphraseError: Self { "invalidPassphraseError" }
@@ -83,12 +83,12 @@ extension TheError.ID {
   public static var pgpFingerprintMismatch: Self { "pgpFingerprintMismatch" }
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static let invalidFingerprint: Self = "invalidFingerprint"
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public var invalidFingerprint: Fingerprint? { extensions[.invalidFingerprint] as? Fingerprint }
 }

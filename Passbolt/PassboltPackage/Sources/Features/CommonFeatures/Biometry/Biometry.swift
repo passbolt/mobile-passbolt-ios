@@ -77,7 +77,7 @@ extension Biometry: Feature {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      biometricsStatePublisher: Commons.placeholder("You have to provide mocks for used methods")
+      biometricsStatePublisher: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

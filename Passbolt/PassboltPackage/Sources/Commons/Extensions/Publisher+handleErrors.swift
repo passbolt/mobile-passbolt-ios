@@ -23,11 +23,11 @@
 
 import Combine
 
-extension Publisher where Failure == TheError {
+extension Publisher where Failure == TheErrorLegacy {
 
   public func handleErrors(
-    _ cases: (Set<TheError.ID>, handler: (TheError) -> Bool)...,
-    defaultHandler: @escaping (TheError) -> Void
+    _ cases: (Set<TheErrorLegacy.ID>, handler: (TheErrorLegacy) -> Bool)...,
+    defaultHandler: @escaping (TheErrorLegacy) -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(receiveCompletion: { completion in
       guard case let .failure(error) = completion
@@ -48,6 +48,30 @@ extension Publisher where Failure == TheError {
       else {
         /* NOP */
       }
+    })
+  }
+}
+
+extension Publisher {
+
+  public func handleErrors(
+    _ handler: @escaping (TheError) -> Void
+  ) -> Publishers.HandleEvents<Self> {
+    self.handleEvents(receiveCompletion: { completion in
+      guard case let .failure(error) = completion
+      else {
+        return
+      }
+
+      let theError: TheError
+      if let castedError: TheError = error as? TheError {
+        theError = castedError
+      }
+      else {
+        theError = Unidentified.error(underlyingError: error)
+      }
+
+      handler(theError)
     })
   }
 }

@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func testError(
     underlyingError: Error? = nil,
@@ -37,7 +37,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static var testError: Self { "testError" }
 }

@@ -26,7 +26,7 @@ import UIComponents
 internal struct ExtensionSetupController {
 
   internal var continueSetupPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var setupExtension: () -> AnyPublisher<Never, TheError>
+  internal var setupExtension: () -> AnyPublisher<Never, TheErrorLegacy>
   internal var skipSetup: () -> Void
 }
 
@@ -49,7 +49,7 @@ extension ExtensionSetupController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func setupExtension() -> AnyPublisher<Never, TheError> {
+    func setupExtension() -> AnyPublisher<Never, TheErrorLegacy> {
       linkOpener
         .openSystemSettings()
         .map { (_: Bool) -> AnyPublisher<Bool, Never> in
@@ -58,7 +58,7 @@ extension ExtensionSetupController: UIController {
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .handleEvents(receiveOutput: { extensionEnabled in
           guard extensionEnabled else { return }
           continueSetupPresentationSubject.send(Void())

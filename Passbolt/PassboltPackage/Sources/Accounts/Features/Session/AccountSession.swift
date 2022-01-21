@@ -36,16 +36,16 @@ public struct AccountSession {
   public var statePublisher: () -> AnyPublisher<State, Never>
   // Used for sign in (including switch to other account) and unlocking whichever is required.
   // Returns true if MFA authorization is required, otherwise false.
-  public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Bool, TheError>
+  public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Bool, TheErrorLegacy>
   // Used for MFA authorization if required. Executed always in context of current account.
-  public var mfaAuthorize: (MFAAuthorizationMethod, Bool) -> AnyPublisher<Void, TheError>
+  public var mfaAuthorize: (MFAAuthorizationMethod, Bool) -> AnyPublisher<Void, TheErrorLegacy>
   // Decrypt message with current session context if any. Optionally verify signature if public key was provided.
-  public var decryptMessage: (String, ArmoredPGPPublicKey?) -> AnyPublisher<String, TheError>
+  public var decryptMessage: (String, ArmoredPGPPublicKey?) -> AnyPublisher<String, TheErrorLegacy>
   // Encrypt and sign message using provided public key with current session user signature.
-  public var encryptAndSignMessage: (String, ArmoredPGPPublicKey) -> AnyPublisher<ArmoredPGPMessage, TheError>
+  public var encryptAndSignMessage: (String, ArmoredPGPPublicKey) -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy>
   // Set current account passphrase storage with biometry. Succeeds only if passphrase is in cache.
   // Storage is cleared when called with false. warning: it does not request proper permissions.
-  internal var storePassphraseWithBiometry: (Bool) -> Result<Void, TheError>
+  internal var storePassphraseWithBiometry: (Bool) -> Result<Void, TheErrorLegacy>
   // Get the database encyption key for current account if able.
   internal var databaseKey: () -> String?
   // Publishes current account ID each time access to its private key
@@ -299,7 +299,7 @@ extension AccountSession: Feature {
     func authorize(
       account: Account,
       authorizationMethod: AuthorizationMethod
-    ) -> AnyPublisher<Bool, TheError> {
+    ) -> AnyPublisher<Bool, TheErrorLegacy> {
       diagnostics.diagnosticLog("Beginning authorization...")
       diagnostics.debugLog("Signing in to: \(account.localID)")
 
@@ -353,7 +353,7 @@ extension AccountSession: Feature {
               "Failed to retrieve private key for account: \(account.localID)"
                 + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
-            return Fail<Bool, TheError>(error: error)
+            return Fail<Bool, TheErrorLegacy>(error: error)
               .eraseToAnyPublisher()
           }
 
@@ -366,7 +366,7 @@ extension AccountSession: Feature {
 
           case let .failure(error):
             diagnostics.diagnosticLog("...account passphrase unavailable!")
-            return Fail<Bool, TheError>(error: error)
+            return Fail<Bool, TheErrorLegacy>(error: error)
               .eraseToAnyPublisher()
           }
           switch accountsDataStore.loadAccountPrivateKey(account.localID) {
@@ -380,7 +380,7 @@ extension AccountSession: Feature {
               "Failed to retrieve private key for account: \(account.localID)"
                 + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
-            return Fail<Bool, TheError>(error: error)
+            return Fail<Bool, TheErrorLegacy>(error: error)
               .eraseToAnyPublisher()
           }
         }
@@ -396,7 +396,7 @@ extension AccountSession: Feature {
             .eraseToAnyPublisher()
         }
 
-        func createSession() -> AnyPublisher<Bool, TheError> {
+        func createSession() -> AnyPublisher<Bool, TheErrorLegacy> {
           networkSession
             .createSession(
               account,
@@ -452,7 +452,7 @@ extension AccountSession: Feature {
             .eraseToAnyPublisher()
         }
 
-        func refreshSessionIfNeeded() -> AnyPublisher<Void, TheError> {
+        func refreshSessionIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
           networkSession
             .refreshSessionIfNeeded(account)
             .handleEvents(
@@ -476,7 +476,7 @@ extension AccountSession: Feature {
         // to ensure that only single authorization is in progress
         // we delegate result to the additional subject
         // and control cancellation internally
-        let authorizationResultSubject: PassthroughSubject<Bool, TheError> = .init()
+        let authorizationResultSubject: PassthroughSubject<Bool, TheErrorLegacy> = .init()
 
         // check if session can be refreshed for provided account
         if !switchingAccount && networkSession.sessionRefreshAvailable(account) {
@@ -484,7 +484,7 @@ extension AccountSession: Feature {
             refreshSessionIfNeeded()
             // MFA in response is not possible, it is handled by error path
             .map { false }
-            .catch { error -> AnyPublisher<Bool, TheError> in
+            .catch { error -> AnyPublisher<Bool, TheErrorLegacy> in
               if case .canceled = error {
                 return Fail(error: error)
                   .eraseToAnyPublisher()
@@ -515,7 +515,7 @@ extension AccountSession: Feature {
     func mfaAuthorize(
       method: MFAAuthorizationMethod,
       rememberDevice: Bool
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       diagnostics.diagnosticLog("Beginning MFA authorization...")
       return withSessionState { sessionState in
         let account: Account
@@ -527,15 +527,15 @@ extension AccountSession: Feature {
 
         case .none:
           diagnostics.diagnosticLog("...authorization required!")
-          return Fail<Void, TheError>(error: .authorizationRequired())
+          return Fail<Void, TheErrorLegacy>(error: .authorizationRequired())
             .eraseToAnyPublisher()
         }
 
         return
           networkSession
           .createMFAToken(account, method, rememberDevice)
-          .map { _ -> AnyPublisher<Void, TheError> in
-            withSessionState { state -> AnyPublisher<Void, TheError> in
+          .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
+            withSessionState { state -> AnyPublisher<Void, TheErrorLegacy> in
               switch state {
               case let .authorized(currentAccount, passphrase, _) where currentAccount == account,
                 let .authorizedMFARequired(currentAccount, passphrase, _, _) where currentAccount == account:
@@ -553,17 +553,17 @@ extension AccountSession: Feature {
                 )
                 diagnostics.diagnosticLog("...MFA authorization succeeded!")
                 return Just(Void())
-                  .setFailureType(to: TheError.self)
+                  .setFailureType(to: TheErrorLegacy.self)
                   .eraseToAnyPublisher()
 
               case .authorized, .authorizedMFARequired:
                 diagnostics.diagnosticLog("...MFA authorization failed due to account switch!")
-                return Fail<Void, TheError>(error: .sessionClosed())
+                return Fail<Void, TheErrorLegacy>(error: .sessionClosed())
                   .eraseToAnyPublisher()
 
               case .none, .authorizationRequired:
                 diagnostics.diagnosticLog("...MFA authorization failed!")
-                return Fail<Void, TheError>(error: .authorizationRequired())
+                return Fail<Void, TheErrorLegacy>(error: .authorizationRequired())
                   .eraseToAnyPublisher()
               }
             }
@@ -576,13 +576,13 @@ extension AccountSession: Feature {
     func decryptMessage(
       _ encryptedMessage: String,
       publicKey: ArmoredPGPPublicKey?
-    ) -> AnyPublisher<String, TheError> {
+    ) -> AnyPublisher<String, TheErrorLegacy> {
       withSessionState { sessionState in
         switch sessionState {
         case let .authorized(account, passphrase, _), let .authorizedMFARequired(account, passphrase, _, _):
           switch accountsDataStore.loadAccountPrivateKey(account.localID) {
           case let .success(armoredPrivateKey):
-            let decryptionResult: Result<String, TheError>
+            let decryptionResult: Result<String, TheErrorLegacy>
             if let publicKey: ArmoredPGPPublicKey = publicKey {
               decryptionResult = pgp.decryptAndVerify(
                 encryptedMessage,
@@ -602,11 +602,11 @@ extension AccountSession: Feature {
             switch decryptionResult {
             case let .success(decrypted):
               return Just(decrypted)
-                .setFailureType(to: TheError.self)
+                .setFailureType(to: TheErrorLegacy.self)
                 .eraseToAnyPublisher()
 
             case let .failure(error):
-              return Fail<String, TheError>(error: error)
+              return Fail<String, TheErrorLegacy>(error: error)
                 .eraseToAnyPublisher()
             }
 
@@ -615,13 +615,13 @@ extension AccountSession: Feature {
               "Failed to retrieve private key for account: \(account.localID)"
                 + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
-            return Fail<String, TheError>(error: error)
+            return Fail<String, TheErrorLegacy>(error: error)
               .eraseToAnyPublisher()
           }
 
         case .authorizationRequired, .none:
           requestAuthorization(message: nil)
-          return Fail<String, TheError>(error: .authorizationRequired())
+          return Fail<String, TheErrorLegacy>(error: .authorizationRequired())
             .eraseToAnyPublisher()
         }
       }
@@ -630,13 +630,13 @@ extension AccountSession: Feature {
     func encryptAndSignMessage(
       _ message: String,
       publicKey: ArmoredPGPPublicKey
-    ) -> AnyPublisher<ArmoredPGPMessage, TheError> {
+    ) -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> {
       withSessionState { sessionState in
         switch sessionState {
         case let .authorized(account, passphrase, _), let .authorizedMFARequired(account, passphrase, _, _):
           switch accountsDataStore.loadAccountPrivateKey(account.localID) {
           case let .success(armoredPrivateKey):
-            let encryptionResult: Result<String, TheError> = pgp.encryptAndSign(
+            let encryptionResult: Result<String, TheErrorLegacy> = pgp.encryptAndSign(
               message,
               passphrase,
               armoredPrivateKey,
@@ -646,11 +646,11 @@ extension AccountSession: Feature {
             switch encryptionResult {
             case let .success(encrypted):
               return Just(.init(rawValue: encrypted))
-                .setFailureType(to: TheError.self)
+                .setFailureType(to: TheErrorLegacy.self)
                 .eraseToAnyPublisher()
 
             case let .failure(error):
-              return Fail<ArmoredPGPMessage, TheError>(error: error)
+              return Fail<ArmoredPGPMessage, TheErrorLegacy>(error: error)
                 .eraseToAnyPublisher()
             }
 
@@ -659,19 +659,19 @@ extension AccountSession: Feature {
               "Failed to retrieve private key for account: \(account.localID)"
                 + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
             )
-            return Fail<ArmoredPGPMessage, TheError>(error: error)
+            return Fail<ArmoredPGPMessage, TheErrorLegacy>(error: error)
               .eraseToAnyPublisher()
           }
 
         case .authorizationRequired, .none:
           requestAuthorization(message: nil)
-          return Fail<ArmoredPGPMessage, TheError>(error: .authorizationRequired())
+          return Fail<ArmoredPGPMessage, TheErrorLegacy>(error: .authorizationRequired())
             .eraseToAnyPublisher()
         }
       }
     }
 
-    func storePassphraseWithBiometry(_ store: Bool) -> Result<Void, TheError> {
+    func storePassphraseWithBiometry(_ store: Bool) -> Result<Void, TheErrorLegacy> {
       withSessionState { sessionState in
         let currentAccount: Account
         let cachedPassphrase: Passphrase
@@ -792,16 +792,16 @@ extension AccountSession {
 
   public static var placeholder: AccountSession {
     Self(
-      statePublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      authorize: Commons.placeholder("You have to provide mocks for used methods"),
-      mfaAuthorize: Commons.placeholder("You have to provide mocks for used methods"),
-      decryptMessage: Commons.placeholder("You have to provide mocks for used methods"),
-      encryptAndSignMessage: Commons.placeholder("You have to provide mocks for used methods"),
-      storePassphraseWithBiometry: Commons.placeholder("You have to provide mocks for used methods"),
-      databaseKey: Commons.placeholder("You have to provide mocks for used methods"),
-      authorizationPromptPresentationPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      requestAuthorizationPrompt: Commons.placeholder("You have to provide mocks for used methods"),
-      close: Commons.placeholder("You have to provide mocks for used methods")
+      statePublisher: unimplemented("You have to provide mocks for used methods"),
+      authorize: unimplemented("You have to provide mocks for used methods"),
+      mfaAuthorize: unimplemented("You have to provide mocks for used methods"),
+      decryptMessage: unimplemented("You have to provide mocks for used methods"),
+      encryptAndSignMessage: unimplemented("You have to provide mocks for used methods"),
+      storePassphraseWithBiometry: unimplemented("You have to provide mocks for used methods"),
+      databaseKey: unimplemented("You have to provide mocks for used methods"),
+      authorizationPromptPresentationPublisher: unimplemented("You have to provide mocks for used methods"),
+      requestAuthorizationPrompt: unimplemented("You have to provide mocks for used methods"),
+      close: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

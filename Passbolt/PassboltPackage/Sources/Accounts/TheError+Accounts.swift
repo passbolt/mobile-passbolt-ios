@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func duplicateAccount(
     underlyingError: Error? = nil
@@ -76,7 +76,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let duplicateAccount: Self = "duplicateAccount"
   public static let invalidAccount: Self = "invalidAccount"

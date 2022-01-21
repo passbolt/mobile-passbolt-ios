@@ -26,7 +26,7 @@ import Commons
 import struct Foundation.OSStatus
 import let Foundation.errSecAuthFailed
 
-extension TheError {
+extension TheErrorLegacy {
 
   internal static func keychainError(
     _ status: OSStatus,
@@ -48,7 +48,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static var keychainError: Self { "keychainError" }
   public static var keychainAuthFailed: Self { "keychainAuthFailed" }

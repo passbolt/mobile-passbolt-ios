@@ -27,21 +27,21 @@ import Environment
 
 public struct DatabaseOperation<Input, Output> {
 
-  public var execute: (Input) -> AnyPublisher<Output, TheError>
+  public var execute: (Input) -> AnyPublisher<Output, TheErrorLegacy>
 }
 
 extension DatabaseOperation {
 
   public func callAsFunction(
     _ input: Input
-  ) -> AnyPublisher<Output, TheError> {
+  ) -> AnyPublisher<Output, TheErrorLegacy> {
     execute(input)
   }
 }
 
 extension DatabaseOperation where Input == Void {
 
-  public func callAsFunction() -> AnyPublisher<Output, TheError> {
+  public func callAsFunction() -> AnyPublisher<Output, TheErrorLegacy> {
     execute(Void())
   }
 }
@@ -49,15 +49,15 @@ extension DatabaseOperation where Input == Void {
 extension DatabaseOperation {
 
   internal static func withConnection(
-    using connectionPublisher: AnyPublisher<SQLiteConnection, TheError>,
-    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, TheError>
+    using connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>,
+    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, TheErrorLegacy>
   ) -> Self {
-    Self { input -> AnyPublisher<Output, TheError> in
+    Self { input -> AnyPublisher<Output, TheErrorLegacy> in
       connectionPublisher
         .first()
-        .map { conn -> AnyPublisher<Output, TheError> in
+        .map { conn -> AnyPublisher<Output, TheErrorLegacy> in
           conn
-            .withQueue { conn -> Result<Output, TheError> in
+            .withQueue { conn -> Result<Output, TheErrorLegacy> in
               operation(conn, input)
             }
         }
@@ -72,7 +72,7 @@ extension DatabaseOperation {
 
   internal static var placeholder: Self {
     Self(
-      execute: Commons.placeholder("You have to provide mocks for used methods")
+      execute: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func accountTransferScanningError(
     underlyingError: Error? = nil,
@@ -48,7 +48,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let accountTransferScanningError: Self = "accountTransferScanningError"
   public static let accountTransferScanningRecoverableError: Self = "accountTransferScanningRecoverableError"

@@ -253,7 +253,7 @@ final class AccountSelectionScreenTests: TestCase {
     let controller: AccountSelectionController = testInstance(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
-    let removeResult: Result<Void, TheError> = controller.removeAccount(firstAccount.account)
+    let removeResult: Result<Void, TheErrorLegacy> = controller.removeAccount(firstAccount.account)
 
     controller.accountsPublisher()
       .sink { items in

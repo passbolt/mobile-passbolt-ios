@@ -157,14 +157,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
     networkClient.signInRequest.execute = always(
-      Fail<SignInResponse, TheError>(error: .testError()).eraseToAnyPublisher()
+      Fail<SignInResponse, TheErrorLegacy>(error: .testError()).eraseToAnyPublisher()
     )
 
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -195,7 +195,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -227,7 +227,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -260,7 +260,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -293,7 +293,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -326,7 +326,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -360,7 +360,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -392,7 +392,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -428,7 +428,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -460,7 +460,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     networkSession
       .createSession(
@@ -493,7 +493,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -526,7 +526,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -565,7 +565,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .createMFAToken(
         validAccount,
@@ -606,7 +606,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .createMFAToken(
         validAccount,
@@ -647,7 +647,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .createMFAToken(
         validAccount,
@@ -669,13 +669,13 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
   func test_createMFAToken_fails_whenMFATokenStoreFails() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    accountsDataStore.storeAccountMFAToken = always(.failure(TheError.testError()))
+    accountsDataStore.storeAccountMFAToken = always(.failure(TheErrorLegacy.testError()))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -690,7 +690,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .createMFAToken(
         validAccount,
@@ -718,7 +718,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -761,7 +761,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.yubikeyAuthorizationRequest.execute = always(
       Just(YubikeyAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -881,7 +881,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(fingerprintStorage)
     networkClient.signInRequest.execute = always(
-      Fail<SignInResponse, TheError>(error: .testError()).eraseToAnyPublisher()
+      Fail<SignInResponse, TheErrorLegacy>(error: .testError()).eraseToAnyPublisher()
     )
 
     features.use(networkClient)
@@ -935,7 +935,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     let networkSession: NetworkSession = testInstance()
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .refreshSessionIfNeeded(validAccount)
       .sink(
@@ -963,7 +963,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
           refreshToken: "refreshToken"
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     }
 
@@ -999,7 +999,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
           refreshToken: "refreshToken"
         )
       )
-      .setFailureType(to: TheError.self)
+      .setFailureType(to: TheErrorLegacy.self)
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -1014,7 +1014,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .refreshSessionIfNeeded(validAccount)
       .sink(
@@ -1051,7 +1051,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .refreshSessionIfNeeded(validAccount)
       .sink(
@@ -1072,7 +1072,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(fingerprintStorage)
     networkClient.refreshSessionRequest.execute = always(
       Just(RefreshSessionResponse(accessToken: validToken, refreshToken: "refreshToken"))
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -1087,7 +1087,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    var result: TheError?
+    var result: TheErrorLegacy?
     networkSession
       .refreshSessionIfNeeded(validAccount)
       .sink(

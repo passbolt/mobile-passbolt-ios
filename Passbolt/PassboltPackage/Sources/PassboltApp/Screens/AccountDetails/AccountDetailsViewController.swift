@@ -96,27 +96,17 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
               [.canceled],
               handler: { _ in /* NOP */ true }
             ),
-            (
-              [.validation],
-              handler: { [weak self] error in
-                guard
-                  let displayable: DisplayableString = error.displayableString,
-                  let displayableArguments: Array<CVarArg> = error.displayableStringArguments
-                else { return false }
-
-                self?.presentErrorSnackbar(
-                  displayable,
-                  with: displayableArguments
-                )
-                return true
+            defaultHandler: { [weak self] error in
+              if let displayable: DisplayableString = error.displayableString {
+                self?.presentErrorSnackbar(displayable)
               }
-            ),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar(
-                .localized(
-                  key: .genericError
+              else {
+                self?.presentErrorSnackbar(
+                  .localized(
+                    key: .genericError
+                  )
                 )
-              )
+              }
             }
           )
           .handleEnd { [weak self] ending in

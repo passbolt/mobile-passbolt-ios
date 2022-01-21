@@ -75,8 +75,8 @@ extension MDMConfig {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      loadConfig: Commons.placeholder("You have to provide mocks for used methods"),
-      updateConfig: Commons.placeholder("You have to provide mocks for used methods")
+      loadConfig: unimplemented("You have to provide mocks for used methods"),
+      updateConfig: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

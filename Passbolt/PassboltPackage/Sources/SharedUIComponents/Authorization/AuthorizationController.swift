@@ -34,9 +34,9 @@ public struct AuthorizationController {
   public var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
   public var biometricStatePublisher: () -> AnyPublisher<BiometricsState, Never>
   // returns true if MFA authorization screen should be displayed
-  public var signIn: () -> AnyPublisher<Bool, TheError>
+  public var signIn: () -> AnyPublisher<Bool, TheErrorLegacy>
   // returns true if MFA authorization screen should be displayed
-  public var biometricSignIn: () -> AnyPublisher<Bool, TheError>
+  public var biometricSignIn: () -> AnyPublisher<Bool, TheErrorLegacy>
   public var presentForgotPassphraseAlert: () -> Void
   public var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
   public var accountNotFoundScreenPresentationPublisher: () -> AnyPublisher<Account, Never>
@@ -140,7 +140,7 @@ extension AuthorizationController: UIController {
       .eraseToAnyPublisher()
     }
 
-    func performSignIn() -> AnyPublisher<Bool, TheError> {
+    func performSignIn() -> AnyPublisher<Bool, TheErrorLegacy> {
       passphraseSubject
         .first()
         .map { passphrase in
@@ -164,7 +164,7 @@ extension AuthorizationController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func performBiometricSignIn() -> AnyPublisher<Bool, TheError> {
+    func performBiometricSignIn() -> AnyPublisher<Bool, TheErrorLegacy> {
       accountSession
         .authorize(
           account,

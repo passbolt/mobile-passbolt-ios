@@ -31,12 +31,12 @@ import struct Foundation.Date
 
 public struct Resources {
 
-  public var refreshIfNeeded: () -> AnyPublisher<Void, TheError>
+  public var refreshIfNeeded: () -> AnyPublisher<Void, TheErrorLegacy>
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
-  public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheError>
-  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, TheError>
-  public var deleteResource: (Resource.ID) -> AnyPublisher<Void, TheError>
+  public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheErrorLegacy>
+  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, TheErrorLegacy>
+  public var deleteResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
   public var featureUnload: () -> Bool
 }
 
@@ -85,7 +85,7 @@ extension Resources: Feature {
       }
       .store(in: cancellables)
 
-    func refreshIfNeeded() -> AnyPublisher<Void, TheError> {
+    func refreshIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
       accountDatabase
         // get info about last successful update
         .fetchLastUpdate()
@@ -100,7 +100,7 @@ extension Resources: Feature {
           // implement diff request here instead when available
           return lastUpdate
         }
-        .map { _ -> AnyPublisher<Void, TheError> in
+        .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
           // refresh resources types
           networkClient
             .resourcesTypesRequest
@@ -148,14 +148,14 @@ extension Resources: Feature {
                   )
                 }
             }
-            .map { (resourceTypes: Array<ResourceType>) -> AnyPublisher<Void, TheError> in
+            .map { (resourceTypes: Array<ResourceType>) -> AnyPublisher<Void, TheErrorLegacy> in
               accountDatabase.storeResourcesTypes(resourceTypes)
             }
             .switchToLatest()
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .map { _ -> AnyPublisher<Void, TheError> in
+        .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
           // refresh resources
           networkClient
             .resourcesRequest
@@ -187,10 +187,10 @@ extension Resources: Feature {
                   )
                 }
             }
-            .map { (resources: Array<Resource>) -> AnyPublisher<Void, TheError> in
+            .map { (resources: Array<Resource>) -> AnyPublisher<Void, TheErrorLegacy> in
               accountDatabase
                 .storeResources(resources)
-                .map { _ -> AnyPublisher<Void, TheError> in
+                .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
                   accountDatabase
                     .saveLastUpdate(time.dateNow())
                     .collectErrorLog(using: diagnostics)
@@ -198,7 +198,7 @@ extension Resources: Feature {
                     // will contain the same changes but it does not affect
                     // final result so no need to propagate that error further
                     .replaceError(with: Void())
-                    .setFailureType(to: TheError.self)
+                    .setFailureType(to: TheErrorLegacy.self)
                     .eraseToAnyPublisher()
                 }
                 .switchToLatest()
@@ -241,24 +241,24 @@ extension Resources: Feature {
 
     func loadResourceSecret(
       _ resourceID: Resource.ID
-    ) -> AnyPublisher<ResourceSecret, TheError> {
+    ) -> AnyPublisher<ResourceSecret, TheErrorLegacy> {
       networkClient
         .resourceSecretRequest
         .make(using: .init(resourceID: resourceID.rawValue))
-        .map { response -> AnyPublisher<ResourceSecret, TheError> in
+        .map { response -> AnyPublisher<ResourceSecret, TheErrorLegacy> in
           accountSession
             // We are not using public key yet since we are not
             // managing other users data yet, for now skipping public key
             // for signature verification.
             .decryptMessage(response.body.data, nil)
-            .map { decryptedMessage -> AnyPublisher<ResourceSecret, TheError> in
+            .map { decryptedMessage -> AnyPublisher<ResourceSecret, TheErrorLegacy> in
               if let secret: ResourceSecret = .from(decrypted: decryptedMessage) {
                 return Just(secret)
-                  .setFailureType(to: TheError.self)
+                  .setFailureType(to: TheErrorLegacy.self)
                   .eraseToAnyPublisher()
               }
               else {
-                return Fail<ResourceSecret, TheError>(error: .invalidResourceSecret())
+                return Fail<ResourceSecret, TheErrorLegacy>(error: .invalidResourceSecret())
                   .eraseToAnyPublisher()
               }
             }
@@ -271,7 +271,7 @@ extension Resources: Feature {
 
     func resourceDetailsPublisher(
       resourceID: Resource.ID
-    ) -> AnyPublisher<DetailsViewResource, TheError> {
+    ) -> AnyPublisher<DetailsViewResource, TheErrorLegacy> {
       resourcesUpdateSubject.map {
         accountDatabase.fetchDetailsViewResources(resourceID)
       }
@@ -279,7 +279,7 @@ extension Resources: Feature {
       .eraseToAnyPublisher()
     }
 
-    func deleteResource(resourceID: Resource.ID) -> AnyPublisher<Void, TheError> {
+    func deleteResource(resourceID: Resource.ID) -> AnyPublisher<Void, TheErrorLegacy> {
       networkClient
         .deleteResourceRequest
         .make(using: .init(resourceID: resourceID.rawValue))
@@ -309,12 +309,12 @@ extension Resources {
 
   public static var placeholder: Resources {
     Self(
-      refreshIfNeeded: Commons.placeholder("You have to provide mocks for used methods"),
-      filteredResourcesListPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      loadResourceSecret: Commons.placeholder("You have to provide mocks for used methods"),
-      resourceDetailsPublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      deleteResource: Commons.placeholder("You have to provide mocks for used methods"),
-      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
+      refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
+      filteredResourcesListPublisher: unimplemented("You have to provide mocks for used methods"),
+      loadResourceSecret: unimplemented("You have to provide mocks for used methods"),
+      resourceDetailsPublisher: unimplemented("You have to provide mocks for used methods"),
+      deleteResource: unimplemented("You have to provide mocks for used methods"),
+      featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

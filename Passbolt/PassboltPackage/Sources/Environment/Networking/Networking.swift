@@ -233,8 +233,8 @@ extension Networking {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      execute: Commons.placeholder("You have to provide mocks for used methods"),
-      clearCache: Commons.placeholder("You have to provide mocks for used methods")
+      execute: unimplemented("You have to provide mocks for used methods"),
+      clearCache: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

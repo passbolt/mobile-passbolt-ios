@@ -29,11 +29,11 @@ import UIComponents
 public struct ResourceEditController {
 
   internal var createsNewResource: Bool
-  internal var resourcePropertiesPublisher: () -> AnyPublisher<Array<ResourceProperty>, TheError>
+  internal var resourcePropertiesPublisher: () -> AnyPublisher<Array<ResourceProperty>, TheErrorLegacy>
   internal var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<String>, Never>
   internal var passwordEntropyPublisher: () -> AnyPublisher<Entropy, Never>
-  internal var sendForm: () -> AnyPublisher<Void, TheError>
-  internal var setValue: (String, ResourceField) -> AnyPublisher<Void, TheError>
+  internal var sendForm: () -> AnyPublisher<Void, TheErrorLegacy>
+  internal var setValue: (String, ResourceField) -> AnyPublisher<Void, TheErrorLegacy>
   internal var generatePassword: () -> Void
   internal var presentExitConfirmation: () -> Void
   internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
@@ -55,7 +55,7 @@ extension ResourceEditController: UIController {
     let resourceForm: ResourceEditForm = features.instance()
     let randomGenerator: RandomStringGenerator = features.instance()
 
-    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, TheError> = .init([])
+    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, TheErrorLegacy> = .init([])
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
     if let editedResource: Resource.ID = context.editedResource {
@@ -88,7 +88,7 @@ extension ResourceEditController: UIController {
       )
       .store(in: cancellables)
 
-    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, TheError> {
+    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, TheErrorLegacy> {
       resourcePropertiesSubject
         .eraseToAnyPublisher()
     }
@@ -108,9 +108,9 @@ extension ResourceEditController: UIController {
     func setValue(
       _ value: String,
       for field: ResourceField
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       resourcePropertiesPublisher()
-        .map { properties -> AnyPublisher<Void, TheError> in
+        .map { properties -> AnyPublisher<Void, TheErrorLegacy> in
           guard let property: ResourceProperty = properties.first(where: { $0.field == field })
           else {
             return Fail(error: .invalidOrMissingResourceType())
@@ -138,10 +138,10 @@ extension ResourceEditController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func sendForm() -> AnyPublisher<Void, TheError> {
+    func sendForm() -> AnyPublisher<Void, TheErrorLegacy> {
       resourceForm
         .sendForm()
-        .map { resourceID -> AnyPublisher<Resource.ID, TheError> in
+        .map { resourceID -> AnyPublisher<Resource.ID, TheErrorLegacy> in
           resources
             .refreshIfNeeded()
             .map { resourceID }

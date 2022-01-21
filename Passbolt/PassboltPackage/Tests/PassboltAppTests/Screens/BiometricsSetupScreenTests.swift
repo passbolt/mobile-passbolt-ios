@@ -101,7 +101,7 @@ final class BiometricsSetupScreenTests: TestCase {
 
   func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() {
     accountSettings.setBiometricsEnabled = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(accountSettings)
     features.use(biometry)
@@ -124,7 +124,7 @@ final class BiometricsSetupScreenTests: TestCase {
 
   func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSetupSucceed_andExtensionIsDisabled() {
     accountSettings.setBiometricsEnabled = always(
-      Just(Void()).setFailureType(to: TheError.self).eraseToAnyPublisher()
+      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
     )
     features.use(accountSettings)
     features.use(biometry)
@@ -149,7 +149,7 @@ final class BiometricsSetupScreenTests: TestCase {
     var result: Bool!
     accountSettings.setBiometricsEnabled = { enabled in
       result = enabled
-      return Just(Void()).setFailureType(to: TheError.self)
+      return Just(Void()).setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(accountSettings)
@@ -168,7 +168,7 @@ final class BiometricsSetupScreenTests: TestCase {
 
   func test_setupBiometrics_fails_whenBiometricsEnableFails() {
     accountSettings.setBiometricsEnabled = { _ in
-      Fail<Void, TheError>(error: .testError())
+      Fail<Void, TheErrorLegacy>(error: .testError())
         .eraseToAnyPublisher()
     }
     features.use(accountSettings)
@@ -178,7 +178,7 @@ final class BiometricsSetupScreenTests: TestCase {
     features.use(autoFill)
     let controller: BiometricsSetupController = testInstance()
 
-    var result: TheError!
+    var result: TheErrorLegacy!
     controller.setupBiometrics()
       .sink(receiveCompletion: { completion in
         guard case let .failure(error) = completion else { return }

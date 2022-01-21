@@ -43,7 +43,7 @@ extension AccountTransferAccount {
   internal static func from(
     _ parts: Array<AccountTransferScanningPart>,
     verificationHash: String
-  ) -> Result<Self, TheError> {
+  ) -> Result<Self, TheErrorLegacy> {
     let joinedDataParts: Data = Data(parts.map(\.payload).joined())
     let computedHash: String =
       SHA512

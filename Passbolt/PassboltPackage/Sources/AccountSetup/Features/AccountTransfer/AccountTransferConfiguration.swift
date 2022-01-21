@@ -41,7 +41,7 @@ extension AccountTransferConfiguration {
 
   internal static func from(
     _ part: AccountTransferScanningPart
-  ) -> Result<Self, TheError> {
+  ) -> Result<Self, TheErrorLegacy> {
     let jsonDecoder: JSONDecoder = .init()
     var decoded: Self
     do {

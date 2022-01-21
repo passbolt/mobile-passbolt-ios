@@ -62,14 +62,14 @@ extension SystemPasteboard {
 
   public static var placeholder: Self {
     Self(
-      get: Commons.placeholder("You have to provide mocks for used methods"),
-      put: Commons.placeholder("You have to provide mocks for used methods")
+      get: unimplemented("You have to provide mocks for used methods"),
+      put: unimplemented("You have to provide mocks for used methods")
     )
   }
 }
 #endif
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func invalidPasteValue(
     underlyingError: Error? = nil
@@ -82,7 +82,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let invalidPasteValue: Self = "invalidPasteValue"
 }

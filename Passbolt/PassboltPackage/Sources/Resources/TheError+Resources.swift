@@ -23,7 +23,7 @@
 
 import Commons
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func invalidOrMissingResourceType(
     underlyingError: Error? = nil
@@ -66,7 +66,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static let invalidOrMissingResourceType: Self = "invalidOrMissingResourceType"
   public static let missingResourceData: Self = "missingResourceData"

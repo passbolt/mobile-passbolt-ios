@@ -35,7 +35,7 @@ internal final class CodeReaderView: View {
 
   @available(*, unavailable)
   internal required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override internal func setup() {

@@ -28,7 +28,7 @@ public struct Biometrics: EnvironmentElement {
 
   public var checkBiometricsState: () -> State
   public var checkBiometricsPermission: () -> Bool
-  public var requestBiometricsPermission: () -> AnyPublisher<Bool, TheError>
+  public var requestBiometricsPermission: () -> AnyPublisher<Bool, TheErrorLegacy>
 }
 
 extension Biometrics {
@@ -99,7 +99,7 @@ extension Biometrics {
       return result && errorPtr == nil && context.biometryType != .none
     }
 
-    func requestBiometricsPermission() -> AnyPublisher<Bool, TheError> {
+    func requestBiometricsPermission() -> AnyPublisher<Bool, TheErrorLegacy> {
       precondition(!isInExtensionContext, "Cannot request permission in app extension.")
       var errorPtr: NSError?
       context
@@ -112,11 +112,11 @@ extension Biometrics {
           || laError.code == .biometryNotEnrolled
           || laError.code == .passcodeNotSet
       {
-        return Fail<Bool, TheError>(error: .biometricsUnavailable(underlyingError: laError))
+        return Fail<Bool, TheErrorLegacy>(error: .biometricsUnavailable(underlyingError: laError))
           .eraseToAnyPublisher()
       }
       else {
-        let completionSubject: PassthroughSubject<Bool, TheError> = .init()
+        let completionSubject: PassthroughSubject<Bool, TheErrorLegacy> = .init()
         DispatchQueue.main.async {
           context.evaluatePolicy(
             .deviceOwnerAuthenticationWithBiometrics,
@@ -161,15 +161,15 @@ extension Biometrics {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      checkBiometricsState: Commons.placeholder("You have to provide mocks for used methods"),
-      checkBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods"),
-      requestBiometricsPermission: Commons.placeholder("You have to provide mocks for used methods")
+      checkBiometricsState: unimplemented("You have to provide mocks for used methods"),
+      checkBiometricsPermission: unimplemented("You have to provide mocks for used methods"),
+      requestBiometricsPermission: unimplemented("You have to provide mocks for used methods")
     )
   }
 }
 #endif
 
-extension TheError {
+extension TheErrorLegacy {
 
   public static func biometricsUnavailable(
     underlyingError: Error? = nil
@@ -182,7 +182,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static var biometricsUnavailable: Self { "biometricsUnavailable" }
 }

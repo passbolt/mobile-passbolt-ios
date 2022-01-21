@@ -104,7 +104,7 @@ public final class OTPInput: UIControl, UIKeyInput {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public func insertText(_ text: String) {

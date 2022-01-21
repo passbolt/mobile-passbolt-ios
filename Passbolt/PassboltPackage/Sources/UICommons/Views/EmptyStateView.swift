@@ -78,6 +78,6 @@ open class EmptyStateView: View {
 
   @available(*, unavailable)
   public required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 }

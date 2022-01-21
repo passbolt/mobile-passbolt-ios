@@ -58,7 +58,7 @@ public class ImageView: UIImageView {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public func setup() {

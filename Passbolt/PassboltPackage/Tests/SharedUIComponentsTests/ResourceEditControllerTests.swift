@@ -108,7 +108,7 @@ final class ResourceEditControllerTests: TestCase {
     resourceForm.editResource = { resourceID in
       result = resourceID
       return Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     features.use(resourceForm)
@@ -143,7 +143,7 @@ final class ResourceEditControllerTests: TestCase {
         completion: { _ in /* NOP */ }
       )
     )
-    var result: TheError?
+    var result: TheErrorLegacy?
 
     controller
       .resourcePropertiesPublisher()
@@ -164,7 +164,7 @@ final class ResourceEditControllerTests: TestCase {
     var resultPassword: ResourceFieldValue?
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resourceForm.setFieldValue = { value, field in
@@ -175,7 +175,7 @@ final class ResourceEditControllerTests: TestCase {
         /* NOP */
       }
       return Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     var resultGenerate:
@@ -211,7 +211,7 @@ final class ResourceEditControllerTests: TestCase {
     let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue>, Never> = .init()
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resourceForm.fieldValuePublisher = always(
@@ -248,12 +248,12 @@ final class ResourceEditControllerTests: TestCase {
     var result: Void?
     resources.refreshIfNeeded = {
       Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
       Just("1")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resourceForm.featureUnload = {
@@ -263,7 +263,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resourceForm)
@@ -289,12 +289,12 @@ final class ResourceEditControllerTests: TestCase {
     resources.refreshIfNeeded = {
       result = Void()
       return Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
       Just("1")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resourceForm.featureUnload = {
@@ -303,7 +303,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resourceForm)
@@ -327,19 +327,19 @@ final class ResourceEditControllerTests: TestCase {
   func test_createResource_callsContextCompletionWithCreatedResourceID_whenSendingFormSucceeds() {
     resources.refreshIfNeeded = {
       Just(Void())
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
       Just("1")
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resourceForm.featureUnload = { true }
     features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     features.use(resourceForm)
@@ -365,7 +365,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
     )
     resourceForm.featureUnload = always(true)

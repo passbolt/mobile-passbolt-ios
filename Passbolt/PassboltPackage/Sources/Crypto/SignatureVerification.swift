@@ -34,7 +34,7 @@ public struct SignatureVerfication {
       _ input: Data,
       _ signature: Data,
       _ key: PEMRSAPublicKey
-    ) -> Result<Void, TheError>
+    ) -> Result<Void, TheErrorLegacy>
 }
 
 extension SignatureVerfication {
@@ -111,7 +111,7 @@ extension SignatureVerfication {
 
   public static var placeholder: Self {
     Self(
-      verify: Commons.placeholder("You have to provide mocks for used methods")
+      verify: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

@@ -40,7 +40,7 @@ extension FeatureConfigItem {
 public struct FeatureConfig {
 
   public var config: (FeatureConfigItem.Type) -> FeatureConfigItem?
-  public var fetchIfNeeded: () -> AnyPublisher<Void, TheError>
+  public var fetchIfNeeded: () -> AnyPublisher<Void, TheErrorLegacy>
 }
 
 extension FeatureConfig: Feature {
@@ -141,7 +141,7 @@ extension FeatureConfig: Feature {
       }
     }
 
-    func fetchIfNeeded() -> AnyPublisher<Void, TheError> {
+    func fetchIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
       lock.lock()
       let isFetched: Bool = all.isEmpty
       lock.unlock()
@@ -149,7 +149,7 @@ extension FeatureConfig: Feature {
       guard isFetched
       else {
         return Just(Void())
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
 
@@ -195,8 +195,8 @@ extension FeatureConfig {
 
   public static var placeholder: FeatureConfig {
     Self(
-      config: Commons.placeholder("You have to provide mocks for used methods"),
-      fetchIfNeeded: Commons.placeholder("You have to provide mocks for used methods")
+      config: unimplemented("You have to provide mocks for used methods"),
+      fetchIfNeeded: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

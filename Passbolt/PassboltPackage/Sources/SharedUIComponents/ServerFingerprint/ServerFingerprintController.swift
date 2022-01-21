@@ -29,7 +29,7 @@ import UIComponents
 public struct ServerFingerprintController {
 
   public var formattedFingerprint: () -> Fingerprint
-  public var saveFingerprintPublisher: () -> AnyPublisher<Void, TheError>
+  public var saveFingerprintPublisher: () -> AnyPublisher<Void, TheErrorLegacy>
   public var toggleFingerprintMarkedAsChecked: () -> Void
   public var fingerprintMarkedAsCheckedPublisher: () -> AnyPublisher<Bool, Never>
 }
@@ -55,7 +55,7 @@ extension ServerFingerprintController: UIController {
       .init(rawValue: context.fingerprint.rawValue.splitIntoGroups(of: 4).joined(separator: " "))
     }
 
-    func saveFingerprintPublisher() -> AnyPublisher<Void, TheError> {
+    func saveFingerprintPublisher() -> AnyPublisher<Void, TheErrorLegacy> {
       guard fingerprintMarkedAsCheckedSubject.value
       else {
         assertionFailure("Invalid state. Save fingerprint should be enabled")

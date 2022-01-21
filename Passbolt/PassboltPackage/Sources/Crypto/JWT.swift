@@ -90,7 +90,7 @@ extension JWT {
 
   private static func decode(
     _ token: String
-  ) -> Result<(header: Header, payload: Payload, signature: String), TheError> {
+  ) -> Result<(header: Header, payload: Payload, signature: String), TheErrorLegacy> {
     var components: Array<String> = token.components(separatedBy: ".")
 
     guard components.count == 3, let signature: Signature = components.popLast() else {
@@ -115,7 +115,7 @@ extension JWT {
   private static func decode<T: Decodable>(
     type: T.Type,
     from input: String?
-  ) -> Result<T, TheError> {
+  ) -> Result<T, TheErrorLegacy> {
     guard
       let value = input,
       let preprocessed: Data = value.base64DecodeFromURLEncoded()
@@ -124,13 +124,13 @@ extension JWT {
     }
 
     return Result(catching: { try jsonDecoder.decode(type, from: preprocessed) })
-      .mapError { TheError.jwtError(underlyingError: $0) }
+      .mapError { TheErrorLegacy.jwtError(underlyingError: $0) }
   }
 }
 
 extension JWT {
 
-  public static func from(rawValue: String) -> Result<Self, TheError> {
+  public static func from(rawValue: String) -> Result<Self, TheErrorLegacy> {
     JWT.decode(rawValue).map {
       .init(
         header: $0.header,

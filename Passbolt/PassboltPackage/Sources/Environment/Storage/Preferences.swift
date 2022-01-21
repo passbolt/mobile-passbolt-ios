@@ -189,9 +189,9 @@ extension Preferences {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      load: Commons.placeholder("You have to provide mocks for used methods"),
-      save: Commons.placeholder("You have to provide mocks for used methods"),
-      delete: Commons.placeholder("You have to provide mocks for used methods")
+      load: unimplemented("You have to provide mocks for used methods"),
+      save: unimplemented("You have to provide mocks for used methods"),
+      delete: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

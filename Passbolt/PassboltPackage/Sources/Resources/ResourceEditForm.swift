@@ -34,15 +34,15 @@ public struct ResourceEditForm {
 
   // sets currently edited resource, if it was not set default form creates new resource
   // note that editing resource will download and decrypt secrets to fill them in and allow editing
-  public var editResource: (Resource.ID) -> AnyPublisher<Void, TheError>
+  public var editResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
   // initial version supports only one type of resource type, so there is no method to change it
-  public var resourceTypePublisher: () -> AnyPublisher<ResourceType, TheError>
+  public var resourceTypePublisher: () -> AnyPublisher<ResourceType, TheErrorLegacy>
   // since currently the only field value is String we are not allowing other value types
-  public var setFieldValue: (ResourceFieldValue, ResourceField) -> AnyPublisher<Void, TheError>
+  public var setFieldValue: (ResourceFieldValue, ResourceField) -> AnyPublisher<Void, TheErrorLegacy>
   // prepare publisher for given field, publisher will complete when field will be no longer available
   public var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
   // send the form and create resource on server
-  public var sendForm: () -> AnyPublisher<Resource.ID, TheError>
+  public var sendForm: () -> AnyPublisher<Resource.ID, TheErrorLegacy>
   public var featureUnload: () -> Bool
 }
 
@@ -60,8 +60,8 @@ extension ResourceEditForm: Feature {
     let resources: Resources = features.instance()
 
     let editedResourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
-    let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheError> = .init(nil)
-    let resourceTypePublisher: AnyPublisher<ResourceType, TheError> =
+    let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheErrorLegacy> = .init(nil)
+    let resourceTypePublisher: AnyPublisher<ResourceType, TheErrorLegacy> =
       resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
     let formValuesSubject: CurrentValueSubject<Dictionary<ResourceField, Validated<ResourceFieldValue>>, Never> =
       .init(.init())
@@ -69,11 +69,11 @@ extension ResourceEditForm: Feature {
     // load initial resource type
     database
       .fetchResourcesTypesOperation()
-      .map { resourceTypes -> AnyPublisher<ResourceType, TheError> in
+      .map { resourceTypes -> AnyPublisher<ResourceType, TheErrorLegacy> in
         // in initial version we are supporting only one type of resource for being created
         if let resourceType: ResourceType = resourceTypes.first(where: \.isDefault) {
           return Just(resourceType)
-            .setFailureType(to: TheError.self)
+            .setFailureType(to: TheErrorLegacy.self)
             .eraseToAnyPublisher()
         }
         else {
@@ -123,7 +123,7 @@ extension ResourceEditForm: Feature {
 
     func editResource(
       _ resourceID: Resource.ID
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       assert(
         editedResourceIDSubject.value == nil,
         "Edited resource change is not supported"
@@ -268,12 +268,12 @@ extension ResourceEditForm: Feature {
     func setFieldValue(
       _ value: ResourceFieldValue,
       field: ResourceField
-    ) -> AnyPublisher<Void, TheError> {
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       resourceTypePublisher
-        .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, TheError> in
+        .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, TheErrorLegacy> in
           if let property: ResourceProperty = resourceType.properties.first(where: { $0.field == field }) {
             return Just(propertyValidator(for: property).validate(value))
-              .setFailureType(to: TheError.self)
+              .setFailureType(to: TheErrorLegacy.self)
               .eraseToAnyPublisher()
           }
           else {
@@ -310,13 +310,13 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
     }
 
-    func sendForm() -> AnyPublisher<Resource.ID, TheError> {
+    func sendForm() -> AnyPublisher<Resource.ID, TheErrorLegacy> {
       Publishers.CombineLatest3(
         editedResourceIDSubject
-          .setFailureType(to: TheError.self),
+          .setFailureType(to: TheErrorLegacy.self),
         resourceTypePublisher,
         formValuesSubject
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
       )
       .first()
       .map {
@@ -329,7 +329,7 @@ extension ResourceEditForm: Feature {
             fieldValues: Dictionary<ResourceField, ResourceFieldValue>,
             encodedSecret: String
           ),
-          TheError
+          TheErrorLegacy
         > in
         var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
         var secretFieldValues: Dictionary<ResourceField.RawValue, ResourceFieldValue> = .init()
@@ -343,11 +343,14 @@ extension ResourceEditForm: Feature {
           guard validatedValue.isValid
           else {
             return Fail(
-              error: .validationError(
-                displayable: .localized(
-                  key: "resource.form.error.invalid"
+              error:
+                InvalidForm
+                .error(
+                  displayable: .localized(
+                    key: "resource.form.error.invalid"
+                  )
                 )
-              )
+                .asLegacy
             )
             .eraseToAnyPublisher()
           }
@@ -389,11 +392,11 @@ extension ResourceEditForm: Feature {
             encodedSecret: encodedSecret
           )
         )
-        .setFailureType(to: TheError.self)
+        .setFailureType(to: TheErrorLegacy.self)
         .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .map { (resourceID, resourceTypeID, fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheError> in
+      .map { (resourceID, resourceTypeID, fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheErrorLegacy> in
         guard let name: String = fieldValues[.name]?.stringValue
         else {
           return Fail(error: .invalidOrMissingResourceType())
@@ -405,7 +408,7 @@ extension ResourceEditForm: Feature {
             accountSession
             .statePublisher()
             .first()
-            .map { sessionState -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheError> in
+            .map { sessionState -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheErrorLegacy> in
               switch sessionState {
               case .authorized, .authorizedMFARequired:
                 return
@@ -422,7 +425,7 @@ extension ResourceEditForm: Feature {
               }
             }
             .switchToLatest()
-            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheError> in
+            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheErrorLegacy> in
               networkClient
                 .updateResourceRequest
                 .make(
@@ -448,7 +451,9 @@ extension ResourceEditForm: Feature {
             .statePublisher()
             .first()
             .map {
-              sessionState -> AnyPublisher<Array<(userID: User.ID, encryptedMessage: ArmoredPGPMessage)>, TheError> in
+              sessionState -> AnyPublisher<
+                Array<(userID: User.ID, encryptedMessage: ArmoredPGPMessage)>, TheErrorLegacy
+              > in
               switch sessionState {
               case let .authorized(account), let .authorizedMFARequired(account, _):
                 return
@@ -466,7 +471,7 @@ extension ResourceEditForm: Feature {
               }
             }
             .switchToLatest()
-            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheError> in
+            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheErrorLegacy> in
               return
                 networkClient
                 .createResourceRequest
@@ -512,12 +517,12 @@ extension ResourceEditForm {
 
   public static var placeholder: ResourceEditForm {
     Self(
-      editResource: Commons.placeholder("You have to provide mocks for used methods"),
-      resourceTypePublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      setFieldValue: Commons.placeholder("You have to provide mocks for used methods"),
-      fieldValuePublisher: Commons.placeholder("You have to provide mocks for used methods"),
-      sendForm: Commons.placeholder("You have to provide mocks for used methods"),
-      featureUnload: Commons.placeholder("You have to provide mocks for used methods")
+      editResource: unimplemented("You have to provide mocks for used methods"),
+      resourceTypePublisher: unimplemented("You have to provide mocks for used methods"),
+      setFieldValue: unimplemented("You have to provide mocks for used methods"),
+      fieldValuePublisher: unimplemented("You have to provide mocks for used methods"),
+      sendForm: unimplemented("You have to provide mocks for used methods"),
+      featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

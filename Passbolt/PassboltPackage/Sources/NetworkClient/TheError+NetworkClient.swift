@@ -26,7 +26,7 @@ import Environment
 
 import struct Foundation.URL
 
-extension TheError {
+extension TheErrorLegacy {
 
   internal static func httpError(
     _ error: HTTPError
@@ -128,7 +128,7 @@ extension TheError {
   }
 }
 
-extension TheError.ID {
+extension TheErrorLegacy.ID {
 
   public static var httpError: Self { "httpError" }
   public static var networkResponseDecodingFailed: Self { "networkResponseDecodingFailed" }
@@ -141,12 +141,12 @@ extension TheError.ID {
   public static var serverNotReachable: Self { "serverNotReachable" }
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static var rawNetworkResponse: Self { "rawNetworkResponse" }
 }
 
-extension TheError.Extension {
+extension TheErrorLegacy.Extension {
 
   public static var mfaProviders: Self { "mfaProviders" }
   public static var redirectLocation: Self { "location" }
@@ -154,7 +154,7 @@ extension TheError.Extension {
   public static var url: Self { "url" }
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public var rawNetworkResponse: HTTPResponse? { extensions[.rawNetworkResponse] as? HTTPResponse }
   public var validationViolations: Dictionary<String, Any>? {
@@ -162,7 +162,7 @@ extension TheError {
   }
 }
 
-extension TheError {
+extension TheErrorLegacy {
 
   public var mfaProviders: Array<MFAProvider> { extensions[.mfaProviders] as? Array<MFAProvider> ?? [] }
   public var redirectLocation: String? { extensions[.redirectLocation] as? String }

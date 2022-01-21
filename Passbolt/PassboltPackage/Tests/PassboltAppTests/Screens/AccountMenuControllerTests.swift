@@ -315,24 +315,24 @@ final class AccountMenuControllerTests: TestCase {
 
 private final class TestComponent: UIViewController, AnyUIComponent {
 
-  var lazyView: UIView { placeholder() }
+  var lazyView: UIView { unimplemented() }
 
-  var components: UIComponentFactory { placeholder() }
+  var components: UIComponentFactory { unimplemented() }
 
   func setup() {
-    placeholder()
+    unimplemented()
   }
 
   func setupView() {
-    placeholder()
+    unimplemented()
   }
 
   func activate() {
-    placeholder()
+    unimplemented()
   }
 
   func deactivate() {
-    placeholder()
+    unimplemented()
   }
 }
 

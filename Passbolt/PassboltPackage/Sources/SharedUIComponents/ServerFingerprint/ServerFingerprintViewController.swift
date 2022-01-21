@@ -78,7 +78,7 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
 
     self.contentView.acceptTapPublisher
       .receive(on: RunLoop.main)
-      .map { [unowned self] _ -> AnyPublisher<Void, TheError> in
+      .map { [unowned self] _ -> AnyPublisher<Void, TheErrorLegacy> in
         self.controller.saveFingerprintPublisher()
           .eraseToAnyPublisher()
       }

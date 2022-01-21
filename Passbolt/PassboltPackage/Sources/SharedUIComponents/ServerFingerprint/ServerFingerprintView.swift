@@ -37,7 +37,7 @@ public final class ServerFingerprintView: ScrolledStackView {
 
   @available(*, unavailable, message: "use init(fingerprint:")
   public required init() {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   public init(fingerprint: String) {

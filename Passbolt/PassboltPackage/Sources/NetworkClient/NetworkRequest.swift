@@ -27,7 +27,7 @@ import Environment
 
 public struct NetworkRequest<SessionVariable, Variable, Response> {
 
-  public var execute: (Variable) -> AnyPublisher<Response, TheError>
+  public var execute: (Variable) -> AnyPublisher<Response, TheErrorLegacy>
 }
 
 extension NetworkRequest {
@@ -36,7 +36,7 @@ extension NetworkRequest {
     template: NetworkRequestTemplate<SessionVariable, Variable>,
     responseDecoder: NetworkResponseDecoding<SessionVariable, Variable, Response>,
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<SessionVariable, TheError>
+    with sessionVariablePublisher: AnyPublisher<SessionVariable, TheErrorLegacy>
   ) {
     self.execute = { requestVariable in
       sessionVariablePublisher
@@ -51,17 +51,17 @@ extension NetworkRequest {
               )
           )
         }
-        .map { sessionVariable, request -> AnyPublisher<Response, TheError> in
+        .map { sessionVariable, request -> AnyPublisher<Response, TheErrorLegacy> in
           networking
             .make(request, useCache: template.cacheResponse)
-            .mapError { error -> TheError in
+            .mapError { error -> TheErrorLegacy in
               switch error {
               case let .cannotConnect(url), let .timeout(url):
-                return TheError.serverNotReachable(url: url, underlyingError: error)
+                return TheErrorLegacy.serverNotReachable(url: url, underlyingError: error)
               case .invalidRequest, .invalidResponse, .other:
-                return TheError.httpError(error)
+                return TheErrorLegacy.httpError(error)
               case .canceled:
-                return TheError.canceled
+                return TheErrorLegacy.canceled
               }
             }
             .map(withResultAsPublisher({ responseDecoder.decode(sessionVariable, requestVariable, $0) }))
@@ -78,14 +78,14 @@ extension NetworkRequest {
 
   public func make(
     using variable: Variable
-  ) -> AnyPublisher<Response, TheError> {
+  ) -> AnyPublisher<Response, TheErrorLegacy> {
     execute(variable)
   }
 }
 
 extension NetworkRequest where Variable == Void {
 
-  public func make() -> AnyPublisher<Response, TheError> {
+  public func make() -> AnyPublisher<Response, TheErrorLegacy> {
     execute(Void())
   }
 }
@@ -96,12 +96,12 @@ extension NetworkRequest {
   // placeholder implementation for mocking and testing, unavailable in release
   public static var placeholder: Self {
     Self(
-      execute: Commons.placeholder("You have to provide mocks for used methods")
+      execute: unimplemented("You have to provide mocks for used methods")
     )
   }
 
   public static func respondingWith(
-    _ publisher: AnyPublisher<Response, TheError>,
+    _ publisher: AnyPublisher<Response, TheErrorLegacy>,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
@@ -120,20 +120,20 @@ extension NetworkRequest {
       execute: { variable in
         requestVariableReference?.pointee = variable
         return Just(response)
-          .setFailureType(to: TheError.self)
+          .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
       }
     )
   }
 
   public static func failingWith(
-    _ error: TheError,
+    _ error: TheErrorLegacy,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
       execute: { variable in
         requestVariableReference?.pointee = variable
-        return Fail<Response, TheError>(error: error)
+        return Fail<Response, TheErrorLegacy>(error: error)
           .eraseToAnyPublisher()
       }
     )

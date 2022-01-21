@@ -70,7 +70,7 @@ open class TextField: UITextField {
 
   @available(*, unavailable)
   public required init?(coder: NSCoder) {
-    unreachable("\(Self.self).\(#function) should not be used")
+    unreachable(#function)
   }
 
   override open func textRect(forBounds bounds: CGRect) -> CGRect {
