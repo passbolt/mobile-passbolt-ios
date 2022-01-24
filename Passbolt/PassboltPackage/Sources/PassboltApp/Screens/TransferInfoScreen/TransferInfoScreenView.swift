@@ -143,7 +143,7 @@ public final class TransferInfoScreenView: ScrolledStackView {
     let imageContainer: ContainerView = .init(
       contentView: imageView,
       mutation: .combined(
-        .image(dynamic: .qrCodeSample),
+        .image(named: .qrCodeSample, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .widthAnchor(.equalTo, imageView.heightAnchor)
       ),

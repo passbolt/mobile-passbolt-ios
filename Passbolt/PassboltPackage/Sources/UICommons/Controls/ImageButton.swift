@@ -25,10 +25,10 @@ import AegithalosCocoa
 
 public final class ImageButton: Button {
 
-  public lazy var dynamicImage: DynamicImage = .default(self.imageView.image) {
+  public lazy var image: UIImage = imageView.image ?? UIImage() {
     didSet {
-      if (!isPressed || dynamicPressedImage == nil) && (isEnabled || dynamicDisabledImage == nil) {
-        self.imageView.dynamicImage = dynamicImage
+      if (!isPressed || pressedImage == nil) && (isEnabled || disabledImage == nil) {
+        self.imageView.image = image
       }
       else {
         /* NOP */
@@ -36,13 +36,13 @@ public final class ImageButton: Button {
     }
   }
 
-  public var dynamicPressedImage: DynamicImage? {
+  public var pressedImage: UIImage? {
     didSet {
-      if let dynamicPressedImage: DynamicImage = dynamicPressedImage, isPressed && isEnabled {
-        self.imageView.dynamicImage = dynamicPressedImage
+      if let pressedImage: UIImage = pressedImage, isPressed && isEnabled {
+        self.imageView.image = pressedImage
       }
       else if isPressed && isEnabled {
-        self.imageView.dynamicImage = dynamicImage
+        self.imageView.image = image
       }
       else {
         /* NOP */
@@ -50,13 +50,13 @@ public final class ImageButton: Button {
     }
   }
 
-  public var dynamicDisabledImage: DynamicImage? {
+  public var disabledImage: UIImage? {
     didSet {
-      if let dynamicDisabledImage: DynamicImage = dynamicDisabledImage, !isEnabled {
-        self.imageView.dynamicImage = dynamicDisabledImage
+      if let disabledImage: UIImage = disabledImage, !isEnabled {
+        self.imageView.image = disabledImage
       }
       else if !isEnabled {
-        self.imageView.dynamicImage = dynamicImage
+        self.imageView.image = image
       }
       else {
         /* NOP */
@@ -89,29 +89,29 @@ public final class ImageButton: Button {
 
   override internal func pressed() {
     super.pressed()
-    guard let pressedImage = dynamicPressedImage?(in: traitCollection.userInterfaceStyle) else { return }
+    guard let pressedImage = pressedImage else { return }
     imageView.image = pressedImage
   }
 
   override internal func released() {
     super.released()
-    imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
+    imageView.image = image
   }
 
   override internal func enabled() {
     super.enabled()
 
     if isPressed {
-      imageView.image = dynamicPressedImage?(in: traitCollection.userInterfaceStyle)
+      imageView.image = pressedImage
     }
     else {
-      imageView.image = dynamicImage(in: traitCollection.userInterfaceStyle)
+      imageView.image = image
     }
   }
 
   override internal func disabled() {
     super.disabled()
-    guard let disabledImage = dynamicDisabledImage?(in: traitCollection.userInterfaceStyle) else { return }
+    guard let disabledImage = disabledImage else { return }
     imageView.image = disabledImage
   }
 
@@ -124,23 +124,6 @@ public final class ImageButton: Button {
         .rightAnchor(.equalTo, self.rightAnchor, referenceOutput: &self.rightImageConstraint),
         .bottomAnchor(.equalTo, self.bottomAnchor, referenceOutput: &self.bottomImageConstraint)
       )
-    }
-  }
-
-  override internal func updateColors() {
-    super.updateColors()
-
-    let interfaceStyle: UIUserInterfaceStyle = traitCollection.userInterfaceStyle
-
-    switch (isEnabled, isPressed) {
-    case (false, false), (false, true):
-      imageView.image = dynamicDisabledImage?(in: interfaceStyle) ?? dynamicImage(in: interfaceStyle)
-
-    case (true, false):
-      imageView.image = dynamicImage(in: interfaceStyle)
-
-    case (true, true):
-      imageView.image = dynamicPressedImage?(in: interfaceStyle) ?? dynamicImage(in: interfaceStyle)
     }
   }
 }

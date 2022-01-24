@@ -58,7 +58,7 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
     }
     contentView
       .applyOn(
-        image: .image(dynamic: .successMark)
+        image: .image(named: .successMark, from: .uiCommons)
       )
     contentView
       .applyOn(

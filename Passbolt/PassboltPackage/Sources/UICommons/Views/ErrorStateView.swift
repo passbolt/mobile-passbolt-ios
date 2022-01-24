@@ -40,7 +40,7 @@ open class ErrorStateView: ScrolledStackView {
 
     mut(imageView) {
       .combined(
-        .image(dynamic: .errorState)
+        .image(named: .errorState, from: .uiCommons)
       )
     }
 

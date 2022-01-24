@@ -48,10 +48,9 @@ internal final class BiometricsInfoView: ScrolledStackView {
       .backgroundColor(dynamic: .background)
     }
 
-    #warning("TODO: replace image with generic graphic when available")
     mut(imageView) {
       .combined(
-        .image(dynamic: .biometrics),
+        .image(named: .biometrics, from: .uiCommons),
         .subview(of: imageContainer),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),

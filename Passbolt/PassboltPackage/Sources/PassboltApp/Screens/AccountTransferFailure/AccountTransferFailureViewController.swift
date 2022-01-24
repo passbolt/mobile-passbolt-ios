@@ -58,7 +58,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
     }
     contentView
       .applyOn(
-        image: .image(dynamic: .failureMark)
+        image: .image(named: .failureMark, from: .uiCommons)
       )
 
     switch controller.failureReason() {

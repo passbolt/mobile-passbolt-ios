@@ -39,7 +39,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     let logoContainer: ContainerView = .init(
       contentView: logoImageView,
       mutation: .combined(
-        .image(dynamic: .passboltLogo),
+        .image(named: .passboltLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .accessibilityIdentifier("welcome.app.logo.imageview")
       ),
@@ -50,7 +50,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
     let accountsContainer: ContainerView = .init(
       contentView: accountsImageView,
       mutation: .combined(
-        .image(dynamic: .accountsSkeleton),
+        .image(named: .accountsSkeleton, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .widthAnchor(.equalTo, accountsImageView.heightAnchor),
         .accessibilityIdentifier("welcome.accounts.imageview")

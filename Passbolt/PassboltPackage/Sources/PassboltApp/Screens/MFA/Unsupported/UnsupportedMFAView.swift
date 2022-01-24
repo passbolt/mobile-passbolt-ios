@@ -46,7 +46,7 @@ internal final class UnsupportedMFAView: View {
 
     resultView
       .applyOn(
-        image: .image(dynamic: .failureMark)
+        image: .image(named: .failureMark, from: .uiCommons)
       )
     resultView
       .applyOn(

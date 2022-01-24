@@ -103,7 +103,7 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
           let image: UIImage = .init(data: data)
         else { return }
 
-        self?.avatarButton.dynamicImage = .default(image)
+        self?.avatarButton.image = image
       }
       .store(in: cancellables)
 

@@ -38,7 +38,7 @@ internal final class NoAccountsView: ScrolledStackView {
     let logoContainer: ContainerView = .init(
       contentView: logoImageView,
       mutation: .combined(
-        .image(dynamic: .passboltLogo),
+        .image(named: .passboltLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .accessibilityIdentifier("no.accounts.logo.imageview")
       ),
@@ -49,7 +49,7 @@ internal final class NoAccountsView: ScrolledStackView {
     let accountsContainer: ContainerView = .init(
       contentView: accountsImageView,
       mutation: .combined(
-        .image(dynamic: .accountsSkeleton),
+        .image(named: .accountsSkeleton, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .widthAnchor(.equalTo, accountsImageView.heightAnchor),
         .accessibilityIdentifier("no.accounts.imageview")

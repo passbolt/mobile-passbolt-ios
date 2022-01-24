@@ -59,7 +59,7 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
     }
     contentView
       .applyOn(
-        image: .image(dynamic: .duplicateMark)
+        image: .image(named: .duplicateMark, from: .uiCommons)
       )
     contentView
       .applyOn(

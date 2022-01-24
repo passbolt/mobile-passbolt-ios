@@ -109,7 +109,7 @@ internal final class ResourcesFilterView: View {
   }
 
   internal func setAvatarImage(_ image: UIImage) {
-    avatarButton.dynamicImage = .default(image)
+    avatarButton.image = image
   }
 
   internal func setResourcesView(_ view: UIView) {

@@ -40,10 +40,6 @@ extension Mutation where Subject: ImageView {
     }
   }
 
-  public static func image(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
-
   public static func image(system name: String) -> Self {
     .custom { (subject: Subject) in subject.image = UIImage(systemName: name) }
   }

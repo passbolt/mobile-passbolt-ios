@@ -50,7 +50,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
-        .image(dynamic: .accountsSkeleton),
+        .image(named: .accountsSkeleton, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),
         .bottomAnchor(.equalTo, imageContainer.bottomAnchor),
@@ -123,7 +123,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
 
     case .configuredTouchID:
       mut(imageView) {
-        .image(dynamic: .touchIDSetup)
+        .image(named: .touchIDSetup, from: .uiCommons)
       }
       mut(titleLabel) {
         .text(displayable: .localized(key: "biometrics.setup.title.finger"))
@@ -134,7 +134,7 @@ internal final class BiometricsSetupView: ScrolledStackView {
 
     case .configuredFaceID:
       mut(imageView) {
-        .image(dynamic: .faceIDSetup)
+        .image(named: .faceIDSetup, from: .uiCommons)
       }
       mut(titleLabel) {
         .text(displayable: .localized(key: "biometrics.setup.title.face"))

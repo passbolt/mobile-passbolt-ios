@@ -25,37 +25,54 @@ import AegithalosCocoa
 
 extension Mutation where Subject: ImageButton {
 
-  public static func dynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicImage = image }
-  }
-
-  public static func pressedDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicPressedImage = image }
-  }
-
-  public static func disabledDynamicImage(dynamic image: DynamicImage) -> Self {
-    .custom { (subject: Subject) in subject.dynamicDisabledImage = image }
-  }
-
-  public static func image(symbol name: SymbolNameConstant) -> Self {
-    .custom { (subject: Subject) in
-      subject.dynamicImage = .default(UIImage(systemName: name.rawValue))
-    }
-  }
-
-  @inlinable public static func image(
+  public static func image(
     named imageName: ImageNameConstant,
     from bundle: Bundle? = nil,
     compatibleWith traitCollection: UITraitCollection? = nil
   ) -> Self {
-    Self { (subject: Subject) in
-      let image: UIImage? = UIImage(
+    .custom { (subject: Subject) in
+      guard let image: UIImage = UIImage(
         named: imageName.rawValue,
         in: bundle,
         compatibleWith: traitCollection
       )
+      else { return }
 
-      subject.dynamicImage = .default(image)
+      subject.image = image
+    }
+  }
+
+  public static func pressedImage(
+    named imageName: ImageNameConstant,
+    from bundle: Bundle? = nil,
+    compatibleWith traitCollection: UITraitCollection? = nil
+  ) -> Self {
+    .custom { (subject: Subject) in
+      guard let image: UIImage = UIImage(
+        named: imageName.rawValue,
+        in: bundle,
+        compatibleWith: traitCollection
+      )
+      else { return }
+
+      subject.pressedImage = image
+    }
+  }
+
+  public static func disabledImage(
+    named imageName: ImageNameConstant,
+    from bundle: Bundle? = nil,
+    compatibleWith traitCollection: UITraitCollection? = nil
+  ) -> Self {
+    .custom { (subject: Subject) in
+      guard let image: UIImage = UIImage(
+        named: imageName.rawValue,
+        in: bundle,
+        compatibleWith: traitCollection
+      )
+      else { return }
+
+      subject.disabledImage = image
     }
   }
 

@@ -56,7 +56,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
       .combined(
         .iconView(
           Mutation<ImageView>
-            .image(dynamic: .settingsIcon)
+            .image(named: .settingsIcon, from: .uiCommons)
             .instantiate()
         ),
         .label(
@@ -77,7 +77,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
       .combined(
         .iconView(
           Mutation<ImageView>
-            .image(dynamic: .keyboardIcon)
+            .image(named: .keyboardIcon, from: .uiCommons)
             .instantiate()
         ),
         .label(
@@ -98,7 +98,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
       .combined(
         .iconView(
           Mutation<ImageView>
-            .image(dynamic: .switchIcon)
+            .image(named: .switchIcon, from: .uiCommons)
             .instantiate()
         ),
         .label(
@@ -119,7 +119,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
       .combined(
         .iconView(
           Mutation<ImageView>
-            .image(dynamic: .keychainIcon)
+            .image(named: .keychainIcon, from: .uiCommons)
             .instantiate()
         ),
         .label(
@@ -140,7 +140,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
       .combined(
         .iconView(
           Mutation<ImageView>
-            .image(dynamic: .passboltIcon)
+            .image(named: .passboltIcon, from: .uiCommons)
             .instantiate()
         ),
         .label(

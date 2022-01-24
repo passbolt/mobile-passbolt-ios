@@ -88,7 +88,7 @@ internal final class AccountSelectionView: View {
     mut(logoImageView) {
       .combined(
         .subview(of: logoContainer),
-        .image(dynamic: .passboltLogo),
+        .image(named: .passboltLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, logoContainer.topAnchor),
         .bottomAnchor(.equalTo, logoContainer.bottomAnchor),

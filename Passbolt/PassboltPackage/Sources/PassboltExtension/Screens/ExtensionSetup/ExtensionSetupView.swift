@@ -43,7 +43,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
     mut(imageView) {
       .combined(
         .subview(of: imageContainer),
-        .image(dynamic: .successMark),
+        .image(named: .successMark, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),
         .bottomAnchor(.equalTo, imageContainer.bottomAnchor),

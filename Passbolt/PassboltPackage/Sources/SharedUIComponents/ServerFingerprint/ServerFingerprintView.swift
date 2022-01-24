@@ -46,7 +46,7 @@ public final class ServerFingerprintView: ScrolledStackView {
     let logoContainer: ContainerView = .init(
       contentView: logoImageView,
       mutation: .combined(
-        .image(dynamic: .passboltLogo),
+        .image(named: .passboltLogo, from: .uiCommons),
         .contentMode(.scaleAspectFit)
       ),
       widthMultiplier: 0.4,

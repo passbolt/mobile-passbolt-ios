@@ -45,7 +45,7 @@ internal final class YubikeyView: View {
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .contentMode(.scaleAspectFit),
-        .image(dynamic: .yubikeyLogo)
+        .image(named: .yubikeyLogo, from: .uiCommons)
       )
     }
 

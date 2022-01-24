@@ -58,7 +58,7 @@ internal final class TOTPView: KeyboardAwareView {
     let imageView: ImageView = .init()
     mut(imageView) {
       .combined(
-        .image(dynamic: .totp),
+        .image(named: .totp, from: .uiCommons),
         .subview(of: imageContainer),
         .contentMode(.scaleAspectFit),
         .topAnchor(.equalTo, imageContainer.topAnchor),

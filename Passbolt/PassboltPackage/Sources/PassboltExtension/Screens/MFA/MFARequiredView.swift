@@ -35,7 +35,7 @@ internal final class MFARequiredView: ScrolledStackView {
     }
 
     resultView.applyOn(
-      image: .image(dynamic: .failureMark)
+      image: .image(named: .failureMark, from: .uiCommons)
     )
 
     resultView.applyOn(

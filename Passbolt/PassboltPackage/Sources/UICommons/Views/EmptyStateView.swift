@@ -52,7 +52,7 @@ open class EmptyStateView: View {
     let imageContainer: ContainerView = .init(
       contentView: imageView,
       mutation: .combined(
-        .image(dynamic: .emptyState),
+        .image(named: .emptyState, from: .uiCommons),
         .contentMode(.scaleAspectFit)
       ),
       widthMultiplier: 0.7,

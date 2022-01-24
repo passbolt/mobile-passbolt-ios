@@ -45,7 +45,7 @@ internal final class AccountNotFoundView: ScrolledStackView {
     let imageView: ImageView = .init()
     mut(imageView) {
       .combined(
-        .image(dynamic: .failureMark),
+        .image(named: .failureMark, from: .uiCommons),
         .contentMode(.scaleAspectFit),
         .widthAnchor(.equalTo, imageView.heightAnchor),
         .subview(of: self),
