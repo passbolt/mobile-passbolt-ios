@@ -247,7 +247,8 @@ extension DiagnosticsContext {
     _ contexts: Array<DiagnosticsContext>
   ) -> Self {
     Self(
-      infoStack: contexts
+      infoStack:
+        contexts
         .reduce(
           into: .init(),
           { result, context in

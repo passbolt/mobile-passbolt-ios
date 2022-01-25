@@ -226,7 +226,7 @@ final class AccountTransferTests: TestCase {
 
   func test_processPayload_fails_withValidContentAndNetworkResponseFailure() {
     var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .failingWith(.testError())
+    networkClient.accountTransferUpdate = .failingWith(MockIssue.error())
     features.use(networkClient)
     features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
@@ -247,8 +247,7 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
-    XCTAssertEqual(result?.context, "next-page-request")
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_processPayload_succeeds_withValidContent() {

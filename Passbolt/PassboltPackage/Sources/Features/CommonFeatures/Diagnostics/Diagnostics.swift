@@ -54,6 +54,7 @@ extension Diagnostics {
     case none
     case variable(StaticString)
     case variables(StaticString, StaticString)
+    case unsafeVariable(String)
   }
 }
 
@@ -108,6 +109,9 @@ extension Diagnostics: Feature {
 
         case let .variables(first, second):
           os_log(.info, log: diagnosticLog, message, first.description, second.description)
+
+        case let .unsafeVariable(string):
+          os_log(.info, log: diagnosticLog, message, string)
         }
       },
       deviceInfo: {
@@ -211,6 +215,13 @@ extension Diagnostics {
     _ second: StaticString
   ) {
     self.diagnosticLog(message, .variables(first, second))
+  }
+
+  public func diagnosticLog(
+    _ message: StaticString,
+    unsafeVariable: String
+  ) {
+    self.diagnosticLog(message, .unsafeVariable(unsafeVariable))
   }
 
   // drop all diagnostics

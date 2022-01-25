@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import UICommons
 
 internal final class ResourceDetailsView: ScrolledStackView {

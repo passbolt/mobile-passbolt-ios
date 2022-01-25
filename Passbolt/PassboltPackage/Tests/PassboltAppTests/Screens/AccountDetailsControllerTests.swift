@@ -159,7 +159,7 @@ final class AccountDetailsControllerTests: TestCase {
         receiveValue: { /* NOP */  }
       )
       .store(in: cancellables)
-    
+
     XCTAssertTrue(result?.isLegacyBridge(for: InvalidForm.self))
   }
 

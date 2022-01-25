@@ -65,11 +65,16 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           }
           .handleErrors(
             (
-              [.canceled, .authorizationRequired, .missingSession],
+              [.canceled, .authorizationRequired],
               handler: { _ in true /* NOP */ }
             ),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
+            defaultHandler: { [weak self] error in
+              if let displayable: DisplayableString = error.displayableString {
+                self?.presentErrorSnackbar(displayable)
+              }
+              else {
+                self?.presentErrorSnackbar()
+              }
             }
           )
           .mapToVoid()
@@ -233,8 +238,13 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                     [.canceled],
                     handler: { _ in true /* NOP */ }
                   ),
-                  defaultHandler: { [weak self] _ in
-                    self?.presentErrorSnackbar()
+                  defaultHandler: { [weak self] error in
+                    if let displayable: DisplayableString = error.displayableString {
+                      self?.presentErrorSnackbar(displayable)
+                    }
+                    else {
+                      self?.presentErrorSnackbar()
+                    }
                   }
                 )
                 .handleEnd { [weak self] ending in

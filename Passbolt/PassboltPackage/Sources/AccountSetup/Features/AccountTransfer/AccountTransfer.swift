@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import CommonDataModels
+import CommonModels
 import Commons
 import Crypto
 import Features
@@ -171,6 +171,7 @@ extension AccountTransfer: Feature {
               urlString: $0.avatarImageURL
             )
           )
+          .mapErrorsToLegacy()
       }
       .switchToLatest()
       .eraseToAnyPublisher()
@@ -571,6 +572,7 @@ private func requestNextPage(
         requestUserProfile: false
       )
     )
+    .mapErrorsToLegacy()
     .ignoreOutput()
     .mapError { $0.appending(context: "next-page-request") }
     .eraseToAnyPublisher()
@@ -602,6 +604,7 @@ private func requestNextPageWithUserProfile(
         requestUserProfile: true
       )
     )
+    .mapErrorsToLegacy()
     .map { response -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheErrorLegacy> in
       if let user: AccountTransferUpdateResponseBody.User = response.body.user {
         return Just(user)
@@ -639,6 +642,7 @@ private func requestCancelation(
         requestUserProfile: false
       )
     )
+    .mapErrorsToLegacy()
     .mapToVoid()
     .eraseToAnyPublisher()
   if let error: TheErrorLegacy = error {

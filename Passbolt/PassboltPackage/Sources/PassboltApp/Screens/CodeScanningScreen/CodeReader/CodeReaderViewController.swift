@@ -21,6 +21,7 @@
 // @since         v1.0
 
 import AVFoundation
+import CommonModels
 import SharedUIComponents
 import UIComponents
 
@@ -143,16 +144,6 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       .handleErrors(
         ([.canceled, .duplicateAccount], handler: { _ in true /* NOP */ }),
         (
-          [.serverNotReachable],
-          handler: { [weak self] error in
-            self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: error.url
-            )
-            return true
-          }
-        ),
-        (
           [.accountTransferScanningRecoverableError],
           handler: { [weak self] error in
             guard error.context?.contains("invalid-version-or-code") ?? false
@@ -166,15 +157,45 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
             return true
           }
         ),
-        defaultHandler: { [weak self] _ in
-          self?.present(
-            snackbar: Mutation<UICommons.View>
-              .snackBarErrorMessage(
-                .localized(key: .genericErrorRetry)
+        defaultHandler: { [weak self] error in
+          if let theError: TheError = error.legacyBridge {
+            if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
               )
-              .instantiate(),
-            hideAfter: 3
-          )
+            }
+            else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
+            }
+            else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
+            }
+            else {
+              self?.presentErrorSnackbar(theError.displayableMessage)
+            }
+          }
+          else {
+            if let displayable: DisplayableString = error.displayableString {
+              self?.presentErrorSnackbar(displayable)
+            }
+            else {
+              self?.present(
+                snackbar: Mutation<UICommons.View>
+                  .snackBarErrorMessage(
+                    .localized(key: .genericErrorRetry)
+                  )
+                  .instantiate(),
+                hideAfter: 3
+              )
+            }
+          }
         }
       )
       .handleEnd { [weak self] ending in

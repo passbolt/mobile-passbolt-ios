@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import Commons
 import Crypto
 import Features
@@ -56,7 +56,7 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userProfileRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -76,7 +76,7 @@ final class UserPGPMessagesTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_encryptMessageForUser_fails_whenPublicKeyVerificationFails() {
@@ -117,7 +117,7 @@ final class UserPGPMessagesTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -182,7 +182,7 @@ final class UserPGPMessagesTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -248,7 +248,7 @@ final class UserPGPMessagesTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -273,7 +273,7 @@ final class UserPGPMessagesTests: TestCase {
     features.use(accountSession)
     features.use(database)
     networkClient.userListRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -293,7 +293,7 @@ final class UserPGPMessagesTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_encryptMessageForResourceUsers_fails_whenPublicKeyVerificationFails() {
@@ -340,7 +340,7 @@ final class UserPGPMessagesTests: TestCase {
           ]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -407,7 +407,7 @@ final class UserPGPMessagesTests: TestCase {
           ]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -490,7 +490,7 @@ final class UserPGPMessagesTests: TestCase {
           ]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)

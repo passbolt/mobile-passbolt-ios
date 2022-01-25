@@ -22,7 +22,7 @@
 //
 
 import Combine
-import CommonDataModels
+import CommonModels
 import Crypto
 import Features
 import NetworkClient
@@ -196,6 +196,7 @@ extension AccountSettings: Feature {
       networkClient
         .userProfileRequest
         .make(using: .init(userID: account.userID.rawValue))
+        .mapErrorsToLegacy()
         .map { response -> AnyPublisher<Void, TheErrorLegacy> in
           updateProfile(for: account.localID) { profile in
             profile.firstName = response.body.profile.firstName

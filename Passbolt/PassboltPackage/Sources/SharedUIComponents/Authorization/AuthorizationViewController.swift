@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import CommonDataModels
+import CommonModels
 import Crypto
 import Foundation
 import UIComponents
@@ -307,18 +307,8 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       }
       .handleErrors(
         (
-          [.canceled, .notFound, .invalidServerFingerprint],
+          [.canceled, .invalidServerFingerprint],
           handler: { _ in true /* NOP */ }
-        ),
-        (
-          [.serverNotReachable],
-          handler: { [weak self] error in
-            self?.present(
-              ServerNotReachableAlertViewController.self,
-              in: error.url
-            )
-            return true
-          }
         ),
         (
           [.invalidPassphraseError],
@@ -344,8 +334,38 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
             return true
           }
         ),
-        defaultHandler: { [weak self] _ in
-          self?.presentErrorSnackbar()
+        defaultHandler: { [weak self] error in
+          if let theError: TheError = error.legacyBridge {
+            if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
+            }
+            else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
+            }
+            else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
+              self?.present(
+                ServerNotReachableAlertViewController.self,
+                in: serverError.serverURL
+              )
+            }
+            else {
+              self?.presentErrorSnackbar(theError.displayableMessage)
+            }
+          }
+          else {
+            if let displayable: DisplayableString = error.displayableString {
+              self?.presentErrorSnackbar(displayable)
+            }
+            else {
+              self?.presentErrorSnackbar()
+            }
+          }
         }
       )
       .handleEnd { [weak self] ending in

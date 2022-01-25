@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import CommonDataModels
+import CommonModels
 import Crypto
 import Features
 import NetworkClient
@@ -439,6 +439,7 @@ extension ResourceEditForm: Feature {
                     secrets: encryptedSecrets.map { (userID: $0.rawValue, data: $1.rawValue) }
                   )
                 )
+                .mapErrorsToLegacy()
                 .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
                 .eraseToAnyPublisher()
             }
@@ -485,6 +486,7 @@ extension ResourceEditForm: Feature {
                     secretData: encryptedSecrets.first?.encryptedMessage.rawValue ?? ""
                   )
                 )
+                .mapErrorsToLegacy()
                 .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
                 .eraseToAnyPublisher()
             }

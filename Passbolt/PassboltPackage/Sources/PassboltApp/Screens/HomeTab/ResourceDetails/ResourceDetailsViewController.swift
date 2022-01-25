@@ -132,17 +132,22 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           )
           .handleErrors(
             ([.canceled, .authorizationRequired], handler: { _ in return true }),
-            defaultHandler: { [weak self] _ in
-              self?.present(
-                snackbar: Mutation<UICommons.View>
-                  .snackBarErrorMessage(
-                    .localized(
-                      key: .genericError
+            defaultHandler: { [weak self] error in
+              if let displayable: DisplayableString = error.displayableString {
+                self?.presentErrorSnackbar(displayable)
+              }
+              else {
+                self?.present(
+                  snackbar: Mutation<UICommons.View>
+                    .snackBarErrorMessage(
+                      .localized(
+                        key: .genericError
+                      )
                     )
-                  )
-                  .instantiate(),
-                hideAfter: 2
-              )
+                    .instantiate(),
+                  hideAfter: 2
+                )
+              }
             }
           )
           .mapToVoid()
@@ -201,8 +206,13 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           })
           .handleErrors(
             ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
+            defaultHandler: { [weak self] error in
+              if let displayable: DisplayableString = error.displayableString {
+                self?.presentErrorSnackbar(displayable)
+              }
+              else {
+                self?.presentErrorSnackbar()
+              }
             }
           )
           .mapToVoid()
@@ -262,8 +272,13 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                     [.canceled, .authorizationRequired],
                     handler: { _ in true /* NOP */ }
                   ),
-                  defaultHandler: { [weak self] _ in
-                    self?.presentErrorSnackbar()
+                  defaultHandler: { [weak self] error in
+                    if let displayable: DisplayableString = error.displayableString {
+                      self?.presentErrorSnackbar(displayable)
+                    }
+                    else {
+                      self?.presentErrorSnackbar()
+                    }
                   }
                 )
                 .handleEnd { [weak self] ending in

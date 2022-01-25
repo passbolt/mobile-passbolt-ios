@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import CommonDataModels
+import CommonModels
 import Resources
 import UIComponents
 

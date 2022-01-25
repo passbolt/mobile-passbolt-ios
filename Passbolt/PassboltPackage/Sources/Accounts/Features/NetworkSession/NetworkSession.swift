@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import Commons
 import Crypto
 import Features
@@ -187,7 +187,7 @@ extension NetworkSession: Feature {
 
     func fetchServerPublicPGPKey(
       domain: URLString
-    ) -> AnyPublisher<ArmoredPGPPublicKey, TheErrorLegacy> {
+    ) -> AnyPublisher<ArmoredPGPPublicKey, Error> {
       networkClient
         .serverPGPPublicKeyRequest
         .make(using: .init(domain: domain))
@@ -202,7 +202,7 @@ extension NetworkSession: Feature {
 
     func fetchServerPublicRSAKey(
       domain: URLString
-    ) -> AnyPublisher<PEMRSAPublicKey, TheErrorLegacy> {
+    ) -> AnyPublisher<PEMRSAPublicKey, Error> {
       networkClient
         .serverRSAPublicKeyRequest
         .make(using: .init(domain: domain))
@@ -223,6 +223,7 @@ extension NetworkSession: Feature {
         fetchServerPublicPGPKey(domain: domain),
         fetchServerPublicRSAKey(domain: domain)
       )
+      .mapErrorsToLegacy()
       .map { (publicPGP: ArmoredPGPPublicKey, rsa: PEMRSAPublicKey) -> AnyPublisher<ServerPublicKeys, TheErrorLegacy> in
         var existingFingerprint: Fingerprint? = nil
         var serverFingerprint: Fingerprint
@@ -391,6 +392,7 @@ extension NetworkSession: Feature {
             mfaTokenIsValid: response.mfaTokenIsValid
           )
         }
+        .mapErrorsToLegacy()
         .eraseToAnyPublisher()
     }
 
@@ -661,6 +663,7 @@ extension NetworkSession: Feature {
               )
             )
             .map(\.mfaToken)
+            .mapErrorsToLegacy()
             .flatMapResult { (token: MFAToken) -> Result<Void, TheErrorLegacy> in
               withSessionState { sessionState in
                 guard sessionState?.account == account
@@ -696,6 +699,7 @@ extension NetworkSession: Feature {
               )
             )
             .map(\.mfaToken)
+            .mapErrorsToLegacy()
             .flatMapResult { (token: MFAToken) -> Result<Void, TheErrorLegacy> in
               withSessionState { sessionState in
                 guard sessionState?.account == account
@@ -762,6 +766,7 @@ extension NetworkSession: Feature {
 
           let sessionRefreshCancellable: AnyCancellable =
             fetchServerPublicRSAKey(domain: account.domain)
+            .mapErrorsToLegacy()
             .map { (serverPublicRSAKey: PEMRSAPublicKey) -> AnyPublisher<Void, TheErrorLegacy> in
               diagnostics.diagnosticLog("...requesting token refresh...")
               return networkClient
@@ -774,6 +779,7 @@ extension NetworkSession: Feature {
                     mfaToken: sessionState.mfaToken?.rawValue
                   )
                 )
+                .mapErrorsToLegacy()
                 .flatMapResult { (response: RefreshSessionResponse) -> Result<Void, TheErrorLegacy> in
                   let accessToken: JWT
                   switch JWT.from(rawValue: response.accessToken) {
@@ -877,6 +883,7 @@ extension NetworkSession: Feature {
                 refreshToken: refreshToken.rawValue
               )
             )
+            .mapErrorsToLegacy()
             .eraseToAnyPublisher()
         }
         else {

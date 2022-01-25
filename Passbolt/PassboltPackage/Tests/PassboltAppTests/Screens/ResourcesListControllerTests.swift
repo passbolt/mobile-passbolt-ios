@@ -23,7 +23,7 @@
 
 import Accounts
 import Combine
-import CommonDataModels
+import CommonModels
 import Features
 import Resources
 import TestExtensions

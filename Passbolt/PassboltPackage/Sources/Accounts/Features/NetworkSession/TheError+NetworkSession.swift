@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import Commons
 import Crypto
 

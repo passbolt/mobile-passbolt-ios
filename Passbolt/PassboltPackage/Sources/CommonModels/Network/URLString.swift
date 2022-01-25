@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Foundation
 
 public enum URLStringTag {}
@@ -152,6 +153,15 @@ extension URLString {
 
   public func hasSuffix(_ suffix: String) -> Bool {
     rawValue.hasSuffix(suffix)
+  }
+
+  public func asURL() -> Result<URL, URLInvalid> {
+    if let url: URL = .init(string: self.rawValue) {
+      return .success(url)
+    }
+    else {
+      return .failure(.error(rawString: self.rawValue))
+    }
   }
 }
 

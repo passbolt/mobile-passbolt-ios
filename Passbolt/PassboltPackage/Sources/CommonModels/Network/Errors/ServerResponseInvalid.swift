@@ -21,34 +21,27 @@
 // @since         v1.0
 //
 
-import struct Foundation.URL
+import Commons
 
-public enum HTTPError: Error {
+public struct ServerResponseInvalid: TheError {
 
-  case invalidRequest(HTTPRequest)
-  case invalidResponse
-  case timeout(URL)
-  case cannotConnect(URL)
-  case canceled
-  case other(Error)
-}
-
-extension HTTPError {
-
-  public var diagnosticDescription: StaticString {
-    switch self {
-    case .invalidRequest:
-      return "invalidRequest"
-    case .invalidResponse:
-      return "invalidResponse"
-    case .timeout:
-      return "timeout"
-    case .cannotConnect:
-      return "cannotConnect"
-    case .canceled:
-      return "canceled"
-    case .other:
-      return "other"
-    }
+  public static func error(
+    _ message: StaticString = "ServerResponseInvalid",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.server.response.invalid")
+    )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Features
 
@@ -86,16 +87,16 @@ extension NetworkClient: Feature {
     var authorizationRequest: (() -> Void) = unreachable("Authorization request has to be assigned before use.")
     // accessed without lock - always set during loading initial features, before use
     var mfaRequest: ((Array<MFAProvider>) -> Void) = unreachable("MFA request has to be assigned before use.")
-    let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy> = Just(Void())
-      .setFailureType(to: TheErrorLegacy.self)
+    let emptySessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error> = Just(Void())
+      .eraseErrorType()
       .eraseToAnyPublisher()
 
-    let authorizedNetworkSessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheErrorLegacy> =
+    let authorizedNetworkSessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, Error> =
       sessionStatePublisher
-      .map { (sessionState: SessionState?) -> AnyPublisher<AuthorizedNetworkSessionVariable?, TheErrorLegacy> in
+      .map { (sessionState: SessionState?) -> AnyPublisher<AuthorizedNetworkSessionVariable?, Error> in
         guard let sessionState: SessionState = sessionState
         else {
-          return Fail(error: .missingSession())
+          return Fail(error: SessionMissing.error())
             .eraseToAnyPublisher()
         }
         if let accessToken: String = sessionState.accessToken {
@@ -106,13 +107,13 @@ extension NetworkClient: Feature {
               mfaToken: sessionState.mfaToken
             )
           )
-          .setFailureType(to: TheErrorLegacy.self)
+          .eraseErrorType()
           .eraseToAnyPublisher()
         }
         else {
           requestAuthorization()
           return Just(nil)  // it will wait for the authorization
-            .setFailureType(to: TheErrorLegacy.self)
+            .eraseErrorType()
             .eraseToAnyPublisher()
         }
       }
@@ -120,16 +121,16 @@ extension NetworkClient: Feature {
       .filterMapOptional()
       .eraseToAnyPublisher()
 
-    let domainNetworkSessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy> =
+    let domainNetworkSessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, Error> =
       sessionStatePublisher
-      .map { sessionState -> AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy> in
+      .map { sessionState -> AnyPublisher<DomainNetworkSessionVariable, Error> in
         if let sessionState: SessionState = sessionState {
           return Just(DomainNetworkSessionVariable(domain: sessionState.domain))
-            .setFailureType(to: TheErrorLegacy.self)
+            .eraseErrorType()
             .eraseToAnyPublisher()
         }
         else {
-          return Fail(error: .missingSession())
+          return Fail(error: SessionMissing.error())
             .eraseToAnyPublisher()
         }
       }

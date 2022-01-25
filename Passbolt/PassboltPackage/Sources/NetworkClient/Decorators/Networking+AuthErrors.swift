@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Environment
 
@@ -30,28 +31,28 @@ extension NetworkRequest {
     invalidateAccessToken: @escaping () -> Void,
     authorizationRequest: @escaping () -> Void,
     mfaRequest: @escaping (Array<MFAProvider>) -> Void,
-    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheErrorLegacy>,
-    sessionPublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy>
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, Error>,
+    sessionPublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       execute: { variable in
         self.execute(variable)
-          .catch { error -> AnyPublisher<Response, TheErrorLegacy> in
-            if error.identifier == .redirect,
-              let location = error.redirectLocation.map(URLString.init(rawValue:))
-            {
+          .catch { error -> AnyPublisher<Response, Error> in
+            if let redirect: HTTPRedirect = error as? HTTPRedirect {
+              let locationURLString: URLString = redirect.location.urlString
               return
                 sessionPublisher
                 .map(\.domain)
-                .map { domain -> AnyPublisher<Response, TheErrorLegacy> in
-                  if URLString.domain(forURL: location, matches: domain),
-                    location.hasSuffix("/mfa/verify/error.json")
+                .map { domain -> AnyPublisher<Response, Error> in
+                  if URLString.domain(forURL: locationURLString, matches: domain),
+                    locationURLString.rawValue.hasSuffix("/mfa/verify/error.json")
                   {
                     return mfaRedirectionHandler(.init())
-                      .map { _ -> AnyPublisher<Response, TheErrorLegacy> in
+                      .map { _ -> AnyPublisher<Response, Error> in
                         Fail(
-                          error: .internalInconsistency()
-                            .appending(context: "MFA Redirect response invalid")
+                          error:
+                            InternalInconsistency
+                            .error("Invalid MFA Redirect response")
                         )
                         .eraseToAnyPublisher()
                       }
@@ -71,16 +72,17 @@ extension NetworkRequest {
                 .eraseToAnyPublisher()
             }
           }
-          .mapError { (error: TheErrorLegacy) -> TheErrorLegacy in
-            if error.identifier == .missingSession {
+          .mapError { (error: Error) -> Error in
+            switch error {
+            case let _ as SessionMissing, let _ as SessionAuthorizationRequired:
               invalidateAccessToken()
               authorizationRequest()
-            }
-            else if error.identifier == .mfaRequired {
-              mfaRequest(error.mfaProviders)
-            }
-            else {
-              /* NOP */
+
+            case let mfaRequired as SessionMFAAuthorizationRequired:
+              mfaRequest(mfaRequired.mfaProviders)
+
+            case _:
+              break  // NOP
             }
 
             return error

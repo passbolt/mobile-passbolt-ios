@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Environment
 import Foundation
@@ -36,11 +37,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decoding: NetworkResponseDecoding<Void, Void, Data> = .rawBody
     let expectedBody: Data = Data([0x65, 0x66, 0x67, 0x68])
 
-    let decodingResult: Result<Data, TheErrorLegacy> =
+    let decodingResult: Result<Data, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -56,11 +63,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decoding: NetworkResponseDecoding<Void, Void, String> = .bodyAsString()
     let expectedBody: String = "abcd"
 
-    let decodingResult: Result<String, TheErrorLegacy> =
+    let decodingResult: Result<String, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -75,11 +88,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_bodyAsString_withInvalidString_fails() {
     let decoding: NetworkResponseDecoding<Void, Void, String> = .bodyAsString()
 
-    let decodingResult: Result<String, TheErrorLegacy> =
+    let decodingResult: Result<String, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -95,11 +114,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
     let expectedBody: TestCodable = .sample
 
-    let decodingResult: Result<TestCodable, TheErrorLegacy> =
+    let decodingResult: Result<TestCodable, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -114,11 +139,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_bodyJSON_withInvalidJSON_fails() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheErrorLegacy> =
+    let decodingResult: Result<TestCodable, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 200,
@@ -133,11 +164,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_succeesCodes_withStatusOk_succeeds() {
     let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
 
-    let decodingResult: Result<Void, TheErrorLegacy> =
+    let decodingResult: Result<Void, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 201,
@@ -152,11 +189,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
   func test_succeesCodes_withInvalidStatus_fails() {
     let decoding: NetworkResponseDecoding<Void, Void, Void> = .statusCodes(200..<400)
 
-    let decodingResult: Result<Void, TheErrorLegacy> =
+    let decodingResult: Result<Void, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 401,
@@ -182,11 +225,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     let httpBody: Data = try! JSONEncoder().encode(response)
 
-    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
+    let decodingResult: Result<MFARequiredResponse, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 403,
@@ -201,8 +250,12 @@ final class NetworkResponseDecodingTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, .mfaRequired)
-    XCTAssertEqual(error.mfaProviders, [MFAProvider.yubikey, MFAProvider.totp])
+    XCTAssertError(
+      error,
+      matches: SessionMFAAuthorizationRequired.self
+    ) { error in
+      error.mfaProviders == [MFAProvider.yubikey, MFAProvider.totp]
+    }
   }
 
   func test_mfaErrorDecodingUsingCorrectData_andEmptyProviders_resultsMFARequiredError() {
@@ -219,11 +272,17 @@ final class NetworkResponseDecodingTests: XCTestCase {
 
     let httpBody: Data = try! JSONEncoder().encode(response)
 
-    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
+    let decodingResult: Result<MFARequiredResponse, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 403,
@@ -238,17 +297,23 @@ final class NetworkResponseDecodingTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, .mfaRequired)
+    XCTAssertError(error, matches: SessionMFAAuthorizationRequired.self)
   }
 
   func test_mfaErrorDecodingUsingCorruptedData_resultsInForbiddenError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
-    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
+    let decodingResult: Result<MFARequiredResponse, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 403,
@@ -263,17 +328,23 @@ final class NetworkResponseDecodingTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, .forbidden)
+    XCTAssertError(error, matches: HTTPForbidden.self)
   }
 
   func test_redirectWithLocationHeader_fails_withRedirectError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
-    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
+    let decodingResult: Result<MFARequiredResponse, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 302,
@@ -288,18 +359,28 @@ final class NetworkResponseDecodingTests: XCTestCase {
       return
     }
 
-    XCTAssertEqual(error.identifier, .redirect)
-    XCTAssertEqual(error.redirectLocation, "https://passbolt.com")
+    XCTAssertError(
+      error,
+      matches: HTTPRedirect.self
+    ) { error in
+      error.location == URL(string: "https://passbolt.com")!
+    }
   }
 
   func test_redirectWithNoLocationHeader_fails_withInvalidResponseError() {
     let decoding: NetworkResponseDecoding<Void, Void, MFARequiredResponse> = .bodyAsJSON()
 
-    let decodingResult: Result<MFARequiredResponse, TheErrorLegacy> =
+    let decodingResult: Result<MFARequiredResponse, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 302,
@@ -308,32 +389,26 @@ final class NetworkResponseDecodingTests: XCTestCase {
         )
       )
 
-    guard
-      case let .failure(error) = decodingResult,
-      let innerError = error.underlyingError
-    else {
-      XCTFail("Invalid state")
-      return
-    }
+    guard case let .failure(error) = decodingResult
+    else { return XCTFail("Invalid state") }
 
-    switch innerError.self {
-    case HTTPError.invalidResponse:
-      break
-    case _:
-      XCTFail("Invalid state")
-    }
-
-    XCTAssertEqual(error.redirectLocation, nil)
+    XCTAssertError(error, matches: NetworkResponseInvalid.self)
   }
 
   func test_decodeBadRequest_fromResponse_withEmptyBody_fails_networkResponseDecodingFailedError() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheErrorLegacy> =
+    let decodingResult: Result<TestCodable, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 400,
@@ -345,17 +420,23 @@ final class NetworkResponseDecodingTests: XCTestCase {
     guard case let .failure(error) = decodingResult
     else { return XCTFail("Invalid state") }
 
-    XCTAssertEqual(error.identifier, .networkResponseDecodingFailed)
+    XCTAssertError(error, matches: NetworkResponseDecodingFailure.self)
   }
 
   func test_decodeBadRequest_fromResponse_withEmptyJsonInBody_fails_validationViolationError() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheErrorLegacy> =
+    let decodingResult: Result<TestCodable, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 400,
@@ -367,17 +448,23 @@ final class NetworkResponseDecodingTests: XCTestCase {
     guard case let .failure(error) = decodingResult
     else { return XCTFail("Invalid state") }
 
-    XCTAssertEqual(error.identifier, .validationError)
+    XCTAssertError(error, matches: NetworkRequestValidationFailure.self)
   }
 
   func test_decodeBadRequest_fromResponse_withValidJsonInBody_fails_validationViolationError() {
     let decoding: NetworkResponseDecoding<Void, Void, TestCodable> = .bodyAsJSON()
 
-    let decodingResult: Result<TestCodable, TheErrorLegacy> =
+    let decodingResult: Result<TestCodable, Error> =
       decoding
       .decode(
         Void(),
         Void(),
+        HTTPRequest(
+          url: .test,
+          method: .get,
+          headers: [:],
+          body: .init()
+        ),
         HTTPResponse(
           url: .test,
           statusCode: 400,
@@ -389,7 +476,11 @@ final class NetworkResponseDecodingTests: XCTestCase {
     guard case let .failure(error) = decodingResult
     else { return XCTFail("Invalid state") }
 
-    XCTAssertEqual(error.identifier, .validationError)
-    XCTAssertFalse(error.validationViolations?.isEmpty ?? true)
+    XCTAssertError(
+      error,
+      matches: NetworkRequestValidationFailure.self
+    ) { error in
+      !error.validationViolations.isEmpty
+    }
   }
 }

@@ -16,8 +16,8 @@ let package = Package(
       targets: ["AccountSetup"]
     ),
     .library(
-      name: "CommonDataModels",
-      targets: ["CommonDataModels"]
+      name: "CommonModels",
+      targets: ["CommonModels"]
     ),
     .library(
       name: "Commons",
@@ -104,7 +104,7 @@ let package = Package(
     .target(
       name: "Accounts",
       dependencies: [
-        "CommonDataModels",
+        "CommonModels",
         "Commons",
         "Crypto",
         "Features",
@@ -123,6 +123,7 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
+        "CommonModels",
         "Crypto",
         "Features",
         "NetworkClient",
@@ -136,7 +137,7 @@ let package = Package(
       ]
     ),
     .target(
-      name: "CommonDataModels",
+      name: "CommonModels",
       dependencies: [
         "Commons"
       ]
@@ -144,8 +145,7 @@ let package = Package(
     .target(
       name: "Commons",
       dependencies: [
-        "Localization",
-        .product(name: "AegithalosCocoa", package: "Aegithalos"),
+        "Localization"
       ]
     ),
     .testTarget(
@@ -158,7 +158,7 @@ let package = Package(
     .target(
       name: "Crypto",
       dependencies: [
-        "CommonDataModels",
+        "CommonModels",
         "Commons",
         "gopenPGP",
       ]
@@ -189,6 +189,7 @@ let package = Package(
       name: "NetworkClient",
       dependencies: [
         "Commons",
+        "CommonModels",
         "Crypto",
         "Features",
         "Environment",
@@ -219,6 +220,7 @@ let package = Package(
       dependencies: [
         .product(name: "Aegithalos", package: "Aegithalos"),
         "Commons",
+        "CommonModels",
         "Crypto",
         "SQLCipher",
       ]
@@ -241,7 +243,7 @@ let package = Package(
       name: "Users",
       dependencies: [
         "Accounts",
-        "CommonDataModels",
+        "CommonModels",
         "Commons",
         "Crypto",
         "Features",
@@ -261,6 +263,7 @@ let package = Package(
         "Accounts",
         "AccountSetup",
         "Commons",
+        "CommonModels",
         "UICommons",
         "UIComponents",
         "Features",
@@ -282,6 +285,7 @@ let package = Package(
       dependencies: [
         "Accounts",
         "Commons",
+        "CommonModels",
         "UICommons",
         "UIComponents",
         "Features",
@@ -301,7 +305,7 @@ let package = Package(
       name: "Resources",
       dependencies: [
         "Accounts",
-        "CommonDataModels",
+        "CommonModels",
         "Commons",
         "Crypto",
         "Features",
@@ -321,6 +325,7 @@ let package = Package(
       name: "SharedUIComponents",
       dependencies: [
         "Accounts",
+        "CommonModels",
         "Resources",
         "UIComponents",
       ]
@@ -378,6 +383,7 @@ let package = Package(
       name: "TestExtensions",
       dependencies: [
         "Commons",
+        "CommonModels",
         "Features",
         "UIComponents",
         "NetworkClient",

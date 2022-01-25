@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Environment
 
@@ -31,7 +32,7 @@ extension ServerRSAPublicKeyRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { _, requestVariable in

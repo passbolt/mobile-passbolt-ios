@@ -21,38 +21,27 @@
 // @since         v1.0
 //
 
-public typealias MFARequiredResponse = CommonResponse<MFARequiredResponseBody>
+import Commons
 
-public enum MFAProvider: String, Decodable {
+public struct ClientCertificateInvalid: TheError {
 
-  case totp = "totp"
-  case yubikey = "yubikey"
+  public static func error(
+    _ message: StaticString = "ClientCertificateInvalid",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.client.certificate.invalid")
+    )
+  }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }
-
-public struct MFARequiredResponseBody: Decodable {
-
-  public var mfaProviders: Array<MFAProvider>
-
-  private enum CodingKeys: String, CodingKey {
-
-    case mfaProviders = "mfa_providers"
-  }
-
-  public init(from decoder: Decoder) throws {
-    let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
-
-    // Decoding an array of string (MFA providers) to later, remove the ones that are not part of MFAProvider.
-    let rawMfaProviders: Array<String> = try container.decode(Array<String>.self, forKey: .mfaProviders)
-
-    self.mfaProviders = rawMfaProviders.compactMap { .init(rawValue: $0) }
-  }
-
-  internal init(mfaProviders: Array<MFAProvider>) {
-    self.mfaProviders = mfaProviders
-  }
-}
-
-extension MFAProvider: Encodable, Equatable {}
-#if DEBUG
-extension MFARequiredResponseBody: Encodable, Equatable {}
-#endif

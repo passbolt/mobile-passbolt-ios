@@ -133,8 +133,13 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
           })
           .handleErrors(
             ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
+            defaultHandler: { [weak self] error in
+              if let displayable: DisplayableString = error.displayableString {
+                self?.presentErrorSnackbar(displayable)
+              }
+              else {
+                self?.presentErrorSnackbar()
+              }
             }
           )
           .mapToVoid()

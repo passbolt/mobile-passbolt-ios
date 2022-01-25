@@ -158,6 +158,7 @@ extension FeatureConfig: Feature {
       return networkClient
         .configRequest
         .make()
+        .mapErrorsToLegacy()
         .map { (response: ConfigResponse) in
           handle(response: response)
           diagnostics.diagnosticLog("...server configuration fetched!")

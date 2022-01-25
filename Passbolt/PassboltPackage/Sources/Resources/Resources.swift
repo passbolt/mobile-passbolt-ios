@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import CommonDataModels
+import CommonModels
 import Crypto
 import Features
 import NetworkClient
@@ -105,6 +105,7 @@ extension Resources: Feature {
           networkClient
             .resourcesTypesRequest
             .make()
+            .mapErrorsToLegacy()
             .map { (response: ResourcesTypesRequestResponse) -> Array<ResourceType> in
               response.body
                 .map { (type: ResourcesTypesRequestResponseBodyItem) -> ResourceType in
@@ -160,6 +161,7 @@ extension Resources: Feature {
           networkClient
             .resourcesRequest
             .make()
+            .mapErrorsToLegacy()
             .map { (response: ResourcesRequestResponse) -> Array<Resource> in
               response
                 .body
@@ -245,6 +247,7 @@ extension Resources: Feature {
       networkClient
         .resourceSecretRequest
         .make(using: .init(resourceID: resourceID.rawValue))
+        .mapErrorsToLegacy()
         .map { response -> AnyPublisher<ResourceSecret, TheErrorLegacy> in
           accountSession
             // We are not using public key yet since we are not
@@ -283,6 +286,7 @@ extension Resources: Feature {
       networkClient
         .deleteResourceRequest
         .make(using: .init(resourceID: resourceID.rawValue))
+        .mapErrorsToLegacy()
         .eraseToAnyPublisher()
     }
 

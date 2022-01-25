@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import Commons
 import Crypto
 import Environment
@@ -32,7 +32,7 @@ extension SignInRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -170,7 +170,7 @@ where
 {
 
   fileprivate static func signInResponse() -> Self {
-    Self { sessionVariable, requestVariable, httpResponse -> Result<SignInResponse, TheErrorLegacy> in
+    Self { sessionVariable, requestVariable, httpRequest, httpResponse -> Result<SignInResponse, Error> in
       let mfaTokenIsValid: Bool
       if let mfaToken: MFAToken = requestVariable.mfaToken {
         if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
@@ -199,7 +199,7 @@ where
 
       return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<SignInResponseBody>>
         .bodyAsJSON()
-        .decode(sessionVariable, requestVariable, httpResponse)
+        .decode(sessionVariable, requestVariable, httpRequest, httpResponse)
         .map { body -> SignInResponse in
           SignInResponse(
             mfaTokenIsValid: mfaTokenIsValid,

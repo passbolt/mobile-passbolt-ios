@@ -78,7 +78,7 @@ final class ResourcesFilterControllerTests: TestCase {
     let data: Data = Data([0x65, 0x66])
     networkClient.mediaDownload.execute = always(
       Just(data)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -104,7 +104,7 @@ final class ResourcesFilterControllerTests: TestCase {
     )
     features.use(accountSettings)
     networkClient.mediaDownload.execute = always(
-      Fail<Data, TheErrorLegacy>(error: .testError())
+      Fail<Data, Error>(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)

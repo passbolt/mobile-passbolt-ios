@@ -31,7 +31,7 @@ extension MFARedirectRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in

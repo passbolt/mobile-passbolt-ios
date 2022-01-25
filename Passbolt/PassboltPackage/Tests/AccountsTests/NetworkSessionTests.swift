@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import Features
 import TestExtensions
 import XCTest
@@ -157,7 +157,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
     networkClient.signInRequest.execute = always(
-      Fail<SignInResponse, TheErrorLegacy>(error: .testError()).eraseToAnyPublisher()
+      Fail<SignInResponse, Error>(error: MockIssue.error()).eraseToAnyPublisher()
     )
 
     features.use(networkClient)
@@ -183,14 +183,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_createSession_fails_withoutServerPGPPublicKey() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
-    networkClient.serverPGPPublicKeyRequest = .failingWith(.testError())
+    networkClient.serverPGPPublicKeyRequest = .failingWith(MockIssue.error())
     features.use(networkClient)
 
     let networkSession: NetworkSession = testInstance()
@@ -214,14 +214,14 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_createSession_fails_withoutServerRSAPublicKey() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
-    networkClient.serverRSAPublicKeyRequest = .failingWith(.testError())
+    networkClient.serverRSAPublicKeyRequest = .failingWith(MockIssue.error())
 
     features.use(networkClient)
 
@@ -246,7 +246,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_createSession_fails_whenEncryptAndSignFails() {
@@ -493,7 +493,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -526,7 +526,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -558,7 +558,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -591,7 +591,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -623,7 +623,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_createMFAToken_fails_whenYubikeyOTPRequestFails() {
@@ -632,7 +632,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(fingerprintStorage)
 
     networkClient.yubikeyAuthorizationRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -664,7 +664,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_createMFAToken_fails_whenMFATokenStoreFails() {
@@ -675,7 +675,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -718,7 +718,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.totpAuthorizationRequest.execute = always(
       Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -761,7 +761,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
 
     networkClient.yubikeyAuthorizationRequest.execute = always(
       Just(YubikeyAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -881,7 +881,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
     fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(fingerprintStorage)
     networkClient.signInRequest.execute = always(
-      Fail<SignInResponse, TheErrorLegacy>(error: .testError()).eraseToAnyPublisher()
+      Fail<SignInResponse, Error>(error: MockIssue.error())
+        .eraseToAnyPublisher()
     )
 
     features.use(networkClient)
@@ -963,7 +964,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
           refreshToken: "refreshToken"
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -999,7 +1000,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
           refreshToken: "refreshToken"
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -1036,7 +1037,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(accountsDataStore)
     features.use(fingerprintStorage)
     networkClient.refreshSessionRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -1064,7 +1065,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_sessionRefresh_succeeds_withHappyPath() {
@@ -1072,7 +1073,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     features.use(fingerprintStorage)
     networkClient.refreshSessionRequest.execute = always(
       Just(RefreshSessionResponse(accessToken: validToken, refreshToken: "refreshToken"))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(networkClient)

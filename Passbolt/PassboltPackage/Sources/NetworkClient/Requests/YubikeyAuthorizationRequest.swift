@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Crypto
 import Environment
@@ -32,7 +33,7 @@ extension YubikeyAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -106,7 +107,7 @@ public struct YubikeyAuthorizationResponse {
 extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse {
 
   fileprivate static var mfaCookie: Self {
-    Self { _, _, httpResponse in
+    Self { _, _, _, httpResponse in
       if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
       {
@@ -125,10 +126,11 @@ extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse
       }
       else {
         return .failure(
-          .networkResponseDecodingFailed(
-            underlyingError: nil,
-            rawNetworkResponse: httpResponse
-          )
+          NetworkResponseDecodingFailure
+            .error(
+              "Failed to decode cookies from MFA response",
+              response: httpResponse
+            )
         )
       }
     }

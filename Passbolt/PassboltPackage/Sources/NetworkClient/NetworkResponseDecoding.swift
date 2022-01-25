@@ -21,33 +21,33 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Environment
 
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONSerialization
+import struct Foundation.URL
 
 internal struct NetworkResponseDecoding<SessionVariable, RequestVariable, Response> {
 
-  internal var decode: (SessionVariable, RequestVariable, HTTPResponse) -> Result<Response, TheErrorLegacy>
+  internal var decode: (SessionVariable, RequestVariable, HTTPRequest, HTTPResponse) -> Result<Response, Error>
 }
 
 extension NetworkResponseDecoding where Response == Void {
 
   internal static func statusCodes(
-    _ statusCodes: Range<HTTPStatusCode>
+    _ statusCodes: Range<HTTPStatusCode>,
+    using decoder: JSONDecoder = .init()
   ) -> Self {
-    Self { _, _, response in
-      if statusCodes ~= response.statusCode {
-        return .success(Void())
-      }
-      else if response.statusCode == 401 {
-        return .failure(.missingSession())
-      }
-      else {
-        return .failure(.httpError(.invalidResponse))
-      }
+    Self { _, _, httpRequest, httpResponse in
+      decodeStatusCode(
+        matching: statusCodes,
+        httpRequest: httpRequest,
+        httpResponse: httpResponse,
+        using: decoder
+      )
     }
   }
 }
@@ -55,7 +55,7 @@ extension NetworkResponseDecoding where Response == Void {
 extension NetworkResponseDecoding where Response == Data {
 
   internal static var rawBody: Self {
-    Self { _, _, response in
+    Self { _, _, _, response in
       .success(response.body)
     }
   }
@@ -66,16 +66,17 @@ extension NetworkResponseDecoding where Response == String {
   internal static func bodyAsString(
     withEncoding encoding: String.Encoding = .utf8
   ) -> Self {
-    Self { _, _, response in
+    Self { _, _, _, response in
       if let string: String = String(data: response.body, encoding: encoding) {
         return .success(string)
       }
       else {
         return .failure(
-          .networkResponseDecodingFailed(
-            underlyingError: nil,
-            rawNetworkResponse: response
-          )
+          NetworkResponseDecodingFailure
+            .error(
+              "Failed to decode string body",
+              response: response
+            )
         )
       }
     }
@@ -84,34 +85,153 @@ extension NetworkResponseDecoding where Response == String {
 
 extension NetworkResponseDecoding {
 
-  internal static func decodeBadRequest(response: HTTPResponse) -> Result<Response, TheErrorLegacy> {
+  internal static func decodeForbidden(
+    httpRequest: HTTPRequest,
+    httpResponse: HTTPResponse,
+    using decoder: JSONDecoder = .init()
+  ) -> Result<Void, Error> {
     do {
-      guard
-        let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(
-          with: response.body,
-          options: .init()
-        ) as? Dictionary<String, Any>
-      else {
-        return .failure(
-          .networkResponseDecodingFailed(
-            underlyingError: nil,
-            rawNetworkResponse: response
-          )
+      let mfaResponse: MFARequiredResponse =
+        try decoder
+        .decode(
+          MFARequiredResponse.self,
+          from: httpResponse.body
         )
-      }
 
       return .failure(
-        .validationError(
-          validationViolations: validationViolations
-        )
+        SessionMFAAuthorizationRequired
+          .error(mfaProviders: mfaResponse.body.mfaProviders)
       )
     }
     catch {
       return .failure(
-        .networkResponseDecodingFailed(
-          underlyingError: nil,
-          rawNetworkResponse: response
+        HTTPForbidden
+          .error(
+            request: httpRequest,
+            response: httpResponse
+          )
+      )
+    }
+  }
+
+  internal static func decodeBadRequest(
+    httpRequest: HTTPRequest,
+    httpResponse: HTTPResponse
+  ) -> Result<Void, Error> {
+    do {
+      guard
+        let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(
+          with: httpResponse.body,
+          options: .init()
+        ) as? Dictionary<String, Any>
+      else {
+        return .failure(
+          HTTPRequestInvalid
+            .error(
+              request: httpRequest,
+              response: httpResponse
+            )
         )
+      }
+
+      return .failure(
+        NetworkRequestValidationFailure
+          .error(validationViolations: validationViolations)
+      )
+    }
+    catch let error {
+      return .failure(
+        NetworkResponseDecodingFailure
+          .error(
+            "Failed to decode bad request response",
+            response: httpResponse,
+            underlyingError: error
+          )
+      )
+    }
+  }
+
+  internal static func decodeRedirect(
+    httpRequest: HTTPRequest,
+    httpResponse: HTTPResponse
+  ) -> Result<Void, Error> {
+    if let locationString: String = httpResponse.headers["Location"],
+      let locationURL: URL = .init(string: locationString)
+    {
+      return .failure(
+        HTTPRedirect
+          .error(
+            request: httpRequest,
+            response: httpResponse,
+            location: locationURL
+          )
+      )
+    }
+    else {
+      return .failure(
+        NetworkResponseInvalid
+          .error(
+            "Redirect response does not contain valid location URL",
+            response: httpResponse
+          )
+      )
+    }
+  }
+
+  internal static func decodeStatusCode(
+    matching statusCodes: Range<HTTPStatusCode>,
+    httpRequest: HTTPRequest,
+    httpResponse: HTTPResponse,
+    using decoder: JSONDecoder = .init()
+  ) -> Result<Void, Error> {
+    if statusCodes ~= httpResponse.statusCode {
+      return .success(Void())
+    }
+    else if httpResponse.statusCode == 302 {
+      return decodeRedirect(
+        httpRequest: httpRequest,
+        httpResponse: httpResponse
+      )
+    }
+    else if httpResponse.statusCode == 400 {
+      return decodeBadRequest(
+        httpRequest: httpRequest,
+        httpResponse: httpResponse
+      )
+    }
+    else if httpResponse.statusCode == 401 {
+      return .failure(
+        HTTPUnauthorized
+          .error(
+            request: httpRequest,
+            response: httpResponse
+          )
+      )
+    }
+    else if httpResponse.statusCode == 403 {
+      return decodeForbidden(
+        httpRequest: httpRequest,
+        httpResponse: httpResponse,
+        using: decoder
+      )
+    }
+    else if httpResponse.statusCode == 404 {
+      return .failure(
+        HTTPNotFound
+          .error(
+            request: httpRequest,
+            response: httpResponse
+          )
+      )
+    }
+    else {
+      return .failure(
+        HTTPStatusCodeUnexpected
+          .error(
+            "HTTP status code is not matching expected",
+            request: httpRequest,
+            response: httpResponse
+          )
       )
     }
   }
@@ -122,60 +242,32 @@ extension NetworkResponseDecoding where Response: Decodable {
   internal static func bodyAsJSON(
     using decoder: JSONDecoder = .init()
   ) -> Self {
-
-    Self { _, _, response in
-      guard response.statusCode != 302
-      else {
-        if let location = response.headers["Location"] {
-          return .failure(.redirect(location: location))
-        }
-        else {
-          return .failure(.httpError(.invalidResponse))
-        }
-      }
-
-      guard response.statusCode != 400
-      else { return decodeBadRequest(response: response) }
-
-      guard response.statusCode != 401
-      else { return .failure(.missingSession()) }
-
-      if response.statusCode == 403 {
+    Self { _, _, httpRequest, httpResponse in
+      decodeStatusCode(
+        matching: 200..<300,
+        httpRequest: httpRequest,
+        httpResponse: httpResponse,
+        using: decoder
+      )
+      .flatMap {
         do {
-          let mfaResponse: MFARequiredResponse =
+          return .success(
             try decoder.decode(
-              MFARequiredResponse.self,
-              from: response.body
+              Response.self,
+              from: httpResponse.body
             )
-
+          )
+        }
+        catch let error {
           return .failure(
-            .mfaRequired(mfaProviders: mfaResponse.body.mfaProviders)
+            NetworkResponseDecodingFailure
+              .error(
+                "Failed to decode bad request response",
+                response: httpResponse,
+                underlyingError: error
+              )
           )
         }
-
-        catch {
-          return .failure(.forbidden())
-        }
-      }
-
-      guard response.statusCode != 404
-      else { return .failure(.notFound()) }
-
-      do {
-        return .success(
-          try decoder.decode(
-            Response.self,
-            from: response.body
-          )
-        )
-      }
-      catch {
-        return .failure(
-          .networkResponseDecodingFailed(
-            underlyingError: error,
-            rawNetworkResponse: response
-          )
-        )
       }
     }
   }

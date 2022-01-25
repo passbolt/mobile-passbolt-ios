@@ -22,6 +22,7 @@
 //
 
 import Aegithalos
+import CommonModels
 import Environment
 
 internal struct NetworkRequestTemplate<SessionVariable, Variable> {

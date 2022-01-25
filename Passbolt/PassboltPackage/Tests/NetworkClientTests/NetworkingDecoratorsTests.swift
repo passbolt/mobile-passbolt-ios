@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import TestExtensions
 import XCTest
@@ -64,7 +65,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
           body: .empty
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
     networking = networking.withLogs(using: diagnostics)
@@ -101,7 +102,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
 
     var networking: Networking = .placeholder
     networking.execute = { _, _ in
-      Fail<HTTPResponse, HTTPError>(error: .invalidResponse)
+      Fail<HTTPResponse, Error>(error: MockIssue.error())
         .eraseToAnyPublisher()
     }
     networking = networking.withLogs(using: diagnostics)
@@ -125,7 +126,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
       result,
       [
         "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-        "Received <uniqueID>:\ninvalidResponse\n---",
+        "Received <uniqueID>:\nMockIssue\ntest\nDiagnosticsContext\nMock:42-MockIssue\n---",
       ]
     )
   }

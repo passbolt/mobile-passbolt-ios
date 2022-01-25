@@ -22,7 +22,7 @@
 //
 
 import Combine
-import CommonDataModels
+import CommonModels
 import Crypto
 import Features
 import NetworkClient

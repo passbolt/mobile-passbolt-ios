@@ -25,7 +25,6 @@ import struct Foundation.Data
 import struct Foundation.URL
 import struct Foundation.URLComponents
 import struct Foundation.URLQueryItem
-import struct Foundation.URLRequest
 
 public struct HTTPRequest: Hashable {
 
@@ -108,24 +107,5 @@ extension HTTPRequest: CustomDebugStringConvertible {
 
   public var debugDescription: String {
     description
-  }
-}
-
-extension HTTPRequest {
-
-  internal func urlRequest(
-    cachePolicy: URLRequest.CachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-  ) -> URLRequest? {
-    guard
-      var urlRequest: URLRequest = url.map({ URLRequest(url: $0) })
-    else { return nil }
-
-    urlRequest.httpMethod = method.rawValue
-    urlRequest.httpBody = body
-    urlRequest.allHTTPHeaderFields = headers
-    urlRequest.timeoutInterval = 30
-    urlRequest.cachePolicy = cachePolicy
-    urlRequest.httpShouldHandleCookies = false
-    return urlRequest
   }
 }

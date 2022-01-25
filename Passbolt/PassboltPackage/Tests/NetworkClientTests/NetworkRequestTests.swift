@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Environment
 import TestExtensions
@@ -32,8 +33,8 @@ import XCTest
 final class NetworkRequestTests: XCTestCase {
 
   var cancellables: Cancellables!
-  var sessionSubject: PassthroughSubject<AuthorizedNetworkSessionVariable, TheErrorLegacy>!
-  var domainSubject: PassthroughSubject<DomainNetworkSessionVariable, TheErrorLegacy>!
+  var sessionSubject: PassthroughSubject<AuthorizedNetworkSessionVariable, Error>!
+  var domainSubject: PassthroughSubject<DomainNetworkSessionVariable, Error>!
   var networking: Networking!
   var request: NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable>!
 
@@ -83,8 +84,7 @@ final class NetworkRequestTests: XCTestCase {
 
   func test_request_withSessionError_fails() {
     request = prepareRequest()
-    let errorSent: TheErrorLegacy = .testError()
-    var completionError: TheErrorLegacy? = nil
+    var result: Error? = nil
 
     request
       .make(using: .sample)
@@ -95,7 +95,7 @@ final class NetworkRequestTests: XCTestCase {
             XCTFail("Unexpected behaviour")
 
           case let .failure(error):
-            completionError = error
+            result = error
           }
         },
         receiveValue: { _ in
@@ -104,19 +104,19 @@ final class NetworkRequestTests: XCTestCase {
       )
       .store(in: cancellables)
 
-    sessionSubject.send(completion: .failure(errorSent))
+    sessionSubject.send(completion: .failure(MockIssue.error()))
 
-    XCTAssertEqual(completionError?.identifier, errorSent.identifier)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_request_withHTTPError_fails() {
-    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
-      Fail<HTTPResponse, HTTPError>(error: .invalidResponse)
+    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, Error> in
+      Fail<HTTPResponse, Error>(error: MockIssue.error())
         .eraseToAnyPublisher()
     }
 
     request = prepareRequest()
-    var completionError: TheErrorLegacy? = nil
+    var result: Error? = nil
 
     request
       .make(using: .sample)
@@ -127,7 +127,7 @@ final class NetworkRequestTests: XCTestCase {
             XCTFail("Unexpected behaviour")
 
           case let .failure(error):
-            completionError = error
+            result = error
           }
         },
         receiveValue: { _ in
@@ -145,93 +145,11 @@ final class NetworkRequestTests: XCTestCase {
         )
       )
 
-    XCTAssertEqual(completionError?.identifier, .httpError)
-  }
-
-  func test_request_withHTTPErrorCannotConnect_failsWithServerNotReachableError() {
-    let url: URL = .init(string: "https://passbolt.com")!
-    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
-      Fail<HTTPResponse, HTTPError>(error: .cannotConnect(url))
-        .eraseToAnyPublisher()
-    }
-
-    request = prepareRequest()
-    var completionError: TheErrorLegacy? = nil
-
-    request
-      .make(using: .sample)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            XCTFail("Unexpected behaviour")
-
-          case let .failure(error):
-            completionError = error
-          }
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected behaviour")
-        }
-      )
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-
-    XCTAssertEqual(completionError?.identifier, .serverNotReachable)
-    XCTAssertEqual(completionError?.url, url)
-  }
-
-  func test_request_withHTTPErrorTimeout_failsWithServerNotReachableError() {
-    let url: URL = .init(string: "https://passbolt.com")!
-    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, HTTPError> in
-      Fail<HTTPResponse, HTTPError>(error: .timeout(url))
-        .eraseToAnyPublisher()
-    }
-
-    request = prepareRequest()
-    var completionError: TheErrorLegacy? = nil
-
-    request
-      .make(using: .sample)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            XCTFail("Unexpected behaviour")
-
-          case let .failure(error):
-            completionError = error
-          }
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected behaviour")
-        }
-      )
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-
-    XCTAssertEqual(completionError?.identifier, .serverNotReachable)
-    XCTAssertEqual(completionError?.url, url)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_requestBodyAndResponseBody_withBodyMirroring_areEqual() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -240,7 +158,7 @@ final class NetworkRequestTests: XCTestCase {
           body: request.body
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -279,7 +197,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func test_mfaRedirectHandler_isExecuted_whenRedirectIsReceived_andLocationMatchesDomain_andMfaErrorPath() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -288,7 +206,7 @@ final class NetworkRequestTests: XCTestCase {
           body: .init()
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -297,7 +215,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     })
 
@@ -320,7 +238,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func test_mfaRedirectHandler_isNotExecuted_whenNotFound_received() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -329,7 +247,7 @@ final class NetworkRequestTests: XCTestCase {
           body: .init()
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -338,7 +256,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     })
 
@@ -361,7 +279,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andLocationDoesNotMatchDomain() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -370,7 +288,7 @@ final class NetworkRequestTests: XCTestCase {
           body: .init()
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -379,7 +297,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     })
 
@@ -402,7 +320,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andNoLocationIsPresent() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -411,7 +329,7 @@ final class NetworkRequestTests: XCTestCase {
           body: .init()
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -420,7 +338,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     })
 
@@ -443,7 +361,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andLocationDoesNotMatchMfaErrorPath() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -452,7 +370,7 @@ final class NetworkRequestTests: XCTestCase {
           body: .init()
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -461,7 +379,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     })
 
@@ -484,7 +402,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func test_mfaRedirectHandler_isNotExecuted_whenDomainSubject_publishesInvalidDomain() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, HTTPError> in
+    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
       Just(
         HTTPResponse(
           url: request.url ?? .test,
@@ -493,7 +411,7 @@ final class NetworkRequestTests: XCTestCase {
           body: .init()
         )
       )
-      .setFailureType(to: HTTPError.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
 
@@ -502,7 +420,7 @@ final class NetworkRequestTests: XCTestCase {
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
       return Just(.init())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     })
 
@@ -539,7 +457,7 @@ final class NetworkRequestTests: XCTestCase {
   }
 
   func prepareRequest(
-    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, TheErrorLegacy>
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, Error>
   ) -> NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in

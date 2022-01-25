@@ -31,11 +31,12 @@ extension Mutation where Subject: ImageButton {
     compatibleWith traitCollection: UITraitCollection? = nil
   ) -> Self {
     .custom { (subject: Subject) in
-      guard let image: UIImage = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
-      )
+      guard
+        let image: UIImage = UIImage(
+          named: imageName.rawValue,
+          in: bundle,
+          compatibleWith: traitCollection
+        )
       else { return }
 
       subject.image = image
@@ -48,11 +49,12 @@ extension Mutation where Subject: ImageButton {
     compatibleWith traitCollection: UITraitCollection? = nil
   ) -> Self {
     .custom { (subject: Subject) in
-      guard let image: UIImage = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
-      )
+      guard
+        let image: UIImage = UIImage(
+          named: imageName.rawValue,
+          in: bundle,
+          compatibleWith: traitCollection
+        )
       else { return }
 
       subject.pressedImage = image
@@ -65,11 +67,12 @@ extension Mutation where Subject: ImageButton {
     compatibleWith traitCollection: UITraitCollection? = nil
   ) -> Self {
     .custom { (subject: Subject) in
-      guard let image: UIImage = UIImage(
-        named: imageName.rawValue,
-        in: bundle,
-        compatibleWith: traitCollection
-      )
+      guard
+        let image: UIImage = UIImage(
+          named: imageName.rawValue,
+          in: bundle,
+          compatibleWith: traitCollection
+        )
       else { return }
 
       subject.disabledImage = image

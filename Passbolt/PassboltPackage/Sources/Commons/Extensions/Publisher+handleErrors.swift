@@ -23,6 +23,8 @@
 
 import Combine
 
+#warning("TODO: remove file after migration to TheError")
+
 extension Publisher where Failure == TheErrorLegacy {
 
   public func handleErrors(
@@ -54,24 +56,17 @@ extension Publisher where Failure == TheErrorLegacy {
 
 extension Publisher {
 
-  public func handleErrors(
-    _ handler: @escaping (TheError) -> Void
-  ) -> Publishers.HandleEvents<Self> {
-    self.handleEvents(receiveCompletion: { completion in
-      guard case let .failure(error) = completion
-      else {
-        return
+  public func mapErrorsToLegacy() -> Publishers.MapError<Self, TheErrorLegacy> {
+    self.mapError { (error: Error) -> TheErrorLegacy in
+      if let theError: TheError = error as? TheError {
+        return theError.asLegacy
       }
-
-      let theError: TheError
-      if let castedError: TheError = error as? TheError {
-        theError = castedError
+      else if let legacyError: TheErrorLegacy = error as? TheErrorLegacy {
+        return legacyError
       }
       else {
-        theError = Unidentified.error(underlyingError: error)
+        return error.asUnidentified().asLegacy
       }
-
-      handler(theError)
-    })
+    }
   }
 }

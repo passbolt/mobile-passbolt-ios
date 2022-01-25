@@ -22,6 +22,7 @@
 //
 
 extension StaticString: Hashable {
+
   public static func == (
     _ lhs: StaticString,
     _ rhs: StaticString

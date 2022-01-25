@@ -323,3 +323,47 @@ public func XCTAssertFalse(
   }
   sem.wait()
 }
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertError<ExpectedError>(
+  _ expression: @autoclosure () -> Error?,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where ExpectedError: TheError {
+  let error: Error? = expression()
+  XCTAssert(
+    (error as? ExpectedError).map(verification) ?? false,
+    message() ?? "\(error.map { "\(type(of: $0))" } ?? "nil")) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertErrorThrown<ExpectedError, Value>(
+  _ expression: @autoclosure () throws -> Value,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where ExpectedError: TheError {
+  let thrownError: Error?
+  do {
+    _ = try expression()
+    thrownError = nil
+  }
+  catch {
+    thrownError = error
+  }
+
+  XCTAssert(
+    (thrownError as? ExpectedError).map(verification) ?? false,
+    message() ?? "\(thrownError.map { "\(type(of: $0))" } ?? "nil")) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}

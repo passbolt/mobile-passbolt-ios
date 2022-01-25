@@ -280,7 +280,7 @@ final class AuthorizationScreenTests: TestCase {
   }
 
   func test_avatarPublisher_publishesNil_whenNetworkRequestFails() {
-    networkClient.mediaDownload = .failingWith(.testError())
+    networkClient.mediaDownload = .failingWith(MockIssue.error())
     features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
     features.use(accounts)

@@ -98,7 +98,7 @@ public class ImageView: UIImageView {
     self.tintColor = dynamicTintColor?(in: interfaceStyle)
     self.layer.borderColor = dynamicBorderColor?(in: interfaceStyle).cgColor
   }
-  
+
   private func updateImageScaleIfNeeded() {
     if useAspectScaleConstraint,
       let image: UIImage = super.image,

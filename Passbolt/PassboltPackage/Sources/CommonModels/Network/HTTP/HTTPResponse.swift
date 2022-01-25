@@ -22,9 +22,7 @@
 //
 
 import struct Foundation.Data
-import class Foundation.HTTPURLResponse
 import struct Foundation.URL
-import class Foundation.URLResponse
 
 public struct HTTPResponse {
 
@@ -43,25 +41,6 @@ public struct HTTPResponse {
     self.statusCode = statusCode
     self.headers = headers
     self.body = body
-  }
-}
-
-extension HTTPResponse {
-
-  internal init?(
-    from response: URLResponse,
-    with body: Data? = nil
-  ) {
-    guard
-      let httpResponse = response as? HTTPURLResponse,
-      let url = httpResponse.url
-    else { return nil }
-    self.init(
-      url: url,
-      statusCode: httpResponse.statusCode,
-      headers: httpResponse.allHeaderFields as? Dictionary<String, String> ?? .init(),
-      body: body ?? Data()
-    )
   }
 }
 

@@ -71,12 +71,12 @@ final class ResourceTests: TestCase {
     networkClient = .placeholder
     networkClient.resourcesTypesRequest.execute = always(
       Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     networkClient.resourcesRequest.execute = always(
       Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
 
@@ -102,7 +102,7 @@ final class ResourceTests: TestCase {
     networkClient.resourcesTypesRequest.execute = { _ in
       result = Void()
       return Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     features.use(networkClient)
@@ -121,7 +121,7 @@ final class ResourceTests: TestCase {
     features.use(accountSession)
     features.use(accountDatabase)
     networkClient.resourcesTypesRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -141,7 +141,7 @@ final class ResourceTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_refreshIfNeeded_savesResourceTypesToDatabase() {
@@ -200,7 +200,7 @@ final class ResourceTests: TestCase {
     networkClient.resourcesRequest.execute = { _ in
       result = Void()
       return Just(.init(header: .mock(), body: []))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     features.use(networkClient)
@@ -219,7 +219,7 @@ final class ResourceTests: TestCase {
     features.use(accountSession)
     features.use(accountDatabase)
     networkClient.resourcesRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -239,7 +239,7 @@ final class ResourceTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_refreshIfNeeded_savesResourcesToDatabase() {

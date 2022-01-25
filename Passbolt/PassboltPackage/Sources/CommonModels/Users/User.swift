@@ -21,9 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
 import Commons
-import Crypto
 
 public struct User: Decodable {
 

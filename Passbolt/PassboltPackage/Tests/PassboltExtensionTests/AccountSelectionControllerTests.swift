@@ -125,7 +125,7 @@ final class AccountSelectionControllerTests: TestCase {
     }
     features.use(accountSettings)
 
-    networkClient.mediaDownload = .failingWith(.testError())
+    networkClient.mediaDownload = .failingWith(MockIssue.error())
     features.use(networkClient)
 
     let controller: AccountSelectionController = testInstance(context: .signIn)

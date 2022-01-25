@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Crypto
 import Environment
@@ -33,7 +34,7 @@ extension TOTPAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -107,35 +108,38 @@ public struct TOTPAuthorizationResponse {
 extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
 
   fileprivate static var mfaCookie: Self {
-    Self { _, _, httpResponse in
-      guard httpResponse.statusCode != 400
-      else {
-        return decodeBadRequest(response: httpResponse)
-      }
-
-      if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
-        let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-      {
-        return .success(
-          .init(
-            mfaToken: .init(
-              rawValue: String(
-                cookieHeaderValue[mfaCookieBounds.upperBound...]
-                  .prefix(
-                    while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-                  )
+    Self { _, _, httpRequest, httpResponse in
+      decodeStatusCode(
+        matching: 200..<300,
+        httpRequest: httpRequest,
+        httpResponse: httpResponse
+      )
+      .flatMap {
+        if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
+          let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+        {
+          return .success(
+            .init(
+              mfaToken: .init(
+                rawValue: String(
+                  cookieHeaderValue[mfaCookieBounds.upperBound...]
+                    .prefix(
+                      while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+                    )
+                )
               )
             )
           )
-        )
-      }
-      else {
-        return .failure(
-          .networkResponseDecodingFailed(
-            underlyingError: nil,
-            rawNetworkResponse: httpResponse
+        }
+        else {
+          return .failure(
+            NetworkResponseDecodingFailure
+              .error(
+                "Failed to decode MFA response cookie",
+                response: httpResponse
+              )
           )
-        )
+        }
       }
     }
   }

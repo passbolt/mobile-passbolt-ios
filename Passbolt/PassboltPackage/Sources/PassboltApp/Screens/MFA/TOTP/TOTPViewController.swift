@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import UIComponents
 
 internal final class TOTPViewController: PlainViewController, UIComponent {
@@ -116,6 +117,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
         switch change {
         case .idle:
           self?.dismissOverlay()
+
         case .processing:
           self?.view.endEditing(true)
           self?.present(
@@ -128,6 +130,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
               )
             )
           )
+
         case let .error(error) where error.identifier == .invalidPasteValue:
           self?.dismissOverlay()
           self?.presentErrorSnackbar(
@@ -135,16 +138,24 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
               key: .invalidPasteValue
             )
           )
-        case let .error(error) where error.identifier == .validationError:
-          self?.dismissOverlay()
-          self?.presentErrorSnackbar(
-            .localized("totp.wrong.code.error")
-          )
+
         case let .error(error) where error.identifier != .canceled:
           self?.dismissOverlay()
           self?.presentErrorSnackbar()
-        case .error:
-          self?.dismissOverlay()
+
+        case let .error(error):
+          if
+            let theError: TheError = error.legacyBridge,
+            theError is NetworkRequestValidationFailure
+          {
+            self?.dismissOverlay()
+            self?.presentErrorSnackbar(
+              .localized("totp.wrong.code.error")
+            )
+          }
+          else {
+            self?.dismissOverlay()
+          }
         }
       }
       .store(in: cancellables)

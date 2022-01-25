@@ -21,6 +21,7 @@
 // @since         v1.0
 
 import Accounts
+import CommonModels
 import UIComponents
 
 import struct Foundation.URLComponents
@@ -65,21 +66,16 @@ public struct ServerNotReachableController {
 
 extension ServerNotReachableController: UIController {
 
-  public typealias Context = URL?
+  public typealias Context = URLString?
 
   public static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    var urlComponents: URLComponents? = context.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: true) }
-    urlComponents?.user = nil
-    urlComponents?.path = ""
-    urlComponents?.query = nil
-    urlComponents?.fragment = nil
 
     return Self(
-      serverURL: (urlComponents?.string).map(URLString.init(rawValue:))
+      serverURL: context
     )
   }
 }

@@ -22,12 +22,13 @@
 //
 
 import Aegithalos
+import CommonModels
 import Commons
 import Environment
 
 public struct NetworkRequest<SessionVariable, Variable, Response> {
 
-  public var execute: (Variable) -> AnyPublisher<Response, TheErrorLegacy>
+  public var execute: (Variable) -> AnyPublisher<Response, Error>
 }
 
 extension NetworkRequest {
@@ -36,7 +37,7 @@ extension NetworkRequest {
     template: NetworkRequestTemplate<SessionVariable, Variable>,
     responseDecoder: NetworkResponseDecoding<SessionVariable, Variable, Response>,
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<SessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<SessionVariable, Error>
   ) {
     self.execute = { requestVariable in
       sessionVariablePublisher
@@ -51,20 +52,10 @@ extension NetworkRequest {
               )
           )
         }
-        .map { sessionVariable, request -> AnyPublisher<Response, TheErrorLegacy> in
+        .map { sessionVariable, request -> AnyPublisher<Response, Error> in
           networking
             .make(request, useCache: template.cacheResponse)
-            .mapError { error -> TheErrorLegacy in
-              switch error {
-              case let .cannotConnect(url), let .timeout(url):
-                return TheErrorLegacy.serverNotReachable(url: url, underlyingError: error)
-              case .invalidRequest, .invalidResponse, .other:
-                return TheErrorLegacy.httpError(error)
-              case .canceled:
-                return TheErrorLegacy.canceled
-              }
-            }
-            .map(withResultAsPublisher({ responseDecoder.decode(sessionVariable, requestVariable, $0) }))
+            .map(withResultAsPublisher({ responseDecoder.decode(sessionVariable, requestVariable, request, $0) }))
             .switchToLatest()
             .eraseToAnyPublisher()
         }
@@ -78,14 +69,14 @@ extension NetworkRequest {
 
   public func make(
     using variable: Variable
-  ) -> AnyPublisher<Response, TheErrorLegacy> {
+  ) -> AnyPublisher<Response, Error> {
     execute(variable)
   }
 }
 
 extension NetworkRequest where Variable == Void {
 
-  public func make() -> AnyPublisher<Response, TheErrorLegacy> {
+  public func make() -> AnyPublisher<Response, Error> {
     execute(Void())
   }
 }
@@ -101,7 +92,7 @@ extension NetworkRequest {
   }
 
   public static func respondingWith(
-    _ publisher: AnyPublisher<Response, TheErrorLegacy>,
+    _ publisher: AnyPublisher<Response, Error>,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
@@ -120,20 +111,20 @@ extension NetworkRequest {
       execute: { variable in
         requestVariableReference?.pointee = variable
         return Just(response)
-          .setFailureType(to: TheErrorLegacy.self)
+          .eraseErrorType()
           .eraseToAnyPublisher()
       }
     )
   }
 
   public static func failingWith(
-    _ error: TheErrorLegacy,
+    _ error: TheError,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
       execute: { variable in
         requestVariableReference?.pointee = variable
-        return Fail<Response, TheErrorLegacy>(error: error)
+        return Fail<Response, Error>(error: error)
           .eraseToAnyPublisher()
       }
     )

@@ -101,8 +101,13 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           [.canceled],
           handler: { _ in true }
         ),
-        defaultHandler: { [weak self] _ in
-          self?.presentErrorSnackbar()
+        defaultHandler: { [weak self] error in
+          if let displayable: DisplayableString = error.displayableString {
+            self?.presentErrorSnackbar(displayable)
+          }
+          else {
+            self?.presentErrorSnackbar()
+          }
           self?.pop(if: Self.self)
         }
       )
@@ -157,8 +162,13 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
                 return true
               }
             ),
-            defaultHandler: { [weak self] _ in
-              self?.presentErrorSnackbar()
+            defaultHandler: { [weak self] error in
+              if let displayable: DisplayableString = error.displayableString {
+                self?.presentErrorSnackbar(displayable)
+              }
+              else {
+                self?.presentErrorSnackbar()
+              }
             }
           )
           .handleEnd { [weak self] ending in

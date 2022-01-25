@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Commons
 import Environment
 
@@ -31,7 +32,7 @@ extension RefreshSessionRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, TheErrorLegacy>
+    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -128,12 +129,20 @@ where
 {
 
   fileprivate static func sessionRefreshResponse() -> Self {
-    Self { sessionVariable, requestVariable, httpResponse -> Result<RefreshSessionResponse, TheErrorLegacy> in
+    Self { sessionVariable, requestVariable, httpRequest, httpResponse -> Result<RefreshSessionResponse, Error> in
 
       guard
         let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let refreshTokenBounds: Range<String.Index> = cookieHeaderValue.range(of: "refresh_token=")
-      else { return .failure(.httpError(.invalidResponse)) }
+      else {
+        return .failure(
+          NetworkResponseInvalid
+            .error(
+              "Session refresh response does not contain refresh token",
+              response: httpResponse
+            )
+        )
+      }
       let refreshToken: String = .init(
         cookieHeaderValue[refreshTokenBounds.upperBound...]
           .prefix(
@@ -143,7 +152,7 @@ where
 
       return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<RefreshSessionResponseBody>>
         .bodyAsJSON()
-        .decode(sessionVariable, requestVariable, httpResponse)
+        .decode(sessionVariable, requestVariable, httpRequest, httpResponse)
         .map { body -> RefreshSessionResponse in
           RefreshSessionResponse(
             accessToken: body.body.accessToken,

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Environment
 
 public struct MDMSupport {

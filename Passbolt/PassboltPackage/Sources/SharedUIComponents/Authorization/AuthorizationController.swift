@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import CommonModels
 import Crypto
 import NetworkClient
 import UIComponents
@@ -101,6 +102,7 @@ extension AuthorizationController: UIController {
       accountWithProfileSubject
         .map { accountWithProfile in
           networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
+            .mapErrorsToLegacy()
             .collectErrorLog(using: diagnostics)
             .map { data -> Data? in data }
             .replaceError(with: nil)
@@ -153,10 +155,15 @@ extension AuthorizationController: UIController {
         .collectErrorLog(using: diagnostics)
         .handleErrors(
           (
-            [.notFound],
-            handler: { _ in
-              accountNotFoundScreenPresentationSubject.send(context)
-              return true
+            [.legacyBridge],
+            handler: { error in
+              if error.isLegacyBridge(for: HTTPNotFound.self) {
+                accountNotFoundScreenPresentationSubject.send(context)
+                return true
+              }
+              else {
+                return false
+              }
             }
           ),
           defaultHandler: { _ in /* NOP */ }
@@ -173,10 +180,15 @@ extension AuthorizationController: UIController {
         .collectErrorLog(using: diagnostics)
         .handleErrors(
           (
-            [.notFound],
-            handler: { _ in
-              accountNotFoundScreenPresentationSubject.send(context)
-              return true
+            [.legacyBridge],
+            handler: { error in
+              if error.isLegacyBridge(for: HTTPNotFound.self) {
+                accountNotFoundScreenPresentationSubject.send(context)
+                return true
+              }
+              else {
+                return false
+              }
             }
           ),
           defaultHandler: { _ in /* NOP */ }

@@ -80,7 +80,7 @@ final class FeatureConfigTests: TestCase {
   }
 
   func test_fetchAndStoreFeatureConfigLegal_recoversWithDefault_whenfetchFails() {
-    networkClient.configRequest = .failingWith(.testError())
+    networkClient.configRequest = .failingWith(MockIssue.error())
 
     accountSession.statePublisher = always(
       Just(.authorized(validAccount)).eraseToAnyPublisher()

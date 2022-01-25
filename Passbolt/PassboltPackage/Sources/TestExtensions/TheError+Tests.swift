@@ -23,6 +23,29 @@
 
 import Commons
 
+public struct MockIssue: TheError {
+
+  public static func error(
+    _ message: StaticString = "MockIssue",
+    file: StaticString = "Mock",
+    line: UInt = 42
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "test")
+    )
+  }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
+}
+
 extension TheErrorLegacy {
 
   public static func testError(

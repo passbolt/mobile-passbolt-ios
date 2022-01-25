@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import CommonDataModels
+import CommonModels
 import Crypto
 import Features
 import NetworkClient
@@ -96,6 +96,7 @@ extension UserPGPMessages: Feature {
         .userProfileRequest
         .make(using: .init(userID: userID.rawValue))
         .map(\.body)
+        .mapErrorsToLegacy()
         .map { user -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> in
           verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
             .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> in
@@ -117,6 +118,7 @@ extension UserPGPMessages: Feature {
         .userListRequest
         .make(using: .init(resourceIDFilter: resourceID.rawValue))
         .map(\.body)
+        .mapErrorsToLegacy()
         .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheErrorLegacy> in
           Publishers.MergeMany(
             users

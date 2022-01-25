@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonDataModels
+import CommonModels
 import Commons
 import Crypto
 import Features
@@ -487,7 +487,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(database)
     features.use(resources)
     networkClient.createResourceRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -518,7 +518,7 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_sendForm_succeeds_whenAllOperationsSucceed() {
@@ -541,7 +541,7 @@ final class ResourceEditFormTests: TestCase {
           body: .init(resourceID: "resource-id")
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -946,7 +946,7 @@ final class ResourceEditFormTests: TestCase {
           )
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     }
     features.use(networkClient)
@@ -1030,7 +1030,7 @@ final class ResourceEditFormTests: TestCase {
     )
     features.use(resources)
     networkClient.updateResourceRequest.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(networkClient)
@@ -1063,7 +1063,7 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 }
 
