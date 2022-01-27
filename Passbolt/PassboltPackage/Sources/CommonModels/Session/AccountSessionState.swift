@@ -21,75 +21,10 @@
 // @since         v1.0
 //
 
-import NetworkClient
+public enum AccountSessionState: Equatable {
 
-import struct Foundation.URL
-
-#warning("TODO: Add other feature flags: tags & folders")
-
-extension FeatureConfig {
-
-  public enum Legal {
-
-    case none
-    case terms(URL)
-    case privacyPolicy(URL)
-    case both(termsURL: URL, privacyPolicyURL: URL)
-  }
+  case authorized(Account)
+  case authorizedMFARequired(Account, providers: Array<MFAProvider>)
+  case authorizationRequired(Account)
+  case none(lastUsed: Account?)
 }
-
-extension FeatureConfig {
-
-  public enum Folders {
-
-    case disabled
-    case enabled(version: String)
-  }
-
-  public enum PreviewPassword {
-
-    case disabled
-    case enabled
-  }
-
-  public enum Tags {
-
-    case disabled
-    case enabled
-  }
-}
-
-extension FeatureConfig.Legal: FeatureConfigItem {
-
-  public static var `default`: FeatureConfig.Legal {
-    .none
-  }
-}
-
-extension FeatureConfig.Folders: FeatureConfigItem {
-
-  public static var `default`: FeatureConfig.Folders {
-    .disabled
-  }
-
-}
-
-extension FeatureConfig.PreviewPassword: FeatureConfigItem {
-
-  public static var `default`: FeatureConfig.PreviewPassword {
-    .enabled
-  }
-
-}
-
-extension FeatureConfig.Tags: FeatureConfigItem {
-
-  public static var `default`: FeatureConfig.Tags {
-    .disabled
-  }
-}
-
-extension FeatureConfig.Legal: Equatable {}
-extension FeatureConfig.Folders: Equatable {}
-extension FeatureConfig.PreviewPassword: Equatable {}
-extension FeatureConfig.Tags: Equatable {}

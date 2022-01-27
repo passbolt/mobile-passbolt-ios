@@ -22,24 +22,26 @@
 //
 
 import Commons
+import struct Foundation.Date
 
-// Mutable part of account, used to store profile details and settings.
-// WARNING: Do not add new or rename fields in this structure
-// - it will cause data wipe on devices after update.
-// Prepare data migration mechanism before making such changes.
-public struct AccountProfile {
+public enum TimestampTag {}
+/// Epoch time interval - Number of seconds from beginning of epoch (1/1/1970)
+public typealias Timestamp = Tagged<Int, TimestampTag>
 
-  public let accountID: Account.LocalID
-  public var label: String
-  public var username: String
-  public var firstName: String
-  public var lastName: String
-  public var avatarImageURL: String
-  public internal(set) var biometricsEnabled: Bool
-  // Due to data migration limitations, properties that are yet undefined can be stored
-  // in this dictionary until migration becomes implemented.
-  public internal(set) var settings: Dictionary<String, String> = .init()
+extension Timestamp {
+
+  public var asDate: Date {
+    .init(
+      timeIntervalSince1970: .init(self.rawValue)
+    )
+  }
 }
 
-extension AccountProfile: Equatable {}
-extension AccountProfile: Codable {}
+extension Date {
+
+  public var asTimestamp: Timestamp {
+    .init(
+      rawValue: Int(timeIntervalSince1970)
+    )
+  }
+}

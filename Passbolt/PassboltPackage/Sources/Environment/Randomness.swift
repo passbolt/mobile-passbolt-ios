@@ -20,7 +20,7 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
-import Commons
+import CommonModels
 
 public struct Randomness {
 

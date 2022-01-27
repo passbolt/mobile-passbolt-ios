@@ -22,7 +22,7 @@
 //
 
 import AegithalosCocoa
-import Commons
+import CommonModels
 
 open class CollectionView<Section: Hashable, Item: Hashable>:
   UICollectionView, UICollectionViewDragDelegate, UICollectionViewDropDelegate

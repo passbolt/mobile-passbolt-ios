@@ -22,7 +22,6 @@
 //
 
 import CommonModels
-import Commons
 import Features
 
 public struct NetworkClient {
@@ -31,7 +30,6 @@ public struct NetworkClient {
   // intended to be used for images download and relatively small blobs (few MB)
   public var mediaDownload: MediaDownloadRequest
   public var serverPGPPublicKeyRequest: ServerPGPPublicKeyRequest
-  public var serverPublicKeyRequest: ServerJWKSRequest
   public var serverRSAPublicKeyRequest: ServerRSAPublicKeyRequest
   public var signInRequest: SignInRequest
   public var signOutRequest: SignOutRequest
@@ -191,10 +189,6 @@ extension NetworkClient: Feature {
         using: networking,
         with: emptySessionVariablePublisher
       ),
-      serverPublicKeyRequest: .live(
-        using: networking,
-        with: emptySessionVariablePublisher
-      ),
       serverRSAPublicKeyRequest: .live(
         using: networking,
         with: emptySessionVariablePublisher
@@ -350,7 +344,6 @@ extension NetworkClient: Feature {
       accountTransferUpdate: .placeholder,
       mediaDownload: .placeholder,
       serverPGPPublicKeyRequest: .placeholder,
-      serverPublicKeyRequest: .placeholder,
       serverRSAPublicKeyRequest: .placeholder,
       signInRequest: .placeholder,
       signOutRequest: .placeholder,

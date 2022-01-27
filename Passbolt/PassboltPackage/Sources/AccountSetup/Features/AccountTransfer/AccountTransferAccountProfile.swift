@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
-public struct AccountTransferAccountProfile {
+internal struct AccountTransferAccountProfile {
 
-  public var username: String
-  public var firstName: String
-  public var lastName: String
-  public var avatarImageURL: String
+  internal var username: String
+  internal var firstName: String
+  internal var lastName: String
+  internal var avatarImageURL: String
 }

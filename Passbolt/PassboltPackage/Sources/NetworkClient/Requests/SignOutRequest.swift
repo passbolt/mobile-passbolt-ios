@@ -22,7 +22,6 @@
 //
 
 import CommonModels
-import Commons
 import Environment
 
 public typealias SignOutRequest = NetworkRequest<EmptyNetworkSessionVariable, SignOutRequestVariable, Void>

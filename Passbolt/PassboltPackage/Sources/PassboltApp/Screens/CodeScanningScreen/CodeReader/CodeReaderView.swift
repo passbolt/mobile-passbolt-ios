@@ -21,7 +21,7 @@
 // @since         v1.0
 
 import AVFoundation
-import Commons
+import CommonModels
 import UICommons
 
 internal final class CodeReaderView: View {

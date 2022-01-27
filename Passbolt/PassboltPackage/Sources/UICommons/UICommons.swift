@@ -22,7 +22,7 @@
 //
 
 @_exported import AegithalosCocoa
-@_exported import Commons
+@_exported import CommonModels
 
 extension Bundle {
 

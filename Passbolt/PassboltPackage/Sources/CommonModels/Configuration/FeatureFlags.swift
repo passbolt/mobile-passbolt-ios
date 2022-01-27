@@ -22,48 +22,75 @@
 //
 
 import CommonModels
-import Commons
-import Crypto
-import Environment
 
-public typealias ServerJWKSRequest =
-  NetworkRequest<EmptyNetworkSessionVariable, ServerJWKSRequestVariable, ServerJWKSRequestResponse>
+import struct Foundation.URL
 
-extension ServerJWKSRequest {
+#warning("TODO: Add other feature flags: tags & folders")
+public enum FeatureFlags {}
 
-  internal static func live(
-    using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
-  ) -> Self {
-    Self(
-      template: .init { _, requestVariable in
-        .combined(
-          .url(string: requestVariable.domain.rawValue),
-          .pathSuffix("/auth/jwt/jwks.json"),
-          .method(.get)
-        )
-      },
-      responseDecoder: .bodyAsJSON(),
-      using: networking,
-      with: sessionVariablePublisher
-    )
+extension FeatureFlags {
+
+  public enum Legal {
+
+    case none
+    case terms(URL)
+    case privacyPolicy(URL)
+    case both(termsURL: URL, privacyPolicyURL: URL)
   }
 }
 
-public struct ServerJWKSRequestVariable {
+extension FeatureFlags {
 
-  public var domain: URLString
+  public enum Folders {
 
-  public init(
-    domain: URLString
-  ) {
-    self.domain = domain
+    case disabled
+    case enabled(version: String)
+  }
+
+  public enum PreviewPassword {
+
+    case disabled
+    case enabled
+  }
+
+  public enum Tags {
+
+    case disabled
+    case enabled
   }
 }
 
-public typealias ServerJWKSRequestResponse = ServerJWKSResponseBody
+extension FeatureFlags.Legal: FeatureConfigItem {
 
-public struct ServerJWKSResponseBody: Decodable {
-
-  public var keys: Array<JWKS>
+  public static var `default`: FeatureFlags.Legal {
+    .none
+  }
 }
+
+extension FeatureFlags.Folders: FeatureConfigItem {
+
+  public static var `default`: FeatureFlags.Folders {
+    .disabled
+  }
+
+}
+
+extension FeatureFlags.PreviewPassword: FeatureConfigItem {
+
+  public static var `default`: FeatureFlags.PreviewPassword {
+    .enabled
+  }
+
+}
+
+extension FeatureFlags.Tags: FeatureConfigItem {
+
+  public static var `default`: FeatureFlags.Tags {
+    .disabled
+  }
+}
+
+extension FeatureFlags.Legal: Equatable {}
+extension FeatureFlags.Folders: Equatable {}
+extension FeatureFlags.PreviewPassword: Equatable {}
+extension FeatureFlags.Tags: Equatable {}

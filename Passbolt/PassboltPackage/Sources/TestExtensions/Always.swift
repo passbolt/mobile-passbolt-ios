@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 
 public func always<V>(
   _ value: @autoclosure @escaping () -> V

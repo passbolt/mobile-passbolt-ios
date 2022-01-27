@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 import UICommons
 
 import struct Environment.Biometrics

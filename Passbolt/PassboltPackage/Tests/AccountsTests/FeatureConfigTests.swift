@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 import TestExtensions
 import XCTest
 
@@ -72,7 +72,7 @@ final class FeatureConfigTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let result: FeatureConfig.Legal = featureConfig.configuration()
+    let result: FeatureFlags.Legal = featureConfig.configuration()
     let expectedTermsURL: URL! = .init(string: config.legal!.terms.url)
     let expectedPrivacyPolicyURL: URL! = .init(string: config.legal!.privacyPolicy.url)
 
@@ -95,7 +95,7 @@ final class FeatureConfigTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let result: FeatureConfig.Legal = featureFlags.configuration()
+    let result: FeatureFlags.Legal = featureFlags.configuration()
 
     XCTAssertEqual(result, .default)
   }
@@ -113,7 +113,7 @@ final class FeatureConfigTests: TestCase {
       .init(header: .mock(), body: .init(config: config))
     )
 
-    let accountStatePublisher: CurrentValueSubject<AccountSession.State, Never> = .init(.authorized(validAccount))
+    let accountStatePublisher: CurrentValueSubject<AccountSessionState, Never> = .init(.authorized(validAccount))
 
     accountSession.statePublisher = always(
       accountStatePublisher.eraseToAnyPublisher()
@@ -130,7 +130,7 @@ final class FeatureConfigTests: TestCase {
 
     accountStatePublisher.send(.none(lastUsed: validAccount))
 
-    let result: FeatureConfig.Legal = featureConfig.configuration()
+    let result: FeatureFlags.Legal = featureConfig.configuration()
 
     XCTAssertEqual(result, .default)
   }
@@ -150,7 +150,7 @@ final class FeatureConfigTests: TestCase {
       .init(header: .mock(), body: .init(config: config))
     )
 
-    let accountStatePublisher: CurrentValueSubject<AccountSession.State, Never> = .init(.authorized(validAccount))
+    let accountStatePublisher: CurrentValueSubject<AccountSessionState, Never> = .init(.authorized(validAccount))
 
     accountSession.statePublisher = always(
       accountStatePublisher.eraseToAnyPublisher()
@@ -167,7 +167,7 @@ final class FeatureConfigTests: TestCase {
 
     accountStatePublisher.send(.authorizationRequired(validAccount))
 
-    let result: FeatureConfig.Legal = featureConfig.configuration()
+    let result: FeatureFlags.Legal = featureConfig.configuration()
 
     let expectedTermsURL: URL! = .init(string: config.legal!.terms.url)
     let expectedPrivacyPolicyURL: URL! = .init(string: config.legal!.privacyPolicy.url)
@@ -202,9 +202,9 @@ final class FeatureConfigTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let folders: FeatureConfig.Folders = featureConfig.configuration()
-    let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
-    let tags: FeatureConfig.Tags = featureConfig.configuration()
+    let folders: FeatureFlags.Folders = featureConfig.configuration()
+    let previewPassword: FeatureFlags.PreviewPassword = featureConfig.configuration()
+    let tags: FeatureFlags.Tags = featureConfig.configuration()
 
     XCTAssertEqual(folders, .enabled(version: "1.0.2"))
     XCTAssertEqual(previewPassword, .enabled)
@@ -234,9 +234,9 @@ final class FeatureConfigTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    let folders: FeatureConfig.Folders = featureConfig.configuration()
-    let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
-    let tags: FeatureConfig.Tags = featureConfig.configuration()
+    let folders: FeatureFlags.Folders = featureConfig.configuration()
+    let previewPassword: FeatureFlags.PreviewPassword = featureConfig.configuration()
+    let tags: FeatureFlags.Tags = featureConfig.configuration()
 
     XCTAssertEqual(folders, .default)
     XCTAssertEqual(previewPassword, .default)

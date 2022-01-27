@@ -22,15 +22,11 @@
 //
 
 import Features
+import CommonModels
 import NetworkClient
 
 import class Foundation.NSRecursiveLock
 import struct Foundation.URL
-
-public protocol FeatureConfigItem {
-
-  static var `default`: Self { get }
-}
 
 extension FeatureConfigItem {
 
@@ -92,7 +88,7 @@ extension FeatureConfig: Feature {
       let config: Config = response.body.config
 
       if let legal: Config.Legal = config.legal {
-        all[Legal.featureFlagIdentifier] = { () -> FeatureConfig.Legal in
+        all[FeatureFlags.Legal.featureFlagIdentifier] = { () -> FeatureFlags.Legal in
           let termsURL: URL? = .init(string: legal.terms.url)
           let privacyPolicyURL: URL? = .init(string: legal.privacyPolicy.url)
 
@@ -109,18 +105,18 @@ extension FeatureConfig: Feature {
         }()
       }
       else {
-        all[Legal.featureFlagIdentifier] = FeatureConfig.Legal.default
+        all[FeatureFlags.Legal.featureFlagIdentifier] = FeatureFlags.Legal.default
       }
 
       if let folders: Config.Folders = config.plugins.firstElementOfType(), folders.enabled {
-        all[Folders.featureFlagIdentifier] = FeatureConfig.Folders.enabled(version: folders.version)
+        all[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.enabled(version: folders.version)
       }
       else {
-        all[Folders.featureFlagIdentifier] = FeatureConfig.Folders.default
+        all[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.default
       }
 
       if let previewPassword: Config.PreviewPassword = config.plugins.firstElementOfType() {
-        all[PreviewPassword.featureFlagIdentifier] = { () -> FeatureConfig.PreviewPassword in
+        all[FeatureFlags.PreviewPassword.featureFlagIdentifier] = { () -> FeatureFlags.PreviewPassword in
           if previewPassword.enabled {
             return .enabled
           }
@@ -130,14 +126,14 @@ extension FeatureConfig: Feature {
         }()
       }
       else {
-        all[PreviewPassword.featureFlagIdentifier] = FeatureConfig.PreviewPassword.default
+        all[FeatureFlags.PreviewPassword.featureFlagIdentifier] = FeatureFlags.PreviewPassword.default
       }
 
       if let tags: Config.Tags = config.plugins.firstElementOfType(), tags.enabled {
-        all[Tags.featureFlagIdentifier] = FeatureConfig.Tags.enabled
+        all[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.enabled
       }
       else {
-        all[Tags.featureFlagIdentifier] = FeatureConfig.Tags.default
+        all[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.default
       }
     }
 

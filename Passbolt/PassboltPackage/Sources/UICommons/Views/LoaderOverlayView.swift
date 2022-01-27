@@ -1,5 +1,5 @@
 import AegithalosCocoa
-import Commons
+import CommonModels
 
 public final class LoaderOverlayView: View {
 

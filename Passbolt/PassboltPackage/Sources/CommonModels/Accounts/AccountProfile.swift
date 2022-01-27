@@ -21,91 +21,43 @@
 // @since         v1.0
 //
 
-import CommonModels
-import Commons
-import Crypto
+// Mutable part of account, used to store profile details and settings.
+// WARNING: Do not add new or rename fields in this structure
+// - it will cause data wipe on devices after update.
+// Prepare data migration mechanism before making such changes.
+public struct AccountProfile {
 
-// Read only composite of Account and AccountProfile for displaying authorization and account list.
-public struct AccountWithProfile {
-
-  public let localID: Account.LocalID
-  public let userID: Account.UserID
-  public let domain: URLString
+  public let accountID: Account.LocalID
   public var label: String
   public var username: String
   public var firstName: String
   public var lastName: String
   public var avatarImageURL: String
-  public let fingerprint: Fingerprint
   public var biometricsEnabled: Bool
+  // Due to data migration limitations, properties that are yet undefined can be stored
+  // in this dictionary until migration becomes implemented.
+  public var settings: Dictionary<String, String> = .init()
 
   public init(
-    localID: Account.LocalID,
-    userID: Account.UserID,
-    domain: URLString,
+    accountID: Account.LocalID,
     label: String,
     username: String,
     firstName: String,
     lastName: String,
     avatarImageURL: String,
-    fingerprint: Fingerprint,
-    biometricsEnabled: Bool
+    biometricsEnabled: Bool,
+    settings: Dictionary<String, String> = .init()
   ) {
-    self.localID = localID
-    self.userID = userID
-    self.domain = domain
+    self.accountID = accountID
     self.label = label
     self.username = username
     self.firstName = firstName
     self.lastName = lastName
     self.avatarImageURL = avatarImageURL
-    self.fingerprint = fingerprint
     self.biometricsEnabled = biometricsEnabled
+    self.settings = settings
   }
 }
 
-extension AccountWithProfile {
-
-  public init(
-    account: Account,
-    profile: AccountProfile
-  ) {
-    assert(account.localID == profile.accountID)
-    self.init(
-      localID: account.localID,
-      userID: account.userID,
-      domain: account.domain,
-      label: profile.label,
-      username: profile.username,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      avatarImageURL: profile.avatarImageURL,
-      fingerprint: account.fingerprint,
-      biometricsEnabled: profile.biometricsEnabled
-    )
-  }
-
-  public var account: Account {
-    Account(
-      localID: localID,
-      domain: domain,
-      userID: userID,
-      fingerprint: fingerprint
-    )
-  }
-
-  public var profile: AccountProfile {
-    AccountProfile(
-      accountID: localID,
-      label: label,
-      username: username,
-      firstName: firstName,
-      lastName: lastName,
-      avatarImageURL: avatarImageURL,
-      biometricsEnabled: biometricsEnabled,
-      settings: .init()  // not used yet
-    )
-  }
-}
-
-extension AccountWithProfile: Equatable {}
+extension AccountProfile: Equatable {}
+extension AccountProfile: Codable {}

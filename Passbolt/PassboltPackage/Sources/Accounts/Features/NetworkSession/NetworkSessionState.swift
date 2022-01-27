@@ -21,18 +21,18 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 import Crypto
 
-public struct NetworkSessionState {
+internal struct NetworkSessionState {
 
-  public typealias AccessToken = JWT
-  public typealias RefreshToken = Tagged<String, Self>
+  internal typealias AccessToken = JWT
+  internal typealias RefreshToken = Tagged<String, Self>
 
-  public let account: Account
-  public var accessToken: AccessToken?
-  public var refreshToken: RefreshToken?
-  public var mfaToken: MFAToken?
+  internal let account: Account
+  internal var accessToken: AccessToken?
+  internal var refreshToken: RefreshToken?
+  internal var mfaToken: MFAToken?
 }
 
 extension NetworkSessionState: Equatable {}

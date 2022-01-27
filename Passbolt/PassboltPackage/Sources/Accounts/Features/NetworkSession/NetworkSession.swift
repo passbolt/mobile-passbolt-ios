@@ -22,7 +22,6 @@
 //
 
 import CommonModels
-import Commons
 import Crypto
 import Features
 import NetworkClient
@@ -501,7 +500,7 @@ extension NetworkSession: Feature {
 
       guard
         verificationToken == signInTokens.verificationToken,
-        challengeExpiration > time.timestamp(),
+        challengeExpiration > time.timestamp().rawValue,
         let signature: Data = accessToken.signature.base64DecodeFromURLEncoded(),
         let signedData: Data = accessToken.signedPayload.data(using: .utf8)
       else {
@@ -549,7 +548,7 @@ extension NetworkSession: Feature {
 
       let verificationToken: String = uuidGenerator().uuidString
       let challengeExpiration: Int  // 120s is verification token's lifetime
-      = time.timestamp() + 120
+      = time.timestamp().rawValue + 120
 
       let mfaToken: MFAToken? =
         try? accountDataStore

@@ -23,7 +23,7 @@
 
 import AegithalosCocoa
 import Combine
-import Commons
+import CommonModels
 
 public final class TextSearchView: View {
 

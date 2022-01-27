@@ -21,9 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
-
-import struct Foundation.UUID
+import CommonModels
 
 public struct UUIDGenerator: EnvironmentElement {
 

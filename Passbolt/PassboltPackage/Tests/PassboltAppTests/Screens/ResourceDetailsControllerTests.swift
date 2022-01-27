@@ -54,7 +54,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_loadResourceDetails_succeeds_whenAvailable() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -88,7 +88,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = { _ in
       var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
       detailsViewResourceWithReorderedFields.properties.reverse()
@@ -296,7 +296,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldUsername_succeeds() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -326,7 +326,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldDescription_succeeds() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -356,7 +356,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldEncryptedDescription_succeeds() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(encryptedDescriptionDetailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -391,7 +391,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldURI_succeeds() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -421,7 +421,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_copyFieldPassword_succeeds() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -456,7 +456,7 @@ final class ResourceDetailsControllerTests: TestCase {
   }
 
   func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled() {
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)
@@ -491,7 +491,7 @@ final class ResourceDetailsControllerTests: TestCase {
         username: "test"
       )
     ]
-    featureConfig.config = { _ in FeatureConfig.PreviewPassword.enabled }
+    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
         .setFailureType(to: TheErrorLegacy.self)

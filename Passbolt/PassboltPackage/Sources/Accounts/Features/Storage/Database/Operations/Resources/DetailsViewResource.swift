@@ -22,7 +22,6 @@
 //
 
 import CommonModels
-import Commons
 
 public struct DetailsViewResource {
 

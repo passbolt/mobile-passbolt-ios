@@ -12,6 +12,10 @@ Module providing account setup (adding account). Includes transfer process via Q
 
 Base extensions and functionalities used broadly in all modules.
 
+## CommonModels
+
+Commonly used modules and errors shared across all modules in order to allow easier communication between modules and avoid duplicates.
+
 ## Crypto
 
 Provides PGP implementation.

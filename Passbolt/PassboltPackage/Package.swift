@@ -115,6 +115,7 @@ let package = Package(
       name: "AccountsTests",
       dependencies: [
         "Accounts",
+        "CommonModels",
         "TestExtensions",
       ]
     ),
@@ -133,6 +134,7 @@ let package = Package(
       name: "AccountSetupTests",
       dependencies: [
         "AccountSetup",
+        "CommonModels",
         "TestExtensions",
       ]
     ),
@@ -167,6 +169,7 @@ let package = Package(
       name: "CryptoTests",
       dependencies: [
         "Commons",
+        "CommonModels",
         "Crypto",
         "TestExtensions",
       ]
@@ -175,6 +178,7 @@ let package = Package(
       name: "Features",
       dependencies: [
         "Commons",
+        "CommonModels",
         "Environment",
       ]
     ),
@@ -205,7 +209,8 @@ let package = Package(
     .target(
       name: "NFC",
       dependencies: [
-        "Commons"
+        "Commons",
+        "CommonModels",
       ]
     ),
     .testTarget(
@@ -393,6 +398,7 @@ let package = Package(
       name: "UICommons",
       dependencies: [
         "Commons",
+        "CommonModels",
         .product(name: "AegithalosCocoa", package: "Aegithalos"),
       ],
       resources: [
@@ -415,6 +421,7 @@ let package = Package(
       dependencies: [
         .product(name: "AegithalosCocoa", package: "Aegithalos"),
         "Commons",
+        "CommonModels",
         "Features",
         "UICommons",
       ]

@@ -75,7 +75,7 @@ final class AccountSettingsTests: TestCase {
 
   func test_biometricsEnabledPublisher_publishesProfileValueInitially() {
     accountSession.statePublisher = always(
-      CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
+      CurrentValueSubject<AccountSessionState, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     accountSession.requestAuthorizationPrompt = { _ in }
@@ -253,7 +253,7 @@ final class AccountSettingsTests: TestCase {
 
   func test_currentAccountProfilePublisher_publishesInitialProfile() {
     accountSession.statePublisher = always(
-      CurrentValueSubject<AccountSession.State, Never>(.authorized(validAccount))
+      CurrentValueSubject<AccountSessionState, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -281,7 +281,7 @@ final class AccountSettingsTests: TestCase {
     let accountSessionAccountSubject: CurrentValueSubject<Account, Never> = .init(validAccount)
     accountSession.statePublisher = always(
       accountSessionAccountSubject
-        .map(AccountSession.State.authorized)
+        .map(AccountSessionState.authorized)
         .eraseToAnyPublisher()
     )
     features.use(accountSession)
@@ -459,7 +459,7 @@ final class AccountSettingsTests: TestCase {
   }
 
   func test_currentAccountProfileUpdate_isTriggered_whenChangingAccount() {
-    let accountSessionAccountSubject: CurrentValueSubject<AccountSession.State, Never> = .init(.none(lastUsed: nil))
+    let accountSessionAccountSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: nil))
     accountSession.statePublisher = always(
       accountSessionAccountSubject
         .eraseToAnyPublisher()
@@ -507,7 +507,7 @@ final class AccountSettingsTests: TestCase {
   }
 
   func test_currentAccountProfileUpdate_isNotTriggeredAgain_whenChangingToSameAccount() {
-    let accountSessionAccountSubject: CurrentValueSubject<AccountSession.State, Never> = .init(
+    let accountSessionAccountSubject: CurrentValueSubject<AccountSessionState, Never> = .init(
       .authorized(validAccount)
     )
     accountSession.statePublisher = always(

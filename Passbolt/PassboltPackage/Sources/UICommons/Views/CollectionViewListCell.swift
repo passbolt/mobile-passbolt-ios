@@ -23,7 +23,7 @@
 
 import Aegithalos
 import AegithalosCocoa
-import Commons
+import CommonModels
 
 open class CollectionViewListCell: UICollectionViewListCell {
 

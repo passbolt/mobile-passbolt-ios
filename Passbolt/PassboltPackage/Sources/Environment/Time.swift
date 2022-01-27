@@ -21,21 +21,20 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 
 import struct Foundation.Date
 import func Foundation.time
 
 public struct Time: EnvironmentElement {
-  // Number of seconds from beginning of epoch (1/1/1970)
-  public var timestamp: () -> Int
+  public var timestamp: () -> Timestamp
 }
 
 extension Time {
 
   public static var live: Self {
     Self(
-      timestamp: { time(nil) }
+      timestamp: { .init(rawValue: time(nil)) }
     )
   }
 }
@@ -43,11 +42,7 @@ extension Time {
 extension Time {
 
   public func dateNow() -> Date {
-    Date(
-      timeIntervalSince1970: .init(
-        timestamp()
-      )
-    )
+    timestamp().asDate
   }
 }
 

@@ -22,7 +22,7 @@
 //
 
 import AegithalosCocoa
-import Commons
+import CommonModels
 
 public enum AttributedString {
 

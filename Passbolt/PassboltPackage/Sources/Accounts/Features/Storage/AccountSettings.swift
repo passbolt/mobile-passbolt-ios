@@ -60,7 +60,7 @@ extension AccountSettings: Feature {
 
     accountSession
       .statePublisher()
-      .compactMap { (sessionState: AccountSession.State) -> AnyPublisher<AccountWithProfile?, Never>? in
+      .compactMap { (sessionState: AccountSessionState) -> AnyPublisher<AccountWithProfile?, Never>? in
         switch sessionState {
         case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
           let initialProfilePublisher: AnyPublisher<AccountWithProfile?, Never>
@@ -250,7 +250,7 @@ extension AccountSettings: Feature {
       accountSession
         .statePublisher()
         .first()
-        .map { (sessionState: AccountSession.State) -> AnyPublisher<Void, TheErrorLegacy> in
+        .map { (sessionState: AccountSessionState) -> AnyPublisher<Void, TheErrorLegacy> in
           let account: Account
           switch sessionState {
           case let .authorized(currentAccount),

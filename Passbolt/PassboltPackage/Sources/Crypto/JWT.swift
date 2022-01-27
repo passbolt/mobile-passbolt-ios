@@ -21,14 +21,12 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 import CryptoKit
 import Foundation
 
-private let jsonDecoder: JSONDecoder = .init()
-private let jsonEncoder: JSONEncoder = .init()
-
 public struct JWT: Codable {
+
   public typealias Signature = String
 
   public var header: Header
@@ -79,12 +77,17 @@ extension JWT {
   }
 
   public func isExpired(
-    timestamp: Int,
+    timestamp: Timestamp,
     leeway: UInt = 0
   ) -> Bool {
-    timestamp + Int(leeway) >= payload.expiration
+    timestamp.rawValue + Int(leeway) >= payload.expiration
   }
 }
+
+extension JWT: Equatable {}
+
+private let jsonDecoder: JSONDecoder = .init()
+private let jsonEncoder: JSONEncoder = .init()
 
 extension JWT {
 
@@ -141,5 +144,3 @@ extension JWT {
     }
   }
 }
-
-extension JWT: Equatable {}

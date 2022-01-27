@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import Commons
+import CommonModels
 
 import class CoreNFC.NFCNDEFMessage
 import class CoreNFC.NFCNDEFPayload

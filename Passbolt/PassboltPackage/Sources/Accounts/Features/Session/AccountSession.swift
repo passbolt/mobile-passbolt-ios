@@ -33,7 +33,7 @@ import struct Foundation.TimeInterval
 
 public struct AccountSession {
   // Publishes currently used account with its authorization state.
-  public var statePublisher: () -> AnyPublisher<State, Never>
+  public var statePublisher: () -> AnyPublisher<AccountSessionState, Never>
   // Used for sign in (including switch to other account) and unlocking whichever is required.
   // Returns true if MFA authorization is required, otherwise false.
   public var authorize: (Account, AuthorizationMethod) -> AnyPublisher<Bool, TheErrorLegacy>
@@ -61,14 +61,6 @@ public struct AccountSession {
 extension AccountSession {
 
   internal static let passphraseCacheExpirationTimeInterval: TimeInterval = 5 * 60  // 5 minutes
-
-  public enum State: Equatable {
-
-    case authorized(Account)
-    case authorizedMFARequired(Account, providers: Array<MFAProvider>)
-    case authorizationRequired(Account)
-    case none(lastUsed: Account?)
-  }
 
   fileprivate enum InternalState: Equatable {
 
@@ -104,7 +96,7 @@ extension AccountSession {
     }
 
     // Warning: expiration time verification has to be done separately
-    fileprivate func asStateWithExpiration(dateNow: Date) -> State {
+    fileprivate func asStateWithExpiration(dateNow: Date) -> AccountSessionState {
       switch self.withExpiration(dateNow: dateNow) {
       case let .authorized(account, _, _):
         return .authorized(account)
@@ -158,7 +150,7 @@ extension AccountSession: Feature {
       .none(lastUsed: accountsDataStore.loadLastUsedAccount())
     )
 
-    let sessionStatePublisher: AnyPublisher<State, Never> =
+    let sessionStatePublisher: AnyPublisher<AccountSessionState, Never> =
       internalSessionStateSubject
       // we could proactively change status on publisher by using timer, not needed yet
       .map { $0.asStateWithExpiration(dateNow: time.dateNow()) }

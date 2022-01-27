@@ -21,7 +21,7 @@
 // @since         v1.0
 
 import AegithalosCocoa
-import Commons
+import CommonModels
 
 open class CollectionReusableView: UICollectionReusableView {
 

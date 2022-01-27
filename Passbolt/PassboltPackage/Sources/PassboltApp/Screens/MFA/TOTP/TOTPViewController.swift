@@ -144,8 +144,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
           self?.presentErrorSnackbar()
 
         case let .error(error):
-          if
-            let theError: TheError = error.legacyBridge,
+          if let theError: TheError = error.legacyBridge,
             theError is NetworkRequestValidationFailure
           {
             self?.dismissOverlay()

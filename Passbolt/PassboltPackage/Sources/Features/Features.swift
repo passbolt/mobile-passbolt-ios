@@ -21,5 +21,5 @@
 // @since         v1.0
 //
 
-@_exported import Commons
+@_exported import CommonModels
 @_exported import Environment

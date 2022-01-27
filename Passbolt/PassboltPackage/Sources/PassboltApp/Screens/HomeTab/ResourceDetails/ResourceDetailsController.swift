@@ -75,7 +75,7 @@ extension ResourceDetailsController: UIController {
     resources.resourceDetailsPublisher(context)
       .map {
         let resourceDetails: ResourceDetailsController.ResourceDetails = .from(detailsViewResource: $0)
-        let previewPassword: FeatureConfig.PreviewPassword = featureConfig.configuration()
+        let previewPassword: FeatureFlags.PreviewPassword = featureConfig.configuration()
         let previewPasswordEnabled: Bool = {
           switch previewPassword {
           case .enabled:

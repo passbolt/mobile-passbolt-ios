@@ -23,7 +23,6 @@
 
 import Accounts
 import CommonModels
-import Commons
 
 extension ResourceDetailsController {
 

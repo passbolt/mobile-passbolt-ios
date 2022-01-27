@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import Commons
+import CommonModels
 import NetworkClient
 import UIComponents
 

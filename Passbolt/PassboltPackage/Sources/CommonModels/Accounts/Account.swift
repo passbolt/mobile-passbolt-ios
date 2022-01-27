@@ -21,7 +21,32 @@
 // @since         v1.0
 //
 
-import Commons
+// Immutable part of account, used to identify account and associated server.
+// WARNING: Do not add new or rename fields in this structure
+// - it will cause data wipe on devices after update.
+// Prepare data migration mechanism before making such changes.
+public struct Account {
 
-public enum MFATokenTag {}
-public typealias MFAToken = Tagged<String, MFATokenTag>
+  public typealias UserID = Tagged<String, Self>
+  public typealias LocalID = Tagged<String, UserID>
+
+  public let localID: LocalID
+  public let domain: URLString
+  public let userID: UserID
+  public let fingerprint: Fingerprint
+
+  public init(
+    localID: LocalID,
+    domain: URLString,
+    userID: UserID,
+    fingerprint: Fingerprint
+  ) {
+    self.localID = localID
+    self.domain = domain
+    self.userID = userID
+    self.fingerprint = fingerprint
+  }
+}
+
+extension Account: Hashable {}
+extension Account: Codable {}

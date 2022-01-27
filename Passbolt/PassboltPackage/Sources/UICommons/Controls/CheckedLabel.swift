@@ -22,7 +22,7 @@
 //
 
 import Combine
-import Commons
+import CommonModels
 import UIKit
 
 public final class CheckedLabel: View {

@@ -65,7 +65,7 @@ extension SettingsController: UIController {
     let featureFlags: FeatureConfig = features.instance()
     let linkOpener: LinkOpener = features.instance()
 
-    let legal: FeatureConfig.Legal = featureFlags.configuration()
+    let legal: FeatureFlags.Legal = featureFlags.configuration()
     var termsURL: URL?
     var privacyPolicyURL: URL?
 

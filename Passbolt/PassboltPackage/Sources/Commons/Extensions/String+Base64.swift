@@ -25,7 +25,9 @@ import Foundation
 
 extension String {
   // Decode base64 url encoded
-  public func base64DecodeFromURLEncoded(options: Data.Base64DecodingOptions = []) -> Data? {
+  public func base64DecodeFromURLEncoded(
+    options: Data.Base64DecodingOptions = []
+  ) -> Data? {
     var result: String =
       self
       .replacingOccurrences(of: "-", with: "+")

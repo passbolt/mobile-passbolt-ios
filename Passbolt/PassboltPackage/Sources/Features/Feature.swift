@@ -22,7 +22,7 @@
 //
 
 import Combine
-import Commons
+import CommonModels
 import Environment
 
 public protocol Feature {

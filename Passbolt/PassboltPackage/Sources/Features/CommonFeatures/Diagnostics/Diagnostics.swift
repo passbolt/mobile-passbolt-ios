@@ -95,7 +95,7 @@ extension Diagnostics: Feature {
       debugLog: { message in
         #if DEBUG
         print(
-          "[\(Date(timeIntervalSince1970: Double(time.timestamp())))] \(message)"
+          "[\(time.timestamp().asDate)] \(message)"
         )
         #endif
       },

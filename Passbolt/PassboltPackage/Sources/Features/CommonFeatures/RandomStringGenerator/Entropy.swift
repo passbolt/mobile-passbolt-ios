@@ -22,6 +22,7 @@
 //
 
 public struct Entropy: RawRepresentable, Strideable, Equatable {
+  
   public typealias Stride = Double
 
   public var rawValue: Double

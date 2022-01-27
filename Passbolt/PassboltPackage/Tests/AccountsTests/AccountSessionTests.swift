@@ -22,7 +22,6 @@
 //
 
 import CommonModels
-import Commons
 import Crypto
 import Features
 import NetworkClient
@@ -66,7 +65,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: AccountSession.State?
+    var result: AccountSessionState?
     feature
       .statePublisher()
       .sink { state in
@@ -300,7 +299,7 @@ final class AccountSessionTests: TestCase {
           .eraseToAnyPublisher()
       )
     )
-    var currentTimestamp: Int = 0
+    var currentTimestamp: Timestamp = 0
     environment.time.timestamp = always(currentTimestamp)
 
     let feature: AccountSession = testInstance()
@@ -310,7 +309,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    currentTimestamp = 5 * 60  // expired time
+    currentTimestamp = Timestamp(rawValue: 5 * 60) // expired time
 
     var result: Account?
     feature
@@ -350,7 +349,7 @@ final class AccountSessionTests: TestCase {
       )
     )
 
-    var currentTimestamp: Int = 0
+    var currentTimestamp: Timestamp = 0
     environment.time.timestamp = always(currentTimestamp)
 
     let feature: AccountSession = testInstance()
@@ -360,7 +359,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    currentTimestamp = 5 * 60  // expired time
+    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
     var result: TheErrorLegacy?
     feature
@@ -546,7 +545,7 @@ final class AccountSessionTests: TestCase {
       with: always(false)
     )
 
-    var currentTimestamp: Int = 0
+    var currentTimestamp: Timestamp = 0
     environment.time.timestamp = always(currentTimestamp)
 
     let feature: AccountSession = testInstance()
@@ -564,7 +563,7 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    currentTimestamp = 5 * 60  // expired time
+    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
     feature
       .decryptMessage("message", nil)
@@ -676,7 +675,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: AccountSession.State?
+    var result: AccountSessionState?
     feature
       .statePublisher()
       .sink { state in
@@ -712,7 +711,7 @@ final class AccountSessionTests: TestCase {
 
     let feature: AccountSession = testInstance()
 
-    var result: AccountSession.State?
+    var result: AccountSessionState?
     feature
       .statePublisher()
       .sink { state in
@@ -1466,7 +1465,7 @@ final class AccountSessionTests: TestCase {
       with: always(false)
     )
 
-    var currentTimestamp: Int = 0
+    var currentTimestamp: Timestamp = 0
     environment.time.timestamp = always(currentTimestamp)
 
     let feature: AccountSession = testInstance()
@@ -1476,7 +1475,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    currentTimestamp = 5 * 60  // expired time
+    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
     let result: Result<Void, TheErrorLegacy> =
       feature
@@ -1894,7 +1893,7 @@ final class AccountSessionTests: TestCase {
       with: always(false)
     )
 
-    var currentTimestamp: Int = 0
+    var currentTimestamp: Timestamp = 0
     environment.time.timestamp = always(currentTimestamp)
 
     let feature: AccountSession = testInstance()
@@ -1904,7 +1903,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    currentTimestamp = 5 * 60  // expired time
+    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
     let result: String? = feature.databaseKey()
 
