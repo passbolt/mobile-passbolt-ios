@@ -44,6 +44,7 @@ extension MFA: Feature {
       return
         yubikey
         .readNFC()
+        .mapErrorsToLegacy()
         .map { otp in
           accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
         }

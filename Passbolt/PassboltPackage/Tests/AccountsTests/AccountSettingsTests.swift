@@ -138,7 +138,7 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.updatedAccountIDsPublisher = always(Just(validAccount.localID).eraseToAnyPublisher())
 
     features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
+    permissions.ensureBiometricsPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
     features.use(permissions)
 
     let feature: AccountSettings = testInstance()
@@ -167,7 +167,7 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
+    permissions.ensureBiometricsPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
     features.use(permissions)
 
     let feature: AccountSettings = testInstance()
@@ -201,7 +201,7 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.deleteAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(true).eraseToAnyPublisher())
+    permissions.ensureBiometricsPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
     features.use(permissions)
 
     let feature: AccountSettings = testInstance()
@@ -231,7 +231,7 @@ final class AccountSettingsTests: TestCase {
     accountsDataStore.storeAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountsDataStore)
-    permissions.ensureBiometricsPermission = always(Just(false).eraseToAnyPublisher())
+    permissions.ensureBiometricsPermission = always(Fail(error: MockIssue.error()).eraseToAnyPublisher())
     features.use(permissions)
 
     let feature: AccountSettings = testInstance()
@@ -248,7 +248,7 @@ final class AccountSettingsTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .permissionRequired)
+    XCTAssertEqual(result.identifier, .legacyBridge)
   }
 
   func test_currentAccountProfilePublisher_publishesInitialProfile() {
@@ -386,7 +386,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheErrorLegacy!
+    var result: TheErrorLegacy?
     feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(
@@ -398,7 +398,7 @@ final class AccountSettingsTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_setAvatarImageURL_fails_withSessionAuthorizationRequired() {
@@ -414,7 +414,7 @@ final class AccountSettingsTests: TestCase {
 
     let feature: AccountSettings = testInstance()
 
-    var result: TheErrorLegacy!
+    var result: TheErrorLegacy?
     feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(
@@ -426,7 +426,7 @@ final class AccountSettingsTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionAuthorizationRequired.self)
   }
 
   func test_setAvatarImageURL_fails_whenProfileSaveFails() {

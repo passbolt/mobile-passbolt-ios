@@ -21,22 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Commons
 
-extension TheErrorLegacy {
+public struct DatabaseBindingInvalid: TheError {
 
-  public static func jwtError(
-    underlyingError: Error? = nil
+  public static func error(
+    _ message: StaticString = "DatabaseBindingInvalid",
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    .init(
-      identifier: .jwtError,
-      underlyingError: underlyingError,
-      extensions: .init()
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.database.binding.invalid")
     )
   }
-}
 
-extension TheErrorLegacy.ID {
-
-  public static let jwtError: Self = "jwtError"
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

@@ -98,7 +98,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
               self?.presentingViewController?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.url", comment: "")
+                  NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
                 ]
               )
               self?.dismiss(ResourceMenuViewController.self)
@@ -107,7 +107,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
               self?.presentingViewController?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.password", comment: "")
+                  NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
                 ]
               )
               self?.dismiss(ResourceMenuViewController.self)
@@ -116,7 +116,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
               self?.presentingViewController?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.username", comment: "")
+                  NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
                 ]
               )
               self?.dismiss(ResourceMenuViewController.self)
@@ -125,14 +125,14 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
               self?.presentingViewController?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.description", comment: "")
+                  NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
                 ]
               )
               self?.dismiss(ResourceMenuViewController.self)
             }
           })
           .handleErrors(
-            ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
+            ([.canceled], handler: { _ in true /* NOP */ }),
             defaultHandler: { [weak self] error in
               if let displayable: DisplayableString = error.displayableString {
                 self?.presentErrorSnackbar(displayable)

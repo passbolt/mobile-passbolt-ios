@@ -22,14 +22,9 @@
 //
 
 import Combine
+import CommonModels
 import CoreNFC
 import Foundation
-
-public enum NFCError: Error {
-
-  case nfcNotSupported
-  case nfcDataParsingFailed
-}
 
 public final class NFCReader: NSObject {
 
@@ -69,22 +64,21 @@ public final class NFCReader: NSObject {
     self.callback = { (result: Result<Array<NFCNDEFMessage>, Error>) -> Void in
       // capturing self to extend its lifetime & setting callback to nil
       self.callback = nil
-      if case let .success(string) = result.map(parser.parse),
-        let otp = string
-      {
-        resultCallback(.success(otp))
-      }
-      else {
-        resultCallback(.failure(NFCError.nfcDataParsingFailed))
-      }
+      resultCallback(result.flatMap(parser.parse))
     }
   }
 
   public func start() {
     guard NFCNDEFReaderSession.readingAvailable
     else {
-      callback?(.failure(NFCError.nfcNotSupported))
-      return
+      return callback?(
+        .failure(
+          NFCIssue.error(
+            underlyingError:
+              NFCNotSupported.error()
+          )
+        )
+      ) ?? Void()
     }
 
     self.session = .init(
@@ -113,7 +107,15 @@ extension NFCReader: NFCNDEFReaderSessionDelegate {
   }
 
   public func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
-    callback?(.failure(error))
+    callback?(
+      .failure(
+        NFCIssue.error(
+          underlyingError:
+            Unidentified
+            .error(underlyingError: error)
+        )
+      )
+    )
   }
 
   public func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {

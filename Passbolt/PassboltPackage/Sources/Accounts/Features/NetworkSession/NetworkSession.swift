@@ -215,7 +215,7 @@ extension NetworkSession: Feature {
     }
 
     func fetchServerPublicKeys(
-      accountID: Account.LocalID,
+      account: Account,
       domain: URLString
     ) -> AnyPublisher<ServerPublicKeys, TheErrorLegacy> {
       Publishers.CombineLatest(
@@ -233,21 +233,24 @@ extension NetworkSession: Feature {
 
         case let .failure(error):
           diagnostics.diagnosticLog("...server public PGP key fingerprint extraction failed!")
-          return Fail(error: error)
+          return Fail(error: error.asLegacy)
             .eraseToAnyPublisher()
         }
 
-        switch fingerprintStorage.loadServerFingerprint(accountID) {
+        switch fingerprintStorage.loadServerFingerprint(account.localID) {
         case let .success(fingerprint):
           existingFingerprint = fingerprint
 
         case .failure:
           diagnostics.diagnosticLog("...server public PGP key fingerprint loading failed!")
           return Fail(
-            error: .invalidServerFingerprint(
-              accountID: accountID,
-              updatedFingerprint: serverFingerprint
-            )
+            error:
+              ServerPGPFingeprintInvalid
+              .error(
+                account: account,
+                fingerprint: serverFingerprint
+              )
+              .asLegacy
           )
           .eraseToAnyPublisher()
         }
@@ -266,22 +269,25 @@ extension NetworkSession: Feature {
             else {
               diagnostics.diagnosticLog("...server public PGP key fingerprint verification failed!")
               return Fail(
-                error: .invalidServerFingerprint(
-                  accountID: accountID,
-                  updatedFingerprint: serverFingerprint
-                )
+                error:
+                  ServerPGPFingeprintInvalid
+                  .error(
+                    account: account,
+                    fingerprint: serverFingerprint
+                  )
+                  .asLegacy
               )
               .eraseToAnyPublisher()
             }
 
           case let .failure(error):
-            return Fail(error: error)
+            return Fail(error: error.asLegacy)
               .eraseToAnyPublisher()
           }
         }
         else {
           diagnostics.diagnosticLog("...server public PGP key fingerprint verification skipped...")
-          switch fingerprintStorage.storeServerFingerprint(accountID, serverFingerprint) {
+          switch fingerprintStorage.storeServerFingerprint(account.localID, serverFingerprint) {
           case let .failure(error):
             diagnostics.diagnosticLog("...server public PGP key fingerprint save failed!")
             return Fail(error: error)
@@ -302,6 +308,7 @@ extension NetworkSession: Feature {
     }
 
     func prepareSignInChallenge(
+      account: Account,
       domain: URLString,
       verificationToken: String,
       challengeExpiration: Int,
@@ -324,8 +331,13 @@ extension NetworkSession: Feature {
         else {
           diagnostics.diagnosticLog("...sign in challenge encoding failed!")
           return Fail<ArmoredPGPMessage, TheErrorLegacy>(
-            error: .signInError()
-              .appending(context: "Failed to encode challenge to string")
+            error:
+              SessionAuthorizationFailure
+              .error(
+                "Failed to encode sign in challenge to string",
+                account: account
+              )
+              .asLegacy
           )
           .eraseToAnyPublisher()
         }
@@ -334,13 +346,19 @@ extension NetworkSession: Feature {
       catch {
         diagnostics.diagnosticLog("...sign in challenge encoding failed!")
         return Fail<ArmoredPGPMessage, TheErrorLegacy>(
-          error: .signInError(underlyingError: error)
-            .appending(context: "Failed to encode challenge")
+          error:
+            SessionAuthorizationFailure
+            .error(
+              "Failed to encode sign in challenge",
+              account: account
+            )
+            .recording(error, for: "underlyingError")
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
 
-      let encryptAndSignResult: Result<String, TheErrorLegacy> = pgp.encryptAndSign(
+      let encryptAndSignResult: Result<String, Error> = pgp.encryptAndSign(
         encodedChallenge,
         passphrase,
         armoredPrivateKey,
@@ -355,7 +373,10 @@ extension NetworkSession: Feature {
       case let .failure(error):
         diagnostics.diagnosticLog("...sign in challenge encryption with signature failed!")
         return Fail<ArmoredPGPMessage, TheErrorLegacy>(
-          error: error.appending(logMessage: "Failed to encrypt and sign challenge")
+          error:
+            error
+            .pushing(.message("Failed to encrypt and sign challenge"))
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -396,12 +417,13 @@ extension NetworkSession: Feature {
     }
 
     func decryptVerifyResponse(
+      account: Account,
       encryptedResponsePayload: String,
       serverPublicPGPKey: ArmoredPGPPublicKey,
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Tokens, TheErrorLegacy> {
-      let decryptedResponsePayloadResult: Result<String, TheErrorLegacy> = pgp.decryptAndVerify(
+      let decryptedResponsePayloadResult: Result<String, Error> = pgp.decryptAndVerify(
         encryptedResponsePayload,
         passphrase,
         armoredPrivateKey,
@@ -416,7 +438,10 @@ extension NetworkSession: Feature {
       case let .failure(error):
         diagnostics.diagnosticLog("...server response decryption failed!")
         return Fail<Tokens, TheErrorLegacy>(
-          error: error.appending(logMessage: "Unable to decrypt and verify response")
+          error:
+            error
+            .pushing(.message("Unable to decrypt and verify response"))
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -430,7 +455,13 @@ extension NetworkSession: Feature {
       catch {
         diagnostics.diagnosticLog("...server response tokens decoding failed!")
         return Fail<Tokens, TheErrorLegacy>.init(
-          error: .signInError(underlyingError: error)
+          error:
+            SessionAuthorizationFailure
+            .error(
+              "Failed to decode sign in tokens",
+              account: account
+            )
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -443,7 +474,7 @@ extension NetworkSession: Feature {
 
     func signInAndDecryptVerifyResponse(
       domain: URLString,
-      userID: Account.UserID,
+      account: Account,
       signInChallenge: ArmoredPGPMessage,
       mfaToken: MFAToken?,
       serverPublicPGPKey: ArmoredPGPPublicKey,
@@ -452,7 +483,7 @@ extension NetworkSession: Feature {
     ) -> AnyPublisher<SignInTokensWithMFAStatus, TheErrorLegacy> {
       signIn(
         domain: domain,
-        userID: userID,
+        userID: account.userID,
         challenge: signInChallenge,
         mfaToken: mfaToken
       )
@@ -460,6 +491,7 @@ extension NetworkSession: Feature {
         (encryptedResponsePayload: String, mfaTokenIsValid) -> AnyPublisher<SignInTokensWithMFAStatus, TheErrorLegacy>
         in
         decryptVerifyResponse(
+          account: account,
           encryptedResponsePayload: encryptedResponsePayload,
           serverPublicPGPKey: serverPublicPGPKey,
           armoredPrivateKey: armoredPrivateKey,
@@ -493,7 +525,10 @@ extension NetworkSession: Feature {
       case let .failure(error):
         diagnostics.diagnosticLog("...session tokens decoding failed!")
         return Fail<SessionStateWithMFAProviders, TheErrorLegacy>(
-          error: error.appending(logMessage: "Failed to prepare for signature verification")
+          error:
+            error
+            .pushing(.message("Failed to prepare for signature verification"))
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -506,8 +541,13 @@ extension NetworkSession: Feature {
       else {
         diagnostics.diagnosticLog("...session tokens verification failed!")
         return Fail<SessionStateWithMFAProviders, TheErrorLegacy>(
-          error: .signInError()
-            .appending(logMessage: "Failed to prepare for signature verification")
+          error:
+            SessionAuthorizationFailure
+            .error(
+              "Failed to prepare sign in tokens signature verification",
+              account: account
+            )
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -532,7 +572,10 @@ extension NetworkSession: Feature {
       case let .failure(error):
         diagnostics.diagnosticLog("...session tokens signature verification failed!")
         return Fail<SessionStateWithMFAProviders, TheErrorLegacy>(
-          error: error.appending(logMessage: "Signature verification failed")
+          error:
+            error
+            .pushing(.message("Signature verification failed"))
+            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -555,10 +598,11 @@ extension NetworkSession: Feature {
         .loadAccountMFAToken(account.localID)
         .get()  // we don't care about the errors here
 
-      return fetchServerPublicKeys(accountID: account.localID, domain: account.domain)
+      return fetchServerPublicKeys(account: account, domain: account.domain)
         .map {
           (serverPublicKeys: ServerPublicKeys) -> AnyPublisher<ServerPublicKeysWithSignInChallenge, TheErrorLegacy> in
           prepareSignInChallenge(
+            account: account,
             domain: account.domain,
             verificationToken: verificationToken,
             challengeExpiration: challengeExpiration,
@@ -581,7 +625,7 @@ extension NetworkSession: Feature {
           > in
           signInAndDecryptVerifyResponse(
             domain: account.domain,
-            userID: account.userID,
+            account: account,
             signInChallenge: signInChallenge,
             mfaToken: mfaToken,
             serverPublicPGPKey: serverPublicKeys.publicPGP,
@@ -641,12 +685,29 @@ extension NetworkSession: Feature {
           let accessToken: NetworkSessionState.AccessToken = sessionState.accessToken  // there might be session refresh attempt here
         else {
           diagnostics.diagnosticLog("...missing session for mfa auth!")
-          return Fail(error: .missingSessionError()).eraseToAnyPublisher()
+          return Fail(
+            error:
+              SessionMissing
+              .error("Missing network session for MFA authorization")
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
         }
         guard sessionState.account == account
         else {
           diagnostics.diagnosticLog("...invalid account for mfa auth!")
-          return Fail(error: .sessionClosed()).eraseToAnyPublisher()
+          return Fail(
+            error:
+              SessionClosed
+              .error(
+                "Closed session used for MFA authorization",
+                account: account
+              )
+              .recording(sessionState, for: "currentAccount")
+              .recording(account, for: "expectedAccount")
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
         }
 
         switch authorization {
@@ -668,7 +729,16 @@ extension NetworkSession: Feature {
                 guard sessionState?.account == account
                 else {
                   diagnostics.diagnosticLog("...invalid account for mfa auth!")
-                  return .failure(.sessionClosed())
+                  return .failure(
+                    SessionClosed
+                      .error(
+                        "Closed session used for MFA authorization",
+                        account: account
+                      )
+                      .recording(sessionState?.account as Any, for: "currentAccount")
+                      .recording(account, for: "expectedAccount")
+                      .asLegacy
+                  )
                 }
                 if storeLocally {
                   return
@@ -704,7 +774,16 @@ extension NetworkSession: Feature {
                 guard sessionState?.account == account
                 else {
                   diagnostics.diagnosticLog("...invalid account for mfa auth!")
-                  return .failure(.sessionClosed())
+                  return .failure(
+                    SessionClosed
+                      .error(
+                        "Closed session used for MFA authorization",
+                        account: account
+                      )
+                      .recording(sessionState?.account as Any, for: "currentAccount")
+                      .recording(account, for: "expectedAccount")
+                      .asLegacy
+                  )
                 }
                 if storeLocally {
                   return
@@ -736,14 +815,29 @@ extension NetworkSession: Feature {
             let sessionState: NetworkSessionState = sessionState
           else {
             diagnostics.diagnosticLog("...missing session for session refresh!")
-            return Fail(error: .missingSessionError())
-              .eraseToAnyPublisher()
+            return Fail(
+              error:
+                SessionMissing
+                .error("Missing network session for session refresh.")
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
           }
           guard sessionState.account == account
           else {
             diagnostics.diagnosticLog("...invalid account for session refresh!")
-            return Fail(error: .sessionClosed())
-              .eraseToAnyPublisher()
+            return Fail(
+              error:
+                SessionClosed
+                .error(
+                  "Closed session used for session refresh",
+                  account: account
+                )
+                .recording(sessionState.account, for: "currentAccount")
+                .recording(account, for: "expectedAccount")
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
           }
           // we are giving the token 5 second leeway to avoid making network requests
           // with a token that is about to expire since it might result in unauthorized response
@@ -757,8 +851,13 @@ extension NetworkSession: Feature {
           guard let refreshToken: NetworkSessionState.RefreshToken = sessionState.refreshToken
           else {
             diagnostics.diagnosticLog("...missing refresh token for session refresh!")
-            return Fail(error: .missingSessionError())
-              .eraseToAnyPublisher()
+            return Fail(
+              error:
+                SessionMissing
+                .error("Missing network session refresh token for session refresh.")
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
           }
 
           let sessionRefreshSubject: PassthroughSubject<Void, TheErrorLegacy> = .init()
@@ -787,7 +886,11 @@ extension NetworkSession: Feature {
 
                   case let .failure(error):
                     diagnostics.diagnosticLog("...jwt access token decoding failed!")
-                    return .failure(error)
+                    return .failure(
+                      error
+                        .pushing(.message("JWT decoding failed"))
+                        .asLegacy
+                    )
                   }
 
                   guard
@@ -795,7 +898,14 @@ extension NetworkSession: Feature {
                     let signedData: Data = accessToken.signedPayload.data(using: .utf8)
                   else {
                     diagnostics.diagnosticLog("...jwt access token verification not possible!")
-                    return .failure(.signInError())
+                    return .failure(
+                      SessionAuthorizationFailure
+                        .error(
+                          "JWT token verification not possible",
+                          account: account
+                        )
+                        .asLegacy
+                    )
                   }
 
                   switch signatureVerification.verify(signedData, signature, serverPublicRSAKey) {
@@ -805,7 +915,16 @@ extension NetworkSession: Feature {
                       guard sessionState?.account == account
                       else {
                         diagnostics.diagnosticLog("...session refresh failed due to account switch!")
-                        return .failure(.sessionClosed())
+                        return .failure(
+                          SessionClosed
+                            .error(
+                              "Closed session used for session refresh",
+                              account: account
+                            )
+                            .recording(sessionState?.account as Any, for: "currentAccount")
+                            .recording(account, for: "expectedAccount")
+                            .asLegacy
+                        )
                       }
                       sessionState?.accessToken = accessToken
                       sessionState?.refreshToken = .init(rawValue: response.refreshToken)
@@ -814,7 +933,11 @@ extension NetworkSession: Feature {
                     }
                   case let .failure(error):
                     diagnostics.diagnosticLog("...jwt access token verification failed!")
-                    return .failure(error)
+                    return .failure(
+                      error
+                        .pushing(.message("JWT verification failed"))
+                        .asLegacy
+                    )
                   }
                 }
                 .eraseToAnyPublisher()
@@ -888,10 +1011,10 @@ extension NetworkSession: Feature {
         else {
           sessionState = nil
           return Fail<Void, TheErrorLegacy>(
-            error: .missingSessionError()
-              .appending(
-                logMessage: "Sign out attempt failed without active session"
-              )
+            error:
+              SessionMissing
+              .error("Missing network session for session close")
+              .asLegacy
           )
           .eraseToAnyPublisher()
         }

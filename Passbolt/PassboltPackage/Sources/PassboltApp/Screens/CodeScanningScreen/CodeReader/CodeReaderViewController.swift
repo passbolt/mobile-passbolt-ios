@@ -142,7 +142,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       })
       .receive(on: RunLoop.main)
       .handleErrors(
-        ([.canceled, .duplicateAccount], handler: { _ in true /* NOP */ }),
+        ([.canceled], handler: { _ in true /* NOP */ }),
         (
           [.accountTransferScanningRecoverableError],
           handler: { [weak self] error in

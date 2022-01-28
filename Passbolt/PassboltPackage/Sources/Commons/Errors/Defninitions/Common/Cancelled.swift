@@ -37,12 +37,11 @@ public struct Cancelled: TheError {
           file: file,
           line: line
         )
-      )
+      ),
+      displayableMessage: .localized(key: .genericErrorCancelled)
     )
   }
 
   public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString {
-    .localized(key: .genericErrorCancelled)
-  }
+  public var displayableMessage: DisplayableString
 }

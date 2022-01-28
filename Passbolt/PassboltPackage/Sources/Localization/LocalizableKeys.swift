@@ -45,5 +45,6 @@ extension LocalizedString.Key {
   public static let invalidPasteValue: Self = "generic.paste.value.invalid"
   public static let genericError: Self = "generic.error"
   public static let genericErrorRetry: Self = "generic.error.retry"
+  public static let genericErrorReport: Self = "generic.error.report"
   public static let genericErrorCancelled: Self = "generic.error.cancelled"
 }

@@ -21,22 +21,33 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Localization
 
-extension TheErrorLegacy {
+public struct DatabaseIssue: TheErrorWrapper {
 
-  public static func yubikeyError(
-    underlyingError: Error? = nil
+  public static func error(
+    _ message: StaticString = "DatabaseIssue",
+    underlyingError: TheError,
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    .init(
-      identifier: .yubikey,
-      underlyingError: underlyingError,
-      extensions: .init()
+    Self(
+      context: .merging(
+        underlyingError.context,
+        .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
+        )
+      ),
+      displayableMessage: underlyingError.displayableMessage,
+      underlyingError: underlyingError
     )
   }
-}
 
-extension TheErrorLegacy.ID {
-
-  public static let yubikey: Self = "yubikey"
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
+  public var underlyingError: TheError
 }

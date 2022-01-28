@@ -100,6 +100,7 @@ extension Resources: Feature {
           // implement diff request here instead when available
           return lastUpdate
         }
+        .mapErrorsToLegacy()
         .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
           // refresh resources types
           networkClient
@@ -150,7 +151,10 @@ extension Resources: Feature {
                 }
             }
             .map { (resourceTypes: Array<ResourceType>) -> AnyPublisher<Void, TheErrorLegacy> in
-              accountDatabase.storeResourcesTypes(resourceTypes)
+              accountDatabase
+                .storeResourcesTypes(resourceTypes)
+                .mapErrorsToLegacy()
+                .eraseToAnyPublisher()
             }
             .switchToLatest()
             .eraseToAnyPublisher()
@@ -192,6 +196,7 @@ extension Resources: Feature {
             .map { (resources: Array<Resource>) -> AnyPublisher<Void, TheErrorLegacy> in
               accountDatabase
                 .storeResources(resources)
+                .mapErrorsToLegacy()
                 .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
                   accountDatabase
                     .saveLastUpdate(time.dateNow())
@@ -276,7 +281,9 @@ extension Resources: Feature {
       resourceID: Resource.ID
     ) -> AnyPublisher<DetailsViewResource, TheErrorLegacy> {
       resourcesUpdateSubject.map {
-        accountDatabase.fetchDetailsViewResources(resourceID)
+        accountDatabase
+          .fetchDetailsViewResources(resourceID)
+          .mapErrorsToLegacy()
       }
       .switchToLatest()
       .eraseToAnyPublisher()

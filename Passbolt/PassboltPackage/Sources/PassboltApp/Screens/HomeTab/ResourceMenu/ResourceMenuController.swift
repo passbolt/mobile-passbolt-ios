@@ -494,7 +494,7 @@ extension ResourceMenuController: UIController {
 
           guard [.owner, .write].contains(resourceDetails.permission)
           else {
-            return Fail<Void, TheErrorLegacy>(error: .permissionRequired())
+            return Fail<Void, TheErrorLegacy>(error: ResourcePermissionRequired.error().asLegacy)
               .eraseToAnyPublisher()
           }
 
@@ -518,7 +518,7 @@ extension ResourceMenuController: UIController {
 
           guard [.owner, .write].contains(resourceDetails.permission)
           else {
-            return Fail<Void, TheErrorLegacy>(error: .permissionRequired())
+            return Fail<Void, TheErrorLegacy>(error: ResourcePermissionRequired.error().asLegacy)
               .eraseToAnyPublisher()
           }
 

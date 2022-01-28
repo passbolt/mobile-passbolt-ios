@@ -93,11 +93,18 @@ extension JWT {
 
   private static func decode(
     _ token: String
-  ) -> Result<(header: Header, payload: Payload, signature: String), TheErrorLegacy> {
+  ) -> Result<(header: Header, payload: Payload, signature: String), Error> {
     var components: Array<String> = token.components(separatedBy: ".")
 
     guard components.count == 3, let signature: Signature = components.popLast() else {
-      return .failure(.jwtError().appending(context: "malformed-token"))
+      return .failure(
+        JWTInvalid.error(
+          underlyingError:
+            DataInvalid
+            .error("JWT decoding failed due to invalid components count")
+            .recording(token, for: "token")
+        )
+      )
     }
 
     return decode(
@@ -118,29 +125,49 @@ extension JWT {
   private static func decode<T: Decodable>(
     type: T.Type,
     from input: String?
-  ) -> Result<T, TheErrorLegacy> {
+  ) -> Result<T, Error> {
     guard
       let value = input,
       let preprocessed: Data = value.base64DecodeFromURLEncoded()
     else {
-      return .failure(.jwtError())
+      return .failure(
+        JWTInvalid.error(
+          underlyingError:
+            DataInvalid
+            .error("JWT decoding failed")
+            .recording(input, for: "input")
+        )
+      )
     }
 
-    return Result(catching: { try jsonDecoder.decode(type, from: preprocessed) })
-      .mapError { TheErrorLegacy.jwtError(underlyingError: $0) }
+    return Result(
+      catching: {
+        try jsonDecoder.decode(type, from: preprocessed)
+
+      })
+      .mapError { error in
+        JWTInvalid.error(
+          underlyingError:
+            DataInvalid
+            .error("JWT decoding failed")
+            .recording(input, for: "input")
+            .recording(error, for: "decodingError")
+        )
+      }
   }
 }
 
 extension JWT {
 
-  public static func from(rawValue: String) -> Result<Self, TheErrorLegacy> {
-    JWT.decode(rawValue).map {
-      .init(
-        header: $0.header,
-        payload: $0.payload,
-        signature: $0.signature,
-        rawValue: rawValue
-      )
-    }
+  public static func from(rawValue: String) -> Result<Self, Error> {
+    JWT.decode(rawValue)
+      .map {
+        .init(
+          header: $0.header,
+          payload: $0.payload,
+          signature: $0.signature,
+          rawValue: rawValue
+        )
+      }
   }
 }

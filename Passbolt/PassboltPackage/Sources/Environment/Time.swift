@@ -27,6 +27,7 @@ import struct Foundation.Date
 import func Foundation.time
 
 public struct Time: EnvironmentElement {
+
   public var timestamp: () -> Timestamp
 }
 

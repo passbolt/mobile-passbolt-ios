@@ -36,9 +36,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [validPayloadContaingURI])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertEqual(result, "cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
+    XCTAssertSuccessEqual(result, "cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
   }
 
   func test_parsePayloadContainingTextEmbeddedInURI_succeeds() {
@@ -47,9 +47,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [validPayloadContaingTextEmbeddedInURI])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertEqual(result, "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe")
+    XCTAssertSuccessEqual(result, "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe")
   }
 
   func test_parsePayloadContainingText_succeeds() {
@@ -58,9 +58,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [validPayloadContainingText])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertEqual(result, "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe")
+    XCTAssertSuccessEqual(result, "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe")
   }
 
   func test_parsePayloadContainingUnsupportedFormat_fails() {
@@ -69,9 +69,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [invalidPayloadContainingURIWithUnsupportedFormat])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 
   func test_parsePayloadContainingUnsupportedType_fails() {
@@ -80,9 +80,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [invalidPayloadContainingURIWithInvalidType])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 
   func test_parsePayloadContainingURI_withIllegalCharactersInOTP_fails() {
@@ -91,9 +91,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [invalidPayloadContainingURIwithIllegalCharactersInOTP])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 
   func test_parsePayloadContainingURI_withOTPLessThanMinLength_fails() {
@@ -102,9 +102,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [invalidPayloadContainingUriWithOTPLessThanMinLength])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 
   func test_parsePayloadContainingURI_withOTPExceedingMaxLength_fails() {
@@ -113,9 +113,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [invalidPayloadContainingUriWithOTPExceedingMaxLength])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 
   func test_parsePayloadContainingURI_withEmptyOTP_fails() {
@@ -124,9 +124,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [emptyURIPayload])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 
   func test_parsePayloadContainingText_withEmptyOTP_fails() {
@@ -135,9 +135,9 @@ final class NDEFParserTests: TestCase {
       .init(records: [emptyTextPayload])
     ]
 
-    let result: String? = parser.parse(messages)
+    let result: Result<String, Error> = parser.parse(messages)
 
-    XCTAssertNil(result)
+    XCTAssertFailure(result)
   }
 }
 

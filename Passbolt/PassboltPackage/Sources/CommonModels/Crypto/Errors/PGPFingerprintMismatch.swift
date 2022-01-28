@@ -21,22 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Localization
 
-extension TheErrorLegacy {
+public struct PGPFingerprintMismatch: TheError {
 
-  public static func permissionRequired(
-    underlyingError: Error? = nil
+  public static func error(
+    _ message: StaticString = "PGPFingerprintMismatch",
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    .init(
-      identifier: .permissionRequired,
-      underlyingError: underlyingError,
-      extensions: .init()
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.crypto.pgp.fingerprint.mismatch")
     )
   }
-}
 
-extension TheErrorLegacy.ID {
-
-  public static let permissionRequired: Self = "permissionRequired"
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

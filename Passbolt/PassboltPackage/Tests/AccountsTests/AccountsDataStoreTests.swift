@@ -118,7 +118,7 @@ final class AccountsDataStoreTests: TestCase {
   }
 
   func test_loadAccounts_loadsEmptyIfKeychainLoadFails() {
-    features.environment.keychain.load = always(.failure(.testError()))
+    features.environment.keychain.load = always(.failure(MockIssue.error()))
 
     let dataStore: AccountsDataStore = testInstance()
 
@@ -150,7 +150,7 @@ final class AccountsDataStoreTests: TestCase {
   }
 
   func test_loadLastUsedAccount_loadsNoneIfKeychainLoadFails() {
-    features.environment.keychain.load = always(.failure(.testError()))
+    features.environment.keychain.load = always(.failure(MockIssue.error()))
     features.environment.preferences.load = always(validAccount.localID.rawValue)
 
     let dataStore: AccountsDataStore = testInstance()
@@ -208,7 +208,7 @@ final class AccountsDataStoreTests: TestCase {
   }
 
   func test_storeAccount_failsIfKeychainSaveFails() {
-    features.environment.keychain.save = always(.failure(.testError()))
+    features.environment.keychain.save = always(.failure(MockIssue.error()))
 
     let dataStore: AccountsDataStore = testInstance()
 
@@ -222,7 +222,7 @@ final class AccountsDataStoreTests: TestCase {
   }
 
   func test_storeAccount_dataIsNotSavedIfKeychainSaveFails() {
-    features.environment.keychain.save = always(.failure(.testError()))
+    features.environment.keychain.save = always(.failure(MockIssue.error()))
 
     let dataStore: AccountsDataStore = testInstance()
 
@@ -325,7 +325,7 @@ final class AccountsDataStoreTests: TestCase {
   }
 
   func test_storeServerFingerprint_failsIfKeychainSaveFails() {
-    features.environment.keychain.save = always(.failure(.testError()))
+    features.environment.keychain.save = always(.failure(MockIssue.error()))
 
     let dataStore: AccountsDataStore = testInstance()
 

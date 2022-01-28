@@ -384,8 +384,15 @@ extension AccountSession: Feature {
 
         case let .failure(error):
           diagnostics.diagnosticLog("...invalid passphrase!")
-          return Fail(error: error)
-            .eraseToAnyPublisher()
+          return Fail(
+            error:
+              error
+              .asTheError()
+              .pushing(.message("Invalid passphrase used for authorization"))
+              .recording(account, for: "account")
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
         }
 
         func createSession() -> AnyPublisher<Bool, TheErrorLegacy> {
@@ -519,8 +526,13 @@ extension AccountSession: Feature {
 
         case .none:
           diagnostics.diagnosticLog("...authorization required!")
-          return Fail<Void, TheErrorLegacy>(error: .authorizationRequired())
-            .eraseToAnyPublisher()
+          return Fail(
+            error:
+              SessionMissing
+              .error("Missing session for MFA authorization")
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
         }
 
         return
@@ -548,15 +560,35 @@ extension AccountSession: Feature {
                   .setFailureType(to: TheErrorLegacy.self)
                   .eraseToAnyPublisher()
 
-              case .authorized, .authorizedMFARequired:
+              case let .authorized(currentAccount, _, _),
+                let .authorizedMFARequired(currentAccount, _, _, _),
+                let .authorizationRequired(currentAccount):
                 diagnostics.diagnosticLog("...MFA authorization failed due to account switch!")
-                return Fail<Void, TheErrorLegacy>(error: .sessionClosed())
-                  .eraseToAnyPublisher()
+                return Fail(
+                  error:
+                    SessionClosed
+                    .error(
+                      "Closed session used for MFA authorization",
+                      account: account
+                    )
+                    .recording(currentAccount, for: "currentAccount")
+                    .recording(account, for: "expectedAccount")
+                    .asLegacy
+                )
+                .eraseToAnyPublisher()
 
-              case .none, .authorizationRequired:
+              case .none:
                 diagnostics.diagnosticLog("...MFA authorization failed!")
-                return Fail<Void, TheErrorLegacy>(error: .authorizationRequired())
-                  .eraseToAnyPublisher()
+                return Fail(
+                  error:
+                    SessionClosed
+                    .error(
+                      "Closed session used for MFA authorization",
+                      account: account
+                    )
+                    .asLegacy
+                )
+                .eraseToAnyPublisher()
               }
             }
           }
@@ -574,7 +606,7 @@ extension AccountSession: Feature {
         case let .authorized(account, passphrase, _), let .authorizedMFARequired(account, passphrase, _, _):
           switch accountsDataStore.loadAccountPrivateKey(account.localID) {
           case let .success(armoredPrivateKey):
-            let decryptionResult: Result<String, TheErrorLegacy>
+            let decryptionResult: Result<String, Error>
             if let publicKey: ArmoredPGPPublicKey = publicKey {
               decryptionResult = pgp.decryptAndVerify(
                 encryptedMessage,
@@ -598,7 +630,7 @@ extension AccountSession: Feature {
                 .eraseToAnyPublisher()
 
             case let .failure(error):
-              return Fail<String, TheErrorLegacy>(error: error)
+              return Fail<String, TheErrorLegacy>(error: error.asLegacy)
                 .eraseToAnyPublisher()
             }
 
@@ -611,10 +643,27 @@ extension AccountSession: Feature {
               .eraseToAnyPublisher()
           }
 
-        case .authorizationRequired, .none:
+        case let .authorizationRequired(account):
           requestAuthorization(message: nil)
-          return Fail<String, TheErrorLegacy>(error: .authorizationRequired())
-            .eraseToAnyPublisher()
+          return Fail(
+            error:
+              SessionAuthorizationRequired
+              .error(
+                "Session authorization required for decrypting message",
+                account: account
+              )
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
+        case .none:
+          requestAuthorization(message: nil)  // TODO: check this behavior
+          return Fail(
+            error:
+              SessionMissing
+              .error("No session provided for decrypting message")
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
         }
       }
     }
@@ -628,7 +677,7 @@ extension AccountSession: Feature {
         case let .authorized(account, passphrase, _), let .authorizedMFARequired(account, passphrase, _, _):
           switch accountsDataStore.loadAccountPrivateKey(account.localID) {
           case let .success(armoredPrivateKey):
-            let encryptionResult: Result<String, TheErrorLegacy> = pgp.encryptAndSign(
+            let encryptionResult: Result<String, Error> = pgp.encryptAndSign(
               message,
               passphrase,
               armoredPrivateKey,
@@ -642,7 +691,7 @@ extension AccountSession: Feature {
                 .eraseToAnyPublisher()
 
             case let .failure(error):
-              return Fail<ArmoredPGPMessage, TheErrorLegacy>(error: error)
+              return Fail<ArmoredPGPMessage, TheErrorLegacy>(error: error.asLegacy)
                 .eraseToAnyPublisher()
             }
 
@@ -655,10 +704,28 @@ extension AccountSession: Feature {
               .eraseToAnyPublisher()
           }
 
-        case .authorizationRequired, .none:
+        case let .authorizationRequired(account):
           requestAuthorization(message: nil)
-          return Fail<ArmoredPGPMessage, TheErrorLegacy>(error: .authorizationRequired())
-            .eraseToAnyPublisher()
+          return Fail<ArmoredPGPMessage, TheErrorLegacy>(
+            error:
+              SessionAuthorizationRequired
+              .error(
+                "Session authorization required for decrypting message",
+                account: account
+              )
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
+
+        case .none:
+          requestAuthorization(message: nil)  // TODO: check this
+          return Fail<ArmoredPGPMessage, TheErrorLegacy>(
+            error:
+              SessionMissing
+              .error("No session provided for encrypting message")
+              .asLegacy
+          )
+          .eraseToAnyPublisher()
         }
       }
     }
@@ -682,10 +749,21 @@ extension AccountSession: Feature {
                 message: nil
               )
             )
-          return .failure(.authorizationRequired())
+          return .failure(
+            SessionAuthorizationRequired
+              .error(
+                "Session authorization required for storing passphrase",
+                account: account
+              )
+              .asLegacy
+          )
 
         case .none:
-          return .failure(.authorizationRequired())
+          return .failure(
+            SessionMissing
+              .error("No session provided for storign passphrase")
+              .asLegacy
+          )
         }
 
         if store {

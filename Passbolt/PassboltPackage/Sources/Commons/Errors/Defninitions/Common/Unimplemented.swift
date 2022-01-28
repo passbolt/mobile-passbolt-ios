@@ -37,14 +37,13 @@ public struct Unimplemented: TheError {
           file: file,
           line: line
         )
-      )
+      ),
+      displayableMessage: .localized(key: .genericError)
     )
   }
 
   public var context: DiagnosticsContext
-  public var displayableMessage: DisplayableString {
-    .localized(key: .genericError)
-  }
+  public var displayableMessage: DisplayableString
 }
 
 public func unimplemented(

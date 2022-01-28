@@ -25,10 +25,10 @@ import CommonModels
 
 public struct Yubikey: EnvironmentElement {
 
-  public var readNFC: () -> AnyPublisher<String, TheErrorLegacy>
+  public var readNFC: () -> AnyPublisher<String, Error>
 
   public init(
-    readNFC: @escaping () -> AnyPublisher<String, TheErrorLegacy>
+    readNFC: @escaping () -> AnyPublisher<String, Error>
   ) {
     self.readNFC = readNFC
   }
@@ -46,8 +46,12 @@ extension Yubikey {
 
   public static func unavailable() -> Self {
     Self(
-      readNFC: Fail(error: TheErrorLegacy.featureUnavailable(featureName: "Yubikey"))
-        .eraseToAnyPublisher
+      readNFC: Fail(
+        error:
+          FeatureUnavailable
+          .error(feature: "Yubikey")
+      )
+      .eraseToAnyPublisher
     )
   }
 }

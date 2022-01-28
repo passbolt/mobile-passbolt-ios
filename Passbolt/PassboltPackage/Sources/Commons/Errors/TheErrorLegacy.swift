@@ -54,13 +54,49 @@ extension TheError {
   public var asLegacy: TheErrorLegacy { .from(theError: self) }
 }
 
+extension Error {
+
+  public var asLegacy: TheErrorLegacy {
+    if let theError: TheError = self as? TheError {
+      return .from(theError: theError)
+    }
+    else if self is CancellationError {
+      return .from(
+        theError:
+          Cancelled
+          .error()
+          .recording(self, for: "underlyingError")
+      )
+    }
+    else {
+      return .from(theError: self.asUnidentified())
+    }
+  }
+
+  public func pushing(
+    _ info: DiagnosticsInfo,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Error {
+    ((self as? TheError)
+      ?? (self as? CancellationError)
+      .map { _ in
+        Cancelled
+          .error()
+          .recording(self, for: "underlyingError")
+      }
+      ?? self.asUnidentified(file: file, line: line))
+      .pushing(info)
+  }
+}
+
 extension TheErrorLegacy {
 
   public static func from(
     theError: TheError
   ) -> Self {
     Self(
-      identifier: .legacyBridge,
+      identifier: theError is Cancelled ? .canceled : .legacyBridge,
       underlyingError: theError,
       extensions: [
         .legacyBridge: theError,

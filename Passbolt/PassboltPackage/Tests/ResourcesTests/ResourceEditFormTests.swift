@@ -62,7 +62,9 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just([])
+        .eraseErrorType()
+        .eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -90,7 +92,9 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([emptyResourceType]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just([emptyResourceType])
+        .eraseErrorType()
+        .eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -125,7 +129,9 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      ])
+      .eraseErrorType()
+      .eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -151,7 +157,9 @@ final class ResourceEditFormTests: TestCase {
   func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just([defaultResourceType])
+        .eraseErrorType()
+        .eraseToAnyPublisher()
     )
     features.use(database)
     features.use(resources)
@@ -180,7 +188,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -208,7 +216,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -241,7 +249,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -276,7 +284,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -306,7 +314,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -333,7 +341,7 @@ final class ResourceEditFormTests: TestCase {
   func test_sendForm_fails_whenFetchResourcesTypesOperationFails() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -356,14 +364,14 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_sendForm_fails_whenFieldsValidationFails() {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -398,7 +406,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -426,7 +434,7 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_sendForm_fails_whenEncryptMessageForUserFails() {
@@ -437,7 +445,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -480,7 +488,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -528,7 +536,7 @@ final class ResourceEditFormTests: TestCase {
     features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
       Just([defaultShrinkedResourceType])
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -582,10 +590,12 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      ])
+      .eraseErrorType()
+      .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(database)
@@ -608,7 +618,7 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_resourceEdit_fails_whenFetchingResourceSecretFails() {
@@ -621,7 +631,9 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      ])
+      .eraseErrorType()
+      .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -640,7 +652,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -680,7 +692,9 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      ])
+      .eraseErrorType()
+      .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -699,7 +713,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -745,7 +759,7 @@ final class ResourceEditFormTests: TestCase {
           fields: []
         )
       ])
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
@@ -765,7 +779,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -814,7 +828,7 @@ final class ResourceEditFormTests: TestCase {
           fields: []
         )
       ])
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
@@ -842,7 +856,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -893,7 +907,9 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      ])
+      .eraseErrorType()
+      .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -920,7 +936,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(database)
@@ -987,7 +1003,9 @@ final class ResourceEditFormTests: TestCase {
           name: "password-and-description",
           fields: []
         )
-      ]).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      ])
+      .eraseErrorType()
+      .eraseToAnyPublisher()
     )
     database.fetchEditViewResourceOperation.execute = always(
       Just(
@@ -1014,7 +1032,7 @@ final class ResourceEditFormTests: TestCase {
           description: nil
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
     features.use(database)

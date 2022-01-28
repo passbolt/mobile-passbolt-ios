@@ -31,7 +31,7 @@ internal final class SQLiteConnectionHandle {
     at path: String,
     key: String?,
     options: Int32
-  ) -> Result<SQLiteConnectionHandle, TheErrorLegacy> {
+  ) -> Result<SQLiteConnectionHandle, Error> {
     var handle: OpaquePointer?
     let openingStatus: Int32 = sqlite3_open_v2(
       path,
@@ -44,8 +44,10 @@ internal final class SQLiteConnectionHandle {
       guard sqlite3_key(handle, key, Int32(key.utf8CString.count)) == SQLITE_OK
       else {
         return .failure(
-          TheErrorLegacy.databaseConnectionError(
-            databaseErrorMessage: "Failed to decrypt database"
+          DatabaseIssue.error(
+            underlyingError:
+              DatabaseConnectionIssue
+              .error("Failed to decrypt database")
           )
         )
       }
@@ -68,8 +70,13 @@ internal final class SQLiteConnectionHandle {
         errorMessage = "Unable to open database at: \(path)"
       }
       return .failure(
-        TheErrorLegacy.databaseConnectionError(
-          databaseErrorMessage: errorMessage
+        DatabaseIssue.error(
+          underlyingError:
+            DatabaseConnectionIssue
+            .error("Failed to open database")
+            .recording(path, for: "path")
+            .recording(openingStatus, for: "openingStatus")
+            .recording(errorMessage, for: "errorMessage")
         )
       )
     }
@@ -112,8 +119,8 @@ internal final class SQLiteConnectionHandle {
   internal func execute(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?> = .init()
-  ) -> Result<Void, TheErrorLegacy> {
-    let statementPreparationResult: Result<OpaquePointer?, TheErrorLegacy> = prepareStatement(
+  ) -> Result<Void, Error> {
+    let statementPreparationResult: Result<OpaquePointer?, Error> = prepareStatement(
       statement,
       with: parameters
     )
@@ -142,8 +149,11 @@ internal final class SQLiteConnectionHandle {
     guard stepResult == SQLITE_DONE
     else {
       return .failure(
-        TheErrorLegacy.databaseExecutionError(
-          databaseErrorMessage: lastErrorMessage()
+        DatabaseIssue.error(
+          underlyingError:
+            DatabaseStatementExecutionFailure
+            .error()
+            .recording(lastErrorMessage(), for: "errorMessage")
         )
       )
     }
@@ -155,8 +165,8 @@ internal final class SQLiteConnectionHandle {
   internal func fetch(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?> = .init()
-  ) -> Result<Array<SQLiteRow>, TheErrorLegacy> {
-    let statementPreparationResult: Result<OpaquePointer?, TheErrorLegacy> = prepareStatement(
+  ) -> Result<Array<SQLiteRow>, Error> {
+    let statementPreparationResult: Result<OpaquePointer?, Error> = prepareStatement(
       statement,
       with: parameters
     )
@@ -192,8 +202,11 @@ internal final class SQLiteConnectionHandle {
     guard stepResult == SQLITE_DONE
     else {
       return .failure(
-        TheErrorLegacy.databaseExecutionError(
-          databaseErrorMessage: lastErrorMessage()
+        DatabaseIssue.error(
+          underlyingError:
+            DatabaseStatementExecutionFailure
+            .error()
+            .recording(lastErrorMessage(), for: "errorMessage")
         )
       )
     }
@@ -205,7 +218,7 @@ internal final class SQLiteConnectionHandle {
   private func prepareStatement(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?>
-  ) -> Result<OpaquePointer?, TheErrorLegacy> {
+  ) -> Result<OpaquePointer?, Error> {
     var statementHandle: OpaquePointer?
 
     let statementPreparationResult: Int32 = sqlite3_prepare_v2(
@@ -219,8 +232,11 @@ internal final class SQLiteConnectionHandle {
     guard statementPreparationResult == SQLITE_OK
     else {
       return .failure(
-        TheErrorLegacy.databaseStatementError(
-          databaseErrorMessage: lastErrorMessage()
+        DatabaseIssue.error(
+          underlyingError:
+            DatabaseStatementInvalid
+            .error()
+            .recording(lastErrorMessage(), for: "errorMessage")
         )
       )
     }
@@ -228,8 +244,11 @@ internal final class SQLiteConnectionHandle {
     guard sqlite3_bind_parameter_count(statementHandle) == parameters.count
     else {
       return .failure(
-        TheErrorLegacy.databaseBindingError(
-          databaseErrorMessage: "Bindings count does not match parameters count"
+        DatabaseIssue.error(
+          underlyingError:
+            DatabaseBindingInvalid
+            .error()
+            .recording("Bindings count does not match parameters count", for: "errorMessage")
         )
       )
     }
@@ -246,8 +265,11 @@ internal final class SQLiteConnectionHandle {
         guard bindingSucceeded
         else {
           return .failure(
-            TheErrorLegacy.databaseBindingError(
-              databaseErrorMessage: lastErrorMessage()
+            DatabaseIssue.error(
+              underlyingError:
+                DatabaseBindingInvalid
+                .error()
+                .recording(lastErrorMessage(), for: "errorMessage")
             )
           )
         }
@@ -260,8 +282,11 @@ internal final class SQLiteConnectionHandle {
         guard bindingResult == SQLITE_OK
         else {
           return .failure(
-            TheErrorLegacy.databaseBindingError(
-              databaseErrorMessage: lastErrorMessage()
+            DatabaseIssue.error(
+              underlyingError:
+                DatabaseBindingInvalid
+                .error()
+                .recording(lastErrorMessage(), for: "errorMessage")
             )
           )
         }

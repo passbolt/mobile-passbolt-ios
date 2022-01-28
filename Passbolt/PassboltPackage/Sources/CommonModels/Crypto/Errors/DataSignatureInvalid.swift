@@ -21,35 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Localization
 
-import struct Foundation.OSStatus
-import let Foundation.errSecAuthFailed
+public struct DataSignatureInvalid: TheError {
 
-extension TheErrorLegacy {
-
-  internal static func keychainError(
-    _ status: OSStatus,
-    underlyingError: Error? = nil
+  public static func error(
+    _ message: StaticString = "DataSignatureInvalid",
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
     Self(
-      identifier: .keychainError,
-      underlyingError: underlyingError,
-      extensions: [.osStatus: status]
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.crypto.data.signature.invalid")
     )
   }
 
-  internal static func keychainAuthFailed() -> Self {
-    Self(
-      identifier: .keychainAuthFailed,
-      underlyingError: nil,
-      extensions: [.osStatus: errSecAuthFailed]
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static var keychainError: Self { "keychainError" }
-  public static var keychainAuthFailed: Self { "keychainAuthFailed" }
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

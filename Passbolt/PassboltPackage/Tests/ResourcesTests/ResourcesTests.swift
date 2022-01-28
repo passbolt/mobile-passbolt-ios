@@ -49,22 +49,22 @@ final class ResourceTests: TestCase {
     accountDatabase = .placeholder
     accountDatabase.fetchLastUpdate.execute = always(
       Just(Date(timeIntervalSince1970: 0))
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     accountDatabase.saveLastUpdate.execute = always(
       Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     accountDatabase.storeResourcesTypes.execute = always(
       Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     accountDatabase.storeResources.execute = always(
       Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
 
@@ -150,7 +150,7 @@ final class ResourceTests: TestCase {
     accountDatabase.storeResourcesTypes.execute = { _ in
       result = Void()
       return Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     features.use(accountDatabase)
@@ -169,7 +169,7 @@ final class ResourceTests: TestCase {
   func test_refreshIfNeeded_fails_whenResourceTypesSaveFails() {
     features.use(accountSession)
     accountDatabase.storeResourcesTypes.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -190,7 +190,7 @@ final class ResourceTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_refreshIfNeeded_fetchesResources() {
@@ -248,7 +248,7 @@ final class ResourceTests: TestCase {
     accountDatabase.storeResources.execute = { _ in
       result = Void()
       return Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     features.use(accountDatabase)
@@ -267,7 +267,7 @@ final class ResourceTests: TestCase {
   func test_refreshIfNeeded_fails_whenResourceSaveFails() {
     features.use(accountSession)
     accountDatabase.storeResourcesTypes.execute = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -288,14 +288,14 @@ final class ResourceTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_filteredResourcesListPublisher_publishesResourcesFromDatabase() {
     features.use(accountSession)
     accountDatabase.fetchListViewResources.execute = always(
       Just(testResources)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -322,7 +322,7 @@ final class ResourceTests: TestCase {
     accountDatabase.fetchListViewResources.execute = { filter in
       result = filter
       return Just(testResources)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     features.use(accountDatabase)
@@ -345,7 +345,7 @@ final class ResourceTests: TestCase {
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
       Just(resources)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -375,7 +375,7 @@ final class ResourceTests: TestCase {
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
       Just(resources)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)
@@ -406,7 +406,7 @@ final class ResourceTests: TestCase {
   func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() {
     features.use(accountSession)
     accountDatabase.fetchListViewResources.execute = always(
-      Fail<Array<ListViewResource>, TheErrorLegacy>(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
     features.use(accountDatabase)

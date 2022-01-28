@@ -21,23 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Commons
 
-import struct Foundation.OSStatus
-import class Security.CFError
+public struct DatabaseConnectionIssue: TheError {
 
-extension TheErrorLegacy {
-
-  internal static func signatureError(_ error: CFError?) -> Self {
+  public static func error(
+    _ message: StaticString = "DatabaseConnectionIssue",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
     Self(
-      identifier: .signatureError,
-      underlyingError: error,
-      extensions: [:]
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.database.connection.issue")
     )
   }
-}
 
-extension TheErrorLegacy.ID {
-
-  public static let signatureError: Self = "signatureError"
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

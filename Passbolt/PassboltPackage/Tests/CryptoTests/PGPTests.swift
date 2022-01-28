@@ -36,7 +36,7 @@ final class PGPTests: XCTestCase {
     let input: String = "The quick brown fox jumps over the lazy dog"
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.encryptAndSign(
+    let output: Result<String, Error> = pgp.encryptAndSign(
       input,
       passphrase,
       privateKey,
@@ -50,25 +50,25 @@ final class PGPTests: XCTestCase {
     let input: String = ""
     let passphrase: Passphrase = "SomeInvalidPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.encryptAndSign(
+    let output: Result<String, Error> = pgp.encryptAndSign(
       input,
       passphrase,
       privateKey,
       publicKey
     )
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid error")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.invalidPassphraseError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PassphraseInvalid.self
+    )
   }
 
   func test_decryptionAndVerification_withCorrectPassphrase_succeeds() {
     let input: String = signedCiphertext
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.decryptAndVerify(
+    let output: Result<String, Error> = pgp.decryptAndVerify(
       input,
       passphrase,
       privateKey,
@@ -82,18 +82,18 @@ final class PGPTests: XCTestCase {
     let input: String = signedCiphertext
     let passphrase: Passphrase = "InvalidPasshrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.decryptAndVerify(
+    let output: Result<String, Error> = pgp.decryptAndVerify(
       input,
       passphrase,
       privateKey,
       publicKey
     )
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid error")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.invalidPassphraseError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PassphraseInvalid.self
+    )
   }
 
   func test_decryptionAndVerification_withCorruptedInputData_fails() {
@@ -105,18 +105,18 @@ final class PGPTests: XCTestCase {
       """
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.decryptAndVerify(
+    let output: Result<String, Error> = pgp.decryptAndVerify(
       input,
       passphrase,
       privateKey,
       publicKey
     )
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid error")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.pgpError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: Unidentified.self
+    )
   }
 
   func test_encryptionWithoutSigning_withProperInputData_success() {
@@ -128,7 +128,7 @@ final class PGPTests: XCTestCase {
       return
     }
 
-    let decryptionOutput: Result<String, TheErrorLegacy> = pgp.decrypt(
+    let decryptionOutput: Result<String, Error> = pgp.decrypt(
       encrypted,
       passphrase,
       privateKey
@@ -141,20 +141,20 @@ final class PGPTests: XCTestCase {
   func test_encryptionWithoutSigning_withEmptyKey_failure() {
     let input: String = "The quick brown fox jumps over the lazy dog"
 
-    let output: Result<String, TheErrorLegacy> = pgp.encrypt(input, "")
+    let output: Result<String, Error> = pgp.encrypt(input, "")
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid error")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.pgpError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: Unidentified.self
+    )
   }
 
   func test_decryptionWithoutVerifying_withCorrectPassphrase_succeeds() {
     let input: String = signedCiphertext
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.decrypt(input, passphrase, privateKey)
+    let output: Result<String, Error> = pgp.decrypt(input, passphrase, privateKey)
 
     XCTAssertSuccessEqual(output, "Passbolt\n")
   }
@@ -163,24 +163,24 @@ final class PGPTests: XCTestCase {
     let input: String = signedCiphertext
     let passphrase: Passphrase = "InvalidPasshrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.decrypt(
+    let output: Result<String, Error> = pgp.decrypt(
       input,
       passphrase,
       privateKey
     )
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid error")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.invalidPassphraseError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PassphraseInvalid.self
+    )
   }
 
   func test_signMessage_withCorrectInputData_succeeds() {
     let input: String = "The quick brown fox jumps over the lazy dog"
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.signMessage(
+    let output: Result<String, Error> = pgp.signMessage(
       input,
       passphrase,
       privateKey
@@ -200,7 +200,7 @@ final class PGPTests: XCTestCase {
     let input: String = ""
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.signMessage(
+    let output: Result<String, Error> = pgp.signMessage(
       input,
       passphrase,
       privateKey
@@ -219,24 +219,24 @@ final class PGPTests: XCTestCase {
     let input: String = "The quick brown fox jumps over the lazy dog"
     let passphrase: Passphrase = "InvalidPasshrase"
 
-    let output: Result<String, TheErrorLegacy> = pgp.signMessage(
+    let output: Result<String, Error> = pgp.signMessage(
       input,
       passphrase,
       privateKey
     )
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid error")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.invalidPassphraseError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PassphraseInvalid.self
+    )
   }
 
   func test_verifyMessage_withCorrectylySignedInputAndDisableTimeCheck_succeeds() {
     let input: String = signedMessage
     let verifyTime: Int64 = 0
 
-    let output: Result<String, TheErrorLegacy> = pgp.verifyMessage(input, publicKey, verifyTime)
+    let output: Result<String, Error> = pgp.verifyMessage(input, publicKey, verifyTime)
 
     XCTAssertSuccessEqual(output, "Passbolt")
   }
@@ -245,13 +245,13 @@ final class PGPTests: XCTestCase {
     let input: String = ""
     let verifyTime: Int64 = 0
 
-    let output: Result<String, TheErrorLegacy> = pgp.verifyMessage(input, publicKey, verifyTime)
+    let output: Result<String, Error> = pgp.verifyMessage(input, publicKey, verifyTime)
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid value")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.invalidInputDataError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: DataInvalid.self
+    )
   }
 
   func test_verifyMessage_withCorrectlySignedInputAndEnabledTimeCheck_succeeds() {
@@ -259,7 +259,7 @@ final class PGPTests: XCTestCase {
     // A certain point in time when the key is valid
     let verifyTime: Int64 = 1_619_588_275
 
-    let output: Result<String, TheErrorLegacy> = pgp.verifyMessage(input, publicKey, verifyTime)
+    let output: Result<String, Error> = pgp.verifyMessage(input, publicKey, verifyTime)
 
     XCTAssertSuccessEqual(output, "Passbolt")
   }
@@ -269,86 +269,77 @@ final class PGPTests: XCTestCase {
     // Distant future - the keys should be expired by then
     let verifyTime: Int64 = .max
 
-    let output: Result<String, TheErrorLegacy> = pgp.verifyMessage(input, publicKey, verifyTime)
+    let output: Result<String, Error> = pgp.verifyMessage(input, publicKey, verifyTime)
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid value")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.pgpError)
+    XCTAssertFailureUnderlyingError(output, matches: Unidentified.self)
   }
 
   func test_verifyPassphrase_withCorrectPassphrase_succeeds() {
     let passphrase: Passphrase = "SecretPassphrase"
 
-    let output: Result<Void, TheErrorLegacy> = pgp.verifyPassphrase(privateKey, passphrase)
+    let output: Result<Void, Error> = pgp.verifyPassphrase(privateKey, passphrase)
 
-    guard case Result.success(_) = output else {
-      return XCTFail("Invalid error")
-    }
+    XCTAssertSuccess(output)
   }
 
   func test_verifyPassphrase_withIncorrectInputData_fails() {
     let passphrase: Passphrase = "InvalidPassphrase"
 
-    let output: Result<Void, TheErrorLegacy> = pgp.verifyPassphrase(privateKey, passphrase)
+    let output: Result<Void, Error> = pgp.verifyPassphrase(privateKey, passphrase)
 
-    guard case let Result.failure(error) = output else {
-      return XCTFail("Invalid value")
-    }
-
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.invalidPassphraseError)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PassphraseInvalid.self
+    )
   }
 
   func test_verifyPublicKeyFingerprint_withCorrectKeyAndFingerprint_succeeds() {
-    let output: Result<Bool, TheErrorLegacy> = pgp.verifyPublicKeyFingerprint(publicKey, fingerprint)
+    let output: Result<Bool, Error> = pgp.verifyPublicKeyFingerprint(publicKey, fingerprint)
 
     XCTAssertSuccessEqual(output, true)
   }
 
   func test_verifyPublicKeyFingerprint_withIncorrectKey_fails() {
-    let output: Result<Bool, TheErrorLegacy> = pgp.verifyPublicKeyFingerprint("INCORRECT_KEY", fingerprint)
+    let output: Result<Bool, Error> = pgp.verifyPublicKeyFingerprint("INCORRECT_KEY", fingerprint)
 
-    guard case let .failure(error) = output
-    else {
-      return XCTFail("Invalid state")
-    }
-
-    XCTAssertEqual(error.identifier, .failedToGetPGPFingerprint)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PGPFingerprintInvalid.self
+    )
   }
 
   func test_verifyPublicKeyFingerprint_withCorrectKeyAndIncorrectFingerprint_fails() {
-    let output: Result<Bool, TheErrorLegacy> = pgp.verifyPublicKeyFingerprint(publicKey, "INCORRECT_FINGERPRINT")
+    let output: Result<Bool, Error> = pgp.verifyPublicKeyFingerprint(publicKey, "INCORRECT_FINGERPRINT")
 
     XCTAssertSuccessEqual(output, false)
   }
 
   func test_extractFingerprint_succeeds_withCorrectPublicKey() {
-    let output: Result<Fingerprint, TheErrorLegacy> = pgp.extractFingerprint(publicKey)
+    let output: Result<Fingerprint, Error> = pgp.extractFingerprint(publicKey)
 
     XCTAssertSuccessEqual(output, fingerprint)
   }
 
   func test_extractFingerprint_fails_withEmptyPublicKey() {
-    let output: Result<Fingerprint, TheErrorLegacy> = pgp.extractFingerprint(.init(rawValue: ""))
+    let output: Result<Fingerprint, Error> = pgp.extractFingerprint(.init(rawValue: ""))
 
-    guard case let .failure(error) = output
-    else {
-      return XCTFail("Invalid state")
-    }
-
-    XCTAssertEqual(error.identifier, .failedToGetPGPFingerprint)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PGPFingerprintInvalid.self
+    )
   }
 
   func test_extractFingerprint_fails_withCorruptedPublicKey() {
-    let output: Result<Fingerprint, TheErrorLegacy> = pgp.extractFingerprint(corruptedPublicKey)
+    let output: Result<Fingerprint, Error> = pgp.extractFingerprint(corruptedPublicKey)
 
-    guard case let .failure(error) = output
-    else {
-      return XCTFail("Invalid state")
-    }
-
-    XCTAssertEqual(error.identifier, .failedToGetPGPFingerprint)
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: PGPFingerprintInvalid.self
+    )
   }
 
   // MARK: Test data

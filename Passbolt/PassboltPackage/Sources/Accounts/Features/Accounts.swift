@@ -89,8 +89,15 @@ extension Accounts: Feature {
         )
       guard !accountAlreadyStored
       else {
-        return Fail<Void, TheErrorLegacy>(error: .duplicateAccount())
-          .eraseToAnyPublisher()
+        return Fail(
+          error:
+            AccountDuplicate
+            .error("Duplicate account used for account transfer")
+            .recording(domain, for: "domain")
+            .recording(userID, for: "userID")
+            .asLegacy
+        )
+        .eraseToAnyPublisher()
       }
 
       let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)

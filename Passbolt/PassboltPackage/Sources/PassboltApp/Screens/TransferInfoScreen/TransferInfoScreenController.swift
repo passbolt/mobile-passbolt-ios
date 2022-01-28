@@ -48,7 +48,11 @@ extension TransferInfoScreenController: UIController {
     }
 
     func requestOrNavigatePublisher() -> AnyPublisher<Bool, Never> {
-      permissions.ensureCameraPermission()
+      permissions
+        .ensureCameraPermission()
+        .map { true }
+        .replaceError(with: false)
+        .eraseToAnyPublisher()
     }
 
     func presentNoCameraPermissionAlertPublisher() -> AnyPublisher<Bool, Never> {

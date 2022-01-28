@@ -132,7 +132,7 @@ final class AccountsStoreTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .duplicateAccount)
+    XCTAssertError(result.legacyBridge, matches: AccountDuplicate.self)
   }
 
   func test_removeAccount_removesDataFromAccountsDataStore() {

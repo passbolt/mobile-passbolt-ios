@@ -31,15 +31,15 @@ public struct SQLiteConnection {
     (
       _ statement: SQLiteStatement,
       _ parameters: Array<SQLiteBindable?>
-    ) -> Result<Void, TheErrorLegacy>
+    ) -> Result<Void, Error>
   public var fetch:
     (
       _ statement: SQLiteStatement,
       _ parameters: Array<SQLiteBindable?>
-    ) -> Result<Array<SQLiteRow>, TheErrorLegacy>
-  public var beginTransaction: () -> Result<Void, TheErrorLegacy>
-  public var rollbackTransaction: () -> Result<Void, TheErrorLegacy>
-  public var endTransaction: () -> Result<Void, TheErrorLegacy>
+    ) -> Result<Array<SQLiteRow>, Error>
+  public var beginTransaction: () -> Result<Void, Error>
+  public var rollbackTransaction: () -> Result<Void, Error>
+  public var endTransaction: () -> Result<Void, Error>
   public var enqueueOperation: (@escaping () -> Void) -> Void
 }
 
@@ -50,10 +50,10 @@ extension SQLiteConnection {
     key: String? = nil,
     options: Int32 = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE,
     migrations: Array<SQLiteMigration> = .init()
-  ) -> Result<SQLiteConnection, TheErrorLegacy> {
+  ) -> Result<SQLiteConnection, Error> {
     let databaseQueue: DispatchQueue = .init(label: "SQLiteConnectionQueue")
 
-    let connectionOpeningResult: Result<SQLiteConnectionHandle, TheErrorLegacy> = SQLiteConnectionHandle.open(
+    let connectionOpeningResult: Result<SQLiteConnectionHandle, Error> = SQLiteConnectionHandle.open(
       at: path,
       key: key,
       options: options
@@ -98,7 +98,7 @@ extension SQLiteConnection {
         }
       )
 
-      let migrationResult: Result<Void, TheErrorLegacy> = Self.performMigrations(
+      let migrationResult: Result<Void, Error> = Self.performMigrations(
         migrations,
         using: connectionHandle
       )
@@ -120,7 +120,7 @@ extension SQLiteConnection {
   public func execute(
     _ statement: SQLiteStatement,
     with parameters: SQLiteBindable?...
-  ) -> Result<Void, TheErrorLegacy> {
+  ) -> Result<Void, Error> {
     execute(
       statement,
       parameters
@@ -131,7 +131,7 @@ extension SQLiteConnection {
   public func execute(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?>
-  ) -> Result<Void, TheErrorLegacy> {
+  ) -> Result<Void, Error> {
     execute(
       statement,
       parameters
@@ -142,7 +142,7 @@ extension SQLiteConnection {
   public func fetch(
     _ statement: SQLiteStatement,
     with parameters: SQLiteBindable?...
-  ) -> Result<Array<SQLiteRow>, TheErrorLegacy> {
+  ) -> Result<Array<SQLiteRow>, Error> {
     fetch(
       statement,
       parameters
@@ -153,8 +153,8 @@ extension SQLiteConnection {
   public func fetch<Value>(
     _ statement: SQLiteStatement,
     with parameters: SQLiteBindable?...,
-    mapping: (Array<SQLiteRow>) -> Result<Value, TheErrorLegacy>
-  ) -> Result<Value, TheErrorLegacy> {
+    mapping: (Array<SQLiteRow>) -> Result<Value, Error>
+  ) -> Result<Value, Error> {
     fetch(
       statement,
       parameters
@@ -166,8 +166,8 @@ extension SQLiteConnection {
   public func fetch<Value>(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?>,
-    mapping: (Array<SQLiteRow>) -> Result<Value, TheErrorLegacy>
-  ) -> Result<Value, TheErrorLegacy> {
+    mapping: (Array<SQLiteRow>) -> Result<Value, Error>
+  ) -> Result<Value, Error> {
     fetch(
       statement,
       parameters
@@ -177,9 +177,9 @@ extension SQLiteConnection {
 
   @inlinable
   public func withQueue<Value>(
-    _ operation: @escaping (Self) -> Result<Value, TheErrorLegacy>
-  ) -> AnyPublisher<Value, TheErrorLegacy> {
-    let resultSubject: PassthroughSubject<Value, TheErrorLegacy> = .init()
+    _ operation: @escaping (Self) -> Result<Value, Error>
+  ) -> AnyPublisher<Value, Error> {
+    let resultSubject: PassthroughSubject<Value, Error> = .init()
     enqueueOperation {
       switch operation(self) {
       case let .success(value):
@@ -197,8 +197,8 @@ extension SQLiteConnection {
 
   @inlinable
   public func withTransaction(
-    _ transaction: (SQLiteConnection) -> Result<Void, TheErrorLegacy>
-  ) -> Result<Void, TheErrorLegacy> {
+    _ transaction: (SQLiteConnection) -> Result<Void, Error>
+  ) -> Result<Void, Error> {
     switch beginTransaction() {
     case .success:
       break
@@ -222,10 +222,10 @@ extension SQLiteConnection {
   private static func performMigrations(
     _ migrations: Array<SQLiteMigration>,
     using connection: SQLiteConnectionHandle
-  ) -> Result<Void, TheErrorLegacy> {
+  ) -> Result<Void, Error> {
     func withTransaction(
-      _ transaction: (SQLiteConnectionHandle) -> Result<Void, TheErrorLegacy>
-    ) -> Result<Void, TheErrorLegacy> {
+      _ transaction: (SQLiteConnectionHandle) -> Result<Void, Error>
+    ) -> Result<Void, Error> {
       switch connection.execute("BEGIN TRANSACTION;") {
       case .success:
         break
@@ -246,7 +246,7 @@ extension SQLiteConnection {
       }
     }
 
-    let currentSchemaVersionFetchResult: Result<Int?, TheErrorLegacy> =
+    let currentSchemaVersionFetchResult: Result<Int?, Error> =
       connection
       .fetch(
         "PRAGMA user_version;"
@@ -268,10 +268,14 @@ extension SQLiteConnection {
     else {
       if currentSchemaVersion > migrations.count {
         return .failure(
-          TheErrorLegacy.databaseMigrationError(
-            databaseErrorMessage:
-              "Invalid schema version, provided: \(migrations.count), existing: \(currentSchemaVersion)"
-          )
+          DatabaseIssue
+            .error(
+              underlyingError:
+                DatabaseConnectionIssue
+                .error("Invalid database schema version")
+                .recording(currentSchemaVersion, for: "currentSchemaVersion")
+                .recording(migrations.count, for: "providedSchemaVersion")
+            )
         )
       }
       else {
@@ -280,9 +284,9 @@ extension SQLiteConnection {
     }
 
     for migration in migrations[currentSchemaVersion...] {
-      let transactionResult: Result<Void, TheErrorLegacy> = withTransaction { conn in
+      let transactionResult: Result<Void, Error> = withTransaction { conn in
         for step in migration.steps {
-          let statementExecutionResult: Result<Void, TheErrorLegacy> =
+          let statementExecutionResult: Result<Void, Error> =
             conn
             .execute(
               step.statement,

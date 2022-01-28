@@ -252,7 +252,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
   func test_createSession_fails_whenEncryptAndSignFails() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
-    features.environment.pgp.encryptAndSign = always(.failure(.testError()))
+    features.environment.pgp.encryptAndSign = always(.failure(MockIssue.error()))
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(fingerprintStorage)
@@ -279,7 +279,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .legacyBridge)
   }
 
   func test_createSession_fails_whenDecryptAndVerifyFails_andServerFingerprint_isValid() {
@@ -287,7 +287,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(accountsDataStore)
-    features.environment.pgp.decryptAndVerify = always(.failure(.testError()))
+    features.environment.pgp.decryptAndVerify = always(.failure(MockIssue.error()))
     features.use(networkClient)
     features.use(fingerprintStorage)
 
@@ -312,13 +312,13 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .legacyBridge)
   }
 
   func test_createSession_fails_whenSignatureVerificationFails() {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     features.use(accountsDataStore)
-    features.environment.signatureVerfication.verify = always(.failure(.testError()))
+    features.environment.signatureVerfication.verify = always(.failure(MockIssue.error()))
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(networkClient)
@@ -345,7 +345,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .legacyBridge)
   }
 
   func test_createSession_fails_whenVerificationTokenIsInvalid() {
@@ -379,7 +379,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .signInError)
+    XCTAssertError(result?.legacyBridge, matches: SessionAuthorizationFailure.self)
   }
 
   func test_createSession_fails_whenServerFingerprintStore_fails_andNoFingerprintIsStored() {
@@ -447,7 +447,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .invalidServerFingerprint)
+    XCTAssertError(result?.legacyBridge, matches: ServerPGPFingeprintInvalid.self)
   }
 
   func test_createSession_fails_whenServerFingerprintLoad_failsWithInvalidServerFingerprintError() {
@@ -479,7 +479,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .invalidServerFingerprint)
+    XCTAssertError(result?.legacyBridge, matches: ServerPGPFingeprintInvalid.self)
   }
 
   func test_createMFAToken_doesNotStoreMFAToken_whenStoreLocallyFlagIsFalse() {
@@ -582,7 +582,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .missingSessionError)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_createMFAToken_fails_whenTOTPRequestFails() {
@@ -949,7 +949,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .missingSessionError)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_sessionRefresh_isSkipped_whenAccessTokenIsStillValid() {
@@ -1028,7 +1028,7 @@ final class NetworkSessionCreateSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .jwtError)
+    XCTAssertError(result?.legacyBridge, matches: JWTInvalid.self)
   }
 
   func test_sessionRefresh_fails_whenSessionRefreshRequestFails() {

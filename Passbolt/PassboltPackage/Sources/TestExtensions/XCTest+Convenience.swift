@@ -332,11 +332,50 @@ public func XCTAssertError<ExpectedError>(
   _ message: @autoclosure () -> String? = nil,
   file: StaticString = #filePath,
   line: UInt = #line
-) where ExpectedError: TheError {
+) where ExpectedError: Error {
   let error: Error? = expression()
   XCTAssert(
     (error as? ExpectedError).map(verification) ?? false,
     message() ?? "\(error.map { "\(type(of: $0))" } ?? "nil")) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertUnderlyingError<ExpectedError>(
+  _ expression: @autoclosure () -> TheErrorWrapper?,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where ExpectedError: Error {
+  let error: TheErrorWrapper? = expression()
+  XCTAssert(
+    (error?.underlyingError as? ExpectedError).map(verification) ?? false,
+    message()
+      ?? "\((error?.underlyingError).map { "\(type(of: $0))" } ?? "nil")) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertUnderlyingError<ExpectedRootError, ExpectedError>(
+  _ expression: @autoclosure () -> Error?,
+  root _: ExpectedRootError.Type,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where ExpectedRootError: TheErrorWrapper, ExpectedError: Error {
+  let error: Error? = expression()
+  XCTAssert(
+    ((error as? ExpectedRootError)?.underlyingError as? ExpectedError).map(verification) ?? false,
+    message()
+      ?? "\(((error as? ExpectedRootError)?.underlyingError).map { "\(type(of: $0))" } ?? "nil")) is not matching \(ExpectedError.self)",
     file: file,
     line: line
   )
@@ -350,7 +389,7 @@ public func XCTAssertErrorThrown<ExpectedError, Value>(
   _ message: @autoclosure () -> String? = nil,
   file: StaticString = #filePath,
   line: UInt = #line
-) where ExpectedError: TheError {
+) where ExpectedError: Error {
   let thrownError: Error?
   do {
     _ = try expression()
@@ -363,6 +402,103 @@ public func XCTAssertErrorThrown<ExpectedError, Value>(
   XCTAssert(
     (thrownError as? ExpectedError).map(verification) ?? false,
     message() ?? "\(thrownError.map { "\(type(of: $0))" } ?? "nil")) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertFailureError<Value, Failure, ExpectedError>(
+  _ expression: @autoclosure () -> Result<Value, Failure>,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where Failure: Error, ExpectedError: Error {
+  let result: Result<Value, Failure> = expression()
+  guard case let .failure(error) = result
+  else {
+    return XCTFail(
+      message() ?? "\(result)) is not a failure",
+      file: file,
+      line: line
+    )
+  }
+  XCTAssert(
+    (error as? ExpectedError).map(verification) ?? false,
+    message() ?? "\(type(of: error)) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertFailureError<Value, Failure>(
+  _ expression: @autoclosure () -> Result<Value, Failure>,
+  verification: (Failure) -> Bool,
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where Failure: Error {
+  XCTAssertFailureError(
+    expression(),
+    matches: Failure.self,
+    verification: verification,
+    message(),
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertFailureUnderlyingError<Value, Failure, ExpectedError>(
+  _ expression: @autoclosure () -> Result<Value, Failure>,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where Failure: Error, ExpectedError: Error {
+  let result: Result<Value, Failure> = expression()
+  guard case let .failure(error) = result
+  else {
+    return XCTFail(
+      message() ?? "\(result)) is not a failure",
+      file: file,
+      line: line
+    )
+  }
+  XCTAssert(
+    ((error as? TheErrorWrapper)?.underlyingError as? ExpectedError).map(verification) ?? false,
+    message() ?? "\(type(of: (error as? TheErrorWrapper)?.underlyingError)) is not matching \(ExpectedError.self)",
+    file: file,
+    line: line
+  )
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertFailureUnderlyingError<Value, Failure, ExpectedRootError, ExpectedError>(
+  _ expression: @autoclosure () -> Result<Value, Failure>,
+  root _: ExpectedRootError.Type,
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  _ message: @autoclosure () -> String? = nil,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) where Failure: Error, ExpectedRootError: TheErrorWrapper, ExpectedError: Error {
+  let result: Result<Value, Failure> = expression()
+  guard case let .failure(error) = result
+  else {
+    return XCTFail(
+      message() ?? "\(result)) is not a failure",
+      file: file,
+      line: line
+    )
+  }
+  XCTAssert(
+    ((error as? ExpectedRootError)?.underlyingError as? ExpectedError).map(verification) ?? false,
+    message() ?? "\(type(of: (error as? TheErrorWrapper)?.underlyingError)) is not matching \(ExpectedError.self)",
     file: file,
     line: line
   )

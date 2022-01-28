@@ -279,13 +279,12 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       .handleEvents(receiveCompletion: { [weak self] completion in
         guard case let .failure(error) = completion
         else { return }
-        guard
-          error.identifier == .invalidServerFingerprint,
-          let accountID: Account.LocalID = error.accountID,
-          let fingerprint: Fingerprint = error.serverFingerprint
+        guard let theError = error.legacyBridge as? ServerPGPFingeprintInvalid
         else {
           return
         }
+        let accountID: Account.LocalID = theError.account.localID
+        let fingerprint: Fingerprint = theError.fingerprint
 
         self?.signInCancellable = nil
         self?.navigateToInvalidServerFingerprint(
@@ -307,7 +306,7 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
       }
       .handleErrors(
         (
-          [.canceled, .invalidServerFingerprint],
+          [.canceled],
           handler: { _ in true /* NOP */ }
         ),
         (
@@ -316,18 +315,6 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
             self?.presentErrorSnackbar(
               .localized(
                 key: "sign.in.error.passphrase.invalid.message"
-              ),
-              hideAfter: 5
-            )
-            return true
-          }
-        ),
-        (
-          [.biometricsChanged],
-          handler: { [weak self] _ in
-            self?.presentErrorSnackbar(
-              .localized(
-                key: "sign.in.error.biometrics.changed.message"
               ),
               hideAfter: 5
             )
@@ -352,6 +339,14 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               self?.present(
                 ServerNotReachableAlertViewController.self,
                 in: serverError.serverURL
+              )
+            }
+            else if theError is AccountBiometryDataChanged {
+              self?.presentErrorSnackbar(
+                .localized(
+                  key: "sign.in.error.biometrics.changed.message"
+                ),
+                hideAfter: 5
               )
             }
             else {

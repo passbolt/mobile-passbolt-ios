@@ -47,11 +47,13 @@ extension NetworkRequest {
                     locationURLString.rawValue.hasSuffix("/mfa/verify/error.json")
                   {
                     return mfaRedirectionHandler(.init())
-                      .map { _ -> AnyPublisher<Response, Error> in
+                      .map { response -> AnyPublisher<Response, Error> in
                         Fail(
                           error:
                             InternalInconsistency
                             .error("Invalid MFA Redirect response")
+                            .recording(redirect, for: "redirect")
+                            .recording(response, for: "response")
                         )
                         .eraseToAnyPublisher()
                       }

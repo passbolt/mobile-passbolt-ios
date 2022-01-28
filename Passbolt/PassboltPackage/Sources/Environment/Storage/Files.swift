@@ -26,9 +26,9 @@ import Foundation
 
 public struct Files: EnvironmentElement {
 
-  public var deleteFile: (URL) -> Result<Void, TheErrorLegacy>
-  public var contentsOfDirectory: (URL) -> Result<Array<String>, TheErrorLegacy>
-  public var applicationDataDirectory: () -> Result<URL, TheErrorLegacy>
+  public var deleteFile: (URL) -> Result<Void, Error>
+  public var contentsOfDirectory: (URL) -> Result<Array<String>, Error>
+  public var applicationDataDirectory: () -> Result<URL, Error>
 }
 
 extension Files {
@@ -47,9 +47,10 @@ extension Files {
         }
         catch {
           return .failure(
-            .fileDeletionError(
-              underlyingError: error
-            )
+            FileAccessIssue
+              .error("Cannot delete local file")
+              .recording(fileURL, for: "fileURL")
+              .recording(error, for: "underlyingError")
           )
         }
       },
@@ -71,9 +72,10 @@ extension Files {
         }
         catch {
           return .failure(
-            .directoryError(
-              underlyingError: error
-            )
+            DirectoryAccessIssue
+              .error("Cannot access directory")
+              .recording(directoryURL, for: "directoryURL")
+              .recording(error, for: "underlyingError")
           )
         }
       },
@@ -91,9 +93,9 @@ extension Files {
         }
         catch {
           return .failure(
-            .directoryError(
-              underlyingError: error
-            )
+            DirectoryAccessIssue
+              .error("Cannot access appplication data directory")
+              .recording(error, for: "underlyingError")
           )
         }
       }
@@ -122,32 +124,3 @@ extension Files {
   }
 }
 #endif
-
-extension TheErrorLegacy {
-
-  public static func directoryError(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .directoryError,
-      underlyingError: underlyingError,
-      extensions: [:]
-    )
-  }
-
-  public static func fileDeletionError(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .fileDeletionError,
-      underlyingError: underlyingError,
-      extensions: [:]
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static let directoryError: Self = "directoryError"
-  public static let fileDeletionError: Self = "fileDeletionError"
-}

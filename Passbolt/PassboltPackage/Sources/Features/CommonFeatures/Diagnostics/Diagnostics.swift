@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Environment
 import OSLog
 
@@ -201,6 +202,15 @@ extension Diagnostics: Feature {
 }
 
 extension Diagnostics {
+
+  public func log(
+    _ error: Error,
+    info: DiagnosticsInfo
+  ) {
+    for message in error.asTheError().pushing(info).diagnosticMessages {
+      self.diagnosticLog(message, .none)
+    }
+  }
 
   public func diagnosticLog(
     _ message: StaticString,

@@ -45,6 +45,10 @@ extension TheError {
   public var diagnosticMessages: Array<StaticString> {
     self.context.infoStack.map(\.message)
   }
+
+  public var localizedDescription: String {
+    self.displayableMessage.string()
+  }
 }
 
 extension TheError /* CustomDebugStringConvertible */ {
@@ -127,15 +131,22 @@ extension TheError {
   ///   - value: Value to be recorded.
   ///   - key: Key identifying recorded value.
   public mutating func record(
-    _ value: Any,
+    _ value: @autoclosure () -> Any,
     for key: StaticString
   ) {
-    #if DEBUG
-    // infoStack has always one or more elements
-    self.context.infoStack[self.context.infoStack.startIndex].record(value, for: key)
-    #else
-    /* NOP */
-    #endif
+    self.context.record(value(), for: key)
+  }
+
+  /// Record values associated with last info message.
+  /// Does nothing in nondebug builds. Recording value for a key
+  /// which already holds any value replaces current one.
+  ///
+  /// - Parameters:
+  ///   - values: Values to be recorded.
+  public mutating func record(
+    values: @autoclosure () -> Dictionary<StaticString, Any>
+  ) {
+    self.context.record(values: values())
   }
 
   /// Make a copy of this error while recording a value associated with last info message.
@@ -147,78 +158,31 @@ extension TheError {
   ///   - key: Key identifying recorded value.
   /// - Returns: Copy of this error with additional value associated with current context.
   public func recording(
-    _ value: Any,
+    _ value: @autoclosure () -> Any,
     for key: StaticString
   ) -> Self {
     #if DEBUG
     var copy: Self = self
-    copy.record(value, for: key)
+    copy.record(value(), for: key)
     return copy
     #else
     return self
     #endif
   }
-}
 
-public struct DiagnosticsContext {
-
-  fileprivate var infoStack: Array<DiagnosticsInfo>
-
-  fileprivate mutating func push(
-    _ info: DiagnosticsInfo
-  ) {
-    self.infoStack.append(info)
-  }
-}
-
-extension DiagnosticsContext {
-
-  /// Create instance of `DiagnosticsContext`.
-  ///
-  /// - Parameter info: `DiagnosticsInfo` used as initial context.
-  /// - Returns: New instance of `DiagnosticsContext`.
-  public static func context(
-    _ info: DiagnosticsInfo
-  ) -> Self {
-    Self(
-      infoStack: [info]
-    )
-  }
-
-  /// Record a value associated with last info message.
+  /// Make a copy of this error while recording values associated with last info message.
   /// Does nothing in nondebug builds. Recording value for a key
   /// which already holds any value replaces current one.
   ///
   /// - Parameters:
-  ///   - value: Value to be recorded.
-  ///   - key: Key identifying recorded value.
-  public mutating func record(
-    _ value: Any,
-    for key: StaticString
-  ) {
-    #if DEBUG
-    // infoStack has always one or more elements
-    self.infoStack[self.infoStack.startIndex].record(value, for: key)
-    #else
-    /* NOP */
-    #endif
-  }
-
-  /// Make a copy of this context while recording a value associated with last info message.
-  /// Does nothing in nondebug builds.Recording value for a key
-  /// which already holds any value replaces current one.
-  ///
-  /// - Parameters:
-  ///   - value: Value to be recorded.
-  ///   - key: Key identifying recorded value.
-  /// - Returns: Copy of this context with additional value associated.
+  ///   - value: Values to be recorded.
+  /// - Returns: Copy of this error with additional values associated with current context.
   public func recording(
-    _ value: Any,
-    for key: StaticString
+    values: @autoclosure () -> Dictionary<StaticString, Any>
   ) -> Self {
     #if DEBUG
     var copy: Self = self
-    copy.record(value, for: key)
+    copy.record(values: values())
     return copy
     #else
     return self
@@ -226,107 +190,29 @@ extension DiagnosticsContext {
   }
 }
 
-extension DiagnosticsContext: CustomDebugStringConvertible {
+/// TheError wrapping other error.
+/// Used to add more context information for error handling.
+public protocol TheErrorWrapper: TheError {
 
-  public var debugDescription: String {
-    "\(Self.self)\n\(self.infoStack.reduce(into: "", { $0.append("\($1.debugDescription)")}))"
-  }
+  var underlyingError: TheError { get }
 }
 
-extension DiagnosticsContext {
+extension Error {
 
-  internal static func merging(
-    _ head: DiagnosticsContext,
-    _ mid: DiagnosticsContext,
-    _ tail: DiagnosticsContext...
-  ) -> Self {
-    .merging([head, mid] + tail)
-  }
-
-  internal static func merging(
-    _ contexts: Array<DiagnosticsContext>
-  ) -> Self {
-    Self(
-      infoStack:
-        contexts
-        .reduce(
-          into: .init(),
-          { result, context in
-            result.append(contentsOf: context.infoStack)
-          }
-        )
-    )
-  }
-}
-
-public struct DiagnosticsInfo {
-
-  fileprivate let message: StaticString
-  fileprivate let file: StaticString
-  fileprivate let line: UInt
-
-  #if DEBUG
-  private var values: Dictionary<StaticString, Any> = .init()
-  #endif
-}
-
-extension DiagnosticsInfo {
-
-  /// Create instance of `DiagnosticsInfo`.
-  ///
-  /// - Parameters:
-  ///   - message: Diagnostic message. Used to build log messages and describe
-  ///   error context stacks.
-  ///   - file: File context. Filled automatically based on invocation location.
-  ///   - line: Line context. Filled automatically based on invocation location.
-  /// - Returns: New instance of `DiagnosticsInfo`.
-  public static func message(
-    _ message: StaticString,
+  /// Cast error to TheError or convert it to Unidentified
+  public func asTheError(
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Self {
-    Self(
-      message: message,
-      file: file,
-      line: line
-    )
-  }
-}
-
-#if DEBUG
-extension DiagnosticsInfo {
-
-  fileprivate mutating func record(
-    _ value: Any,
-    for key: StaticString
-  ) {
-    self.values[key] = value
-  }
-}
-#endif
-
-extension DiagnosticsInfo: CustomStringConvertible {
-
-  public var description: String {
-    "\(self.file):\(self.line)-\(self.message)"
-  }
-}
-
-extension DiagnosticsInfo: CustomDebugStringConvertible {
-
-  public var debugDescription: String {
-    #if DEBUG
-    return "\(self.file):\(self.line)-\(self.message)".appending(
-      self.values
-        .reduce(
-          into: String(),
-          { (result, value) in
-            result.append("\n - \(value.key): \(value.value)")
-          }
-        )
-    )
-    #else
-    return self.description
-    #endif
+  ) -> TheError {
+    (self as? TheError)?
+      .recording("\(file):\(line)", for: "Casting from Error")
+      ?? (self as? CancellationError)
+      .map { _ in
+        Cancelled
+          .error()
+          .recording(self, for: "underlyingError")
+          .recording("\(file):\(line)", for: "Casting from Error")
+      }
+      ?? self.asUnidentified(file: file, line: line)
   }
 }

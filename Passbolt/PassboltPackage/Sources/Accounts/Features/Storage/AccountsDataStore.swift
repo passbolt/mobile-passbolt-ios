@@ -80,7 +80,11 @@ extension AccountsDataStore: Feature {
       case .success:
         break
       case let .failure(error):
-        fatalError(error.description)
+        error
+          .asTheError()
+          .pushing(.message("Keychain data force delete failed"))
+          .recording(query, for: "query")
+          .asFatalError()
       }
     }
     func ensureDataIntegrity() -> Result<Void, TheErrorLegacy> {
@@ -108,7 +112,6 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load accounts data, recovering with empty list"
         )
-        diagnostics.debugLog(error.description)
         forceDelete(matching: .accountsQuery)
         storedAccounts = .init()
       }
@@ -124,7 +127,6 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load account profiles data, recovering with empty list"
         )
-        diagnostics.debugLog(error.description)
         forceDelete(matching: .accountsProfilesQuery)
         storedAccountsProfiles = .init()
       }
@@ -143,7 +145,6 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load account mfa tokens data, recovering with empty list"
         )
-        diagnostics.debugLog(error.description)
         forceDelete(matching: .accountsProfilesQuery)
         storedAccountMFATokens = .init()
       }
@@ -162,7 +163,6 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load account server fingerprint data, recovering with empty list"
         )
-        diagnostics.debugLog(error.description)
         forceDelete(matching: .accountsProfilesQuery)
         storedServerFingerprints = .init()
       }
@@ -188,7 +188,6 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load armored keys metadata, recovering with empty list"
         )
-        diagnostics.debugLog(error.description)
         forceDelete(matching: armoredKeysQuery)
         storedAccountKeys = .init()
       }
@@ -216,11 +215,14 @@ extension AccountsDataStore: Feature {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.diagnosticLog(
-            "Failed to delete account"
+          diagnostics.diagnosticLog("Failed to delete account")
+          return .failure(
+            error
+              .asTheError()
+              .pushing(.message("Failed to delete account"))
+              .recording(accountID, for: "accountID")
+              .asLegacy
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted accounts: \(accountsToRemove)")
@@ -235,11 +237,14 @@ extension AccountsDataStore: Feature {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.diagnosticLog(
-            "Failed to delete account profile"
+          diagnostics.diagnosticLog("Failed to delete account profile")
+          return .failure(
+            error
+              .asTheError()
+              .pushing(.message("Failed to delete account profile"))
+              .recording(accountID, for: "accountID")
+              .asLegacy
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted account profiles: \(accountProfilesToRemove)")
@@ -257,8 +262,7 @@ extension AccountsDataStore: Feature {
           diagnostics.diagnosticLog(
             "Failed to delete account mfa token"
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
+          return .failure(error.asLegacy)
         }
       }
       diagnostics.debugLog("Deleted account mfa tokens: \(mfaTokensToRemove)")
@@ -273,11 +277,14 @@ extension AccountsDataStore: Feature {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.diagnosticLog(
-            "Failed to delete server fingerprint"
+          diagnostics.diagnosticLog("Failed to delete server fingerprint")
+          return .failure(
+            error
+              .asTheError()
+              .pushing(.message("Failed to delete server fingerpring"))
+              .recording(accountID, for: "accountID")
+              .asLegacy
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted server fingerprints: \(serverFingerprintsToRemove)")
@@ -292,11 +299,14 @@ extension AccountsDataStore: Feature {
         case .success:
           continue
         case let .failure(error):
-          diagnostics.diagnosticLog(
-            "Failed to delete account private key"
+          diagnostics.diagnosticLog("Failed to delete account private key")
+          return .failure(
+            error
+              .asTheError()
+              .pushing(.message("Failed to delete account private key"))
+              .recording(accountID, for: "accountID")
+              .asLegacy
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted account private keys: \(keysToRemove)")
@@ -308,11 +318,12 @@ extension AccountsDataStore: Feature {
         case .success:
           break
         case let .failure(error):
-          diagnostics.diagnosticLog(
-            "Failed to delete stored passphrases"
+          diagnostics.diagnosticLog("Failed to delete stored passphrases")
+          return .failure(
+            error
+              .pushing(.message("Failed to delete stored passphrases"))
+              .asLegacy
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
         }
       }
       else {
@@ -326,14 +337,11 @@ extension AccountsDataStore: Feature {
         applicationDataDirectory = url
 
       case let .failure(error):
-        diagnostics.diagnosticLog(
-          "Failed to access application data directory"
-        )
-        diagnostics.debugLog(error.description)
-        return .failure(error)
+        diagnostics.diagnosticLog("Failed to access application data directory")
+        return .failure(error.asLegacy)
       }
 
-      let storedDatabasesResult: Result<Array<Account.LocalID>, TheErrorLegacy> =
+      let storedDatabasesResult: Result<Array<Account.LocalID>, Error> =
         files
         .contentsOfDirectory(applicationDataDirectory)
         .map { contents -> Array<Account.LocalID> in
@@ -357,8 +365,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to check database files"
         )
-        diagnostics.debugLog(error.description)
-        return .failure(error)
+        return .failure(error.asLegacy)
       }
       diagnostics.debugLog("Stored databases: \(storedDatabases)")
       timeMeasurement.event("Account databases loaded")
@@ -368,7 +375,7 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
 
       for accountID in databasesToRemove {
-        let fileDeletionResult: Result<Void, TheErrorLegacy> = _databaseURL(
+        let fileDeletionResult: Result<Void, Error> = _databaseURL(
           forAccountWithID: accountID
         )
         .flatMap { url in
@@ -378,11 +385,14 @@ extension AccountsDataStore: Feature {
         case .success:
           break
         case let .failure(error):
-          diagnostics.diagnosticLog(
-            "Failed to delete database"
+          diagnostics.diagnosticLog("Failed to delete database")
+          return .failure(
+            error
+              .asTheError()
+              .pushing(.message("Failed to delete accoiunt database"))
+              .recording(accountID, for: "accountID")
+              .asLegacy
           )
-          diagnostics.debugLog(error.description)
-          return .failure(error)
         }
       }
 
@@ -393,9 +403,7 @@ extension AccountsDataStore: Feature {
         accountsToRemove + accountProfilesToRemove + keysToRemove + databasesToRemove
       )
 
-      diagnostics.debugLog(
-        "Deleted accounts: \(deleted)"
-      )
+      diagnostics.debugLog("Deleted accounts: \(deleted)")
 
       deleted.forEach { accountID in
         updatedAccountIDSubject.send(accountID)
@@ -409,7 +417,7 @@ extension AccountsDataStore: Feature {
       lock.lock()
       defer { lock.unlock() }
 
-      let keychainLoadResult: Result<Array<Account>, TheErrorLegacy> = environment
+      let keychainLoadResult: Result<Array<Account>, Error> = environment
         .keychain
         .loadAll(
           Account.self,
@@ -419,10 +427,11 @@ extension AccountsDataStore: Feature {
       case let .success(accounts):
         return accounts
       case let .failure(error):
-        diagnostics.debugLog(
-          "Failed to load accounts"
-            + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-        )
+        diagnostics
+          .log(
+            error,
+            info: .message("Failed to load accounts")
+          )
         return []
       }
     }
@@ -438,7 +447,7 @@ extension AccountsDataStore: Feature {
           for: .lastUsedAccount
         )
         .flatMap { accountID in
-          let keychainResult: Result<Account?, TheErrorLegacy> = environment
+          let keychainResult: Result<Account?, Error> = environment
             .keychain
             .loadFirst(
               Account.self,
@@ -448,10 +457,11 @@ extension AccountsDataStore: Feature {
           case let .success(account):
             return account
           case let .failure(error):
-            diagnostics.debugLog(
-              "Failed to load last used account: \(accountID)"
-                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-            )
+            diagnostics
+              .log(
+                error,
+                info: .message("Failed to load last used account")
+              )
             return nil
           }
         }
@@ -498,6 +508,7 @@ extension AccountsDataStore: Feature {
                 )
             }
         }
+        .mapError { $0.asLegacy }
     }
 
     func loadAccountPrivateKey(
@@ -517,9 +528,14 @@ extension AccountsDataStore: Feature {
             return .success(key)
           }
           else {
-            return .failure(.invalidAccount())
+            return .failure(
+              AccountPrivateKeyMissing
+                .error()
+                .recording(accountID, for: "accountID")
+            )
           }
         }
+        .mapError { $0.asLegacy }
     }
 
     func storePassphrase(
@@ -558,14 +574,21 @@ extension AccountsDataStore: Feature {
                 updatedAccountIDSubject.send(accountID)
               }
               .mapError { error in
-                diagnostics.debugLog(error.appending(context: "Failed to store passphrase").description)
-                return error
+                error
+                  .asTheError()
+                  .pushing(.message("Failed to store account passphrase"))
+                  .recording(accountID, for: "accountID")
               }
           }
           else {
-            return .failure(.invalidAccount())
+            return .failure(
+              AccountProfileDataMissing
+                .error("Failed to store account passphrase")
+                .recording(accountID, for: "accountID")
+            )
           }
         }
+        .mapError { $0.asLegacy }
     }
 
     func loadPassphrase(
@@ -586,13 +609,16 @@ extension AccountsDataStore: Feature {
             return .success(passphrase)
           }
           else {
-            return .failure(.missingPassphrase())
+            return .failure(
+              AccountPassphraseMissing
+                .error("Failed to load account passphrase")
+                .recording(accountID, for: "accountID")
+            )
           }
         }
-        .mapError { error in
+        .mapError { error -> Error in
           diagnostics.diagnosticLog("...failed to load passphrase from keychain...")
-          diagnostics.debugLog(error.description)
-          if error.identifier == .missingPassphrase {
+          if error is AccountPassphraseMissing {
             // Ensure that account profile has biometrics disabled
             // when passphrase is unavailable
             _ = environment
@@ -601,7 +627,7 @@ extension AccountsDataStore: Feature {
                 AccountProfile.self,
                 matching: .accountProfileQuery(for: accountID)
               )
-              .flatMap { (accountProfile: AccountProfile?) -> Result<Void, TheErrorLegacy> in
+              .flatMap { (accountProfile: AccountProfile?) -> Result<Void, Error> in
                 if var updatedAccountProfile: AccountProfile = accountProfile {
                   guard updatedAccountProfile.biometricsEnabled
                   else { return .success }
@@ -617,19 +643,29 @@ extension AccountsDataStore: Feature {
                     }
                 }
                 else {
-                  return .failure(.invalidAccount())
+                  return .failure(
+                    AccountProfileDataMissing
+                      .error()
+                      .pushing(.message("Failed to load account passphrase"))
+                      .recording(accountID, for: "accountID")
+                  )
                 }
               }
 
-            return .biometricsChanged()
+            return
+              AccountBiometryDataChanged
+              .error()
+              .pushing(.message("Failed to load account passphrase"))
+              .recording(accountID, for: "accountID")
           }
-          else if error.identifier == .canceled {
+          else if error is Cancelled {
             return error
           }
           else {
-            return .biometricsNotAvailable(underlyingError: error)
+            return error
           }
         }
+        .mapError { $0.asLegacy }
     }
 
     func deletePassphrase(
@@ -665,9 +701,14 @@ extension AccountsDataStore: Feature {
               }
           }
           else {
-            return .failure(.invalidAccount())
+            return .failure(
+              AccountProfileDataMissing
+                .error("Failed to delete account passphrase")
+                .recording(accountID, for: "accountID")
+            )
           }
         }
+        .mapError { $0.asLegacy }
     }
 
     func storeAccountMFAToken(
@@ -677,6 +718,7 @@ extension AccountsDataStore: Feature {
       environment
         .keychain
         .save(token, for: .accountMFATokenQuery(for: accountID))
+        .mapError { $0.asLegacy }
     }
 
     func loadAccountMFAToken(
@@ -685,6 +727,7 @@ extension AccountsDataStore: Feature {
       environment
         .keychain
         .loadFirst(matching: .accountMFATokenQuery(for: accountID))
+        .mapError { $0.asLegacy }
     }
 
     func deleteAccountMFAToken(
@@ -693,6 +736,7 @@ extension AccountsDataStore: Feature {
       environment
         .keychain
         .delete(matching: .accountMFATokenQuery(for: accountID))
+        .mapError { $0.asLegacy }
     }
 
     func loadAccountProfile(
@@ -709,9 +753,14 @@ extension AccountsDataStore: Feature {
             return .success(profile)
           }
           else {
-            return .failure(.invalidAccount())
+            return .failure(
+              AccountProfileDataMissing
+                .error("Failed to load account profile")
+                .recording(accountID, for: "accountID")
+            )
           }
         }
+        .mapError { $0.asLegacy }
     }
 
     func update(
@@ -723,7 +772,14 @@ extension AccountsDataStore: Feature {
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
       guard accountsList.contains(accountProfile.accountID)
-      else { return .failure(.invalidAccount()) }
+      else {
+        return .failure(
+          AccountDataMissing
+            .error("Failed to update account profile")
+            .recording(accountProfile.accountID, for: "accountID")
+            .asLegacy
+        )
+      }
       return environment
         .keychain
         .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
@@ -731,10 +787,14 @@ extension AccountsDataStore: Feature {
           lock.unlock()
           updatedAccountIDSubject.send(accountProfile.accountID)
         }
-        .mapError { error in
+        .mapError { error -> Error in
           lock.unlock()
-          return error
+          return
+            error
+            .asTheError()
+            .recording(accountProfile.accountID, for: "accountID")
         }
+        .mapError { $0.asLegacy }
     }
 
     func deleteAccount(withID accountID: Account.LocalID) {
@@ -772,7 +832,7 @@ extension AccountsDataStore: Feature {
         /* */
       }
 
-      var results: Array<Result<Void, TheErrorLegacy>> = .init()
+      var results: Array<Result<Void, Error>> = .init()
       results.append(
         environment
           .keychain
@@ -814,14 +874,17 @@ extension AccountsDataStore: Feature {
       }
       catch {
         diagnostics.diagnosticLog("Failed to properly delete account")
-        diagnostics.debugLog("\(error)")
+        diagnostics.log(
+          error,
+          info: .message("Failed to properly delete account")
+        )
       }
     }
 
     // swift-format-ignore: NoLeadingUnderscores
     func _databaseURL(
       forAccountWithID accountID: Account.LocalID
-    ) -> Result<URL, TheErrorLegacy> {
+    ) -> Result<URL, Error> {
       files.applicationDataDirectory()
         .map { dir in
           dir
@@ -829,9 +892,11 @@ extension AccountsDataStore: Feature {
             .appendingPathExtension("sqlite")
         }
         .mapError { error in
-          TheErrorLegacy.databaseConnectionError(
-            underlyingError: error,
-            databaseErrorMessage: "Cannot access database file"
+          DatabaseIssue.error(
+            underlyingError:
+              error
+              .asUnidentified()
+              .pushing(.message("Cannot access database file"))
           )
         }
     }
@@ -846,7 +911,7 @@ extension AccountsDataStore: Feature {
         databaseURL = path
 
       case let .failure(error):
-        return .failure(error)
+        return .failure(error.asLegacy)
       }
 
       return
@@ -858,7 +923,6 @@ extension AccountsDataStore: Feature {
         )
         .flatMapError { error in
           diagnostics.diagnosticLog("Failed to open database for accountID, cleaning up...")
-          diagnostics.debugLog(error.description)
           _ = files.deleteFile(databaseURL)
           // single retry after deleting previous database, fail if it fails
           return
@@ -868,17 +932,20 @@ extension AccountsDataStore: Feature {
               key,
               SQLiteMigration.allCases
             )
+            .mapError { $0.asLegacy }
         }
     }
 
     func storeServerFingerprint(accountID: Account.LocalID, fingerprint: Fingerprint) -> Result<Void, TheErrorLegacy> {
       keychain
         .save(fingerprint, for: .serverFingerprintQuery(for: accountID))
+        .mapError { $0.asLegacy }
     }
 
     func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy> {
       keychain
         .loadFirst(Fingerprint.self, matching: .serverFingerprintQuery(for: accountID))
+        .mapError { $0.asLegacy }
     }
 
     return Self(

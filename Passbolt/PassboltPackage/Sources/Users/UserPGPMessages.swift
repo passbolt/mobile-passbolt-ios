@@ -80,8 +80,13 @@ extension UserPGPMessages: Feature {
             }
 
           case .none:
-            return Fail(error: .authorizationRequired())
-              .eraseToAnyPublisher()
+            return Fail(
+              error:
+                SessionMissing
+                .error("No session provided for verifying public key")
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
           }
         }
         .switchToLatest()

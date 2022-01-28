@@ -211,21 +211,11 @@ extension AccountSettings: Feature {
     func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
       permissions
         .ensureBiometricsPermission()
-        .setFailureType(to: TheErrorLegacy.self)
+        .mapErrorsToLegacy()
         .map { permissionGranted -> AnyPublisher<Void, TheErrorLegacy> in
-          if permissionGranted {
-            return
-              accountSession
-              .storePassphraseWithBiometry(enabled)
-              .asPublisher
-          }
-          else {
-            return Fail<Void, TheErrorLegacy>(
-              error: .permissionRequired()
-                .appending(context: "biometrics")
-            )
-            .eraseToAnyPublisher()
-          }
+          accountSession
+            .storePassphraseWithBiometry(enabled)
+            .asPublisher
         }
         .switchToLatest()
         .eraseToAnyPublisher()
@@ -257,9 +247,26 @@ extension AccountSettings: Feature {
             let .authorizedMFARequired(currentAccount, _):
             account = currentAccount
 
-          case .authorizationRequired, .none:
-            return Fail<Void, TheErrorLegacy>(error: .authorizationRequired())
-              .eraseToAnyPublisher()
+          case let .authorizationRequired(currentAccount):
+            return Fail(
+              error:
+                SessionAuthorizationRequired
+                .error(
+                  "Session authorization required for setting avatar",
+                  account: currentAccount
+                )
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
+
+          case .none:
+            return Fail(
+              error:
+                SessionMissing
+                .error("No session provided for setting avatar")
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
           }
 
           return updateProfile(for: account.localID) { profile in

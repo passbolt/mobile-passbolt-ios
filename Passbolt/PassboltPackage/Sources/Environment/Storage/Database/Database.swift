@@ -31,7 +31,7 @@ public struct Database: EnvironmentElement {
       _ path: String,
       _ key: String,
       _ migrations: Array<SQLiteMigration>
-    ) -> Result<SQLiteConnection, TheErrorLegacy>
+    ) -> Result<SQLiteConnection, Error>
 }
 
 extension Database {

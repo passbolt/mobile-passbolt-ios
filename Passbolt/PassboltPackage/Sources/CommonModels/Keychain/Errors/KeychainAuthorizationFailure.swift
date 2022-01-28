@@ -21,33 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Commons
 
-extension TheErrorLegacy {
+public struct KeychainAuthorizationFailure: TheError {
 
-  public static func authorizationRequired(
-    underlyingError: Error? = nil
+  public static func error(
+    _ message: StaticString = "KeychainAuthorizationFailure",
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    .init(
-      identifier: .authorizationRequired,
-      underlyingError: underlyingError,
-      extensions: .init()
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.keychain.authorization.failed")
     )
   }
 
-  public static func sessionClosed(
-    underlyingError: Error? = nil
-  ) -> Self {
-    .init(
-      identifier: .sessionClosed,
-      underlyingError: underlyingError,
-      extensions: .init()
-    )
-  }
-}
-
-extension TheErrorLegacy.ID {
-
-  public static let authorizationRequired: Self = "authorizationRequired"
-  public static let sessionClosed: Self = "sessionClosed"
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

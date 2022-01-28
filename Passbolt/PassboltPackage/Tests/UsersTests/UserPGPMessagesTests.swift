@@ -79,7 +79,7 @@ final class UserPGPMessagesTests: TestCase {
   }
 
   func test_encryptMessageForUser_fails_whenPublicKeyVerificationFails() {
-    features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(.testError()))
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(MockIssue.error()))
     accountSession.statePublisher = always(
       Just(
         .authorized(
@@ -296,7 +296,7 @@ final class UserPGPMessagesTests: TestCase {
   }
 
   func test_encryptMessageForResourceUsers_fails_whenPublicKeyVerificationFails() {
-    features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(.testError()))
+    features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(MockIssue.error()))
     accountSession.statePublisher = always(
       Just(
         .authorized(

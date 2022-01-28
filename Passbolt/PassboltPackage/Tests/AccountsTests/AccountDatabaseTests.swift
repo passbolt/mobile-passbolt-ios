@@ -81,7 +81,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheErrorLegacy!
+    var result: Error?
 
     feature
       .fetchLastUpdate()
@@ -95,7 +95,11 @@ final class AccountDatabaseTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .databaseConnectionClosed)
+    XCTAssertUnderlyingError(
+      result,
+      root: DatabaseIssue.self,
+      matches: DatabaseConnectionClosed.self
+    )
   }
 
   func test_anyOperation_fails_whenSessionIsNone() {
@@ -110,7 +114,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheErrorLegacy!
+    var result: Error?
 
     feature
       .fetchLastUpdate()
@@ -124,7 +128,11 @@ final class AccountDatabaseTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .databaseConnectionClosed)
+    XCTAssertUnderlyingError(
+      result,
+      root: DatabaseIssue.self,
+      matches: DatabaseConnectionClosed.self
+    )
   }
 
   func test_anyOperation_fails_whenSessionIsAuthorizationRequiredAndApplicationEntersBackground() {
@@ -140,7 +148,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheErrorLegacy!
+    var result: Error?
 
     feature
       .fetchLastUpdate()
@@ -154,7 +162,11 @@ final class AccountDatabaseTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .databaseConnectionClosed)
+    XCTAssertUnderlyingError(
+      result,
+      root: DatabaseIssue.self,
+      matches: DatabaseConnectionClosed.self
+    )
   }
 
   func test_anyOperation_fails_whenSessionIsAuthorizationRequiredAndConnectionWasNotActive() {
@@ -170,7 +182,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheErrorLegacy!
+    var result: Error?
 
     feature
       .fetchLastUpdate()
@@ -184,7 +196,11 @@ final class AccountDatabaseTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .databaseConnectionClosed)
+    XCTAssertUnderlyingError(
+      result,
+      root: DatabaseIssue.self,
+      matches: DatabaseConnectionClosed.self
+    )
   }
 
   func test_anyOperation_isExecuted_whenSessionIsAuthorizationRequiredAndConnectionWasActive() {
@@ -240,7 +256,7 @@ final class AccountDatabaseTests: TestCase {
 
     let feature: AccountDatabase = testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
     feature
       .fetchLastUpdate()
@@ -254,7 +270,11 @@ final class AccountDatabaseTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .databaseConnectionClosed)
+    XCTAssertUnderlyingError(
+      result,
+      root: DatabaseIssue.self,
+      matches: DatabaseConnectionClosed.self
+    )
   }
 
   func test_anyOperation_isExecuted_whenSessionIsAuthorized() {

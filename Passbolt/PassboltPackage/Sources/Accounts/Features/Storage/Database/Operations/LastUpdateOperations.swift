@@ -33,7 +33,7 @@ public typealias FetchLastUpdateOperation = DatabaseOperation<Void, Date>
 extension FetchLastUpdateOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -48,7 +48,7 @@ extension FetchLastUpdateOperation {
           LIMIT
             1;
           """,
-          mapping: { rows -> Result<Date, TheErrorLegacy> in
+          mapping: { rows -> Result<Date, Error> in
             .success(
               rows
                 .first
@@ -69,7 +69,7 @@ public typealias SaveLastUpdateOperation = DatabaseOperation<Date, Void>
 extension SaveLastUpdateOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
     withConnection(
       using: connectionPublisher

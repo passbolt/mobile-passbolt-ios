@@ -30,9 +30,9 @@ import func Foundation.NSLocalizedString
 extension Yubikey {
 
   public static func live() -> Self {
-    func readNFC() -> AnyPublisher<String, TheErrorLegacy> {
+    func readNFC() -> AnyPublisher<String, Error> {
 
-      let otpPublisher: PassthroughSubject<String, TheErrorLegacy> = .init()
+      let otpPublisher: PassthroughSubject<String, Error> = .init()
 
       NFCReader.readOTP(
         instructionMessage: DisplayableString.localized("yubikey.scan.instruction").string(),
@@ -43,7 +43,7 @@ extension Yubikey {
           otpPublisher.send(otp)
           otpPublisher.send(completion: .finished)
         case let .failure(error):
-          otpPublisher.send(completion: .failure(TheErrorLegacy.yubikeyError(underlyingError: error)))
+          otpPublisher.send(completion: .failure(error))
         }
       }
 

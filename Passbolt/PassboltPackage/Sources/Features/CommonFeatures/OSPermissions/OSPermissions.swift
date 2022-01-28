@@ -30,8 +30,8 @@ public struct OSPermissions {
   /// In extension context verifies permission status.
   /// - Returns: A publisher which emits a boolean indicating wether
   /// the permission has been granted or not.
-  public var ensureCameraPermission: () -> AnyPublisher<Bool, Never>
-  public var ensureBiometricsPermission: () -> AnyPublisher<Bool, Never>
+  public var ensureCameraPermission: () -> AnyPublisher<Void, Error>
+  public var ensureBiometricsPermission: () -> AnyPublisher<Void, Error>
 }
 
 extension OSPermissions: Feature {
@@ -45,34 +45,44 @@ extension OSPermissions: Feature {
     let biometrics: Biometrics = environment.biometrics
     let diagnostics: Diagnostics = features.instance()
 
-    func ensureCameraPermission() -> AnyPublisher<Bool, Never> {
+    func ensureCameraPermission() -> AnyPublisher<Void, Error> {
       camera.checkPermission()
-        .map { status -> AnyPublisher<Bool, Never> in
+        .map { status -> AnyPublisher<Void, Error> in
           switch status {
           case .notDetermined:
             if isInExtensionContext {
-              return Just(false).eraseToAnyPublisher()
+              return Fail(
+                error:
+                  SystemFeaturePermissionNotGranted
+                  .error("Camera is inaccessible in app extension context")
+              )
+              .eraseToAnyPublisher()
             }
             else {
               return camera.requestPermission().eraseToAnyPublisher()
             }
 
           case .denied:
-            return Just(false).eraseToAnyPublisher()
+            return Fail(
+              error:
+                SystemFeaturePermissionNotGranted
+                .error("Camera permission not granted")
+            )
+            .eraseToAnyPublisher()
 
           case .authorized:
-            return Just(true).eraseToAnyPublisher()
+            return Just(Void())
+              .eraseErrorType()
+              .eraseToAnyPublisher()
           }
         }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
 
-    func ensureBiometricsPermission() -> AnyPublisher<Bool, Never> {
+    func ensureBiometricsPermission() -> AnyPublisher<Void, Error> {
       biometrics
         .requestBiometricsPermission()
-        .collectErrorLog(using: diagnostics)
-        .replaceError(with: false)
         .eraseToAnyPublisher()
     }
 

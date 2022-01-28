@@ -27,6 +27,7 @@ public struct SessionAuthorizationRequired: TheError {
 
   public static func error(
     _ message: StaticString = "SessionAuthorizationRequired",
+    account: Account,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
@@ -38,10 +39,12 @@ public struct SessionAuthorizationRequired: TheError {
           line: line
         )
       ),
-      displayableMessage: .localized(key: "error.session.authorization.required")
+      displayableMessage: .localized(key: "error.session.authorization.required"),
+      account: account
     )
   }
 
   public var context: DiagnosticsContext
   public var displayableMessage: DisplayableString
+  public var account: Account
 }

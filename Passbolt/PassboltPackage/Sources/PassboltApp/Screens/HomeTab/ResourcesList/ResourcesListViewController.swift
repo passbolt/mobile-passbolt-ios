@@ -65,7 +65,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           }
           .handleErrors(
             (
-              [.canceled, .authorizationRequired],
+              [.canceled],
               handler: { _ in true /* NOP */ }
             ),
             defaultHandler: { [weak self] error in
@@ -256,7 +256,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                   self?.presentInfoSnackbar(
                     .localized("resource.menu.action.deleted"),
                     with: [
-                      NSLocalizedString("resource.menu.item.password", comment: "")
+                      NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
                     ]
                   )
                 }

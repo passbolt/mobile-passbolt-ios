@@ -81,19 +81,11 @@ internal final class YubikeyViewController: PlainViewController, UIComponent {
             guard case let .failure(error) = completion
             else { return }
 
-            switch (error.identifier, error.underlyingError) {
-            case (.yubikey, .some(NFCError.nfcDataParsingFailed)):
-              self?.parent?.presentErrorSnackbar(
-                .localized("mfa.yubikey.scan.failed")
-              )
-            case (.yubikey, .some(NFCError.nfcNotSupported)):
-              self?.parent?.presentErrorSnackbar(
-                .localized("mfa.yubikey.nfc.not.supported")
-              )
-            case _:
-              self?.parent?.presentErrorSnackbar(
-                .localized(key: .genericError)
-              )
+            if let message: DisplayableString = error.displayableString {
+              self?.parent?.presentErrorSnackbar(message)
+            }
+            else {
+              self?.parent?.presentErrorSnackbar()
             }
           })
           .replaceError(with: ())

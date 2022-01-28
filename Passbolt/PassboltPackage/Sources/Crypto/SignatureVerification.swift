@@ -33,13 +33,36 @@ public struct SignatureVerfication {
       _ input: Data,
       _ signature: Data,
       _ key: PEMRSAPublicKey
-    ) -> Result<Void, TheErrorLegacy>
+    ) -> Result<Void, Error>
 }
 
 extension SignatureVerfication {
 
   public static func rssha256() -> Self {
     Self { input, signature, pemKey in
+      guard !input.isEmpty
+      else {
+        return .failure(
+          SignatureVerificationIssue.error(
+            underlyingError:
+              DataEmpty
+              .error("Empty data passed for signature verification")
+          )
+        )
+      }
+      let inputData: CFData = input as CFData
+
+      guard !signature.isEmpty
+      else {
+        return .failure(
+          SignatureVerificationIssue.error(
+            underlyingError:
+              DataEmpty
+              .error("Empty signature passed for signature verification")
+          )
+        )
+      }
+      let signatureData: CFData = signature as CFData
 
       let key: Data? = pemKey
         .rawValue
@@ -63,19 +86,18 @@ extension SignatureVerfication {
         .base64DecodeFromURLEncoded()
 
       guard let key: Data = key
-      else { return .failure(.invalidInputDataError()) }
-
-      var error: Unmanaged<CFError>?
-      guard
-        !input.isEmpty,
-        !signature.isEmpty
       else {
-        return .failure(.invalidInputDataError())
+        return .failure(
+          SignatureVerificationIssue.error(
+            underlyingError:
+              PublicKeyInvalid
+              .error("Invalid format of public key passed for signature verification")
+              .recording(pemKey, for: "keyData")
+          )
+        )
       }
 
-      let inputData: CFData = input as CFData
-      let signatureData: CFData = signature as CFData
-
+      var error: Unmanaged<CFError>?
       guard
         let secKey: SecKey = SecKeyCreateWithData(
           key as CFData,
@@ -86,7 +108,18 @@ extension SignatureVerfication {
           &error
         ),
         error == nil
-      else { return Result.failure(.signatureError(error?.takeRetainedValue())) }
+      else {
+        return .failure(
+          SignatureVerificationIssue
+            .error(
+              underlyingError:
+                PublicKeyInvalid
+                .error("Failed to prepare public key for signature verification")
+                .recording(key, for: "keyData")
+                .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+            )
+        )
+      }
 
       let isValid: Bool = SecKeyVerifySignature(
         secKey,
@@ -96,11 +129,22 @@ extension SignatureVerfication {
         &error
       )
 
-      guard isValid, error == nil else {
-        return Result.failure(.signatureError(error?.takeRetainedValue()))
+      if isValid, error == nil {
+        return .success
       }
-
-      return .success
+      else {
+        return .failure(
+          SignatureVerificationIssue.error(
+            underlyingError:
+              DataSignatureInvalid
+              .error("Signature verification failed")
+              .recording(key, for: "key")
+              .recording(signatureData, for: "signature")
+              .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+              .recording(inputData, for: "input")
+          )
+        )
+      }
     }
   }
 }

@@ -30,7 +30,7 @@ public typealias StoreResourcesOperation = DatabaseOperation<Array<Resource>, Vo
 extension StoreResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -44,7 +44,7 @@ extension StoreResourcesOperation {
       // deleting records selecively becomes implemented.
       //
       // Delete currently stored resources
-      let deletionResult: Result<Void, TheErrorLegacy> =
+      let deletionResult: Result<Void, Error> =
         conn
         .execute(
           "DELETE FROM resources;"
@@ -60,7 +60,7 @@ extension StoreResourcesOperation {
 
       // Insert or update all new resource
       for resource in input {
-        let result: Result<Void, TheErrorLegacy> =
+        let result: Result<Void, Error> =
           conn
           .execute(
             upsertResourceStatement,
@@ -92,7 +92,7 @@ public typealias FetchListViewResourcesOperation = DatabaseOperation<ResourcesFi
 extension FetchListViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -193,7 +193,7 @@ public typealias FetchDetailsViewResourcesOperation = DatabaseOperation<Resource
 extension FetchDetailsViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -211,16 +211,24 @@ extension FetchDetailsViewResourcesOperation {
       return conn.fetch(
         statement,
         with: [input.rawValue]
-      ) { rows -> Result<DetailsViewResource, TheErrorLegacy> in
+      ) { rows -> Result<DetailsViewResource, Error> in
         rows
           .first
-          .map { row -> Result<DetailsViewResource, TheErrorLegacy> in
+          .map { row -> Result<DetailsViewResource, Error> in
             guard
               let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
               let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
               let name: String = row.name,
               let rawFields: String = row.resourceFields
-            else { return .failure(.databaseFetchError(databaseErrorMessage: "Failed to unwrap values")) }
+            else {
+              return .failure(
+                DatabaseIssue.error(
+                  underlyingError:
+                    DatabaseResultInvalid
+                    .error("Retrived invalid data from the database")
+                )
+              )
+            }
 
             let url: String? = row.url
             let username: String? = row.username
@@ -238,7 +246,14 @@ extension FetchDetailsViewResourcesOperation {
                 properties: properties
               )
             )
-          } ?? .failure(.databaseFetchError(databaseErrorMessage: "No value"))
+          }
+          ?? .failure(
+            DatabaseIssue.error(
+              underlyingError:
+                DatabaseResultEmpty
+                .error("Failed to retrive data from the database")
+            )
+          )
       }
     }
   }
@@ -249,7 +264,7 @@ public typealias FetchEditViewResourcesOperation = DatabaseOperation<Resource.ID
 extension FetchEditViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
     withConnection(
       using: connectionPublisher
@@ -267,10 +282,10 @@ extension FetchEditViewResourcesOperation {
       return conn.fetch(
         statement,
         with: [input.rawValue]
-      ) { rows -> Result<EditViewResource, TheErrorLegacy> in
+      ) { rows -> Result<EditViewResource, Error> in
         rows
           .first
-          .map { row -> Result<EditViewResource, TheErrorLegacy> in
+          .map { row -> Result<EditViewResource, Error> in
             guard
               let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
               let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
@@ -279,7 +294,15 @@ extension FetchEditViewResourcesOperation {
               let resourceTypeSlug: ResourceType.Slug = row.resourceTypeSlug.map(ResourceType.Slug.init(rawValue:)),
               let resourceTypeName: String = row.resourceTypeName,
               let rawFields: String = row.resourceFields
-            else { return .failure(.databaseFetchError(databaseErrorMessage: "Failed to unwrap values")) }
+            else {
+              return .failure(
+                DatabaseIssue.error(
+                  underlyingError:
+                    DatabaseResultInvalid
+                    .error("Retrived invalid data from the database")
+                )
+              )
+            }
 
             let url: String? = row.url
             let username: String? = row.username
@@ -301,7 +324,14 @@ extension FetchEditViewResourcesOperation {
                 description: description
               )
             )
-          } ?? .failure(.databaseFetchError(databaseErrorMessage: "No value"))
+          }
+          ?? .failure(
+            DatabaseIssue.error(
+              underlyingError:
+                DatabaseResultEmpty
+                .error("Failed to retrive data from the database")
+            )
+          )
       }
     }
   }

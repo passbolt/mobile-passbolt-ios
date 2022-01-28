@@ -31,7 +31,7 @@ import struct Foundation.URL
 
 public struct NDEFParser {
 
-  public var parse: (Array<NFCNDEFMessage>) -> String?
+  public var parse: (Array<NFCNDEFMessage>) -> Result<String, Error>
 }
 
 extension NDEFParser {
@@ -109,15 +109,22 @@ extension NDEFParser {
       return nil
     }
 
-    func parse(messages: Array<NFCNDEFMessage>) -> String? {
+    func parse(messages: Array<NFCNDEFMessage>) -> Result<String, Error> {
       for message in messages {
         guard let token = parse(message: message)
         else { continue }
 
-        return token
+        return .success(token)
       }
 
-      return nil
+      return .failure(
+        NFCIssue.error(
+          underlyingError:
+            NFCPayloadInvalid
+            .error("NFC payload parsing failed")
+            .recording(messages, for: "messages")
+        )
+      )
     }
 
     return Self(

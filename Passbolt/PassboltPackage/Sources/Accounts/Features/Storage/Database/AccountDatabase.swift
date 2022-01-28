@@ -63,7 +63,7 @@ extension AccountDatabase: Feature {
     let accountSession: AccountSession = features.instance()
     let accountsDataStore: AccountsDataStore = features.instance()
 
-    let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, TheErrorLegacy> = .init(nil)
+    let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, Error> = .init(nil)
 
     accountSession
       .statePublisher()
@@ -89,11 +89,9 @@ extension AccountDatabase: Feature {
             case let .success(connection):
               return Just((accountID: account.localID, connection: connection))
                 .eraseToAnyPublisher()
-            case let .failure(error) where error.identifier == .databaseMigrationError:
-              diagnostics.debugLog(
-                "Failed to migrate database for account: \(account.localID), deleting...\n"
-                  + error.description
-              )
+            case let .failure(error)
+            where (error.legacyBridge as? DatabaseIssue)?.underlyingError is DatabaseMigrationFailure:
+              diagnostics.diagnosticLog("Database migration failed, deleting...\n")
               return Just(nil)
                 .eraseToAnyPublisher()
             case let .failure(error):
@@ -135,18 +133,20 @@ extension AccountDatabase: Feature {
       }
       .store(in: cancellables)
 
-    let currentConnectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy> =
+    let currentConnectionPublisher: AnyPublisher<SQLiteConnection, Error> =
       databaseConnectionSubject
-      .map { connection -> AnyPublisher<SQLiteConnection, TheErrorLegacy> in
+      .map { connection -> AnyPublisher<SQLiteConnection, Error> in
         if let connection: DatabaseConnection = connection {
           return Just(connection.connection)
-            .setFailureType(to: TheErrorLegacy.self)
+            .eraseErrorType()
             .eraseToAnyPublisher()
         }
         else {
-          return Fail<SQLiteConnection, TheErrorLegacy>(
-            error: .databaseConnectionClosed(
-              databaseErrorMessage: "There is no active database connection"
+          return Fail<SQLiteConnection, Error>(
+            error: DatabaseIssue.error(
+              underlyingError:
+                DatabaseConnectionClosed
+                .error("There is no valid database connection")
             )
           )
           .eraseToAnyPublisher()

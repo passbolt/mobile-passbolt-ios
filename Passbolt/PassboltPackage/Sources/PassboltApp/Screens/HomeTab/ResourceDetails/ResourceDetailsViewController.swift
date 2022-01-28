@@ -131,7 +131,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
             }
           )
           .handleErrors(
-            ([.canceled, .authorizationRequired], handler: { _ in return true }),
+            ([.canceled], handler: { _ in return true }),
             defaultHandler: { [weak self] error in
               if let displayable: DisplayableString = error.displayableString {
                 self?.presentErrorSnackbar(displayable)
@@ -172,7 +172,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.url", comment: "")
+                  NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
                 ]
               )
 
@@ -180,7 +180,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.password", comment: "")
+                  NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
                 ]
               )
 
@@ -188,7 +188,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.username", comment: "")
+                  NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
                 ]
               )
 
@@ -196,7 +196,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               self?.presentInfoSnackbar(
                 .localized("resource.menu.item.field.copied"),
                 with: [
-                  NSLocalizedString("resource.menu.item.description", comment: "")
+                  NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
                 ]
               )
 
@@ -205,7 +205,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
             }
           })
           .handleErrors(
-            ([.canceled, .authorizationRequired], handler: { _ in true /* NOP */ }),
+            ([.canceled], handler: { _ in true /* NOP */ }),
             defaultHandler: { [weak self] error in
               if let displayable: DisplayableString = error.displayableString {
                 self?.presentErrorSnackbar(displayable)
@@ -269,7 +269,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 }
                 .handleErrors(
                   (
-                    [.canceled, .authorizationRequired],
+                    [.canceled],
                     handler: { _ in true /* NOP */ }
                   ),
                   defaultHandler: { [weak self] error in
@@ -292,7 +292,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                   self?.presentInfoSnackbar(
                     .localized(key: "resource.menu.action.deleted"),
                     with: [
-                      NSLocalizedString("resource.menu.item.password", comment: "")
+                      NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
                     ],
                     presentationMode: .global
                   )

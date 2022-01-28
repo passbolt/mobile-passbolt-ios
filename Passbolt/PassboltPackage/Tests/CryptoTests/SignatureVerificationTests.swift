@@ -44,11 +44,13 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    let result: Result<Void, TheErrorLegacy> = verification.verify(
-      signedData,
-      signature,
-      publicKey
-    )
+    let result: Result<Void, Error> =
+      verification
+      .verify(
+        signedData,
+        signature,
+        publicKey
+      )
 
     XCTAssertSuccess(result)
   }
@@ -66,18 +68,18 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    guard
-      case let Result.failure(error) = verification.verify(
+    let result: Result<Void, Error> =
+      verification
+      .verify(
         signedData,
         signature,
         publicKey
       )
-    else {
-      XCTFail("Unexpected success")
-      return
-    }
 
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.signatureError)
+    XCTAssertFailureError(
+      result,
+      matches: SignatureVerificationIssue.self
+    )
   }
 
   func test_verification_withToken_MissingSignature_Fails() {
@@ -93,18 +95,18 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    guard
-      case let Result.failure(error) = verification.verify(
+    let result: Result<Void, Error> =
+      verification
+      .verify(
         signedData,
         signature,
         publicKey
       )
-    else {
-      XCTFail("Unexpected success")
-      return
-    }
 
-    XCTAssertEqual(error.identifier, TheErrorLegacy.ID.signatureError)
+    XCTAssertFailureError(
+      result,
+      matches: SignatureVerificationIssue.self
+    )
   }
 
   func test_verification_withExistingToken_andServerRSAPublicKey_Succeeds() {
@@ -120,7 +122,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    let result: Result<Void, TheErrorLegacy> = verification.verify(
+    let result: Result<Void, Error> = verification.verify(
       signedData,
       signature,
       shortRsaPublicKey
@@ -142,7 +144,7 @@ final class SignatureVerificationTests: XCTestCase {
       return
     }
 
-    let result: Result<Void, TheErrorLegacy> = verification.verify(
+    let result: Result<Void, Error> = verification.verify(
       signedData,
       signature,
       longPublicKey

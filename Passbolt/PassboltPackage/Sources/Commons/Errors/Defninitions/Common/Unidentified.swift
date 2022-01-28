@@ -38,17 +38,15 @@ public struct Unidentified: TheError {
           file: file,
           line: line
         )
-      )
-      .recording(underlyingError, for: "underlyingError"),
-      underlyingError: underlyingError
+      ),
+      underlyingError: underlyingError,
+      displayableMessage: .raw(underlyingError.localizedDescription)
     )
   }
 
   public var context: DiagnosticsContext
   public var underlyingError: Error
-  public var displayableMessage: DisplayableString {
-    .raw(underlyingError.localizedDescription)
-  }
+  public var displayableMessage: DisplayableString
 }
 
 extension Error {

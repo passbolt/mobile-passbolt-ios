@@ -27,7 +27,7 @@ import CommonModels
 public struct Camera: EnvironmentElement {
 
   public var checkPermission: () -> AnyPublisher<Camera.PermissionStatus, Never>
-  public var requestPermission: () -> AnyPublisher<Bool, Never>
+  public var requestPermission: () -> AnyPublisher<Void, Error>
 }
 
 extension Camera {
@@ -70,13 +70,23 @@ extension Camera {
         return checkPermissionSubject.eraseToAnyPublisher()
       },
       requestPermission: {
-        let requestPermissionSubject: PassthroughSubject<Bool, Never> = .init()
+        let requestPermissionSubject: PassthroughSubject<Void, Error> = .init()
 
         DispatchQueue.main.async {
           AVCaptureDevice.requestAccess(for: .video) { granted in
             DispatchQueue.main.async {
-              requestPermissionSubject.send(granted)
-              requestPermissionSubject.send(completion: .finished)
+              if granted {
+                requestPermissionSubject.send()
+                requestPermissionSubject.send(completion: .finished)
+              }
+              else {
+                requestPermissionSubject.send(
+                  completion: .failure(
+                    SystemFeaturePermissionNotGranted
+                      .error("Camera permission not granted")
+                  )
+                )
+              }
             }
           }
         }

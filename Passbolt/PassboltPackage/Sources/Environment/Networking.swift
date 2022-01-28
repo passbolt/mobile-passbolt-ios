@@ -154,6 +154,7 @@ extension Networking {
 
         func mapURLErrors(
           _ error: URLError,
+          request: HTTPRequest,
           serverURL: URLString
         ) -> TheError {
           switch error.code {
@@ -311,6 +312,8 @@ extension Networking {
                 "Unidentified network error",
                 underlyingError: error
               )
+              .recording(serverURL, for: "serverURL")
+              .recording(request, for: "request")
           }
         }
 
@@ -329,7 +332,7 @@ extension Networking {
           return
             urlSession
             .dataTaskPublisher(for: urlRequest)
-            .mapError { mapURLErrors($0, serverURL: url.serverURLString) }
+            .mapError { mapURLErrors($0, request: request, serverURL: url.serverURLString) }
             .flatMap { data, response -> AnyPublisher<HTTPResponse, Error> in
               if let httpResponse: HTTPResponse = HTTPResponse(from: response, with: data) {
                 if useCache {

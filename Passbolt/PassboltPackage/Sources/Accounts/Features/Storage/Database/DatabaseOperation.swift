@@ -27,21 +27,21 @@ import Environment
 
 public struct DatabaseOperation<Input, Output> {
 
-  public var execute: (Input) -> AnyPublisher<Output, TheErrorLegacy>
+  public var execute: (Input) -> AnyPublisher<Output, Error>
 }
 
 extension DatabaseOperation {
 
   public func callAsFunction(
     _ input: Input
-  ) -> AnyPublisher<Output, TheErrorLegacy> {
+  ) -> AnyPublisher<Output, Error> {
     execute(input)
   }
 }
 
 extension DatabaseOperation where Input == Void {
 
-  public func callAsFunction() -> AnyPublisher<Output, TheErrorLegacy> {
+  public func callAsFunction() -> AnyPublisher<Output, Error> {
     execute(Void())
   }
 }
@@ -49,15 +49,15 @@ extension DatabaseOperation where Input == Void {
 extension DatabaseOperation {
 
   internal static func withConnection(
-    using connectionPublisher: AnyPublisher<SQLiteConnection, TheErrorLegacy>,
-    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, TheErrorLegacy>
+    using connectionPublisher: AnyPublisher<SQLiteConnection, Error>,
+    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, Error>
   ) -> Self {
-    Self { input -> AnyPublisher<Output, TheErrorLegacy> in
+    Self { input -> AnyPublisher<Output, Error> in
       connectionPublisher
         .first()
-        .map { conn -> AnyPublisher<Output, TheErrorLegacy> in
+        .map { conn -> AnyPublisher<Output, Error> in
           conn
-            .withQueue { conn -> Result<Output, TheErrorLegacy> in
+            .withQueue { conn -> Result<Output, Error> in
               operation(conn, input)
             }
         }

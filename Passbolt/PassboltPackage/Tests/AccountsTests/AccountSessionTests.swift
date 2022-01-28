@@ -309,7 +309,7 @@ final class AccountSessionTests: TestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    currentTimestamp = Timestamp(rawValue: 5 * 60) // expired time
+    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
     var result: Account?
     feature
@@ -374,7 +374,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionAuthorizationRequired.self)
   }
 
   func test_decryptMessage_fails_withoutActiveSession() {
@@ -397,7 +397,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_decryptMessage_fails_whenLoadingAccountPrivateKeyFails() {
@@ -459,7 +459,7 @@ final class AccountSessionTests: TestCase {
       with: always(false)
     )
 
-    environment.pgp.decrypt = always(.failure(.testError()))
+    environment.pgp.decrypt = always(.failure(MockIssue.error()))
 
     let feature: AccountSession = testInstance()
 
@@ -481,7 +481,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .legacyBridge)
   }
 
   func test_decryptMessage_succeeds_whenDecryptionSucceeds() {
@@ -1225,7 +1225,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_mfaAuthorization_isForwardedToNetworkSession() {
@@ -1271,7 +1271,7 @@ final class AccountSessionTests: TestCase {
   }
 
   func test_authorize_fails_whenSessionRefreshIsAvailableAndPassphraseIsNotValid() {
-    environment.pgp.verifyPassphrase = always(.failure(.testError()))
+    environment.pgp.verifyPassphrase = always(.failure(MockIssue.error()))
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
     features.use(accountsDataStore)
@@ -1304,7 +1304,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .legacyBridge)
   }
 
   func test_authorize_fallbacksToCreateSession_whenSessionRefreshIsAvailableAndSessionRefreshFails() {
@@ -1694,7 +1694,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .authorizationRequired)
+    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
   }
 
   func test_encryptAndSignMessage_fails_whenLoadingPrivateKeyFails() {
@@ -1774,7 +1774,7 @@ final class AccountSessionTests: TestCase {
       \NetworkSession.sessionRefreshAvailable,
       with: always(false)
     )
-    environment.pgp.encryptAndSign = always(.failure(.testError()))
+    environment.pgp.encryptAndSign = always(.failure(MockIssue.error()))
 
     let feature: AccountSession = testInstance()
 
@@ -1795,7 +1795,7 @@ final class AccountSessionTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertEqual(result?.identifier, .legacyBridge)
   }
 
   func test_encryptAndSignMessage_succeeds_withHappyPath() {

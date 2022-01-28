@@ -28,7 +28,7 @@ public struct Biometrics: EnvironmentElement {
 
   public var checkBiometricsState: () -> State
   public var checkBiometricsPermission: () -> Bool
-  public var requestBiometricsPermission: () -> AnyPublisher<Bool, TheErrorLegacy>
+  public var requestBiometricsPermission: () -> AnyPublisher<Void, Error>
 }
 
 extension Biometrics {
@@ -99,7 +99,7 @@ extension Biometrics {
       return result && errorPtr == nil && context.biometryType != .none
     }
 
-    func requestBiometricsPermission() -> AnyPublisher<Bool, TheErrorLegacy> {
+    func requestBiometricsPermission() -> AnyPublisher<Void, Error> {
       precondition(!isInExtensionContext, "Cannot request permission in app extension.")
       var errorPtr: NSError?
       context
@@ -112,24 +112,33 @@ extension Biometrics {
           || laError.code == .biometryNotEnrolled
           || laError.code == .passcodeNotSet
       {
-        return Fail<Bool, TheErrorLegacy>(error: .biometricsUnavailable(underlyingError: laError))
-          .eraseToAnyPublisher()
+        return Fail(
+          error:
+            SystemFeaturePermissionNotGranted
+            .error("Biometrics permission not granted")
+            .recording(laError, for: "underlyingError")
+        )
+        .eraseToAnyPublisher()
       }
       else {
-        let completionSubject: PassthroughSubject<Bool, TheErrorLegacy> = .init()
+        let completionSubject: PassthroughSubject<Void, Error> = .init()
         DispatchQueue.main.async {
           context.evaluatePolicy(
             .deviceOwnerAuthenticationWithBiometrics,
-            localizedReason: NSLocalizedString("biometrics.usage.reason", comment: "")
+            localizedReason: NSLocalizedString("biometrics.usage.reason", bundle: .localization, comment: "")
           ) { granted, error in
-            if error != nil {
-              completionSubject.send(
-                completion: .failure(.biometricsUnavailable(underlyingError: error))
-              )
+            if error == nil && granted {
+              completionSubject.send()
+              completionSubject.send(completion: .finished)
             }
             else {
-              completionSubject.send(granted)
-              completionSubject.send(completion: .finished)
+              completionSubject.send(
+                completion: .failure(
+                  SystemFeaturePermissionNotGranted
+                    .error("Biometrics permission not granted")
+                    .recording(error as Any, for: "underlyingError")
+                )
+              )
             }
           }
         }

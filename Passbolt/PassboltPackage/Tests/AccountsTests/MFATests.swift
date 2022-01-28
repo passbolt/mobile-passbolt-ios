@@ -55,7 +55,7 @@ final class MFATests: TestCase {
 
     environment.yubikey.readNFC = {
       Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
 
@@ -79,7 +79,7 @@ final class MFATests: TestCase {
     features.use(accountSession)
 
     environment.yubikey.readNFC = always(
-      Fail(error: TheErrorLegacy.yubikeyError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
 
@@ -99,7 +99,7 @@ final class MFATests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .yubikey)
+    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
   func test_authorizeUsingTOTP_succeeds_whenMFAAuthorizeSucceeds() {

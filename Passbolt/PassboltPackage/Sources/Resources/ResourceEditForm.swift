@@ -69,6 +69,7 @@ extension ResourceEditForm: Feature {
     // load initial resource type
     database
       .fetchResourcesTypesOperation()
+      .mapErrorsToLegacy()
       .map { resourceTypes -> AnyPublisher<ResourceType, TheErrorLegacy> in
         // in initial version we are supporting only one type of resource for being created
         if let resourceType: ResourceType = resourceTypes.first(where: \.isDefault) {
@@ -131,6 +132,7 @@ extension ResourceEditForm: Feature {
       return
         database
         .fetchEditViewResourceOperation(resourceID)
+        .mapErrorsToLegacy()
         .map { resource in
           resources
             .loadResourceSecret(resource.id)
@@ -416,12 +418,32 @@ extension ResourceEditForm: Feature {
                   .encryptMessageForResourceUsers(resourceID, encodedSecret)
                   .eraseToAnyPublisher()
 
-              case .authorizationRequired, .none:
+              case let .authorizationRequired(account):
                 accountSession.requestAuthorizationPrompt(
                   .localized("authorization.prompt.refresh.session.reason")
                 )
-                return Fail(error: .authorizationRequired())
-                  .eraseToAnyPublisher()
+                return Fail(
+                  error:
+                    SessionAuthorizationRequired
+                    .error(
+                      "Session authorization required for editing resource",
+                      account: account
+                    )
+                    .asLegacy
+                )
+                .eraseToAnyPublisher()
+
+              case .none:
+                accountSession.requestAuthorizationPrompt(
+                  .localized("authorization.prompt.refresh.session.reason")
+                )  // TODO: verify this
+                return Fail(
+                  error:
+                    SessionMissing
+                    .error("No session provided for editing resource")
+                    .asLegacy
+                )
+                .eraseToAnyPublisher()
               }
             }
             .switchToLatest()
@@ -463,12 +485,33 @@ extension ResourceEditForm: Feature {
                   .map { encryptedMessage in [(.init(rawValue: account.userID.rawValue), encryptedMessage)] }
                   .eraseToAnyPublisher()
 
-              case .authorizationRequired, .none:
+              case let .authorizationRequired(account):
                 accountSession.requestAuthorizationPrompt(
                   .localized("authorization.prompt.refresh.session.reason")
                 )
-                return Fail(error: .authorizationRequired())
-                  .eraseToAnyPublisher()
+                return Fail(
+                  error:
+                    SessionAuthorizationRequired
+                    .error(
+                      "Session authorization required for creating resource",
+                      account: account
+                    )
+                    .asLegacy
+                )
+                .eraseToAnyPublisher()
+
+              case .none:
+                accountSession.requestAuthorizationPrompt(
+                  .localized("authorization.prompt.refresh.session.reason")
+                )  // TODO: check this
+                return Fail(
+                  error:
+                    SessionMissing
+                    .error("No session provided for creating resource")
+                    .asLegacy
+                )
+                .eraseToAnyPublisher()
+
               }
             }
             .switchToLatest()

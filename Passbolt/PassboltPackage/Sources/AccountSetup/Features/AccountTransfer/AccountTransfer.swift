@@ -213,15 +213,28 @@ extension AccountTransfer: Feature {
             )
             .handleEvents(receiveCompletion: { completion in
               // we are completing transfer with duplicate regardless the response
-              transferState.send(completion: .failure(.duplicateAccount()))
+              transferState.send(
+                completion: .failure(
+                  AccountDuplicate
+                    .error("Duplicate account used for account transfer")
+                    .recording(configuration, for: "configuration")
+                    .asLegacy
+                )
+              )
               features.unload(Self.self)
             })
             .ignoreOutput()
             .sink(receiveCompletion: { _ in })
             .store(in: cancellables)
 
-            return Fail<Never, TheErrorLegacy>(error: .duplicateAccount())
-              .eraseToAnyPublisher()
+            return Fail(
+              error:
+                AccountDuplicate
+                .error("Duplicate account used for account transfer")
+                .recording(configuration, for: "configuration")
+                .asLegacy
+            )
+            .eraseToAnyPublisher()
           }
 
           guard !updatedState.scanningFinished
@@ -358,7 +371,7 @@ extension AccountTransfer: Feature {
             transferState.send(completion: .finished)
             features?.unload(Self.self)
           case let .failure(error)
-          where error.identifier == .duplicateAccount:
+          where error.legacyBridge is AccountDuplicate:
             diagnostics.diagnosticLog("...account transfer failed!")
             transferState.send(completion: .failure(error))
             features?.unload(Self.self)

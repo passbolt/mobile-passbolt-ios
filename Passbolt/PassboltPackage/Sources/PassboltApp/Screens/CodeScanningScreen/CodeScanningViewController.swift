@@ -190,7 +190,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
               self?.dismiss(Self.self)
             }
 
-          case .failure(.duplicateAccount):
+          case let .failure(error) where error.legacyBridge is AccountDuplicate:
             self?.push(
               CodeScanningDuplicateViewController.self,
               completion: { [weak self] in

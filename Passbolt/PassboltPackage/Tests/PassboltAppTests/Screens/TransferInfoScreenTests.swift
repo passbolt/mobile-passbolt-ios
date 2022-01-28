@@ -36,7 +36,7 @@ final class TransferInfoScreenTests: TestCase {
 
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {
     var permissions: OSPermissions = .placeholder
-    permissions.ensureCameraPermission = always(Just(true).eraseToAnyPublisher())
+    permissions.ensureCameraPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
     features.use(permissions)
     let controller: TransferInfoScreenController = testInstance()
     var result: Bool!
@@ -73,7 +73,7 @@ final class TransferInfoScreenTests: TestCase {
     var appPermissions: OSPermissions = .placeholder
     appPermissions.ensureCameraPermission = {
       result = Void()
-      return Just(false).eraseToAnyPublisher()
+      return Fail(error: MockIssue.error()).eraseToAnyPublisher()
     }
     features.use(appPermissions)
     let controller: TransferInfoScreenController = testInstance()
@@ -89,7 +89,7 @@ final class TransferInfoScreenTests: TestCase {
   func test_requestOrNavigatePublisher_passesPermissionState() {
     var appPermissions: OSPermissions = .placeholder
     appPermissions.ensureCameraPermission = always(
-      Just(true).eraseToAnyPublisher()
+      Just(Void()).eraseErrorType().eraseToAnyPublisher()
     )
     features.use(appPermissions)
 

@@ -773,7 +773,7 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .duplicateAccount)
+    XCTAssertError(result?.legacyBridge, matches: AccountDuplicate.self)
   }
 
   func test_processPayload_sendsCancelationRequest_withDuplicateAccount() {
@@ -821,7 +821,7 @@ final class AccountTransferTests: TestCase {
 
     processPart(qrCodePart0, using: accountTransfer)
 
-    XCTAssertEqual(result.identifier, .duplicateAccount)
+    XCTAssertError(result.legacyBridge, matches: AccountDuplicate.self)
   }
 }
 

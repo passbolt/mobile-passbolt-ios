@@ -64,3 +64,13 @@ extension TheErrorLegacy.ID {
 
   public static var testError: Self { "testError" }
 }
+
+extension TheError {
+
+  public static func mock(
+    file: StaticString,
+    line: UInt
+  ) -> TheError {
+    MockIssue.error(file: file, line: line)
+  }
+}
