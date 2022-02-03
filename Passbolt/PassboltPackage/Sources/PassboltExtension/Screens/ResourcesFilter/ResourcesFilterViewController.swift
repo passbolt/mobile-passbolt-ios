@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class ResourcesFilterViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourcesFilterView
+  internal typealias ContentView = ResourcesFilterView
   internal typealias Controller = ResourcesFilterController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class ResourcesFilterViewController: PlainViewController, UICompo
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
 

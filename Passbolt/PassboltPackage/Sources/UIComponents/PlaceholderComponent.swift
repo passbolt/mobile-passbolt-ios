@@ -25,7 +25,7 @@ import AegithalosCocoa
 
 #warning("FIXME: let it be only in DEBUG before release, allowing for dev builds now")
 
-public final class PlaceholderView: View {
+public final class PlaceholderView: PlainView {
 
   public required init() {
     super.init()
@@ -65,7 +65,7 @@ extension PlaceholderController: UIController {
 
 public final class PlaceholderViewController: PlainViewController, UIComponent {
 
-  public typealias View = PlaceholderView
+  public typealias ContentView = PlaceholderView
   public typealias Controller = PlaceholderController
 
   public static func instance(
@@ -80,7 +80,7 @@ public final class PlaceholderViewController: PlainViewController, UIComponent {
 
   public var components: UIComponentFactory
   private let controller: Controller
-  public private(set) lazy var contentView: View = .init()
+  public private(set) lazy var contentView: ContentView = .init()
 
   public init(
     using controller: Controller,

@@ -27,10 +27,10 @@ import UIComponents
 
 public final class ServerFingerprintViewController: PlainViewController, UIComponent {
 
-  public typealias View = ServerFingerprintView
+  public typealias ContentView = ServerFingerprintView
   public typealias Controller = ServerFingerprintController
 
-  public private(set) lazy var contentView: View = .init(
+  public private(set) lazy var contentView: ContentView = .init(
     fingerprint: controller.formattedFingerprint().rawValue
   )
 

@@ -24,7 +24,7 @@
 import CommonModels
 import UIKit
 
-open class TabsViewController: UITabBarController {
+@MainActor open class TabsViewController: UITabBarController {
 
   // Overriding TabBar is almost impossible, we delegate its colors setup to VC
   public lazy var tabBarDynamicBackgroundColor: DynamicColor = .always(self.tabBar.backgroundColor) {
@@ -48,7 +48,7 @@ open class TabsViewController: UITabBarController {
     }
   }
 
-  public init() {
+  @MainActor public init() {
     super.init(nibName: nil, bundle: nil)
     navigationItem.backButtonTitle = ""
     isModalInPresentation = true

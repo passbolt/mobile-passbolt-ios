@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class UnsupportedMFAView: View {
+internal final class UnsupportedMFAView: PlainView {
 
   private let resultView: ResultView = .init()
 

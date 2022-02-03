@@ -24,9 +24,9 @@
 import CommonModels
 import UIKit
 
-open class NavigationViewController: UINavigationController {
+@MainActor open class NavigationViewController: UINavigationController {
 
-  public init() {
+  @MainActor public init() {
     super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
     isModalInPresentation = true
     delegate = self

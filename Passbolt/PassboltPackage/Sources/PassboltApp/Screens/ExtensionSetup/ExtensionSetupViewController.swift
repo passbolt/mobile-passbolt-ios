@@ -25,7 +25,7 @@ import UIComponents
 
 internal final class ExtensionSetupViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ExtensionSetupView
+  internal typealias ContentView = ExtensionSetupView
   internal typealias Controller = ExtensionSetupController
 
   internal static func instance(
@@ -38,7 +38,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
 
   private let controller: Controller
@@ -85,7 +85,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
             receiveCompletion: { [weak self] completion in
               guard case .failure = completion else { return }
               self?.present(
-                snackbar: Mutation<UICommons.View>
+                snackbar: Mutation<UICommons.PlainView>
                   .snackBarErrorMessage(
                     .localized(
                       key: .genericError

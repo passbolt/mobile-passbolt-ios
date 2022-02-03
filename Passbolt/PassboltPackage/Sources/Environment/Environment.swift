@@ -31,7 +31,7 @@ extension EnvironmentElement {
   fileprivate static var environmentIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }
 
-public struct Environment {
+public struct AppEnvironment {
 
   private var environment: Dictionary<ObjectIdentifier, EnvironmentElement> = .init()
 
@@ -45,7 +45,7 @@ public struct Environment {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public func element<E>(
     _ elementType: E.Type = E.self

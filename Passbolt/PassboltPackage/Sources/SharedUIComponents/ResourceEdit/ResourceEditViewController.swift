@@ -26,7 +26,7 @@ import UIComponents
 
 public final class ResourceEditViewController: PlainViewController, UIComponent {
 
-  public typealias View = ResourceEditView
+  public typealias ContentView = ResourceEditView
   public typealias Controller = ResourceEditController
 
   public static func instance(
@@ -39,7 +39,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
     )
   }
 
-  public private(set) lazy var contentView: View = .init(createsNewResource: controller.createsNewResource)
+  public private(set) lazy var contentView: ContentView = .init(createsNewResource: controller.createsNewResource)
   public let components: UIComponentFactory
   private let controller: Controller
 

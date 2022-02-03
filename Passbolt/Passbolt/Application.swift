@@ -35,7 +35,7 @@ internal struct Application {
   private let features: FeatureFactory
   
   internal init(
-    environment: Environment = Environment(
+    environment: AppEnvironment = AppEnvironment(
       Time.live,
       UUIDGenerator.live,
       Logger.live,

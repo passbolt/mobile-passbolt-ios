@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class SettingsAutoFillViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ExtensionSetupView
+  internal typealias ContentView = ExtensionSetupView
   internal typealias Controller = SettingsAutoFillController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class SettingsAutoFillViewController: PlainViewController, UIComp
     )
   }
 
-  internal private(set) lazy var contentView: View = .init(skipHidden: true)
+  internal private(set) lazy var contentView: ContentView = .init(skipHidden: true)
   internal let components: UIComponentFactory
 
   private let controller: Controller

@@ -200,7 +200,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
   }
 }
 
-private final class KeyValueView: View {
+private final class KeyValueView: PlainView {
 
   fileprivate var titleLabel: Label = .init()
   fileprivate var valueTextView: TextView = .init()

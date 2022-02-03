@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class NoAccountsViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
 
-  internal typealias View = NoAccountsView
+  internal typealias ContentView = NoAccountsView
   internal typealias Controller = NoAccountsController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class NoAccountsViewController: PlainViewController, UIComponent,
     )
   }
 
-  internal private(set) var contentView: View = .init()
+  internal private(set) var contentView: ContentView = .init()
   internal var components: UIComponentFactory
 
   private let controller: Controller

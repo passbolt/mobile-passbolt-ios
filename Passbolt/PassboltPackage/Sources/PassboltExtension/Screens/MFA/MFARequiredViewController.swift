@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class MFARequiredViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
 
-  internal typealias View = MFARequiredView
+  internal typealias ContentView = MFARequiredView
   internal typealias Controller = MFARequiredController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class MFARequiredViewController: PlainViewController, UIComponent
     )
   }
 
-  internal private(set) var contentView: View = .init()
+  internal private(set) var contentView: ContentView = .init()
   internal var components: UIComponentFactory
 
   private let controller: Controller

@@ -25,7 +25,7 @@ import UIComponents
 
 internal final class AccountTransferFailureViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResultView
+  internal typealias ContentView = ResultView
   internal typealias Controller = AccountTransferFailureController
 
   internal static func instance(
@@ -38,7 +38,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private var payloadProcessingCancellable: AnyCancellable?

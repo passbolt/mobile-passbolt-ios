@@ -25,7 +25,7 @@ import CommonModels
 import SharedUIComponents
 import UICommons
 
-internal final class AccountSelectionView: View {
+internal final class AccountSelectionView: PlainView {
 
   internal var accountTapPublisher: AnyPublisher<AccountSelectionCellItem, Never> { collectionView.accountTapPublisher }
   internal var addAccountTapPublisher: AnyPublisher<Void, Never> { collectionView.addAccountPublisher }
@@ -40,10 +40,10 @@ internal final class AccountSelectionView: View {
     layout: UICollectionViewCompositionalLayout.accountSelectionLayout()
   )
 
-  private let container: View = .init()
+  private let container: PlainView = .init()
   private let titleLabel: Label = .init()
   private let subTitleLabel: Label = .init()
-  private let logoContainer: View = .init()
+  private let logoContainer: PlainView = .init()
   private let buttonStack: StackView = .init()
   private let removeContainer: Button = .init()
   private let removeIcon: ImageView = .init()

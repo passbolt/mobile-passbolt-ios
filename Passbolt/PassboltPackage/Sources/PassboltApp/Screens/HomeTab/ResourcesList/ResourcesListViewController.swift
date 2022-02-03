@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class ResourcesListViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourcesListView
+  internal typealias ContentView = ResourcesListView
   internal typealias Controller = ResourcesListController
 
   internal static func instance(
@@ -40,7 +40,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
 

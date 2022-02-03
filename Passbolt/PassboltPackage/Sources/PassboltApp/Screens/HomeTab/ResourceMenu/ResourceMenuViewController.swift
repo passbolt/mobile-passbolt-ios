@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class ResourceMenuViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourceMenuView
+  internal typealias ContentView = ResourceMenuView
   internal typealias Controller = ResourceMenuController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
     )
   }
 
-  internal private(set) var contentView: View = .init()
+  internal private(set) var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
 

@@ -29,6 +29,7 @@ import NetworkClient
 import PassboltExtension
 import UIComponents
 
+@MainActor 
 internal struct ApplicationExtension {
   
   internal let ui: UI
@@ -38,7 +39,7 @@ internal struct ApplicationExtension {
   
   internal init(
     rootViewController: ASCredentialProviderViewController,
-    environment: Environment = Environment(
+    environment: AppEnvironment = AppEnvironment(
       Time.live,
       UUIDGenerator.live,
       Logger.live,

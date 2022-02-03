@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class BiometricsSetupViewController: PlainViewController, UIComponent {
 
-  internal typealias View = BiometricsSetupView
+  internal typealias ContentView = BiometricsSetupView
   internal typealias Controller = BiometricsSetupController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
 
   private let controller: Controller
@@ -80,7 +80,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
             guard case .failure = completion
             else { return }
             self?.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage(
                   .localized(
                     key: .genericError

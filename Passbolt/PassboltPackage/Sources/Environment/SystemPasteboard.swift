@@ -30,7 +30,7 @@ public struct SystemPasteboard: EnvironmentElement {
   public var put: (String?) -> Void
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var systemPasteboard: SystemPasteboard {
     get { element(SystemPasteboard.self) }

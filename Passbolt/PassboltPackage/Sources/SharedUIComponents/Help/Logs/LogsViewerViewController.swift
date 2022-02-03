@@ -26,10 +26,10 @@ import UIComponents
 
 public final class LogsViewerViewController: PlainViewController, UIComponent {
 
-  public typealias View = LogsViewerView
+  public typealias ContentView = LogsViewerView
   public typealias Controller = LogsViewerController
 
-  public private(set) lazy var contentView: View = .init()
+  public private(set) lazy var contentView: ContentView = .init()
 
   public let components: UIComponentFactory
   private let controller: Controller

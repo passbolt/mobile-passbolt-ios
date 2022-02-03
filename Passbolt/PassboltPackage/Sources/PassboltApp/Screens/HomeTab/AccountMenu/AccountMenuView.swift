@@ -25,7 +25,7 @@ import Accounts
 import AegithalosCocoa
 import UICommons
 
-internal final class AccountMenuView: View {
+internal final class AccountMenuView: PlainView {
 
   internal var signOutTapPublisher: AnyPublisher<Void, Never>
   internal var accountDetailsTapPublisher: AnyPublisher<Void, Never>
@@ -91,7 +91,7 @@ internal final class AccountMenuView: View {
         .topAnchor(.equalTo, topAnchor, constant: 16)
       )
     }
-    mut(View()) {
+    mut(PlainView()) {
       .combined(
         .backgroundColor(dynamic: .secondaryGreen),
         .border(dynamic: .background, width: 2),
@@ -168,7 +168,7 @@ internal final class AccountMenuView: View {
       )
     }
 
-    let accountDetailsButtonContent: View = .init()
+    let accountDetailsButtonContent: PlainView = .init()
     mut(accountDetailsButtonContent) {
       .combined(
         .userInteractionEnabled(false),
@@ -223,7 +223,7 @@ internal final class AccountMenuView: View {
       )
     }
 
-    let signOutButtonContent: View = .init()
+    let signOutButtonContent: PlainView = .init()
     mut(signOutButtonContent) {
       .combined(
         .userInteractionEnabled(false),
@@ -324,7 +324,7 @@ internal final class AccountMenuView: View {
     mut(accountsList) {
       .combined(
         .append(
-          Mutation<View>
+          Mutation<PlainView>
             .combined(
               .backgroundColor(dynamic: .divider),
               .heightAnchor(.equalTo, constant: 1)
@@ -342,7 +342,7 @@ internal final class AccountMenuView: View {
                 )
               ),
               .append(
-                Mutation<View>
+                Mutation<PlainView>
                   .combined(
                     .backgroundColor(dynamic: .divider),
                     .heightAnchor(.equalTo, constant: 1)

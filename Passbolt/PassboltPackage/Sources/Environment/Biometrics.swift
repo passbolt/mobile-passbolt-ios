@@ -156,7 +156,7 @@ extension Biometrics {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var biometrics: Biometrics {
     get { element(Biometrics.self) }

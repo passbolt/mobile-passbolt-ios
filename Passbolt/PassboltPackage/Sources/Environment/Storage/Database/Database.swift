@@ -53,7 +53,7 @@ extension Database {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var database: Database {
     get { element(Database.self) }

@@ -26,7 +26,7 @@ import UIKit
 
 extension UIFont {
 
-  private static let register: Void = {
+  internal static let registerInter: Void = {
     func registerFont(fileName: String) {
       guard
         let pathForResourceString = Bundle.module.path(forResource: fileName, ofType: "otf"),
@@ -53,7 +53,7 @@ extension UIFont {
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
   ) -> UIFont {
-    _ = register
+    UIFont.registerFontsIfNeeded()
     let font: UIFont?
     switch weight {
     case .black:
@@ -120,7 +120,7 @@ extension UIFont {
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
   ) -> UIFont {
-    _ = register
+    _ = registerFontsIfNeeded()
     let font: UIFont?
     switch weight {
     case .light:

@@ -43,7 +43,7 @@ internal final class BiometricsInfoView: ScrolledStackView {
     self.skipTapPublisher = skipButton.tapPublisher
     super.init()
 
-    let imageContainer: View = .init()
+    let imageContainer: PlainView = .init()
     mut(imageContainer) {
       .backgroundColor(dynamic: .background)
     }

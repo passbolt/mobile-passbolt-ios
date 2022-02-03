@@ -34,7 +34,7 @@ internal final class ExtensionSetupView: ScrolledStackView {
 
     super.init()
 
-    let imageContainer: View = .init()
+    let imageContainer: PlainView = .init()
     mut(imageContainer) {
       .backgroundColor(dynamic: .background)
     }

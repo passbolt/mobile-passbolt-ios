@@ -24,7 +24,7 @@ import AVFoundation
 import CommonModels
 import UICommons
 
-internal final class CodeReaderView: View {
+internal final class CodeReaderView: PlainView {
 
   private let cameraPreview: AVCaptureVideoPreviewLayer?
 

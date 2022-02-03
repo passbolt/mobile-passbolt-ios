@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class TransferInfoScreenViewController: PlainViewController, UIComponent {
 
-  internal typealias View = TransferInfoScreenView
+  internal typealias ContentView = TransferInfoScreenView
   internal typealias Controller = TransferInfoScreenController
 
   internal static func instance(

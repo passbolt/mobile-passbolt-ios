@@ -37,7 +37,7 @@ extension Logger {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var logger: Logger {
     get { element(Logger.self) }

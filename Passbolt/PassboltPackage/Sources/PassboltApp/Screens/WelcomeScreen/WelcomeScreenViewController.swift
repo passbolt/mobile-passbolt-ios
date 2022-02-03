@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class WelcomeScreenViewController: PlainViewController, UIComponent {
 
-  internal typealias View = WelcomeScreenView
+  internal typealias ContentView = WelcomeScreenView
   internal typealias Controller = WelcomeScreenController
 
   internal static func instance(

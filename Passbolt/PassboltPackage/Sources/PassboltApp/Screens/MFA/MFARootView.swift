@@ -28,7 +28,7 @@ internal final class MFARootView: KeyboardAwareView {
   internal var tapPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
 
   private let scrolledStack: ScrolledStackView = .init()
-  private let container: View = .init()
+  private let container: PlainView = .init()
   private let button: TextButton = .init()
 
   @available(*, unavailable, message: "Use init(hideButton:)")

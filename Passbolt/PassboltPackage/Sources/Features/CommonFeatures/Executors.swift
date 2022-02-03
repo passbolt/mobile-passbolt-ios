@@ -31,7 +31,7 @@ public struct Executors {
 extension Executors: Feature {
 
   public static func load(
-    in environment: Environment,
+    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {

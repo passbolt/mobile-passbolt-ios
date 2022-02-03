@@ -24,7 +24,7 @@
 import AegithalosCocoa
 import CommonModels
 
-extension Mutation where Subject: View {
+extension Mutation where Subject: PlainView {
 
   public static func snackBarErrorMessage(
     _ displayable: DisplayableString = .localized(key: .genericError),

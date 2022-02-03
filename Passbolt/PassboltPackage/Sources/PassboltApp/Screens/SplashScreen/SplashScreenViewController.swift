@@ -25,7 +25,7 @@ import UIComponents
 
 internal final class SplashScreenViewController: PlainViewController, UIComponent {
 
-  internal typealias View = SplashScreenView
+  internal typealias ContentView = SplashScreenView
   internal typealias Controller = SplashScreenController
 
   internal static func instance(

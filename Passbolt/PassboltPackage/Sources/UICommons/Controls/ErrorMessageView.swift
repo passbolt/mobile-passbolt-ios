@@ -23,7 +23,7 @@
 
 import AegithalosCocoa
 
-internal class ErrorMessageView: View {
+internal class ErrorMessageView: PlainView {
 
   private let label: Label = .init()
 
@@ -55,7 +55,7 @@ internal class ErrorMessageView: View {
       )
       .apply(on: label)
 
-    Mutation<View>
+    Mutation<PlainView>
       .combined(
         .accessibilityIdentifier("errorMessage"),
         .backgroundColor(dynamic: .background)

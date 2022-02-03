@@ -59,7 +59,7 @@ extension Randomness {
 
 extension Randomness: EnvironmentElement {}
 
-extension Environment {
+extension AppEnvironment {
 
   public var randomness: Randomness {
     get { element(Randomness.self) }

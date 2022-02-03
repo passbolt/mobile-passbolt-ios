@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class BiometricsInfoViewController: PlainViewController, UIComponent {
 
-  internal typealias View = BiometricsInfoView
+  internal typealias ContentView = BiometricsInfoView
   internal typealias Controller = BiometricsInfoController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class BiometricsInfoViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
 
   private let controller: Controller

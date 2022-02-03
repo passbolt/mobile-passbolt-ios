@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class AccountSelectionViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
 
-  internal typealias View = AccountSelectionView
+  internal typealias ContentView = AccountSelectionView
   internal typealias Controller = AccountSelectionController
 
   internal static func instance(

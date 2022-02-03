@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class MFARootViewController: PlainViewController, UIComponent {
 
-  internal typealias View = MFARootView
+  internal typealias ContentView = MFARootView
   internal typealias Controller = MFARootController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
     )
   }
 
-  internal lazy var contentView: View = .init(hideButton: !controller.isProviderSwitchingAvailable())
+  internal lazy var contentView: ContentView = .init(hideButton: !controller.isProviderSwitchingAvailable())
 
   internal let components: UIComponentFactory
   private let controller: Controller

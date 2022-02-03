@@ -64,7 +64,7 @@ extension NetworkClient {
 extension NetworkClient: Feature {
 
   public static func load(
-    in environment: Environment,
+    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> NetworkClient {

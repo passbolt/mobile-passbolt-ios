@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class CodeReaderViewController: PlainViewController, UIComponent {
 
-  internal typealias View = CodeReaderView
+  internal typealias ContentView = CodeReaderView
   internal typealias Controller = CodeReaderController
 
   internal static func instance(
@@ -40,7 +40,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     )
   }
 
-  internal private(set) lazy var contentView: View = .init(session: cameraSession)
+  internal private(set) lazy var contentView: ContentView = .init(session: cameraSession)
   internal let components: UIComponentFactory
 
   private let captureMetadataQueue: DispatchQueue = .init(label: "com.passbolt.reader.metadata")
@@ -86,7 +86,7 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
     if let cameraSession: AVCaptureSession = cameraSession {
       cameraSession.startRunning()
       present(
-        snackbar: Mutation<UICommons.View>
+        snackbar: Mutation<UICommons.PlainView>
           .snackBarMessage(
             .localized("code.scanning.begin"),
             backgroundColor: .background,
@@ -129,7 +129,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
       .subscribe(on: RunLoop.main)
       .handleEvents(receiveSubscription: { [weak self] _ in
         self?.present(
-          snackbar: Mutation<UICommons.View>
+          snackbar: Mutation<UICommons.PlainView>
             .snackBarMessage(
               .localized("code.scanning.processing.in.progress"),
               backgroundColor: .background,
@@ -149,7 +149,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
             guard error.context?.contains("invalid-version-or-code") ?? false
             else { return false }
             self?.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage(.localized("code.scanning.processing.invalid.code"))
                 .instantiate(),
               hideAfter: 3
@@ -187,7 +187,7 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
             }
             else {
               self?.present(
-                snackbar: Mutation<UICommons.View>
+                snackbar: Mutation<UICommons.PlainView>
                   .snackBarErrorMessage(
                     .localized(key: .genericErrorRetry)
                   )

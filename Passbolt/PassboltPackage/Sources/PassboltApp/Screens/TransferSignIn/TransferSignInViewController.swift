@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class TransferSignInViewController: PlainViewController, UIComponent {
 
-  internal typealias View = AuthorizationView
+  internal typealias ContentView = AuthorizationView
   internal typealias Controller = TransferSignInController
 
   internal static func instance(
@@ -40,7 +40,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal var components: UIComponentFactory
 
   private let controller: Controller
@@ -196,7 +196,7 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
 
             case .failure:
               self?.present(
-                snackbar: Mutation<UICommons.View>
+                snackbar: Mutation<UICommons.PlainView>
                   .snackBarErrorMessage(
                     .localized(
                       key: "sign.in.error.message"

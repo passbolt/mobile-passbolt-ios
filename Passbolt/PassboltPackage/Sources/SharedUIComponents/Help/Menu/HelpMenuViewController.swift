@@ -26,10 +26,10 @@ import UIComponents
 
 public final class HelpMenuViewController: PlainViewController, UIComponent {
 
-  public typealias View = HelpMenuView
+  public typealias ContentView = HelpMenuView
   public typealias Controller = HelpMenuController
 
-  public private(set) lazy var contentView: View = .init()
+  public private(set) lazy var contentView: ContentView = .init()
 
   public let components: UIComponentFactory
   private let controller: Controller

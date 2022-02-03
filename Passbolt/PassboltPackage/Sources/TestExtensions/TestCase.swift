@@ -29,7 +29,7 @@ open class TestCase: XCTestCase {
 
   public var features: FeatureFactory!
   public var cancellables: Cancellables!
-  public var environment: Environment {
+  public var environment: AppEnvironment {
     get { features.environment }
     set { features.environment = newValue }
   }

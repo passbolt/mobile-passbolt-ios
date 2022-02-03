@@ -24,7 +24,7 @@ import UIComponents
 
 internal final class AccountNotFoundViewController: PlainViewController, UIComponent {
 
-  internal typealias View = AccountNotFoundView
+  internal typealias ContentView = AccountNotFoundView
   internal typealias Controller = AccountNotFoundController
 
   internal static func instance(
@@ -37,7 +37,7 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
 
   private let controller: Controller

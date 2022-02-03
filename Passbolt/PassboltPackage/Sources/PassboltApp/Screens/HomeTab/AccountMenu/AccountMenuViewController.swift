@@ -28,7 +28,7 @@ import UIKit
 
 internal final class AccountMenuViewController: PlainViewController, UIComponent {
 
-  internal typealias View = AccountMenuView
+  internal typealias ContentView = AccountMenuView
   internal typealias Controller = AccountMenuController
 
   internal static func instance(
@@ -41,7 +41,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
     )
   }
 
-  internal private(set) lazy var contentView: View = .init(
+  internal private(set) lazy var contentView: ContentView = .init(
     currentAcountWithProfile: controller.currentAccountWithProfile,
     currentAcountAvatarImagePublisher:
       controller

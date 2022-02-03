@@ -24,17 +24,17 @@
 import CommonModels
 import UIKit
 
-public final class SheetContentView: View {
+public final class SheetContentView: PlainView {
 
   internal var backgroundTapPublisher: AnyPublisher<Void, Never> { backgroundTapSubject.eraseToAnyPublisher() }
 
   private let backgroundTapSubject: PassthroughSubject<Void, Never> = .init()
-  private let container: View = .init()
+  private let container: PlainView = .init()
 
   public required init() {
     super.init()
 
-    let overlay: View =
+    let overlay: PlainView =
       Mutation
       .combined(
         .subview(of: self),
@@ -105,7 +105,7 @@ extension SheetController: UIController {
 
 public final class SheetViewController<Content: UIComponent>: PlainViewController, UIComponent {
 
-  public typealias View = SheetContentView
+  public typealias ContentView = SheetContentView
   public typealias Controller = SheetController<Content.Controller.Context>
 
   public static func instance(

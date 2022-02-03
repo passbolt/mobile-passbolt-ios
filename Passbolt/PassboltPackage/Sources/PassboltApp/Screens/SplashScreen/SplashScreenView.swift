@@ -22,7 +22,7 @@
 
 import UICommons
 
-internal final class SplashScreenView: View {
+internal final class SplashScreenView: PlainView {
 
   private let imageView: ImageView = .init()
 

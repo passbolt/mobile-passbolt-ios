@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class AccountSelectionViewController: PlainViewController, UIComponent {
 
-  internal typealias View = AccountSelectionView
+  internal typealias ContentView = AccountSelectionView
   internal typealias Controller = AccountSelectionController
 
   internal static func instance(
@@ -140,7 +140,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           }
 
           self.present(
-            snackbar: Mutation<View>
+            snackbar: Mutation<ContentView>
               .snackBarErrorMessage(
                 .localized(
                   key: .genericError

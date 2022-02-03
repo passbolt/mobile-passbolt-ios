@@ -34,7 +34,7 @@ public struct Yubikey: EnvironmentElement {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var yubikey: Yubikey {
     get { element(Yubikey.self) }

@@ -27,7 +27,7 @@ internal final class SettingsItemView: Button {
 
   private let icon: ImageView = .init()
   private let label: Label = .init()
-  private let accessoryContainer: View = .init()
+  private let accessoryContainer: PlainView = .init()
 
   internal required init() {
     super.init()

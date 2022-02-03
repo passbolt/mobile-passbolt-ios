@@ -25,7 +25,7 @@ import UIComponents
 
 final class ErrorViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ErrorView
+  internal typealias ContentView = ErrorView
   internal typealias Controller = ErrorController
 
   internal static func instance(
@@ -85,7 +85,7 @@ final class ErrorViewController: PlainViewController, UIComponent {
         guard result == nil
         else { return }
         self?.present(
-          snackbar: Mutation<UICommons.View>
+          snackbar: Mutation<UICommons.PlainView>
             .snackBarErrorMessage(
               .localized(
                 key: .genericError

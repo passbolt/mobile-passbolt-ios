@@ -88,7 +88,7 @@ internal final class AccountNotFoundView: ScrolledStackView {
       )
     }
 
-    let accountDetailsContainer: View = .init()
+    let accountDetailsContainer: PlainView = .init()
     mut(accountDetailsContainer) {
       .combined(
         .border(dynamic: .divider, width: 1),

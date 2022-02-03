@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class UnsupportedMFAViewController: PlainViewController, UIComponent {
 
-  internal typealias View = UnsupportedMFAView
+  internal typealias ContentView = UnsupportedMFAView
   internal typealias Controller = UnsupportedMFAController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class UnsupportedMFAViewController: PlainViewController, UICompon
     )
   }
 
-  internal lazy var contentView: View = .init()
+  internal lazy var contentView: ContentView = .init()
 
   internal let components: UIComponentFactory
   private let controller: Controller

@@ -23,7 +23,7 @@
 import CommonModels
 import UIKit
 
-public protocol AnyUIComponent: UIViewController {
+@MainActor public protocol AnyUIComponent: UIViewController {
 
   var lazyView: UIView { get }
   var components: UIComponentFactory { get }
@@ -34,9 +34,9 @@ public protocol AnyUIComponent: UIViewController {
   func deactivate()
 }
 
-public protocol UIComponent: AnyUIComponent {
+@MainActor public protocol UIComponent: AnyUIComponent {
 
-  associatedtype View: UIView
+  associatedtype ContentView: UIView
   associatedtype Controller: UIController
 
   static func instance(
@@ -44,39 +44,54 @@ public protocol UIComponent: AnyUIComponent {
     with components: UIComponentFactory
   ) -> Self
 
-  var contentView: View { get }
+  var contentView: ContentView { get }
 }
 
 extension UIComponent {
 
-  public var lazyView: UIView { contentView }
+  @MainActor public var lazyView: UIView { contentView }
 
-  public func setup() {}
-  public func activate() {}
-  public func deactivate() {}
+  @MainActor public func setup() {}
+  @MainActor public func activate() {}
+  @MainActor public func deactivate() {}
+}
+
+@MainActor public protocol SwiftUIComponent: UIComponent where ContentView == UIView {
+
+  associatedtype HostedView: ComponentView where HostedView.Presenter == Presenter
+  associatedtype Presenter
+}
+
+extension SwiftUIComponent {
+
+  @MainActor public var contentView: ContentView {
+    self.view
+  }
+
+  @MainActor public func setupView() {}
 }
 
 public final class NavigationView: UIView {}
 
 extension UIComponent where Self: UINavigationController {
 
-  public var contentView: NavigationView {
+  @MainActor public var contentView: NavigationView {
     unreachable(#function)
   }
 
-  public func setupView() {}
+  @MainActor public func setupView() {}
 }
 
 extension UIComponent where Self: UITabBarController {
 
-  public var contentView: NavigationView {
+  @MainActor public var contentView: NavigationView {
     unreachable(#function)
   }
 
-  public func setupView() {}
+  @MainActor public func setupView() {}
 }
 
 extension UIComponent where Self: UIAlertController {
 
-  public func setupView() {}
+  @MainActor public func setupView() {}
 }

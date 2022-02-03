@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class ResourceDetailsViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourceDetailsView
+  internal typealias ContentView = ResourceDetailsView
   internal typealias Controller = ResourceDetailsController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
 
   internal let components: UIComponentFactory
 
@@ -138,7 +138,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
               }
               else {
                 self?.present(
-                  snackbar: Mutation<UICommons.View>
+                  snackbar: Mutation<UICommons.PlainView>
                     .snackBarErrorMessage(
                       .localized(
                         key: .genericError

@@ -24,7 +24,7 @@
 import AegithalosCocoa
 import UICommons
 
-internal final class ResourcesFilterView: View {
+internal final class ResourcesFilterView: PlainView {
 
   internal var searchTextPublisher: AnyPublisher<String, Never> {
     searchBar.textPublisher
@@ -32,7 +32,7 @@ internal final class ResourcesFilterView: View {
   internal var avatarTapPublisher: AnyPublisher<Void, Never>
   private let avatarButton: ImageButton
   private let searchBar: TextSearchView
-  private let resourcesListContainer: View = .init()
+  private let resourcesListContainer: PlainView = .init()
 
   required init() {
     let avatarTapSubject: PassthroughSubject<Void, Never> = .init()
@@ -48,7 +48,7 @@ internal final class ResourcesFilterView: View {
       )
     }
 
-    let filtersContainer: View = .init()
+    let filtersContainer: PlainView = .init()
     mut(filtersContainer) {
       .combined(
         .backgroundColor(dynamic: .background),

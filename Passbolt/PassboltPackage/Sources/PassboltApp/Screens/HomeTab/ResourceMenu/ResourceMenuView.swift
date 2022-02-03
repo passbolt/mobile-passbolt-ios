@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class ResourceMenuView: View {
+internal final class ResourceMenuView: PlainView {
 
   internal var itemTappedPublisher: AnyPublisher<ResourceMenuController.Action, Never> {
     itemTappedSubject.eraseToAnyPublisher()
@@ -155,7 +155,7 @@ internal final class ResourceMenuView: View {
   }
 }
 
-private final class ResourceMenuDividerView: View {
+private final class ResourceMenuDividerView: PlainView {
 
   override func setup() {
     mut(self) {

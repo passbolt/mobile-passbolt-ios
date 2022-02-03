@@ -103,7 +103,7 @@ extension Files {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var files: Files {
     get { element(Files.self) }

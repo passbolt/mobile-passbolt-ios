@@ -33,7 +33,7 @@ public struct Biometry {
 extension Biometry: Feature {
 
   public static func load(
-    in environment: Environment,
+    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {

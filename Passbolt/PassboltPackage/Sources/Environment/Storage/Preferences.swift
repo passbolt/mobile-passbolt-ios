@@ -175,7 +175,7 @@ extension Preferences {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var preferences: Preferences {
     get { element(Preferences.self) }

@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class YubikeyView: View {
+internal final class YubikeyView: PlainView {
 
   internal var toggleRememberDevicePublisher: AnyPublisher<Void, Never> { labeledSwitch.togglePublisher }
   internal var scanTapPublisher: AnyPublisher<Void, Never> { scanButton.tapPublisher }

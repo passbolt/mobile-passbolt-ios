@@ -25,7 +25,7 @@ import AegithalosCocoa
 import CommonModels
 import UIKit
 
-public class TextInput: View {
+public class TextInput: PlainView {
 
   public let textPublisher: AnyPublisher<String, Never>
   public let editingDidBeginPublisher: AnyPublisher<Void, Never>

@@ -52,7 +52,7 @@ extension AutoFillExtension {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var autoFillExtension: AutoFillExtension {
     get { element(AutoFillExtension.self) }

@@ -44,7 +44,7 @@ internal final class TOTPView: KeyboardAwareView {
       .backgroundColor(dynamic: .background)
     }
 
-    let imageContainer: View = .init()
+    let imageContainer: PlainView = .init()
     mut(imageContainer) {
       .combined(
         .backgroundColor(dynamic: .background),

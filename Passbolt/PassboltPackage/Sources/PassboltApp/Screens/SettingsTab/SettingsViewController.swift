@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class SettingsViewController: PlainViewController, UIComponent {
 
-  internal typealias View = SettingsView
+  internal typealias ContentView = SettingsView
   internal typealias Controller = SettingsController
 
   internal static func instance(
@@ -136,7 +136,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .handleEvents(receiveOutput: { [weak self] value in
             guard !value else { return }
             self?.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage(.localized(key: .genericError))
                 .instantiate(),
               hideAfter: 2
@@ -156,7 +156,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .handleEvents(receiveOutput: { [weak self] value in
             guard !value else { return }
             self?.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage(.localized(key: .genericError))
                 .instantiate(),
               hideAfter: 2
@@ -225,7 +225,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
                 guard let self = self else { return }
 
                 self.present(
-                  snackbar: Mutation<UICommons.View>
+                  snackbar: Mutation<UICommons.PlainView>
                     .snackBarErrorMessage(.localized(key: "account.settings.biometrics.error"))
                     .instantiate(),
                   hideAfter: 2
@@ -252,7 +252,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
             guard let self = self else { return }
 
             self.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage(.localized(key: "account.settings.biometrics.error"))
                 .instantiate(),
               hideAfter: 2

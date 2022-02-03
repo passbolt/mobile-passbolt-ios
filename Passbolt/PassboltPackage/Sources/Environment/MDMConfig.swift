@@ -61,7 +61,7 @@ extension MDMConfig {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var mdmConfig: MDMConfig {
     get { element(MDMConfig.self) }

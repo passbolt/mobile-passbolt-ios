@@ -54,7 +54,7 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
       )
     }
 
-    let iconContainer: ContainerView<View> = .init(
+    let iconContainer: ContainerView<PlainView> = .init(
       contentView: iconView,
       mutation: .combined(
         .userInteractionEnabled(false),

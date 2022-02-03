@@ -26,7 +26,7 @@ import UIKit
 
 extension AnyUIComponent {
 
-  public func replaceWindowRoot<Component>(
+  @MainActor public func replaceWindowRoot<Component>(
     with type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -39,7 +39,7 @@ extension AnyUIComponent {
     )
   }
 
-  public func replaceWindowRoot<Component>(
+  @MainActor public func replaceWindowRoot<Component>(
     with type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true,
@@ -66,7 +66,7 @@ extension AnyUIComponent {
     )
   }
 
-  public func present<Component>(
+  @MainActor public func present<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -74,7 +74,7 @@ extension AnyUIComponent {
     present(type, in: Void(), animated: animated, completion: completion)
   }
 
-  public func present<Component>(
+  @MainActor public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true,
@@ -96,7 +96,7 @@ extension AnyUIComponent {
     )
   }
 
-  public func presentSheet<Component>(
+  @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
     in context: SheetViewController<Component>.Controller.Context,
     animated: Bool = true,
@@ -110,7 +110,7 @@ extension AnyUIComponent {
     )
   }
 
-  public func presentSheetMenu<Component>(
+  @MainActor public func presentSheetMenu<Component>(
     _ type: Component.Type,
     in context: SheetMenuViewController<Component>.Controller.Context,
     animated: Bool = true,
@@ -124,7 +124,7 @@ extension AnyUIComponent {
     )
   }
 
-  public func dismiss<Component>(
+  @MainActor public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -149,7 +149,7 @@ extension AnyUIComponent {
     } while true
   }
 
-  public func push<Component>(
+  @MainActor public func push<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -157,7 +157,7 @@ extension AnyUIComponent {
     push(type, in: Void(), animated: animated, completion: completion)
   }
 
-  public func push<Component>(
+  @MainActor public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true,
@@ -183,7 +183,7 @@ extension AnyUIComponent {
   }
 
   @discardableResult
-  public func pop<Component>(
+  @MainActor public func pop<Component>(
     if type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -201,7 +201,7 @@ extension AnyUIComponent {
   }
 
   @discardableResult
-  public func pop<Component>(
+  @MainActor public func pop<Component>(
     to type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -218,7 +218,7 @@ extension AnyUIComponent {
     return true
   }
 
-  public func popAll<Component>(
+  @MainActor public func popAll<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -235,7 +235,7 @@ extension AnyUIComponent {
     CATransaction.commit()
   }
 
-  public func popToRoot(
+  @MainActor public func popToRoot(
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) {
@@ -248,7 +248,7 @@ extension AnyUIComponent {
   }
 
   @discardableResult
-  public func replaceLast<Replaced, Replacement>(
+  @MainActor public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
     animated: Bool = true,
@@ -265,7 +265,7 @@ extension AnyUIComponent {
   }
 
   @discardableResult
-  public func replaceLast<Replaced, Replacement>(
+  @MainActor public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
     in context: Replacement.Controller.Context,
@@ -298,10 +298,10 @@ extension AnyUIComponent {
 
 extension UIComponent {
 
-  public func addChild<Component>(
+  @MainActor public func addChild<Component>(
     _ type: Component.Type,
-    viewSetup: (_ parent: Self.View, _ child: Component.View) -> Void,
-    animations: ((_ parent: Self.View, _ child: Component.View) -> Void)? = nil,
+    viewSetup: (_ parent: Self.ContentView, _ child: Component.ContentView) -> Void,
+    animations: ((_ parent: Self.ContentView, _ child: Component.ContentView) -> Void)? = nil,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent, Component.Controller.Context == Void {
     addChild(
@@ -314,11 +314,11 @@ extension UIComponent {
   }
 
   @discardableResult
-  public func addChild<Component>(
+  @MainActor public func addChild<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
-    viewSetup: (_ parent: Self.View, _ child: Component.View) -> Void,
-    animations: ((_ parent: Self.View, _ child: Component.View) -> Void)? = nil,
+    viewSetup: (_ parent: Self.ContentView, _ child: Component.ContentView) -> Void,
+    animations: ((_ parent: Self.ContentView, _ child: Component.ContentView) -> Void)? = nil,
     completion: (() -> Void)? = nil
   ) -> Component
   where Component: UIComponent {
@@ -354,11 +354,13 @@ extension UIComponent {
     return childComponent
   }
 
-  public func replaceChild<Replaced, Replacing>(
+  @MainActor public func replaceChild<Replaced, Replacing>(
     _ replaced: Replaced.Type,
     with replacing: Replacing.Type,
-    viewSetup: (_ parent: Self.View, _ replacing: Replacing.View) -> Void,
-    animations: ((_ parent: Self.View, _ replacing: Replacing.View, _ replaced: Replaced.View) -> Void)? = nil,
+    viewSetup: (_ parent: Self.ContentView, _ replacing: Replacing.ContentView) -> Void,
+    animations: (
+      (_ parent: Self.ContentView, _ replacing: Replacing.ContentView, _ replaced: Replaced.ContentView) -> Void
+    )? = nil,
     completion: (() -> Void)? = nil
   ) where Replaced: UIComponent, Replacing: UIComponent, Replacing.Controller.Context == Void {
     replaceChild(
@@ -371,12 +373,14 @@ extension UIComponent {
     )
   }
 
-  public func replaceChild<Replaced, Replacing>(
+  @MainActor public func replaceChild<Replaced, Replacing>(
     _ replaced: Replaced.Type,
     with replacing: Replacing.Type,
     in context: Replacing.Controller.Context,
-    viewSetup: (_ parent: Self.View, _ replacing: Replacing.View) -> Void,
-    animations: ((_ parent: Self.View, _ replacing: Replacing.View, _ replaced: Replaced.View) -> Void)? = nil,
+    viewSetup: (_ parent: Self.ContentView, _ replacing: Replacing.ContentView) -> Void,
+    animations: (
+      (_ parent: Self.ContentView, _ replacing: Replacing.ContentView, _ replaced: Replaced.ContentView) -> Void
+    )? = nil,
     completion: (() -> Void)? = nil
   ) where Replaced: UIComponent, Replacing: UIComponent {
     let matchingComponents: Array<Replaced> = children.compactMap { $0 as? Replaced }
@@ -421,9 +425,9 @@ extension UIComponent {
     }
   }
 
-  public func removeAllChildren<Component>(
+  @MainActor public func removeAllChildren<Component>(
     _ type: Component.Type,
-    animations: ((_ parent: Self.View, _ removed: Component.View) -> Void)? = nil,
+    animations: ((_ parent: Self.ContentView, _ removed: Component.ContentView) -> Void)? = nil,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent {
     CATransaction.begin()

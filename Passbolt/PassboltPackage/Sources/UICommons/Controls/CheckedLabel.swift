@@ -25,7 +25,7 @@ import Combine
 import CommonModels
 import UIKit
 
-public final class CheckedLabel: View {
+public final class CheckedLabel: PlainView {
 
   public var tapPublisher: AnyPublisher<Void, Never> { container.tapPublisher }
 

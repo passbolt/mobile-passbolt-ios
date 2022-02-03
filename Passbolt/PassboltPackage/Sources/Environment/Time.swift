@@ -47,7 +47,7 @@ extension Time {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var time: Time {
     get { element(Time.self) }

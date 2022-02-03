@@ -83,7 +83,7 @@ extension AppLifeCycle {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var appLifeCycle: AppLifeCycle {
     get { element(AppLifeCycle.self) }

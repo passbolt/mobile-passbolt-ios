@@ -756,7 +756,7 @@ private func deleteKeychainKeyQuery(
   return .success(query as CFDictionary)
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var keychain: Keychain {
     get { element(Keychain.self) }

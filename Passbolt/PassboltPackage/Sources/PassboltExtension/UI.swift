@@ -26,6 +26,7 @@ import UIComponents
 
 import class AuthenticationServices.ASPasswordCredentialIdentity
 
+@MainActor
 public final class UI {
 
   private let rootViewController: UIViewController

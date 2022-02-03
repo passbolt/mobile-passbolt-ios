@@ -22,7 +22,7 @@
 
 import UICommons
 
-internal final class CodeScanningView: View {
+internal final class CodeScanningView: PlainView {
 
   override func setup() {
     mut(self) {

@@ -35,7 +35,7 @@ public struct LinkOpener {
 extension LinkOpener: Feature {
 
   public static func load(
-    in environment: Environment,
+    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> LinkOpener {

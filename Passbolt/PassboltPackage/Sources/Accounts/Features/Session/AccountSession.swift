@@ -132,7 +132,7 @@ extension AccountSession {
 extension AccountSession: Feature {
 
   public static func load(
-    in environment: Environment,
+    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountSession {

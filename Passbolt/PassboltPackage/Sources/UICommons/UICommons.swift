@@ -23,6 +23,7 @@
 
 @_exported import AegithalosCocoa
 @_exported import CommonModels
+@_exported import SwiftUI
 
 extension Bundle {
 

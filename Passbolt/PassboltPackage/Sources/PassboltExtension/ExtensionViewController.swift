@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class ExtensionViewController: PlainViewController, UIComponent {
 
-  internal typealias View = UICommons.View
+  internal typealias ContentView = UICommons.PlainView
   internal typealias Controller = ExtensionController
 
   static func instance(
@@ -39,7 +39,7 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
 
   internal let components: UIComponentFactory
 

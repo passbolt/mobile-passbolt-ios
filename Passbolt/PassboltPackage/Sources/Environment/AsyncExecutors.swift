@@ -45,7 +45,7 @@ extension AsyncExecutors {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var asyncExecutors: AsyncExecutors {
     get { element(AsyncExecutors.self) }

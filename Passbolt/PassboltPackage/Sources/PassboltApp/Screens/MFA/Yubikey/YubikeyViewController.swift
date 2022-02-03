@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class YubikeyViewController: PlainViewController, UIComponent {
 
-  internal typealias View = YubikeyView
+  internal typealias ContentView = YubikeyView
   internal typealias Controller = YubikeyController
 
   internal static func instance(
@@ -40,7 +40,7 @@ internal final class YubikeyViewController: PlainViewController, UIComponent {
     )
   }
 
-  internal lazy var contentView: View = .init()
+  internal lazy var contentView: ContentView = .init()
 
   internal let components: UIComponentFactory
   private let controller: Controller

@@ -24,9 +24,9 @@
 import CommonModels
 import UIKit
 
-open class PlainViewController: UIViewController {
+@MainActor open class PlainViewController: UIViewController {
 
-  public init() {
+  @MainActor public init() {
     super.init(nibName: nil, bundle: nil)
     navigationItem.backButtonTitle = ""
     isModalInPresentation = true

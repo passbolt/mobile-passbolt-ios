@@ -29,7 +29,7 @@ import UIComponents
 
 public final class AuthorizationViewController: PlainViewController, UIComponent {
 
-  public typealias View = AuthorizationView
+  public typealias ContentView = AuthorizationView
   public typealias Controller = AuthorizationController
 
   public static func instance(

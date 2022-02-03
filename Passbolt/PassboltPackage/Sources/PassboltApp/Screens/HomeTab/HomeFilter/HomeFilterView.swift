@@ -24,14 +24,14 @@
 import AegithalosCocoa
 import UICommons
 
-internal final class HomeFilterView: View {
+internal final class HomeFilterView: PlainView {
 
   // filters are out of MVP scope
   // but its view should be located above the resourcesListContainer
   // and it is used to provide shadow drop on list below
   // replace it with proper filters when needed
-  private let filtersPlaceholder: View = .init()
-  private let resourcesListContainer: View = .init()
+  private let filtersPlaceholder: PlainView = .init()
+  private let resourcesListContainer: PlainView = .init()
 
   override func setup() {
     super.setup()

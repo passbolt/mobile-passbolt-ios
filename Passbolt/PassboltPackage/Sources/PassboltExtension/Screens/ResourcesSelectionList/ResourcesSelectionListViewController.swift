@@ -27,7 +27,7 @@ import UIComponents
 
 internal final class ResourcesSelectionListViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResourcesSelectionListView
+  internal typealias ContentView = ResourcesSelectionListView
   internal typealias Controller = ResourcesSelectionListController
 
   internal static func instance(
@@ -40,7 +40,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
 
@@ -65,7 +65,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
             guard case let .failure(error) = completion, error.identifier != .canceled
             else { return }
             self?.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage()
                 .instantiate(),
               hideAfter: 2
@@ -120,7 +120,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
             guard case .failure = completion
             else { return }
             self?.present(
-              snackbar: Mutation<UICommons.View>
+              snackbar: Mutation<UICommons.PlainView>
                 .snackBarErrorMessage()
                 .instantiate(),
               hideAfter: 2

@@ -53,11 +53,11 @@ public final class ServerFingerprintView: ScrolledStackView {
       heightMultiplier: 1
     )
 
-    let container: View =
+    let container: PlainView =
       Mutation
       .combined(
         .backgroundColor(dynamic: .background),
-        .custom { (view: View) in
+        .custom { (view: PlainView) in
           view.layoutMargins = .init(top: 0, left: 40, bottom: 0, right: 40)
         }
       )

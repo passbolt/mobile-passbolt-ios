@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class ErrorView: View {
+internal final class ErrorView: PlainView {
 
   internal var refreshTapPublisher: AnyPublisher<Void, Never> { refreshButton.tapPublisher }
   internal var signOutTapPublisher: AnyPublisher<Void, Never> { signOutButton.tapPublisher }

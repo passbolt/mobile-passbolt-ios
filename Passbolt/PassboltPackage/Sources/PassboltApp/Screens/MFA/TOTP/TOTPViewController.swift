@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class TOTPViewController: PlainViewController, UIComponent {
 
-  internal typealias View = TOTPView
+  internal typealias ContentView = TOTPView
   internal typealias Controller = TOTPController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
 
   private let controller: Controller

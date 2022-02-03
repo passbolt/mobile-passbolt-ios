@@ -378,7 +378,7 @@ extension Networking {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var networking: Networking {
     get { element(Networking.self) }

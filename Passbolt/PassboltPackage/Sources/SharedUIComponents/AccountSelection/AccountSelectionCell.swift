@@ -31,7 +31,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
   private let subTitleLabel: Label = .init()
   private let deleteButton: Button = .init()
   private let stack: StackView = .init()
-  private let indicator: View = .init()
+  private let indicator: PlainView = .init()
   private var tapAction: (() -> Void)?
   private var removeAction: (() -> Void)?
   private var cancellables: Cancellables = .init()

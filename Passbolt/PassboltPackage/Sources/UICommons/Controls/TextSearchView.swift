@@ -25,7 +25,7 @@ import AegithalosCocoa
 import Combine
 import CommonModels
 
-public final class TextSearchView: View {
+public final class TextSearchView: PlainView {
 
   public let textPublisher: AnyPublisher<String, Never>
   private let iconView: ImageView = .init()

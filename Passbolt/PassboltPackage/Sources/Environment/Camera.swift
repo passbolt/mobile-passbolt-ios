@@ -97,7 +97,7 @@ extension Camera {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var camera: Camera {
     get { element(Camera.self) }

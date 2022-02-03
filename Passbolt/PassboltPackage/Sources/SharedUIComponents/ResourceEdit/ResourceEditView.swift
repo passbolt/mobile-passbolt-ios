@@ -28,7 +28,7 @@ import UICommons
 
 public final class ResourceEditView: KeyboardAwareView {
 
-  internal typealias FieldWithView = (field: ResourceField, view: View)
+  internal typealias FieldWithView = (field: ResourceField, view: PlainView)
 
   internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
   internal var lockTapPublisher: AnyPublisher<Bool, Never> { lockTapSubject.eraseToAnyPublisher() }
@@ -40,7 +40,7 @@ public final class ResourceEditView: KeyboardAwareView {
   private let generateButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
-  private var fieldViews: Dictionary<ResourceField, View> = .init()
+  private var fieldViews: Dictionary<ResourceField, PlainView> = .init()
 
   internal required init(createsNewResource: Bool) {
     super.init()
@@ -106,7 +106,7 @@ public final class ResourceEditView: KeyboardAwareView {
   internal func update(with properties: Array<ResourceProperty>) {
     fieldViews =
       properties
-      .compactMap { resourceProperty -> (ResourceField, View)? in
+      .compactMap { resourceProperty -> (ResourceField, PlainView)? in
         switch resourceProperty.field {
         case .name:
           return (
@@ -276,7 +276,7 @@ public final class ResourceEditView: KeyboardAwareView {
         }
       }
       .reduce(
-        into: Dictionary<ResourceField, View>(),
+        into: Dictionary<ResourceField, PlainView>(),
         { (partialResult, fieldWithView: FieldWithView) in
           partialResult[fieldWithView.field] = fieldWithView.view
         }
@@ -291,7 +291,7 @@ public final class ResourceEditView: KeyboardAwareView {
           { [unowned self] fieldView in
             switch fieldView.key {
             case .password:
-              let container: View =
+              let container: PlainView =
                 Mutation
                 .combined(
                   .backgroundColor(dynamic: .background)
@@ -353,7 +353,7 @@ public final class ResourceEditView: KeyboardAwareView {
     validated: Validated<String>,
     for field: ResourceField
   ) {
-    guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
+    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
     else {
       assertionFailure("Missing field for key: \(field)")
       return
@@ -384,7 +384,7 @@ public final class ResourceEditView: KeyboardAwareView {
   internal func fieldValuePublisher(
     for field: ResourceField
   ) -> AnyPublisher<String, Never> {
-    guard let fieldView: View = fieldViews.first(where: { $0.key == field })?.value
+    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
     else {
       return Empty()
         .eraseToAnyPublisher()

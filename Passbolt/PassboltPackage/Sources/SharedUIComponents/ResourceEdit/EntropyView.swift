@@ -24,9 +24,9 @@
 import Features
 import UICommons
 
-internal final class EntropyView: View {
+internal final class EntropyView: PlainView {
 
-  private let indicator: View = .init()
+  private let indicator: PlainView = .init()
   private let label: Label = .init()
 
   private var indicatorWidthConstraint: NSLayoutConstraint?
@@ -34,7 +34,7 @@ internal final class EntropyView: View {
   internal required init() {
     super.init()
 
-    let indicatorContainer: View =
+    let indicatorContainer: PlainView =
       Mutation.combined(
         .backgroundColor(dynamic: .background),
         .border(dynamic: .divider, width: 1),

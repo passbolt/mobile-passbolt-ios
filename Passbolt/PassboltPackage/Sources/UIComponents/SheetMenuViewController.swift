@@ -25,7 +25,7 @@ import CommonModels
 import UICommons
 import UIKit
 
-public final class SheetMenuContentView: View {
+public final class SheetMenuContentView: PlainView {
 
   internal var closeActionPublisher: AnyPublisher<Void, Never> {
     closeActionSubject.eraseToAnyPublisher()
@@ -33,8 +33,8 @@ public final class SheetMenuContentView: View {
 
   private let closeActionSubject: PassthroughSubject<Void, Never> = .init()
   private let titleLabel: Label = .init()
-  private let content: View = .init()
-  private let container: View = .init()
+  private let content: PlainView = .init()
+  private let container: PlainView = .init()
 
   public required init() {
     super.init()
@@ -43,7 +43,7 @@ public final class SheetMenuContentView: View {
       .backgroundColor(dynamic: .overlayBackground)
     }
 
-    let overlay: View = .init()
+    let overlay: PlainView = .init()
     mut(overlay) {
       .combined(
         .subview(of: self),
@@ -104,7 +104,7 @@ public final class SheetMenuContentView: View {
       )
     }
 
-    let divider: View = .init()
+    let divider: PlainView = .init()
     mut(divider) {
       .combined(
         .backgroundColor(dynamic: .divider),
@@ -165,7 +165,7 @@ extension SheetMenuController: UIController {
 
 public final class SheetMenuViewController<Content: UIComponent>: PlainViewController, UIComponent {
 
-  public typealias View = SheetMenuContentView
+  public typealias ContentView = SheetMenuContentView
   public typealias Controller = SheetMenuController<Content.Controller.Context>
 
   public static func instance(
@@ -178,7 +178,7 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
     )
   }
 
-  public private(set) lazy var contentView: View = .init()
+  public private(set) lazy var contentView: ContentView = .init()
   public var components: UIComponentFactory
 
   private let controller: Controller

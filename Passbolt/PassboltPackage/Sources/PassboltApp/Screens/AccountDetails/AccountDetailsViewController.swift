@@ -25,7 +25,7 @@ import UIComponents
 
 internal final class AccountDetailsViewController: PlainViewController, UIComponent {
 
-  internal typealias View = AccountDetailsView
+  internal typealias ContentView = AccountDetailsView
   internal typealias Controller = AccountDetailsController
 
   internal static func instance(
@@ -38,7 +38,9 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
     )
   }
 
-  internal private(set) lazy var contentView: View = .init(accountWithProfile: controller.currentAccountWithProfile)
+  internal private(set) lazy var contentView: ContentView = .init(
+    accountWithProfile: controller.currentAccountWithProfile
+  )
   internal let components: UIComponentFactory
 
   private let controller: Controller

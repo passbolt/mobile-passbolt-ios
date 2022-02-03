@@ -27,11 +27,11 @@ import Commons
 import PassboltExtension
 
 @objc(RootViewController)
-internal class RootViewController: ASCredentialProviderViewController {
+@MainActor internal class RootViewController: ASCredentialProviderViewController {
   
   private lazy var applicationExtension: ApplicationExtension = .init(rootViewController: self)
   
-  internal init() {
+  @MainActor internal init() {
     super.init(nibName: nil, bundle: nil)
     applicationExtension.initialize()
   }

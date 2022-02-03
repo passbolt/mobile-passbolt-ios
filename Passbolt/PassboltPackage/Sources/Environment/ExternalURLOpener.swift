@@ -71,7 +71,7 @@ extension ExternalURLOpener {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var externalURLOpener: ExternalURLOpener {
     get { element(ExternalURLOpener.self) }

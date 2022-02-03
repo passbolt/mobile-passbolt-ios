@@ -25,7 +25,7 @@ import UIComponents
 
 internal final class CodeScanningViewController: PlainViewController, UIComponent {
 
-  internal typealias View = CodeScanningView
+  internal typealias ContentView = CodeScanningView
   internal typealias Controller = CodeScanningController
 
   internal static func instance(
@@ -38,7 +38,7 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private let progressView: ProgressView = .init()

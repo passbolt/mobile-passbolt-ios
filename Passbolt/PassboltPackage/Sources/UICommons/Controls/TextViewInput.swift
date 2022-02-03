@@ -25,7 +25,7 @@ import AegithalosCocoa
 import CommonModels
 import UIKit
 
-public class TextViewInput: View {
+public class TextViewInput: PlainView {
 
   public var textPublisher: AnyPublisher<String, Never> {
     textSubject
@@ -76,7 +76,7 @@ public class TextViewInput: View {
   }
 
   private let descriptionLabel: Label = .init()
-  private let accessoryContainer: View = .init()
+  private let accessoryContainer: PlainView = .init()
   private let requiredLabel: Label = .init()
   private let placeholderLabel: Label = .init()
   private let errorMessageView: ErrorMessageView = .init()
@@ -222,7 +222,7 @@ public class TextViewInput: View {
     accessory.removeFromSuperview()
     mut(accessoryContainer) {
       .combined(
-        .custom { (subject: View) in
+        .custom { (subject: PlainView) in
           subject.subviews.forEach { $0.removeFromSuperview() }
         },
         .subview(accessory)

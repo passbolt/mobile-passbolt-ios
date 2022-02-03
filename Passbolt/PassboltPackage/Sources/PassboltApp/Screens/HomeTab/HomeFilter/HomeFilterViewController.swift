@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class HomeFilterViewController: PlainViewController, UIComponent {
 
-  internal typealias View = HomeFilterView
+  internal typealias ContentView = HomeFilterView
   internal typealias Controller = HomeFilterController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   private lazy var avatarButton: ImageButton = .init()
   private lazy var searchBar: TextSearchView = .init(accesoryView: avatarButton)
   internal let components: UIComponentFactory

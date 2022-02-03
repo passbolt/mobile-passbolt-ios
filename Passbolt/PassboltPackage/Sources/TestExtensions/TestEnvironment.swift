@@ -24,8 +24,8 @@
 @testable import Crypto
 @testable import UIComponents
 
-public func testEnvironment() -> Environment {
-  Environment(
+public func testEnvironment() -> AppEnvironment {
+  AppEnvironment(
     Time.placeholder,
     UUIDGenerator.placeholder,
     Logger.placeholder,

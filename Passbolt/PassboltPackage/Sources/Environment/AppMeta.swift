@@ -55,7 +55,7 @@ extension AppMeta {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var appMeta: AppMeta {
     get { element(AppMeta.self) }

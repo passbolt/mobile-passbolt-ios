@@ -41,7 +41,7 @@ extension UUIDGenerator {
   }
 }
 
-extension Environment {
+extension AppEnvironment {
 
   public var uuidGenerator: UUIDGenerator {
     get { element(UUIDGenerator.self) }

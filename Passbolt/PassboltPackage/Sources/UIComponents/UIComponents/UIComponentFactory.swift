@@ -35,7 +35,7 @@ public struct UIComponentFactory {
 
 extension UIComponentFactory {
 
-  public func instance<Component>(
+  @MainActor public func instance<Component>(
     of component: Component.Type = Component.self,
     in context: Component.Controller.Context
   ) -> Component
@@ -53,7 +53,7 @@ extension UIComponentFactory {
     return component
   }
 
-  public func instance<Component>(
+  @MainActor public func instance<Component>(
     of component: Component.Type = Component.self
   ) -> Component
   where Component: UIComponent, Component.Controller.Context == Void {

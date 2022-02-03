@@ -33,15 +33,15 @@ public final class FeatureFactory {
   }
 
   #if DEBUG  // debug builds allow change and access to environment for mocking and debug
-  public var environment: Environment
+  public var environment: AppEnvironment
   #else  // production builds cannot access environment directly
-  private let environment: Environment
+  private let environment: AppEnvironment
   #endif
   private let featuresAccessLock: NSRecursiveLock = .init()
   private var features: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
 
   public init(
-    environment: Environment
+    environment: AppEnvironment
   ) {
     self.environment = environment
   }

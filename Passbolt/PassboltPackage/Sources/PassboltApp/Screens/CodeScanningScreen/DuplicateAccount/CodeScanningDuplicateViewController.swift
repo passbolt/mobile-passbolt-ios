@@ -26,7 +26,7 @@ import UIComponents
 
 internal final class CodeScanningDuplicateViewController: PlainViewController, UIComponent {
 
-  internal typealias View = ResultView
+  internal typealias ContentView = ResultView
   internal typealias Controller = CodeScanningDuplicateController
 
   internal static func instance(
@@ -39,7 +39,7 @@ internal final class CodeScanningDuplicateViewController: PlainViewController, U
     )
   }
 
-  internal private(set) lazy var contentView: View = .init()
+  internal private(set) lazy var contentView: ContentView = .init()
   internal let components: UIComponentFactory
   private let controller: Controller
   private var payloadProcessingCancellable: AnyCancellable?

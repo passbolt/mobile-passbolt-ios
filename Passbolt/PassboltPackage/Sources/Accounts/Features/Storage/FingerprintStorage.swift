@@ -34,7 +34,7 @@ public struct FingerprintStorage {
 extension FingerprintStorage: Feature {
 
   public static func load(
-    in environment: Environment,
+    in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> FingerprintStorage {
