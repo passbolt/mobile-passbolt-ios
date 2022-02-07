@@ -32,34 +32,33 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class TOTPControllerTests: TestCase {
+@MainActor
+final class TOTPControllerTests: MainActorTestCase {
 
   var networkClient: NetworkClient!
   var accounts: Accounts!
   var mfa: MFA!
   var pasteboard: Pasteboard!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     networkClient = .placeholder
     accounts = .placeholder
     mfa = .placeholder
     pasteboard = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     networkClient = nil
     accounts = nil
     mfa = nil
     pasteboard = nil
-    super.tearDown()
   }
 
   func test_statusChangePublisher_doesNotPublish_initially() {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: Void?
     controller
@@ -76,7 +75,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -99,7 +98,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -128,7 +127,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -155,7 +154,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -182,7 +181,7 @@ final class TOTPControllerTests: TestCase {
     )
     features.use(mfa)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -209,7 +208,7 @@ final class TOTPControllerTests: TestCase {
     )
     features.use(mfa)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -236,7 +235,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     controller.setOTP("12345")
 
@@ -253,7 +252,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     controller.setOTP("123456")
 
@@ -272,7 +271,7 @@ final class TOTPControllerTests: TestCase {
     }
     features.use(mfa)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     controller.pasteOTP()
 
@@ -291,7 +290,7 @@ final class TOTPControllerTests: TestCase {
     }
     features.use(mfa)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     controller.pasteOTP()
 
@@ -308,7 +307,7 @@ final class TOTPControllerTests: TestCase {
     )
     features.use(mfa)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: String?
     controller
@@ -333,7 +332,7 @@ final class TOTPControllerTests: TestCase {
     )
     features.use(mfa)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: String?
     controller
@@ -352,7 +351,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: Bool?
     controller
@@ -369,7 +368,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: Bool?
     controller
@@ -388,7 +387,7 @@ final class TOTPControllerTests: TestCase {
     features.use(mfa)
     features.use(pasteboard)
 
-    let controller: TOTPController = testInstance()
+    let controller: TOTPController = testController()
 
     var result: String?
     controller

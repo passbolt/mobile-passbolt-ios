@@ -29,21 +29,20 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class BiometricsInfoScreenTests: TestCase {
+@MainActor
+final class BiometricsInfoScreenTests: MainActorTestCase {
 
   var linkOpener: LinkOpener!
   var biometry: Biometry!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     linkOpener = .placeholder
     biometry = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     linkOpener = nil
     biometry = nil
-    super.tearDown()
   }
 
   func test_presentationDestinationPublisher_doesNotPublishInitially() {
@@ -53,7 +52,7 @@ final class BiometricsInfoScreenTests: TestCase {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
-    let controller: BiometricsInfoController = testInstance()
+    let controller: BiometricsInfoController = testController()
 
     var result: BiometricsInfoController.Destination!
     controller.presentationDestinationPublisher()
@@ -75,7 +74,7 @@ final class BiometricsInfoScreenTests: TestCase {
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
-    let controller: BiometricsInfoController = testInstance()
+    let controller: BiometricsInfoController = testController()
 
     controller.presentationDestinationPublisher()
       .sink { _ in }
@@ -93,7 +92,7 @@ final class BiometricsInfoScreenTests: TestCase {
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
     features.use(autoFill)
 
-    let controller: BiometricsInfoController = testInstance()
+    let controller: BiometricsInfoController = testController()
 
     var result: BiometricsInfoController.Destination!
     controller.presentationDestinationPublisher()
@@ -112,7 +111,7 @@ final class BiometricsInfoScreenTests: TestCase {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
-    let controller: BiometricsInfoController = testInstance()
+    let controller: BiometricsInfoController = testController()
 
     var result: BiometricsInfoController.Destination!
     controller.presentationDestinationPublisher()
@@ -136,7 +135,7 @@ final class BiometricsInfoScreenTests: TestCase {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
-    let controller: BiometricsInfoController = testInstance()
+    let controller: BiometricsInfoController = testController()
 
     var result: BiometricsInfoController.Destination!
     controller.presentationDestinationPublisher()
@@ -157,7 +156,7 @@ final class BiometricsInfoScreenTests: TestCase {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
     features.use(autoFill)
 
-    let controller: BiometricsInfoController = testInstance()
+    let controller: BiometricsInfoController = testController()
 
     var result: BiometricsInfoController.Destination!
     controller.presentationDestinationPublisher()

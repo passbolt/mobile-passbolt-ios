@@ -32,27 +32,26 @@ import XCTest
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountSelectionControllerTests: TestCase {
+@MainActor
+final class AccountSelectionControllerTests: MainActorTestCase {
 
   var accounts: Accounts!
   var accountSession: AccountSession!
   var accountSettings: AccountSettings!
   var networkClient: NetworkClient!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     accounts = .placeholder
     networkClient = .placeholder
     accountSettings = .placeholder
     accountSession = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accounts = nil
     accountSession = nil
     accountSettings = nil
     networkClient = nil
-    super.tearDown()
   }
 
   func test_accountsPublisher_publishesItemsWithImage() {
@@ -76,7 +75,7 @@ final class AccountSelectionControllerTests: TestCase {
     networkClient.mediaDownload = .respondingWith(Data())
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance(context: .signIn)
+    let controller: AccountSelectionController = testController(context: .signIn)
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -128,7 +127,7 @@ final class AccountSelectionControllerTests: TestCase {
     networkClient.mediaDownload = .failingWith(MockIssue.error())
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance(context: .signIn)
+    let controller: AccountSelectionController = testController(context: .signIn)
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -167,7 +166,7 @@ final class AccountSelectionControllerTests: TestCase {
     features.use(networkClient)
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .signIn)
+    let controller: AccountSelectionController = testController(context: .signIn)
     var result: Array<AccountSelectionListItem> = []
 
     controller.accountsPublisher()

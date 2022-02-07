@@ -31,24 +31,23 @@ import UIComponents
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ServerFingerprintControllerTests: TestCase {
+@MainActor
+final class ServerFingerprintControllerTests: MainActorTestCase {
 
   var fingerprintStorage: FingerprintStorage!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     fingerprintStorage = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     fingerprintStorage = nil
-    super.tearDown()
   }
 
   func test_fingerprint_isCorrectlyFormatted() {
     features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testInstance(
+    let controller: ServerFingerprintController = testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -60,7 +59,7 @@ final class ServerFingerprintControllerTests: TestCase {
   func test_fingerprintCheckedPublisher_initially_publishes_false() {
     features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testInstance(
+    let controller: ServerFingerprintController = testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -78,7 +77,7 @@ final class ServerFingerprintControllerTests: TestCase {
   func test_fingerprintCheckedPublisher_publishes_whenToggled() {
     features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testInstance(
+    let controller: ServerFingerprintController = testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -103,7 +102,7 @@ final class ServerFingerprintControllerTests: TestCase {
     }
     features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testInstance(
+    let controller: ServerFingerprintController = testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -130,7 +129,7 @@ final class ServerFingerprintControllerTests: TestCase {
     fingerprintStorage.storeServerFingerprint = always(.success(()))
     features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testInstance(
+    let controller: ServerFingerprintController = testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -150,7 +149,7 @@ final class ServerFingerprintControllerTests: TestCase {
     fingerprintStorage.storeServerFingerprint = always(.failure(.testError()))
     features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testInstance(
+    let controller: ServerFingerprintController = testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 

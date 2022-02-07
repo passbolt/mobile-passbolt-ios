@@ -23,6 +23,7 @@
 
 import Features
 
+@MainActor
 public protocol UIController {
 
   associatedtype Context

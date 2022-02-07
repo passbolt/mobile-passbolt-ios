@@ -39,7 +39,7 @@ internal final class ResourcesFilterView: PlainView {
     self.avatarTapPublisher = avatarTapSubject.eraseToAnyPublisher()
     let avatarButton: ImageButton = .init()
     self.avatarButton = avatarButton
-    self.searchBar = .init(accesoryView: avatarButton)
+    self.searchBar = .init(rightAccesoryView: avatarButton)
     super.init()
 
     mut(self) {

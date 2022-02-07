@@ -32,13 +32,14 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class TransferInfoScreenTests: TestCase {
+@MainActor
+final class TransferInfoScreenTests: MainActorTestCase {
 
   func test_noCameraPermissionAlert_isPresented_whenCallingPresent() {
     var permissions: OSPermissions = .placeholder
     permissions.ensureCameraPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
     features.use(permissions)
-    let controller: TransferInfoScreenController = testInstance()
+    let controller: TransferInfoScreenController = testController()
     var result: Bool!
 
     controller.presentNoCameraPermissionAlertPublisher()
@@ -61,7 +62,7 @@ final class TransferInfoScreenTests: TestCase {
       return Just(true).eraseToAnyPublisher()
     }
     features.use(linkOpener)
-    let controller: TransferInfoCameraRequiredAlertController = testInstance()
+    let controller: TransferInfoCameraRequiredAlertController = testController()
 
     controller.showSettings()
 
@@ -76,7 +77,7 @@ final class TransferInfoScreenTests: TestCase {
       return Fail(error: MockIssue.error()).eraseToAnyPublisher()
     }
     features.use(appPermissions)
-    let controller: TransferInfoScreenController = testInstance()
+    let controller: TransferInfoScreenController = testController()
 
     controller.requestOrNavigatePublisher()
       .receive(on: ImmediateScheduler.shared)
@@ -93,7 +94,7 @@ final class TransferInfoScreenTests: TestCase {
     )
     features.use(appPermissions)
 
-    let controller: TransferInfoScreenController = testInstance()
+    let controller: TransferInfoScreenController = testController()
     var result: Bool!
 
     controller.requestOrNavigatePublisher()

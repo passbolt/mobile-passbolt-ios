@@ -33,23 +33,20 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceDetailsControllerTests: TestCase {
+@MainActor
+final class ResourceDetailsControllerTests: MainActorTestCase {
 
   var featureConfig: FeatureConfig!
   var resources: Resources!
   var pasteboard: Pasteboard!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     featureConfig = .placeholder
     resources = .placeholder
     pasteboard = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     resources = nil
   }
 
@@ -65,7 +62,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: ResourceDetailsController.ResourceDetailsWithConfig!
 
     controller.resourceDetailsWithConfigPublisher()
@@ -101,7 +98,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     let expectedOrderedFields: [ResourceField] = [
       .uri,
@@ -141,7 +138,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: TheErrorLegacy!
 
     controller.resourceDetailsWithConfigPublisher()
@@ -175,7 +172,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: String!
 
     controller
@@ -208,7 +205,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: TheErrorLegacy!
 
     controller
@@ -243,7 +240,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: String!
 
     controller
@@ -281,7 +278,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: Resource.ID!
 
     controller.resourceMenuPresentationPublisher()
@@ -314,7 +311,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     controller
       .copyFieldValue(.username)
@@ -344,7 +341,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     controller
       .copyFieldValue(.description)
@@ -379,7 +376,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     controller
       .copyFieldValue(.description)
@@ -409,7 +406,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     controller
       .copyFieldValue(.uri)
@@ -444,7 +441,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     controller
       .copyFieldValue(.password)
@@ -467,7 +464,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
     var result: Resource.ID?
 
     controller.resourceDeleteAlertPresentationPublisher()
@@ -522,7 +519,7 @@ final class ResourceDetailsControllerTests: TestCase {
     features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testInstance(context: context)
+    let controller: ResourceDetailsController = testController(context: context)
 
     controller
       .resourceDeletionPublisher(resourcesList.first!.id)

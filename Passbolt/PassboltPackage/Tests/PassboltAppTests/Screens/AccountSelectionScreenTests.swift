@@ -34,27 +34,26 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountSelectionScreenTests: TestCase {
+@MainActor
+final class AccountSelectionScreenTests: MainActorTestCase {
 
   var accounts: Accounts!
   var accountSession: AccountSession!
   var accountSettings: AccountSettings!
   var networkClient: NetworkClient!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     accounts = .placeholder
     networkClient = .placeholder
     accountSettings = .placeholder
     accountSession = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accounts = nil
     accountSession = nil
     accountSettings = nil
     networkClient = nil
-    super.tearDown()
   }
 
   func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() {
@@ -78,7 +77,7 @@ final class AccountSelectionScreenTests: TestCase {
     networkClient.mediaDownload = .respondingWith(Data())
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -131,7 +130,7 @@ final class AccountSelectionScreenTests: TestCase {
     networkClient.mediaDownload = .failingWith(MockIssue.error())
     features.use(networkClient)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -182,7 +181,7 @@ final class AccountSelectionScreenTests: TestCase {
     }
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     controller.toggleMode()
 
     var result: Array<AccountSelectionListItem> = []
@@ -213,7 +212,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(networkClient)
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     controller.accountsPublisher()
@@ -250,7 +249,7 @@ final class AccountSelectionScreenTests: TestCase {
     }
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     let removeResult: Result<Void, TheErrorLegacy> = controller.removeAccount(firstAccount.account)
@@ -298,7 +297,7 @@ final class AccountSelectionScreenTests: TestCase {
     }
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     _ = controller.removeAccount(firstAccount.account)
@@ -331,7 +330,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(networkClient)
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Void?
 
     controller.removeAccountAlertPresentationPublisher()
@@ -354,7 +353,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(networkClient)
     features.use(accountSettings)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Bool?
 
     controller
@@ -379,7 +378,7 @@ final class AccountSelectionScreenTests: TestCase {
     features.use(accountSettings)
     features.use(AccountTransfer.placeholder)
 
-    let controller: AccountSelectionController = testInstance(context: .init(value: false))
+    let controller: AccountSelectionController = testController(context: .init(value: false))
     var result: Bool?
 
     controller

@@ -61,6 +61,8 @@ extension ImageNameConstant {
   public static var edit: Self { "Edit" }
   public static var bug: Self { "Bug" }
   public static var camera: Self { "Camera" }
+  public static var filter: Self { "Filter" }
+  public static var list: Self { "List" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }

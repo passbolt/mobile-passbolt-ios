@@ -306,6 +306,8 @@ Contact your administrator for more information.";
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
 "resource.menu.action.failed" = "%@ failed!";
 "mfa.yubikey.scan.failed" = "Scan failed";
+"resources.display.menu.title" = "Filter view by";
+"resources.display.menu.item.plain.title" = "All items";
 
 "error.internal.inconsistency" = "Internal inconsistency, please report a bug.";
 "error.feature.unavailable" = "Feature unavailable.";

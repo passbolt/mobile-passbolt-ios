@@ -77,7 +77,7 @@ public final class SheetContentView: PlainView {
     mut(view) {
       .combined(
         .subview(of: container),
-        .edges(equalTo: container)
+        .edges(equalTo: container, usingSafeArea: false)
       )
     }
   }

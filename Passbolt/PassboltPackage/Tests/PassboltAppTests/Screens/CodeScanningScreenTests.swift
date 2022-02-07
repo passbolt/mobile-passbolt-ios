@@ -31,7 +31,8 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class CodeScanningScreenTests: TestCase {
+@MainActor
+final class CodeScanningScreenTests: MainActorTestCase {
 
   func test_exitConfirmation_isPresented_whenCallingPresent() {
     var accountTransfer: AccountTransfer = .placeholder
@@ -42,7 +43,7 @@ final class CodeScanningScreenTests: TestCase {
     )
 
     features.use(accountTransfer)
-    let controller: CodeScanningController = testInstance()
+    let controller: CodeScanningController = testController()
     var result: Bool!
 
     controller.exitConfirmationPresentationPublisher()
@@ -65,7 +66,7 @@ final class CodeScanningScreenTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountTransfer)
-    let controller: CodeScanningController = testInstance()
+    let controller: CodeScanningController = testController()
     var result: Bool!
 
     controller.helpPresentationPublisher()
@@ -88,7 +89,7 @@ final class CodeScanningScreenTests: TestCase {
         .eraseToAnyPublisher()
     )
     features.use(accountTransfer)
-    let controller: CodeScanningController = testInstance()
+    let controller: CodeScanningController = testController()
     var result: Double!
 
     controller.progressPublisher()

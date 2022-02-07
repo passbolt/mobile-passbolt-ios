@@ -23,9 +23,14 @@
 
 import UICommons
 
+@MainActor
 public protocol ComponentView: View {
 
-  associatedtype Presenter: ComponentPresenter
+  associatedtype State: Hashable
+  associatedtype Controller: ComponentController where Controller.ControlledView == Self
 
-  init(presenter: Presenter)
+  init(
+    state: ComponentObservableState<State>,
+    controller: Controller
+  )
 }

@@ -30,16 +30,16 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountDetailsControllerTests: TestCase {
+@MainActor
+final class AccountDetailsControllerTests: MainActorTestCase {
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     features.usePlaceholder(for: AccountSettings.self)
     features.usePlaceholder(for: NetworkClient.self)
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() {
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -57,7 +57,7 @@ final class AccountDetailsControllerTests: TestCase {
           storeVariableIn: &result
         )
       )
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -70,7 +70,7 @@ final class AccountDetailsControllerTests: TestCase {
   }
 
   func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() {
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -86,7 +86,7 @@ final class AccountDetailsControllerTests: TestCase {
   }
 
   func test_validatedAccountLabelPublisher_publishesValidValueWhenLabelIsValid() {
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -104,7 +104,7 @@ final class AccountDetailsControllerTests: TestCase {
   }
 
   func test_validatedAccountLabelPublisher_publishesInvalidValueWhenLabelIsTooLong() {
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -122,7 +122,7 @@ final class AccountDetailsControllerTests: TestCase {
   }
 
   func test_updateCurrentAccountLabel_updatesLabel() {
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -140,7 +140,7 @@ final class AccountDetailsControllerTests: TestCase {
   }
 
   func test_saveChanges_fails_whenLabelValidationFails() {
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -172,7 +172,7 @@ final class AccountDetailsControllerTests: TestCase {
         return .success
       }
     )
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -192,7 +192,7 @@ final class AccountDetailsControllerTests: TestCase {
       with: always(.failure(.testError()))
     )
 
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 
@@ -221,7 +221,7 @@ final class AccountDetailsControllerTests: TestCase {
         return .success
       }
     )
-    let controller: AccountDetailsController = testInstance(
+    let controller: AccountDetailsController = testController(
       context: validAccountWithProfile
     )
 

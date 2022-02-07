@@ -40,8 +40,12 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
   }
 
   internal private(set) lazy var contentView: ContentView = .init()
+  private lazy var displayButton: ImageButton = .init()
   private lazy var avatarButton: ImageButton = .init()
-  private lazy var searchBar: TextSearchView = .init(accesoryView: avatarButton)
+  private lazy var searchBar: TextSearchView = .init(
+    leftAccesoryView: displayButton,
+    rightAccesoryView: avatarButton
+  )
   internal let components: UIComponentFactory
   private let controller: Controller
 
@@ -60,6 +64,18 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
   }
 
   private func setupNavigationView() {
+    mut(displayButton) {
+      .combined(
+        .action { [weak self] in
+          self?.controller.presentDisplayMenu()
+        },
+        .image(named: .filter, from: .uiCommons),
+        .contentMode(.scaleAspectFit),
+        .backgroundColor(.clear),
+        .widthAnchor(.equalTo, constant: 28),
+        .heightAnchor(.equalTo, constant: 28)
+      )
+    }
     mut(avatarButton) {
       .combined(
         .action { [weak self] in
@@ -104,6 +120,22 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
         else { return }
 
         self?.avatarButton.image = image
+      }
+      .store(in: cancellables)
+
+    controller
+      .displayMenuPresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] currentDisplay, availableDisplays, updateDisplay in
+        guard let self = self else { return }
+        self.presentSheet(
+          ResourceDisplayMenuView.self,
+          in: (
+            currentDisplay: currentDisplay,
+            availableDisplays: availableDisplays,
+            updateDisplay: updateDisplay
+          )
+        )
       }
       .store(in: cancellables)
 

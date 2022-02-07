@@ -32,23 +32,20 @@ import XCTest
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourcesFilterControllerTests: TestCase {
+@MainActor
+final class ResourcesFilterControllerTests: MainActorTestCase {
 
   var accountSession: AccountSession!
   var accountSettings: AccountSettings!
   var networkClient: NetworkClient!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     accountSession = .placeholder
     accountSettings = .placeholder
     networkClient = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     accountSession = nil
     accountSettings = nil
     networkClient = nil
@@ -61,7 +58,7 @@ final class ResourcesFilterControllerTests: TestCase {
     features.use(accountSettings)
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     controller.switchAccount()
 
@@ -83,7 +80,7 @@ final class ResourcesFilterControllerTests: TestCase {
     )
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     var result: Data?
     controller
@@ -109,7 +106,7 @@ final class ResourcesFilterControllerTests: TestCase {
     )
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     var result: Data?
     controller
@@ -129,7 +126,7 @@ final class ResourcesFilterControllerTests: TestCase {
     features.use(accountSettings)
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     var result: String?
     controller
@@ -147,7 +144,7 @@ final class ResourcesFilterControllerTests: TestCase {
     features.use(accountSettings)
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     var result: String?
     controller
@@ -167,7 +164,7 @@ final class ResourcesFilterControllerTests: TestCase {
     features.use(accountSettings)
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     var result: ResourcesFilter?
     controller
@@ -185,7 +182,7 @@ final class ResourcesFilterControllerTests: TestCase {
     features.use(accountSettings)
     features.use(networkClient)
 
-    let controller: ResourcesFilterController = testInstance()
+    let controller: ResourcesFilterController = testController()
 
     var result: ResourcesFilter?
     controller

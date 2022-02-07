@@ -32,7 +32,8 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AuthorizationScreenTests: TestCase {
+@MainActor
+final class AuthorizationScreenTests: MainActorTestCase {
 
   var accounts: Accounts!
   var accountSession: AccountSession!
@@ -40,9 +41,7 @@ final class AuthorizationScreenTests: TestCase {
   var networkClient: NetworkClient!
   var biometry: Biometry!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     accounts = .placeholder
     accountSession = .placeholder
     networkClient = .placeholder
@@ -50,13 +49,12 @@ final class AuthorizationScreenTests: TestCase {
     biometry = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accounts = nil
     accountSession = nil
     networkClient = nil
     accountSettings = nil
     biometry = nil
-    super.tearDown()
   }
 
   func test_presentForgotPassphraseAlertPublisher_publishesTrue_whenPresentForgotPassphraseAlertCalled() {
@@ -69,7 +67,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: Bool!
@@ -96,7 +94,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: Validated<String>!
@@ -128,7 +126,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: Void!
@@ -160,7 +158,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: TheErrorLegacy!
@@ -195,7 +193,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: Void!
@@ -227,7 +225,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: TheErrorLegacy!
@@ -264,7 +262,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: Data!
@@ -295,7 +293,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: Data!
@@ -321,7 +319,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
@@ -347,7 +345,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithoutBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
@@ -373,7 +371,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: AuthorizationController.BiometricsState!
@@ -399,7 +397,7 @@ final class AuthorizationScreenTests: TestCase {
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
     features.use(accountSettings)
 
-    let controller: AuthorizationController = testInstance(
+    let controller: AuthorizationController = testController(
       context: accountWithBiometry.account
     )
     var result: AuthorizationController.BiometricsState!

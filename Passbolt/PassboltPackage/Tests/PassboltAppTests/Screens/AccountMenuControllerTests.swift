@@ -30,12 +30,12 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountMenuControllerTests: TestCase {
+@MainActor
+final class AccountMenuControllerTests: MainActorTestCase {
 
   var updatedAccountIDsSubject: PassthroughSubject<Account.LocalID, Never>!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     features.patch(
       \Accounts.storedAccounts,
       with: always(
@@ -57,13 +57,12 @@ final class AccountMenuControllerTests: TestCase {
     )
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     updatedAccountIDsSubject = nil
-    super.tearDown()
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -87,7 +86,7 @@ final class AccountMenuControllerTests: TestCase {
       )
     )
 
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -126,7 +125,7 @@ final class AccountMenuControllerTests: TestCase {
       )
     )
 
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -154,7 +153,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_accountDetailsPresentationPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -173,7 +172,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_accountDetailsPresentationPublisher_publishesCurrentAccountAfterCallingPresent() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -194,7 +193,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_accountSwitchPresentationPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -213,7 +212,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_accountSwitchPresentationPublisher_publishesSelectedAccountAfterCallingPresent() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -234,7 +233,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_dismissPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -253,7 +252,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_manageAccountsPresentationPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -272,7 +271,7 @@ final class AccountMenuControllerTests: TestCase {
   }
 
   func test_manageAccountsPresentationPublisher_publishesAfterCallingPresent() {
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()
@@ -300,7 +299,7 @@ final class AccountMenuControllerTests: TestCase {
         result = Void()
       }
     )
-    let controller: AccountMenuController = testInstance(
+    let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         parentComponent: TestComponent()

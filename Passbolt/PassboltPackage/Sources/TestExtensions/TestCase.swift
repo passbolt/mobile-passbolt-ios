@@ -25,6 +25,10 @@ import Features
 import UIComponents
 import XCTest
 
+/// Base class for preparing unit tests.
+/// For testing UIComponents or other items
+/// that require MainActor isolation please
+/// use MainActorTestCase instead.
 open class TestCase: XCTestCase {
 
   public var features: FeatureFactory!
@@ -53,29 +57,7 @@ open class TestCase: XCTestCase {
     super.tearDown()
   }
 
-  public func testInstance<Controller: UIController>(
-    _ type: Controller.Type = Controller.self,
-    context: Controller.Context
-  ) -> Controller {
-    Controller.instance(
-      in: context,
-      with: features,
-      cancellables: cancellables
-    )
-  }
-
-  public func testInstance<Controller: UIController>(
-    _ type: Controller.Type = Controller.self
-  ) -> Controller
-  where Controller.Context == Void {
-    Controller.instance(
-      in: Void(),
-      with: features,
-      cancellables: cancellables
-    )
-  }
-
-  public func testInstance<F: Feature>(
+  public final func testInstance<F: Feature>(
     _ type: F.Type = F.self
   ) -> F {
     F.load(

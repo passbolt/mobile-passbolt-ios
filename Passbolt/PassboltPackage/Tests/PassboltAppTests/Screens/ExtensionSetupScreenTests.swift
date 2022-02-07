@@ -29,27 +29,26 @@ import UIComponents
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ExtensionSetupScreenTests: TestCase {
+@MainActor
+final class ExtensionSetupScreenTests: MainActorTestCase {
 
   var autoFill: AutoFill!
   var linkOpener: LinkOpener!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     autoFill = .placeholder
     linkOpener = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     autoFill = nil
     linkOpener = nil
-    super.tearDown()
   }
 
   func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
     features.use(autoFill)
     features.use(linkOpener)
-    let controller: ExtensionSetupController = testInstance()
+    let controller: ExtensionSetupController = testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -63,7 +62,7 @@ final class ExtensionSetupScreenTests: TestCase {
     features.use(autoFill)
     features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testInstance()
+    let controller: ExtensionSetupController = testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -81,7 +80,7 @@ final class ExtensionSetupScreenTests: TestCase {
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testInstance()
+    let controller: ExtensionSetupController = testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -102,7 +101,7 @@ final class ExtensionSetupScreenTests: TestCase {
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
     features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testInstance()
+    let controller: ExtensionSetupController = testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -127,7 +126,7 @@ final class ExtensionSetupScreenTests: TestCase {
     }
     features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testInstance()
+    let controller: ExtensionSetupController = testController()
 
     controller
       .setupExtension()

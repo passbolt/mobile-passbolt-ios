@@ -33,21 +33,18 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class MFARootControllerTests: TestCase {
+@MainActor
+final class MFARootControllerTests: MainActorTestCase {
 
   var accountSession: AccountSession!
   var mfa: MFA!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     accountSession = .placeholder
     mfa = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     accountSession = nil
     mfa = nil
   }
@@ -61,7 +58,7 @@ final class MFARootControllerTests: TestCase {
       .totp, .yubikey,
     ]
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
     var result: MFAProvider!
 
     controller.mfaProviderPublisher()
@@ -86,7 +83,7 @@ final class MFARootControllerTests: TestCase {
       .totp, .yubikey,
     ]
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
     var result: MFAProvider!
 
     controller.mfaProviderPublisher()
@@ -113,7 +110,7 @@ final class MFARootControllerTests: TestCase {
       .totp, .yubikey,
     ]
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
     var result: Array<MFAProvider> = []
 
     controller.mfaProviderPublisher()
@@ -144,7 +141,7 @@ final class MFARootControllerTests: TestCase {
       .totp, .yubikey,
     ]
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
 
     controller.closeSession()
 
@@ -158,7 +155,7 @@ final class MFARootControllerTests: TestCase {
 
     let providers: Array<MFAProvider> = []
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
     let result: Bool = controller.isProviderSwitchingAvailable()
 
     XCTAssertFalse(result)
@@ -173,7 +170,7 @@ final class MFARootControllerTests: TestCase {
       .totp
     ]
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
     let result: Bool = controller.isProviderSwitchingAvailable()
 
     XCTAssertFalse(result)
@@ -188,7 +185,7 @@ final class MFARootControllerTests: TestCase {
       .totp, .yubikey,
     ]
 
-    let controller: MFARootController = testInstance(context: providers)
+    let controller: MFARootController = testController(context: providers)
     let result: Bool = controller.isProviderSwitchingAvailable()
 
     XCTAssertTrue(result)

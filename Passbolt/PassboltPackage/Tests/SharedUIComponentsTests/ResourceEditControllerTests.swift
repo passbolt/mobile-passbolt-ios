@@ -34,25 +34,22 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceEditControllerTests: TestCase {
+@MainActor
+final class ResourceEditControllerTests: MainActorTestCase {
 
   private var networkClient: NetworkClient!
   private var resources: Resources!
   private var resourceForm: ResourceEditForm!
   private var randomGenerator: RandomStringGenerator!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     networkClient = .placeholder
     resources = .placeholder
     resourceForm = .placeholder
     randomGenerator = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     networkClient = nil
     resources = nil
     resourceForm = nil
@@ -68,7 +65,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { _ in /* NOP */ }
@@ -114,7 +111,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let _: ResourceEditController = testInstance(
+    let _: ResourceEditController = testController(
       context: (
         editedResource: "resource-id",
         completion: { _ in /* NOP */ }
@@ -137,7 +134,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: "resource-id",
         completion: { _ in /* NOP */ }
@@ -192,7 +189,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { _ in /* NOP */ }
@@ -222,7 +219,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { _ in /* NOP */ }
@@ -269,7 +266,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { _ in /* NOP */ }
@@ -309,7 +306,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { _ in /* NOP */ }
@@ -346,7 +343,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(randomGenerator)
 
     var result: Resource.ID?
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { id in result = id }
@@ -372,7 +369,7 @@ final class ResourceEditControllerTests: TestCase {
     features.use(resourceForm)
     features.use(randomGenerator)
 
-    let controller: ResourceEditController = testInstance(
+    let controller: ResourceEditController = testController(
       context: (
         editedResource: nil,
         completion: { _ in /* NOP */ }

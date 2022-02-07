@@ -32,7 +32,8 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class SettingsScreenTests: TestCase {
+@MainActor
+final class SettingsScreenTests: MainActorTestCase {
 
   var accountSettings: AccountSettings!
   var autoFill: AutoFill!
@@ -40,9 +41,7 @@ final class SettingsScreenTests: TestCase {
   var featureFlags: FeatureConfig!
   var linkOpener: LinkOpener!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     accountSettings = .placeholder
     autoFill = .placeholder
     biometry = .placeholder
@@ -50,10 +49,6 @@ final class SettingsScreenTests: TestCase {
     linkOpener = .placeholder
     featureFlags.config = always(nil)
     features.use(AccountSession.placeholder)
-  }
-
-  override func tearDown() {
-    super.tearDown()
   }
 
   func test_biometricsStatePublisher_publishesStateNone_whenProfileHasBiometricsDisabled_andBiometricsIsUnconfigured() {
@@ -65,7 +60,7 @@ final class SettingsScreenTests: TestCase {
     features.use(linkOpener)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -89,7 +84,7 @@ final class SettingsScreenTests: TestCase {
     features.use(featureFlags)
     features.use(linkOpener)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -112,7 +107,7 @@ final class SettingsScreenTests: TestCase {
     features.use(linkOpener)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -137,7 +132,7 @@ final class SettingsScreenTests: TestCase {
     features.use(featureFlags)
     features.use(linkOpener)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -160,7 +155,7 @@ final class SettingsScreenTests: TestCase {
     features.use(linkOpener)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -190,7 +185,7 @@ final class SettingsScreenTests: TestCase {
     features.use(linkOpener)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -215,7 +210,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Void!
 
     controller.biometricsDisableAlertPresentationPublisher()
@@ -248,7 +243,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool!
 
     controller.openTerms()
@@ -272,7 +267,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool!
 
     controller.openTerms()
@@ -300,7 +295,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool!
 
     controller.openPrivacyPolicy()
@@ -323,7 +318,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool!
 
     controller.openPrivacyPolicy()
@@ -344,7 +339,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Void!
 
     controller.signOutAlertPresentationPublisher()
@@ -366,7 +361,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool!
 
     controller.autoFillEnabledPublisher()
@@ -386,7 +381,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool!
 
     controller.autoFillEnabledPublisher()
@@ -408,7 +403,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     let result: Bool = controller.termsEnabled()
 
     XCTAssertEqual(result, true)
@@ -424,7 +419,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     let result: Bool = controller.privacyPolicyEnabled()
 
     XCTAssertEqual(result, true)
@@ -438,7 +433,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     let result: Bool = controller.termsEnabled()
 
     XCTAssertEqual(result, false)
@@ -452,7 +447,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     let result: Bool = controller.privacyPolicyEnabled()
 
     XCTAssertEqual(result, false)
@@ -465,7 +460,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool?
 
     controller
@@ -485,7 +480,7 @@ final class SettingsScreenTests: TestCase {
     features.use(autoFill)
     features.use(featureFlags)
 
-    let controller: SettingsController = testInstance()
+    let controller: SettingsController = testController()
     var result: Bool?
 
     controller

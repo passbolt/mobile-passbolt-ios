@@ -70,8 +70,34 @@ extension AnyUIComponent {
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.present(
+      ComponentHostingViewController<Component>.self,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func present<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
   ) where Component: UIComponent, Component.Controller.Context == Void {
     present(type, in: Void(), animated: animated, completion: completion)
+  }
+
+  @MainActor public func present<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.present(
+      ComponentHostingViewController<Component>.self,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
   }
 
   @MainActor public func present<Component>(
@@ -91,6 +117,33 @@ extension AnyUIComponent {
           of: Component.self,
           in: context
         ),
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func presentSheet<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.presentSheet(
+      ComponentHostingViewController<Component>.self,
+      in: Void(),
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func presentSheet<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.presentSheet(
+      ComponentHostingViewController<Component>.self,
+      in: context,
       animated: animated,
       completion: completion
     )
@@ -128,6 +181,18 @@ extension AnyUIComponent {
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.dismiss(
+      ComponentHostingViewController<Component>.self,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func dismiss<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
   ) where Component: UIComponent {
     var current: UIViewController = self
     repeat {
@@ -153,8 +218,34 @@ extension AnyUIComponent {
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.push(
+      ComponentHostingViewController<Component>.self,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func push<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
   ) where Component: UIComponent, Component.Controller.Context == Void {
     push(type, in: Void(), animated: animated, completion: completion)
+  }
+
+  @MainActor public func push<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.push(
+      ComponentHostingViewController<Component>.self,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
   }
 
   @MainActor public func push<Component>(
@@ -182,6 +273,18 @@ extension AnyUIComponent {
     CATransaction.commit()
   }
 
+  @MainActor public func pop<Component>(
+    if type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.pop(
+      if: ComponentHostingViewController<Component>.self,
+      animated: animated,
+      completion: completion
+    )
+  }
+
   @discardableResult
   @MainActor public func pop<Component>(
     if type: Component.Type,
@@ -200,6 +303,18 @@ extension AnyUIComponent {
     return true
   }
 
+  @MainActor public func pop<Component>(
+    to type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.pop(
+      to: ComponentHostingViewController<Component>.self,
+      animated: animated,
+      completion: completion
+    )
+  }
+
   @discardableResult
   @MainActor public func pop<Component>(
     to type: Component.Type,
@@ -216,6 +331,18 @@ extension AnyUIComponent {
     navigationController.popToViewController(targetViewController, animated: animated)
     CATransaction.commit()
     return true
+  }
+
+  @MainActor public func popAll<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.popAll(
+      ComponentHostingViewController<Component>.self,
+      animated: animated,
+      completion: completion
+    )
   }
 
   @MainActor public func popAll<Component>(

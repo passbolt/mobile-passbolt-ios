@@ -32,27 +32,24 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class HomeFilterControllerTests: TestCase {
+@MainActor
+final class HomeFilterControllerTests: MainActorTestCase {
 
   var networkClient: NetworkClient!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     features.usePlaceholder(for: AccountSettings.self)
     networkClient = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     networkClient = nil
   }
 
   func test_accountMenuPresentationPublisher_doesNotPublishInitially() {
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: Void?
     controller
@@ -75,7 +72,7 @@ final class HomeFilterControllerTests: TestCase {
       )
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: Void?
     controller
@@ -107,7 +104,7 @@ final class HomeFilterControllerTests: TestCase {
     )
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: Data?
     controller
@@ -135,7 +132,7 @@ final class HomeFilterControllerTests: TestCase {
     )
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: Data?
     controller
@@ -153,7 +150,7 @@ final class HomeFilterControllerTests: TestCase {
   func test_searchTextPublisher_publishesEmptyTextInitially() {
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: String?
     controller
@@ -169,7 +166,7 @@ final class HomeFilterControllerTests: TestCase {
   func test_searchTextPublisher_publishesTextUpdates() {
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: String?
     controller
@@ -187,7 +184,7 @@ final class HomeFilterControllerTests: TestCase {
   func test_resourcesFilterPublisher_publishesEmptyFilterInitially() {
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: ResourcesFilter?
     controller
@@ -203,7 +200,7 @@ final class HomeFilterControllerTests: TestCase {
   func test_resourcesFilterPublisher_publishesUpdatesOnTextUpdates() {
     features.use(networkClient)
 
-    let controller: HomeFilterController = testInstance()
+    let controller: HomeFilterController = testController()
 
     var result: ResourcesFilter?
     controller

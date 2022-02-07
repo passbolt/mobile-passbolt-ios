@@ -24,12 +24,10 @@
 import UICommons
 
 @MainActor
-public final class ComponentViewController<
-  HostedView,
-  Presenter: ComponentPresenter,
-  Controller
->: UIViewController, SwiftUIComponent
-where Presenter.PresentedView == HostedView, Presenter.Controller == Controller {
+public final class ComponentHostingViewController<HostedView>: UIViewController, SwiftUIComponent
+where HostedView: ComponentView {
+
+  public typealias Controller = ComponentHostingController<HostedView.Controller.NavigationContext>
 
   public static func instance(
     using controller: Controller,
@@ -64,18 +62,25 @@ where Presenter.PresentedView == HostedView, Presenter.Controller == Controller 
 
   public override func loadView() {
     super.loadView()
+    mut(self.view) {
+      .backgroundColor(.clear)
+    }
+    let controller: HostedView.Controller = self.components
+      .controller(
+        HostedView.Controller.self,
+        context: self.controller.componentNavigation(using: self),
+        cancellables: self.cancellables
+      )
     let hostingController: UIHostingController<HostedView> = .init(
       rootView: HostedView(
-        presenter: .init(
-          controller: controller,
-          navigation: .init(sourceComponent: self)
-        )
+        state: controller.viewState(),
+        controller: controller
       )
     )
     addChild(hostingController)
-    self.view.addSubview(hostingController.view)
     mut(hostingController.view) {
       .combined(
+        .backgroundColor(.clear),
         .subview(of: self.view),
         .edges(equalTo: self.view, usingSafeArea: false)
       )

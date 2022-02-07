@@ -23,27 +23,62 @@
 
 import UICommons
 
-public struct ComponentNavigation {
+@MainActor
+public struct ComponentNavigation<Context> {
 
+  nonisolated public let context: Context
   private weak var sourceComponent: AnyUIComponent?
 
-  internal init(
+  internal nonisolated init(
+    context: Context,
     sourceComponent: AnyUIComponent?
   ) {
+    self.context = context
     self.sourceComponent = sourceComponent
   }
 
   #if DEBUG
   /// Placeholder for SwiftUI previews
-  public static var ignore: Self {
-    .init(sourceComponent: .none)
+  public static func ignored(
+    with context: Context
+  ) -> Self {
+    .init(
+      context: context,
+      sourceComponent: .none
+    )
   }
   #endif
 }
 
 extension ComponentNavigation {
 
-  @MainActor public func present<Component>(
+  public func present<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.sourceComponent?.present(
+      type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func present<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.present(
+      type,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func present<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -55,7 +90,7 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func present<Component>(
+  public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true,
@@ -69,7 +104,33 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func presentSheet<Component>(
+  public func presentSheet<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.sourceComponent?.presentSheet(
+      type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func presentSheet<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.presentSheet(
+      type,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func presentSheet<Component>(
     _ type: Component.Type,
     in context: SheetViewController<Component>.Controller.Context,
     animated: Bool = true,
@@ -83,7 +144,7 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func presentSheetMenu<Component>(
+  public func presentSheetMenu<Component>(
     _ type: Component.Type,
     in context: SheetMenuViewController<Component>.Controller.Context,
     animated: Bool = true,
@@ -97,7 +158,19 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func dismiss<Component>(
+  public func dismiss<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.dismiss(
+      type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -109,7 +182,33 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func push<Component>(
+  public func push<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.sourceComponent?.push(
+      type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func push<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.push(
+      type,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func push<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -121,7 +220,7 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func push<Component>(
+  public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
     animated: Bool = true,
@@ -135,8 +234,20 @@ extension ComponentNavigation {
     )
   }
 
+  public func pop<Component>(
+    if type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.pop(
+      if: type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
   @discardableResult
-  @MainActor public func pop<Component>(
+  public func pop<Component>(
     if type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -150,8 +261,20 @@ extension ComponentNavigation {
       ?? false
   }
 
+  public func pop<Component>(
+    to type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.pop(
+      to: type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
   @discardableResult
-  @MainActor public func pop<Component>(
+  public func pop<Component>(
     to type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -165,7 +288,19 @@ extension ComponentNavigation {
       ?? false
   }
 
-  @MainActor public func popAll<Component>(
+  public func popAll<Component>(
+    _ type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.sourceComponent?.popAll(
+      type,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  public func popAll<Component>(
     _ type: Component.Type,
     animated: Bool = true,
     completion: (() -> Void)? = nil
@@ -177,7 +312,7 @@ extension ComponentNavigation {
     )
   }
 
-  @MainActor public func popToRoot(
+  public func popToRoot(
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) {
@@ -188,7 +323,7 @@ extension ComponentNavigation {
   }
 
   @discardableResult
-  @MainActor public func replaceLast<Replaced, Replacement>(
+  public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
     animated: Bool = true,
@@ -205,7 +340,7 @@ extension ComponentNavigation {
   }
 
   @discardableResult
-  @MainActor public func replaceLast<Replaced, Replacement>(
+  public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
     in context: Replacement.Controller.Context,

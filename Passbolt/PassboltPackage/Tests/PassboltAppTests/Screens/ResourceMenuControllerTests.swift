@@ -33,23 +33,20 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceMenuControllerTests: TestCase {
+@MainActor
+final class ResourceMenuControllerTests: MainActorTestCase {
 
   var resources: Resources!
   var pasteboard: Pasteboard!
   var linkOpener: LinkOpener!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     linkOpener = .placeholder
     pasteboard = .placeholder
     resources = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     resources = nil
   }
 
@@ -63,7 +60,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(resources)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -97,7 +94,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(resources)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -135,7 +132,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -166,7 +163,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -198,7 +195,7 @@ final class ResourceMenuControllerTests: TestCase {
     }
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -229,7 +226,7 @@ final class ResourceMenuControllerTests: TestCase {
     }
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -268,7 +265,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -299,7 +296,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -335,7 +332,7 @@ final class ResourceMenuControllerTests: TestCase {
     features.use(pasteboard)
     features.use(linkOpener)
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -368,7 +365,7 @@ final class ResourceMenuControllerTests: TestCase {
 
     var result: Resource.ID?
 
-    let controller: ResourceMenuController = testInstance(
+    let controller: ResourceMenuController = testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },

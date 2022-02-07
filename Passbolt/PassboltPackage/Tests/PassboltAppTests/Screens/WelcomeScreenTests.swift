@@ -29,10 +29,11 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class WelcomeScreenTests: TestCase {
+@MainActor
+final class WelcomeScreenTests: MainActorTestCase {
 
   func test_noAccountAlertAppears_whenTapped_Succeeds() {
-    let controller: WelcomeScreenController = testInstance()
+    let controller: WelcomeScreenController = testController()
     var result: Bool!
 
     controller.noAccountAlertPresentationPublisher()
@@ -48,7 +49,7 @@ final class WelcomeScreenTests: TestCase {
   }
 
   func test_noAccountAlertDisappears_whenDissmissed_Succeeds() {
-    let controller: WelcomeScreenController = testInstance()
+    let controller: WelcomeScreenController = testController()
     var result: Bool!
 
     controller.noAccountAlertPresentationPublisher()
@@ -64,7 +65,7 @@ final class WelcomeScreenTests: TestCase {
   }
 
   func test_navigateToNextScreen_whenTriggered_Succeeds() {
-    let controller: WelcomeScreenController = testInstance()
+    let controller: WelcomeScreenController = testController()
     var result: Void?
 
     controller.pushTransferInfoPublisher()

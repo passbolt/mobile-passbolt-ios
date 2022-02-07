@@ -32,7 +32,8 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class SplashScreenTests: TestCase {
+@MainActor
+final class SplashScreenTests: MainActorTestCase {
 
   var accountDataStore: AccountsDataStore!
   var networkClient: NetworkClient!
@@ -40,8 +41,7 @@ final class SplashScreenTests: TestCase {
   var accountSession: AccountSession!
   var featureConfig: FeatureConfig!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     accountDataStore = .placeholder
     networkClient = .placeholder
     accounts = .placeholder
@@ -49,13 +49,12 @@ final class SplashScreenTests: TestCase {
     featureConfig = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accountDataStore = nil
     networkClient = nil
     accounts = nil
     accountSession = nil
     featureConfig = nil
-    super.tearDown()
   }
 
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() {
@@ -72,7 +71,7 @@ final class SplashScreenTests: TestCase {
     )
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -99,7 +98,7 @@ final class SplashScreenTests: TestCase {
     )
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -126,7 +125,7 @@ final class SplashScreenTests: TestCase {
     )
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -153,7 +152,7 @@ final class SplashScreenTests: TestCase {
     )
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -180,7 +179,7 @@ final class SplashScreenTests: TestCase {
     )
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -207,7 +206,7 @@ final class SplashScreenTests: TestCase {
     )
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -242,7 +241,7 @@ final class SplashScreenTests: TestCase {
 
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var destination: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -278,7 +277,7 @@ final class SplashScreenTests: TestCase {
 
     features.use(featureConfig)
 
-    let controller: SplashScreenController = testInstance()
+    let controller: SplashScreenController = testController()
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()

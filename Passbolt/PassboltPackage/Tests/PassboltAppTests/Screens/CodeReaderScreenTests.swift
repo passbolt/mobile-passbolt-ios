@@ -31,7 +31,8 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class CodeReaderScreenTests: TestCase {
+@MainActor
+final class CodeReaderScreenTests: MainActorTestCase {
 
   func test_processPayload_passesPayloadToAccountTransfer() {
     var accountTransfer: AccountTransfer = .placeholder
@@ -42,7 +43,7 @@ final class CodeReaderScreenTests: TestCase {
         .eraseToAnyPublisher()
     }
     features.use(accountTransfer)
-    let controller: CodeReaderController = testInstance()
+    let controller: CodeReaderController = testController()
     controller
       .processPayload("TEST")
       .sink(

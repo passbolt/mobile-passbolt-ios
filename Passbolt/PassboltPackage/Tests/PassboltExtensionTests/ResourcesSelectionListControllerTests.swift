@@ -32,21 +32,18 @@ import XCTest
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourcesSelectionListControllerTests: TestCase {
+@MainActor
+final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
   var resources: Resources!
   var autofillContext: AutofillExtensionContext!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     resources = .placeholder
     autofillContext = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     resources = nil
     autofillContext = nil
   }
@@ -61,7 +58,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result: Void?
     controller
@@ -89,7 +86,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result: TheErrorLegacy?
     controller
@@ -137,7 +134,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
@@ -171,7 +168,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(text: "1"))
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     controller
       .resourcesListPublisher()
@@ -211,7 +208,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
@@ -257,7 +254,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
@@ -308,7 +305,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
@@ -359,7 +356,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
@@ -407,7 +404,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
@@ -455,7 +452,7 @@ final class ResourcesSelectionListControllerTests: TestCase {
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
 
-    let controller: ResourcesSelectionListController = testInstance(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result:
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?

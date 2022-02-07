@@ -32,19 +32,16 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class UnsupportedMFAControllerTests: TestCase {
+@MainActor
+final class UnsupportedMFAControllerTests: MainActorTestCase {
 
   var accountSession: AccountSession!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     accountSession = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     accountSession = nil
   }
 
@@ -55,7 +52,7 @@ final class UnsupportedMFAControllerTests: TestCase {
     }
     features.use(accountSession)
 
-    let controller: UnsupportedMFAController = testInstance()
+    let controller: UnsupportedMFAController = testController()
 
     controller.closeSession()
 

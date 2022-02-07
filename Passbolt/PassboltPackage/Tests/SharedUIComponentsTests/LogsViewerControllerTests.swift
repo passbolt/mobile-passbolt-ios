@@ -29,10 +29,10 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class LogsViewerControllerTests: TestCase {
+@MainActor
+final class LogsViewerControllerTests: MainActorTestCase {
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     features.patch(
       \Executors.newBackgroundExecutor,
       with: AsyncExecutors.immediate.newBackgroundExecutor
@@ -49,7 +49,7 @@ final class LogsViewerControllerTests: TestCase {
       }
     )
 
-    let controller: LogsViewerController = testInstance()
+    let controller: LogsViewerController = testController()
 
     controller
       .refreshLogs()
@@ -58,7 +58,7 @@ final class LogsViewerControllerTests: TestCase {
   }
 
   func test_logsPublisher_publishesNil_initially() {
-    let controller: LogsViewerController = testInstance()
+    let controller: LogsViewerController = testController()
 
     var result: Array<String>?
     controller
@@ -77,7 +77,7 @@ final class LogsViewerControllerTests: TestCase {
       with: always([])
     )
 
-    let controller: LogsViewerController = testInstance()
+    let controller: LogsViewerController = testController()
 
     controller.refreshLogs()
 
@@ -93,7 +93,7 @@ final class LogsViewerControllerTests: TestCase {
   }
 
   func test_shareMenuPresentationPublisher_doesNotPublishesInitially() {
-    let controller: LogsViewerController = testInstance()
+    let controller: LogsViewerController = testController()
 
     var result: String?
     controller
@@ -107,7 +107,7 @@ final class LogsViewerControllerTests: TestCase {
   }
 
   func test_shareMenuPresentationPublisher_publishesEmptyLogs_afterCallingPresentShareMenu_withoutLogsInCache() {
-    let controller: LogsViewerController = testInstance()
+    let controller: LogsViewerController = testController()
 
     var result: String?
     controller
@@ -128,7 +128,7 @@ final class LogsViewerControllerTests: TestCase {
       with: always(["test", "another"])
     )
 
-    let controller: LogsViewerController = testInstance()
+    let controller: LogsViewerController = testController()
 
     var result: String?
     controller

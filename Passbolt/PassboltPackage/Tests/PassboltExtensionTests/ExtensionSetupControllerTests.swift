@@ -28,21 +28,20 @@ import UIComponents
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ExtensionSetupControllerTests: TestCase {
+@MainActor
+final class ExtensionSetupControllerTests: MainActorTestCase {
 
   var linkOpener: LinkOpener!
   var extensionContext: AutofillExtensionContext!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     linkOpener = .placeholder
     extensionContext = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     linkOpener = nil
     extensionContext = nil
-    super.tearDown()
   }
 
   func test_closeConfiguration_closesExtension() {
@@ -53,7 +52,7 @@ final class ExtensionSetupControllerTests: TestCase {
     features.use(extensionContext)
     features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testInstance()
+    let controller: ExtensionSetupController = testController()
 
     controller.closeConfiguration()
 

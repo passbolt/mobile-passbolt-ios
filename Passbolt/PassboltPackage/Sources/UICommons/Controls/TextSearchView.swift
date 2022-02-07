@@ -28,23 +28,24 @@ import CommonModels
 public final class TextSearchView: PlainView {
 
   public let textPublisher: AnyPublisher<String, Never>
-  private let iconView: ImageView = .init()
   private let textField: TextField = .init()
 
   public init(
-    accesoryView: UIView? = nil
+    leftAccesoryView: UIView? = nil,
+    rightAccesoryView: UIView? = nil
   ) {
     let textSubject: PassthroughSubject<String, Never> = .init()
     self.textPublisher = textSubject.eraseToAnyPublisher()
 
     super.init()
 
-    mut(iconView) {
+    let searchIconView: ImageView = .init()
+    mut(searchIconView) {
       .combined(
         .image(named: .search, from: .uiCommons),
-        .tintColor(dynamic: .icon),
-        .widthAnchor(.equalTo, constant: 24),
-        .heightAnchor(.equalTo, constant: 24)
+        .tintColor(dynamic: .primaryText),
+        .widthAnchor(.equalTo, constant: 28),
+        .heightAnchor(.equalTo, constant: 28)
       )
     }
 
@@ -54,14 +55,16 @@ public final class TextSearchView: PlainView {
         .action { [unowned textField] in
           mut(textField) {
             .combined(
-              .set(\.rightView, to: accesoryView),
+              .set(\.rightView, to: rightAccesoryView),
               .text("")
             )
           }
           textSubject.send("")
         },
         .tintColor(dynamic: .primaryText),
-        .image(named: .close, from: .uiCommons)
+        .image(named: .close, from: .uiCommons),
+        .widthAnchor(.equalTo, constant: 28),
+        .heightAnchor(.equalTo, constant: 28)
       )
     }
 
@@ -72,12 +75,18 @@ public final class TextSearchView: PlainView {
             let isTextEntered: Bool = !(textField.text?.isEmpty ?? true)
             if isTextEntered {
               mut(textField) {
-                .set(\.rightView, to: clearTextButton)
+                .combined(
+                  .set(\.leftView, to: searchIconView as UIView?),
+                  .set(\.rightView, to: clearTextButton)
+                )
               }
             }
             else {
               mut(textField) {
-                .set(\.rightView, to: accesoryView)
+                .combined(
+                  .set(\.leftView, to: searchIconView as UIView?),
+                  .set(\.rightView, to: rightAccesoryView)
+                )
               }
             }
             self.editingDidBegin()
@@ -89,12 +98,18 @@ public final class TextSearchView: PlainView {
             let isTextEntered: Bool = !(textField.text?.isEmpty ?? true)
             if isTextEntered {
               mut(textField) {
-                .set(\.rightView, to: clearTextButton)
+                .combined(
+                  .set(\.leftView, to: searchIconView as UIView?),
+                  .set(\.rightView, to: clearTextButton)
+                )
               }
             }
             else {
               mut(textField) {
-                .set(\.rightView, to: accesoryView)
+                .combined(
+                  .set(\.leftView, to: leftAccesoryView ?? searchIconView),
+                  .set(\.rightView, to: rightAccesoryView)
+                )
               }
             }
             textSubject.send(textField.text ?? "")
@@ -106,12 +121,18 @@ public final class TextSearchView: PlainView {
             let isTextEntered: Bool = !(textField.text?.isEmpty ?? true)
             if isTextEntered {
               mut(textField) {
-                .set(\.rightView, to: clearTextButton)
+                .combined(
+                  .set(\.leftView, to: searchIconView as UIView?),
+                  .set(\.rightView, to: clearTextButton)
+                )
               }
             }
             else {
               mut(textField) {
-                .set(\.rightView, to: accesoryView)
+                .combined(
+                  .set(\.leftView, to: leftAccesoryView ?? searchIconView),
+                  .set(\.rightView, to: rightAccesoryView)
+                )
               }
             }
             self.editingDidEnd()
@@ -126,12 +147,12 @@ public final class TextSearchView: PlainView {
             top: 0,
             left: 12,
             bottom: 0,
-            right: accesoryView == nil ? 0 : 4
+            right: rightAccesoryView == nil ? 0 : 4
           )
         ),
-        .set(\.leftView, to: self.iconView),
+        .set(\.leftView, to: leftAccesoryView ?? searchIconView),
         .set(\.leftViewMode, to: .always),
-        .set(\.rightView, to: accesoryView),
+        .set(\.rightView, to: rightAccesoryView),
         .set(\.rightViewMode, to: .always),
         .set(\.clearButtonMode, to: .never),
         .set(\.returnKeyType, to: .search),
@@ -177,17 +198,11 @@ public final class TextSearchView: PlainView {
     mut(self) {
       .border(dynamic: .primaryBlue, width: 1)
     }
-    mut(iconView) {
-      .tintColor(dynamic: .primaryText)
-    }
   }
 
   private func editingDidEnd() {
     mut(self) {
       .border(dynamic: .divider, width: 1)
-    }
-    mut(iconView) {
-      .tintColor(dynamic: .icon)
     }
   }
 

@@ -21,16 +21,45 @@
 // @since         v1.0
 //
 
-import UICommons
+import SwiftUI
 
 @MainActor
-public protocol ComponentPresenter: ObservableObject {
+public final class ComponentObservableState<State>: ObservableObject
+where State: Hashable {
 
-  associatedtype PresentedView: ComponentView where PresentedView.Presenter == Self
-  associatedtype Controller: UIController
+  @Published public fileprivate(set) var value: State
 
-  init(
-    controller: Controller,
-    navigation: ComponentNavigation
-  )
+  fileprivate init(
+    initial: State
+  ) {
+    self.value = initial
+  }
+}
+
+@MainActor
+public final class ComponentWritableState<State>
+where State: Hashable {
+
+  private let observableState: ComponentObservableState<State>
+
+  public init(
+    initial: State
+  ) {
+    self.observableState = .init(initial: initial)
+  }
+}
+
+extension ComponentWritableState {
+
+  public var value: State {
+    get { self.observableState.value }
+    set {
+      guard self.observableState.value != newValue else { return }
+      self.observableState.value = newValue
+    }
+  }
+
+  public func asObservableState() -> ComponentObservableState<State> {
+    self.observableState
+  }
 }

@@ -58,8 +58,7 @@ extension UIComponent {
 
 @MainActor public protocol SwiftUIComponent: UIComponent where ContentView == UIView {
 
-  associatedtype HostedView: ComponentView where HostedView.Presenter == Presenter
-  associatedtype Presenter
+  associatedtype HostedView: ComponentView
 }
 
 extension SwiftUIComponent {

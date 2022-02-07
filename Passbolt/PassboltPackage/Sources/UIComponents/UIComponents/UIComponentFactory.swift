@@ -24,6 +24,7 @@
 import Features
 import ObjectiveC
 
+@MainActor
 public struct UIComponentFactory {
 
   private let features: FeatureFactory
@@ -35,7 +36,7 @@ public struct UIComponentFactory {
 
 extension UIComponentFactory {
 
-  @MainActor public func instance<Component>(
+  public func instance<Component>(
     of component: Component.Type = Component.self,
     in context: Component.Controller.Context
   ) -> Component
@@ -53,7 +54,7 @@ extension UIComponentFactory {
     return component
   }
 
-  @MainActor public func instance<Component>(
+  public func instance<Component>(
     of component: Component.Type = Component.self
   ) -> Component
   where Component: UIComponent, Component.Controller.Context == Void {
@@ -67,6 +68,22 @@ extension UIComponentFactory {
     )
     component.cancellables = cancellables
     return component
+  }
+}
+
+extension UIComponentFactory {
+
+  internal func controller<Controller>(
+    _: Controller.Type = Controller.self,
+    context: Controller.Context,
+    cancellables: Cancellables
+  ) -> Controller
+  where Controller: UIController {
+    .instance(
+      in: context,
+      with: features,
+      cancellables: cancellables
+    )
   }
 }
 

@@ -31,18 +31,17 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class WindowTests: TestCase {
+@MainActor
+final class WindowTests: MainActorTestCase {
 
   var accountSession: AccountSession!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     accountSession = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accountSession = nil
-    super.tearDown()
   }
 
   func test_screenStateDispositionPublisher_publishesInitialScreen_initially() {
@@ -56,7 +55,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -82,7 +81,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -117,7 +116,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -152,7 +151,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -187,7 +186,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -223,7 +222,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition?
 
     controller
@@ -256,7 +255,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition?
 
     controller
@@ -288,7 +287,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -315,7 +314,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -343,7 +342,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -371,7 +370,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -400,7 +399,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -435,7 +434,7 @@ final class WindowTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: WindowController = testInstance()
+    let controller: WindowController = testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller

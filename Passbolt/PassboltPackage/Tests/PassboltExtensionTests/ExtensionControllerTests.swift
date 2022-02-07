@@ -28,21 +28,20 @@ import UIComponents
 @testable import PassboltExtension
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ExtensionControllerTests: TestCase {
+@MainActor
+final class ExtensionControllerTests: MainActorTestCase {
 
   var accounts: Accounts! = .placeholder
   var accountSession: AccountSession! = .placeholder
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     accounts = .placeholder
     accountSession = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accounts = nil
     accountSession = nil
-    super.tearDown()
   }
 
   func test_destinationPublisher_publishesAccountSelection_whenNoAccounts_arePresent_andNotAuthorized() {
@@ -53,7 +52,7 @@ final class ExtensionControllerTests: TestCase {
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
-    let controller: ExtensionController = testInstance()
+    let controller: ExtensionController = testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -73,7 +72,7 @@ final class ExtensionControllerTests: TestCase {
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
-    let controller: ExtensionController = testInstance()
+    let controller: ExtensionController = testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -93,7 +92,7 @@ final class ExtensionControllerTests: TestCase {
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
-    let controller: ExtensionController = testInstance()
+    let controller: ExtensionController = testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -113,7 +112,7 @@ final class ExtensionControllerTests: TestCase {
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
     features.use(accountSession)
 
-    let controller: ExtensionController = testInstance()
+    let controller: ExtensionController = testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -139,7 +138,7 @@ final class ExtensionControllerTests: TestCase {
     )
     features.use(accountSession)
 
-    let controller: ExtensionController = testInstance()
+    let controller: ExtensionController = testController()
     _ = controller  // silence warning
 
     authorizationPromptPresentationSubject

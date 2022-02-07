@@ -29,24 +29,23 @@ import UIComponents
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountNotFoundScreenTests: TestCase {
+@MainActor
+final class AccountNotFoundScreenTests: MainActorTestCase {
 
   var accountSettings: AccountSettings!
 
-  override func setUp() {
-    super.setUp()
+  override func mainActorSetUp() {
     accountSettings = .placeholder
   }
 
-  override func tearDown() {
+  override func mainActorTearDown() {
     accountSettings = nil
-    super.tearDown()
   }
 
   func test_backNavigationPresentationPublisher_doesNotPublish_initially() {
     features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testInstance(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
 
     var result: Void?
     controller
@@ -62,7 +61,7 @@ final class AccountNotFoundScreenTests: TestCase {
   func test_backNavigationPresentationPublisher_publishes_whenNavigatingBack() {
     features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testInstance(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
 
     var result: Void?
     controller
@@ -81,7 +80,7 @@ final class AccountNotFoundScreenTests: TestCase {
     accountSettings.accountWithProfile = always(accountWithProfile)
     features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testInstance(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
 
     let result: AccountWithProfile =
       controller
@@ -98,7 +97,7 @@ final class AccountNotFoundScreenTests: TestCase {
     }
     features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testInstance(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
 
     _ =
       controller

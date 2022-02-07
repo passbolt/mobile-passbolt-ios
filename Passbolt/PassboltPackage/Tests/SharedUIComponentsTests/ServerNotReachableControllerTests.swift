@@ -33,7 +33,7 @@ import XCTest
 //final class ServerNotReachableControllerTests: TestCase {
 //
 //  func test_serverURL_hasCorrectValue_whenProvided_withValidURL() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: "https://passbolt.com:443"
 //    )
 //
@@ -41,7 +41,7 @@ import XCTest
 //  }
 //
 //  func test_serverURL_hasCorrectValue_whenProvided_withValidURL_containingAllUnnecessaryComponents() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: "https://user@passbolt.com:443/path?query=1#fragment"
 //    )
 //
@@ -49,7 +49,7 @@ import XCTest
 //  }
 //
 //  func test_serverURL_doesNotContainUser_whenProvided_withValidURL_containingUser() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: "https://user@passbolt.com:443"
 //    )
 //
@@ -57,7 +57,7 @@ import XCTest
 //  }
 //
 //  func test_serverURL_doesNotContainPath_whenProvided_withValidURL_containingPath() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: "https://passbolt.com:443/path"
 //    )
 //
@@ -65,7 +65,7 @@ import XCTest
 //  }
 //
 //  func test_serverURL_doesNotContainQuery_whenProvided_withValidURL_containingQuery() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: "https://passbolt.com:443?query=1"
 //    )
 //
@@ -73,7 +73,7 @@ import XCTest
 //  }
 //
 //  func test_serverURL_doesNotContainFragment_whenProvided_withValidURL_containingQuery() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: "https://passbolt.com:443#fragment"
 //    )
 //
@@ -81,7 +81,7 @@ import XCTest
 //  }
 //
 //  func test_serverURL_isEmpty_whenProvided_withInvalidURL() {
-//    let controller: ServerNotReachableController = testInstance(
+//    let controller: ServerNotReachableController = testController(
 //      context: ":)//passboltcom/?fragment"
 //    )
 //

@@ -32,26 +32,23 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class YubikeyControllerTests: TestCase {
+@MainActor
+final class YubikeyControllerTests: MainActorTestCase {
 
   var mfa: MFA!
 
-  override func setUp() {
-    super.setUp()
-
+  override func mainActorSetUp() {
     mfa = .placeholder
   }
 
-  override func tearDown() {
-    super.tearDown()
-
+  override func mainActorTearDown() {
     mfa = nil
   }
 
   func test_rememberDevicePublisher_initiallyPublishesTrue() {
     features.use(mfa)
 
-    let controller: YubikeyController = testInstance()
+    let controller: YubikeyController = testController()
     var result: Bool!
 
     controller.rememberDevicePublisher()
@@ -66,7 +63,7 @@ final class YubikeyControllerTests: TestCase {
   func test_rememberDevicePublisher_publishesFalse_whenToggleRememberDeviceIsCalled() {
     features.use(mfa)
 
-    let controller: YubikeyController = testInstance()
+    let controller: YubikeyController = testController()
     var result: Bool!
 
     controller.rememberDevicePublisher()
@@ -88,7 +85,7 @@ final class YubikeyControllerTests: TestCase {
     )
     features.use(mfa)
 
-    let controller: YubikeyController = testInstance()
+    let controller: YubikeyController = testController()
     var result: Void!
 
     controller.authorizeUsingOTP()
@@ -109,7 +106,7 @@ final class YubikeyControllerTests: TestCase {
     )
     features.use(mfa)
 
-    let controller: YubikeyController = testInstance()
+    let controller: YubikeyController = testController()
     var result: TheErrorLegacy!
 
     controller.authorizeUsingOTP()

@@ -34,6 +34,15 @@ internal struct HomeFilterController {
   internal var updateSearchText: (String) -> Void
   internal var searchTextPublisher: () -> AnyPublisher<String, Never>
   internal var avatarImagePublisher: () -> AnyPublisher<Data?, Never>
+  internal var currentDisplayPublisher: () -> AnyPublisher<ResourcesDisplay, Never>
+  internal var presentDisplayMenu: () -> Void
+  internal var displayMenuPresentationPublisher:
+    () -> AnyPublisher<
+      (
+        currentDisplay: ResourcesDisplay, availableDisplays: Array<ResourcesDisplay>,
+        updateDisplay: (ResourcesDisplay) -> Void
+      ), Never
+    >
   internal var presentAccountMenu: () -> Void
   internal var accountMenuPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
 }
@@ -52,6 +61,9 @@ extension HomeFilterController: UIController {
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
     let accountMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
+
+    let currentDisplaySubject: CurrentValueSubject<ResourcesDisplay, Never> = .init(.plain)
+    let displayMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
       searchTextSubject
@@ -82,6 +94,32 @@ extension HomeFilterController: UIController {
         .eraseToAnyPublisher()
     }
 
+    func currentDisplayPublisher() -> AnyPublisher<ResourcesDisplay, Never> {
+      currentDisplaySubject.eraseToAnyPublisher()
+    }
+
+    func presentDisplayMenu() {
+      displayMenuPresentationSubject.send()
+    }
+
+    func displayMenuPresentationPublisher() -> AnyPublisher<
+      (
+        currentDisplay: ResourcesDisplay, availableDisplays: Array<ResourcesDisplay>,
+        updateDisplay: (ResourcesDisplay) -> Void
+      ), Never
+    > {
+      displayMenuPresentationSubject
+        .map {
+          (
+            currentDisplay: currentDisplaySubject.value,
+            availableDisplays: [.plain],  // TODO: MOB-167 - refine list of available items
+            // TODO: [MOB-183] update display
+            updateDisplay: currentDisplaySubject.send
+          )
+        }
+        .eraseToAnyPublisher()
+    }
+
     func presentAccountMenu() {
       accountMenuPresentationSubject.send()
     }
@@ -102,6 +140,9 @@ extension HomeFilterController: UIController {
       updateSearchText: updateSearchText,
       searchTextPublisher: searchTextPublisher,
       avatarImagePublisher: avatarImagePublisher,
+      currentDisplayPublisher: currentDisplayPublisher,
+      presentDisplayMenu: presentDisplayMenu,
+      displayMenuPresentationPublisher: displayMenuPresentationPublisher,
       presentAccountMenu: presentAccountMenu,
       accountMenuPresentationPublisher: accountMenuPresentationPublisher
     )
