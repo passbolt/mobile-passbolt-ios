@@ -21,9 +21,16 @@
 // @since         v1.0
 //
 
+import Accounts
 import UIComponents
 
-internal struct HomeTabNavigationController: UIController {
+internal struct HomeTabNavigationController {
+
+  internal var currentHomePresentationModePublisher: () -> AnyPublisher<HomePresentationMode, Never>
+  internal var presentHomePresentationMenu: () -> Void
+  internal var homePresentationMenuPresentationPublisher: () -> AnyPublisher<HomePresentationMode, Never>
+}
+extension HomeTabNavigationController: UIController {
 
   internal typealias Context = Void
 
@@ -32,6 +39,33 @@ internal struct HomeTabNavigationController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    return Self()
+    let homePresentation: HomePresentation = features.instance()
+
+    let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
+
+    func currentHomePresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
+      homePresentation.currentPresentationModePublisher()
+    }
+
+    func presentHomePresentationMenu() {
+      homePresentationMenuPresentationSubject.send()
+    }
+
+    func homePresentationMenuPresentationPublisher() -> AnyPublisher<HomePresentationMode, Never> {
+      homePresentation
+        .currentPresentationModePublisher()
+        .map { mode in
+          homePresentationMenuPresentationSubject
+            .map { mode }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
+    return Self(
+      currentHomePresentationModePublisher: currentHomePresentationModePublisher,
+      presentHomePresentationMenu: presentHomePresentationMenu,
+      homePresentationMenuPresentationPublisher: homePresentationMenuPresentationPublisher
+    )
   }
 }

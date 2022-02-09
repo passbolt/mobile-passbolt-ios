@@ -23,7 +23,7 @@
 
 import SwiftUI
 
-@MainActor
+@MainActor @dynamicMemberLookup
 public final class ComponentObservableState<State>: ObservableObject
 where State: Hashable {
 
@@ -34,9 +34,16 @@ where State: Hashable {
   ) {
     self.value = initial
   }
+
+  public subscript<Value>(
+    dynamicMember keyPath: WritableKeyPath<State, Value>
+  ) -> Value {
+    get { self.value[keyPath: keyPath] }
+    set { self.value[keyPath: keyPath] = newValue }
+  }
 }
 
-@MainActor
+@MainActor @dynamicMemberLookup
 public final class ComponentWritableState<State>
 where State: Hashable {
 
@@ -46,6 +53,13 @@ where State: Hashable {
     initial: State
   ) {
     self.observableState = .init(initial: initial)
+  }
+
+  public subscript<Value>(
+    dynamicMember keyPath: WritableKeyPath<State, Value>
+  ) -> Value {
+    get { self.observableState.value[keyPath: keyPath] }
+    set { self.observableState.value[keyPath: keyPath] = newValue }
   }
 }
 

@@ -23,14 +23,14 @@
 
 import UIComponents
 
-internal struct ResourceDisplayMenuView: ComponentView {
+internal struct HomePresentationMenuView: ComponentView {
 
   @ObservedObject private var state: ComponentObservableState<State>
-  private let controller: ResourceDisplayMenuController
+  private let controller: HomePresentationMenuController
 
   internal init(
     state: ComponentObservableState<State>,
-    controller: ResourceDisplayMenuController
+    controller: HomePresentationMenuController
   ) {
     self.state = state
     self.controller = controller
@@ -44,24 +44,24 @@ internal struct ResourceDisplayMenuView: ComponentView {
       title: {
         Text(
           displayable: .localized(
-            key: "resources.display.menu.title"
+            key: "home.presentation.mode.menu.title"
           )
         )
       },
       content: {
         VStack(spacing: 0) {
-          ForEach(self.state.value.availableDisplays, id: \.self) { item in
+          ForEach(self.state.availableModes, id: \.self) { mode in
             DrawerMenuItemView(
               action: {
-                self.controller.selectDisplay(item)
+                self.controller.selectMode(mode)
               },
               title: {
-                Text(displayable: item.title)
+                Text(displayable: mode.title)
               },
               leftIcon: {
-                Image(named: item.iconName)
+                Image(named: mode.iconName)
               },
-              isSelected: item == self.state.value.currentDisplay
+              isSelected: mode == self.state.currentMode
             )
           }
         }
@@ -70,11 +70,11 @@ internal struct ResourceDisplayMenuView: ComponentView {
   }
 }
 
-extension ResourceDisplayMenuView {
+extension HomePresentationMenuView {
 
   internal struct State: Hashable {
 
-    internal var currentDisplay: ResourcesDisplay
-    internal var availableDisplays: Array<ResourcesDisplay>
+    internal var currentMode: HomePresentationMode
+    internal var availableModes: Array<HomePresentationMode>
   }
 }

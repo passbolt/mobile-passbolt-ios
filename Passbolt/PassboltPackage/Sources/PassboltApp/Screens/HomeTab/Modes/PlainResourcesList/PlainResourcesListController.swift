@@ -21,40 +21,43 @@
 // @since         v1.0
 //
 
-import Combine
-import CommonModels
-import Environment
+import Accounts
+import NetworkClient
+import Resources
+import UIComponents
 
-public protocol AnyFeature {
+import struct Foundation.Data
 
-  var featureUnload: () -> Bool { get }
+internal struct PlainResourcesListController {
+
+  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
+  internal var setSearchText: (String) -> Void
 }
 
-public protocol Feature: AnyFeature {
+extension PlainResourcesListController: UIController {
 
-  static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
+  internal typealias Context = Void
+
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self
+  ) -> Self {
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init())
 
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  static var placeholder: Self { get }
-  #endif
-}
-
-extension Feature {
-
-  public var featureUnload: () -> Bool {
-    {
-      assertionFailure("Unloading is not supported by \(Self.self)")
-      return false
+    func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
+      resourcesFilterSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
+
+    func setSearchText(_ text: String) {
+      resourcesFilterSubject.value.text = text
+    }
+
+    return Self(
+      resourcesFilterPublisher: resourcesFilterPublisher,
+      setSearchText: setSearchText(_:)
+    )
   }
-}
-
-extension Feature {
-
-  internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }

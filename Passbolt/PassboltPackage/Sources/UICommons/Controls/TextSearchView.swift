@@ -44,8 +44,8 @@ public final class TextSearchView: PlainView {
       .combined(
         .image(named: .search, from: .uiCommons),
         .tintColor(dynamic: .primaryText),
-        .widthAnchor(.equalTo, constant: 28),
-        .heightAnchor(.equalTo, constant: 28)
+        .widthAnchor(.equalTo, constant: 24),
+        .heightAnchor(.equalTo, constant: 24)
       )
     }
 

@@ -24,13 +24,9 @@
 import AegithalosCocoa
 import UICommons
 
-internal final class HomeFilterView: PlainView {
+internal final class PlainResourcesListView: PlainView {
 
-  // filters are out of MVP scope
-  // but its view should be located above the resourcesListContainer
-  // and it is used to provide shadow drop on list below
-  // replace it with proper filters when needed
-  private let filtersPlaceholder: PlainView = .init()
+  private let filtersContainer: PlainView = .init()
   private let resourcesListContainer: PlainView = .init()
 
   override func setup() {
@@ -42,13 +38,17 @@ internal final class HomeFilterView: PlainView {
       )
     }
 
-    mut(filtersPlaceholder) {
+    mut(filtersContainer) {
       .combined(
         .backgroundColor(dynamic: .background),
-        .shadow(color: .black, opacity: 0.2, offset: .init(width: 0, height: -10), radius: 12),
+        .shadow(
+          color: .black,
+          opacity: 0.2,
+          offset: .init(width: 0, height: -10),
+          radius: 12
+        ),
         .clipsToBounds(false),
         .subview(of: self),
-        .heightAnchor(.equalTo, constant: 12),
         .topAnchor(.equalTo, topAnchor),
         .leftAnchor(.equalTo, leftAnchor),
         .rightAnchor(.equalTo, rightAnchor)
@@ -58,14 +58,23 @@ internal final class HomeFilterView: PlainView {
     mut(resourcesListContainer) {
       .combined(
         .subview(of: self),
-        .topAnchor(.equalTo, filtersPlaceholder.bottomAnchor),
+        .topAnchor(.equalTo, filtersContainer.bottomAnchor),
         .leftAnchor(.equalTo, leftAnchor),
         .rightAnchor(.equalTo, rightAnchor),
         .bottomAnchor(.equalTo, bottomAnchor)
       )
     }
 
-    bringSubviewToFront(filtersPlaceholder)
+    bringSubviewToFront(filtersContainer)
+  }
+
+  internal func setFiltersView(_ view: UIView) {
+    mut(view) {
+      .combined(
+        .subview(of: filtersContainer),
+        .edges(equalTo: filtersContainer, usingSafeArea: false)
+      )
+    }
   }
 
   internal func setResourcesView(_ view: UIView) {

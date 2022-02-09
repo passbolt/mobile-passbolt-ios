@@ -21,26 +21,27 @@
 // @since         v1.0
 //
 
-import UICommons
+import Features
+import NetworkClient
+import TestExtensions
+import XCTest
 
-internal enum ResourcesDisplay: Hashable {
+@testable import PassboltApp
 
-  case plain
-}
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+final class HomePresentationTests: TestCase {
 
-extension ResourcesDisplay {
+  func test_currentPresentationModePublisher_publishesPlainResourcesList_initially() {
+    let feature: HomePresentation = testInstance()
 
-  internal var title: DisplayableString {
-    switch self {
-    case .plain:
-      return .localized(key: "resources.display.menu.item.plain.title")
-    }
-  }
+    var result: HomePresentationMode?
+    feature
+      .currentPresentationModePublisher()
+      .sink { mode in
+        result = mode
+      }
+      .store(in: cancellables)
 
-  internal var iconName: ImageNameConstant {
-    switch self {
-    case .plain:
-      return .list
-    }
+    XCTAssertEqual(result, .plainResourcesList)
   }
 }

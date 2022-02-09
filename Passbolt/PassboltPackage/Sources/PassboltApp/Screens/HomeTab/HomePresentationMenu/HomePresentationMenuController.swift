@@ -24,22 +24,17 @@
 import UIComponents
 
 @MainActor
-internal struct ResourceDisplayMenuController {
+internal struct HomePresentationMenuController {
 
   internal var viewState: @MainActor () -> ComponentObservableState<ViewState>
-  internal var selectDisplay: @MainActor (ResourcesDisplay) -> Void
+  internal var selectMode: @MainActor (HomePresentationMode) -> Void
   internal var dismissView: @MainActor () -> Void
 }
 
-extension ResourceDisplayMenuController: ComponentController {
+extension HomePresentationMenuController: ComponentController {
 
-  internal typealias ControlledView = ResourceDisplayMenuView
-
-  internal typealias NavigationContext = (
-    currentDisplay: ResourcesDisplay,
-    availableDisplays: Array<ResourcesDisplay>,
-    updateDisplay: (ResourcesDisplay) -> Void
-  )
+  internal typealias ControlledView = HomePresentationMenuView
+  internal typealias NavigationContext = HomePresentationMode
 
   static func instance(
     context: NavigationContext,
@@ -47,18 +42,26 @@ extension ResourceDisplayMenuController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let homePresentation: HomePresentation = features.instance()
+
     let viewState: ComponentWritableState<ViewState> = .init(
       initial: .init(
-        currentDisplay: context.currentDisplay,
-        availableDisplays: context.availableDisplays
+        currentMode: context,
+        availableModes: homePresentation.availableHomePresentationModes()
       )
     )
 
-    @MainActor func selectDisplay(
-      _ display: ResourcesDisplay
+    homePresentation
+      .currentPresentationModePublisher()
+      .sink { mode in
+        viewState.currentMode = mode
+      }
+      .store(in: cancellables)
+
+    @MainActor func selectMode(
+      _ mode: HomePresentationMode
     ) {
-      viewState.value.currentDisplay = display
-      context.updateDisplay(display)
+      homePresentation.setPresentationMode(mode)
       navigation.dismiss(ControlledView.self)
     }
 
@@ -68,7 +71,7 @@ extension ResourceDisplayMenuController: ComponentController {
 
     return Self(
       viewState: viewState.asObservableState,
-      selectDisplay: selectDisplay(_:),
+      selectMode: selectMode(_:),
       dismissView: dismissView
     )
   }

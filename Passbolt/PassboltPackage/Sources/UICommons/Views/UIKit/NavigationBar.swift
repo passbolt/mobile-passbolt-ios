@@ -73,6 +73,7 @@ public final class NavigationBar: UINavigationBar {
     self.tintColor = dynamicTintColor?(in: interfaceStyle)
     self.barTintColor = dynamicBarTintColor(in: interfaceStyle)
     self.titleTextAttributes = [
+      .backgroundColor: UIColor.clear,
       .foregroundColor: dynamicTitleColor(in: interfaceStyle),
       .font: titleFont,
     ]

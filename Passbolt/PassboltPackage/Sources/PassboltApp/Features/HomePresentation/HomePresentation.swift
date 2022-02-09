@@ -23,58 +23,52 @@
 
 import Features
 
-public struct MFA {
+internal struct HomePresentation {
 
-  public var authorizeUsingYubikey: (Bool) -> AnyPublisher<Void, TheErrorLegacy>
-  public var authorizeUsingTOTP: (String, Bool) -> AnyPublisher<Void, TheErrorLegacy>
+  internal var currentPresentationModePublisher: () -> AnyPublisher<HomePresentationMode, Never>
+  internal var setPresentationMode: (HomePresentationMode) -> Void
+  internal var availableHomePresentationModes: () -> Array<HomePresentationMode>
 }
 
-extension MFA: Feature {
+extension HomePresentation: Feature {
 
-  public static func load(
+  internal static func load(
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> MFA {
+  ) -> Self {
+    let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> = .init(.plainResourcesList)
 
-    let yubikey: Yubikey = environment.yubikey
-    let accountSession: AccountSession = features.instance()
-
-    func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
-      return
-        yubikey
-        .readNFC()
-        .mapErrorsToLegacy()
-        .map { otp in
-          accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
-        }
-        .switchToLatest()
+    func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
+      currentPresentationModeSubject
+        .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
-    func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
-      accountSession.mfaAuthorize(.totp(totp), saveLocally)
+    func setPresentationMode(_ mode: HomePresentationMode) {
+      currentPresentationModeSubject.send(mode)
+    }
+
+    func availableHomePresentationModes() -> Array<HomePresentationMode> {
+      [.plainResourcesList]
     }
 
     return Self(
-      authorizeUsingYubikey: authorizeUsingYubikey(saveLocally:),
-      authorizeUsingTOTP: authorizeUsingOTP(totp:saveLocally:)
+      currentPresentationModePublisher: currentPresentationModePublisher,
+      setPresentationMode: setPresentationMode(_:),
+      availableHomePresentationModes: availableHomePresentationModes
     )
   }
 }
 
-extension MFA {
-
-  public var featureUnload: () -> Bool { { true } }
-}
-
 #if DEBUG
-extension MFA {
+extension HomePresentation {
 
-  public static var placeholder: MFA {
+  static var placeholder: Self {
     Self(
-      authorizeUsingYubikey: unimplemented("You have to provide mocks for used methods"),
-      authorizeUsingTOTP: unimplemented("You have to provide mocks for used methods")
+      currentPresentationModePublisher: unimplemented("You have to provide mocks for used methods"),
+      setPresentationMode: unimplemented("You have to provide mocks for used methods"),
+      availableHomePresentationModes: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

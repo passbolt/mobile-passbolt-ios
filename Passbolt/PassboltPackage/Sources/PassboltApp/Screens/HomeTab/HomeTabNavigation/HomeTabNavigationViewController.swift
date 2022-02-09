@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import UICommons
 import UIComponents
 
@@ -61,9 +62,26 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
       )
     }
 
-    setViewControllers(
-      [components.instance(of: HomeFilterViewController.self)],
-      animated: false
-    )
+    setupSubscriptions()
+  }
+
+  private func setupSubscriptions() {
+    self.controller
+      .currentHomePresentationModePublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] mode in
+        guard let self = self else { return }
+        switch mode {
+        case .plainResourcesList:
+          self.setViewControllers(
+            [
+              self.components
+                .instance(of: PlainResourcesListViewController.self)
+            ],
+            animated: false
+          )
+        }
+      }
+      .store(in: cancellables)
   }
 }

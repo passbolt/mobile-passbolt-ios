@@ -83,7 +83,6 @@ extension Biometry: Feature {
   #endif
 }
 
-
 extension Biometry {
 
   public var featureUnload: () -> Bool { { true } }

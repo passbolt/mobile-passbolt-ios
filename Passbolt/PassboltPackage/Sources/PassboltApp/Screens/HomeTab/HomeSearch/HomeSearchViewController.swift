@@ -24,10 +24,10 @@
 import UICommons
 import UIComponents
 
-internal final class HomeFilterViewController: PlainViewController, UIComponent {
+internal final class HomeSearchViewController: PlainViewController, UIComponent {
 
-  internal typealias ContentView = HomeFilterView
-  internal typealias Controller = HomeFilterController
+  internal typealias ContentView = HomeSearchView
+  internal typealias Controller = HomeSearchController
 
   internal static func instance(
     using controller: Controller,
@@ -40,12 +40,6 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
   }
 
   internal private(set) lazy var contentView: ContentView = .init()
-  private lazy var displayButton: ImageButton = .init()
-  private lazy var avatarButton: ImageButton = .init()
-  private lazy var searchBar: TextSearchView = .init(
-    leftAccesoryView: displayButton,
-    rightAccesoryView: avatarButton
-  )
   internal let components: UIComponentFactory
   private let controller: Controller
 
@@ -59,42 +53,14 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
   }
 
   internal func setupView() {
-    setupNavigationView()
-    setupResourcesListView()
+    setupSubscriptions()
   }
 
-  private func setupNavigationView() {
-    mut(displayButton) {
-      .combined(
-        .action { [weak self] in
-          self?.controller.presentDisplayMenu()
-        },
-        .image(named: .filter, from: .uiCommons),
-        .contentMode(.scaleAspectFit),
-        .backgroundColor(.clear),
-        .widthAnchor(.equalTo, constant: 28),
-        .heightAnchor(.equalTo, constant: 28)
-      )
-    }
-    mut(avatarButton) {
-      .combined(
-        .action { [weak self] in
-          self?.controller.presentAccountMenu()
-        },
-        .image(named: .person, from: .uiCommons),
-        .contentMode(.scaleAspectFit),
-        .backgroundColor(dynamic: .background),
-        .border(dynamic: .divider),
-        .cornerRadius(14, masksToBounds: true),
-        .widthAnchor(.equalTo, constant: 28),
-        .heightAnchor(.equalTo, constant: 28)
-      )
-    }
-
-    searchBar
-      .textPublisher
-      .removeDuplicates()
+  private func setupSubscriptions() {
+    contentView
+      .searchTextPublisher
       .debounce(for: 0.3, scheduler: RunLoop.main)
+      .removeDuplicates()
       .sink { [weak self] text in
         self?.controller.updateSearchText(text)
       }
@@ -104,11 +70,9 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
       .searchTextPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] text in
-        self?.searchBar.setText(text)
+        self?.contentView.setSearchText(text)
       }
       .store(in: cancellables)
-
-    navigationItem.titleView = searchBar
 
     controller
       .avatarImagePublisher()
@@ -119,23 +83,32 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
           let image: UIImage = .init(data: data)
         else { return }
 
-        self?.avatarButton.image = image
+        self?.contentView.setAccountAvatar(image: image)
+      }
+      .store(in: cancellables)
+
+    contentView
+      .presentationMenuTapPublisher
+      .sink { [weak self] in
+        self?.controller.presentHomePresentationMenu()
       }
       .store(in: cancellables)
 
     controller
-      .displayMenuPresentationPublisher()
+      .homePresentationMenuPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [weak self] currentDisplay, availableDisplays, updateDisplay in
-        guard let self = self else { return }
-        self.presentSheet(
-          ResourceDisplayMenuView.self,
-          in: (
-            currentDisplay: currentDisplay,
-            availableDisplays: availableDisplays,
-            updateDisplay: updateDisplay
-          )
+      .sink { [weak self] currentMode in
+        self?.presentSheet(
+          HomePresentationMenuView.self,
+          in: currentMode
         )
+      }
+      .store(in: cancellables)
+
+    contentView
+      .accountMenuTapPublisher
+      .sink { [weak self] in
+        self?.controller.presentAccountMenu()
       }
       .store(in: cancellables)
 
@@ -153,15 +126,5 @@ internal final class HomeFilterViewController: PlainViewController, UIComponent 
         )
       }
       .store(in: cancellables)
-  }
-
-  private func setupResourcesListView() {
-    addChild(
-      ResourcesListViewController.self,
-      in: controller.resourcesFilterPublisher(),
-      viewSetup: { parentView, childView in
-        parentView.setResourcesView(childView)
-      }
-    )
   }
 }

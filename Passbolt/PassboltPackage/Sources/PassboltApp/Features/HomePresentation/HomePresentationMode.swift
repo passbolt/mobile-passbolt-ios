@@ -21,40 +21,26 @@
 // @since         v1.0
 //
 
-import Combine
-import CommonModels
-import Environment
+import UICommons
 
-public protocol AnyFeature {
+internal enum HomePresentationMode: Hashable {
 
-  var featureUnload: () -> Bool { get }
+  case plainResourcesList
 }
 
-public protocol Feature: AnyFeature {
+extension HomePresentationMode {
 
-  static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self
-
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  static var placeholder: Self { get }
-  #endif
-}
-
-extension Feature {
-
-  public var featureUnload: () -> Bool {
-    {
-      assertionFailure("Unloading is not supported by \(Self.self)")
-      return false
+  internal var title: DisplayableString {
+    switch self {
+    case .plainResourcesList:
+      return .localized(key: "home.presentation.mode.plain.resources.title")
     }
   }
-}
 
-extension Feature {
-
-  internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
+  internal var iconName: ImageNameConstant {
+    switch self {
+    case .plainResourcesList:
+      return .list
+    }
+  }
 }

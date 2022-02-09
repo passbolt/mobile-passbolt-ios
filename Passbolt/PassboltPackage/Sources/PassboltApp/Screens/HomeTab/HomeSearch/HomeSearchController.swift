@@ -28,55 +28,48 @@ import UIComponents
 
 import struct Foundation.Data
 
-internal struct HomeFilterController {
+internal struct HomeSearchController {
 
-  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
-  internal var updateSearchText: (String) -> Void
   internal var searchTextPublisher: () -> AnyPublisher<String, Never>
+  internal var updateSearchText: (String) -> Void
   internal var avatarImagePublisher: () -> AnyPublisher<Data?, Never>
-  internal var currentDisplayPublisher: () -> AnyPublisher<ResourcesDisplay, Never>
-  internal var presentDisplayMenu: () -> Void
-  internal var displayMenuPresentationPublisher:
-    () -> AnyPublisher<
-      (
-        currentDisplay: ResourcesDisplay, availableDisplays: Array<ResourcesDisplay>,
-        updateDisplay: (ResourcesDisplay) -> Void
-      ), Never
-    >
+  internal var presentHomePresentationMenu: () -> Void
+  internal var homePresentationMenuPresentationPublisher: () -> AnyPublisher<HomePresentationMode, Never>
   internal var presentAccountMenu: () -> Void
   internal var accountMenuPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
 }
 
-extension HomeFilterController: UIController {
+extension HomeSearchController: UIController {
 
-  internal typealias Context = Void
+  internal typealias Context = (String) -> Void
 
   internal static func instance(
-    in context: Context,
+    in context: @escaping Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
     let accountSettings: AccountSettings = features.instance()
     let networkClient: NetworkClient = features.instance()
+    let homePresentation: HomePresentation = features.instance()
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
+    let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let accountMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
-    let currentDisplaySubject: CurrentValueSubject<ResourcesDisplay, Never> = .init(.plain)
-    let displayMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
-
-    func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
-      searchTextSubject
-        .map { searchText in ResourcesFilter(text: searchText) }
-        .eraseToAnyPublisher()
-    }
+    searchTextSubject
+      .sink { text in
+        context(text)
+      }
+      .store(in: cancellables)
 
     func updateSearchText(_ text: String) {
-      searchTextSubject.send(text)
+      searchTextSubject
+        .send(text)
     }
 
     func searchTextPublisher() -> AnyPublisher<String, Never> {
-      searchTextSubject.eraseToAnyPublisher()
+      searchTextSubject
+        .eraseToAnyPublisher()
     }
 
     func avatarImagePublisher() -> AnyPublisher<Data?, Never> {
@@ -94,55 +87,44 @@ extension HomeFilterController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func currentDisplayPublisher() -> AnyPublisher<ResourcesDisplay, Never> {
-      currentDisplaySubject.eraseToAnyPublisher()
+    func presentHomePresentationMenu() {
+      homePresentationMenuPresentationSubject
+        .send()
     }
 
-    func presentDisplayMenu() {
-      displayMenuPresentationSubject.send()
-    }
-
-    func displayMenuPresentationPublisher() -> AnyPublisher<
-      (
-        currentDisplay: ResourcesDisplay, availableDisplays: Array<ResourcesDisplay>,
-        updateDisplay: (ResourcesDisplay) -> Void
-      ), Never
-    > {
-      displayMenuPresentationSubject
-        .map {
-          (
-            currentDisplay: currentDisplaySubject.value,
-            availableDisplays: [.plain],  // TODO: MOB-167 - refine list of available items
-            // TODO: [MOB-183] update display
-            updateDisplay: currentDisplaySubject.send
-          )
+    func homePresentationMenuPresentationPublisher() -> AnyPublisher<HomePresentationMode, Never> {
+      homePresentation
+        .currentPresentationModePublisher()
+        .map { mode in
+          homePresentationMenuPresentationSubject
+            .map { mode }
         }
+        .switchToLatest()
         .eraseToAnyPublisher()
     }
 
     func presentAccountMenu() {
-      accountMenuPresentationSubject.send()
+      accountMenuPresentationSubject
+        .send()
     }
 
     func accountMenuPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
-      accountMenuPresentationSubject
-        .map {
-          accountSettings
-            .currentAccountProfilePublisher()
-            .first()
+      accountSettings
+        .currentAccountProfilePublisher()
+        .map { accountWithProfile in
+          accountMenuPresentationSubject
+            .map { accountWithProfile }
         }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
 
     return Self(
-      resourcesFilterPublisher: resourcesFilterPublisher,
-      updateSearchText: updateSearchText,
       searchTextPublisher: searchTextPublisher,
+      updateSearchText: updateSearchText,
       avatarImagePublisher: avatarImagePublisher,
-      currentDisplayPublisher: currentDisplayPublisher,
-      presentDisplayMenu: presentDisplayMenu,
-      displayMenuPresentationPublisher: displayMenuPresentationPublisher,
+      presentHomePresentationMenu: presentHomePresentationMenu,
+      homePresentationMenuPresentationPublisher: homePresentationMenuPresentationPublisher,
       presentAccountMenu: presentAccountMenu,
       accountMenuPresentationPublisher: accountMenuPresentationPublisher
     )
