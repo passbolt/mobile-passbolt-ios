@@ -90,7 +90,7 @@ internal enum SQLiteOpeningOperations {
       """,
       // - resourceTypesView - //
       """
-      CREATE VIEW
+      CREATE TEMPORARY VIEW
         resourceTypesView
       AS
       SELECT
@@ -125,7 +125,7 @@ internal enum SQLiteOpeningOperations {
       """,
       // - resourceEditView - //
       """
-      CREATE VIEW
+      CREATE TEMPORARY VIEW
         resourceEditView
       AS
       SELECT
