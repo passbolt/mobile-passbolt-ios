@@ -919,7 +919,8 @@ extension AccountsDataStore: Feature {
         .openConnection(
           databaseURL.absoluteString,
           key,
-          SQLiteMigration.allCases
+          SQLiteMigration.allCases,
+          SQLiteOpeningOperations.all
         )
         .flatMapError { error in
           diagnostics.diagnosticLog("Failed to open database for accountID, cleaning up...")
@@ -930,7 +931,8 @@ extension AccountsDataStore: Feature {
             .openConnection(
               databaseURL.absoluteString,
               key,
-              SQLiteMigration.allCases
+              SQLiteMigration.allCases,
+              SQLiteOpeningOperations.all
             )
             .mapError { $0.asLegacy }
         }

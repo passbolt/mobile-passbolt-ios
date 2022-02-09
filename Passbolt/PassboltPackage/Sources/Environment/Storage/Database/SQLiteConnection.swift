@@ -49,7 +49,8 @@ extension SQLiteConnection {
     at path: String = ":memory:",
     key: String? = nil,
     options: Int32 = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE,
-    migrations: Array<SQLiteMigration> = .init()
+    migrations: Array<SQLiteMigration> = .init(),
+    openingOperations: Array<SQLiteStatement> = .init()
   ) -> Result<SQLiteConnection, Error> {
     let databaseQueue: DispatchQueue = .init(label: "SQLiteConnectionQueue")
 
@@ -104,6 +105,19 @@ extension SQLiteConnection {
       )
 
       switch migrationResult {
+      case .success:
+        break  // continue
+
+      case let .failure(error):
+        return .failure(error)
+      }
+
+      let openingOperationsResult: Result<Void, Error> = Self.performOpeningOperations(
+        openingOperations,
+        using: connectionHandle
+      )
+
+      switch openingOperationsResult {
       case .success:
         return .success(connection)
 
@@ -223,29 +237,6 @@ extension SQLiteConnection {
     _ migrations: Array<SQLiteMigration>,
     using connection: SQLiteConnectionHandle
   ) -> Result<Void, Error> {
-    func withTransaction(
-      _ transaction: (SQLiteConnectionHandle) -> Result<Void, Error>
-    ) -> Result<Void, Error> {
-      switch connection.execute("BEGIN TRANSACTION;") {
-      case .success:
-        break
-
-      case let .failure(error):
-        return .failure(error)
-      }
-
-      switch transaction(connection) {
-      case .success:
-        return connection.execute("END TRANSACTION;")
-
-      case let .failure(error):
-        return connection.execute("ROLLBACK TRANSACTION;")
-          .flatMap {
-            .failure(error)
-          }
-      }
-    }
-
     let currentSchemaVersionFetchResult: Result<Int?, Error> =
       connection
       .fetch(
@@ -284,7 +275,7 @@ extension SQLiteConnection {
     }
 
     for migration in migrations[currentSchemaVersion...] {
-      let transactionResult: Result<Void, Error> = withTransaction { conn in
+      let transactionResult: Result<Void, Error> = connection.withTransaction { conn in
         for step in migration.steps {
           let statementExecutionResult: Result<Void, Error> =
             conn
@@ -318,6 +309,28 @@ extension SQLiteConnection {
     }
 
     return .success
+  }
+
+  private static func performOpeningOperations(
+    _ operations: Array<SQLiteStatement>,
+    using connection: SQLiteConnectionHandle
+  ) -> Result<Void, Error> {
+    connection.withTransaction { conn in
+      for operation in operations {
+        switch conn.execute(operation) {
+        case .success:
+          continue
+
+        case let .failure(error):
+          #if DEBUG
+          raise(SIGTRAP)
+          #endif
+          return .failure(error)
+        }
+      }
+
+      return .success
+    }
   }
 }
 

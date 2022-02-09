@@ -25,11 +25,12 @@ import Environment
 
 extension SQLiteMigration: CaseIterable {
 
-  public static var allCases: [SQLiteMigration] {
+  public static var allCases: Array<SQLiteMigration> {
     [
       .migration_0,
       .migration_1,
       .migration_2,
+      .migration_3,
     ]
   }
 }

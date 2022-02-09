@@ -296,6 +296,30 @@ internal final class SQLiteConnectionHandle {
     return .success(statementHandle)
   }
 
+  @usableFromInline
+  internal func withTransaction(
+    _ transaction: (SQLiteConnectionHandle) -> Result<Void, Error>
+  ) -> Result<Void, Error> {
+    switch self.execute("BEGIN TRANSACTION;") {
+    case .success:
+      break
+
+    case let .failure(error):
+      return .failure(error)
+    }
+
+    switch transaction(self) {
+    case .success:
+      return self.execute("END TRANSACTION;")
+
+    case let .failure(error):
+      return self.execute("ROLLBACK TRANSACTION;")
+        .flatMap {
+          .failure(error)
+        }
+    }
+  }
+
   @inline(__always)
   private func lastErrorMessage() -> String {
     sqlite3_errmsg(handle)

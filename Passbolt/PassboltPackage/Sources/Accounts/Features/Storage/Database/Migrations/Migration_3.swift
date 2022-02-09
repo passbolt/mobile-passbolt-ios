@@ -21,55 +21,30 @@
 // @since         v1.0
 //
 
-import CommonModels
-import SQLCipher
+import Environment
 
-public struct Database: EnvironmentElement {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public var openConnection:
-    (
-      _ path: String,
-      _ key: String,
-      _ migrations: Array<SQLiteMigration>,
-      _ openingOperations: Array<SQLiteStatement>
-    ) -> Result<SQLiteConnection, Error>
-}
-
-extension Database {
-
-  public static func sqlite() -> Self {
-    Self(
-      openConnection: { path, key, migrations, openingOperations in
-        SQLiteConnection.open(
-          at: path,
-          key: key,
-          options: SQLITE_OPEN_CREATE
-            | SQLITE_OPEN_READWRITE
-            | SQLITE_OPEN_WAL
-            | SQLITE_OPEN_PRIVATECACHE,
-          migrations: migrations,
-          openingOperations: openingOperations
-        )
-      }
-    )
+  internal static var migration_3: Self {
+    [
+      // - drop existing views - use opening operations to define views - //
+      """
+      DROP VIEW resourcesListView;
+      """,
+      """
+      DROP VIEW resourceDetailsView;
+      """,
+      """
+      DROP VIEW resourceTypesView;
+      """,
+      """
+      DROP VIEW resourceEditView;
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 4; -- persistent, used to track schema version
+      """,
+    ]
   }
 }
-
-extension AppEnvironment {
-
-  public var database: Database {
-    get { element(Database.self) }
-    set { use(newValue) }
-  }
-}
-
-#if DEBUG
-extension Database {
-  public static var placeholder: Self {
-    Self(
-      openConnection: unimplemented("You have to provide mocks for used methods")
-    )
-  }
-}
-
-#endif
