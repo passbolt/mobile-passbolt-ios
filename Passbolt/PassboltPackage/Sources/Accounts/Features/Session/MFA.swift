@@ -63,6 +63,12 @@ extension MFA: Feature {
   }
 }
 
+
+extension MFA {
+
+  public var featureUnload: () -> Bool { { true } }
+}
+
 #if DEBUG
 extension MFA {
 

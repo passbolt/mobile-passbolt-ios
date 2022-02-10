@@ -61,6 +61,7 @@ extension AccountTransfer: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> AccountTransfer {
+    features.setScope("\(Self.self)")
     let diagnostics: Diagnostics = features.instance()
     diagnostics.diagnosticLog("Beginning new account transfer...")
     #if DEBUG
@@ -221,7 +222,7 @@ extension AccountTransfer: Feature {
                     .asLegacy
                 )
               )
-              features.unload(Self.self)
+              features.setScope(.none)
             })
             .ignoreOutput()
             .sink(receiveCompletion: { _ in })
@@ -248,7 +249,7 @@ extension AccountTransfer: Feature {
                   )
                 )
               )
-            features.unload(Self.self)
+            features.setScope(.none)
             return Empty<Never, TheErrorLegacy>()
               .eraseToAnyPublisher()
           }
@@ -316,7 +317,7 @@ extension AccountTransfer: Feature {
             guard case let .failure(error) = completion
             else { unreachable("Cannot complete without an error when processing error") }
             transferState.send(completion: .failure(error))
-            features.unload(Self.self)
+            features.setScope(.none)
           })
           .ignoreOutput()  // we care only about completion or failure
           .collectErrorLog(using: diagnostics)
@@ -324,7 +325,7 @@ extension AccountTransfer: Feature {
         }
         else {  // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
-          features.unload(Self.self)
+          features.setScope(.none)
           return Fail<Never, TheErrorLegacy>(error: error)
             .collectErrorLog(using: diagnostics)
             .eraseToAnyPublisher()
@@ -369,12 +370,12 @@ extension AccountTransfer: Feature {
           case .finished:
             diagnostics.diagnosticLog("...account transfer succeeded!")
             transferState.send(completion: .finished)
-            features?.unload(Self.self)
+            features?.setScope(.none)
           case let .failure(error)
           where error.legacyBridge is AccountDuplicate:
             diagnostics.diagnosticLog("...account transfer failed!")
             transferState.send(completion: .failure(error))
-            features?.unload(Self.self)
+            features?.setScope(.none)
 
           case .failure:
             diagnostics.diagnosticLog("...account transfer failed!")
@@ -406,7 +407,7 @@ extension AccountTransfer: Feature {
           .canceled.appending(context: "account-transfer-scanning-cancel")
         )
       )
-      features.unload(Self.self)
+      features.setScope(.none)
     }
     let cancelTransfer: () -> Void = { [unowned features] in
       _cancelTransfer(using: features)

@@ -1031,6 +1031,12 @@ extension NetworkSession: Feature {
   }
 }
 
+
+extension NetworkSession {
+
+  public var featureUnload: () -> Bool { { true } }
+}
+
 #if DEBUG
 extension NetworkSession {
 

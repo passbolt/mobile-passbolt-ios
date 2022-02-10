@@ -368,3 +368,8 @@ extension NetworkClient: Feature {
   }
   #endif
 }
+
+extension NetworkClient {
+
+  public var featureUnload: () -> Bool { { true } }
+}

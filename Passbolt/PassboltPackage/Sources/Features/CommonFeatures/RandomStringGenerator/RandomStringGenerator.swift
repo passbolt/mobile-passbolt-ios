@@ -106,6 +106,12 @@ extension RandomStringGenerator: Feature {
   }
 }
 
+
+extension RandomStringGenerator {
+
+  public var featureUnload: () -> Bool { { true } }
+}
+
 #if DEBUG
 extension RandomStringGenerator {
 

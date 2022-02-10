@@ -154,6 +154,11 @@ extension UserPGPMessages: Feature {
   }
 }
 
+extension UserPGPMessages {
+
+  public var featureUnload: () -> Bool { { true } }
+}
+
 #if DEBUG
 
 extension UserPGPMessages {

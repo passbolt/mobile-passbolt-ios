@@ -321,6 +321,12 @@ extension AccountSettings: Feature {
   }
 }
 
+
+extension AccountSettings {
+
+  public var featureUnload: () -> Bool { { true } }
+}
+
 extension AccountSettings {
   #if DEBUG
   public static var placeholder: Self {

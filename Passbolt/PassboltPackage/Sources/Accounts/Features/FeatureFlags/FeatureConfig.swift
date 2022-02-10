@@ -180,6 +180,11 @@ extension FeatureConfig {
   }
 }
 
+extension FeatureConfig {
+
+  public var featureUnload: () -> Bool { { true } }
+}
+
 extension Array where Element == Plugin {
 
   fileprivate func firstElementOfType<T>(_ ofType: T.Type = T.self) -> T? {

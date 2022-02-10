@@ -218,6 +218,7 @@ extension AccountSession: Feature {
             case let .authorizationRequired(account), let .authorized(account, _, _),
               let .authorizedMFARequired(account, _, _, _):
               // request authorization prompt for that account
+              features.setScope(account)
               sessionState = .authorizationRequired(account)
               return .passphraseRequest(account: account, message: nil)
 
@@ -234,6 +235,7 @@ extension AccountSession: Feature {
             switch sessionState {
             case let .authorized(account, _, _),
               let .authorizedMFARequired(account, _, _, _):
+              features.setScope(account)
               sessionState = .authorizationRequired(account)
 
             case .none, .authorizationRequired:
@@ -258,13 +260,12 @@ extension AccountSession: Feature {
     // swift-format-ignore: NoLeadingUnderscores
     let _clearCurrentSessionFeatures: () -> Void = { [unowned features] in
       diagnostics.diagnosticLog("Clearing current session features.")
-      features.unload(AccountDatabase.self)
+      features.setScope(.none)
     }
     // Close current session and change session state (sign out)
     let closeSession: () -> Void = {
       diagnostics.diagnosticLog("Closing current session...")
       authorizationCancellable = nil  // cancel ongoing authorization if any
-      _clearCurrentSessionFeatures()
 
       withSessionState { sessionState in
         switch sessionState {
@@ -285,6 +286,7 @@ extension AccountSession: Feature {
         // that account will be still used as last used
         // when launching application again anyway
         sessionState = .none(lastUsed: .none)
+        _clearCurrentSessionFeatures()
       }
     }
 
@@ -413,6 +415,7 @@ extension AccountSession: Feature {
                     }
                     else { /* NOP */
                     }
+                    features.setScope(account)
                     sessionState = .authorized(
                       account,
                       passphrase,
@@ -431,6 +434,7 @@ extension AccountSession: Feature {
                     }
                     else { /* NOP */
                     }
+                    features.setScope(account)
                     sessionState = .authorizedMFARequired(
                       account,
                       passphrase,
@@ -457,6 +461,7 @@ extension AccountSession: Feature {
             .handleEvents(
               receiveOutput: {
                 withSessionState { sessionState in
+                  features.setScope(account)
                   sessionState = .authorized(
                     account,
                     passphrase,
@@ -807,6 +812,7 @@ extension AccountSession: Feature {
       withSessionState { sessionState in
         switch sessionState {
         case let .authorized(account, _, _), let .authorizedMFARequired(account, _, _, _):
+          features.setScope(account)
           sessionState = .authorizationRequired(account)
           authorizationPromptPresentationSubject.send(
             .passphraseRequest(account: account, message: message)
@@ -826,6 +832,7 @@ extension AccountSession: Feature {
         switch sessionState {
         case let .authorized(account, passphrase, expiration),
           let .authorizedMFARequired(account, passphrase, expiration, _):
+          features.setScope(account)
           sessionState = .authorizedMFARequired(account, passphrase, expiration: expiration, providers: providers)
           authorizationPromptPresentationSubject.send(
             .mfaRequest(account: account, providers: providers)

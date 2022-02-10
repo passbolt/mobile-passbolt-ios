@@ -28,7 +28,7 @@ import class Foundation.NSRecursiveLock
 public final class FeatureFactory {
 
   private struct FeatureInstance {
-    var feature: Any
+    var feature: AnyFeature
     var cancellables: Cancellables
   }
 
@@ -38,12 +38,64 @@ public final class FeatureFactory {
   private let environment: AppEnvironment
   #endif
   private let featuresAccessLock: NSRecursiveLock = .init()
-  private var features: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
+  private var rootFeatures: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
+  private var scopeFeatures: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
+  private var scopeID: AnyHashable? {
+    didSet {
+      guard scopeID != oldValue
+      else { return }
+      for instance in scopeFeatures.values {
+        assert(
+          instance.feature.featureUnload(),
+          "Feature unloading failed"
+        )
+      }
+      scopeFeatures = .init()
+    }
+  }
 
   public init(
     environment: AppEnvironment
   ) {
     self.environment = environment
+  }
+
+  /// Set scope context mainly for the active user session to automatically
+  /// manage lifetime for features associated with user session which
+  /// might require reloading its state after changing user.
+  ///
+  /// If there was no scope set (or set to nil) all features will be
+  /// created and cached by root container which won't deallocate its features
+  /// unless manually unloaded.
+  /// If there was any scope set, all features that were not loaded in root container
+  /// will be created and cached by scoped container and will be deallocated
+  /// on scope change. Root container features that are already loaded
+  /// will have priority over scoped container but
+  /// won't be added as long as current scope is not nil.
+  ///
+  /// If previous scope was not set (or set to nil)
+  /// it will create new, scoped container for features.
+  /// If previous scope was set and is the same as provided
+  /// it will have no efect.
+  /// If previous scope was diffrent from provided,
+  /// scoped features will be unloaded and fresh scoped container
+  /// will be created.
+  /// If previous scope was set and provided is nil
+  /// scoped features will be unloaded and scope will not be used.
+  ///
+  /// As long as scope is set to any value besides nil all methods
+  /// will be executed within that scope prioritizing caching new and unloading
+  /// instances of features from scoped container and loaded from cache
+  /// priritizing root container.
+  public func setScope(
+    _ scopeID: AnyHashable?
+  ) {
+    #if DEBUG
+    guard Self.allowScopes else { return }
+    #endif
+    self.featuresAccessLock.lock()
+    self.scopeID = scopeID
+    self.featuresAccessLock.unlock()
   }
 }
 
@@ -55,7 +107,10 @@ extension FeatureFactory {
   where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    if let loaded: F = features[F.featureIdentifier]?.feature as? F {
+    if let loaded: F = rootFeatures[F.featureIdentifier]?.feature as? F {
+      return loaded
+    }
+    else if let loaded: F = scopeFeatures[F.featureIdentifier]?.feature as? F {
       return loaded
     }
     else {
@@ -77,10 +132,18 @@ extension FeatureFactory {
         using: self,
         cancellables: featureCancellables
       )
-      features[F.featureIdentifier] = .init(
-        feature: loaded,
-        cancellables: featureCancellables
-      )
+      if scopeID == nil {
+        rootFeatures[F.featureIdentifier] = .init(
+          feature: loaded,
+          cancellables: featureCancellables
+        )
+      }
+      else {
+        scopeFeatures[F.featureIdentifier] = .init(
+          feature: loaded,
+          cancellables: featureCancellables
+        )
+      }
       return loaded
     }
   }
@@ -91,9 +154,17 @@ extension FeatureFactory {
   ) -> Bool where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    guard (features[F.featureIdentifier]?.feature as? F)?.featureUnload() ?? false else { return false }
-    features[F.featureIdentifier] = nil
-    return true
+    if (scopeFeatures[F.featureIdentifier]?.feature as? F)?.featureUnload() ?? false {
+      scopeFeatures[F.featureIdentifier] = nil
+      return true
+    }
+    else if (rootFeatures[F.featureIdentifier]?.feature as? F)?.featureUnload() ?? false {
+      rootFeatures[F.featureIdentifier] = nil
+      return true
+    }
+    else {
+      return false
+    }
   }
 
   public func isLoaded<F>(
@@ -101,7 +172,21 @@ extension FeatureFactory {
   ) -> Bool where F: Feature {
     featuresAccessLock.lock()
     defer { featuresAccessLock.unlock() }
-    return features[F.featureIdentifier]?.feature is F
+    if scopeFeatures[F.featureIdentifier]?.feature is F {
+      return true
+    }
+    else if rootFeatures[F.featureIdentifier]?.feature is F {
+      return true
+    }
+    else {
+      return false
+    }
+  }
+
+  public func loadIfNeeded<F>(
+    _ feature: F.Type = F.self
+  ) where F: Feature {
+    _ = instance(of: F.self)
   }
 
   public func use<F>(
@@ -109,14 +194,26 @@ extension FeatureFactory {
     cancellables: Cancellables = .init()
   ) where F: Feature {
     featuresAccessLock.lock()
-    assert(
-      features[F.featureIdentifier] == nil,
-      "Feature should not be replaced after initialization"
-    )
-    features[F.featureIdentifier] = .init(
-      feature: feature,
-      cancellables: cancellables
-    )
+    if scopeID == nil {
+      assert(
+        rootFeatures[F.featureIdentifier] == nil,
+        "Feature should not be replaced after initialization"
+      )
+      rootFeatures[F.featureIdentifier] = .init(
+        feature: feature,
+        cancellables: cancellables
+      )
+    }
+    else {
+      assert(
+        scopeFeatures[F.featureIdentifier] == nil,
+        "Feature should not be replaced after initialization"
+      )
+      scopeFeatures[F.featureIdentifier] = .init(
+        feature: feature,
+        cancellables: cancellables
+      )
+    }
     featuresAccessLock.unlock()
   }
 }
@@ -125,13 +222,26 @@ extension FeatureFactory {
 extension FeatureFactory {
 
   public static var autoLoadFeatures: Bool = true
+  public static var allowScopes: Bool = true
 
   public func usePlaceholder<F>(
     for featureType: F.Type
   ) where F: Feature {
     featuresAccessLock.lock()
-    defer { featuresAccessLock.unlock() }
-    features[F.featureIdentifier] = .init(feature: F.placeholder, cancellables: .init())
+    if scopeID == nil {
+      rootFeatures[F.featureIdentifier] = .init(
+        feature: F.placeholder,
+        cancellables: .init()
+      )
+    }
+    else {
+      scopeFeatures[F.featureIdentifier] = .init(
+        feature: F.placeholder,
+        cancellables: .init()
+      )
+    }
+    featuresAccessLock.unlock()
+
   }
 
   public func patch<F, P>(
@@ -139,25 +249,41 @@ extension FeatureFactory {
     with updated: P
   ) where F: Feature {
     featuresAccessLock.lock()
-    defer { featuresAccessLock.unlock() }
-    if let instance: FeatureInstance = features[F.featureIdentifier],
+    if let instance: FeatureInstance = rootFeatures[F.featureIdentifier],
       var loaded: F = instance.feature as? F
     {
       loaded[keyPath: keyPath] = updated
-      features[F.featureIdentifier] = .init(
+      rootFeatures[F.featureIdentifier] = .init(
         feature: loaded,
         cancellables: instance.cancellables
+      )
+    }
+    else if let instance: FeatureInstance = scopeFeatures[F.featureIdentifier],
+      var loaded: F = instance.feature as? F
+    {
+      loaded[keyPath: keyPath] = updated
+      scopeFeatures[F.featureIdentifier] = .init(
+        feature: loaded,
+        cancellables: instance.cancellables
+      )
+    }
+    else if scopeID == nil {
+      var feature: F = .placeholder
+      feature[keyPath: keyPath] = updated
+      rootFeatures[F.featureIdentifier] = .init(
+        feature: feature,
+        cancellables: .init()
       )
     }
     else {
       var feature: F = .placeholder
       feature[keyPath: keyPath] = updated
-      features[F.featureIdentifier] = .init(
+      scopeFeatures[F.featureIdentifier] = .init(
         feature: feature,
         cancellables: .init()
       )
     }
-
+    featuresAccessLock.unlock()
   }
 }
 #endif

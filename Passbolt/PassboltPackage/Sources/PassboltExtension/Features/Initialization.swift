@@ -47,6 +47,14 @@ extension Initialization: Feature {
       defer { features.unload(Initialization.self) }
       // initialize application extension features here
       analytics()
+      // load features that require root scope
+      features.loadIfNeeded(Diagnostics.self)
+      features.loadIfNeeded(Executors.self)
+      features.loadIfNeeded(LinkOpener.self)
+      features.loadIfNeeded(OSPermissions.self)
+      features.loadIfNeeded(FingerprintStorage.self)
+      features.loadIfNeeded(Accounts.self)
+      features.loadIfNeeded(AccountSession.self)
     }
     let initialize: () -> Void = { [unowned features] in
       _initialize(with: features)

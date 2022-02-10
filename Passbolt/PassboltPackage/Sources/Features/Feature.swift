@@ -25,7 +25,12 @@ import Combine
 import CommonModels
 import Environment
 
-public protocol Feature {
+public protocol AnyFeature {
+  
+  var featureUnload: () -> Bool { get }
+}
+
+public protocol Feature: AnyFeature {
 
   static func load(
     in environment: AppEnvironment,
@@ -33,7 +38,6 @@ public protocol Feature {
     cancellables: Cancellables
   ) -> Self
 
-  var featureUnload: () -> Bool { get }
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
   static var placeholder: Self { get }
