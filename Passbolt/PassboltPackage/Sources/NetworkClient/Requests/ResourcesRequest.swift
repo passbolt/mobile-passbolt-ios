@@ -42,6 +42,7 @@ extension ResourcesRequest {
           .url(string: sessionVariable.domain.rawValue),
           .pathSuffix("/resources.json"),
           .queryItem("contain[permission]", value: "1"),
+          .queryItem("contain[favorite]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
@@ -74,6 +75,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
   public var url: String?
   public var username: String?
   public var description: String?
+  public var favorite: Bool
 
   public init(
     from decoder: Decoder
@@ -88,6 +90,18 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
 
     let permissionContainer = try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
     self.permission = try permissionContainer.decode(Permission.self, forKey: .type)
+    do {
+      // favorite is an object but we don't care about its content
+      // if it is present (not null) resource is favorite and not favorite otherwise
+      let _ = try container.nestedContainer(
+        keyedBy: FavoriteCodingKeys.self,
+        forKey: .favorite
+      )
+      self.favorite = true
+    }
+    catch {
+      self.favorite = false
+    }
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -99,12 +113,15 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     case description = "description"
     case resourceTypeID = "resource_type_id"
     case permission = "permission"
+    case favorite = "favorite"
   }
 
   private enum PermissionCodingKeys: String, CodingKey {
 
     case type = "type"
   }
+
+  private enum FavoriteCodingKeys: CodingKey {}
 }
 
 extension ResourcesRequestResponseBodyItem {

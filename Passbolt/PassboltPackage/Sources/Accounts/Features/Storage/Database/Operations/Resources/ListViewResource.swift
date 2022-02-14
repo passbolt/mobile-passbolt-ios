@@ -32,19 +32,22 @@ public struct ListViewResource {
   public var name: String
   public var url: String?
   public var username: String?
+  public var favorite: Bool
 
   public init(
     id: ID,
     permission: ResourcePermission,
     name: String,
     url: String?,
-    username: String?
+    username: String?,
+    favorite: Bool
   ) {
     self.id = id
     self.permission = permission
     self.name = name
     self.url = url
     self.username = username
+    self.favorite = favorite
   }
 }
 

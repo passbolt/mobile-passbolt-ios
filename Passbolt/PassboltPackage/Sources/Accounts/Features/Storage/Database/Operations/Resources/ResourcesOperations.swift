@@ -71,7 +71,8 @@ extension StoreResourcesOperation {
             resource.username,
             resource.typeID.rawValue,
             resource.description,
-            nil  // folders are not implemented yet
+            nil,  // folders are not implemented yet
+            resource.favorite
           )
 
         switch result {
@@ -156,6 +157,13 @@ extension FetchListViewResourcesOperation {
         /* NOP */
       }
 
+      if input.favoriteOnly {
+        statement.append("AND favorite != 0 ")
+      }
+      else {
+        /* NOP */
+      }
+
       // end query
       statement.append(";")
 
@@ -179,7 +187,8 @@ extension FetchListViewResourcesOperation {
                 permission: permission,
                 name: name,
                 url: row.url,
-                username: row.username
+                username: row.username,
+                favorite: row.favorite ?? false
               )
             }
           )
@@ -347,7 +356,8 @@ let upsertResourceStatement: SQLiteStatement = """
       username,
       resourceTypeID,
       description,
-      parentFolderID
+      parentFolderID,
+      favorite
     )
   VALUES
     (
@@ -358,7 +368,8 @@ let upsertResourceStatement: SQLiteStatement = """
       ?5,
       ?6,
       ?7,
-      ?8
+      ?8,
+      ?9
     )
   ON CONFLICT
     (
@@ -371,6 +382,7 @@ let upsertResourceStatement: SQLiteStatement = """
     username=?5,
     resourceTypeID=?6,
     description=?7,
-    parentFolderID=?8
+    parentFolderID=?8,
+    favorite=?9
   ;
   """

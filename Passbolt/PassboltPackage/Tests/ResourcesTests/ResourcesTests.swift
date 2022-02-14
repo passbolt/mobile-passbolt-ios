@@ -447,7 +447,8 @@ private let testResources: Array<ListViewResource> = [
     permission: .read,
     name: "test",
     url: "test",
-    username: "test"
+    username: "test",
+    favorite: false
   )
 ]
 
@@ -457,13 +458,15 @@ private let testResourcesAlternative: Array<ListViewResource> = [
     permission: .read,
     name: "test",
     url: "test",
-    username: "test"
+    username: "test",
+    favorite: false
   ),
   .init(
     id: .init(rawValue: "testAlt"),
     permission: .write,
     name: "testAlt",
     url: "testAlt",
-    username: "testAlt"
+    username: "testAlt",
+    favorite: false
   ),
 ]

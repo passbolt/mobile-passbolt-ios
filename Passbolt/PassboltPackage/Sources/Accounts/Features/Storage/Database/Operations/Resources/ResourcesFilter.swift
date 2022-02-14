@@ -31,17 +31,21 @@ public struct ResourcesFilter {
   public var url: String?
   // username search (AND)
   public var username: String?
+  // favorite only search (AND)
+  public var favoriteOnly: Bool
 
   public init(
     text: String? = nil,
     name: String? = nil,
     url: String? = nil,
-    username: String? = nil
+    username: String? = nil,
+    favoriteOnly: Bool = false
   ) {
     self.text = text
     self.name = name
     self.url = url
     self.username = username
+    self.favoriteOnly = favoriteOnly
   }
 
   public var isEmpty: Bool {
@@ -49,6 +53,7 @@ public struct ResourcesFilter {
       && (name?.isEmpty ?? true)
       && (url?.isEmpty ?? true)
       && (username?.isEmpty ?? true)
+      && !favoriteOnly // favorite only is not an empty filter
   }
 }
 

@@ -40,7 +40,8 @@ internal enum SQLiteOpeningOperations {
         name,
         permission,
         url,
-        username
+        username,
+        favorite
       FROM
         resources
       ORDER BY

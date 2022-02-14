@@ -21,45 +21,25 @@
 // @since         v1.0
 //
 
-import Commons
+import Environment
 
-public struct Resource {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public typealias ID = Tagged<String, Self>
-
-  public let id: ID
-  public var typeID: ResourceType.ID
-  public var name: String
-  public var url: String?
-  public var username: String?
-  public var description: String?
-  public var permission: ResourcePermission
-  public var favorite: Bool
-
-  public init(
-    id: ID,
-    typeID: ResourceType.ID,
-    name: String,
-    url: String?,
-    username: String?,
-    description: String?,
-    permission: ResourcePermission,
-    favorite: Bool
-  ) {
-    self.id = id
-    self.typeID = typeID
-    self.name = name
-    self.url = url
-    self.username = username
-    self.description = description
-    self.permission = permission
-    self.favorite = favorite
+  internal static var migration_4: Self {
+    [
+      // - add favorite flag to resources table - //
+      """
+      ALTER TABLE
+        resources
+      ADD
+        favorite INTEGER NOT NULL DEFAULT 0; -- boolean value, 0 interpreted as false, true otherwise
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 5; -- persistent, used to track schema version
+      """,
+    ]
   }
 }
 
-public enum ResourcePermission: String {
-
-  case read = "read"
-  case write = "write"
-  case owner = "owner"
-}

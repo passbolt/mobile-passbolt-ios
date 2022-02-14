@@ -116,14 +116,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -190,14 +192,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -236,14 +240,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -287,14 +293,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "alter.passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -338,14 +346,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -386,14 +396,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -434,14 +446,16 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         permission: .read,
         name: "Resoure 1",
         url: "passbolt.com/some/path/here",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
       ListViewResource(
         id: "resource_2",
         permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test"
+        username: "test",
+        favorite: false
       ),
     ]
     resources.filteredResourcesListPublisher = always(

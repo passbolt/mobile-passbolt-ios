@@ -189,7 +189,8 @@ extension Resources: Feature {
                     url: resource.url,
                     username: resource.username,
                     description: resource.description,
-                    permission: permission
+                    permission: permission,
+                    favorite: resource.favorite
                   )
                 }
             }

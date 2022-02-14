@@ -61,6 +61,11 @@ extension HomePresentation: Feature {
   }
 }
 
+extension HomePresentation {
+
+  var featureUnload: () -> Bool { { true } }
+}
+
 #if DEBUG
 extension HomePresentation {
 
