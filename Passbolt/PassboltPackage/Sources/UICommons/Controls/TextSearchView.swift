@@ -107,7 +107,7 @@ public final class TextSearchView: PlainView {
             else {
               mut(textField) {
                 .combined(
-                  .set(\.leftView, to: leftAccesoryView ?? searchIconView),
+                  .set(\.leftView, to: searchIconView as UIView?),
                   .set(\.rightView, to: rightAccesoryView)
                 )
               }

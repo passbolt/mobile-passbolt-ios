@@ -21,40 +21,42 @@
 // @since         v1.0
 //
 
-public struct ResourcesFilter {
+import Accounts
+import Resources
+import UIComponents
 
-  // name/url/username search (AND)
-  public var text: String?
-  // name search (AND)
-  public var name: String?
-  // url search (AND)
-  public var url: String?
-  // username search (AND)
-  public var username: String?
-  // favorite only search (AND)
-  public var favoriteOnly: Bool
+import struct Foundation.Data
 
-  public init(
-    text: String? = nil,
-    name: String? = nil,
-    url: String? = nil,
-    username: String? = nil,
-    favoriteOnly: Bool = false
-  ) {
-    self.text = text
-    self.name = name
-    self.url = url
-    self.username = username
-    self.favoriteOnly = favoriteOnly
-  }
+internal struct FavoriteResourcesListController {
 
-  public var isEmpty: Bool {
-    (text?.isEmpty ?? true)
-      && (name?.isEmpty ?? true)
-      && (url?.isEmpty ?? true)
-      && (username?.isEmpty ?? true)
-      && !favoriteOnly  // favorite only is not an empty filter
-  }
+  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
+  internal var setSearchText: (String) -> Void
 }
 
-extension ResourcesFilter: Equatable {}
+extension FavoriteResourcesListController: UIController {
+
+  internal typealias Context = Void
+
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(favoriteOnly: true))
+
+    func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
+      resourcesFilterSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
+
+    func setSearchText(_ text: String) {
+      resourcesFilterSubject.value.text = text
+    }
+
+    return Self(
+      resourcesFilterPublisher: resourcesFilterPublisher,
+      setSearchText: setSearchText(_:)
+    )
+  }
+}

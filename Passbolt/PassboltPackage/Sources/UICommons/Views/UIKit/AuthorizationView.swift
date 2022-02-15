@@ -158,7 +158,7 @@ public final class AuthorizationView: KeyboardAwareView {
     mutation.apply(on: biometricButtonContainer)
   }
 
-  public func applyOn(signInButton mutation: Mutation<Button>) {
+  public func applyOn(signInButton mutation: Mutation<PlainButton>) {
     mutation.apply(on: signInButton)
   }
 

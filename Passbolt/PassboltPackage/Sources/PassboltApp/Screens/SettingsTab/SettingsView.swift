@@ -35,7 +35,7 @@ internal final class SettingsView: ScrolledStackView {
 
   private let biometricsItem: SettingsItemView = .init()
   private let biometricsSwitch: UISwitch = .init()
-  private let biometricsToggle: Button = .init()
+  private let biometricsToggle: PlainButton = .init()
   private let autoFillItem: SettingsItemView = .init()
   private let manageAccountsItem: SettingsItemView = .init()
   private let termsItem: SettingsItemView = .init()
@@ -182,7 +182,7 @@ internal final class SettingsView: ScrolledStackView {
     mutation.apply(on: biometricsSwitch)
   }
 
-  internal func applyOn(biometricsToggle mutation: Mutation<Button>) {
+  internal func applyOn(biometricsToggle mutation: Mutation<PlainButton>) {
     mutation.apply(on: biometricsToggle)
   }
 

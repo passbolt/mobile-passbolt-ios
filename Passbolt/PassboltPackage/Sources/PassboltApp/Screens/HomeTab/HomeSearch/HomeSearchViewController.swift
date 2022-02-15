@@ -98,6 +98,7 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
       .homePresentationMenuPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] currentMode in
+        self?.view.endEditing(true)
         self?.presentSheet(
           HomePresentationMenuView.self,
           in: currentMode
@@ -117,6 +118,7 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
       .receive(on: RunLoop.main)
       .sink { [weak self] accountWithProfile in
         guard let self = self else { return }
+        self.view.endEditing(true)
         self.presentSheetMenu(
           AccountMenuViewController.self,
           in: (

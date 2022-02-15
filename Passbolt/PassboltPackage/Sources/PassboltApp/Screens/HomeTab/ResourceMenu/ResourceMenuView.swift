@@ -167,7 +167,7 @@ private final class ResourceMenuDividerView: PlainView {
   }
 }
 
-internal final class ResourceMenuItemView: Button {
+internal final class ResourceMenuItemView: PlainButton {
 
   internal let operation: ResourceMenuController.Action
 

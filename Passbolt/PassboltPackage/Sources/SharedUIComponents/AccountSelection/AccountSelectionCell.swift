@@ -29,7 +29,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
   private let icon: ImageView = .init()
   private let titleLabel: Label = .init()
   private let subTitleLabel: Label = .init()
-  private let deleteButton: Button = .init()
+  private let deleteButton: PlainButton = .init()
   private let stack: StackView = .init()
   private let indicator: PlainView = .init()
   private var tapAction: (() -> Void)?
@@ -96,7 +96,7 @@ internal final class AccountSelectionCell: CollectionViewCell {
       )
     }
 
-    Mutation<Button>
+    Mutation<PlainButton>
       .combined(
         .backgroundColor(.clear),
         .subview(of: contentView),

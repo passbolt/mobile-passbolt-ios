@@ -60,24 +60,28 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
   }
 
   public var body: some View {
-    Group {
-      HStack {
-        self.leftIcon()
-          .frame(maxWidth: 24, maxHeight: 24)
-        self.title()
-          .frame(maxWidth: .infinity, alignment: .leading)
-        self.rightIcon()
-          .frame(maxWidth: 24, maxHeight: 24)
+    Button(
+      action: self.action,
+      label: {
+        HStack {
+          self.leftIcon()
+            .frame(maxWidth: 24, maxHeight: 24)
+          self.title()
+            .frame(maxWidth: .infinity, alignment: .leading)
+          self.rightIcon()
+            .frame(maxWidth: 24, maxHeight: 24)
+        }
+
       }
-      .padding(
-        EdgeInsets(
-          top: 8,
-          leading: 16,
-          bottom: 8,
-          trailing: 16
-        )
+    )
+    .padding(
+      EdgeInsets(
+        top: 8,
+        leading: 16,
+        bottom: 8,
+        trailing: 16
       )
-    }
+    )
     .frame(height: 40)
     .background(
       self.isSelected
@@ -90,9 +94,6 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
         : Color.passboltPrimaryText
     )
     .cornerRadius(3)
-    .onTapGesture {
-      self.action()
-    }
   }
 }
 

@@ -46,7 +46,7 @@ public final class HelpMenuView: ScrolledStackView {
   }
 }
 
-private final class HelpMenuActionCellView: Button {
+private final class HelpMenuActionCellView: PlainButton {
 
   fileprivate let imageView: ImageView = .init()
   fileprivate let titleLabel: Label = .init()

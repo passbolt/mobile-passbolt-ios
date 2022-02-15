@@ -45,7 +45,7 @@ internal final class AccountSelectionView: PlainView {
   private let subTitleLabel: Label = .init()
   private let logoContainer: PlainView = .init()
   private let buttonStack: StackView = .init()
-  private let removeContainer: Button = .init()
+  private let removeContainer: PlainButton = .init()
   private let removeIcon: ImageView = .init()
   private let removeLabel: Label = .init()
   private let doneButton: TextButton = .init()

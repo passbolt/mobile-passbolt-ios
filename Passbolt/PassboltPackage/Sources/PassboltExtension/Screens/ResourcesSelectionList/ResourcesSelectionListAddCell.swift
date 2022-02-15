@@ -34,7 +34,7 @@ internal final class ResourcesSelectionListAddCell: CollectionViewCell {
       .backgroundColor(dynamic: .background)
     }
 
-    let contentButton: Button = .init()
+    let contentButton: PlainButton = .init()
     mut(contentButton) {
       .combined(
         .backgroundColor(.clear),

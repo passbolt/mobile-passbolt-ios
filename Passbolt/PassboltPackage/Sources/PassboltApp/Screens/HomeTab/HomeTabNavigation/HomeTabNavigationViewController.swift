@@ -80,6 +80,15 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
             ],
             animated: false
           )
+
+        case .favoriteResourcesList:
+          self.setViewControllers(
+            [
+              self.components
+                .instance(of: FavoriteResourcesListViewController.self)
+            ],
+            animated: false
+          )
         }
       }
       .store(in: cancellables)

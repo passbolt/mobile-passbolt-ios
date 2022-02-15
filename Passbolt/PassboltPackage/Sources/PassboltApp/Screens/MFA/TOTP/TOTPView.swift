@@ -35,7 +35,7 @@ internal final class TOTPView: KeyboardAwareView {
 
   internal required init() {
     otpPublisher = otpInput.textPublisher
-    let pasteOTPButton: Button = .init()
+    let pasteOTPButton: PlainButton = .init()
     pasteOTPTapPublisher = pasteOTPButton.tapPublisher
     rememberDeviceToggleTapPublisher = labeledSwitch.togglePublisher
     super.init()

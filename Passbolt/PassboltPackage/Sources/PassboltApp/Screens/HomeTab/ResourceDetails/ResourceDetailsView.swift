@@ -305,7 +305,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
   }
 }
 
-internal final class ResourceDetailsItemView: Button {
+internal final class ResourceDetailsItemView: PlainButton {
 
   fileprivate var field: ResourceField
   fileprivate var titleLabel: Label = .init()

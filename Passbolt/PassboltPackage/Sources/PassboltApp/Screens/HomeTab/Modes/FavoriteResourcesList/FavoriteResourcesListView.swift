@@ -21,20 +21,16 @@
 // @since         v1.0
 //
 
-import Combine
-import CommonModels
-import UIKit
+import AegithalosCocoa
+import UICommons
 
-public final class CheckedLabel: PlainView {
+internal final class FavoriteResourcesListView: PlainView {
 
-  public var tapPublisher: AnyPublisher<Void, Never> { container.tapPublisher }
+  private let filtersContainer: PlainView = .init()
+  private let resourcesListContainer: PlainView = .init()
 
-  private let container: PlainButton = .init()
-  private let imageView: ImageView = .init()
-  private let label: Label = .init()
-
-  public required init() {
-    super.init()
+  override func setup() {
+    super.setup()
 
     mut(self) {
       .combined(
@@ -42,49 +38,51 @@ public final class CheckedLabel: PlainView {
       )
     }
 
-    mut(container) {
+    mut(filtersContainer) {
       .combined(
         .backgroundColor(dynamic: .background),
-        .enabled(),
+        .shadow(
+          color: .black,
+          opacity: 0.2,
+          offset: .init(width: 0, height: -10),
+          radius: 12
+        ),
+        .clipsToBounds(false),
         .subview(of: self),
-        .edges(equalTo: self)
+        .topAnchor(.equalTo, topAnchor),
+        .leftAnchor(.equalTo, leftAnchor),
+        .rightAnchor(.equalTo, rightAnchor)
       )
     }
 
-    mut(imageView) {
+    mut(resourcesListContainer) {
       .combined(
-        .contentMode(.scaleAspectFit),
-        .userInteractionEnabled(false),
-        .subview(of: container),
-        .widthAnchor(.equalTo, heightAnchor),
-        .leadingAnchor(.equalTo, leadingAnchor),
-        .topAnchor(.equalTo, topAnchor, constant: 8),
-        .bottomAnchor(.equalTo, bottomAnchor, constant: -8)
+        .subview(of: self),
+        .topAnchor(.equalTo, filtersContainer.bottomAnchor),
+        .leftAnchor(.equalTo, leftAnchor),
+        .rightAnchor(.equalTo, rightAnchor),
+        .bottomAnchor(.equalTo, bottomAnchor)
       )
     }
 
-    mut(label) {
+    bringSubviewToFront(filtersContainer)
+  }
+
+  internal func setFiltersView(_ view: UIView) {
+    mut(view) {
       .combined(
-        .userInteractionEnabled(false),
-        .subview(of: container),
-        .leadingAnchor(.equalTo, imageView.trailingAnchor, constant: 8),
-        .trailingAnchor(.equalTo, trailingAnchor),
-        .centerYAnchor(.equalTo, imageView.centerYAnchor)
+        .subview(of: filtersContainer),
+        .edges(equalTo: filtersContainer, usingSafeArea: false)
       )
     }
   }
 
-  public func update(checked: Bool) {
-    mut(imageView) {
-      .when(
-        checked,
-        then: .image(named: .checked, from: .uiCommons),
-        else: .image(named: .unchecked, from: .uiCommons)
+  internal func setResourcesView(_ view: UIView) {
+    mut(view) {
+      .combined(
+        .subview(of: resourcesListContainer),
+        .edges(equalTo: resourcesListContainer, usingSafeArea: false)
       )
     }
-  }
-
-  public func applyOn(label mutation: Mutation<Label>) {
-    mutation.apply(on: label)
   }
 }

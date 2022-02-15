@@ -23,7 +23,7 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: Button {
+extension Mutation where Subject: PlainButton {
 
   public static func backgroundColor(dynamic color: DynamicColor) -> Self {
     .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }

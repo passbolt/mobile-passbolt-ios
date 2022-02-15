@@ -23,7 +23,7 @@
 
 import AegithalosCocoa
 
-public class TextButton: Button {
+public class TextButton: PlainButton {
 
   public lazy var dynamicTextColor: DynamicColor = .always(self.textColor) {
     didSet {

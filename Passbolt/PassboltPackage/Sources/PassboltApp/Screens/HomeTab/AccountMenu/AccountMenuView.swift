@@ -57,10 +57,10 @@ internal final class AccountMenuView: PlainView {
   ) {
     self.currentAcountWithProfile = currentAcountWithProfile
 
-    let signOutButton: Button = .init()
+    let signOutButton: PlainButton = .init()
     self.signOutTapPublisher = signOutButton.tapPublisher
 
-    let accountDetailsButton: Button = .init()
+    let accountDetailsButton: PlainButton = .init()
     self.accountDetailsTapPublisher = accountDetailsButton.tapPublisher
 
     self.manageAccountsTapPublisher = manageAccountsButton.tapPublisher
@@ -359,8 +359,8 @@ internal final class AccountMenuView: PlainView {
   private func profileCell(
     accountWithProfile: AccountWithProfile,
     avatarImagePublisher: AnyPublisher<UIImage?, Never>
-  ) -> Button {
-    let container: Button = .init()
+  ) -> PlainButton {
+    let container: PlainButton = .init()
     mut(container) {
       .combined(
         .backgroundColor(.clear),

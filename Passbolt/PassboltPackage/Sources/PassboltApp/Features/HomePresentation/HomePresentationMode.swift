@@ -26,6 +26,7 @@ import UICommons
 internal enum HomePresentationMode: Hashable {
 
   case plainResourcesList
+  case favoriteResourcesList
 }
 
 extension HomePresentationMode {
@@ -34,6 +35,9 @@ extension HomePresentationMode {
     switch self {
     case .plainResourcesList:
       return .localized(key: "home.presentation.mode.plain.resources.title")
+
+    case .favoriteResourcesList:
+      return .localized(key: "home.presentation.mode.favorite.resources.title")
     }
   }
 
@@ -41,6 +45,9 @@ extension HomePresentationMode {
     switch self {
     case .plainResourcesList:
       return .list
+
+    case .favoriteResourcesList:
+      return .star
     }
   }
 }

@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class SettingsItemView: Button {
+internal final class SettingsItemView: PlainButton {
 
   private let icon: ImageView = .init()
   private let label: Label = .init()

@@ -22,7 +22,6 @@
 //
 
 import Accounts
-import NetworkClient
 import Resources
 import UIComponents
 

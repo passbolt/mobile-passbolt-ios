@@ -23,7 +23,7 @@
 
 import AegithalosCocoa
 
-public final class ImageButton: Button {
+public final class ImageButton: PlainButton {
 
   public lazy var image: UIImage = imageView.image ?? UIImage() {
     didSet {

@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class ResourcesListAddButton: Button {
+internal final class ResourcesListAddButton: PlainButton {
 
   internal var tapAction: (() -> Void)?
 

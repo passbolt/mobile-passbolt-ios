@@ -62,7 +62,7 @@ public final class AccountSelectionAddAccountCell: CollectionViewCell {
       )
     }
 
-    Mutation<Button>
+    Mutation<PlainButton>
       .combined(
         .backgroundColor(.clear),
         .subview(of: self.contentView),
