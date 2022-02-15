@@ -63,6 +63,7 @@ extension ImageNameConstant {
   public static var filter: Self { "Filter" }
   public static var list: Self { "List" }
   public static var star: Self { "Star" }
+  public static var share: Self { "Share" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }

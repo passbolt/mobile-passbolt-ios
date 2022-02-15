@@ -90,6 +90,15 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
             animated: false
           )
 
+        case .sharedResourcesList:
+          self.setViewControllers(
+            [
+              self.components
+                .instance(of: SharedResourcesListViewController.self)
+            ],
+            animated: false
+          )
+
         case .ownedResourcesList:
           self.setViewControllers(
             [

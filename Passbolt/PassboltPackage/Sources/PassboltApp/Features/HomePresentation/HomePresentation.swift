@@ -50,7 +50,12 @@ extension HomePresentation: Feature {
     }
 
     func availableHomePresentationModes() -> Array<HomePresentationMode> {
-      [.plainResourcesList, .favoriteResourcesList, .ownedResourcesList]
+      [ // order is preserved on display
+        .plainResourcesList,
+        .favoriteResourcesList,
+        .sharedResourcesList,
+        .ownedResourcesList
+      ]
     }
 
     return Self(
