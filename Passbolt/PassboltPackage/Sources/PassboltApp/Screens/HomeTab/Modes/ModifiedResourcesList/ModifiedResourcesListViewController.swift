@@ -67,7 +67,7 @@ internal final class ModifiedResourcesListViewController: PlainViewController, U
     mut(titleImage) {
       .combined(
         .image(
-          named: HomePresentationMode.ownedResourcesList.iconName,
+          named: HomePresentationMode.modifiedResourcesList.iconName,
           from: .uiCommons
         ),
         .tintColor(.passboltPrimaryText),
@@ -82,7 +82,7 @@ internal final class ModifiedResourcesListViewController: PlainViewController, U
     let titleLabel: Label = .init()
     mut(titleLabel) {
       .combined(
-        .text(displayable: HomePresentationMode.ownedResourcesList.title),
+        .text(displayable: HomePresentationMode.modifiedResourcesList.title),
         .font(.inter(ofSize: 16, weight: .semibold)),
         .textColor(.passboltPrimaryText),
         .textAlignment(.center),
