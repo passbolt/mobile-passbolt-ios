@@ -24,6 +24,7 @@
 import SQLCipher
 
 import struct Foundation.Data
+import struct Foundation.Date
 
 public protocol SQLiteBindable {
 
@@ -101,6 +102,20 @@ extension Double: SQLiteBindable {
       handle,
       index,
       self
+    ) == SQLITE_OK
+  }
+}
+
+extension Date: SQLiteBindable {
+
+  public func bind(
+    _ handle: OpaquePointer?,
+    at index: Int32
+  ) -> Bool {
+    sqlite3_bind_int64(
+      handle,
+      index,
+      Int64(self.timeIntervalSince1970)
     ) == SQLITE_OK
   }
 }

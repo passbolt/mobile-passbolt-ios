@@ -53,6 +53,7 @@ extension HomePresentation: Feature {
       [ // order is preserved on display
         .plainResourcesList,
         .favoriteResourcesList,
+        .modifiedResourcesList,
         .sharedResourcesList,
         .ownedResourcesList
       ]

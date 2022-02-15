@@ -448,7 +448,8 @@ private let testResources: Array<ListViewResource> = [
     name: "test",
     url: "test",
     username: "test",
-    favorite: false
+    favorite: false,
+    modified: .init(timeIntervalSince1970: 0)
   )
 ]
 
@@ -459,7 +460,8 @@ private let testResourcesAlternative: Array<ListViewResource> = [
     name: "test",
     url: "test",
     username: "test",
-    favorite: false
+    favorite: false,
+    modified: .init(timeIntervalSince1970: 0)
   ),
   .init(
     id: .init(rawValue: "testAlt"),
@@ -467,6 +469,7 @@ private let testResourcesAlternative: Array<ListViewResource> = [
     name: "testAlt",
     url: "testAlt",
     username: "testAlt",
-    favorite: false
+    favorite: false,
+    modified: .init(timeIntervalSince1970: 0)
   ),
 ]

@@ -22,6 +22,7 @@
 //
 
 import Commons
+import struct Foundation.Date
 
 public struct Resource {
 
@@ -35,6 +36,7 @@ public struct Resource {
   public var description: String?
   public var permission: ResourcePermission
   public var favorite: Bool
+  public var modified: Date
 
   public init(
     id: ID,
@@ -44,7 +46,8 @@ public struct Resource {
     username: String?,
     description: String?,
     permission: ResourcePermission,
-    favorite: Bool
+    favorite: Bool,
+    modified: Date
   ) {
     self.id = id
     self.typeID = typeID
@@ -54,6 +57,7 @@ public struct Resource {
     self.description = description
     self.permission = permission
     self.favorite = favorite
+    self.modified = modified
   }
 }
 

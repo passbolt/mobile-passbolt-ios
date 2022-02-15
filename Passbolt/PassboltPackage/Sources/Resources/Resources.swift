@@ -190,7 +190,8 @@ extension Resources: Feature {
                     username: resource.username,
                     description: resource.description,
                     permission: permission,
-                    favorite: resource.favorite
+                    favorite: resource.favorite,
+                    modified: resource.modified
                   )
                 }
             }

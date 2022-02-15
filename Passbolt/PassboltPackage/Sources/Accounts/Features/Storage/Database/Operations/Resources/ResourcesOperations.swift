@@ -72,7 +72,8 @@ extension StoreResourcesOperation {
             resource.typeID.rawValue,
             resource.description,
             nil,  // folders are not implemented yet
-            resource.favorite
+            resource.favorite,
+            resource.modified
           )
 
         switch result {
@@ -187,6 +188,14 @@ extension FetchListViewResourcesOperation {
         /* NOP */
       }
 
+      switch input.sorting {
+      case .nameAlphabetically:
+        statement.append("ORDER BY name COLLATE NOCASE ASC")
+
+      case .modifiedRecently:
+        statement.append("ORDER BY modified DESC")
+      }
+
       // end query
       statement.append(";")
 
@@ -211,7 +220,12 @@ extension FetchListViewResourcesOperation {
                 name: name,
                 url: row.url,
                 username: row.username,
-                favorite: row.favorite ?? false
+                favorite: row.favorite ?? false,
+                modified: .init(
+                  timeIntervalSince1970: .init(
+                    row.modified ?? 0 as Int64
+                  )
+                )
               )
             }
           )
@@ -380,7 +394,8 @@ let upsertResourceStatement: SQLiteStatement = """
       resourceTypeID,
       description,
       parentFolderID,
-      favorite
+      favorite,
+      modified
     )
   VALUES
     (
@@ -392,7 +407,8 @@ let upsertResourceStatement: SQLiteStatement = """
       ?6,
       ?7,
       ?8,
-      ?9
+      ?9,
+      ?10
     )
   ON CONFLICT
     (
@@ -406,6 +422,7 @@ let upsertResourceStatement: SQLiteStatement = """
     resourceTypeID=?6,
     description=?7,
     parentFolderID=?8,
-    favorite=?9
+    favorite=?9,
+    modified=?10
   ;
   """

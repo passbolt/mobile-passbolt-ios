@@ -295,21 +295,33 @@ final class ResourcesDecodingTests: XCTestCase {
         "resource_type_id": "e2aa01a9-84ec-55f8-aaed-24ee23259339",
         "permission": {
           "type": 15
-        }
+        },
+        "favorite": null,
+        "modified": "2022-02-15T13:28:15+00:00"
       }
       """.data(using: .utf8)!
 
-    let decodedData: ResourcesRequestResponseBodyItem? = try? JSONDecoder().decode(
-      ResourcesRequestResponseBodyItem.self,
-      from: rawJSON
-    )
+    let decodedData: ResourcesRequestResponseBodyItem
+    do {
+      let decoder: JSONDecoder = .init()
+      decoder.dateDecodingStrategy = .iso8601
+      decodedData = try decoder.decode(
+        ResourcesRequestResponseBodyItem.self,
+        from: rawJSON
+      )
+    }
+    catch {
+      return XCTFail("Unexpected error: \(error)")
+    }
 
-    XCTAssertEqual(decodedData?.id, "daaf057e-7fc3-5537-a8a9-e8c151890878")
-    XCTAssertEqual(decodedData?.name, "cakephp")
-    XCTAssertEqual(decodedData?.username, "cake")
-    XCTAssertEqual(decodedData?.url, "cakephp.org")
-    XCTAssertEqual(decodedData?.description, "The rapid and tasty php development framework")
-    XCTAssertEqual(decodedData?.resourceTypeID, "e2aa01a9-84ec-55f8-aaed-24ee23259339")
-    XCTAssertEqual(decodedData?.permission, .owner)
+    XCTAssertEqual(decodedData.id, "daaf057e-7fc3-5537-a8a9-e8c151890878")
+    XCTAssertEqual(decodedData.name, "cakephp")
+    XCTAssertEqual(decodedData.username, "cake")
+    XCTAssertEqual(decodedData.url, "cakephp.org")
+    XCTAssertEqual(decodedData.description, "The rapid and tasty php development framework")
+    XCTAssertEqual(decodedData.resourceTypeID, "e2aa01a9-84ec-55f8-aaed-24ee23259339")
+    XCTAssertEqual(decodedData.permission, .owner)
+    XCTAssertEqual(decodedData.favorite, false)
+    XCTAssertEqual(decodedData.modified, .init(timeIntervalSince1970: 1_644_931_695))
   }
 }

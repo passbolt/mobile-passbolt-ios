@@ -239,7 +239,11 @@ extension NetworkResponseDecoding {
 extension NetworkResponseDecoding where Response: Decodable {
 
   internal static func bodyAsJSON(
-    using decoder: JSONDecoder = .init()
+    using decoder: JSONDecoder = {
+      let decoder: JSONDecoder = .init()
+      decoder.dateDecodingStrategy = .iso8601
+      return decoder
+    }()
   ) -> Self {
     Self { _, _, httpRequest, httpResponse in
       decodeStatusCode(

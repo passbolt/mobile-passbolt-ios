@@ -21,54 +21,25 @@
 // @since         v1.0
 //
 
-import UICommons
+import Environment
 
-internal enum HomePresentationMode: Hashable {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  case plainResourcesList
-  case favoriteResourcesList
-  case modifiedResourcesList
-  case sharedResourcesList
-  case ownedResourcesList
-}
-
-extension HomePresentationMode {
-
-  internal var title: DisplayableString {
-    switch self {
-    case .plainResourcesList:
-      return .localized(key: "home.presentation.mode.plain.resources.title")
-
-    case .favoriteResourcesList:
-      return .localized(key: "home.presentation.mode.favorite.resources.title")
-
-    case .modifiedResourcesList:
-      return .localized(key: "home.presentation.mode.modified.resources.title")
-
-    case .sharedResourcesList:
-      return .localized(key: "home.presentation.mode.shared.resources.title")
-
-    case .ownedResourcesList:
-      return .localized(key: "home.presentation.mode.owned.resources.title")
-    }
-  }
-
-  internal var iconName: ImageNameConstant {
-    switch self {
-    case .plainResourcesList:
-      return .list
-
-    case .favoriteResourcesList:
-      return .star
-
-    case .modifiedResourcesList:
-      return .clock
-
-    case .sharedResourcesList:
-      return .share
-
-    case .ownedResourcesList:
-      return .user
-    }
+  internal static var migration_5: Self {
+    [
+      // - add modified date to resources table - //
+      """
+      ALTER TABLE
+        resources
+      ADD
+        modified INTEGER NOT NULL DEFAULT 0; -- timestamp value as epoch seconds
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 6; -- persistent, used to track schema version
+      """,
+    ]
   }
 }
+

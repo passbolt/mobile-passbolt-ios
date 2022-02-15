@@ -21,54 +21,8 @@
 // @since         v1.0
 //
 
-import UICommons
+public enum ResourcesSorting {
 
-internal enum HomePresentationMode: Hashable {
-
-  case plainResourcesList
-  case favoriteResourcesList
-  case modifiedResourcesList
-  case sharedResourcesList
-  case ownedResourcesList
-}
-
-extension HomePresentationMode {
-
-  internal var title: DisplayableString {
-    switch self {
-    case .plainResourcesList:
-      return .localized(key: "home.presentation.mode.plain.resources.title")
-
-    case .favoriteResourcesList:
-      return .localized(key: "home.presentation.mode.favorite.resources.title")
-
-    case .modifiedResourcesList:
-      return .localized(key: "home.presentation.mode.modified.resources.title")
-
-    case .sharedResourcesList:
-      return .localized(key: "home.presentation.mode.shared.resources.title")
-
-    case .ownedResourcesList:
-      return .localized(key: "home.presentation.mode.owned.resources.title")
-    }
-  }
-
-  internal var iconName: ImageNameConstant {
-    switch self {
-    case .plainResourcesList:
-      return .list
-
-    case .favoriteResourcesList:
-      return .star
-
-    case .modifiedResourcesList:
-      return .clock
-
-    case .sharedResourcesList:
-      return .share
-
-    case .ownedResourcesList:
-      return .user
-    }
-  }
+  case nameAlphabetically
+  case modifiedRecently
 }

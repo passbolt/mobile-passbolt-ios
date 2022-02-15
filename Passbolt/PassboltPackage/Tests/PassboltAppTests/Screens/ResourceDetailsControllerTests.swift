@@ -486,7 +486,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       )
     ]
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }

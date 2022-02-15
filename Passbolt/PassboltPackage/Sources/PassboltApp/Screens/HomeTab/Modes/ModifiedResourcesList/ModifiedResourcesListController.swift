@@ -21,54 +21,44 @@
 // @since         v1.0
 //
 
-import UICommons
+import Accounts
+import Resources
+import UIComponents
 
-internal enum HomePresentationMode: Hashable {
+import struct Foundation.Data
 
-  case plainResourcesList
-  case favoriteResourcesList
-  case modifiedResourcesList
-  case sharedResourcesList
-  case ownedResourcesList
+internal struct ModifiedResourcesListController {
+
+  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
+  internal var setSearchText: (String) -> Void
 }
 
-extension HomePresentationMode {
+extension ModifiedResourcesListController: UIController {
 
-  internal var title: DisplayableString {
-    switch self {
-    case .plainResourcesList:
-      return .localized(key: "home.presentation.mode.plain.resources.title")
+  internal typealias Context = Void
 
-    case .favoriteResourcesList:
-      return .localized(key: "home.presentation.mode.favorite.resources.title")
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(sorting: .modifiedRecently))
 
-    case .modifiedResourcesList:
-      return .localized(key: "home.presentation.mode.modified.resources.title")
-
-    case .sharedResourcesList:
-      return .localized(key: "home.presentation.mode.shared.resources.title")
-
-    case .ownedResourcesList:
-      return .localized(key: "home.presentation.mode.owned.resources.title")
+    func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
+      resourcesFilterSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
-  }
 
-  internal var iconName: ImageNameConstant {
-    switch self {
-    case .plainResourcesList:
-      return .list
-
-    case .favoriteResourcesList:
-      return .star
-
-    case .modifiedResourcesList:
-      return .clock
-
-    case .sharedResourcesList:
-      return .share
-
-    case .ownedResourcesList:
-      return .user
+    func setSearchText(_ text: String) {
+      resourcesFilterSubject.value.text = text
     }
+
+    return Self(
+      resourcesFilterPublisher: resourcesFilterPublisher,
+      setSearchText: setSearchText(_:)
+    )
   }
 }
+
+

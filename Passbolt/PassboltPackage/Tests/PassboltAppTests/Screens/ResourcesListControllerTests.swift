@@ -108,7 +108,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
       ListViewResource(
         id: "resource_2",
@@ -116,7 +117,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 2",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -172,7 +174,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
       ListViewResource(
         id: "resource_2",
@@ -180,7 +183,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 2",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -216,7 +220,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
       ListViewResource(
         id: "resource_2",
@@ -224,7 +229,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 2",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -260,7 +266,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
       ListViewResource(
         id: "resource_2",
@@ -268,7 +275,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 2",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -304,7 +312,8 @@ final class ResourceListControllerTests: MainActorTestCase {
         name: "Resoure 1",
         url: "passbolt.com",
         username: "test",
-        favorite: false
+        favorite: false,
+        modified: .init(timeIntervalSince1970: 0)
       )
     ]
     resources.filteredResourcesListPublisher = always(

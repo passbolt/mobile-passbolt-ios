@@ -41,11 +41,10 @@ internal enum SQLiteOpeningOperations {
         permission,
         url,
         username,
-        favorite
+        favorite,
+        modified
       FROM
-        resources
-      ORDER BY
-        name COLLATE NOCASE ASC;
+        resources;
       """,
       // - resourceDetailsView - //
       """

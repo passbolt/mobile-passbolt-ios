@@ -24,6 +24,7 @@
 import CommonModels
 import Environment
 
+import struct Foundation.Date
 import struct Foundation.UUID
 
 public typealias ResourcesRequest = NetworkRequest<
@@ -76,6 +77,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
   public var username: String?
   public var description: String?
   public var favorite: Bool
+  public var modified: Date
 
   public init(
     from decoder: Decoder
@@ -102,6 +104,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     catch {
       self.favorite = false
     }
+    self.modified = try container.decode(Date.self, forKey: .modified)
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -114,6 +117,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     case resourceTypeID = "resource_type_id"
     case permission = "permission"
     case favorite = "favorite"
+    case modified = "modified"
   }
 
   private enum PermissionCodingKeys: String, CodingKey {

@@ -25,6 +25,8 @@ import CommonModels
 
 public struct ResourcesFilter {
 
+  // ordering of results
+  public var sorting: ResourcesSorting
   // name/url/username search (AND) - empty ignores this parameter
   public var text: String
   // name search (AND) - empty ignores this parameter
@@ -39,6 +41,7 @@ public struct ResourcesFilter {
   public var permissions: Set<ResourcePermission>
 
   public init(
+    sorting: ResourcesSorting = .nameAlphabetically,
     text: String = .init(),
     name: String = .init(),
     url: String = .init(),
@@ -46,6 +49,7 @@ public struct ResourcesFilter {
     favoriteOnly: Bool = false,
     permissions: Set<ResourcePermission> = .init()
   ) {
+    self.sorting = sorting
     self.text = text
     self.name = name
     self.url = url
