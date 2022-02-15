@@ -110,7 +110,7 @@ extension FetchListViewResourcesOperation {
 
       var params: Array<SQLiteBindable?> = .init()
 
-      if let textFilter: String = input.text {
+      if !input.text.isEmpty {
         statement
           .append(
             """
@@ -125,33 +125,33 @@ extension FetchListViewResourcesOperation {
           )
         // adding multiple times since we can't count args when using dynamic query
         // and argument has to be used multiple times
-        params.append(textFilter)
-        params.append(textFilter)
-        params.append(textFilter)
+        params.append(input.text)
+        params.append(input.text)
+        params.append(input.text)
       }
       else {
         /* NOP */
       }
 
-      if let nameFilter: String = input.name {
+      if !input.name.isEmpty {
         statement.append("AND name LIKE '%' || ? || '%' ")
-        params.append(nameFilter)
+        params.append(input.name)
       }
       else {
         /* NOP */
       }
 
-      if let urlFilter: String = input.url {
+      if !input.url.isEmpty {
         statement.append("AND url LIKE '%' || ? || '%' ")
-        params.append(urlFilter)
+        params.append(input.url)
       }
       else {
         /* NOP */
       }
 
-      if let usernameFilter: String = input.username {
+      if !input.username.isEmpty {
         statement.append("AND username LIKE '%' || ? || '%' ")
-        params.append(usernameFilter)
+        params.append(input.username)
       }
       else {
         /* NOP */
@@ -159,6 +159,29 @@ extension FetchListViewResourcesOperation {
 
       if input.favoriteOnly {
         statement.append("AND favorite != 0 ")
+      }
+      else {
+        /* NOP */
+      }
+
+      // since we cannot use array in query directly
+      // we are preparing it manually as argument for each element
+      if input.permissions.count > 1 {
+        statement.append("AND permission IN (")
+        for index in input.permissions.indices {
+          if index == input.permissions.startIndex {
+            statement.append("?")
+          }
+          else {
+            statement.append(", ?")
+          }
+          params.append(input.permissions[index].rawValue)
+        }
+        statement.append(") ")
+      }
+      else if let permission: ResourcePermission = input.permissions.first {
+        statement.append("AND permission == ? ")
+        params.append(permission.rawValue)
       }
       else {
         /* NOP */

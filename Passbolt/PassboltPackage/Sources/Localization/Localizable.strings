@@ -309,6 +309,7 @@ Contact your administrator for more information.";
 "home.presentation.mode.menu.title" = "Filter view by";
 "home.presentation.mode.plain.resources.title" = "All items";
 "home.presentation.mode.favorite.resources.title" = "Favorites";
+"home.presentation.mode.owned.resources.title" = "Owned by me";
 
 "error.internal.inconsistency" = "Internal inconsistency, please report a bug.";
 "error.feature.unavailable" = "Feature unavailable.";

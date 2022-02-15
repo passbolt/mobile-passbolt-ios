@@ -68,6 +68,7 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
             .frame(maxWidth: 24, maxHeight: 24)
           self.title()
             .frame(maxWidth: .infinity, alignment: .leading)
+            .padding([.leading, .trailing], 8)
           self.rightIcon()
             .frame(maxWidth: 24, maxHeight: 24)
         }

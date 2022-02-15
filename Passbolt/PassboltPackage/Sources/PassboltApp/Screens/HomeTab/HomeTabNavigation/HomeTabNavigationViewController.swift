@@ -89,6 +89,15 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
             ],
             animated: false
           )
+
+        case .ownedResourcesList:
+          self.setViewControllers(
+            [
+              self.components
+                .instance(of: OwnedResourcesListViewController.self)
+            ],
+            animated: false
+          )
         }
       }
       .store(in: cancellables)

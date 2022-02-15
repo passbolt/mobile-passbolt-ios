@@ -21,40 +21,43 @@
 // @since         v1.0
 //
 
-import UICommons
+import Accounts
+import Resources
+import UIComponents
 
-internal enum HomePresentationMode: Hashable {
+import struct Foundation.Data
 
-  case plainResourcesList
-  case favoriteResourcesList
-  case ownedResourcesList
+internal struct OwnedResourcesListController {
+
+  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
+  internal var setSearchText: (String) -> Void
 }
 
-extension HomePresentationMode {
+extension OwnedResourcesListController: UIController {
 
-  internal var title: DisplayableString {
-    switch self {
-    case .plainResourcesList:
-      return .localized(key: "home.presentation.mode.plain.resources.title")
+  internal typealias Context = Void
 
-    case .favoriteResourcesList:
-      return .localized(key: "home.presentation.mode.favorite.resources.title")
+  internal static func instance(
+    in context: Context,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) -> Self {
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(permissions: [.owner]))
 
-    case .ownedResourcesList:
-      return .localized(key: "home.presentation.mode.owned.resources.title")
+    func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
+      resourcesFilterSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
-  }
 
-  internal var iconName: ImageNameConstant {
-    switch self {
-    case .plainResourcesList:
-      return .list
-
-    case .favoriteResourcesList:
-      return .star
-
-    case .ownedResourcesList:
-      return .user
+    func setSearchText(_ text: String) {
+      resourcesFilterSubject.value.text = text
     }
+
+    return Self(
+      resourcesFilterPublisher: resourcesFilterPublisher,
+      setSearchText: setSearchText(_:)
+    )
   }
 }
+

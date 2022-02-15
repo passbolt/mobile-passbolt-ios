@@ -24,10 +24,10 @@
 import UICommons
 import UIComponents
 
-internal final class FavoriteResourcesListViewController: PlainViewController, UIComponent {
+internal final class OwnedResourcesListViewController: PlainViewController, UIComponent {
 
-  internal typealias ContentView = FavoriteResourcesListView
-  internal typealias Controller = FavoriteResourcesListController
+  internal typealias ContentView = OwnedResourcesListView
+  internal typealias Controller = OwnedResourcesListController
 
   internal static func instance(
     using controller: Controller,
@@ -67,7 +67,7 @@ internal final class FavoriteResourcesListViewController: PlainViewController, U
     mut(titleImage) {
       .combined(
         .image(
-          named: HomePresentationMode.favoriteResourcesList.iconName,
+          named: HomePresentationMode.ownedResourcesList.iconName,
           from: .uiCommons
         ),
         .tintColor(.passboltPrimaryText),
@@ -82,7 +82,7 @@ internal final class FavoriteResourcesListViewController: PlainViewController, U
     let titleLabel: Label = .init()
     mut(titleLabel) {
       .combined(
-        .text(displayable: HomePresentationMode.favoriteResourcesList.title),
+        .text(displayable: HomePresentationMode.ownedResourcesList.title),
         .font(.inter(ofSize: 16, weight: .semibold)),
         .textColor(.passboltPrimaryText),
         .textAlignment(.center),
@@ -114,3 +114,4 @@ internal final class FavoriteResourcesListViewController: PlainViewController, U
     )
   }
 }
+

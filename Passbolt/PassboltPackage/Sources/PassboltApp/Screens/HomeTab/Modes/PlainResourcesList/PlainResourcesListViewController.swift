@@ -66,7 +66,10 @@ internal final class PlainResourcesListViewController: PlainViewController, UICo
     let titleImage: ImageView = .init()
     mut(titleImage) {
       .combined(
-        .image(named: .list, from: .uiCommons),
+        .image(
+          named: HomePresentationMode.plainResourcesList.iconName,
+          from: .uiCommons
+        ),
         .tintColor(.passboltPrimaryText),
         .widthAnchor(.equalTo, constant: 24),
         .heightAnchor(.equalTo, constant: 24),
@@ -79,7 +82,7 @@ internal final class PlainResourcesListViewController: PlainViewController, UICo
     let titleLabel: Label = .init()
     mut(titleLabel) {
       .combined(
-        .text(displayable: .localized(key: "home.presentation.mode.plain.resources.title")),
+        .text(displayable: HomePresentationMode.plainResourcesList.title),
         .font(.inter(ofSize: 16, weight: .semibold)),
         .textColor(.passboltPrimaryText),
         .textAlignment(.center),

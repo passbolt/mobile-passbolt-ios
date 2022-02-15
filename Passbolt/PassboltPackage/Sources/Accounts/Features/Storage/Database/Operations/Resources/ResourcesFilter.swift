@@ -21,39 +21,46 @@
 // @since         v1.0
 //
 
+import CommonModels
+
 public struct ResourcesFilter {
 
-  // name/url/username search (AND)
-  public var text: String?
-  // name search (AND)
-  public var name: String?
-  // url search (AND)
-  public var url: String?
-  // username search (AND)
-  public var username: String?
+  // name/url/username search (AND) - empty ignores this parameter
+  public var text: String
+  // name search (AND) - empty ignores this parameter
+  public var name: String
+  // url search (AND) - empty ignores this parameter
+  public var url: String
+  // username search (AND) - empty ignores this parameter
+  public var username: String
   // favorite only search (AND)
   public var favoriteOnly: Bool
+  // included permissions search (AND) - empty ignores this parameter
+  public var permissions: Set<ResourcePermission>
 
   public init(
-    text: String? = nil,
-    name: String? = nil,
-    url: String? = nil,
-    username: String? = nil,
-    favoriteOnly: Bool = false
+    text: String = .init(),
+    name: String = .init(),
+    url: String = .init(),
+    username: String = .init(),
+    favoriteOnly: Bool = false,
+    permissions: Set<ResourcePermission> = .init()
   ) {
     self.text = text
     self.name = name
     self.url = url
     self.username = username
     self.favoriteOnly = favoriteOnly
+    self.permissions = permissions
   }
 
   public var isEmpty: Bool {
-    (text?.isEmpty ?? true)
-      && (name?.isEmpty ?? true)
-      && (url?.isEmpty ?? true)
-      && (username?.isEmpty ?? true)
+    text.isEmpty
+      && name.isEmpty
+      && url.isEmpty
+      && username.isEmpty
       && !favoriteOnly  // favorite only is not an empty filter
+      && permissions.isEmpty
   }
 }
 

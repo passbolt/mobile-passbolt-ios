@@ -29,7 +29,6 @@ extension ImageNameConstant {
   public static var navigationBarPlaceholder: Self { "NavigationBarPlaceholder" }
   public static var arrowLeft: Self { "ArrowLeft" }
   public static var help: Self { "Help" }
-  public static var person: Self { "Person" }
   public static var homeTab: Self { "HomeTab" }
   public static var settingsTab: Self { "SettingsTab" }
   public static var trash: Self { "Trash" }
@@ -69,6 +68,7 @@ extension ImageNameConstant {
   public static var accountsSkeleton: Self { "AccountsSkeleton" }
   public static var passboltIcon: Self { "PassboltIcon" }
   public static var passboltLogo: Self { "PassboltLogo" }
+  public static var person: Self { "Person" }
   public static var errorState: Self { "ErrorState" }
   public static var emptyState: Self { "EmptyState" }
   public static var successMark: Self { "SuccessMark" }
