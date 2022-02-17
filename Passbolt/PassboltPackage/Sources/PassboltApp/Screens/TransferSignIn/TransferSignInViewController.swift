@@ -189,24 +189,54 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               self?.dismissOverlay()
             }
           )
-          .sink(receiveCompletion: { [weak self] completion in
-            switch completion {
-            case .finished:
-              break
-
-            case .failure:
-              self?.present(
-                snackbar: Mutation<UICommons.PlainView>
-                  .snackBarErrorMessage(
-                    .localized(
-                      key: "sign.in.error.message"
-                    )
+          .handleErrors(
+            (
+              [.canceled],
+              handler: { _ in true /* NOP */ }
+            ),
+            defaultHandler: { [weak self] error in
+              if let theError: TheError = error.legacyBridge {
+                if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                  self?.present(
+                    ServerNotReachableAlertViewController.self,
+                    in: serverError.serverURL
                   )
-                  .instantiate(),
-                hideAfter: 2
-              )
+                }
+                else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                  self?.present(
+                    ServerNotReachableAlertViewController.self,
+                    in: serverError.serverURL
+                  )
+                }
+                else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
+                  self?.present(
+                    ServerNotReachableAlertViewController.self,
+                    in: serverError.serverURL
+                  )
+                }
+                else if theError is AccountBiometryDataChanged {
+                  self?.presentErrorSnackbar(
+                    .localized(
+                      key: "sign.in.error.biometrics.changed.message"
+                    ),
+                    hideAfter: 5
+                  )
+                }
+                else {
+                  self?.presentErrorSnackbar(theError.displayableMessage)
+                }
+              }
+              else {
+                if let displayable: DisplayableString = error.displayableString {
+                  self?.presentErrorSnackbar(displayable)
+                }
+                else {
+                  self?.presentErrorSnackbar()
+                }
+              }
             }
-          })
+          )
+          .sinkDrop()
           .store(in: self.cancellables)
       }
       .store(in: cancellables)

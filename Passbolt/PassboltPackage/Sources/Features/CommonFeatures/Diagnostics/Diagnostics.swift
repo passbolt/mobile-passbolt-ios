@@ -205,9 +205,13 @@ extension Diagnostics {
 
   public func log(
     _ error: Error,
-    info: DiagnosticsInfo
+    info: DiagnosticsInfo? = nil
   ) {
-    for message in error.asTheError().pushing(info).diagnosticMessages {
+    let theError: TheError =
+      info
+      .map { error.asTheError().pushing($0) }
+      ?? error.asTheError()
+    for message in theError.diagnosticMessages {
       self.diagnosticLog(message, .none)
     }
   }

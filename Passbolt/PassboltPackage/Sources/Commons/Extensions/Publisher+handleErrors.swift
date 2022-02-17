@@ -29,13 +29,15 @@ extension Publisher where Failure == TheErrorLegacy {
 
   public func handleErrors(
     _ cases: (Set<TheErrorLegacy.ID>, handler: (TheErrorLegacy) -> Bool)...,
+    diagnosticLog: @escaping (TheError) -> Void = { _ in },
+    file: StaticString = #file,
+    line: UInt = #line,
+    column: UInt = #column,
     defaultHandler: @escaping (TheErrorLegacy) -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(receiveCompletion: { completion in
       guard case let .failure(error) = completion
-      else {
-        return
-      }
+      else { return }
 
       let handled: Bool =
         cases
@@ -50,6 +52,11 @@ extension Publisher where Failure == TheErrorLegacy {
       else {
         /* NOP */
       }
+      diagnosticLog(
+        error
+          .asTheError()
+          .recording("Handled at \(file)@\(line):\(column)", for: "HandlingLocation")
+      )
     })
   }
 }

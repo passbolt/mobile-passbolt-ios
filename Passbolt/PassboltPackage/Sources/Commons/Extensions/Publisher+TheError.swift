@@ -41,25 +41,43 @@ extension Publisher {
 
   public func handleError<ErrorType>(
     _ errorType: ErrorType.Type,
+    diagnosticLog: @escaping (ErrorType) -> Void = { _ in },
+    file: StaticString = #file,
+    line: UInt = #line,
+    column: UInt = #column,
     _ handler: @escaping (ErrorType) -> Void
-  ) -> Publishers.HandleEvents<Self> {
+  ) -> Publishers.HandleEvents<Self>
+  where ErrorType: TheError {
     self.handleEvents(
       receiveCompletion: { completion in
         guard case let .failure(error as ErrorType) = completion
         else { return }
         handler(error)
+        diagnosticLog(
+          error
+            .recording("Handled at \(file)@\(line):\(column)", for: "HandlingLocation")
+        )
       }
     )
   }
 
   public func handleErrors(
+    diagnosticLog: @escaping (TheError) -> Void = { _ in },
+    file: StaticString = #file,
+    line: UInt = #line,
+    column: UInt = #column,
     _ handler: @escaping (TheError) -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(
       receiveCompletion: { completion in
         guard case let .failure(error) = completion
         else { return }
-        handler(error as? TheError ?? error.asUnidentified())
+        let theError: TheError = error.asTheError()
+        handler(theError)
+        diagnosticLog(
+          theError
+            .recording("Handled at \(file)@\(line):\(column)", for: "HandlingLocation")
+        )
       }
     )
   }
