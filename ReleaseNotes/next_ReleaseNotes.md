@@ -13,6 +13,4 @@
 - 
 
 ## Maintenance
-- Refactor localizable strings
-- Reorganize image assets
-- Rework error handling
+- 
