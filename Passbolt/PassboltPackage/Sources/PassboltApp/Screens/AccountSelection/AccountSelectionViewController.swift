@@ -101,10 +101,15 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     contentView
       .accountTapPublisher
       .sink { [weak self] item in
-        self?.push(
-          AuthorizationViewController.self,
-          in: item.account
-        )
+        if item.isCurrentAccount && !(self?.navigationController is AuthorizationNavigationViewController) {
+          self?.popToRoot()
+        }
+        else {
+          self?.push(
+            AuthorizationViewController.self,
+            in: item.account
+          )
+        }
       }
       .store(in: cancellables)
 
