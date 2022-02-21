@@ -27,7 +27,7 @@ extension View {
 
   public func styleTextTitle() -> some View {
     self.text(
-      font: .inter(ofSize: 20, weight: .regular),
+      font: .inter(ofSize: 20, weight: .semibold),
       color: .passboltPrimaryText
     )
   }

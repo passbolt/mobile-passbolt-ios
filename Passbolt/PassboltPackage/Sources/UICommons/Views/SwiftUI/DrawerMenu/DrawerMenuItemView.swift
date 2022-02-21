@@ -94,7 +94,16 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
         ? Color.passboltPrimaryTextInverted
         : Color.passboltPrimaryText
     )
+    .font(.inter(ofSize: 16, weight: .semibold))
     .cornerRadius(3)
+    .padding(
+      EdgeInsets(
+        top: 8,
+        leading: 0,
+        bottom: 8,
+        trailing: 0
+      )
+    )
   }
 }
 

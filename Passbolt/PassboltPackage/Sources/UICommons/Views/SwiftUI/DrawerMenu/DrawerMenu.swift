@@ -55,9 +55,9 @@ where TitleView: View, ContentView: View {
       .styleTextTitle()
       .padding(
         EdgeInsets(
-          top: 8,
+          top: 16,
           leading: 16,
-          bottom: 8,
+          bottom: 16,
           trailing: 16
         )
       )
