@@ -42,7 +42,7 @@ extension FavoriteResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(favoriteOnly: true))
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(sorting: .modifiedRecently, favoriteOnly: true))
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
       resourcesFilterSubject

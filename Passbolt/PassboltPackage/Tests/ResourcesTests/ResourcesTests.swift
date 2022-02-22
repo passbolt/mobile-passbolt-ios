@@ -365,7 +365,7 @@ final class ResourceTests: TestCase {
 
     resources = testResourcesAlternative
 
-    filterSubject.send(.init())
+    filterSubject.send(.init(sorting: .nameAlphabetically))
 
     XCTAssertEqual(result, testResourcesAlternative)
   }
@@ -436,6 +436,7 @@ private let validAccount: Account = .init(
 )
 
 private let testFilter: ResourcesFilter = .init(
+  sorting: .nameAlphabetically,
   text: "test",
   name: "test",
   url: "test"

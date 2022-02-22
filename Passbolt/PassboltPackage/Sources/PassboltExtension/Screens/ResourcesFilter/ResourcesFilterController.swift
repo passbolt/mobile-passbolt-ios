@@ -54,7 +54,12 @@ extension ResourcesFilterController: UIController {
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
       searchTextSubject
-        .map { searchText in ResourcesFilter(text: searchText) }
+        .map { searchText in
+          ResourcesFilter(
+            sorting: .nameAlphabetically,
+            text: searchText
+          )
+        }
         .eraseToAnyPublisher()
     }
 

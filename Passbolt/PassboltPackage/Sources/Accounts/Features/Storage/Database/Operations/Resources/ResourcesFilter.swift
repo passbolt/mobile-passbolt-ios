@@ -41,7 +41,7 @@ public struct ResourcesFilter {
   public var permissions: Set<ResourcePermission>
 
   public init(
-    sorting: ResourcesSorting = .nameAlphabetically,
+    sorting: ResourcesSorting,
     text: String = .init(),
     name: String = .init(),
     url: String = .init(),

@@ -56,7 +56,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -84,7 +84,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -136,7 +136,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -170,7 +170,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     }
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(text: "1"))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically, text: "1"))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -179,7 +179,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
       .sinkDrop()
       .store(in: cancellables)
 
-    XCTAssertEqual(result, ResourcesFilter(text: "1"))
+    XCTAssertEqual(result, ResourcesFilter(sorting: .nameAlphabetically, text: "1"))
   }
 
   func test_resourcesListPublisher_publishesSuggestedResourcesListFromResources_usingRequestedServiceIdentifiers() {
@@ -214,7 +214,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -264,7 +264,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -319,7 +319,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -374,7 +374,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -426,7 +426,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -478,7 +478,7 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter())
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 

@@ -42,7 +42,7 @@ extension SharedResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(permissions: [.read, .write]))
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(sorting: .modifiedRecently, permissions: [.read, .write]))
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
       resourcesFilterSubject

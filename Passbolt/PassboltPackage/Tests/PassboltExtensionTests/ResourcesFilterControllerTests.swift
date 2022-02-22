@@ -194,7 +194,7 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
 
     controller.updateSearchText("updated")
 
-    XCTAssertEqual(result, ResourcesFilter(text: "updated"))
+    XCTAssertEqual(result, ResourcesFilter(sorting: .nameAlphabetically, text: "updated"))
   }
 }
 

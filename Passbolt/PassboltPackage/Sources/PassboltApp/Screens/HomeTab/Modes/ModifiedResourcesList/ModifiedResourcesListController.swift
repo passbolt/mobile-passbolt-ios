@@ -60,5 +60,3 @@ extension ModifiedResourcesListController: UIController {
     )
   }
 }
-
-

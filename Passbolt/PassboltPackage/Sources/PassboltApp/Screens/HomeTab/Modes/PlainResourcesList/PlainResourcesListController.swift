@@ -42,7 +42,7 @@ extension PlainResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init())
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(sorting: .nameAlphabetically))
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
       resourcesFilterSubject
