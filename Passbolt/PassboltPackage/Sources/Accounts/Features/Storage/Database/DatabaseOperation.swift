@@ -65,6 +65,26 @@ extension DatabaseOperation {
         .eraseToAnyPublisher()
     }
   }
+
+  internal static func withConnectionInTransaction(
+    using connectionPublisher: AnyPublisher<SQLiteConnection, Error>,
+    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, Error>
+  ) -> Self {
+    Self { input -> AnyPublisher<Output, Error> in
+      connectionPublisher
+        .first()
+        .map { conn -> AnyPublisher<Output, Error> in
+          conn
+            .withQueue { conn -> Result<Output, Error> in
+              conn.withTransaction { conn in
+                operation(conn, input)
+              }
+            }
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+  }
 }
 
 #if DEBUG

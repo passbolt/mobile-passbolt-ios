@@ -38,7 +38,7 @@ public struct ResourcesFilter {
   // favorite only search (AND)
   public var favoriteOnly: Bool
   // included permissions search (AND) - empty ignores this parameter
-  public var permissions: Set<ResourcePermission>
+  public var permissions: Set<Permission>
 
   public init(
     sorting: ResourcesSorting,
@@ -47,7 +47,7 @@ public struct ResourcesFilter {
     url: String = .init(),
     username: String = .init(),
     favoriteOnly: Bool = false,
-    permissions: Set<ResourcePermission> = .init()
+    permissions: Set<Permission> = .init()
   ) {
     self.sorting = sorting
     self.text = text
@@ -56,15 +56,6 @@ public struct ResourcesFilter {
     self.username = username
     self.favoriteOnly = favoriteOnly
     self.permissions = permissions
-  }
-
-  public var isEmpty: Bool {
-    text.isEmpty
-      && name.isEmpty
-      && url.isEmpty
-      && username.isEmpty
-      && !favoriteOnly  // favorite only is not an empty filter
-      && permissions.isEmpty
   }
 }
 

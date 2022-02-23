@@ -22,6 +22,7 @@
 //
 
 import Commons
+
 import struct Foundation.Date
 
 public struct Resource {
@@ -30,27 +31,30 @@ public struct Resource {
 
   public let id: ID
   public var typeID: ResourceType.ID
+  public var parentFolderID: Folder.ID?
   public var name: String
   public var url: String?
   public var username: String?
   public var description: String?
-  public var permission: ResourcePermission
+  public var permission: Permission
   public var favorite: Bool
   public var modified: Date
 
   public init(
     id: ID,
     typeID: ResourceType.ID,
+    parentFolderID: Folder.ID?,
     name: String,
     url: String?,
     username: String?,
     description: String?,
-    permission: ResourcePermission,
+    permission: Permission,
     favorite: Bool,
     modified: Date
   ) {
     self.id = id
     self.typeID = typeID
+    self.parentFolderID = parentFolderID
     self.name = name
     self.url = url
     self.username = username
@@ -59,11 +63,4 @@ public struct Resource {
     self.favorite = favorite
     self.modified = modified
   }
-}
-
-public enum ResourcePermission: String {
-
-  case read = "read"
-  case write = "write"
-  case owner = "owner"
 }

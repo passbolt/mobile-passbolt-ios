@@ -56,7 +56,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -84,7 +86,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -113,21 +117,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -136,7 +134,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -170,7 +170,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     }
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically, text: "1"))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically, text: "1")
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -191,21 +193,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -214,7 +210,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -241,21 +239,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -264,7 +256,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -296,21 +290,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "alter.passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -319,7 +307,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -351,21 +341,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -374,7 +358,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -403,21 +389,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -426,7 +406,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 
@@ -455,21 +437,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com/some/path/here",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
       ListViewResource(
         id: "resource_2",
-        permission: .read,
         name: "Resoure 2",
         url: "alterpassbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -478,7 +454,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
     features.use(resources)
 
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(ResourcesFilter(sorting: .nameAlphabetically))
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
 
     let controller: ResourcesSelectionListController = testController(context: filtersSubject.eraseToAnyPublisher())
 

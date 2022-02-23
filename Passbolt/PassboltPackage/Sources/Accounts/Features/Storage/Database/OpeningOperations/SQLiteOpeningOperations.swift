@@ -172,6 +172,33 @@ internal enum SQLiteOpeningOperations {
       ON
         resourceTypes.id == resources.resourceTypeID;
       """,
+      // - foldersListView - //
+      """
+      CREATE TEMPORARY VIEW
+        foldersListView
+      AS
+      SELECT
+        id,
+        parentFolderID,
+        name,
+        permission
+      FROM
+        folders;
+      """,
+      // - folderResourcesListView - //
+      """
+      CREATE TEMPORARY VIEW
+        folderResourcesListView
+      AS
+      SELECT
+        id,
+        parentFolderID,
+        name,
+        url,
+        username
+      FROM
+        resources;
+      """,
     ]
   }
 }

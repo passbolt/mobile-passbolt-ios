@@ -445,32 +445,23 @@ private let testFilter: ResourcesFilter = .init(
 private let testResources: Array<ListViewResource> = [
   .init(
     id: .init(rawValue: "test"),
-    permission: .read,
     name: "test",
     url: "test",
-    username: "test",
-    favorite: false,
-    modified: .init(timeIntervalSince1970: 0)
+    username: "test"
   )
 ]
 
 private let testResourcesAlternative: Array<ListViewResource> = [
   .init(
     id: .init(rawValue: "test"),
-    permission: .read,
     name: "test",
     url: "test",
-    username: "test",
-    favorite: false,
-    modified: .init(timeIntervalSince1970: 0)
+    username: "test"
   ),
   .init(
     id: .init(rawValue: "testAlt"),
-    permission: .write,
     name: "testAlt",
     url: "testAlt",
-    username: "testAlt",
-    favorite: false,
-    modified: .init(timeIntervalSince1970: 0)
+    username: "testAlt"
   ),
 ]

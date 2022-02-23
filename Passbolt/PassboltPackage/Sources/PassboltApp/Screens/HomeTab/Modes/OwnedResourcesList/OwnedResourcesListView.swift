@@ -86,4 +86,3 @@ internal final class OwnedResourcesListView: PlainView {
     }
   }
 }
-

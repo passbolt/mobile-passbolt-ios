@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+
 import struct Foundation.Date
 
 public struct ListViewResource {
@@ -29,29 +30,20 @@ public struct ListViewResource {
   public typealias ID = Resource.ID
 
   public let id: ID
-  public var permission: ResourcePermission
   public var name: String
   public var url: String?
   public var username: String?
-  public var favorite: Bool
-  public var modified: Date
 
   public init(
     id: ID,
-    permission: ResourcePermission,
     name: String,
     url: String?,
-    username: String?,
-    favorite: Bool,
-    modified: Date
+    username: String?
   ) {
     self.id = id
-    self.permission = permission
     self.name = name
     self.url = url
     self.username = username
-    self.favorite = favorite
-    self.modified = modified
   }
 }
 

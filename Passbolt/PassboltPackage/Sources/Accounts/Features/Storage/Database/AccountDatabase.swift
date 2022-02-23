@@ -38,6 +38,9 @@ public struct AccountDatabase {
   public var fetchDetailsViewResources: FetchDetailsViewResourcesOperation
   public var fetchResourcesTypesOperation: FetchResourcesTypesOperation
   public var fetchEditViewResourceOperation: FetchEditViewResourcesOperation
+  public var storeFolders: StoreFoldersOperation
+  public var fetchListViewFoldersOperation: FetchListViewFoldersOperation
+  public var fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation
 
   public var featureUnload: () -> Bool
 }
@@ -170,6 +173,9 @@ extension AccountDatabase: Feature {
       fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentConnectionPublisher),
       fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentConnectionPublisher),
       fetchEditViewResourceOperation: FetchEditViewResourcesOperation.using(currentConnectionPublisher),
+      storeFolders: StoreFoldersOperation.using(currentConnectionPublisher),
+      fetchListViewFoldersOperation: FetchListViewFoldersOperation.using(currentConnectionPublisher),
+      fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation.using(currentConnectionPublisher),
       featureUnload: featureUnload
     )
   }
@@ -185,6 +191,9 @@ extension AccountDatabase: Feature {
       fetchDetailsViewResources: .placeholder,
       fetchResourcesTypesOperation: .placeholder,
       fetchEditViewResourceOperation: .placeholder,
+      storeFolders: .placeholder,
+      fetchListViewFoldersOperation: .placeholder,
+      fetchListViewFolderResourcesOperation: .placeholder,
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }

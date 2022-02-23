@@ -32,7 +32,7 @@ extension StoreResourcesOperation {
   static func using(
     _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
-    withConnection(
+    withConnectionInTransaction(
       using: connectionPublisher
     ) { conn, input in
       // We have to remove all previously stored resources before updating
@@ -71,7 +71,7 @@ extension StoreResourcesOperation {
             resource.username,
             resource.typeID.rawValue,
             resource.description,
-            nil,  // folders are not implemented yet
+            resource.parentFolderID?.rawValue,
             resource.favorite,
             resource.modified
           )
@@ -101,12 +101,14 @@ extension FetchListViewResourcesOperation {
     ) { conn, input in
       var statement: SQLiteStatement = """
         SELECT
-          *
+          id,
+          name,
+          url,
+          username
         FROM
           resourcesListView
         WHERE
           1 -- equivalent of true, used to simplify dynamic query building
-
         """
 
       var params: Array<SQLiteBindable?> = .init()
@@ -180,7 +182,7 @@ extension FetchListViewResourcesOperation {
         }
         statement.append(") ")
       }
-      else if let permission: ResourcePermission = input.permissions.first {
+      else if let permission: Permission = input.permissions.first {
         statement.append("AND permission == ? ")
         params.append(permission.rawValue)
       }
@@ -209,23 +211,13 @@ extension FetchListViewResourcesOperation {
             rows.compactMap { row -> ListViewResource? in
               guard
                 let id: ListViewResource.ID = (row.id as String?).map(ListViewResource.ID.init(rawValue:)),
-                let permission: ResourcePermission = (row.permission as String?).flatMap(
-                  ResourcePermission.init(rawValue:)
-                ),
                 let name: String = row.name
               else { return nil }
               return ListViewResource(
                 id: id,
-                permission: permission,
                 name: name,
                 url: row.url,
-                username: row.username,
-                favorite: row.favorite ?? false,
-                modified: .init(
-                  timeIntervalSince1970: .init(
-                    row.modified ?? 0 as Int64
-                  )
-                )
+                username: row.username
               )
             }
           )
@@ -263,7 +255,7 @@ extension FetchDetailsViewResourcesOperation {
           .map { row -> Result<DetailsViewResource, Error> in
             guard
               let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
-              let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
+              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
               let name: String = row.name,
               let rawFields: String = row.resourceFields
             else {
@@ -334,7 +326,7 @@ extension FetchEditViewResourcesOperation {
           .map { row -> Result<EditViewResource, Error> in
             guard
               let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
-              let permission: ResourcePermission = row.permission.flatMap(ResourcePermission.init(rawValue:)),
+              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
               let name: String = row.name,
               let resourceTypeID: ResourceType.ID = row.resourceTypeID.map(ResourceType.ID.init(rawValue:)),
               let resourceTypeSlug: ResourceType.Slug = row.resourceTypeSlug.map(ResourceType.Slug.init(rawValue:)),
@@ -383,8 +375,8 @@ extension FetchEditViewResourcesOperation {
   }
 }
 
-let upsertResourceStatement: SQLiteStatement = """
-  INSERT INTO
+private let upsertResourceStatement: SQLiteStatement = """
+  INSERT OR REPLACE INTO
     resources(
       id,
       name,
@@ -406,23 +398,8 @@ let upsertResourceStatement: SQLiteStatement = """
       ?5,
       ?6,
       ?7,
-      ?8,
+      (SELECT id FROM folders WHERE id == ?8),
       ?9,
       ?10
-    )
-  ON CONFLICT
-    (
-      id
-    )
-  DO UPDATE SET
-    name=?2,
-    permission=?3,
-    url=?4,
-    username=?5,
-    resourceTypeID=?6,
-    description=?7,
-    parentFolderID=?8,
-    favorite=?9,
-    modified=?10
-  ;
+    );
   """

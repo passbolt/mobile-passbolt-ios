@@ -71,7 +71,7 @@ extension SaveLastUpdateOperation {
   static func using(
     _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
-    withConnection(
+    withConnectionInTransaction(
       using: connectionPublisher
     ) { conn, input in
       conn

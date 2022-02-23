@@ -21,44 +21,37 @@
 // @since         v1.0
 //
 
-import Accounts
 import CommonModels
 
-internal enum ResourcesListViewItem {
+public struct FoldersFilter {
 
-  case add
-  case resource(ResourcesListViewResourceItem)
-}
-
-extension ResourcesListViewItem: Hashable {}
-
-internal struct ResourcesListViewResourceItem {
-
-  public typealias ID = Resource.ID
-
-  public let id: ID
-  public var name: String
-  public var username: String?
-
-  public init(
-    from resource: ListViewResource
-  ) {
-    self.init(
-      id: resource.id,
-      name: resource.name,
-      username: resource.username
-    )
-  }
+  // ordering of results
+  public var sorting: FoldersSorting
+  // name search (AND) - empty ignores this parameter
+  public var text: String
+  // current folder contents search (AND) - search on folders root on no value
+  // current folder itself won't appear in results
+  public var folderID: Folder.ID?
+  // folder content flattening from current folderID
+  // false - filters only within current folderID direct descendants
+  // true - filters recursively within current folderID and all its subfolders
+  public var flattenContent: Bool
+  // included permissions search (AND) - empty ignores this parameter
+  public var permissions: Set<Permission>
 
   public init(
-    id: ID,
-    name: String,
-    username: String?
+    sorting: FoldersSorting,
+    text: String = .init(),
+    folderID: Folder.ID?,
+    flattenContent: Bool = false,
+    permissions: Set<Permission> = .init()
   ) {
-    self.id = id
-    self.name = name
-    self.username = username
+    self.sorting = sorting
+    self.text = text
+    self.folderID = folderID
+    self.flattenContent = flattenContent
+    self.permissions = permissions
   }
 }
 
-extension ResourcesListViewResourceItem: Hashable {}
+extension FoldersFilter: Equatable {}

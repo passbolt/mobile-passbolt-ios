@@ -42,7 +42,9 @@ extension OwnedResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
-    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(.init(sorting: .modifiedRecently, permissions: [.owner]))
+    let resourcesFilterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      .init(sorting: .modifiedRecently, permissions: [.owner])
+    )
 
     func resourcesFilterPublisher() -> AnyPublisher<ResourcesFilter, Never> {
       resourcesFilterSubject
@@ -60,4 +62,3 @@ extension OwnedResourcesListController: UIController {
     )
   }
 }
-

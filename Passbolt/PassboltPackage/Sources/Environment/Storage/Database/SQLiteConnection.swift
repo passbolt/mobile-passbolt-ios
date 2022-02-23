@@ -210,9 +210,9 @@ extension SQLiteConnection {
   }
 
   @inlinable
-  public func withTransaction(
-    _ transaction: (SQLiteConnection) -> Result<Void, Error>
-  ) -> Result<Void, Error> {
+  public func withTransaction<Value>(
+    _ transaction: (SQLiteConnection) -> Result<Value, Error>
+  ) -> Result<Value, Error> {
     switch beginTransaction() {
     case .success:
       break
@@ -222,8 +222,8 @@ extension SQLiteConnection {
     }
 
     switch transaction(self) {
-    case .success:
-      return endTransaction()
+    case let .success(value):
+      return endTransaction().map { value }
 
     case let .failure(error):
       return rollbackTransaction()

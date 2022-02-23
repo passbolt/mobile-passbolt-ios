@@ -174,7 +174,7 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertTrue(result?.isEmpty ?? false)
+    XCTAssertTrue(result?.text.isEmpty ?? false)
   }
 
   func test_resourcesFilterPublisher_publishesUpdatesOnTextUpdates() {

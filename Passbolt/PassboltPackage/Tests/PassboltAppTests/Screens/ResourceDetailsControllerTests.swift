@@ -482,12 +482,9 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     var resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
-        permission: .read,
         name: "Resoure 1",
         url: "passbolt.com",
-        username: "test",
-        favorite: false,
-        modified: .init(timeIntervalSince1970: 0)
+        username: "test"
       )
     ]
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }

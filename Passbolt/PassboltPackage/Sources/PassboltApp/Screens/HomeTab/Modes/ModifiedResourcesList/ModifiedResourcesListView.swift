@@ -86,5 +86,3 @@ internal final class ModifiedResourcesListView: PlainView {
     }
   }
 }
-
-

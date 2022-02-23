@@ -170,7 +170,7 @@ extension Resources: Feature {
               response
                 .body
                 .map { (resource: ResourcesRequestResponseBodyItem) -> Resource in
-                  let permission: ResourcePermission = {
+                  let permission: Permission = {
                     switch resource.permission {
                     case .read:
                       return .read
@@ -185,6 +185,7 @@ extension Resources: Feature {
                   return Resource(
                     id: .init(rawValue: resource.id),
                     typeID: .init(rawValue: resource.resourceTypeID),
+                    parentFolderID: resource.parentFolderID.map(Folder.ID.init(rawValue:)),
                     name: resource.name,
                     url: resource.url,
                     username: resource.username,

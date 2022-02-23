@@ -72,6 +72,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
   public var id: String
   public var resourceTypeID: String
   public var permission: Permission
+  public var parentFolderID: String?
   public var name: String
   public var url: String?
   public var username: String?
@@ -89,6 +90,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     self.username = try container.decodeIfPresent(String.self, forKey: .username)
     self.description = try container.decodeIfPresent(String.self, forKey: .description)
     self.resourceTypeID = try container.decode(String.self, forKey: .resourceTypeID)
+    self.parentFolderID = try container.decodeIfPresent(String.self, forKey: .parentFolderID)
 
     let permissionContainer = try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
     self.permission = try permissionContainer.decode(Permission.self, forKey: .type)
@@ -115,6 +117,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     case username = "username"
     case description = "description"
     case resourceTypeID = "resource_type_id"
+    case parentFolderID = "folder_parent_id"
     case permission = "permission"
     case favorite = "favorite"
     case modified = "modified"

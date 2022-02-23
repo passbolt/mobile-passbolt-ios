@@ -21,44 +21,14 @@
 // @since         v1.0
 //
 
-import Accounts
-import CommonModels
+import Commons
 
-internal enum ResourcesListViewItem {
+public struct Folder {
 
-  case add
-  case resource(ResourcesListViewResourceItem)
-}
-
-extension ResourcesListViewItem: Hashable {}
-
-internal struct ResourcesListViewResourceItem {
-
-  public typealias ID = Resource.ID
+  public typealias ID = Tagged<String, Self>
 
   public let id: ID
   public var name: String
-  public var username: String?
-
-  public init(
-    from resource: ListViewResource
-  ) {
-    self.init(
-      id: resource.id,
-      name: resource.name,
-      username: resource.username
-    )
-  }
-
-  public init(
-    id: ID,
-    name: String,
-    username: String?
-  ) {
-    self.id = id
-    self.name = name
-    self.username = username
-  }
+  public var permission: Permission
+  public var parentFolderID: ID?
 }
-
-extension ResourcesListViewResourceItem: Hashable {}

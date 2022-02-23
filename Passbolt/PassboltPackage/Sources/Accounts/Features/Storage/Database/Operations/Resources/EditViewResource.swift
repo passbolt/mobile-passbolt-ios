@@ -29,7 +29,7 @@ public struct EditViewResource {
 
   public let id: ID
   public var type: ResourceType
-  public var permission: ResourcePermission
+  public var permission: Permission
   public var name: String
   public var url: String?
   public var username: String?
@@ -38,7 +38,7 @@ public struct EditViewResource {
   public init(
     id: ID,
     type: ResourceType,
-    permission: ResourcePermission,
+    permission: Permission,
     name: String,
     url: String?,
     username: String?,

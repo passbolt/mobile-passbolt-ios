@@ -9,7 +9,7 @@ extension StoreResourcesTypesOperation {
   static func using(
     _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
   ) -> Self {
-    withConnection(
+    withConnectionInTransaction(
       using: connectionPublisher
     ) { conn, input in
       // iterate over resources types to insert or update

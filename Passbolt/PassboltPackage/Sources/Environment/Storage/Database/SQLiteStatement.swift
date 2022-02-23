@@ -31,14 +31,14 @@ extension SQLiteStatement {
   public mutating func append(
     _ other: SQLiteStatement?
   ) {
-    rawString.append((other?.rawString ?? ""))
+    rawString.append(" \(other?.rawString ?? "")")
   }
 
   public func appending(
     _ other: SQLiteStatement?
   ) -> SQLiteStatement {
     SQLiteStatement(
-      rawString: rawString.appending(other?.rawString ?? "")
+      rawString: rawString.appending(" \(other?.rawString ?? "")")
     )
   }
 

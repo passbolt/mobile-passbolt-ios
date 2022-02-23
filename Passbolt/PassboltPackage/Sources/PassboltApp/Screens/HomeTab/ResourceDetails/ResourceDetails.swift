@@ -28,23 +28,6 @@ extension ResourceDetailsController {
 
   internal struct ResourceDetails: Equatable {
 
-    internal enum Permission: String {
-
-      case read = "read"
-      case write = "write"
-      case owner = "owner"
-
-      fileprivate static func from(resourcePermission: ResourcePermission) -> Permission {
-        guard let permission: Permission = .init(rawValue: resourcePermission.rawValue)
-        else {
-          assertionFailure("Invalid rawValue")
-          return .read
-        }
-
-        return permission
-      }
-    }
-
     internal let id: Resource.ID
     internal var permission: Permission
     internal var name: String
@@ -56,10 +39,9 @@ extension ResourceDetailsController {
     internal static func from(
       detailsViewResource: DetailsViewResource
     ) -> ResourceDetails {
-
-      return .init(
+      .init(
         id: .init(rawValue: detailsViewResource.id.rawValue),
-        permission: .from(resourcePermission: detailsViewResource.permission),
+        permission: detailsViewResource.permission,
         name: detailsViewResource.name,
         url: detailsViewResource.url,
         username: detailsViewResource.username,

@@ -21,44 +21,9 @@
 // @since         v1.0
 //
 
-import Accounts
-import CommonModels
+public enum Permission: String {
 
-internal enum ResourcesListViewItem {
-
-  case add
-  case resource(ResourcesListViewResourceItem)
+  case read = "read"
+  case write = "write"
+  case owner = "owner"
 }
-
-extension ResourcesListViewItem: Hashable {}
-
-internal struct ResourcesListViewResourceItem {
-
-  public typealias ID = Resource.ID
-
-  public let id: ID
-  public var name: String
-  public var username: String?
-
-  public init(
-    from resource: ListViewResource
-  ) {
-    self.init(
-      id: resource.id,
-      name: resource.name,
-      username: resource.username
-    )
-  }
-
-  public init(
-    id: ID,
-    name: String,
-    username: String?
-  ) {
-    self.id = id
-    self.name = name
-    self.username = username
-  }
-}
-
-extension ResourcesListViewResourceItem: Hashable {}

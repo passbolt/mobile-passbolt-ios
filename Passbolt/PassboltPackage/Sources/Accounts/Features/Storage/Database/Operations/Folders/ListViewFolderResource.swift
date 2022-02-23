@@ -21,77 +21,30 @@
 // @since         v1.0
 //
 
-import Accounts
 import CommonModels
 
-internal enum ResourcesSelectionListViewItem {
+import struct Foundation.Date
 
-  case add
-  case resource(ResourcesSelectionListViewResourceItem)
-}
-
-extension ResourcesSelectionListViewItem: Hashable {}
-
-internal struct ResourcesSelectionListViewResourceItem {
+public struct ListViewFolderResource {
 
   public typealias ID = Resource.ID
 
   public let id: ID
   public var name: String
-  public var url: String?
   public var username: String?
-  // used to allow duplicate entries in list of resources with suggestions
-  private let suggestionTag: Bool
-
-  public init(
-    from resource: ListViewResource
-  ) {
-    self.init(
-      id: resource.id,
-      name: resource.name,
-      url: resource.url,
-      username: resource.username
-    )
-  }
+  public var parentFolderID: Folder.ID?
 
   public init(
     id: ID,
     name: String,
-    url: String?,
-    username: String?
-  ) {
-    self.init(
-      id: id,
-      name: name,
-      url: url,
-      username: username,
-      suggestionTag: false
-    )
-  }
-
-  private init(
-    id: ID,
-    name: String,
-    url: String?,
     username: String?,
-    suggestionTag: Bool
+    parentFolderID: Folder.ID?
   ) {
     self.id = id
     self.name = name
-    self.url = url
     self.username = username
-    self.suggestionTag = suggestionTag
-  }
-
-  public var suggestionCopy: Self {
-    Self(
-      id: id,
-      name: name,
-      url: url,
-      username: username,
-      suggestionTag: true
-    )
+    self.parentFolderID = parentFolderID
   }
 }
 
-extension ResourcesSelectionListViewResourceItem: Hashable {}
+extension ListViewFolderResource: Hashable {}

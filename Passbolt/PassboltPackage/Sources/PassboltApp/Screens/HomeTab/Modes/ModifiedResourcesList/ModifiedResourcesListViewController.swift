@@ -114,5 +114,3 @@ internal final class ModifiedResourcesListViewController: PlainViewController, U
     )
   }
 }
-
-

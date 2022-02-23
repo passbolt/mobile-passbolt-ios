@@ -114,4 +114,3 @@ internal final class OwnedResourcesListViewController: PlainViewController, UICo
     )
   }
 }
-

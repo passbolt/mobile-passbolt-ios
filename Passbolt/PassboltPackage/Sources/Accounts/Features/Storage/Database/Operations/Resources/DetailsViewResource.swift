@@ -28,7 +28,7 @@ public struct DetailsViewResource {
   public typealias ID = Resource.ID
 
   public let id: ID
-  public var permission: ResourcePermission
+  public var permission: Permission
   public var name: String
   public var url: String?
   public var username: String?
@@ -37,7 +37,7 @@ public struct DetailsViewResource {
 
   public init(
     id: ID,
-    permission: ResourcePermission,
+    permission: Permission,
     name: String,
     url: String?,
     username: String?,
