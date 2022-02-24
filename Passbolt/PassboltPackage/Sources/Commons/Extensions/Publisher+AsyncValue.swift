@@ -21,26 +21,37 @@
 // @since         v1.0
 //
 
-import Commons
+import Combine
 
-public struct Folder {
+extension Publisher {
 
-  public typealias ID = Tagged<String, Self>
+  public func asAsyncValue() async throws -> Output {
+    var cancellable: AnyCancellable?
+    // keeping cancellable in memory
+    defer { _ = cancellable }
+    return try await withCheckedThrowingContinuation { continuation in
+      cancellable =
+        self
+        .first()  // ensure that only one value will be emitted
+        .handleEvents(
+          receiveOutput: { response in
+            continuation.resume(returning: response)
+          },
+          receiveCompletion: { completion in
+            switch completion {
+            case .finished:
+              break // NOP
+              
+            case let .failure(error):
+              continuation.resume(throwing: error)
+            }
 
-  public let id: ID
-  public var name: String
-  public var permission: Permission
-  public var parentFolderID: ID?
-
-  public init(
-    id: ID,
-    name: String,
-    permission: Permission,
-    parentFolderID: ID?
-  ) {
-    self.id = id
-    self.name = name
-    self.permission = permission
-    self.parentFolderID = parentFolderID
+          },
+          receiveCancel: {
+            continuation.resume(throwing: CancellationError())
+          }
+        )
+        .sinkDrop()
+    }
   }
 }

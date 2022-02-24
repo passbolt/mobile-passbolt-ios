@@ -21,26 +21,18 @@
 // @since         v1.0
 //
 
-import Commons
+import Combine
 
-public struct Folder {
+extension Publisher {
 
-  public typealias ID = Tagged<String, Self>
+  public func asAsyncThrowingSequence() -> AnyAsyncThrowingSequence<Output> {
+    AnyAsyncThrowingSequence(self)
+  }
+}
 
-  public let id: ID
-  public var name: String
-  public var permission: Permission
-  public var parentFolderID: ID?
+extension Publisher where Failure == Never {
 
-  public init(
-    id: ID,
-    name: String,
-    permission: Permission,
-    parentFolderID: ID?
-  ) {
-    self.id = id
-    self.name = name
-    self.permission = permission
-    self.parentFolderID = parentFolderID
+  public func asAsyncSequence() -> AnyAsyncSequence<Output> {
+    AnyAsyncSequence(self)
   }
 }

@@ -21,26 +21,15 @@
 // @since         v1.0
 //
 
-import Commons
+extension Publisher {
 
-public struct Folder {
-
-  public typealias ID = Tagged<String, Self>
-
-  public let id: ID
-  public var name: String
-  public var permission: Permission
-  public var parentFolderID: ID?
-
-  public init(
-    id: ID,
-    name: String,
-    permission: Permission,
-    parentFolderID: ID?
-  ) {
-    self.id = id
-    self.name = name
-    self.permission = permission
-    self.parentFolderID = parentFolderID
+  public func handleValues(
+    _ handler: @escaping (Output) -> Void
+  ) -> Publishers.HandleEvents<Self> {
+    self.handleEvents(
+      receiveOutput: { value in
+        handler(value)
+      }
+    )
   }
 }

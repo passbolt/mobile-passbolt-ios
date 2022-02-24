@@ -252,36 +252,44 @@ extension FeatureFactory {
     if let instance: FeatureInstance = rootFeatures[F.featureIdentifier],
       var loaded: F = instance.feature as? F
     {
-      loaded[keyPath: keyPath] = updated
-      rootFeatures[F.featureIdentifier] = .init(
-        feature: loaded,
-        cancellables: instance.cancellables
-      )
+      withExtendedLifetime(loaded) {
+        loaded[keyPath: keyPath] = updated
+        rootFeatures[F.featureIdentifier] = .init(
+          feature: loaded,
+          cancellables: instance.cancellables
+        )
+      }
     }
     else if let instance: FeatureInstance = scopeFeatures[F.featureIdentifier],
       var loaded: F = instance.feature as? F
     {
-      loaded[keyPath: keyPath] = updated
-      scopeFeatures[F.featureIdentifier] = .init(
-        feature: loaded,
-        cancellables: instance.cancellables
-      )
+      withExtendedLifetime(loaded) {
+        loaded[keyPath: keyPath] = updated
+        scopeFeatures[F.featureIdentifier] = .init(
+          feature: loaded,
+          cancellables: instance.cancellables
+        )
+      }
     }
     else if scopeID == nil {
       var feature: F = .placeholder
-      feature[keyPath: keyPath] = updated
-      rootFeatures[F.featureIdentifier] = .init(
-        feature: feature,
-        cancellables: .init()
-      )
+      withExtendedLifetime(feature) {
+        feature[keyPath: keyPath] = updated
+        rootFeatures[F.featureIdentifier] = .init(
+          feature: feature,
+          cancellables: .init()
+        )
+      }
     }
     else {
       var feature: F = .placeholder
-      feature[keyPath: keyPath] = updated
-      scopeFeatures[F.featureIdentifier] = .init(
-        feature: feature,
-        cancellables: .init()
-      )
+      withExtendedLifetime(feature) {
+        feature[keyPath: keyPath] = updated
+        scopeFeatures[F.featureIdentifier] = .init(
+          feature: feature,
+          cancellables: .init()
+        )
+      }
     }
     featuresAccessLock.unlock()
   }

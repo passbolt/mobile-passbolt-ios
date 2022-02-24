@@ -71,12 +71,23 @@ extension NetworkRequest {
   ) -> AnyPublisher<Response, Error> {
     execute(variable)
   }
+
+  public func make(
+    using variable: Variable
+  ) async throws -> Response {
+    try await execute(variable)
+      .asAsyncValue()
+  }
 }
 
 extension NetworkRequest where Variable == Void {
 
   public func make() -> AnyPublisher<Response, Error> {
-    execute(Void())
+    self.make(using: Void())
+  }
+
+  public func make() async throws -> Response {
+    try await self.make(using: Void())
   }
 }
 

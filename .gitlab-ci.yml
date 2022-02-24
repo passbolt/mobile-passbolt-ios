@@ -20,9 +20,11 @@ lint:
 unit_tests:
   stage: test
   script:
-    - make test
+    - make test | tee -a test.log
   artifacts:
+    when: always
     paths:
+      - test.log
       - TestResults.xcresult
       - test-coverage-report.txt
     expire_in: 1 week
@@ -34,7 +36,12 @@ unit_tests:
 qa_build_validation:
   stage: qa_build_validation
   script:
-    make qa_build_validation
+    make qa_build_validation | tee -a validation.log
+  artifacts:
+    when: always
+    paths:
+      - validation.log
+    expire_in: 1 week
   only:
     - merge_request
   tags:
@@ -43,9 +50,11 @@ qa_build_validation:
 qa_build_upload:
   stage: qa_build
   script:
-    make qa_build_publish
+    make qa_build_publish | tee -a upload.log
   artifacts:
+    when: always
     paths: 
+    - upload.log
     - Passbolt.ipa
     expire_in: 1 week
   only:

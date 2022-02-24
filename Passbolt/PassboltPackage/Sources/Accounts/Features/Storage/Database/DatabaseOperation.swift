@@ -37,12 +37,23 @@ extension DatabaseOperation {
   ) -> AnyPublisher<Output, Error> {
     execute(input)
   }
+
+  public func callAsFunction(
+    _ input: Input
+  ) async throws -> Output {
+    try await execute(input)
+      .asAsyncValue()
+  }
 }
 
 extension DatabaseOperation where Input == Void {
 
   public func callAsFunction() -> AnyPublisher<Output, Error> {
-    execute(Void())
+    self.callAsFunction(Void())
+  }
+
+  public func callAsFunction() async throws -> Output {
+    try await self.callAsFunction(Void())
   }
 }
 
@@ -93,6 +104,45 @@ extension DatabaseOperation {
   internal static var placeholder: Self {
     Self(
       execute: unimplemented("You have to provide mocks for used methods")
+    )
+  }
+
+  public static func returning(
+    _ publisher: AnyPublisher<Output, Error>,
+    storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
+  ) -> Self {
+    Self(
+      execute: { input in
+        inputReference?.pointee = input
+        return publisher
+      }
+    )
+  }
+
+  public static func returning(
+    _ output: Output,
+    storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
+  ) -> Self {
+    Self(
+      execute: { input in
+        inputReference?.pointee = input
+        return Just(output)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      }
+    )
+  }
+
+  public static func failingWith(
+    _ error: TheError,
+    storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
+  ) -> Self {
+    Self(
+      execute: { input in
+        inputReference?.pointee = input
+        return Fail<Output, Error>(error: error)
+          .eraseToAnyPublisher()
+      }
     )
   }
 }
