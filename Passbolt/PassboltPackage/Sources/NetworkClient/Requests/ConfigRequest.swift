@@ -27,13 +27,13 @@ import Environment
 import struct Foundation.URL
 
 public typealias ConfigRequest =
-  NetworkRequest<DomainNetworkSessionVariable, ConfigRequestVariable, ConfigResponse>
+  NetworkRequest<AuthorizedNetworkSessionVariable, ConfigRequestVariable, ConfigResponse>
 
 extension ConfigRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
+    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, Error>
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -41,7 +41,14 @@ extension ConfigRequest {
           .url(string: sessionVariable.domain.rawValue),
           .pathSuffix("/settings.json"),
           .method(.get),
-          .queryItem("api-version", value: "v2")
+          .queryItem("api-version", value: "v2"),
+          .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
+          .whenSome(
+            sessionVariable.mfaToken,
+            then: { mfaToken in
+              .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
+            }
+          )
         )
       },
       responseDecoder: .bodyAsJSON(),

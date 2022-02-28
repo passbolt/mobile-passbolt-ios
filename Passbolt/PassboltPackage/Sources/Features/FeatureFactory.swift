@@ -241,7 +241,6 @@ extension FeatureFactory {
       )
     }
     featuresAccessLock.unlock()
-
   }
 
   public func patch<F, P>(

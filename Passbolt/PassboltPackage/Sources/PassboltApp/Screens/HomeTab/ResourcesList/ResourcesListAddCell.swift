@@ -56,7 +56,7 @@ internal final class ResourcesListAddButton: PlainButton {
       .combined(
         .userInteractionEnabled(false),
         .backgroundColor(dynamic: .primaryBlue),
-        .cornerRadius(8),
+        .cornerRadius(4),
         .subview(of: self),
         .leadingAnchor(.equalTo, self.leadingAnchor, constant: 16),
         .topAnchor(.equalTo, self.topAnchor, constant: 12),

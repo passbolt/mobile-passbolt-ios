@@ -1,0 +1,172 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+
+import Commons
+import SwiftUI
+
+public enum SnackBarMessage {
+
+  case info(DisplayableString)
+  case error(Error)
+}
+
+@MainActor
+private struct SnackBar<SnackBarModel, SnackBarView>: ViewModifier
+where SnackBarView: View {
+
+  private var presenting: Binding<SnackBarModel?>
+  private let autoDismissDelaySeconds: UInt64
+  private let snackBar: (SnackBarModel) -> SnackBarView
+  @State private var dismissTask: RecurringTask = .init()
+
+  fileprivate init(
+    presenting: Binding<SnackBarModel?>,
+    autoDismissDelaySeconds: UInt64 = 3,
+    @ViewBuilder snackBar: @escaping (SnackBarModel) -> SnackBarView
+  ) {
+    self.presenting = presenting
+    self.autoDismissDelaySeconds = autoDismissDelaySeconds
+    self.snackBar = snackBar
+  }
+
+  fileprivate func body(
+    content: Content
+  ) -> some View {
+    if let model: SnackBarModel = self.presenting.wrappedValue {
+      content
+        .overlay(
+          snackBar(model)
+            .cornerRadius(4)
+            .padding(16)
+            .contentShape(Rectangle())
+            .onTapGesture {
+              self.presenting.wrappedValue = nil
+            }
+            .onAppear {
+              guard self.autoDismissDelaySeconds > 0 else { return }
+              Task {
+                await self.dismissTask.run { @MainActor in
+                  try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
+                  guard !Task.isCancelled else { return }
+                  self.presenting.wrappedValue = nil
+                }
+              }
+            }
+            .onDisappear {
+              Task {
+                await self.dismissTask.cancel()
+              }
+            },
+          alignment: .bottom
+        )
+    }
+    else {
+      content
+    }
+  }
+}
+
+@MainActor
+extension View {
+
+  public func snackBar<Model, SnackBarView>(
+    presenting: Binding<Model?>,
+    autoDismissDelaySeconds: UInt64 = 3,
+    @ViewBuilder snackBar: @escaping (Model) -> SnackBarView
+  ) -> some View
+  where SnackBarView: View {
+    ModifiedContent(
+      content: self,
+      modifier: SnackBar(
+        presenting: presenting,
+        autoDismissDelaySeconds: autoDismissDelaySeconds,
+        snackBar: snackBar
+      )
+    )
+  }
+
+  public func errorSnackBar(
+    presenting: Binding<Error?>,
+    autoDismissDelaySeconds: UInt64 = 3
+  ) -> some View {
+    self.snackBar(
+      presenting: presenting,
+      autoDismissDelaySeconds: autoDismissDelaySeconds,
+      snackBar: { error in
+        Text(displayable: error.asTheError().displayableMessage)
+          .padding(16)
+          .frame(maxWidth: .infinity)
+          .font(.inter(ofSize: 14, weight: .regular))
+          .foregroundColor(.passboltPrimaryButtonText)
+          .background(Color.passboltSecondaryRed)
+      }
+    )
+  }
+
+  public func infoSnackBar(
+    presenting: Binding<DisplayableString?>,
+    autoDismissDelaySeconds: UInt64 = 3
+  ) -> some View {
+    self.snackBar(
+      presenting: presenting,
+      autoDismissDelaySeconds: autoDismissDelaySeconds,
+      snackBar: { message in
+        Text(displayable: message)
+          .padding(16)
+          .frame(maxWidth: .infinity)
+          .font(.inter(ofSize: 14, weight: .regular))
+          .foregroundColor(.passboltPrimaryTextInverted)
+          .background(Color.passboltPrimaryText)
+      }
+    )
+  }
+
+  public func snackBarMessage(
+    presenting: Binding<SnackBarMessage?>,
+    autoDismissDelaySeconds: UInt64 = 3
+  ) -> some View {
+    self.snackBar(
+      presenting: presenting,
+      autoDismissDelaySeconds: autoDismissDelaySeconds,
+      snackBar: { message in
+        switch message {
+        case let .info(message):
+          Text(displayable: message)
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .font(.inter(ofSize: 14, weight: .regular))
+            .foregroundColor(.passboltPrimaryTextInverted)
+            .background(Color.passboltPrimaryText)
+
+        case let .error(error):
+          Text(displayable: error.asTheError().displayableMessage)
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .font(.inter(ofSize: 14, weight: .regular))
+            .foregroundColor(.passboltPrimaryButtonText)
+            .background(Color.passboltSecondaryRed)
+        }
+      }
+    )
+  }
+}

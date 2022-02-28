@@ -65,6 +65,8 @@ extension ImageNameConstant {
   public static var star: Self { "Star" }
   public static var share: Self { "Share" }
   public static var clock: Self { "Clock" }
+  public static var folder: Self { "Folder" }
+  public static var chevronRight: Self { "ChevronRight" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }
@@ -86,4 +88,7 @@ extension ImageNameConstant {
   public static var biometrics: Self { "Biometrics" }
   public static var totp: Self { "TOTP" }
   public static var duplicateMark: Self { "DuplicateMark" }
+  public static var folderIcon: Self { "FolderIcon" }
+  public static var sharedFolderIcon: Self { "SharedFolderIcon" }
+  public static var create: Self { "Create" }
 }

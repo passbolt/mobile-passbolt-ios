@@ -61,7 +61,6 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
         .image(named: .homeTab, from: .uiCommons)
       )
     }
-
     setupSubscriptions()
   }
 
@@ -73,47 +72,39 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
         guard let self = self else { return }
         switch mode {
         case .plainResourcesList:
-          self.setViewControllers(
-            [
-              self.components
-                .instance(of: PlainResourcesListViewController.self)
-            ],
+          self.replaceNavigationRoot(
+            with: PlainResourcesListViewController.self,
             animated: false
           )
 
         case .favoriteResourcesList:
-          self.setViewControllers(
-            [
-              self.components
-                .instance(of: FavoriteResourcesListViewController.self)
-            ],
+          self.replaceNavigationRoot(
+            with: FavoriteResourcesListViewController.self,
             animated: false
           )
 
         case .modifiedResourcesList:
-          self.setViewControllers(
-            [
-              self.components
-                .instance(of: ModifiedResourcesListViewController.self)
-            ],
+          self.replaceNavigationRoot(
+            with: ModifiedResourcesListViewController.self,
             animated: false
           )
 
         case .sharedResourcesList:
-          self.setViewControllers(
-            [
-              self.components
-                .instance(of: SharedResourcesListViewController.self)
-            ],
+          self.replaceNavigationRoot(
+            with: SharedResourcesListViewController.self,
             animated: false
           )
 
         case .ownedResourcesList:
-          self.setViewControllers(
-            [
-              self.components
-                .instance(of: OwnedResourcesListViewController.self)
-            ],
+          self.replaceNavigationRoot(
+            with: OwnedResourcesListViewController.self,
+            animated: false
+          )
+
+        case .foldersExplorer:
+          self.replaceNavigationRoot(
+            with: FoldersExplorerView.self,
+            in: nil,  // root folder
             animated: false
           )
         }

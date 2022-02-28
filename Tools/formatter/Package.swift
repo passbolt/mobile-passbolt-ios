@@ -12,7 +12,7 @@ let package = Package(
   dependencies: [
     .package(
       name: "swift-format",
-      url: "https://github.com/apple/swift-format.git", .exact("0.50500.0")
+      url: "https://github.com/apple/swift-format.git", .exact("0.50600.0")
     )
   ],
   targets: [

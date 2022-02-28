@@ -57,7 +57,10 @@ extension TheError {
 extension Error {
 
   public var asLegacy: TheErrorLegacy {
-    if let theError: TheError = self as? TheError {
+    if let legacyError: TheErrorLegacy = self as? TheErrorLegacy {
+      return legacyError
+    }
+    else if let theError: TheError = self as? TheError {
       return .from(theError: theError)
     }
     else if self is CancellationError {

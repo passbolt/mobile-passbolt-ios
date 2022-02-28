@@ -23,57 +23,45 @@
 
 import SwiftUI
 
-@MainActor @dynamicMemberLookup
-public final class ComponentObservableState<State>: ObservableObject
-where State: Hashable {
+@MainActor
+public struct UserAvatarView: View {
 
-  @Published public fileprivate(set) var value: State
-
-  fileprivate init(
-    initial: State
-  ) {
-    self.value = initial
-  }
-
-  public subscript<Value>(
-    dynamicMember keyPath: WritableKeyPath<State, Value>
-  ) -> Value {
-    get { self.value[keyPath: keyPath] }
-    set { self.value[keyPath: keyPath] = newValue }
-  }
-}
-
-@MainActor @dynamicMemberLookup
-public final class ComponentWritableState<State>
-where State: Hashable {
-
-  private let observableState: ComponentObservableState<State>
+  private let image: Image
 
   public init(
-    initial: State
+    image: Data?
   ) {
-    self.observableState = .init(initial: initial)
+    self.image =
+      image
+      .flatMap(UIImage.init(data:))
+      .map(Image.init(uiImage:))?
+      .resizable()
+      ?? Image(named: .person)
   }
 
-  public subscript<Value>(
-    dynamicMember keyPath: WritableKeyPath<State, Value>
-  ) -> Value {
-    get { self.observableState.value[keyPath: keyPath] }
-    set { self.observableState.value[keyPath: keyPath] = newValue }
+  public var body: some View {
+    self.image
+      .aspectRatio(1, contentMode: .fit)
+      .foregroundColor(.passboltPrimaryText)
+      .background(Color.passboltBackground)
+      .mask(Circle())
+      .clipped()
+      .overlay(
+        Circle()
+          .stroke(
+            Color.passboltDivider,
+            lineWidth: 1
+          )
+      )
   }
 }
 
-extension ComponentWritableState {
+#if DEBUG
 
-  public var value: State {
-    get { self.observableState.value }
-    set {
-      guard self.observableState.value != newValue else { return }
-      self.observableState.value = newValue
-    }
-  }
+internal struct UserAvatarView_Previews: PreviewProvider {
 
-  public func asObservableState() -> ComponentObservableState<State> {
-    self.observableState
+  internal static var previews: some View {
+    UserAvatarView(image: nil)
   }
 }
+#endif

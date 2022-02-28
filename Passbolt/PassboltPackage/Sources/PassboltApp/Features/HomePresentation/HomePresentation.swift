@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Features
 
 internal struct HomePresentation {
@@ -37,6 +38,8 @@ extension HomePresentation: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let featureConfig: FeatureConfig = features.instance()
+
     let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> = .init(.plainResourcesList)
 
     func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
@@ -50,13 +53,24 @@ extension HomePresentation: Feature {
     }
 
     func availableHomePresentationModes() -> Array<HomePresentationMode> {
-      [  // order is preserved on display
+      // order is preserved on display
+      var availableModes: Array<HomePresentationMode> = [
         .plainResourcesList,
         .favoriteResourcesList,
         .modifiedResourcesList,
         .sharedResourcesList,
         .ownedResourcesList,
       ]
+
+      switch featureConfig.configuration(for: FeatureFlags.Folders.self) {
+      case .disabled:
+        break  // skip
+
+      case .enabled:
+        availableModes.append(.foldersExplorer)
+      }
+
+      return availableModes
     }
 
     return Self(

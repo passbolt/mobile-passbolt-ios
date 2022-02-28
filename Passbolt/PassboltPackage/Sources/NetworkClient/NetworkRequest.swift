@@ -72,7 +72,7 @@ extension NetworkRequest {
     execute(variable)
   }
 
-  public func make(
+  public func makeAsync(
     using variable: Variable
   ) async throws -> Response {
     try await execute(variable)
@@ -86,8 +86,8 @@ extension NetworkRequest where Variable == Void {
     self.make(using: Void())
   }
 
-  public func make() async throws -> Response {
-    try await self.make(using: Void())
+  public func makeAsync() async throws -> Response {
+    try await self.makeAsync(using: Void())
   }
 }
 

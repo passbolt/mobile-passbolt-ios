@@ -90,3 +90,7 @@ extension DisplayableString {
     }
   }
 }
+
+extension DisplayableString: Equatable {
+
+}

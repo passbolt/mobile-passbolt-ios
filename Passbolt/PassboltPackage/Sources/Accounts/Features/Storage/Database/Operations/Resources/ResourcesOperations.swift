@@ -109,6 +109,7 @@ extension FetchListViewResourcesOperation {
           resourcesListView
         WHERE
           1 -- equivalent of true, used to simplify dynamic query building
+
         """
 
       var params: Array<SQLiteBindable?> = .init()
@@ -183,7 +184,7 @@ extension FetchListViewResourcesOperation {
         statement.append(") ")
       }
       else if let permission: Permission = input.permissions.first {
-        statement.append("AND permission == ? ")
+        statement.append("AND permission = ? ")
         params.append(permission.rawValue)
       }
       else {
@@ -242,7 +243,7 @@ extension FetchDetailsViewResourcesOperation {
         FROM
           resourceDetailsView
         WHERE
-          id == ?1
+          id = ?1
         LIMIT
           1;
         """
@@ -313,7 +314,7 @@ extension FetchEditViewResourcesOperation {
         FROM
           resourceEditView
         WHERE
-          id == ?1
+          id = ?1
         LIMIT
           1;
         """
@@ -398,7 +399,7 @@ private let upsertResourceStatement: SQLiteStatement = """
       ?5,
       ?6,
       ?7,
-      (SELECT id FROM folders WHERE id == ?8),
+      (SELECT id FROM folders WHERE id = ?8),
       ?9,
       ?10
     );

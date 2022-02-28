@@ -32,6 +32,7 @@ import struct Foundation.Date
 public struct Resources {
 
   public var refreshIfNeeded: () -> AnyPublisher<Void, TheErrorLegacy>
+  public var updatesPublisher: () -> AnyPublisher<Void, Never>
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
   public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheErrorLegacy>
@@ -53,6 +54,17 @@ extension Resources: Feature {
     let accountSession: AccountSession = features.instance()
     let accountDatabase: AccountDatabase = features.instance()
     let networkClient: NetworkClient = features.instance()
+    let featureConfig: FeatureConfig = features.instance()
+    let folders: Folders = features.instance()
+
+    let foldersEnabled: Bool
+    switch featureConfig.configuration(for: FeatureFlags.Folders.self) {
+    case .disabled:
+      foldersEnabled = false
+
+    case .enabled:
+      foldersEnabled = true
+    }
 
     let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
 
@@ -78,7 +90,7 @@ extension Resources: Feature {
           return (last: changes.current, current: nil)
         }
       }
-      .filter { /* TODO: verify later $0.last != .none && */ $0.last != $0.current }
+      .filter { $0.last != $0.current }
       .mapToVoid()
       .sink { [unowned features] in
         features.unload(Resources.self)
@@ -86,145 +98,117 @@ extension Resources: Feature {
       .store(in: cancellables)
 
     func refreshIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
-      accountDatabase
-        // get info about last successful update
-        .fetchLastUpdate()
-        .compactMap { lastUpdate -> Date? in
-          // since initial application version does not use diff api yet
-          // to prevent too many requests (which downloads all resources each time)
-          // we are skipping requests that are more frequent than one minute apart
-          // so in result you can actually update only once per minute
-          // the value will be used with diff api so last used value after update
-          // containing diff implementation will be a valid one and immediately used
-          //
-          // implement diff request here instead when available
-          return lastUpdate
-        }
-        .mapErrorsToLegacy()
-        .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
-          // refresh resources types
-          networkClient
-            .resourcesTypesRequest
-            .make()
-            .mapErrorsToLegacy()
-            .map { (response: ResourcesTypesRequestResponse) -> Array<ResourceType> in
-              response.body
-                .map { (type: ResourcesTypesRequestResponseBodyItem) -> ResourceType in
-                  let fields: Array<ResourceProperty> = type
-                    .definition
-                    .resourceProperties
-                    .compactMap { property -> ResourceProperty? in
-                      switch property {
-                      case let .string(name, isOptional, maxLength):
-                        return .init(
-                          name: name,
-                          typeString: "string",
-                          required: !isOptional,
-                          encrypted: false,
-                          maxLength: maxLength
-                        )
-                      }
+      return Future<Void, Error> { promise in
+        Task {
+          do {
+            // implement diff request here instead when available
+            let _ /*lastUpdate*/ : Date? = try await accountDatabase.fetchLastUpdate()
+            if foldersEnabled {
+              try await folders.refreshIfNeeded()
+            }
+            else { /* NOP */ }
+            let resourceTypes: Array<ResourceType> =
+            try await networkClient
+              .resourcesTypesRequest
+              .makeAsync()
+              .body
+              .map { (type: ResourcesTypesRequestResponseBodyItem) -> ResourceType in
+                let fields: Array<ResourceProperty> = type
+                  .definition
+                  .resourceProperties
+                  .compactMap { property -> ResourceProperty? in
+                    switch property {
+                    case let .string(name, isOptional, maxLength):
+                      return .init(
+                        name: name,
+                        typeString: "string",
+                        required: !isOptional,
+                        encrypted: false,
+                        maxLength: maxLength
+                      )
                     }
+                  }
 
-                  let secretFields: Array<ResourceProperty> = type
-                    .definition
-                    .secretProperties
-                    .compactMap { property -> ResourceProperty? in
-                      switch property {
-                      case let .string(name, isOptional, maxLength):
-                        return .init(
-                          name: name,
-                          typeString: "string",
-                          required: !isOptional,
-                          encrypted: true,
-                          maxLength: maxLength
-                        )
-                      }
+                let secretFields: Array<ResourceProperty> = type
+                  .definition
+                  .secretProperties
+                  .compactMap { property -> ResourceProperty? in
+                    switch property {
+                    case let .string(name, isOptional, maxLength):
+                      return .init(
+                        name: name,
+                        typeString: "string",
+                        required: !isOptional,
+                        encrypted: true,
+                        maxLength: maxLength
+                      )
                     }
+                  }
 
-                  return ResourceType(
-                    id: .init(rawValue: type.id),
-                    slug: .init(rawValue: type.slug),
-                    name: type.name,
-                    fields: fields + secretFields
-                  )
-                }
+                return ResourceType(
+                  id: .init(rawValue: type.id),
+                  slug: .init(rawValue: type.slug),
+                  name: type.name,
+                  fields: fields + secretFields
+                )
+              }
+
+            try await accountDatabase.storeResourcesTypes(resourceTypes)
+
+            let resources: Array<Resource> =
+            try await networkClient
+              .resourcesRequest
+              .makeAsync()
+              .body
+              .map { (resource: ResourcesRequestResponseBodyItem) -> Resource in
+                let permission: Permission = {
+                  switch resource.permission {
+                  case .read:
+                    return .read
+
+                  case .write:
+                    return .write
+
+                  case .owner:
+                    return .owner
+                  }
+                }()
+                return Resource(
+                  id: .init(rawValue: resource.id),
+                  typeID: .init(rawValue: resource.resourceTypeID),
+                  parentFolderID: resource.parentFolderID.map(Folder.ID.init(rawValue:)),
+                  name: resource.name,
+                  url: resource.url,
+                  username: resource.username,
+                  description: resource.description,
+                  permission: permission,
+                  favorite: resource.favorite,
+                  modified: resource.modified
+                )
+              }
+
+            try await accountDatabase.storeResources(resources)
+
+            try await accountDatabase.saveLastUpdate(time.dateNow())
+            resourcesUpdateSubject.send()
+            if foldersEnabled {
+              await folders.resourcesUpdated()
             }
-            .map { (resourceTypes: Array<ResourceType>) -> AnyPublisher<Void, TheErrorLegacy> in
-              accountDatabase
-                .storeResourcesTypes(resourceTypes)
-                .mapErrorsToLegacy()
-                .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+            else { /* NOP */ }
+            promise(.success(Void()))
+          }
+          catch {
+            promise(.failure(error))
+          }
         }
-        .switchToLatest()
-        .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
-          // refresh resources
-          networkClient
-            .resourcesRequest
-            .make()
-            .mapErrorsToLegacy()
-            .map { (response: ResourcesRequestResponse) -> Array<Resource> in
-              response
-                .body
-                .map { (resource: ResourcesRequestResponseBodyItem) -> Resource in
-                  let permission: Permission = {
-                    switch resource.permission {
-                    case .read:
-                      return .read
+      }
+      .mapErrorsToLegacy()
+      .collectErrorLog(using: diagnostics)
+      .eraseToAnyPublisher()
+    }
 
-                    case .write:
-                      return .write
-
-                    case .owner:
-                      return .owner
-                    }
-                  }()
-                  return Resource(
-                    id: .init(rawValue: resource.id),
-                    typeID: .init(rawValue: resource.resourceTypeID),
-                    parentFolderID: resource.parentFolderID.map(Folder.ID.init(rawValue:)),
-                    name: resource.name,
-                    url: resource.url,
-                    username: resource.username,
-                    description: resource.description,
-                    permission: permission,
-                    favorite: resource.favorite,
-                    modified: resource.modified
-                  )
-                }
-            }
-            .map { (resources: Array<Resource>) -> AnyPublisher<Void, TheErrorLegacy> in
-              accountDatabase
-                .storeResources(resources)
-                .mapErrorsToLegacy()
-                .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
-                  accountDatabase
-                    .saveLastUpdate(time.dateNow())
-                    .collectErrorLog(using: diagnostics)
-                    // if we fail to save last update timestamp the next update
-                    // will contain the same changes but it does not affect
-                    // final result so no need to propagate that error further
-                    .replaceError(with: Void())
-                    .setFailureType(to: TheErrorLegacy.self)
-                    .eraseToAnyPublisher()
-                }
-                .switchToLatest()
-                .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .handleEvents(receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          resourcesUpdateSubject.send()
-        })
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+    func updatesPublisher() -> AnyPublisher<Void, Never> {
+      resourcesUpdateSubject.eraseToAnyPublisher()
     }
 
     func filteredResourcesListPublisher(
@@ -292,11 +276,15 @@ extension Resources: Feature {
       .eraseToAnyPublisher()
     }
 
-    func deleteResource(resourceID: Resource.ID) -> AnyPublisher<Void, TheErrorLegacy> {
+    func deleteResource(
+      resourceID: Resource.ID
+    ) -> AnyPublisher<Void, TheErrorLegacy> {
       networkClient
         .deleteResourceRequest
         .make(using: .init(resourceID: resourceID.rawValue))
         .mapErrorsToLegacy()
+        .map { refreshIfNeeded() }
+        .switchToLatest()
         .eraseToAnyPublisher()
     }
 
@@ -308,6 +296,7 @@ extension Resources: Feature {
 
     return Self(
       refreshIfNeeded: refreshIfNeeded,
+      updatesPublisher: updatesPublisher,
       filteredResourcesListPublisher: filteredResourcesListPublisher,
       loadResourceSecret: loadResourceSecret,
       resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
@@ -324,6 +313,7 @@ extension Resources {
   public static var placeholder: Resources {
     Self(
       refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
+      updatesPublisher: unimplemented("You have to provide mocks for used methods"),
       filteredResourcesListPublisher: unimplemented("You have to provide mocks for used methods"),
       loadResourceSecret: unimplemented("You have to provide mocks for used methods"),
       resourceDetailsPublisher: unimplemented("You have to provide mocks for used methods"),

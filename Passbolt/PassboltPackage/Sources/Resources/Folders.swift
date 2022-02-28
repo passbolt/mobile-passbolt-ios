@@ -28,8 +28,16 @@ import NetworkClient
 
 public struct Folders {
 
-  public var refreshIfNeeded: () async throws -> Void
+  // WARNING: to refresh data use Resources.refreshIfNeeded instead
+  // this function is called by Resources if needed
+  internal var refreshIfNeeded: () async throws -> Void
+  // WARNING: do not call manually, it is intended to be called after
+  // refreshing resources it is called by Resources if needed
+  internal var resourcesUpdated: () async -> Void
+  public var updates: () -> AnyAsyncSequence<Void>
+  public var details: (Folder.ID) async throws -> FolderDetails?
   public var filteredFolderContent: (AnyAsyncSequence<FoldersFilter>) -> AnyAsyncSequence<FolderContent>
+  public var featureUnload: () -> Bool
 }
 
 public struct FolderContent {
@@ -38,6 +46,13 @@ public struct FolderContent {
   public var flattened: Bool
   public var subfolders: Array<ListViewFolder>
   public var resources: Array<ListViewFolderResource>
+}
+
+public struct FolderDetails {
+
+  public var folderID: Folder.ID
+  public var name: String
+  public var permission: Permission
 }
 
 extension FolderContent: Hashable {}
@@ -49,14 +64,17 @@ extension Folders: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) -> Self {
+    let diagnostics: Diagnostics = features.instance()
     let networkClient: NetworkClient = features.instance()
     let accountDatabase: AccountDatabase = features.instance()
+
+    let updatesSequence: AsyncValue<Void> = .init(initial: Void())
 
     func refreshIfNeeded() async throws {
       let foldersResponse: FoldersRequestResponse =
         try await networkClient
         .foldersRequest
-        .make()
+        .makeAsync()
 
       // TODO: when diffing endpoint becomes available
       // there should be some additional logic deciding
@@ -91,10 +109,34 @@ extension Folders: Feature {
         )
     }
 
+    func resourcesUpdated() async {
+      await updatesSequence.update(Void())
+    }
+
+    func updates() -> AnyAsyncSequence<Void> {
+      updatesSequence
+        .asAnyAsyncSequence()
+    }
+
+    func details(
+      _ folderID: Folder.ID
+    ) async throws -> FolderDetails? {
+      guard let folder: Folder = try await accountDatabase.fetchFolder(folderID)
+      else { return nil }
+      return .init(
+        folderID: folder.id,
+        name: folder.name,
+        permission: folder.permission
+      )
+    }
+
     func filteredFolderContent(
       filters: AnyAsyncSequence<FoldersFilter>
     ) -> AnyAsyncSequence<FolderContent> {
-      filters
+      AsyncCombineLatestSequence(updatesSequence, filters)
+        .map { (_: Void, filter: FoldersFilter) -> FoldersFilter in
+          filter
+        }
         .map { (filter: FoldersFilter) async -> FolderContent in
           let folders: Array<ListViewFolder>
           do {
@@ -103,8 +145,10 @@ extension Folders: Feature {
               .fetchListViewFoldersOperation(filter)
           }
           catch {
+            diagnostics.log(error)
             folders = .init()
           }
+
           let resources: Array<ListViewFolderResource>
           do {
             resources =
@@ -112,6 +156,7 @@ extension Folders: Feature {
               .fetchListViewFolderResourcesOperation(filter)
           }
           catch {
+            diagnostics.log(error)
             resources = .init()
           }
 
@@ -125,9 +170,17 @@ extension Folders: Feature {
         .asAnyAsyncSequence()
     }
 
+    func featureUnload() -> Bool {
+      true
+    }
+
     return Self(
       refreshIfNeeded: refreshIfNeeded,
-      filteredFolderContent: filteredFolderContent(filters:)
+      resourcesUpdated: resourcesUpdated,
+      updates: updates,
+      details: details(_:),
+      filteredFolderContent: filteredFolderContent(filters:),
+      featureUnload: featureUnload
     )
   }
 }
@@ -139,7 +192,11 @@ extension Folders {
   public static var placeholder: Self {
     Self(
       refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
-      filteredFolderContent: unimplemented("You have to provide mocks for used methods")
+      resourcesUpdated: unimplemented("You have to provide mocks for used methods"),
+      updates: unimplemented("You have to provide mocks for used methods"),
+      details: unimplemented("You have to provide mocks for used methods"),
+      filteredFolderContent: unimplemented("You have to provide mocks for used methods"),
+      featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }
 }

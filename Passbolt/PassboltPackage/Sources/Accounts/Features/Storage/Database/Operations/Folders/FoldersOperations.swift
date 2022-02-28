@@ -43,7 +43,7 @@ extension StoreFoldersOperation {
       // Please remove later on when diffing becomes available or other method of
       // deleting records selecively becomes implemented.
       //
-      // Delete currently stored resources
+      // Delete currently stored folders
       let deletionResult: Result<Void, Error> =
         conn
         .execute(
@@ -58,8 +58,24 @@ extension StoreFoldersOperation {
         return .failure(error)
       }
 
-      // Insert or update all new resource
-      for folder in input {
+      // Since Folders make tree like structure and
+      // tree integrity is verified by database foreign
+      // key constraints it has to be inserted in a valid
+      // order for operation to succeed (from root to leaf)
+      var inputReminder: Array<Folder> = input
+      var sortedFolders: Array<Folder> = .init()
+
+      func isValidFolder(_ folder: Folder) -> Bool {
+        folder.parentFolderID == nil
+          || sortedFolders.contains(where: { $0.id == folder.parentFolderID })
+      }
+
+      while let index: Array<Folder>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
+        sortedFolders.append(inputReminder.remove(at: index))
+      }
+
+      // Insert or update all new folders
+      for folder in sortedFolders {
         let result: Result<Void, Error> =
           conn
           .execute(
@@ -100,6 +116,55 @@ private let upsertFoldersStatement: SQLiteStatement = """
     );
   """
 
+public typealias FetchFolderOperation = DatabaseOperation<Folder.ID, Folder?>
+
+extension FetchFolderOperation {
+
+  static func using(
+    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+  ) -> Self {
+    withConnection(
+      using: connectionPublisher
+    ) { conn, input in
+      let statement: SQLiteStatement = """
+        SELECT
+          id,
+          name,
+          permission,
+          parentFolderID
+        FROM
+          folders
+        WHERE
+          folders.id IS ?;
+        """
+      let params: Array<SQLiteBindable?> = [input.rawValue]
+
+      return
+        conn
+        .fetch(
+          statement,
+          with: params
+        ) { rows in
+          .success(
+            rows.first.flatMap { row -> Folder? in
+              guard
+                let id: Folder.ID = (row.id as String?).map(ListViewFolder.ID.init(rawValue:)),
+                let name: String = row.name,
+                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:))
+              else { return nil }
+              return Folder(
+                id: id,
+                name: name,
+                permission: permission,
+                parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:))
+              )
+            }
+          )
+        }
+    }
+  }
+}
+
 public typealias FetchListViewFoldersOperation = DatabaseOperation<FoldersFilter, Array<ListViewFolder>>
 
 extension FetchListViewFoldersOperation {
@@ -138,7 +203,7 @@ extension FetchListViewFoldersOperation {
               FROM
                 foldersListView
               WHERE
-                foldersListView.parentFolderID == ?
+                foldersListView.parentFolderID IS ?
 
               UNION ALL
 
@@ -151,13 +216,35 @@ extension FetchListViewFoldersOperation {
                 foldersListView,
                 flattenedFoldersListView
               WHERE
-                foldersListView.parentFolderID == flattenedFoldersListView.id
+                foldersListView.parentFolderID = flattenedFoldersListView.id
             )
-          SELECT
-            id,
-            name,
-            permission,
-            parentFolderID
+          SELECT DISTINCT
+            flattenedFoldersListView.id AS id,
+            flattenedFoldersListView.name AS name,
+            flattenedFoldersListView.permission AS permission,
+            flattenedFoldersListView.parentFolderID AS parentFolderID,
+            (
+              SELECT
+              (
+                (
+                  SELECT
+                    COUNT(*)
+                  FROM
+                    resources
+                  WHERE
+                    resources.parentFolderID IS flattenedFoldersListView.id
+                )
+              +
+                (
+                  SELECT
+                    COUNT(*)
+                  FROM
+                    folders
+                  WHERE
+                    folders.parentFolderID IS flattenedFoldersListView.id
+                )
+              )
+            ) AS contentCount
           FROM
             flattenedFoldersListView
           WHERE
@@ -168,14 +255,36 @@ extension FetchListViewFoldersOperation {
       else {
         statement = """
           SELECT
-            id,
-            name,
-            permission,
-            parentFolderID
+            foldersListView.id AS id,
+            foldersListView.name AS name,
+            foldersListView.permission AS permission,
+            foldersListView.parentFolderID AS parentFolderID,
+            (
+              SELECT
+              (
+                (
+                  SELECT
+                    COUNT(*)
+                  FROM
+                    resources
+                  WHERE
+                    resources.parentFolderID IS foldersListView.id
+                )
+              +
+                (
+                  SELECT
+                    COUNT(*)
+                  FROM
+                    folders
+                  WHERE
+                    folders.parentFolderID IS foldersListView.id
+                )
+              )
+            ) AS contentCount
           FROM
             foldersListView
           WHERE
-            foldersListView.parentFolderID == ?
+            foldersListView.parentFolderID IS ?
           """
         params = [input.folderID?.rawValue]
       }
@@ -209,7 +318,7 @@ extension FetchListViewFoldersOperation {
         statement.append(") ")
       }
       else if let permission: Permission = input.permissions.first {
-        statement.append("AND permission == ? ")
+        statement.append("AND permission = ? ")
         params.append(permission.rawValue)
       }
       else {
@@ -241,7 +350,8 @@ extension FetchListViewFoldersOperation {
                 id: id,
                 name: name,
                 permission: permission,
-                parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:))
+                parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:)),
+                contentCount: row.contentCount ?? 0
               )
             }
           )
@@ -268,56 +378,51 @@ extension FetchListViewFolderResourcesOperation {
       // select but it might be less readable
       // unless there is any performance issue it is preferred
       // to be left in this way
-
       if input.flattenContent {
         statement = """
-          WITH RECURSIVE
-            flattenedFoldersListView(
-              id,
-              name,
-              permission,
-              parentFolderID
-            )
-          AS
-            (
-              SELECT
-                foldersListView.id,
-                foldersListView.name,
-                foldersListView.permission,
-                foldersListView.parentFolderID
-              FROM
-                foldersListView
-              WHERE
-                foldersListView.id == ?
+            WITH RECURSIVE
+              flattenedFoldersListView(
+                id,
+                parentFolderID
+              )
+            AS
+              (
+                SELECT
+                  foldersListView.id,
+                  foldersListView.parentFolderID
+                FROM
+                  foldersListView
+                WHERE
+                  foldersListView.parentFolderID IS ?
 
-              UNION ALL
+                UNION ALL
 
-              SELECT
-                foldersListView.id,
-                foldersListView.name,
-                foldersListView.permission,
-                foldersListView.parentFolderID
-              FROM
-                foldersListView,
-                flattenedFoldersListView
-              WHERE
-                foldersListView.parentFolderID == flattenedFoldersListView.id
-            )
-          SELECT
-            folderResourcesListView.id,
-            folderResourcesListView.name,
-            folderResourcesListView.username,
-            folderResourcesListView.parentFolderID
-          FROM
-            folderResourcesListView
-          JOIN
-            flattenedFoldersListView
-          ON
-            folderResourcesListView.parentFolderID == flattenedFoldersListView.id
-          WHERE
-            1 -- equivalent of true, used to simplify dynamic query building
+                SELECT
+                  foldersListView.id,
+                  foldersListView.parentFolderID
+                FROM
+                  foldersListView,
+                  flattenedFoldersListView
+                WHERE
+                  foldersListView.parentFolderID = flattenedFoldersListView.id
+              )
+            SELECT DISTINCT
+              folderResourcesListView.id AS id,
+              folderResourcesListView.name AS name,
+              folderResourcesListView.username AS username,
+              folderResourcesListView.parentFolderID AS parentFolderID
+            FROM
+              folderResourcesListView
+            INNER JOIN
+              flattenedFoldersListView
+            ON
+              folderResourcesListView.parentFolderID IS ?
+            OR
+              folderResourcesListView.parentFolderID IS flattenedFoldersListView.id
+            WHERE
+              1 -- equivalent of true, used to simplify dynamic query building
           """
-        params = [input.folderID?.rawValue]
+        params = [input.folderID?.rawValue, input.folderID?.rawValue]
       }
       else {
         statement = """
@@ -329,7 +434,7 @@ extension FetchListViewFolderResourcesOperation {
           FROM
             folderResourcesListView
           WHERE
-            parentFolderID == ?
+            parentFolderID IS ?
           """
         params = [input.folderID?.rawValue]
       }
@@ -363,7 +468,7 @@ extension FetchListViewFolderResourcesOperation {
         statement.append(") ")
       }
       else if let permission: Permission = input.permissions.first {
-        statement.append("AND permission == ? ")
+        statement.append("AND permission = ? ")
         params.append(permission.rawValue)
       }
       else {

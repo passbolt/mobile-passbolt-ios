@@ -215,7 +215,14 @@ extension NetworkClient: Feature {
       ),
       configRequest: .live(
         using: networking,
-        with: domainNetworkSessionVariablePublisher
+        with: authorizedNetworkSessionVariablePublisher
+      )
+      .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionPublisher: domainNetworkSessionVariablePublisher
       ),
       resourcesRequest: .live(
         using: networking,

@@ -25,11 +25,11 @@ import UIComponents
 
 internal struct HomePresentationMenuView: ComponentView {
 
-  @ObservedObject private var state: ComponentObservableState<State>
+  @ObservedObject private var state: ObservableValue<State>
   private let controller: HomePresentationMenuController
 
   internal init(
-    state: ComponentObservableState<State>,
+    state: ObservableValue<State>,
     controller: HomePresentationMenuController
   ) {
     self.state = state
@@ -51,6 +51,12 @@ internal struct HomePresentationMenuView: ComponentView {
       content: {
         VStack(spacing: 0) {
           ForEach(self.state.availableModes, id: \.self) { mode in
+            // TODO: [MOB-???] There might be other modes in section
+            // which require divider but those are not linked to folders
+            // rethink adding divider when adding tags or groups
+            if case .foldersExplorer = mode {
+              DrawerMenuDividerView()
+            }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
                 self.controller.selectMode(mode)

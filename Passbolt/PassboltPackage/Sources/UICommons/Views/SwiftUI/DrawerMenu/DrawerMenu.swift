@@ -85,7 +85,9 @@ where TitleView: View, ContentView: View {
 }
 
 #if DEBUG
+
 internal struct DrawerMenu_Previews: PreviewProvider {
+
   internal static var previews: some View {
     DrawerMenu(
       closeTap: {

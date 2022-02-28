@@ -92,6 +92,12 @@ let package = Package(
         "Localization"
       ]
     ),
+    .library(
+      name: "Gopenpgp",
+      targets: [
+        "Gopenpgp"
+      ]
+    )
   ],
   dependencies: [
     .package(
@@ -162,7 +168,7 @@ let package = Package(
       dependencies: [
         "CommonModels",
         "Commons",
-        "gopenPGP",
+        "Gopenpgp",
       ]
     ),
     .testTarget(
@@ -433,8 +439,8 @@ let package = Package(
       ]
     ),
     .binaryTarget(
-      name: "gopenPGP",
-      path: "Vendor/Gopenpgp.xcframework"
+      name: "Gopenpgp",
+      path: "./Vendor/Gopenpgp.xcframework"
     ),
   ]
 )

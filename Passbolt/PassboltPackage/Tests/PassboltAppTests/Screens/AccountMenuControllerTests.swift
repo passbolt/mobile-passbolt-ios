@@ -65,7 +65,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -89,7 +89,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -128,7 +128,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -156,7 +156,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -175,7 +175,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -196,7 +196,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -215,7 +215,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -236,7 +236,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -255,7 +255,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -274,7 +274,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
@@ -302,7 +302,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     let controller: AccountMenuController = testController(
       context: (
         accountWithProfile: validAccountWithProfile,
-        parentComponent: TestComponent()
+        navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 

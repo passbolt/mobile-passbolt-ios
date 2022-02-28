@@ -63,7 +63,7 @@ extension ResourceDetailsController: UIController {
     let pasteboard: Pasteboard = features.instance()
     let featureConfig: FeatureConfig = features.instance()
 
-    let lock: NSRecursiveLock = .init()
+    let lock: OSUnfairLock = .init()
     var revealedFields: Set<ResourceField> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()

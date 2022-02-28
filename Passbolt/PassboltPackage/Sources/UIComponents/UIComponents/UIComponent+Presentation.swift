@@ -66,6 +66,74 @@ extension AnyUIComponent {
     )
   }
 
+  @MainActor public func replaceNavigationRoot<Component>(
+    with type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent, Component.Controller.Context == Void {
+    replaceNavigationRoot(
+      with: type,
+      in: Void(),
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func replaceNavigationRoot<Component>(
+    with type: Component.Type,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView, Component.Controller.NavigationContext == Void {
+    self.replaceNavigationRoot(
+      with: type,
+      in: Void(),
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  @MainActor public func replaceNavigationRoot<Component>(
+    with type: Component.Type,
+    in context: Component.Controller.Context,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: UIComponent {
+    guard
+      let navigationController = self as? UINavigationController
+        ?? navigationController
+        ?? presentingViewController?.navigationController
+    else { unreachable("It is programmer error to replace navigatyion without navigation controller") }
+
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    navigationController
+      .setViewControllers(
+        [
+          components
+            .instance(
+              of: Component.self,
+              in: context
+            )
+        ],
+        animated: animated
+      )
+    CATransaction.commit()
+  }
+
+  @MainActor public func replaceNavigationRoot<Component>(
+    with type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) where Component: ComponentView {
+    self.replaceNavigationRoot(
+      with: ComponentHostingViewController<Component>.self,
+      in: context,
+      animated: animated,
+      completion: completion
+    )
+  }
+
   @MainActor public func present<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -83,7 +151,12 @@ extension AnyUIComponent {
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) where Component: UIComponent, Component.Controller.Context == Void {
-    present(type, in: Void(), animated: animated, completion: completion)
+    self.present(
+      type,
+      in: Void(),
+      animated: animated,
+      completion: completion
+    )
   }
 
   @MainActor public func present<Component>(

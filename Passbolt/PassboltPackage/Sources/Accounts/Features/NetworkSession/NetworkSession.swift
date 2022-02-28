@@ -29,7 +29,6 @@ import NetworkClient
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
-import class Foundation.NSRecursiveLock
 
 internal struct NetworkSession {
 
@@ -89,7 +88,7 @@ extension NetworkSession: Feature {
     let fingerprintStorage: FingerprintStorage = features.instance()
     let networkClient: NetworkClient = features.instance()
 
-    let sessionAccessLock: NSRecursiveLock = .init()
+    let sessionAccessLock: OSUnfairLock = .init()
     let sessionStateSubject: CurrentValueSubject<NetworkSessionState?, Never> = .init(nil)
     // synchonizing access to session tokens due to possible race conditions
     // CurrentValueSubject is thread safe but in some cases
@@ -107,6 +106,7 @@ extension NetworkSession: Feature {
         sessionAccessLock.unlock()
       }
     }
+
     func withSessionState<Returned>(
       _ access: (inout NetworkSessionState?) -> Returned
     ) -> Returned {
@@ -117,20 +117,8 @@ extension NetworkSession: Feature {
       return access(&value)
     }
 
-    // swift-format-ignore: NoLeadingUnderscores
-    var _ongoingSessionRefresh: (resultPublisher: AnyPublisher<Void, TheErrorLegacy>, cancellable: AnyCancellable)?
-    var ongoingSessionRefresh: (resultPublisher: AnyPublisher<Void, TheErrorLegacy>, cancellable: AnyCancellable)? {
-      get {
-        sessionAccessLock.lock()
-        defer { sessionAccessLock.unlock() }
-        return _ongoingSessionRefresh
-      }
-      set {
-        sessionAccessLock.lock()
-        _ongoingSessionRefresh = newValue
-        sessionAccessLock.unlock()
-      }
-    }
+    // warn: always use under session lock
+    var ongoingSessionRefresh: (resultPublisher: AnyPublisher<Void, TheErrorLegacy>, cancellable: AnyCancellable)?
 
     networkClient
       .setAccessTokenInvalidation(
@@ -586,8 +574,10 @@ extension NetworkSession: Feature {
       armoredPrivateKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) -> AnyPublisher<Array<MFAProvider>, TheErrorLegacy> {
-      ongoingSessionRefresh?.cancellable.cancel()
-      withSessionState { sessionState in sessionState = nil }
+      withSessionState { sessionState in
+        ongoingSessionRefresh?.cancellable.cancel()
+        sessionState = nil
+      }
 
       let verificationToken: String = uuidGenerator().uuidString
       let challengeExpiration: Int  // 120s is verification token's lifetime
@@ -807,7 +797,7 @@ extension NetworkSession: Feature {
     func refreshSessionIfNeeded(account: Account) -> AnyPublisher<Void, TheErrorLegacy> {
       diagnostics.diagnosticLog("Refreshing session...")
       return withSessionState { sessionState -> AnyPublisher<Void, TheErrorLegacy> in
-        if let ongoingRequest: AnyPublisher<Void, TheErrorLegacy> = _ongoingSessionRefresh?.resultPublisher {
+        if let ongoingRequest: AnyPublisher<Void, TheErrorLegacy> = ongoingSessionRefresh?.resultPublisher {
           return ongoingRequest
         }
         else {
@@ -964,16 +954,16 @@ extension NetworkSession: Feature {
               }
             )
             .handleEnd({ ending in
-              ongoingSessionRefresh = nil
               guard case .failed = ending else { return }
               withSessionState { sessionState in
+                ongoingSessionRefresh = nil
                 sessionState?.refreshToken = nil
               }
             })
             .share()
             .eraseToAnyPublisher()
 
-          _ongoingSessionRefresh = (
+          ongoingSessionRefresh = (
             resultPublisher: sessionRefreshResultPublisher,
             cancellable: sessionRefreshCancellable
           )

@@ -211,9 +211,13 @@ extension Diagnostics {
       info
       .map { error.asTheError().pushing($0) }
       ?? error.asTheError()
+    #if DEBUG
+    self.debugLog(theError.debugDescription)
+    #else
     for message in theError.diagnosticMessages {
       self.diagnosticLog(message, .none)
     }
+    #endif
   }
 
   public func diagnosticLog(

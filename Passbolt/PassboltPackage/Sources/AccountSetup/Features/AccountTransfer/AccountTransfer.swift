@@ -364,7 +364,8 @@ extension AccountTransfer: Feature {
           account.armoredKey,
           passphrase
         )
-        .handleEvents(receiveCompletion: { [weak features] completion in
+        .handleEvents(receiveCompletion: {
+          [weak features] (completion: Subscribers.Completion<TheErrorLegacy>) -> Void in
           switch completion {
           case .finished:
             diagnostics.diagnosticLog("...account transfer succeeded!")

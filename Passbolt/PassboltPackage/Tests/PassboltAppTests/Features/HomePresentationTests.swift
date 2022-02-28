@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Features
 import NetworkClient
 import TestExtensions
@@ -32,6 +33,7 @@ import XCTest
 final class HomePresentationTests: TestCase {
 
   func test_currentPresentationModePublisher_publishesPlainResourcesList_initially() {
+    features.usePlaceholder(for: FeatureConfig.self)
     let feature: HomePresentation = testInstance()
 
     var result: HomePresentationMode?

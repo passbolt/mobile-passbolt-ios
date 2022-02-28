@@ -209,7 +209,7 @@
 "authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
 "authorization.prompt.biometrics.set.reason" = "Please authenticate to enable biometrics.";
 
-"resources.search.placeholder" = "Search name, user, url...";
+"resources.search.placeholder" = "Search by name, username or url";
 
 "resource.menu.item.open.url" = "Launch website";
 "resource.menu.item.copy.url" = "Copy URL";
@@ -312,6 +312,7 @@ Contact your administrator for more information.";
 "home.presentation.mode.modified.resources.title" = "Recently modified";
 "home.presentation.mode.shared.resources.title" = "Shared with me";
 "home.presentation.mode.owned.resources.title" = "Owned by me";
+"home.presentation.mode.folders.explorer.title" = "Folders";
 
 "error.internal.inconsistency" = "Internal inconsistency, please report a bug.";
 "error.feature.unavailable" = "Feature unavailable.";

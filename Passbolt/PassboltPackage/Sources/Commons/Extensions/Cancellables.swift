@@ -29,17 +29,67 @@ public final class Cancellables {
 
   fileprivate let lock: NSLock = .init()
   fileprivate var cancellables: Array<AnyCancellable>
+  fileprivate var tasks: Array<Task<Void, Never>>
 
-  public init(extend other: Cancellables...) {
-    self.cancellables = other.flatMap(\.cancellables)
+  public init() {
+    self.cancellables = .init()
+    self.tasks = .init()
+  }
+
+  deinit {
+    for task in self.tasks {
+      task.cancel()
+    }
+  }
+
+  @discardableResult
+  public func take(_ other: Cancellables) -> Self {
+    self.cancellables.append(contentsOf: other.cancellables)
+    self.tasks.append(contentsOf: other.tasks)
+    other.cancellables = .init()
+    other.tasks = .init()
+    return self
+  }
+
+  public func store(_ cancellable: AnyCancellable) {
+    self.lock.lock()
+    self.cancellables.append(cancellable)
+    self.lock.unlock()
+  }
+
+  public func task(_ operation: @Sendable @escaping () async -> Void) {
+    self.lock.lock()
+    self.tasks.append(Task<Void, Never>(operation: operation))
+    self.lock.unlock()
+  }
+
+  public func store(_ task: Task<Void, Never>) {
+    self.lock.lock()
+    self.tasks.append(task)
+    self.lock.unlock()
+  }
+
+  public func clear() {
+    self.lock.lock()
+    self.cancellables = .init()
+    for task in self.tasks {
+      task.cancel()
+    }
+    self.tasks = .init()
+    self.lock.unlock()
   }
 }
 
 extension AnyCancellable {
 
   public func store(in cancellables: Cancellables) {
-    cancellables.lock.lock()
-    cancellables.cancellables.append(self)
-    cancellables.lock.unlock()
+    cancellables.store(self)
+  }
+}
+
+extension Task where Success == Void, Failure == Never {
+
+  public func store(in cancellables: Cancellables) {
+    cancellables.store(self)
   }
 }

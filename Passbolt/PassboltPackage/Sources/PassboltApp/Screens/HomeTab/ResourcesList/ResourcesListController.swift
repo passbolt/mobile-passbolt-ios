@@ -113,9 +113,8 @@ extension ResourcesListController: UIController {
     }
 
     func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, TheErrorLegacy> {
-      resources.deleteResource(resourceID)
-        .map { resources.refreshIfNeeded() }
-        .switchToLatest()
+      resources
+        .deleteResource(resourceID)
         .eraseToAnyPublisher()
     }
 

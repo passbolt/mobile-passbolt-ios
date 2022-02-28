@@ -25,7 +25,6 @@ import CommonModels
 import Crypto
 import Features
 
-import class Foundation.NSRecursiveLock
 import struct Foundation.URL
 import let LocalAuthentication.errSecAuthFailed
 
@@ -70,7 +69,7 @@ extension AccountsDataStore: Feature {
 
     let diagnostics: Diagnostics = features.instance()
 
-    let lock: NSRecursiveLock = .init()
+    let lock: OSUnfairLock = .init()
 
     let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
@@ -89,11 +88,9 @@ extension AccountsDataStore: Feature {
     }
     func ensureDataIntegrity() -> Result<Void, TheErrorLegacy> {
       let timeMeasurement: Diagnostics.TimeMeasurement = diagnostics.measurePerformance("Data integrity check")
-      lock.lock()
       diagnostics.diagnosticLog("Verifying data integrity...")
       defer {
         diagnostics.diagnosticLog("...data integrity verification finished")
-        lock.unlock()
       }
 
       timeMeasurement.event("Begin")
@@ -951,7 +948,11 @@ extension AccountsDataStore: Feature {
     }
 
     return Self(
-      verifyDataIntegrity: ensureDataIntegrity,
+      verifyDataIntegrity: {
+        lock.lock()
+        defer { lock.unlock() }
+        return ensureDataIntegrity()
+      },
       loadAccounts: loadAccounts,
       loadLastUsedAccount: loadLastUsedAccount,
       storeLastUsedAccount: storeLastUsedAccount,

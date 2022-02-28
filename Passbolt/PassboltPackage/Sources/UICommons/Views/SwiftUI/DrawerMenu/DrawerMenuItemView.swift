@@ -108,6 +108,7 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
 }
 
 #if DEBUG
+
 internal struct DrawerMenuItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {

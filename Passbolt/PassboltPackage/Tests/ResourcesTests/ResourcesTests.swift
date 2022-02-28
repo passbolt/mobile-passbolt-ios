@@ -81,6 +81,8 @@ final class ResourceTests: TestCase {
     )
 
     features.environment.time.timestamp = always(100)
+    features.usePlaceholder(for: Folders.self)
+    features.patch(\FeatureConfig.config, with: always(.none))
   }
 
   override func tearDown() {
@@ -95,7 +97,7 @@ final class ResourceTests: TestCase {
     XCTFail("Data diff is not implemented yet")
   }
 
-  func test_refreshIfNeeded_fetchesResourceTypes() {
+  func test_refreshIfNeeded_fetchesResourceTypes() async throws {
     features.use(accountSession)
     features.use(accountDatabase)
     var result: Void?
@@ -109,15 +111,14 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    feature
+    try await feature
       .refreshIfNeeded()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_refreshIfNeeded_fails_whenResourceTypesFetchFails() {
+  func test_refreshIfNeeded_fails_whenResourceTypesFetchFails() async throws {
     features.use(accountSession)
     features.use(accountDatabase)
     networkClient.resourcesTypesRequest.execute = always(
@@ -129,22 +130,19 @@ final class ResourceTests: TestCase {
     let feature: Resources = testInstance()
 
     var result: TheErrorLegacy?
-    feature
-      .refreshIfNeeded()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    do {
+      try await feature
+        .refreshIfNeeded()
+        .asAsyncValue()
+    }
+    catch {
+      result = error.asLegacy
+    }
 
     XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
-  func test_refreshIfNeeded_savesResourceTypesToDatabase() {
+  func test_refreshIfNeeded_savesResourceTypesToDatabase()async throws {
     features.use(accountSession)
     var result: Void?
     accountDatabase.storeResourcesTypes.execute = { _ in
@@ -158,15 +156,14 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    feature
+    try await feature
       .refreshIfNeeded()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_refreshIfNeeded_fails_whenResourceTypesSaveFails() {
+  func test_refreshIfNeeded_fails_whenResourceTypesSaveFails() async throws {
     features.use(accountSession)
     accountDatabase.storeResourcesTypes.execute = always(
       Fail(error: MockIssue.error())
@@ -178,22 +175,19 @@ final class ResourceTests: TestCase {
     let feature: Resources = testInstance()
 
     var result: TheErrorLegacy?
-    feature
-      .refreshIfNeeded()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    do {
+      try await feature
+        .refreshIfNeeded()
+        .asAsyncValue()
+    }
+    catch {
+      result = error.asLegacy
+    }
 
     XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
-  func test_refreshIfNeeded_fetchesResources() {
+  func test_refreshIfNeeded_fetchesResources() async throws {
     features.use(accountSession)
     features.use(accountDatabase)
     var result: Void?
@@ -207,15 +201,14 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    feature
+    try await feature
       .refreshIfNeeded()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_refreshIfNeeded_fails_whenResourceFetchFails() {
+  func test_refreshIfNeeded_fails_whenResourceFetchFails() async throws {
     features.use(accountSession)
     features.use(accountDatabase)
     networkClient.resourcesRequest.execute = always(
@@ -227,22 +220,19 @@ final class ResourceTests: TestCase {
     let feature: Resources = testInstance()
 
     var result: TheErrorLegacy?
-    feature
-      .refreshIfNeeded()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    do {
+      try await feature
+        .refreshIfNeeded()
+        .asAsyncValue()
+    }
+    catch {
+      result = error.asLegacy
+    }
 
     XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
-  func test_refreshIfNeeded_savesResourcesToDatabase() {
+  func test_refreshIfNeeded_savesResourcesToDatabase() async throws {
     features.use(accountSession)
     var result: Void?
     accountDatabase.storeResources.execute = { _ in
@@ -256,15 +246,14 @@ final class ResourceTests: TestCase {
 
     let feature: Resources = testInstance()
 
-    feature
+    try await feature
       .refreshIfNeeded()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_refreshIfNeeded_fails_whenResourceSaveFails() {
+  func test_refreshIfNeeded_fails_whenResourceSaveFails() async throws {
     features.use(accountSession)
     accountDatabase.storeResourcesTypes.execute = always(
       Fail(error: MockIssue.error())
@@ -276,17 +265,14 @@ final class ResourceTests: TestCase {
     let feature: Resources = testInstance()
 
     var result: TheErrorLegacy?
-    feature
-      .refreshIfNeeded()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    do {
+      try await feature
+        .refreshIfNeeded()
+        .asAsyncValue()
+    }
+    catch {
+      result = error.asLegacy
+    }
 
     XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
@@ -370,7 +356,7 @@ final class ResourceTests: TestCase {
     XCTAssertEqual(result, testResourcesAlternative)
   }
 
-  func test_filteredResourcesListPublisher_publishesResourcesAfterUpdate() {
+  func test_filteredResourcesListPublisher_publishesResourcesAfterUpdate() async throws {
     features.use(accountSession)
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
@@ -395,10 +381,9 @@ final class ResourceTests: TestCase {
 
     resources = testResourcesAlternative
 
-    feature
+    try await feature
       .refreshIfNeeded()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, testResourcesAlternative)
   }
@@ -425,6 +410,32 @@ final class ResourceTests: TestCase {
       .store(in: cancellables)
 
     XCTAssertEqual(result, [])
+  }
+
+  func test_delete_triggersRefreshIfNeeded_whenDeletion_succeeds() async throws {
+    var result: Void?
+    features.use(accountSession)
+    features.use(accountDatabase)
+    networkClient.deleteResourceRequest.execute = { _ in
+      return Just(Void())
+        .eraseErrorType()
+        .eraseToAnyPublisher()
+    }
+    networkClient.resourcesRequest.execute = { _ in
+      result = Void()
+      return Just(.init(header: .mock(), body: .init()))
+        .eraseErrorType()
+        .eraseToAnyPublisher()
+    }
+    features.use(networkClient)
+
+    let feature: Resources = testInstance()
+
+    try await feature
+      .deleteResource(.init(rawValue: "test"))
+      .asAsyncValue()
+
+    XCTAssertNotNil(result)
   }
 }
 

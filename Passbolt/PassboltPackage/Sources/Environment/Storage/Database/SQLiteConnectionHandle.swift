@@ -154,6 +154,8 @@ internal final class SQLiteConnectionHandle {
             DatabaseStatementExecutionFailure
             .error()
             .recording(lastErrorMessage(), for: "errorMessage")
+            .recording(statement, for: "statement")
+            .recording(parameters, for: "parameters")
         )
       )
     }
@@ -207,6 +209,8 @@ internal final class SQLiteConnectionHandle {
             DatabaseStatementExecutionFailure
             .error()
             .recording(lastErrorMessage(), for: "errorMessage")
+            .recording(statement, for: "statement")
+            .recording(parameters, for: "parameters")
         )
       )
     }
@@ -237,6 +241,8 @@ internal final class SQLiteConnectionHandle {
             DatabaseStatementInvalid
             .error()
             .recording(lastErrorMessage(), for: "errorMessage")
+            .recording(statement, for: "statement")
+            .recording(parameters, for: "parameters")
         )
       )
     }
@@ -249,6 +255,10 @@ internal final class SQLiteConnectionHandle {
             DatabaseBindingInvalid
             .error()
             .recording("Bindings count does not match parameters count", for: "errorMessage")
+            .recording(parameters.count, for: "parameters count")
+            .recording(sqlite3_bind_parameter_count(statementHandle), for: "binding parameters count")
+            .recording(statement, for: "statement")
+            .recording(parameters, for: "parameters")
         )
       )
     }
@@ -270,6 +280,8 @@ internal final class SQLiteConnectionHandle {
                 DatabaseBindingInvalid
                 .error()
                 .recording(lastErrorMessage(), for: "errorMessage")
+                .recording(statement, for: "statement")
+                .recording(parameters, for: "parameters")
             )
           )
         }
@@ -287,6 +299,8 @@ internal final class SQLiteConnectionHandle {
                 DatabaseBindingInvalid
                 .error()
                 .recording(lastErrorMessage(), for: "errorMessage")
+                .recording(statement, for: "statement")
+                .recording(parameters, for: "parameters")
             )
           )
         }

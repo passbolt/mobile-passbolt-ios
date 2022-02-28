@@ -28,7 +28,7 @@ import UIComponents
 internal struct AccountMenuController {
 
   internal let currentAccountWithProfile: AccountWithProfile
-  internal let parentComponent: AnyUIComponent
+  internal let navigation: ComponentNavigation<Void>
   internal var currentAcountAvatarImagePublisher: () -> AnyPublisher<Data?, Never>
   internal var accountsListPublisher:
     () -> AnyPublisher<
@@ -48,7 +48,7 @@ extension AccountMenuController: UIController {
 
   internal typealias Context = (
     accountWithProfile: AccountWithProfile,
-    parentComponent: AnyUIComponent
+    navigation: ComponentNavigation<Void>
   )
 
   internal static func instance(
@@ -176,7 +176,7 @@ extension AccountMenuController: UIController {
 
     return Self(
       currentAccountWithProfile: context.accountWithProfile,
-      parentComponent: context.parentComponent,
+      navigation: context.navigation,
       currentAcountAvatarImagePublisher: currentAcountAvatarImagePublisher,
       accountsListPublisher: accountsListPublisher,
       dismissPublisher: dismissPublisher,

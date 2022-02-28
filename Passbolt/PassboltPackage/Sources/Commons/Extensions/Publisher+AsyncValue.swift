@@ -26,32 +26,38 @@ import Combine
 extension Publisher {
 
   public func asAsyncValue() async throws -> Output {
-    var cancellable: AnyCancellable?
-    // keeping cancellable in memory
-    defer { _ = cancellable }
-    return try await withCheckedThrowingContinuation { continuation in
-      cancellable =
-        self
-        .first()  // ensure that only one value will be emitted
-        .handleEvents(
-          receiveOutput: { response in
-            continuation.resume(returning: response)
-          },
-          receiveCompletion: { completion in
-            switch completion {
-            case .finished:
-              break // NOP
-              
-            case let .failure(error):
-              continuation.resume(throwing: error)
-            }
+    let sequence: AnyAsyncThrowingSequence<Output> =
+      self
+      .first()
+      .asAsyncThrowingSequence()
 
-          },
-          receiveCancel: {
-            continuation.resume(throwing: CancellationError())
-          }
-        )
-        .sinkDrop()
+    let output: Output? =
+      try await sequence
+      .makeAsyncIterator()
+      .next()
+
+    if let output: Output = output {
+      return output
     }
+    else {
+      throw CancellationError()
+    }
+  }
+}
+
+extension Task {
+
+  public func asPublisher() -> AnyPublisher<Success, Error> {
+    Future<Success, Error> { promise in
+      Task<Void, Never> {
+        do {
+          try await promise(.success(self.value))
+        }
+        catch {
+          promise(.failure(error))
+        }
+      }
+    }
+    .eraseToAnyPublisher()
   }
 }

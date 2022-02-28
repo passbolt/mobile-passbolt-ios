@@ -25,7 +25,6 @@ import CommonModels
 import Features
 import NetworkClient
 
-import class Foundation.NSRecursiveLock
 import struct Foundation.URL
 
 extension FeatureConfigItem {
@@ -51,14 +50,11 @@ extension FeatureConfig: Feature {
     let networkClient: NetworkClient = features.instance()
 
     var accountID: Account.LocalID?
-    var all: Dictionary<ObjectIdentifier, FeatureConfigItem> = .init()
-    let lock: NSRecursiveLock = .init()
+    let all: CurrentValueSubject<Dictionary<ObjectIdentifier, FeatureConfigItem>, Never> = .init(.init())
 
     accountSession
       .statePublisher()
       .sink { state in
-        lock.lock()
-        defer { lock.unlock() }
         switch state {
         case let .authorizationRequired(account) where account.localID == accountID,
           let .authorized(account) where account.localID == accountID,
@@ -66,29 +62,23 @@ extension FeatureConfig: Feature {
           break
         case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account, _):
           accountID = account.localID
-          all = .init()
+          all.value = .init()
         case .none:
           accountID = nil
-          all = .init()
+          all.value = .init()
         }
       }
       .store(in: cancellables)
 
     func config(for featureType: FeatureConfigItem.Type) -> FeatureConfigItem {
-      lock.lock()
-      defer { lock.unlock() }
-
-      return all[featureType.featureFlagIdentifier] ?? featureType.default
+      return all.value[featureType.featureFlagIdentifier] ?? featureType.default
     }
 
     func handle(response: ConfigResponse) {
-      lock.lock()
-      defer { lock.unlock() }
-
       let config: Config = response.body.config
 
       if let legal: Config.Legal = config.legal {
-        all[FeatureFlags.Legal.featureFlagIdentifier] = { () -> FeatureFlags.Legal in
+        all.value[FeatureFlags.Legal.featureFlagIdentifier] = { () -> FeatureFlags.Legal in
           let termsURL: URL? = .init(string: legal.terms.url)
           let privacyPolicyURL: URL? = .init(string: legal.privacyPolicy.url)
 
@@ -105,18 +95,18 @@ extension FeatureConfig: Feature {
         }()
       }
       else {
-        all[FeatureFlags.Legal.featureFlagIdentifier] = FeatureFlags.Legal.default
+        all.value[FeatureFlags.Legal.featureFlagIdentifier] = FeatureFlags.Legal.default
       }
 
       if let folders: Config.Folders = config.plugins.firstElementOfType(), folders.enabled {
-        all[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.enabled(version: folders.version)
+        all.value[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.enabled(version: folders.version)
       }
       else {
-        all[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.default
+        all.value[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.default
       }
 
       if let previewPassword: Config.PreviewPassword = config.plugins.firstElementOfType() {
-        all[FeatureFlags.PreviewPassword.featureFlagIdentifier] = { () -> FeatureFlags.PreviewPassword in
+        all.value[FeatureFlags.PreviewPassword.featureFlagIdentifier] = { () -> FeatureFlags.PreviewPassword in
           if previewPassword.enabled {
             return .enabled
           }
@@ -126,21 +116,19 @@ extension FeatureConfig: Feature {
         }()
       }
       else {
-        all[FeatureFlags.PreviewPassword.featureFlagIdentifier] = FeatureFlags.PreviewPassword.default
+        all.value[FeatureFlags.PreviewPassword.featureFlagIdentifier] = FeatureFlags.PreviewPassword.default
       }
 
       if let tags: Config.Tags = config.plugins.firstElementOfType(), tags.enabled {
-        all[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.enabled
+        all.value[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.enabled
       }
       else {
-        all[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.default
+        all.value[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.default
       }
     }
 
     func fetchIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
-      lock.lock()
-      let isFetched: Bool = all.isEmpty
-      lock.unlock()
+      let isFetched: Bool = all.value.isEmpty
 
       guard isFetched
       else {

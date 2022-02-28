@@ -121,7 +121,7 @@ extension UIComponent {
         objc_setAssociatedObject(
           self,
           &cancellablesAssociationKey,
-          Cancellables(extend: stored, newValue),
+          stored.take(newValue),
           .OBJC_ASSOCIATION_RETAIN_NONATOMIC
         )
       }

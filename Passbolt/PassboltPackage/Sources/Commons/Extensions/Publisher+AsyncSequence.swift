@@ -36,3 +36,141 @@ extension Publisher where Failure == Never {
     AnyAsyncSequence(self)
   }
 }
+
+extension AsyncSequence {
+
+  public func asPublisher() -> AnyPublisher<Element, Never> {
+    let subject: PassthroughSubject<Element, Never> = .init()
+    let recurringTask: RecurringTask = .init {
+      do {
+        for try await element in self {
+          subject.send(element)
+        }
+        subject.send(completion: .finished)
+      }
+      catch {
+        error
+          .asTheError()
+          .asAssertionFailure(
+            message: "Assuming nonthrowing sequence, plese use throwing publisher conversion instead"
+          )
+        subject.send(completion: .finished)
+      }
+    }
+    return
+      subject
+      .handleEvents(
+        receiveSubscription: { _ in
+          Task.detached {
+            await recurringTask.run(replacingCurrent: false)
+          }
+        },
+        receiveCancel: {
+          Task.detached {
+            await recurringTask.cancel()
+          }
+        }
+      )
+      .eraseToAnyPublisher()
+  }
+}
+
+extension AsyncSequence {
+
+  public func asThrowingPublisher() -> AnyPublisher<Element, Error> {
+    let subject: PassthroughSubject<Element, Error> = .init()
+    let recurringTask: RecurringTask = .init {
+      do {
+        for try await element in self {
+          subject.send(element)
+        }
+        subject.send(completion: .finished)
+      }
+      catch {
+        subject.send(completion: .failure(error))
+      }
+    }
+    return
+      subject
+      .handleEvents(
+        receiveSubscription: { _ in
+          Task.detached {
+            await recurringTask.run(replacingCurrent: false)
+          }
+        },
+        receiveCancel: {
+          Task.detached {
+            await recurringTask.cancel()
+          }
+        }
+      )
+      .eraseToAnyPublisher()
+  }
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func AsyncPublisher<Value>(
+  _ operation: @escaping (@escaping (Value) -> Void) async throws -> Void
+) -> AnyPublisher<Value, Never> {
+  let subject: PassthroughSubject<Value, Never> = .init()
+  let recurringTask: RecurringTask = .init {
+    do {
+      try await operation(subject.send)
+      subject.send(completion: .finished)
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure(
+          message: "Assuming nonthrowing sequence, plese use throwing publisher conversion instead"
+        )
+      subject.send(completion: .finished)
+    }
+  }
+  return
+    subject
+    .handleEvents(
+      receiveSubscription: { _ in
+        Task.detached {
+          await recurringTask.run(replacingCurrent: false)
+        }
+      },
+      receiveCancel: {
+        Task.detached {
+          await recurringTask.cancel()
+        }
+      }
+    )
+    .eraseToAnyPublisher()
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func AsyncThrowingPublisher<Value>(
+  _ operation: @escaping (@escaping (Value) -> Void) async throws -> Void
+) -> AnyPublisher<Value, Error> {
+  let subject: PassthroughSubject<Value, Error> = .init()
+  let recurringTask: RecurringTask = .init {
+    do {
+      try await operation(subject.send)
+      subject.send(completion: .finished)
+    }
+    catch {
+      subject.send(completion: .failure(error))
+    }
+  }
+  return
+    subject
+    .handleEvents(
+      receiveSubscription: { _ in
+        Task.detached {
+          await recurringTask.run(replacingCurrent: false)
+        }
+      },
+      receiveCancel: {
+        Task.detached {
+          await recurringTask.cancel()
+        }
+      }
+    )
+    .eraseToAnyPublisher()
+}

@@ -63,7 +63,7 @@ where HostedView: ComponentView {
   public override func loadView() {
     super.loadView()
     mut(self.view) {
-      .backgroundColor(.clear)
+      .backgroundColor(.passboltBackground)
     }
     let controller: HostedView.Controller = self.components
       .controller(
@@ -73,7 +73,7 @@ where HostedView: ComponentView {
       )
     let hostingController: UIHostingController<HostedView> = .init(
       rootView: HostedView(
-        state: controller.viewState(),
+        state: controller.viewState,
         controller: controller
       )
     )

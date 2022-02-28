@@ -123,7 +123,7 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
           AccountMenuViewController.self,
           in: (
             accountWithProfile: accountWithProfile,
-            parentComponent: self
+            navigation: self.asComponentNavigation()
           )
         )
       }

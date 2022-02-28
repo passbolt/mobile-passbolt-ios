@@ -27,3 +27,5 @@ public enum Permission: String {
   case write = "write"
   case owner = "owner"
 }
+
+extension Permission: Hashable {}

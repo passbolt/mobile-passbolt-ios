@@ -41,15 +41,16 @@ internal final class OwnedResourcesListView: PlainView {
     mut(filtersContainer) {
       .combined(
         .backgroundColor(dynamic: .background),
-        .shadow(
-          color: .black,
-          opacity: 0.2,
-          offset: .init(width: 0, height: -10),
-          radius: 12
-        ),
+        // TODO: [MOB-255] fix shadow display
+        //        .shadow(
+        //          color: .black,
+        //          opacity: 0.2,
+        //          offset: .init(width: 0, height: -10),
+        //          radius: 12
+        //        ),
         .clipsToBounds(false),
         .subview(of: self),
-        .topAnchor(.equalTo, topAnchor),
+        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
         .leftAnchor(.equalTo, leftAnchor),
         .rightAnchor(.equalTo, rightAnchor)
       )

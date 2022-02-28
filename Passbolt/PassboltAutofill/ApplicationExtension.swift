@@ -94,11 +94,11 @@ internal struct ApplicationExtension {
           }
         },
         completeExtensionConfiguration: {
-          DispatchQueue.main.async(
-            execute: rootViewController
+          DispatchQueue.main.async {
+            rootViewController
               .extensionContext
-              .completeExtensionConfigurationRequest
-          )
+              .completeExtensionConfigurationRequest()
+          }
         },
         requestedServiceIdentifiersPublisher: requestedServicesSubject.eraseToAnyPublisher
       )

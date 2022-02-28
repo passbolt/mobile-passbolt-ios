@@ -66,7 +66,6 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
       .combined(
         .userInteractionEnabled(false),
         .backgroundColor(.clear),
-        .cornerRadius(8, masksToBounds: true),
         .subview(of: contentButton),
         .leadingAnchor(.equalTo, contentButton.leadingAnchor, constant: 16),
         .topAnchor(.equalTo, contentButton.topAnchor, constant: 12),

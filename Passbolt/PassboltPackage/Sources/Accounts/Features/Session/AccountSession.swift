@@ -28,7 +28,6 @@ import Features
 import NetworkClient
 
 import struct Foundation.Date
-import class Foundation.NSRecursiveLock
 import struct Foundation.TimeInterval
 
 public struct AccountSession {
@@ -157,7 +156,7 @@ extension AccountSession: Feature {
       .removeDuplicates()
       .eraseToAnyPublisher()
 
-    let sessionStateLock: NSRecursiveLock = .init()
+    let sessionStateLock: OSUnfairLock = .init()
     // synchronizing access to session state due to possible race conditions
     // CurrentValueSubject is thread safe but in some cases
     // we have to ensure state changes happen in sync with previous value
@@ -178,20 +177,8 @@ extension AccountSession: Feature {
       return access(&currentValue)
     }
 
-    // swift-format-ignore: NoLeadingUnderscores
-    var _authorizationCancellable: AnyCancellable?
-    var authorizationCancellable: AnyCancellable? {
-      get {
-        sessionStateLock.lock()
-        defer { sessionStateLock.unlock() }
-        return _authorizationCancellable
-      }
-      set {
-        sessionStateLock.lock()
-        _authorizationCancellable = newValue
-        sessionStateLock.unlock()
-      }
-    }
+    // warn: always use under session lock
+    var authorizationCancellable: AnyCancellable?
 
     let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
 
@@ -228,10 +215,10 @@ extension AccountSession: Feature {
           }
 
         case .didEnterBackground:
-          // cancel previous authorization if any
-          // we should not authorize in background
-          authorizationCancellable = nil
           withSessionState { sessionState in
+            // cancel previous authorization if any
+            // we should not authorize in background
+            authorizationCancellable = nil
             switch sessionState {
             case let .authorized(account, _, _),
               let .authorizedMFARequired(account, _, _, _):
@@ -264,10 +251,9 @@ extension AccountSession: Feature {
     }
     // Close current session and change session state (sign out)
     let closeSession: () -> Void = {
-      diagnostics.diagnosticLog("Closing current session...")
-      authorizationCancellable = nil  // cancel ongoing authorization if any
-
       withSessionState { sessionState in
+        diagnostics.diagnosticLog("Closing current session...")
+        authorizationCancellable = nil  // cancel ongoing authorization if any
         switch sessionState {
         case .authorized, .authorizationRequired, .authorizedMFARequired:
           networkSession
@@ -302,7 +288,7 @@ extension AccountSession: Feature {
         // there can't be more than a single ongoing authorization
         // intentionally using variable without lock,
         // required locking is made for the scope of this function
-        _authorizationCancellable = nil
+        authorizationCancellable = nil
 
         let switchingAccount: Bool
         switch sessionState {
@@ -508,8 +494,10 @@ extension AccountSession: Feature {
           authorizationResultSubject
           .handleEvents(
             receiveCancel: {
-              authorizationCancellable?.cancel()
-              diagnostics.diagnosticLog("...authorization canceled!")
+              withSessionState { _ in
+                authorizationCancellable?.cancel()
+                diagnostics.diagnosticLog("...authorization canceled!")
+              }
             }
           )
           .eraseToAnyPublisher()
@@ -649,7 +637,10 @@ extension AccountSession: Feature {
           }
 
         case let .authorizationRequired(account):
-          requestAuthorization(message: nil)
+          requestAuthorization(
+            withSessionState: &sessionState,
+            message: nil
+          )
           return Fail(
             error:
               SessionAuthorizationRequired
@@ -661,7 +652,10 @@ extension AccountSession: Feature {
           )
           .eraseToAnyPublisher()
         case .none:
-          requestAuthorization(message: nil)  // TODO: check this behavior
+          requestAuthorization(
+            withSessionState: &sessionState,
+            message: nil
+          )  // TODO: check this behavior
           return Fail(
             error:
               SessionMissing
@@ -710,7 +704,10 @@ extension AccountSession: Feature {
           }
 
         case let .authorizationRequired(account):
-          requestAuthorization(message: nil)
+          requestAuthorization(
+            withSessionState: &sessionState,
+            message: nil
+          )
           return Fail<ArmoredPGPMessage, TheErrorLegacy>(
             error:
               SessionAuthorizationRequired
@@ -723,7 +720,10 @@ extension AccountSession: Feature {
           .eraseToAnyPublisher()
 
         case .none:
-          requestAuthorization(message: nil)  // TODO: check this
+          requestAuthorization(
+            withSessionState: &sessionState,
+            message: nil
+          )  // TODO: check this
           return Fail<ArmoredPGPMessage, TheErrorLegacy>(
             error:
               SessionMissing
@@ -808,22 +808,32 @@ extension AccountSession: Feature {
         .eraseToAnyPublisher()
     }
 
+    func requestAuthorization(
+      withSessionState sessionState: inout InternalState,
+      message: DisplayableString?
+    ) {
+      switch sessionState {
+      case let .authorized(account, _, _), let .authorizedMFARequired(account, _, _, _):
+        features.setScope(account)
+        sessionState = .authorizationRequired(account)
+        authorizationPromptPresentationSubject.send(
+          .passphraseRequest(account: account, message: message)
+        )
+      case let .authorizationRequired(account):
+        authorizationPromptPresentationSubject.send(
+          .passphraseRequest(account: account, message: message)
+        )
+      case .none:
+        break
+      }
+    }
+
     func requestAuthorization(message: DisplayableString?) {
       withSessionState { sessionState in
-        switch sessionState {
-        case let .authorized(account, _, _), let .authorizedMFARequired(account, _, _, _):
-          features.setScope(account)
-          sessionState = .authorizationRequired(account)
-          authorizationPromptPresentationSubject.send(
-            .passphraseRequest(account: account, message: message)
-          )
-        case let .authorizationRequired(account):
-          authorizationPromptPresentationSubject.send(
-            .passphraseRequest(account: account, message: message)
-          )
-        case .none:
-          break
-        }
+        requestAuthorization(
+          withSessionState: &sessionState,
+          message: message
+        )
       }
     }
 
@@ -858,7 +868,7 @@ extension AccountSession: Feature {
       storePassphraseWithBiometry: storePassphraseWithBiometry(_:),
       databaseKey: databaseKey,
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
-      requestAuthorizationPrompt: requestAuthorization,
+      requestAuthorizationPrompt: requestAuthorization(message:),
       close: closeSession
     )
   }

@@ -99,7 +99,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self.dismiss(
           AccountMenuViewController.self,
           completion: {
-            self.controller.parentComponent
+            self.controller.navigation
               .push(
                 AccountDetailsViewController.self,
                 in: accountWithProfile
@@ -124,7 +124,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self.dismiss(
           AccountMenuViewController.self,
           completion: {
-            self.controller.parentComponent
+            self.controller.navigation
               .push(
                 AuthorizationViewController.self,
                 in: account
@@ -149,7 +149,7 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self.dismiss(
           AccountMenuViewController.self,
           completion: {
-            self.controller.parentComponent
+            self.controller.navigation
               .push(
                 AccountSelectionViewController.self,
                 in: .init(value: true)

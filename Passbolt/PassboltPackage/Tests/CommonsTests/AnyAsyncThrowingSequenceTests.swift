@@ -22,8 +22,8 @@
 //
 
 import Combine
-import XCTest
 import TestExtensions
+import XCTest
 
 @testable import Commons
 
@@ -76,9 +76,7 @@ final class AnyAsyncThrowingSequenceTests: XCTestCase {
 
     let sequence: AnyAsyncThrowingSequence<Int> = .init(subject)
 
-    Task {
-      subject.send(1)
-      subject.send(2)
+    Task.detached {
       subject.send(completion: .failure(CancellationError()))
     }
 
@@ -93,7 +91,7 @@ final class AnyAsyncThrowingSequenceTests: XCTestCase {
       // expected result
     }
 
-    XCTAssertEqual(result, [1, 2])
+    XCTAssertEqual(result, [])
   }
 
   func test_iteration_returnsSequenceContent_withEmptySequence() async throws {

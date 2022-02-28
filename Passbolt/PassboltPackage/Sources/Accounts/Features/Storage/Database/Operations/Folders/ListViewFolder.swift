@@ -33,17 +33,20 @@ public struct ListViewFolder {
   public var name: String
   public var permission: Permission
   public var parentFolderID: ID?
+  public var contentCount: UInt
 
   public init(
     id: ID,
     name: String,
     permission: Permission,
-    parentFolderID: ID?
+    parentFolderID: ID?,
+    contentCount: UInt
   ) {
     self.id = id
     self.name = name
     self.permission = permission
     self.parentFolderID = parentFolderID
+    self.contentCount = contentCount
   }
 }
 

@@ -26,7 +26,7 @@ import UIComponents
 @MainActor
 internal struct HomePresentationMenuController {
 
-  internal var viewState: @MainActor () -> ComponentObservableState<ViewState>
+  internal var viewState: ObservableValue<ViewState>
   internal var selectMode: @MainActor (HomePresentationMode) -> Void
   internal var dismissView: @MainActor () -> Void
 }
@@ -44,7 +44,7 @@ extension HomePresentationMenuController: ComponentController {
   ) -> Self {
     let homePresentation: HomePresentation = features.instance()
 
-    let viewState: ComponentWritableState<ViewState> = .init(
+    let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
         currentMode: context,
         availableModes: homePresentation.availableHomePresentationModes()
@@ -70,7 +70,7 @@ extension HomePresentationMenuController: ComponentController {
     }
 
     return Self(
-      viewState: viewState.asObservableState,
+      viewState: viewState,
       selectMode: selectMode(_:),
       dismissView: dismissView
     )

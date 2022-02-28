@@ -104,6 +104,10 @@ extension UIColor {
   public static var passboltIconAlternative: Self {
     .init(named: "iconAlternative", in: .uiCommons, compatibleWith: .current)!
   }
+
+  public static var passboltBackgroundAlternative: Self {
+    .init(named: "backgroundAlternative", in: .uiCommons, compatibleWith: .current)!
+  }
 }
 
 extension Color {
@@ -185,5 +189,9 @@ extension Color {
 
   public static var passboltIconAlternative: Self {
     .init(UIColor.passboltIconAlternative)
+  }
+
+  public static var passboltBackgroundAlternative: Self {
+    .init(UIColor.passboltBackgroundAlternative)
   }
 }

@@ -143,6 +143,13 @@ public struct SQLiteRow {
 
   public subscript(
     dynamicMember column: String
+  ) -> UInt? {
+    (values[column] as? Int64)
+      .map(UInt.init)
+  }
+
+  public subscript(
+    dynamicMember column: String
   ) -> Double? {
     values[column] as? Double
   }

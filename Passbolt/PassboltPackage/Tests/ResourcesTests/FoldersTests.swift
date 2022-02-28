@@ -115,17 +115,6 @@ final class FoldersTests: TestCase {
     }
   }
 
-  func test_filteredFolderContent_producesNoValue_withoutFilters() async {
-    let feature: Folders = self.testInstance()
-
-    var result: Array<FolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([])) {
-      result.append(folderContent)
-    }
-
-    XCTAssertEqual(result, [])
-  }
-
   func test_filteredFolderContent_producesContentForRequestedFolderIDAndFlatteningMode() async {
     self.features
       .patch(
@@ -145,7 +134,7 @@ final class FoldersTests: TestCase {
     let feature: Folders = self.testInstance()
 
     var result: Array<FolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])) {
+    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
       result.append(folderContent)
     }
 
@@ -181,7 +170,7 @@ final class FoldersTests: TestCase {
     let feature: Folders = self.testInstance()
 
     var result: Array<FolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])) {
+    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
       result.append(folderContent)
     }
 
@@ -204,7 +193,8 @@ final class FoldersTests: TestCase {
         id: .init(rawValue: "folderID"),
         name: "Folder",
         permission: .owner,
-        parentFolderID: nil
+        parentFolderID: nil,
+        contentCount: 0
       )
     ]
 
@@ -235,7 +225,7 @@ final class FoldersTests: TestCase {
     let feature: Folders = self.testInstance()
 
     var result: Array<FolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])) {
+    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
       result.append(folderContent)
     }
 
@@ -258,7 +248,8 @@ final class FoldersTests: TestCase {
         id: .init(rawValue: "folderID"),
         name: "Folder",
         permission: .owner,
-        parentFolderID: nil
+        parentFolderID: nil,
+        contentCount: 0
       )
     ]
 
@@ -289,7 +280,7 @@ final class FoldersTests: TestCase {
     let feature: Folders = self.testInstance()
 
     var result: Array<FolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])) {
+    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
       result.append(folderContent)
     }
 
@@ -312,7 +303,8 @@ final class FoldersTests: TestCase {
         id: .init(rawValue: "folderID"),
         name: "Folder",
         permission: .owner,
-        parentFolderID: nil
+        parentFolderID: nil,
+        contentCount: 0
       )
     ]
 
@@ -349,7 +341,7 @@ final class FoldersTests: TestCase {
     let feature: Folders = self.testInstance()
 
     var result: Array<FolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init(filters)) {
+    for await folderContent in feature.filteredFolderContent(.init(filters)).prefix(2) {
       result.append(folderContent)
     }
 

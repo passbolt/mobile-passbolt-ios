@@ -52,10 +52,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     super.init()
 
     let iconContainer: ContainerView<PlainView> = .init(
-      contentView: iconView,
-      mutation: .combined(
-        .cornerRadius(4, masksToBounds: true)
-      )
+      contentView: iconView
     )
 
     mut(iconContainer) {

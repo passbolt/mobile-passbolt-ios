@@ -23,53 +23,66 @@
 
 import Combine
 
-public final class AnyAsyncSequence<Element> {
+public struct AnyAsyncSequence<Element> {
 
   private let makeIterator: () -> AsyncIterator
-  private var token: Any?
 
   public init<Upstream: Publisher>(
     _ upstream: Upstream,
     bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy = .unbounded
-  )
-  where Upstream.Output == Element, Upstream.Failure == Never {
-    var cancellable: AnyCancellable? = nil
-    let stream: AsyncStream<Element> = .init(bufferingPolicy: bufferingPolicy) { continuation in
-      cancellable =
-        upstream
-        .handleEvents(
-          receiveOutput: { output in
-            continuation.yield(output)
-          },
-          receiveCompletion: { completion in
-            switch completion {
-            case .finished:
-              continuation.finish()
-
-            case .failure:
-              unreachable("Failure is Never")
-            }
-          },
-          receiveCancel: {
-            continuation.finish()  // just finishing on cancel
+  ) where Upstream.Output == Element, Upstream.Failure == Never {
+    if #available(iOS 15.0, *) {
+      self.makeIterator = {
+        var iterator: AsyncPublisher<Upstream>.Iterator = upstream.values.makeAsyncIterator()
+        return AnyAsyncIterator<Element>(
+          nextElement: {
+            await iterator.next()
           }
         )
-        .sinkDrop()
+      }
     }
-    self.makeIterator = {
-      var iterator: AsyncStream<Element>.AsyncIterator = stream.makeAsyncIterator()
-      return AsyncIterator(
-        nextElement: {
-          if Task.isCancelled {
-            return nil  // end sequence on cancelation
+    else {
+      let stream: AsyncStream<Element> =
+        .init(
+          bufferingPolicy: bufferingPolicy
+        ) { continuation in
+          var cancellable: AnyCancellable?
+          let termination = { cancellable?.cancel() }
+          continuation.onTermination = { @Sendable _ in
+            termination()
           }
-          else {
-            return await iterator.next()
-          }
+
+          cancellable =
+            upstream
+            .handleEvents(
+              receiveOutput: { output in
+                continuation.yield(output)
+              },
+              receiveCompletion: { completion in
+                switch completion {
+                case .finished:
+                  continuation.finish()
+
+                case .failure:
+                  unreachable("Failure is Never")
+                }
+              },
+              receiveCancel: {
+                continuation.finish()  // just finishing on cancel
+              }
+            )
+            .sinkDrop()
         }
-      )
+
+      self.makeIterator = {
+        var iterator: AsyncStream<Element>.AsyncIterator = stream.makeAsyncIterator()
+        return AnyAsyncIterator<Element>(
+          nextElement: {
+            await iterator.next()
+          }
+        )
+      }
     }
-    self.token = cancellable
   }
 
   public init<Content>(
@@ -77,10 +90,9 @@ public final class AnyAsyncSequence<Element> {
   ) where Content: AsyncSequence, Content.Element == Element {
     self.makeIterator = {
       var iterator: Content.AsyncIterator = content.makeAsyncIterator()
-      return AsyncIterator(
+      return AnyAsyncIterator<Element>(
         nextElement: {
           do {
-            try Task.checkCancellation()
             return try await iterator.next()
           }
           catch _ as CancellationError {
@@ -90,15 +102,17 @@ public final class AnyAsyncSequence<Element> {
           catch {
             // we can't get the details if Content sequence is throwing or not
             // so if it is it will be treated as sequence end since we can't rethrow
-            assertionFailure(
-              "AnyAsyncSequence should not use throwing sequences, please use AnyAsyncThrowingSequence instead"
-            )
+            error
+              .asTheError()
+              .asAssertionFailure(
+                message:
+                  "AnyAsyncSequence should not use throwing sequences, please use AnyAsyncThrowingSequence instead"
+              )
             return nil
           }
         }
       )
     }
-    self.token = nil
   }
 
   public init<Content>(
@@ -106,46 +120,39 @@ public final class AnyAsyncSequence<Element> {
   ) where Content: Sequence, Content.Element == Element {
     self.makeIterator = {
       var iterator: Content.Iterator = content.makeIterator()
-      return AsyncIterator(
+      return AnyAsyncIterator<Element>(
         nextElement: {
-          if Task.isCancelled {
-            return nil  // end sequence on cancelation
-          }
-          else {
-            return iterator.next()
-          }
+          iterator.next()
         }
       )
     }
-    self.token = nil
   }
 }
 
 extension AnyAsyncSequence: AsyncSequence {
 
-  public struct AsyncIterator: AsyncIteratorProtocol {
-
-    private let nextElement: () async -> Element?
-
-    fileprivate init(
-      nextElement: @escaping () async -> Element?
-    ) {
-      self.nextElement = nextElement
-    }
-
-    public func next() async -> Element? {
-      await nextElement()
-    }
-  }
-
-  public func makeAsyncIterator() -> AsyncIterator {
+  public func makeAsyncIterator() -> AnyAsyncIterator<Element> {
     self.makeIterator()
+  }
+}
+
+extension Sequence {
+
+  public func asAnyAsyncSequence() -> AnyAsyncSequence<Element> {
+    AnyAsyncSequence(self)
   }
 }
 
 extension AsyncSequence {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Element> {
+    AnyAsyncSequence(self)
+  }
+}
+
+extension Publisher where Failure == Never {
+
+  public func asAnyAsyncSequence() -> AnyAsyncSequence<Output> {
     AnyAsyncSequence(self)
   }
 }

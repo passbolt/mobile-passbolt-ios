@@ -21,11 +21,22 @@
 // @since         v1.0
 //
 
+import SwiftUI
 import UIKit
 
 public final class LetterIconView: PlainView {
 
   private let label: Label = .init()
+
+  public init(text: String = "") {
+    super.init()
+    self.update(from: text)
+  }
+
+  @available(*, unavailable) @_disfavoredOverload
+  public required init() {
+    unreachable(#function)
+  }
 
   public override func setup() {
     super.setup()
@@ -42,7 +53,11 @@ public final class LetterIconView: PlainView {
     }
 
     mut(self) {
-      .backgroundColor(.white)
+      .combined(
+        .backgroundColor(.clear),
+        .cornerRadius(4, masksToBounds: true),
+        .aspectRatio(1)
+      )
     }
   }
 
@@ -57,34 +72,52 @@ public final class LetterIconView: PlainView {
       .compactMap { $0.first?.uppercased() }
       .joined()
 
-    let color: DynamicColor = colors[abs(text.hash) % colors.count]
+    let color: UIColor = colors[abs(text.hash) % colors.count]
     mut(label) {
       .combined(
         .text(letters),
-        .textColor(dynamic: color),
-        .backgroundColor(dynamic: color.withAlpha(0.3))
+        .textColor(color),
+        .backgroundColor(color.withAlphaComponent(0.3))
       )
     }
   }
 }
 
 // List of colors used to generate background colors for icon.
-private let colors: Array<DynamicColor> = [
-  .always(0xe57373),
-  .always(0xf06292),
-  .always(0xba68c8),
-  .always(0x9575cd),
-  .always(0x7986cb),
-  .always(0x64b5f6),
-  .always(0x4fc3f7),
-  .always(0x4dd0e1),
-  .always(0x4db6ac),
-  .always(0x81c784),
-  .always(0xaed581),
-  .always(0xff8a65),
-  .always(0xd4e157),
-  .always(0xffd54f),
-  .always(0xffb74d),
-  .always(0xa1887f),
-  .always(0x90a4ae),
+private let colors: Array<UIColor> = [
+  .init(0xe57373),
+  .init(0xf06292),
+  .init(0xba68c8),
+  .init(0x9575cd),
+  .init(0x7986cb),
+  .init(0x64b5f6),
+  .init(0x4fc3f7),
+  .init(0x4dd0e1),
+  .init(0x4db6ac),
+  .init(0x81c784),
+  .init(0xaed581),
+  .init(0xff8a65),
+  .init(0xd4e157),
+  .init(0xffd54f),
+  .init(0xffb74d),
+  .init(0xa1887f),
+  .init(0x90a4ae),
 ]
+
+extension LetterIconView: UIViewRepresentable {
+
+  public typealias UIViewType = LetterIconView
+
+  public func makeUIView(
+    context: Context
+  ) -> Self {
+    self
+  }
+
+  public func updateUIView(
+    _ uiView: LetterIconView,
+    context: Context
+  ) {
+    // NOP
+  }
+}

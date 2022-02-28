@@ -27,6 +27,7 @@ import Crypto
 import Features
 import NetworkClient
 
+import struct Foundation.Data
 import struct Foundation.URL
 
 public struct AccountSettings {
@@ -41,6 +42,7 @@ public struct AccountSettings {
   public var accountWithProfile: (Account) -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   public var currentAccountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
+  public var currentAccountAvatarPublisher: () -> AnyPublisher<Data?, Never>
 }
 
 extension AccountSettings: Feature {
@@ -308,6 +310,20 @@ extension AccountSettings: Feature {
       .removeDuplicates()
       .eraseToAnyPublisher()
 
+    func currentAccountAvatarPublisher() -> AnyPublisher<Data?, Never> {
+      accountProfilePublisher
+        .map(\.avatarImageURL)
+        .map { avatarImageURL in
+          networkClient.mediaDownload.make(
+            using: .init(urlString: avatarImageURL)
+          )
+          .map { data -> Data? in data }
+          .replaceError(with: nil)
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     return Self(
       biometricsEnabledPublisher: { biometricsEnabledPublisher },
       setBiometricsEnabled: setBiometrics(enabled:),
@@ -316,7 +332,8 @@ extension AccountSettings: Feature {
       accountWithProfile: accountWithProfile(for:),
       updatedAccountIDsPublisher: accountsDataStore
         .updatedAccountIDsPublisher,
-      currentAccountProfilePublisher: { accountProfilePublisher }
+      currentAccountProfilePublisher: { accountProfilePublisher },
+      currentAccountAvatarPublisher: currentAccountAvatarPublisher
     )
   }
 }
@@ -336,7 +353,8 @@ extension AccountSettings {
       setAvatarImageURL: unimplemented("You have to provide mocks for used methods"),
       accountWithProfile: unimplemented("You have to provide mocks for used methods"),
       updatedAccountIDsPublisher: unimplemented("You have to provide mocks for used methods"),
-      currentAccountProfilePublisher: unimplemented("You have to provide mocks for used methods")
+      currentAccountProfilePublisher: unimplemented("You have to provide mocks for used methods"),
+      currentAccountAvatarPublisher: unimplemented("You have to provide mocks for used methods")
     )
   }
   #endif

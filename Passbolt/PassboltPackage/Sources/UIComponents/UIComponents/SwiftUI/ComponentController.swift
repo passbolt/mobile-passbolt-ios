@@ -37,12 +37,12 @@ where Context == ComponentNavigation<NavigationContext>, ControlledView: Compone
     cancellables: Cancellables
   ) -> Self
 
-  var viewState: @MainActor () -> ComponentObservableState<ViewState> { get }
+  var viewState: ObservableValue<ViewState> { get }
 }
 
 extension ComponentController {
 
-  public typealias ViewState = ControlledView.State
+  public typealias ViewState = ControlledView.ViewState
 
   @MainActor public static func instance(
     in context: Context,

@@ -27,10 +27,10 @@ extension Mutation where Subject: NavigationBar {
 
   public static func primaryNavigationStyle() -> Self {
     .combined(
-      .backgroundColor(dynamic: .background),
-      .barTintColor(dynamic: .background),
+      .backgroundColor(.clear),
+      .barTintColor(.clear),
       .tintColor(dynamic: .primaryButtonTint),
-      .translucent(false),
+      .translucent(true),
       .shadowImage(UIImage()),
       .backgroundImage(nil),
       .custom { (subject: Subject) in
@@ -46,6 +46,12 @@ extension Mutation where Subject: NavigationBar {
         )
         subject.titleFont = .inter(ofSize: 16, weight: .semibold)
         subject.dynamicTitleColor = .primaryText
+        subject.scrollEdgeAppearance?.configureWithOpaqueBackground()
+        if #available(iOS 15.0, *) {
+          subject.compactScrollEdgeAppearance?.configureWithOpaqueBackground()
+        }
+        else { /* NOP */
+        }
       }
     )
   }

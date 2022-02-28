@@ -52,6 +52,26 @@ public struct ComponentNavigation<Context> {
 
 extension ComponentNavigation {
 
+  public func asContextlessNavigation() -> ComponentNavigation<Void> {
+    .init(
+      context: Void(),
+      sourceComponent: self.sourceComponent
+    )
+  }
+}
+
+extension AnyUIComponent {
+
+  public func asComponentNavigation() -> ComponentNavigation<Void> {
+    .init(
+      context: Void(),
+      sourceComponent: self
+    )
+  }
+}
+
+extension ComponentNavigation {
+
   public func present<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -78,6 +98,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func present<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -90,6 +111,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
@@ -130,6 +152,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func presentSheet<Component>(
     _ type: Component.Type,
     in context: SheetViewController<Component>.Controller.Context,
@@ -144,6 +167,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func presentSheetMenu<Component>(
     _ type: Component.Type,
     in context: SheetMenuViewController<Component>.Controller.Context,
@@ -170,6 +194,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func dismiss<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -208,6 +233,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func push<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -220,6 +246,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
@@ -246,7 +273,7 @@ extension ComponentNavigation {
     )
   }
 
-  @discardableResult
+  @_disfavoredOverload @discardableResult
   public func pop<Component>(
     if type: Component.Type,
     animated: Bool = true,
@@ -273,7 +300,7 @@ extension ComponentNavigation {
     )
   }
 
-  @discardableResult
+  @_disfavoredOverload @discardableResult
   public func pop<Component>(
     to type: Component.Type,
     animated: Bool = true,
@@ -300,6 +327,7 @@ extension ComponentNavigation {
     )
   }
 
+  @_disfavoredOverload
   public func popAll<Component>(
     _ type: Component.Type,
     animated: Bool = true,
@@ -322,7 +350,7 @@ extension ComponentNavigation {
     )
   }
 
-  @discardableResult
+  @_disfavoredOverload @discardableResult
   public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
@@ -339,7 +367,7 @@ extension ComponentNavigation {
       ?? false
   }
 
-  @discardableResult
+  @_disfavoredOverload @discardableResult
   public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
