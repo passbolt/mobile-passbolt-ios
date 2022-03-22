@@ -43,7 +43,7 @@ public struct AnyAsyncThrowingSequence<Element> {
     else {
       let stream: AsyncThrowingStream<Element, Error> =
         .init(
-          bufferingPolicy: .bufferingNewest(1) // trying to mimic combine
+          bufferingPolicy: .bufferingNewest(1)  // trying to mimic combine
         ) { continuation in
           var cancellable: AnyCancellable?
           let termination = { cancellable?.cancel() }

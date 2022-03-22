@@ -61,9 +61,7 @@ qa_build_publish: qa_build
 	echo "Uploaded build: $(BUILD)"
 
 lint:
-	# temporarily disable linting due to swift compiler compatibility issue
-	# swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report
-	echo "Linting temporarily disabled" > lint-report
+	swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report
 
 format:
 	swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format format --configuration ./Tools/code-format.json --in-place --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests

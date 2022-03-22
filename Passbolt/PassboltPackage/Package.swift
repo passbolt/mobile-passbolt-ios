@@ -97,7 +97,7 @@ let package = Package(
       targets: [
         "Gopenpgp"
       ]
-    )
+    ),
   ],
   dependencies: [
     .package(

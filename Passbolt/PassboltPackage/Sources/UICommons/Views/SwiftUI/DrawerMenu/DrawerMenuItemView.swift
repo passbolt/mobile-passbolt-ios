@@ -147,7 +147,7 @@ internal struct DrawerMenuItemView_Previews: PreviewProvider {
         isSelected: false
       )
 
-      DrawerMenuDividerView()
+      ListDividerView()
 
       DrawerMenuItemView(
         action: {},

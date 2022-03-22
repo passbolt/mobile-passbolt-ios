@@ -41,16 +41,15 @@ internal final class PlainResourcesListView: PlainView {
     mut(filtersContainer) {
       .combined(
         .backgroundColor(dynamic: .background),
-        // TODO: [MOB-255] fix shadow display
-        //        .shadow(
-        //          color: .black,
-        //          opacity: 0.2,
-        //          offset: .init(width: 0, height: -10),
-        //          radius: 12
-        //        ),
+        .shadow(
+          color: .black,
+          opacity: 0.2,
+          offset: .init(width: 0, height: -10),
+          radius: 12
+        ),
         .clipsToBounds(false),
         .subview(of: self),
-        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
+        .topAnchor(.equalTo, topAnchor),
         .leftAnchor(.equalTo, leftAnchor),
         .rightAnchor(.equalTo, rightAnchor)
       )
@@ -73,7 +72,7 @@ internal final class PlainResourcesListView: PlainView {
     mut(view) {
       .combined(
         .subview(of: filtersContainer),
-        .edges(equalTo: filtersContainer, usingSafeArea: false)
+        .edges(equalTo: filtersContainer, usingSafeArea: true)
       )
     }
   }

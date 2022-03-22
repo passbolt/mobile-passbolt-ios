@@ -100,8 +100,18 @@ extension FoldersExplorerController: ComponentController {
 
       for await content in folders.filteredFolderContent(filterSequence) {
         viewState.withValue { state in
-          state.folders = content.subfolders
-          state.resources = content.resources
+          state.directFolders = content
+            .subfolders
+            .filter { $0.parentFolderID == context?.id }
+          state.nestedFolders = content
+            .subfolders
+            .filter { $0.parentFolderID != context?.id }
+          state.directResources = content
+            .resources
+            .filter { $0.parentFolderID == context?.id }
+          state.nestedResources = content
+            .resources
+            .filter { $0.parentFolderID != context?.id }
         }
       }
     }

@@ -21,38 +21,22 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import SwiftUI
 
-extension Mutation where Subject: NavigationBar {
+public struct ListDividerView: View {
 
-  public static func primaryNavigationStyle() -> Self {
-    .combined(
-      .backgroundColor(.clear),
-      .barTintColor(.passboltBackground),
-      .tintColor(dynamic: .primaryButtonTint),
-      .translucent(true),
-      .shadowImage(UIImage()),
-      .backgroundImage(nil),
-      .custom { (subject: Subject) in
-        subject.backIndicatorImage = UIImage(
-          named: ImageNameConstant.arrowLeft.rawValue,
-          in: .uiCommons,
-          with: nil
-        )
-        subject.backIndicatorTransitionMaskImage = UIImage(
-          named: ImageNameConstant.arrowLeft.rawValue,
-          in: .uiCommons,
-          with: nil
-        )
-        subject.titleFont = .inter(ofSize: 16, weight: .semibold)
-        subject.dynamicTitleColor = .primaryText
-        subject.scrollEdgeAppearance?.configureWithOpaqueBackground()
-        if #available(iOS 15.0, *) {
-          subject.compactScrollEdgeAppearance?.configureWithOpaqueBackground()
-        }
-        else { /* NOP */
-        }
-      }
-    )
+  public init() {}
+
+  public var body: some View {
+    Color
+      .passboltDivider
+      .frame(height: 1)
+      .frame(maxWidth: .infinity)
+      .padding(
+        top: 8,
+        leading: 0,
+        bottom: 8,
+        trailing: 0
+      )
   }
 }

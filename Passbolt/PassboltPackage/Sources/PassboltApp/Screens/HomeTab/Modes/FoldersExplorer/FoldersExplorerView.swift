@@ -39,135 +39,292 @@ internal struct FoldersExplorerView: ComponentView {
 
   internal var body: some View {
     VStack(spacing: 0) {
-      HStack(alignment: .center, spacing: 0) {
-        Image(named: .folder)
-          .aspectRatio(1, contentMode: .fit)
-          .frame(width: 24)
-          .padding(trailing: 16)
-        Text(displayable: self.state.title)
-          .font(.inter(ofSize: 16, weight: .semibold))
-
+      VStack(spacing: 0) {
+        self.titleView
+        self.searchView
       }
-      .foregroundColor(.passboltPrimaryText)
-      .frame(height: 40)
-      .padding(
-        top: 46,
-        leading: 32,
-        trailing: 32
-      )
-
-      SearchView(
-        prompt: .localized(key: "resources.search.placeholder"),
-        text: self.state.scope(\.searchText),
-        leftAccessory: {
-          Button(
-            action: {
-              self.controller.presentHomePresentationMenu()
-            },
-            label: {
-              ImageWithPadding(4, named: .filter)
-            }
+      .background(
+        Rectangle()
+          .fill(Color.passboltBackground)
+          .shadow(
+            color: .black.opacity(0.2),
+            radius: 12,
+            x: 0,
+            y: -10
           )
-          .contentShape(Rectangle())
-        },
-        rightAccessory: {
-          AsyncButton(
-            action: {
-              await self.controller.presentAccountMenu()
-            },
-            label: {
-              UserAvatarView(image: self.state.userAvatarImage)
-                .padding(
-                  top: 0,
-                  leading: 0,
-                  bottom: 0,
-                  trailing: 6
-                )
-            }
-          )
-          .contentShape(Rectangle())
-        }
       )
-      .padding(
-        top: 10,
-        leading: 16,
-        bottom: 16,
-        trailing: 16
-      )
-      // TODO: add shadow here
-      //        Rectangle()
-      //          .frame(height: 1)
-      //  //        .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: -10)
-      //          .background(
-      //            Rectangle()
-      //              .shadow(
-      //                color: .black.opacity(0.2),
-      //                radius: 12,
-      //                x: 0,
-      //                y: -10
-      //              )
-      //          )
+      .zIndex(1)
 
-      Backport.RefreshableList(
-        refresh: {
-          await self.controller.refreshIfNeeded()
-        },
-        listContent: {
-          ResourceListAddView {
-            self.controller.presentResourceCreationFrom()
-          }
-          .backport.hiddenRowSeparators()
-          .backport.hiddenSectionSeparators()
-          ForEach(
-            self.state.folders,
-            id: \ListViewFolder.id
-          ) { folder in
-            FolderListItemView(
-              name: folder.name,
-              shared: folder.permission != .owner,
-              contentCount: folder.contentCount,
-              action: {
-                self.controller.presentFolderContent(folder)
-              }
-            )
-            .backport.hiddenRowSeparators()
-          }
-          .backport.hiddenSectionSeparators()
-          ForEach(
-            self.state.resources,
-            id: \ListViewFolderResource.id
-          ) { resource in
-            ResourceListItemView(
-              name: resource.name,
-              username: resource.username,
-              action: {
-                self.controller.presentResourceDetails(resource.id)
-              },
-              accessory: {
-                AsyncButton(
-                  action: {
-                    self.controller.presentResourceMenu(resource.id)
-                  },
-                  label: {
-                    Image(named: .more)
-                      .aspectRatio(1, contentMode: .fit)
-                      .padding(8)
-                      .foregroundColor(Color.passboltIcon)
-                      .cornerRadius(8)
-                  }
-                )
-                .contentShape(Rectangle())
-              }
-            )
-            .backport.hiddenRowSeparators()
-          }
-          .backport.hiddenSectionSeparators()
-        }
-      )
+      if self.state.searchText.isEmpty {
+        self.contentView
+      }
+      else {
+        self.searchContentView
+      }
     }
     .background(Color.passboltBackground)
     .ignoresSafeArea(.all, edges: .top)
     .snackBarMessage(presenting: self.$state.snackBarMessage)
+  }
+
+  @ViewBuilder private var titleView: some View {
+    HStack(alignment: .center, spacing: 0) {
+      Image(named: .folder)
+        .aspectRatio(1, contentMode: .fit)
+        .frame(width: 24)
+        .padding(trailing: 16)
+      Text(displayable: self.state.title)
+        .font(.inter(ofSize: 16, weight: .semibold))
+
+    }
+    .foregroundColor(.passboltPrimaryText)
+    .frame(height: 40)
+    .padding(
+      top: 46,
+      leading: 32,
+      trailing: 32
+    )
+  }
+
+  @ViewBuilder private var searchView: some View {
+    SearchView(
+      prompt: .localized(key: "resources.search.placeholder"),
+      text: self.state.scope(\.searchText),
+      leftAccessory: {
+        Button(
+          action: {
+            self.controller.presentHomePresentationMenu()
+          },
+          label: {
+            ImageWithPadding(4, named: .filter)
+          }
+        )
+        .contentShape(Rectangle())
+      },
+      rightAccessory: {
+        AsyncButton(
+          action: {
+            await self.controller.presentAccountMenu()
+          },
+          label: {
+            UserAvatarView(image: self.state.userAvatarImage)
+              .padding(
+                top: 0,
+                leading: 0,
+                bottom: 0,
+                trailing: 6
+              )
+          }
+        )
+        .contentShape(Rectangle())
+      }
+    )
+    .padding(
+      top: 10,
+      leading: 16,
+      bottom: 16,
+      trailing: 16
+    )
+  }
+
+  @ViewBuilder private var contentView: some View {
+    Backport.RefreshableList(
+      refresh: {
+        await self.controller.refreshIfNeeded()
+      },
+      listContent: {
+        ResourceListAddView {
+          self.controller.presentResourceCreationFrom()
+        }
+        .backport.hiddenRowSeparators()
+
+        if self.state.directFolders.isEmpty,
+          self.state.directResources.isEmpty,
+          self.state.nestedFolders.isEmpty,
+          self.state.nestedResources.isEmpty
+        {
+          EmptyListView()
+            .backport.hiddenRowSeparators()
+        }
+        else {
+          self.directListContent
+        }
+      }
+    )
+  }
+
+  @ViewBuilder private var searchContentView: some View {
+    Backport.List(
+      listContent: {
+        if self.state.directFolders.isEmpty,
+          self.state.directResources.isEmpty,
+          self.state.nestedFolders.isEmpty,
+          self.state.nestedResources.isEmpty
+        {
+          EmptyListView()
+            .backport.hiddenRowSeparators()
+        }
+        else {
+          if !self.state.directFolders.isEmpty
+            || !self.state.directResources.isEmpty
+          {
+            Text(
+              displayable: .localized(
+                key: "home.presentation.mode.folders.explorer.search.direct.results"
+              ),
+              arguments: self.state.title.string()
+            )
+            .text(
+              font: .inter(
+                ofSize: 14,
+                weight: .semibold
+              ),
+              color: .passboltPrimaryText
+            )
+            .frame(maxWidth: .infinity)
+            .padding(
+              leading: 16,
+              trailing: 16
+            )
+            .backport.hiddenRowSeparators()
+            .frame(height: 24)
+
+            self.directListContent
+
+            if !self.state.nestedFolders.isEmpty
+              || !self.state.nestedResources.isEmpty
+            {
+              ListDividerView()
+                .padding(
+                  leading: 16,
+                  trailing: 16
+                )
+                .backport.hiddenRowSeparators()
+            }  // else { /* NOP */ }
+          }  // else { /* NOP */ }
+
+          if !self.state.nestedFolders.isEmpty
+            || !self.state.nestedResources.isEmpty
+          {
+            Text(
+              displayable: .localized(
+                key: "home.presentation.mode.folders.explorer.search.nested.results"
+              )
+            )
+            .text(
+              font: .inter(
+                ofSize: 14,
+                weight: .semibold
+              ),
+              color: .passboltPrimaryText
+            )
+            .frame(maxWidth: .infinity)
+            .padding(
+              leading: 16,
+              trailing: 16
+            )
+            .backport.hiddenRowSeparators()
+            .frame(height: 24)
+
+            self.nestedListContent
+          }  // else { /* NOP */ }
+        }
+      }
+    )
+  }
+
+  @ViewBuilder private var directListContent: some View {
+    ForEach(
+      self.state.directFolders,
+      id: \ListViewFolder.id
+    ) { folder in
+      FolderListItemView(
+        name: folder.name,
+        shared: folder.permission != .owner,
+        contentCount: folder.contentCount,
+        action: {
+          self.controller.presentFolderContent(folder)
+        }
+      )
+      .backport.hiddenRowSeparators()
+    }
+    .backport.hiddenSectionSeparators()
+    ForEach(
+      self.state.directResources,
+      id: \ListViewFolderResource.id
+    ) { resource in
+      ResourceListItemView(
+        name: resource.name,
+        username: resource.username,
+        action: {
+          self.controller.presentResourceDetails(resource.id)
+        },
+        accessory: {
+          AsyncButton(
+            action: {
+              self.controller.presentResourceMenu(resource.id)
+            },
+            label: {
+              Image(named: .more)
+                .aspectRatio(1, contentMode: .fit)
+                .padding(8)
+                .foregroundColor(Color.passboltIcon)
+                .cornerRadius(8)
+            }
+          )
+          .contentShape(Rectangle())
+        }
+      )
+      .backport.hiddenRowSeparators()
+    }
+    .backport.hiddenSectionSeparators()
+  }
+
+  @ViewBuilder private var nestedListContent: some View {
+    ForEach(
+      self.state.nestedFolders,
+      id: \ListViewFolder.id
+    ) { folder in
+      FolderListItemView(
+        name: folder.name,
+        shared: folder.permission != .owner,
+        contentCount: folder.contentCount,
+        action: {
+          self.controller.presentFolderContent(folder)
+        }
+      )
+      .backport.hiddenRowSeparators()
+    }
+    .backport.hiddenSectionSeparators()
+    ForEach(
+      self.state.nestedResources,
+      id: \ListViewFolderResource.id
+    ) { resource in
+      ResourceListItemView(
+        name: resource.name,
+        username: resource.username,
+        action: {
+          self.controller.presentResourceDetails(resource.id)
+        },
+        accessory: {
+          AsyncButton(
+            action: {
+              self.controller.presentResourceMenu(resource.id)
+            },
+            label: {
+              Image(named: .more)
+                .aspectRatio(1, contentMode: .fit)
+                .padding(8)
+                .foregroundColor(Color.passboltIcon)
+                .cornerRadius(8)
+            }
+          )
+          .contentShape(Rectangle())
+        }
+      )
+      .backport.hiddenRowSeparators()
+    }
+    .backport.hiddenSectionSeparators()
   }
 }
 
@@ -178,8 +335,10 @@ extension FoldersExplorerView {
     internal var title: DisplayableString
     internal var userAvatarImage: Data? = .none
     internal var searchText: String = ""
-    internal var folders: Array<ListViewFolder> = .init()
-    internal var resources: Array<ListViewFolderResource> = .init()
+    internal var directFolders: Array<ListViewFolder> = .init()
+    internal var nestedFolders: Array<ListViewFolder> = .init()
+    internal var directResources: Array<ListViewFolderResource> = .init()
+    internal var nestedResources: Array<ListViewFolderResource> = .init()
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
@@ -193,14 +352,14 @@ extension FoldersExplorerView.ViewState: Hashable {
     (lhs.snackBarMessage == nil && rhs.snackBarMessage == nil
       || lhs.snackBarMessage != nil && rhs.snackBarMessage != nil)
       && lhs.searchText == rhs.searchText
-      && lhs.folders == rhs.folders
-      && lhs.resources == rhs.resources
+      && lhs.directFolders == rhs.directFolders
+      && lhs.directResources == rhs.directResources
   }
 
   internal func hash(into hasher: inout Hasher) {
     hasher.combine(self.snackBarMessage == nil)
     hasher.combine(self.searchText)
-    hasher.combine(self.folders)
-    hasher.combine(self.resources)
+    hasher.combine(self.directFolders)
+    hasher.combine(self.directResources)
   }
 }

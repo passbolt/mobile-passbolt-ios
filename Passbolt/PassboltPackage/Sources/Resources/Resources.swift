@@ -102,13 +102,14 @@ extension Resources: Feature {
         Task {
           do {
             // implement diff request here instead when available
-            let _ /*lastUpdate*/ : Date? = try await accountDatabase.fetchLastUpdate()
+            let _ /*lastUpdate*/: Date? = try await accountDatabase.fetchLastUpdate()
             if foldersEnabled {
               try await folders.refreshIfNeeded()
             }
-            else { /* NOP */ }
+            else { /* NOP */
+            }
             let resourceTypes: Array<ResourceType> =
-            try await networkClient
+              try await networkClient
               .resourcesTypesRequest
               .makeAsync()
               .body
@@ -156,7 +157,7 @@ extension Resources: Feature {
             try await accountDatabase.storeResourcesTypes(resourceTypes)
 
             let resources: Array<Resource> =
-            try await networkClient
+              try await networkClient
               .resourcesRequest
               .makeAsync()
               .body
@@ -194,7 +195,8 @@ extension Resources: Feature {
             if foldersEnabled {
               await folders.resourcesUpdated()
             }
-            else { /* NOP */ }
+            else { /* NOP */
+            }
             promise(.success(Void()))
           }
           catch {

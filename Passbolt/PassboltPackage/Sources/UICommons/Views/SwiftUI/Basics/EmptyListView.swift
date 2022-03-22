@@ -23,22 +23,42 @@
 
 import SwiftUI
 
-public struct DrawerMenuDividerView: View {
+public struct EmptyListView: View {
 
   public init() {}
 
   public var body: some View {
-    Color
-      .passboltDivider
-      .frame(height: 1)
-      .frame(maxWidth: .infinity)
-      .padding(
-        EdgeInsets(
-          top: 8,
-          leading: 0,
-          bottom: 8,
-          trailing: 0
+    VStack(
+      alignment: .center,
+      spacing: 0
+    ) {
+      Spacer()
+      Text(
+        displayable: .localized(
+          key: "generic.empty.list"
         )
       )
+      .text(
+        font: .inter(
+          ofSize: 20,
+          weight: .semibold
+        ),
+        color: .passboltPrimaryText
+      )
+      Image(named: .emptyState)
+        .aspectRatio(contentMode: .fill)
+        .padding(
+          top: 24,
+          leading: 64,
+          trailing: 64
+        )
+      Spacer()
+    }
+    .padding(
+      top: 24,
+      leading: 16,
+      bottom: 16,
+      trailing: 16
+    )
   }
 }

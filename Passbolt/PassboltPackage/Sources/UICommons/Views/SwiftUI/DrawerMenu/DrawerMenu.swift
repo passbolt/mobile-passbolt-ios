@@ -132,7 +132,7 @@ internal struct DrawerMenu_Previews: PreviewProvider {
             isSelected: false
           )
 
-          DrawerMenuDividerView()
+          ListDividerView()
             .padding(
               EdgeInsets(
                 top: 8,

@@ -142,7 +142,7 @@ final class ResourceTests: TestCase {
     XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
   }
 
-  func test_refreshIfNeeded_savesResourceTypesToDatabase()async throws {
+  func test_refreshIfNeeded_savesResourceTypesToDatabase() async throws {
     features.use(accountSession)
     var result: Void?
     accountDatabase.storeResourcesTypes.execute = { _ in

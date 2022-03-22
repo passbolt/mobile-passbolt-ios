@@ -108,7 +108,7 @@ private struct OffsetPreferenceKey: PreferenceKey {
 
 extension Backport where Content == Never {
 
-#warning("TODO: to remove after bumping minimum iOS version to 15")
+  #warning("TODO: to remove after bumping minimum iOS version to 15")
   // swift-format-ignore: AlwaysUseLowerCamelCase
   @ViewBuilder public static func RefreshableList<ListContentView>(
     refresh action: @Sendable @escaping () async -> Void,
@@ -116,8 +116,9 @@ extension Backport where Content == Never {
   ) -> some View
   where ListContentView: View {
     if #available(iOS 15.0, *) {
-      List(content: listContent)
+      SwiftUI.List(content: listContent)
         .listStyle(.plain)
+        .environment(\.defaultMinListRowHeight, 20)
         .refreshable(action: action)
     }
     else {
@@ -127,6 +128,29 @@ extension Backport where Content == Never {
           listContent()
         }
       )
+    }
+  }
+}
+
+extension Backport where Content == Never {
+
+  #warning("TODO: to remove after bumping minimum iOS version to 15")
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  @ViewBuilder public static func List<ListContentView>(
+    @ViewBuilder listContent: @escaping () -> ListContentView
+  ) -> some View
+  where ListContentView: View {
+    if #available(iOS 15.0, *) {
+      SwiftUI.List(content: listContent)
+        .listStyle(.plain)
+        .environment(\.defaultMinListRowHeight, 20)
+    }
+    else {
+      ScrollView {
+        LazyVStack(spacing: 0) {
+          listContent()
+        }
+      }
     }
   }
 }

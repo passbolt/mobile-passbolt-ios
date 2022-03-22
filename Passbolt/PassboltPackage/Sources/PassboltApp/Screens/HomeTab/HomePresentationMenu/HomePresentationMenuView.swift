@@ -55,7 +55,7 @@ internal struct HomePresentationMenuView: ComponentView {
             // which require divider but those are not linked to folders
             // rethink adding divider when adding tags or groups
             if case .foldersExplorer = mode {
-              DrawerMenuDividerView()
+              ListDividerView()
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {

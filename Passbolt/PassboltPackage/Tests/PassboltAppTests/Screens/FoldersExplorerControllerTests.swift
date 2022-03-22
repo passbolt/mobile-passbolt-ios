@@ -25,8 +25,8 @@ import Accounts
 import Combine
 import Features
 import NetworkClient
-import TestExtensions
 import Resources
+import TestExtensions
 import UIComponents
 import XCTest
 
@@ -40,38 +40,38 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     features.usePlaceholder(for: Resources.self)
     features.patch(
       \Resources.refreshIfNeeded,
-       with: always(
+      with: always(
         Just(Void())
           .setFailureType(to: TheErrorLegacy.self)
           .eraseToAnyPublisher()
-       )
+      )
     )
     features.usePlaceholder(for: Folders.self)
     features.patch(
       \Folders.filteredFolderContent,
-       with: always(
+      with: always(
         AnyAsyncSequence([])
-       )
+      )
     )
     features.usePlaceholder(for: HomePresentation.self)
     features.usePlaceholder(for: AccountSettings.self)
     features
       .patch(
         \AccountSettings.currentAccountAvatarPublisher,
-         with: always(
+        with: always(
           Just(nil)
             .eraseToAnyPublisher()
-         )
+        )
       )
   }
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async {
     features.patch(
       \Resources.refreshIfNeeded,
-       with: always(
+      with: always(
         Fail(error: MockIssue.error().asLegacy)
           .eraseToAnyPublisher()
-       )
+      )
     )
 
     let controller: FoldersExplorerController = testController(
