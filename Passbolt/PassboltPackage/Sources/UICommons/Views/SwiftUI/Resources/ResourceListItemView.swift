@@ -58,7 +58,7 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
           )
       },
       content: {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 4) {
           Text(name)
             .font(.inter(ofSize: 14, weight: .semibold))
             .foregroundColor(Color.passboltPrimaryText)

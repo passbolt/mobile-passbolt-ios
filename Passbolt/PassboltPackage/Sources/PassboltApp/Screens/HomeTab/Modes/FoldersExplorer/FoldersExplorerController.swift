@@ -33,7 +33,7 @@ internal struct FoldersExplorerController {
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
   internal var presentFolderContent: @MainActor (ListViewFolder) -> Void
-  internal var presentResourceCreationFrom: @MainActor () -> Void
+  internal var presentResourceCreationFrom: @MainActor (Folder.ID?) -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
   internal var presentHomePresentationMenu: @MainActor () -> Void
@@ -56,16 +56,22 @@ extension FoldersExplorerController: ComponentController {
     let resources: Resources = features.instance()
     let folders: Folders = features.instance()
 
-    let viewState: ObservableValue<ViewState> = .init(
-      initial: .init(
-        title: .localized(key: "home.presentation.mode.folders.explorer.title")
-      )
-    )
+    let viewState: ObservableValue<ViewState>
 
     if let folder: ListViewFolder = context {
-      viewState.title = .raw(folder.name)
+      viewState = .init(
+        initial: .init(
+          title: .raw(folder.name),
+          folderID: folder.id
+        )
+      )
     }
     else {
+      viewState = .init(
+        initial: .init(
+          title: .localized(key: "home.presentation.mode.folders.explorer.title")
+        )
+      )
       // if we enter root refresh stuff
       cancellables.task { @MainActor in
         await refreshIfNeeded()
@@ -136,15 +142,19 @@ extension FoldersExplorerController: ComponentController {
       )
     }
 
-    @MainActor func presentResourceCreationFrom() {
-      presentResourceEditingForm(resourceID: nil)
+    @MainActor func presentResourceCreationFrom(
+      folderID: Folder.ID?
+    ) {
+      presentResourceEditingForm(for: .new(in: folderID))
     }
 
-    @MainActor func presentResourceEditingForm(resourceID: Resource.ID?) {
+    @MainActor func presentResourceEditingForm(
+      for context: ResourceEditController.EditingContext
+    ) {
       navigation.push(
         ResourceEditViewController.self,
         in: (
-          editedResource: resourceID,
+          context,
           completion: { _ in
             viewState.snackBarMessage = .info(
               .localized(
@@ -173,7 +183,7 @@ extension FoldersExplorerController: ComponentController {
               .dismiss(
                 SheetMenuViewController<ResourceMenuViewController>.self,
                 completion: {
-                  presentResourceEditingForm(resourceID: resourceID)
+                  presentResourceEditingForm(for: .existing(resourceID))
                 }
               )
           },

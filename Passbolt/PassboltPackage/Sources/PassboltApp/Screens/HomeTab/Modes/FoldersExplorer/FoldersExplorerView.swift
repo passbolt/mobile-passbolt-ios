@@ -134,7 +134,7 @@ internal struct FoldersExplorerView: ComponentView {
       },
       listContent: {
         ResourceListAddView {
-          self.controller.presentResourceCreationFrom()
+          self.controller.presentResourceCreationFrom(self.state.folderID)
         }
         .backport.hiddenRowSeparators()
 
@@ -333,6 +333,7 @@ extension FoldersExplorerView {
   internal struct ViewState {
 
     internal var title: DisplayableString
+    internal var folderID: Folder.ID?
     internal var userAvatarImage: Data? = .none
     internal var searchText: String = ""
     internal var directFolders: Array<ListViewFolder> = .init()

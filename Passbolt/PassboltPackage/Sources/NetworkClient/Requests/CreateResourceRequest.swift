@@ -62,6 +62,7 @@ extension CreateResourceRequest {
 public struct CreateResourceRequestVariable: Encodable {
 
   public var resourceTypeID: String
+  public var parentFolderID: String?
   public var name: String
   public var username: String?
   public var url: String?
@@ -75,6 +76,7 @@ public struct CreateResourceRequestVariable: Encodable {
 
   public init(
     resourceTypeID: String,
+    parentFolderID: String?,
     name: String,
     username: String?,
     url: String?,
@@ -82,6 +84,7 @@ public struct CreateResourceRequestVariable: Encodable {
     secretData: String
   ) {
     self.resourceTypeID = resourceTypeID
+    self.parentFolderID = parentFolderID
     self.name = name
     self.username = username
     self.url = url
@@ -92,6 +95,7 @@ public struct CreateResourceRequestVariable: Encodable {
   public enum CodingKeys: String, CodingKey {
 
     case name = "name"
+    case parentFolderID = "folder_parent_id"
     case description = "description"
     case username = "username"
     case url = "uri"

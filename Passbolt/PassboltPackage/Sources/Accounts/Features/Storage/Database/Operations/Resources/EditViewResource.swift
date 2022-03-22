@@ -29,6 +29,7 @@ public struct EditViewResource {
 
   public let id: ID
   public var type: ResourceType
+  public var parentFolderID: Folder.ID?
   public var permission: Permission
   public var name: String
   public var url: String?
@@ -38,6 +39,7 @@ public struct EditViewResource {
   public init(
     id: ID,
     type: ResourceType,
+    parentFolderID: Folder.ID?,
     permission: Permission,
     name: String,
     url: String?,
@@ -46,6 +48,7 @@ public struct EditViewResource {
   ) {
     self.id = id
     self.type = type
+    self.parentFolderID = parentFolderID
     self.permission = permission
     self.name = name
     self.url = url

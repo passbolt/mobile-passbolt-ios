@@ -172,7 +172,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         self?.push(
           ResourceEditViewController.self,
           in: (
-            editedResource: nil,
+            .new(in: nil),
             completion: { _ in
               DispatchQueue.main.async {
                 self?.presentInfoSnackbar(
@@ -196,7 +196,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           self.push(
             ResourceEditViewController.self,
             in: (
-              editedResource: resourceID,
+              .existing(resourceID),
               completion: { [weak self] _ in
                 DispatchQueue.main.async {
                   self?.presentInfoSnackbar(

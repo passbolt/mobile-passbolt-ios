@@ -141,7 +141,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
         self?.push(
           ResourceEditViewController.self,
           in: (
-            editedResource: nil,
+            .new(in: nil),
             completion: { [weak self] resourceID in
               guard let self = self else { return }
               self.controller

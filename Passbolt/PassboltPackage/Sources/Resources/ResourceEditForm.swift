@@ -35,6 +35,8 @@ public struct ResourceEditForm {
   // sets currently edited resource, if it was not set default form creates new resource
   // note that editing resource will download and decrypt secrets to fill them in and allow editing
   public var editResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
+  // set enclosing folder (parentFolderID)
+  public var setEnclosingFolder: (Folder.ID?) -> Void
   // initial version supports only one type of resource type, so there is no method to change it
   public var resourceTypePublisher: () -> AnyPublisher<ResourceType, TheErrorLegacy>
   // since currently the only field value is String we are not allowing other value types
@@ -59,7 +61,8 @@ extension ResourceEditForm: Feature {
     let userPGPMessages: UserPGPMessages = features.instance()
     let resources: Resources = features.instance()
 
-    let editedResourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
+    let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
+    let resourceParentFolderIDSubject: CurrentValueSubject<Folder.ID?, Never> = .init(nil)
     let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheErrorLegacy> = .init(nil)
     let resourceTypePublisher: AnyPublisher<ResourceType, TheErrorLegacy> =
       resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
@@ -126,7 +129,7 @@ extension ResourceEditForm: Feature {
       _ resourceID: Resource.ID
     ) -> AnyPublisher<Void, TheErrorLegacy> {
       assert(
-        editedResourceIDSubject.value == nil,
+        resourceIDSubject.value == nil,
         "Edited resource change is not supported"
       )
       return
@@ -143,7 +146,8 @@ extension ResourceEditForm: Feature {
         .handleEvents(
           receiveOutput: { resource, secret in
             resourceTypeSubject.send(resource.type)
-            editedResourceIDSubject.send(resource.id)
+            resourceIDSubject.send(resource.id)
+            resourceParentFolderIDSubject.send(resource.parentFolderID)
             for property in resource.type.properties {
               switch property.field {
               case .name:
@@ -231,6 +235,10 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
     }
 
+    func setEnclosingFolder(_ folderID: Folder.ID?) {
+      resourceParentFolderIDSubject.send(folderID)
+    }
+
     func propertyValidator(
       for property: ResourceProperty
     ) -> Validator<ResourceFieldValue> {
@@ -314,7 +322,7 @@ extension ResourceEditForm: Feature {
 
     func sendForm() -> AnyPublisher<Resource.ID, TheErrorLegacy> {
       Publishers.CombineLatest3(
-        editedResourceIDSubject
+        resourceIDSubject
           .setFailureType(to: TheErrorLegacy.self),
         resourceTypePublisher,
         formValuesSubject
@@ -404,6 +412,7 @@ extension ResourceEditForm: Feature {
           return Fail(error: .invalidOrMissingResourceType())
             .eraseToAnyPublisher()
         }
+        let parentFolderID: Folder.ID? = resourceParentFolderIDSubject.value
 
         if let resourceID: Resource.ID = resourceID {
           return
@@ -454,6 +463,7 @@ extension ResourceEditForm: Feature {
                   using: .init(
                     resourceID: resourceID.rawValue,
                     resourceTypeID: resourceTypeID.rawValue,
+                    parentFolderID: parentFolderID?.rawValue,
                     name: name,
                     username: fieldValues[.username]?.stringValue,
                     url: fieldValues[.uri]?.stringValue,
@@ -522,6 +532,7 @@ extension ResourceEditForm: Feature {
                 .make(
                   using: .init(
                     resourceTypeID: resourceTypeID.rawValue,
+                    parentFolderID: parentFolderID?.rawValue,
                     name: name,
                     username: fieldValues[.username]?.stringValue,
                     url: fieldValues[.uri]?.stringValue,
@@ -547,6 +558,7 @@ extension ResourceEditForm: Feature {
 
     return Self(
       editResource: editResource(_:),
+      setEnclosingFolder: setEnclosingFolder(_:),
       resourceTypePublisher: { resourceTypePublisher },
       setFieldValue: setFieldValue(_:field:),
       fieldValuePublisher: fieldValuePublisher(field:),
@@ -563,6 +575,7 @@ extension ResourceEditForm {
   public static var placeholder: ResourceEditForm {
     Self(
       editResource: unimplemented("You have to provide mocks for used methods"),
+      setEnclosingFolder: unimplemented("You have to provide mocks for used methods"),
       resourceTypePublisher: unimplemented("You have to provide mocks for used methods"),
       setFieldValue: unimplemented("You have to provide mocks for used methods"),
       fieldValuePublisher: unimplemented("You have to provide mocks for used methods"),

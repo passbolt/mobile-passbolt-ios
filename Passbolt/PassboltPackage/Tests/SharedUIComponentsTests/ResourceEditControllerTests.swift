@@ -46,6 +46,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
     networkClient = .placeholder
     resources = .placeholder
     resourceForm = .placeholder
+    resourceForm.setEnclosingFolder = always(Void())
     randomGenerator = .placeholder
   }
 
@@ -67,7 +68,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
@@ -113,7 +114,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let _: ResourceEditController = testController(
       context: (
-        editedResource: "resource-id",
+        .existing("resource-id"),
         completion: { _ in /* NOP */ }
       )
     )
@@ -136,7 +137,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: "resource-id",
+        .existing("resource-id"),
         completion: { _ in /* NOP */ }
       )
     )
@@ -191,7 +192,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
@@ -221,7 +222,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
@@ -268,7 +269,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
@@ -308,7 +309,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
@@ -345,7 +346,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
     var result: Resource.ID?
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { id in result = id }
       )
     )
@@ -371,7 +372,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = testController(
       context: (
-        editedResource: nil,
+        .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )

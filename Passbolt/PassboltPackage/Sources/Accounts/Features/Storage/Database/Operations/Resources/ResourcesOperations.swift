@@ -356,6 +356,7 @@ extension FetchEditViewResourcesOperation {
                   name: resourceTypeName,
                   fields: ResourceProperty.arrayFrom(rawString: rawFields)
                 ),
+                parentFolderID: row.parentFolderID.map(Folder.ID.init(rawValue:)),
                 permission: permission,
                 name: name,
                 url: url,

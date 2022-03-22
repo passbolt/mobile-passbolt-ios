@@ -645,6 +645,7 @@ final class ResourceEditFormTests: TestCase {
             name: "resource type",
             fields: []
           ),
+          parentFolderID: nil,
           permission: .owner,
           name: "resource name",
           url: nil,
@@ -706,6 +707,7 @@ final class ResourceEditFormTests: TestCase {
             name: "resource type",
             fields: []
           ),
+          parentFolderID: nil,
           permission: .owner,
           name: "resource name",
           url: nil,
@@ -772,6 +774,7 @@ final class ResourceEditFormTests: TestCase {
             name: "resource type",
             fields: []
           ),
+          parentFolderID: nil,
           permission: .owner,
           name: "resource name",
           url: nil,
@@ -849,6 +852,7 @@ final class ResourceEditFormTests: TestCase {
               )!
             ]
           ),
+          parentFolderID: nil,
           permission: .owner,
           name: "resource name",
           url: nil,
@@ -929,6 +933,7 @@ final class ResourceEditFormTests: TestCase {
               )!
             ]
           ),
+          parentFolderID: nil,
           permission: .owner,
           name: "resource name",
           url: nil,
@@ -1025,6 +1030,7 @@ final class ResourceEditFormTests: TestCase {
               )!
             ]
           ),
+          parentFolderID: nil,
           permission: .owner,
           name: "resource name",
           url: nil,

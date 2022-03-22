@@ -231,7 +231,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           self.push(
             ResourceEditViewController.self,
             in: (
-              editedResource: resourceID,
+              .existing(resourceID),
               completion: { [weak self] _ in
                 DispatchQueue.main.async {
                   self?.presentInfoSnackbar(

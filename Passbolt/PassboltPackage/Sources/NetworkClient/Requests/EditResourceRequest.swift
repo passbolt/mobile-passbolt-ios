@@ -63,6 +63,7 @@ public struct UpdateResourceRequestVariable: Encodable {
 
   public var resourceID: String
   public var resourceTypeID: String
+  public var parentFolderID: String?
   public var name: String
   public var username: String?
   public var url: String?
@@ -84,6 +85,7 @@ public struct UpdateResourceRequestVariable: Encodable {
   public init(
     resourceID: String,
     resourceTypeID: String,
+    parentFolderID: String?,
     name: String,
     username: String?,
     url: String?,
@@ -92,6 +94,7 @@ public struct UpdateResourceRequestVariable: Encodable {
   ) {
     self.resourceID = resourceID
     self.resourceTypeID = resourceTypeID
+    self.parentFolderID = parentFolderID
     self.name = name
     self.username = username
     self.url = url
@@ -102,6 +105,7 @@ public struct UpdateResourceRequestVariable: Encodable {
   public enum CodingKeys: String, CodingKey {
 
     case name = "name"
+    case parentFolderID = "folder_parent_id"
     case description = "description"
     case username = "username"
     case url = "uri"

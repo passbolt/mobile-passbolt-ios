@@ -40,9 +40,20 @@ public struct ResourceEditController {
   internal var cleanup: () -> Void
 }
 
+extension ResourceEditController {
+
+  public enum EditingContext {
+    case new(in: Folder.ID?)
+    case existing(Resource.ID)
+  }
+}
+
 extension ResourceEditController: UIController {
 
-  public typealias Context = (editedResource: Resource.ID?, completion: (Resource.ID) -> Void)
+  public typealias Context = (
+    editing: EditingContext,
+    completion: (Resource.ID) -> Void
+  )
 
   public static func instance(
     in context: Context,
@@ -58,9 +69,12 @@ extension ResourceEditController: UIController {
     let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, TheErrorLegacy> = .init([])
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
-    if let editedResource: Resource.ID = context.editedResource {
+    let createsNewResource: Bool
+    switch context.editing {
+    case let .existing(resourceID):
+      createsNewResource = false
       resourceForm
-        .editResource(editedResource)
+        .editResource(resourceID)
         .sink(
           receiveCompletion: { completion in
             guard case let .failure(error) = completion
@@ -70,9 +84,10 @@ extension ResourceEditController: UIController {
           receiveValue: { /* NOP */  }
         )
         .store(in: cancellables)
-    }
-    else {
-      /* NOP */
+
+    case let .new(in: enclosingFolder):
+      createsNewResource = true
+      resourceForm.setEnclosingFolder(enclosingFolder)
     }
 
     resourceForm
@@ -190,7 +205,7 @@ extension ResourceEditController: UIController {
     }
 
     return Self(
-      createsNewResource: context.editedResource == nil,
+      createsNewResource: createsNewResource,
       resourcePropertiesPublisher: resourcePropertiesPublisher,
       fieldValuePublisher: fieldValuePublisher,
       passwordEntropyPublisher: passwordEntropyPublisher,
