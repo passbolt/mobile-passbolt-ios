@@ -53,10 +53,6 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
   }
 
   internal func setup() {
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
-    }
-
     if controller.hasAccounts {
       accountSelectionSetup()
     }
@@ -66,25 +62,32 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
   }
 
   private func noAccountsSetup() {
-    let noAccountsViewController: NoAccountsViewController = components.instance()
-
-    setViewControllers([noAccountsViewController], animated: false)
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: NoAccountsViewController.self
+      )
+    }
   }
 
   private func accountSelectionSetup() {
-    let accountSelectionScreen: AccountSelectionViewController = components.instance(in: controller.mode)
-
-    setViewControllers([accountSelectionScreen], animated: false)
-
-    if let selectedAccount: Account = controller.selectedAccount {
-      push(
-        AuthorizationViewController.self,
-        in: selectedAccount,
-        animated: false
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: AccountSelectionViewController.self,
+        in: self.controller.mode
       )
-    }
-    else {
-      /* */
+
+      if let selectedAccount: Account = self.controller.selectedAccount {
+        await self.push(
+          AuthorizationViewController.self,
+          in: selectedAccount,
+          animated: false
+        )
+      }
+      else {
+        /* */
+      }
     }
   }
 }

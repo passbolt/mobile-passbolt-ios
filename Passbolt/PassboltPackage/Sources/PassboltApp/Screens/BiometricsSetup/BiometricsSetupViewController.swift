@@ -104,13 +104,14 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
 
     controller
       .destinationPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] destination in
-        switch destination {
-        case .extensionSetup:
-          self?.push(ExtensionSetupViewController.self)
-        case .finish:
-          self?.replaceWindowRoot(with: SplashScreenViewController.self)
+        self?.cancellables.executeOnMainActor {
+          switch destination {
+          case .extensionSetup:
+            await self?.push(ExtensionSetupViewController.self)
+          case .finish:
+            await self?.replaceWindowRoot(with: SplashScreenViewController.self)
+          }
         }
       }
       .store(in: cancellables)

@@ -26,19 +26,19 @@ import UIComponents
 
 internal struct SettingsController {
 
-  internal var biometricsPublisher: () -> AnyPublisher<BiometricsState, Never>
-  internal var biometricsDisableAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var toggleBiometrics: () -> AnyPublisher<Never, TheErrorLegacy>
-  internal var openTerms: () -> AnyPublisher<Bool, Never>
-  internal var openPrivacyPolicy: () -> AnyPublisher<Bool, Never>
-  internal var openLogsViewer: () -> Void
+  internal var biometricsPublisher: @MainActor () -> AnyPublisher<BiometricsState, Never>
+  internal var biometricsDisableAlertPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var toggleBiometrics: @MainActor () -> AnyPublisher<Never, Error>
+  internal var openTerms: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var openPrivacyPolicy: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var openLogsViewer: @MainActor () -> Void
   internal var logsViewerPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var disableBiometrics: () -> AnyPublisher<Never, TheErrorLegacy>
-  internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var autoFillEnabledPublisher: () -> AnyPublisher<Bool, Never>
-  internal var termsEnabled: () -> Bool
-  internal var privacyPolicyEnabled: () -> Bool
-  internal var presentSignOutAlert: () -> Void
+  internal var disableBiometrics: @MainActor () -> AnyPublisher<Never, Error>
+  internal var signOutAlertPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var autoFillEnabledPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var termsEnabled: @MainActor () -> Bool
+  internal var privacyPolicyEnabled: @MainActor () -> Bool
+  internal var presentSignOutAlert: @MainActor () -> Void
 }
 
 extension SettingsController {
@@ -58,14 +58,14 @@ extension SettingsController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> SettingsController {
-    let accountSettings: AccountSettings = features.instance()
-    let autoFill: AutoFill = features.instance()
-    let biometry: Biometry = features.instance()
-    let featureFlags: FeatureConfig = features.instance()
-    let linkOpener: LinkOpener = features.instance()
+  ) async throws -> SettingsController {
+    let accountSettings: AccountSettings = try await features.instance()
+    let autoFill: AutoFill = try await features.instance()
+    let biometry: Biometry = try await features.instance()
+    let featureFlags: FeatureConfig = try await features.instance()
+    let linkOpener: LinkOpener = try await features.instance()
 
-    let legal: FeatureFlags.Legal = featureFlags.configuration()
+    let legal: FeatureFlags.Legal = await featureFlags.configuration()
     var termsURL: URL?
     var privacyPolicyURL: URL?
 
@@ -106,21 +106,24 @@ extension SettingsController: UIController {
       .eraseToAnyPublisher()
     }
 
-    func toggleBiometrics() -> AnyPublisher<Never, TheErrorLegacy> {
+    func toggleBiometrics() -> AnyPublisher<Never, Error> {
       accountSettings
         .biometricsEnabledPublisher()
         .first()
-        .map { enabled -> AnyPublisher<Never, TheErrorLegacy> in
+        .map { enabled -> AnyPublisher<Never, Error> in
           if enabled {
             presentBiometricsAlertSubject.send()
             return Empty().eraseToAnyPublisher()
           }
           else {
-            return
+            return cancellables.executeOnStorageAccessActorWithPublisher {
               accountSettings
-              .setBiometricsEnabled(true)
-              .ignoreOutput()
-              .eraseToAnyPublisher()
+                .setBiometricsEnabled(true)
+                .ignoreOutput()
+                .eraseToAnyPublisher()
+            }
+            .switchToLatest()
+            .eraseToAnyPublisher()
           }
         }
         .switchToLatest()
@@ -151,11 +154,15 @@ extension SettingsController: UIController {
       presentLogsViewerSubject.send(true)
     }
 
-    func disableBiometrics() -> AnyPublisher<Never, TheErrorLegacy> {
-      accountSettings
-        .setBiometricsEnabled(false)
-        .ignoreOutput()
-        .eraseToAnyPublisher()
+    func disableBiometrics() -> AnyPublisher<Never, Error> {
+      cancellables.executeOnStorageAccessActorWithPublisher {
+        accountSettings
+          .setBiometricsEnabled(false)
+          .ignoreOutput()
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func presentSignOutAlert() {

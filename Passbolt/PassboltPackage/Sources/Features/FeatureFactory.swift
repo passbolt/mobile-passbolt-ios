@@ -23,8 +23,7 @@
 
 import CommonModels
 
-import class Foundation.NSRecursiveLock
-
+@FeaturesActor
 public final class FeatureFactory {
 
   private struct FeatureInstance {
@@ -35,26 +34,13 @@ public final class FeatureFactory {
   #if DEBUG  // debug builds allow change and access to environment for mocking and debug
   public var environment: AppEnvironment
   #else  // production builds cannot access environment directly
-  private let environment: AppEnvironment
+  private nonisolated let environment: AppEnvironment
   #endif
-  private let featuresAccessLock: NSRecursiveLock = .init()
   private var rootFeatures: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
   private var scopeFeatures: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
-  private var scopeID: AnyHashable? {
-    didSet {
-      guard scopeID != oldValue
-      else { return }
-      for instance in scopeFeatures.values {
-        assert(
-          instance.feature.featureUnload(),
-          "Feature unloading failed"
-        )
-      }
-      scopeFeatures = .init()
-    }
-  }
+  private var scopeID: AnyHashable?
 
-  public init(
+  nonisolated public init(
     environment: AppEnvironment
   ) {
     self.environment = environment
@@ -87,26 +73,33 @@ public final class FeatureFactory {
   /// will be executed within that scope prioritizing caching new and unloading
   /// instances of features from scoped container and loaded from cache
   /// priritizing root container.
-  public func setScope(
+  @FeaturesActor public func setScope(
     _ scopeID: AnyHashable?
-  ) {
+  ) async {
     #if DEBUG
     guard Self.allowScopes else { return }
     #endif
-    self.featuresAccessLock.lock()
+    guard scopeID != self.scopeID
+    else { return }
     self.scopeID = scopeID
-    self.featuresAccessLock.unlock()
+    for instance in scopeFeatures.values {
+      do {
+        try await instance.feature.featureUnload()
+      }
+      catch {
+        assertionFailure("Feature unloading failed: \(error)")
+      }
+    }
+    scopeFeatures = .init()
   }
 }
 
 extension FeatureFactory {
 
-  public func instance<F>(
+  @FeaturesActor public func instance<F>(
     of feature: F.Type = F.self
-  ) -> F
+  ) async throws -> F
   where F: Feature {
-    featuresAccessLock.lock()
-    defer { featuresAccessLock.unlock() }
     if let loaded: F = rootFeatures[F.featureIdentifier]?.feature as? F {
       return loaded
     }
@@ -127,7 +120,7 @@ extension FeatureFactory {
       #endif
       let featureCancellables: Cancellables = .init()
 
-      let loaded: F = .load(
+      let loaded: F = try await .load(
         in: environment,
         using: self,
         cancellables: featureCancellables
@@ -148,30 +141,25 @@ extension FeatureFactory {
     }
   }
 
-  @discardableResult
-  public func unload<F>(
+  @FeaturesActor public func unload<F>(
     _ feature: F.Type
-  ) -> Bool where F: Feature {
-    featuresAccessLock.lock()
-    defer { featuresAccessLock.unlock() }
-    if (scopeFeatures[F.featureIdentifier]?.feature as? F)?.featureUnload() ?? false {
+  ) async throws where F: Feature {
+    if let feature: F = scopeFeatures[F.featureIdentifier]?.feature as? F {
+      try await feature.featureUnload()
       scopeFeatures[F.featureIdentifier] = nil
-      return true
     }
-    else if (rootFeatures[F.featureIdentifier]?.feature as? F)?.featureUnload() ?? false {
+    else if let feature: F = rootFeatures[F.featureIdentifier]?.feature as? F {
+      try await feature.featureUnload()
       rootFeatures[F.featureIdentifier] = nil
-      return true
     }
     else {
-      return false
+      /* NOP */
     }
   }
 
-  public func isLoaded<F>(
+  @FeaturesActor public func isLoaded<F>(
     _ feature: F.Type
   ) -> Bool where F: Feature {
-    featuresAccessLock.lock()
-    defer { featuresAccessLock.unlock() }
     if scopeFeatures[F.featureIdentifier]?.feature is F {
       return true
     }
@@ -183,17 +171,16 @@ extension FeatureFactory {
     }
   }
 
-  public func loadIfNeeded<F>(
+  @FeaturesActor public func loadIfNeeded<F>(
     _ feature: F.Type = F.self
-  ) where F: Feature {
-    _ = instance(of: F.self)
+  ) async throws where F: Feature {
+    _ = try await instance(of: F.self)
   }
 
-  public func use<F>(
+  @FeaturesActor public func use<F>(
     _ feature: F,
     cancellables: Cancellables = .init()
   ) where F: Feature {
-    featuresAccessLock.lock()
     if scopeID == nil {
       assert(
         rootFeatures[F.featureIdentifier] == nil,
@@ -214,7 +201,6 @@ extension FeatureFactory {
         cancellables: cancellables
       )
     }
-    featuresAccessLock.unlock()
   }
 }
 
@@ -224,10 +210,9 @@ extension FeatureFactory {
   public static var autoLoadFeatures: Bool = true
   public static var allowScopes: Bool = true
 
-  public func usePlaceholder<F>(
+  @FeaturesActor public func usePlaceholder<F>(
     for featureType: F.Type
-  ) where F: Feature {
-    featuresAccessLock.lock()
+  ) async where F: Feature {
     if scopeID == nil {
       rootFeatures[F.featureIdentifier] = .init(
         feature: F.placeholder,
@@ -240,14 +225,12 @@ extension FeatureFactory {
         cancellables: .init()
       )
     }
-    featuresAccessLock.unlock()
   }
 
-  public func patch<F, P>(
+  @FeaturesActor public func patch<F, P>(
     _ keyPath: WritableKeyPath<F, P>,
     with updated: P
   ) where F: Feature {
-    featuresAccessLock.lock()
     if let instance: FeatureInstance = rootFeatures[F.featureIdentifier],
       var loaded: F = instance.feature as? F
     {
@@ -290,7 +273,6 @@ extension FeatureFactory {
         )
       }
     }
-    featuresAccessLock.unlock()
   }
 }
 #endif

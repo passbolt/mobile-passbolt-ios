@@ -41,6 +41,11 @@ final class SettingsScreenTests: MainActorTestCase {
   var featureFlags: FeatureConfig!
   var linkOpener: LinkOpener!
 
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    await features.use(AccountSession.placeholder)
+  }
+
   override func mainActorSetUp() {
     accountSettings = .placeholder
     autoFill = .placeholder
@@ -48,19 +53,20 @@ final class SettingsScreenTests: MainActorTestCase {
     featureFlags = .placeholder
     linkOpener = .placeholder
     featureFlags.config = always(nil)
-    features.use(AccountSession.placeholder)
   }
 
-  func test_biometricsStatePublisher_publishesStateNone_whenProfileHasBiometricsDisabled_andBiometricsIsUnconfigured() {
+  func test_biometricsStatePublisher_publishesStateNone_whenProfileHasBiometricsDisabled_andBiometricsIsUnconfigured()
+    async throws
+  {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(autoFill)
-    features.use(linkOpener)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(autoFill)
+    await features.use(linkOpener)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -73,18 +79,19 @@ final class SettingsScreenTests: MainActorTestCase {
   }
 
   func test_biometricsStatePublisher_publishesStateFaceIDEnabled_whenProfileHasBiometricsEnabled_andBiometricsIsFaceID()
+    async throws
   {
     var currentAccountWithProfile: AccountWithProfile = validAccountWithProfile
     currentAccountWithProfile.biometricsEnabled = true
     accountSettings.currentAccountProfilePublisher = always(Just(currentAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(autoFill)
-    features.use(featureFlags)
-    features.use(linkOpener)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(autoFill)
+    await features.use(featureFlags)
+    await features.use(linkOpener)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -98,16 +105,17 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func
     test_biometricsStatePublisher_publishesStateFaceIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsFaceID()
+    async throws
   {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(autoFill)
-    features.use(linkOpener)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(autoFill)
+    await features.use(linkOpener)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -121,18 +129,19 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func
     test_biometricsStatePublisher_publishesStateTouchIDEnabled_whenProfileHasBiometricsEnabled_andBiometricsIsTouchID()
+    async throws
   {
     var currentAccountWithProfile: AccountWithProfile = validAccountWithProfile
     currentAccountWithProfile.biometricsEnabled = true
     accountSettings.currentAccountProfilePublisher = always(Just(currentAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(autoFill)
-    features.use(featureFlags)
-    features.use(linkOpener)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(autoFill)
+    await features.use(featureFlags)
+    await features.use(linkOpener)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -146,16 +155,17 @@ final class SettingsScreenTests: MainActorTestCase {
 
   func
     test_biometricsStatePublisher_publishesStateTouchIDDisabled_whenProfileHasBiometricsDisabled_andBiometricsIsTouchID()
+    async throws
   {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(autoFill)
-    features.use(linkOpener)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(autoFill)
+    await features.use(linkOpener)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -167,7 +177,7 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertEqual(result, SettingsController.BiometricsState.touchID(enabled: false))
   }
 
-  func test_biometricChangeBiometrics_fromDisabled_toEnabled_Succeeds() {
+  func test_biometricChangeBiometrics_fromDisabled_toEnabled_Succeeds() async throws {
     var currentAccountWithProfile: AccountWithProfile = validAccountWithProfile
     let accountProfilePublisher: PassthroughSubject<AccountWithProfile, Never> = .init()
     accountSettings.currentAccountProfilePublisher = always(accountProfilePublisher.eraseToAnyPublisher())
@@ -179,13 +189,13 @@ final class SettingsScreenTests: MainActorTestCase {
     accountProfilePublisher.send(currentAccountWithProfile)
     accountSettings.setBiometricsEnabled = always(Empty().eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(autoFill)
-    features.use(linkOpener)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(autoFill)
+    await features.use(linkOpener)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: SettingsController.BiometricsState!
 
     controller.biometricsPublisher()
@@ -200,17 +210,17 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertEqual(result, SettingsController.BiometricsState.faceID(enabled: true))
   }
 
-  func test_biometricChangeBiometrics_fromEnabled_toDisabled_triggersBiometricsDisableAlertPublisher() {
+  func test_biometricChangeBiometrics_fromEnabled_toDisabled_triggersBiometricsDisableAlertPublisher() async throws {
     accountSettings.setBiometricsEnabled = always(Empty().eraseToAnyPublisher())
     accountSettings.biometricsEnabledPublisher = always(Just(true).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Void!
 
     controller.biometricsDisableAlertPresentationPublisher()
@@ -226,7 +236,7 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_openTerms_withValidURL_Succeeds() {
+  func test_openTerms_withValidURL_Succeeds() async throws {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
@@ -237,13 +247,13 @@ final class SettingsScreenTests: MainActorTestCase {
       )
     )
 
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool!
 
     controller.openTerms()
@@ -255,19 +265,19 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_openTerms_withInvalidURL_Fails() {
+  func test_openTerms_withInvalidURL_Fails() async throws {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(FeatureFlags.Legal.none)
 
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool!
 
     controller.openTerms()
@@ -279,7 +289,7 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertFalse(result)
   }
 
-  func test_openPrivacyPolicy_withValidURL_Succeeds() {
+  func test_openPrivacyPolicy_withValidURL_Succeeds() async throws {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
@@ -289,13 +299,13 @@ final class SettingsScreenTests: MainActorTestCase {
       )
     )
 
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool!
 
     controller.openPrivacyPolicy()
@@ -307,18 +317,18 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_openPrivacyPolicy_withInvalidURL_Fails() {
+  func test_openPrivacyPolicy_withInvalidURL_Fails() async throws {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
     linkOpener.openLink = always(Just(true).eraseToAnyPublisher())
     featureFlags.config = always(FeatureFlags.Legal.none)
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool!
 
     controller.openPrivacyPolicy()
@@ -330,16 +340,16 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertFalse(result)
   }
 
-  func test_signOutAlertPresentationPublisherPublishes_whenPresentSignOutAlertCalled() {
+  func test_signOutAlertPresentationPublisherPublishes_whenPresentSignOutAlertCalled() async throws {
     accountSettings.currentAccountProfilePublisher = always(Just(validAccountWithProfile).eraseToAnyPublisher())
     biometry.biometricsStatePublisher = always(Just(.unconfigured).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Void!
 
     controller.signOutAlertPresentationPublisher()
@@ -353,15 +363,15 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_autoFillPublisher_publishesTrue_whenAutoFill_isEnabled() {
+  func test_autoFillPublisher_publishesTrue_whenAutoFill_isEnabled() async throws {
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool!
 
     controller.autoFillEnabledPublisher()
@@ -373,15 +383,15 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertEqual(result, true)
   }
 
-  func test_autoFillPublisher_publishesFalse_whenAutoFill_isDisabled() {
+  func test_autoFillPublisher_publishesFalse_whenAutoFill_isDisabled() async throws {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool!
 
     controller.autoFillEnabledPublisher()
@@ -393,74 +403,74 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertEqual(result, false)
   }
 
-  func test_termsEnabled_whenLegalPresent_andContainsValidUrl() {
+  func test_termsEnabled_whenLegalPresent_andContainsValidUrl() async throws {
     featureFlags.config = always(
       FeatureFlags.Legal.terms(.init(string: "https://passbolt.com/terms")!)
     )
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     let result: Bool = controller.termsEnabled()
 
     XCTAssertEqual(result, true)
   }
 
-  func test_privacyPolicyEnabled_whenLegalPresent_andContainsValidUrl() {
+  func test_privacyPolicyEnabled_whenLegalPresent_andContainsValidUrl() async throws {
     featureFlags.config = always(
       FeatureFlags.Legal.privacyPolicy(.init(string: "https://passbolt.com/privacy")!)
     )
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     let result: Bool = controller.privacyPolicyEnabled()
 
     XCTAssertEqual(result, true)
   }
 
-  func test_termsDisabled_whenLegalPresent_andContainsInValidUrl() {
+  func test_termsDisabled_whenLegalPresent_andContainsInValidUrl() async throws {
     featureFlags.config = always(FeatureFlags.Legal.none)
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     let result: Bool = controller.termsEnabled()
 
     XCTAssertEqual(result, false)
   }
 
-  func test_privacyPolicyDisabled_whenLegalPresent_andContainsInValidUrl() {
+  func test_privacyPolicyDisabled_whenLegalPresent_andContainsInValidUrl() async throws {
     featureFlags.config = always(FeatureFlags.Legal.none)
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     let result: Bool = controller.privacyPolicyEnabled()
 
     XCTAssertEqual(result, false)
   }
 
-  func test_logsViewerPresentationPublisher_doesNotPublishInitially() {
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+  func test_logsViewerPresentationPublisher_doesNotPublishInitially() async throws {
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool?
 
     controller
@@ -473,14 +483,14 @@ final class SettingsScreenTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_logsViewerPresentationPublisher_publishesTrue_whenCallingOpenLogsViewer() {
-    features.use(accountSettings)
-    features.use(biometry)
-    features.use(linkOpener)
-    features.use(autoFill)
-    features.use(featureFlags)
+  func test_logsViewerPresentationPublisher_publishesTrue_whenCallingOpenLogsViewer() async throws {
+    await features.use(accountSettings)
+    await features.use(biometry)
+    await features.use(linkOpener)
+    await features.use(autoFill)
+    await features.use(featureFlags)
 
-    let controller: SettingsController = testController()
+    let controller: SettingsController = try await testController()
     var result: Bool?
 
     controller

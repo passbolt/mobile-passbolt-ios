@@ -30,6 +30,7 @@ public struct Pasteboard {
 }
 
 extension Pasteboard: Feature {
+
   public static func load(
     in environment: AppEnvironment,
     using features: FeatureFactory,

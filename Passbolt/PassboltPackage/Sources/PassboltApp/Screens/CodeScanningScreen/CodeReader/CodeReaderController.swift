@@ -25,7 +25,7 @@ import UIComponents
 
 internal struct CodeReaderController {
 
-  internal var processPayload: (String) -> AnyPublisher<Never, TheErrorLegacy>
+  internal var processPayload: @MainActor (String) -> AnyPublisher<Never, Error>
 }
 
 extension CodeReaderController: UIController {
@@ -36,11 +36,15 @@ extension CodeReaderController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
+  ) async throws -> Self {
+    let accountTransfer: AccountTransfer = try await features.instance()
 
-    func processPayload(_ payload: String) -> AnyPublisher<Never, TheErrorLegacy> {
-      accountTransfer.processPayload(payload)
+    func processPayload(_ payload: String) -> AnyPublisher<Never, Error> {
+      cancellables.executeOnStorageAccessActorWithPublisher {
+        accountTransfer.processPayload(payload)
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     return Self(

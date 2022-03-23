@@ -27,8 +27,8 @@ import Features
 
 public struct Initialization {
 
-  public var initialize: () -> Void
-  public var featureUnload: () -> Bool
+  public var initialize: @MainActor () -> Void
+  public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
 extension Initialization: Feature {
@@ -37,31 +37,34 @@ extension Initialization: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let diagnostics: Diagnostics = features.instance()
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
 
     // swift-format-ignore: NoLeadingUnderscores
-    func _initialize(with features: FeatureFactory) {
+    @FeaturesActor func _initialize(with features: FeatureFactory) async throws {
       diagnostics.diagnosticLog("Initializing the app extension...")
       defer { diagnostics.diagnosticLog("...app extension initialization completed!") }
-      defer { features.unload(Initialization.self) }
       // initialize application extension features here
       analytics()
       // load features that require root scope
-      features.loadIfNeeded(Diagnostics.self)
-      features.loadIfNeeded(Executors.self)
-      features.loadIfNeeded(LinkOpener.self)
-      features.loadIfNeeded(OSPermissions.self)
-      features.loadIfNeeded(FingerprintStorage.self)
-      features.loadIfNeeded(Accounts.self)
-      features.loadIfNeeded(AccountSession.self)
+      try await features.loadIfNeeded(Diagnostics.self)
+      try await features.loadIfNeeded(Executors.self)
+      try await features.loadIfNeeded(LinkOpener.self)
+      try await features.loadIfNeeded(OSPermissions.self)
+      try await features.loadIfNeeded(FingerprintStorage.self)
+      try await features.loadIfNeeded(Accounts.self)
+      try await features.loadIfNeeded(AccountSession.self)
+
+      try await features.unload(Initialization.self)
     }
-    let initialize: () -> Void = { [unowned features] in
-      _initialize(with: features)
+    let initialize: @MainActor () -> Void = { [unowned features] in
+      cancellables.executeOnFeaturesActor {
+        try await _initialize(with: features)
+      }
     }
 
-    func featureUnload() -> Bool {
-      true  // always succeeds
+    @FeaturesActor func featureUnload() async throws {
+      // always succeeds
     }
 
     return Self(

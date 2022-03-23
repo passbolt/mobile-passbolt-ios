@@ -23,6 +23,7 @@
 
 import SwiftUI
 
+@MainActor
 public struct DrawerMenuItemView<TitleView, LeftIconView, RightIconView>: View
 where TitleView: View, LeftIconView: View, RightIconView: View {
 

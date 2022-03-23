@@ -34,22 +34,22 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class FoldersTests: TestCase {
 
-  override func setUp() {
-    super.setUp()
-    self.features
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    await self.features
       .usePlaceholder(for: NetworkClient.self)
-    self.features
+    await self.features
       .usePlaceholder(for: AccountDatabase.self)
   }
 
-  func test_refreshIfNeeded_fails_whenNetworkRequestFails() async {
-    self.features
+  func test_refreshIfNeeded_fails_whenNetworkRequestFails() async throws {
+    await self.features
       .patch(
         \NetworkClient.foldersRequest,
         with: .failingWith(MockIssue.error())
       )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     do {
       try await feature.refreshIfNeeded()
@@ -60,8 +60,8 @@ final class FoldersTests: TestCase {
     }
   }
 
-  func test_refreshIfNeeded_fails_whenStoringInDatabaseFails() async {
-    self.features
+  func test_refreshIfNeeded_fails_whenStoringInDatabaseFails() async throws {
+    await self.features
       .patch(
         \NetworkClient.foldersRequest,
         with: .respondingWith(
@@ -71,13 +71,13 @@ final class FoldersTests: TestCase {
           )
         )
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.storeFolders,
         with: .failingWith(MockIssue.error())
       )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     do {
       try await feature.refreshIfNeeded()
@@ -88,8 +88,8 @@ final class FoldersTests: TestCase {
     }
   }
 
-  func test_refreshIfNeeded_succeeds_whenAllOperationsSucceed() async {
-    self.features
+  func test_refreshIfNeeded_succeeds_whenAllOperationsSucceed() async throws {
+    await self.features
       .patch(
         \NetworkClient.foldersRequest,
         with: .respondingWith(
@@ -99,13 +99,13 @@ final class FoldersTests: TestCase {
           )
         )
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.storeFolders,
         with: .returning(Void())
       )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     do {
       try await feature.refreshIfNeeded()
@@ -115,13 +115,13 @@ final class FoldersTests: TestCase {
     }
   }
 
-  func test_filteredFolderContent_producesContentForRequestedFolderIDAndFlatteningMode() async {
-    self.features
+  func test_filteredFolderContent_producesContentForRequestedFolderIDAndFlatteningMode() async throws {
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFoldersOperation,
         with: .failingWith(MockIssue.error())
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFolderResourcesOperation,
         with: .failingWith(MockIssue.error())
@@ -131,7 +131,7 @@ final class FoldersTests: TestCase {
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -151,13 +151,13 @@ final class FoldersTests: TestCase {
     )
   }
 
-  func test_filteredFolderContent_producesEmptyContent_whenDatabaseFetchingFail() async {
-    self.features
+  func test_filteredFolderContent_producesEmptyContent_whenDatabaseFetchingFail() async throws {
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFoldersOperation,
         with: .failingWith(MockIssue.error())
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFolderResourcesOperation,
         with: .failingWith(MockIssue.error())
@@ -167,7 +167,7 @@ final class FoldersTests: TestCase {
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -187,12 +187,13 @@ final class FoldersTests: TestCase {
     )
   }
 
-  func test_filteredFolderContent_producesContent_whenDatabaseFetchingSucceeds() async {
+  func test_filteredFolderContent_producesContent_whenDatabaseFetchingSucceeds() async throws {
     let folders: Array<ListViewFolder> = [
       .init(
         id: .init(rawValue: "folderID"),
         name: "Folder",
         permission: .owner,
+        shared: false,
         parentFolderID: nil,
         contentCount: 0
       )
@@ -207,12 +208,12 @@ final class FoldersTests: TestCase {
       )
     ]
 
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFoldersOperation,
         with: .returning(folders)
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFolderResourcesOperation,
         with: .returning(resources)
@@ -222,7 +223,7 @@ final class FoldersTests: TestCase {
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -242,12 +243,13 @@ final class FoldersTests: TestCase {
     )
   }
 
-  func test_filteredFolderContent_producesContentWithRequestedFolderID_whenDatabaseFetchingSucceeds() async {
+  func test_filteredFolderContent_producesContentWithRequestedFolderID_whenDatabaseFetchingSucceeds() async throws {
     let folders: Array<ListViewFolder> = [
       .init(
         id: .init(rawValue: "folderID"),
         name: "Folder",
         permission: .owner,
+        shared: false,
         parentFolderID: nil,
         contentCount: 0
       )
@@ -262,12 +264,12 @@ final class FoldersTests: TestCase {
       )
     ]
 
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFoldersOperation,
         with: .returning(folders)
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFolderResourcesOperation,
         with: .returning(resources)
@@ -277,7 +279,7 @@ final class FoldersTests: TestCase {
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -297,12 +299,13 @@ final class FoldersTests: TestCase {
     )
   }
 
-  func test_filteredFolderContent_producesNewContent_whenFiltersChange() async {
+  func test_filteredFolderContent_producesNewContent_whenFiltersChange() async throws {
     let folders: Array<ListViewFolder> = [
       .init(
         id: .init(rawValue: "folderID"),
         name: "Folder",
         permission: .owner,
+        shared: false,
         parentFolderID: nil,
         contentCount: 0
       )
@@ -317,12 +320,12 @@ final class FoldersTests: TestCase {
       )
     ]
 
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFoldersOperation,
         with: .returning(folders)
       )
-    self.features
+    await self.features
       .patch(
         \AccountDatabase.fetchListViewFolderResourcesOperation,
         with: .returning(resources)
@@ -338,7 +341,7 @@ final class FoldersTests: TestCase {
       ),
     ]
 
-    let feature: Folders = self.testInstance()
+    let feature: Folders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init(filters)).prefix(2) {

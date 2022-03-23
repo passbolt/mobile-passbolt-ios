@@ -21,8 +21,6 @@
 // @since         v1.0
 //
 
-import CommonModels
-
 import struct Foundation.URL
 
 #warning("TODO: Add other feature flags: tags & folders")

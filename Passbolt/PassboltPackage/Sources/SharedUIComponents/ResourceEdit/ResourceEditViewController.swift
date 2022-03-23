@@ -66,8 +66,10 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               .combined(
                 .backStyle(),
                 .action { [weak self] in
-                  self?.controller.cleanup()
-                  self?.pop(if: Self.self)
+                  self?.cancellables.executeOnMainActor { [weak self] in
+                    self?.controller.cleanup()
+                    await self?.pop(if: Self.self)
+                  }
                 }
               )
               .instantiate()
@@ -102,13 +104,10 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           handler: { _ in true }
         ),
         defaultHandler: { [weak self] error in
-          if let displayable: DisplayableString = error.displayableString {
-            self?.presentErrorSnackbar(displayable)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            self?.presentErrorSnackbar(error.displayableMessage)
+            await self?.pop(if: Self.self)
           }
-          else {
-            self?.presentErrorSnackbar()
-          }
-          self?.pop(if: Self.self)
         }
       )
       .sink(
@@ -149,35 +148,19 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
               [.canceled],
               handler: { _ in true /* NOP */ }
             ),
-            (
-              [.legacyBridge],
-              handler: { [weak self] error in
-                self?.showErrorSubject.send()
-
-                guard
-                  let displayable = error.displayableString
-                else { return false }
-
-                self?.presentErrorSnackbar(displayable)
-                return true
-              }
-            ),
             defaultHandler: { [weak self] error in
-              if let displayable: DisplayableString = error.displayableString {
-                self?.presentErrorSnackbar(displayable)
-              }
-              else {
-                self?.presentErrorSnackbar()
-              }
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           )
           .handleEnd { [weak self] ending in
-            self?.dismissOverlay()
+            self?.cancellables.executeOnMainActor { [weak self] in
+              self?.dismissOverlay()
 
-            guard case .finished = ending
-            else { return }
+              guard case .finished = ending
+              else { return }
 
-            self?.pop(if: Self.self)
+              await self?.pop(if: Self.self)
+            }
           }
           .mapToVoid()
           .replaceError(with: Void())
@@ -208,19 +191,22 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
 
     self.controller
       .exitConfirmationPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        if presented {
-          self?.present(
-            ResourceEditExitConfirmationAlert.self,
-            in: { [weak self] in
-              self?.controller.cleanup()
-              self?.pop(if: Self.self)
-            }
-          )
-        }
-        else {
-          self?.dismiss(ResourceEditExitConfirmationAlert.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          if presented {
+            await self?.present(
+              ResourceEditExitConfirmationAlert.self,
+              in: { [weak self] in
+                self?.cancellables.executeOnMainActor { [weak self] in
+                  self?.controller.cleanup()
+                  await self?.pop(if: Self.self)
+                }
+              }
+            )
+          }
+          else {
+            await self?.dismiss(ResourceEditExitConfirmationAlert.self)
+          }
         }
       }
       .store(in: cancellables)
@@ -266,7 +252,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
           self.contentView
             .fieldValuePublisher(for: resourceProperty.field)
             .removeDuplicates()
-            .map { [unowned self] value -> AnyPublisher<Void, TheErrorLegacy> in
+            .map { [unowned self] value -> AnyPublisher<Void, Error> in
               self.controller.setValue(value, resourceProperty.field)
             }
             .switchToLatest()

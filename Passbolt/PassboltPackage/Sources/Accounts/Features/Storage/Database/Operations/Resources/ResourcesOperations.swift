@@ -30,10 +30,10 @@ public typealias StoreResourcesOperation = DatabaseOperation<Array<Resource>, Vo
 extension StoreResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnectionInTransaction(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       // We have to remove all previously stored resources before updating
       // due to lack of ability to get information about deleted resources.
@@ -44,24 +44,11 @@ extension StoreResourcesOperation {
       // deleting records selecively becomes implemented.
       //
       // Delete currently stored resources
-      let deletionResult: Result<Void, Error> =
-        conn
-        .execute(
-          "DELETE FROM resources;"
-        )
-
-      switch deletionResult {
-      case .success:
-        break
-
-      case let .failure(error):
-        return .failure(error)
-      }
+      try conn.execute("DELETE FROM resources;")
 
       // Insert or update all new resource
       for resource in input {
-        let result: Result<Void, Error> =
-          conn
+        try conn
           .execute(
             upsertResourceStatement,
             with: resource.id.rawValue,
@@ -75,16 +62,7 @@ extension StoreResourcesOperation {
             resource.favorite,
             resource.modified
           )
-
-        switch result {
-        case .success:
-          continue
-
-        case let .failure(error):
-          return .failure(error)
-        }
       }
-      return .success
     }
   }
 }
@@ -94,10 +72,10 @@ public typealias FetchListViewResourcesOperation = DatabaseOperation<ResourcesFi
 extension FetchListViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       var statement: SQLiteStatement = """
         SELECT
@@ -203,25 +181,23 @@ extension FetchListViewResourcesOperation {
       statement.append(";")
 
       return
-        conn
+        try conn
         .fetch(
           statement,
           with: params
         ) { rows in
-          .success(
-            rows.compactMap { row -> ListViewResource? in
-              guard
-                let id: ListViewResource.ID = (row.id as String?).map(ListViewResource.ID.init(rawValue:)),
-                let name: String = row.name
-              else { return nil }
-              return ListViewResource(
-                id: id,
-                name: name,
-                url: row.url,
-                username: row.username
-              )
-            }
-          )
+          rows.compactMap { row -> ListViewResource? in
+            guard
+              let id: ListViewResource.ID = (row.id as String?).map(ListViewResource.ID.init(rawValue:)),
+              let name: String = row.name
+            else { return nil }
+            return ListViewResource(
+              id: id,
+              name: name,
+              url: row.url,
+              username: row.username
+            )
+          }
         }
     }
   }
@@ -232,10 +208,10 @@ public typealias FetchDetailsViewResourcesOperation = DatabaseOperation<Resource
 extension FetchDetailsViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       let statement: SQLiteStatement = """
         SELECT
@@ -247,35 +223,37 @@ extension FetchDetailsViewResourcesOperation {
         LIMIT
           1;
         """
-      return conn.fetch(
-        statement,
-        with: [input.rawValue]
-      ) { rows -> Result<DetailsViewResource, Error> in
-        rows
-          .first
-          .map { row -> Result<DetailsViewResource, Error> in
-            guard
-              let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
-              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
-              let name: String = row.name,
-              let rawFields: String = row.resourceFields
-            else {
-              return .failure(
-                DatabaseIssue.error(
-                  underlyingError:
-                    DatabaseResultInvalid
-                    .error("Retrived invalid data from the database")
-                )
-              )
-            }
+      return
+        try conn
+        .fetch(
+          statement,
+          with: [input.rawValue]
+        ) { rows -> DetailsViewResource in
+          let detailsViewResource: DetailsViewResource? =
+            try rows
+            .first
+            .map { row -> DetailsViewResource in
+              guard
+                let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
+                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
+                let name: String = row.name,
+                let rawFields: String = row.resourceFields
+              else {
+                throw
+                  DatabaseIssue
+                  .error(
+                    underlyingError:
+                      DatabaseResultInvalid
+                      .error("Retrived invalid data from the database")
+                  )
+              }
 
-            let url: String? = row.url
-            let username: String? = row.username
-            let description: String? = row.description
-            let properties: Array<ResourceProperty> = ResourceProperty.arrayFrom(rawString: rawFields)
+              let url: String? = row.url
+              let username: String? = row.username
+              let description: String? = row.description
+              let properties: Array<ResourceProperty> = ResourceProperty.arrayFrom(rawString: rawFields)
 
-            return .success(
-              DetailsViewResource(
+              return DetailsViewResource(
                 id: id,
                 permission: permission,
                 name: name,
@@ -284,16 +262,20 @@ extension FetchDetailsViewResourcesOperation {
                 description: description,
                 properties: properties
               )
-            )
+            }
+          if let detailsViewResource: DetailsViewResource = detailsViewResource {
+            return detailsViewResource
           }
-          ?? .failure(
-            DatabaseIssue.error(
-              underlyingError:
-                DatabaseResultEmpty
-                .error("Failed to retrive data from the database")
-            )
-          )
-      }
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseResultEmpty
+                  .error("Failed to retrive data from the database")
+              )
+          }
+        }
     }
   }
 }
@@ -303,10 +285,10 @@ public typealias FetchEditViewResourcesOperation = DatabaseOperation<Resource.ID
 extension FetchEditViewResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       let statement: SQLiteStatement = """
         SELECT
@@ -318,37 +300,39 @@ extension FetchEditViewResourcesOperation {
         LIMIT
           1;
         """
-      return conn.fetch(
-        statement,
-        with: [input.rawValue]
-      ) { rows -> Result<EditViewResource, Error> in
-        rows
-          .first
-          .map { row -> Result<EditViewResource, Error> in
-            guard
-              let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
-              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
-              let name: String = row.name,
-              let resourceTypeID: ResourceType.ID = row.resourceTypeID.map(ResourceType.ID.init(rawValue:)),
-              let resourceTypeSlug: ResourceType.Slug = row.resourceTypeSlug.map(ResourceType.Slug.init(rawValue:)),
-              let resourceTypeName: String = row.resourceTypeName,
-              let rawFields: String = row.resourceFields
-            else {
-              return .failure(
-                DatabaseIssue.error(
-                  underlyingError:
-                    DatabaseResultInvalid
-                    .error("Retrived invalid data from the database")
-                )
-              )
-            }
+      return
+        try conn
+        .fetch(
+          statement,
+          with: [input.rawValue]
+        ) { rows -> EditViewResource in
+          let editViewResource: EditViewResource? =
+            try rows
+            .first
+            .map { row -> EditViewResource in
+              guard
+                let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
+                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
+                let name: String = row.name,
+                let resourceTypeID: ResourceType.ID = row.resourceTypeID.map(ResourceType.ID.init(rawValue:)),
+                let resourceTypeSlug: ResourceType.Slug = row.resourceTypeSlug.map(ResourceType.Slug.init(rawValue:)),
+                let resourceTypeName: String = row.resourceTypeName,
+                let rawFields: String = row.resourceFields
+              else {
+                throw
+                  DatabaseIssue
+                  .error(
+                    underlyingError:
+                      DatabaseResultInvalid
+                      .error("Retrived invalid data from the database")
+                  )
+              }
 
-            let url: String? = row.url
-            let username: String? = row.username
-            let description: String? = row.description
+              let url: String? = row.url
+              let username: String? = row.username
+              let description: String? = row.description
 
-            return .success(
-              EditViewResource(
+              return EditViewResource(
                 id: id,
                 type: .init(
                   id: resourceTypeID,
@@ -363,16 +347,21 @@ extension FetchEditViewResourcesOperation {
                 username: username,
                 description: description
               )
-            )
+            }
+
+          if let editViewResource: EditViewResource = editViewResource {
+            return editViewResource
           }
-          ?? .failure(
-            DatabaseIssue.error(
-              underlyingError:
-                DatabaseResultEmpty
-                .error("Failed to retrive data from the database")
-            )
-          )
-      }
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseResultEmpty
+                  .error("Failed to retrive data from the database")
+              )
+          }
+        }
     }
   }
 }

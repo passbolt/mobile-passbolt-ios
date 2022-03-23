@@ -33,16 +33,17 @@ import XCTest
 @MainActor
 final class AccountMenuControllerTests: MainActorTestCase {
 
-  var updatedAccountIDsSubject: PassthroughSubject<Account.LocalID, Never>!
+  @FeaturesActor var updatedAccountIDsSubject: PassthroughSubject<Account.LocalID, Never>!
 
-  override func mainActorSetUp() {
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     features.patch(
       \Accounts.storedAccounts,
       with: always(
         []
       )
     )
-    features.usePlaceholder(for: AccountSession.self)
+    await features.usePlaceholder(for: AccountSession.self)
     features.patch(
       \NetworkClient.mediaDownload,
       with: .respondingWith(MediaDownloadResponse())
@@ -57,12 +58,13 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
   }
 
-  override func mainActorTearDown() {
+  override func featuresActorTearDown() async throws {
     updatedAccountIDsSubject = nil
+    try await super.featuresActorTearDown()
   }
 
-  func test_currentAccountWithProfile_isEqualToProvidedInContext() {
-    let controller: AccountMenuController = testController(
+  func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -72,21 +74,21 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(controller.currentAccountWithProfile, validAccountWithProfile)
   }
 
-  func test_accountsListPublisher_publishesAccountListWithoutCurrentAccount() {
-    features.patch(
+  func test_accountsListPublisher_publishesAccountListWithoutCurrentAccount() async throws {
+    await features.patch(
       \Accounts.storedAccounts,
       with: always(
         [validAccount, validAccountAlt]
       )
     )
-    features.patch(
+    await features.patch(
       \AccountSettings.accountWithProfile,
       with: always(
         validAccountWithProfileAlt
       )
     )
 
-    let controller: AccountMenuController = testController(
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -110,50 +112,50 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result?.map { $0.accountWithProfile }, [validAccountWithProfileAlt])
   }
 
-  func test_accountsListPublisher_publishesUpdatedAccountListAterUpdatingAccounts() {
+  func test_accountsListPublisher_publishesUpdatedAccountListAterUpdatingAccounts() async throws {
     var storedAccounts: Array<Account> = [validAccount]
-    features.patch(
+    await features.patch(
       \Accounts.storedAccounts,
       with: always(
         storedAccounts
       )
     )
-    features.patch(
+    await features.patch(
       \AccountSettings.accountWithProfile,
       with: always(
         validAccountWithProfileAlt
       )
     )
 
-    let controller: AccountMenuController = testController(
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
-    var result:
+    storedAccounts = [validAccount, validAccountAlt]
+    await updatedAccountIDsSubject.send(.init(rawValue: "some ID"))
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let result:
       Array<
         (
           accountWithProfile: AccountWithProfile,
           avatarImagePublisher: AnyPublisher<Data?, Never>
         )
-      >?
-    controller
-      .accountsListPublisher()
-      .sink { accounts in
-        result = accounts
-      }
-      .store(in: cancellables)
-
-    storedAccounts = [validAccount, validAccountAlt]
-    updatedAccountIDsSubject.send(.init(rawValue: "some ID"))
+      >? =
+        try? await controller
+        .accountsListPublisher()
+        .asAsyncValue()
 
     XCTAssertEqual(result?.map { $0.accountWithProfile }, [validAccountWithProfileAlt])
   }
 
-  func test_accountDetailsPresentationPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testController(
+  func test_accountDetailsPresentationPublisher_doesNotPublishInitially() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -171,8 +173,8 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_accountDetailsPresentationPublisher_publishesCurrentAccountAfterCallingPresent() {
-    let controller: AccountMenuController = testController(
+  func test_accountDetailsPresentationPublisher_publishesCurrentAccountAfterCallingPresent() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -192,8 +194,8 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result, validAccountWithProfile)
   }
 
-  func test_accountSwitchPresentationPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testController(
+  func test_accountSwitchPresentationPublisher_doesNotPublishInitially() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -211,8 +213,8 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_accountSwitchPresentationPublisher_publishesSelectedAccountAfterCallingPresent() {
-    let controller: AccountMenuController = testController(
+  func test_accountSwitchPresentationPublisher_publishesSelectedAccountAfterCallingPresent() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -232,8 +234,8 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result, validAccountAlt)
   }
 
-  func test_dismissPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testController(
+  func test_dismissPublisher_doesNotPublishInitially() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -251,8 +253,8 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_manageAccountsPresentationPublisher_doesNotPublishInitially() {
-    let controller: AccountMenuController = testController(
+  func test_manageAccountsPresentationPublisher_doesNotPublishInitially() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -270,8 +272,8 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_manageAccountsPresentationPublisher_publishesAfterCallingPresent() {
-    let controller: AccountMenuController = testController(
+  func test_manageAccountsPresentationPublisher_publishesAfterCallingPresent() async throws {
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -291,15 +293,15 @@ final class AccountMenuControllerTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_signOut_closesCurrentSession() {
+  func test_signOut_closesCurrentSession() async throws {
     var result: Void?
-    features.patch(
+    await features.patch(
       \AccountSession.close,
       with: {
         result = Void()
       }
     )
-    let controller: AccountMenuController = testController(
+    let controller: AccountMenuController = try await testController(
       context: (
         accountWithProfile: validAccountWithProfile,
         navigation: ComponentNavigation.ignored(with: Void())
@@ -307,11 +309,13 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
 
     controller.signOut()
-
+    // temporary wait for detached tasks, to be removed
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
     XCTAssertNotNil(result)
   }
 }
 
+@MainActor
 private final class TestComponent: UIViewController, AnyUIComponent {
 
   var lazyView: UIView { unimplemented() }

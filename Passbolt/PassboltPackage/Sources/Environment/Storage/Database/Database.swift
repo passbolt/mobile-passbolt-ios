@@ -27,12 +27,12 @@ import SQLCipher
 public struct Database: EnvironmentElement {
 
   public var openConnection:
-    (
+    @StorageAccessActor (
       _ path: String,
       _ key: String,
       _ migrations: Array<SQLiteMigration>,
       _ openingOperations: Array<SQLiteStatement>
-    ) -> Result<SQLiteConnection, Error>
+    ) throws -> SQLiteConnection
 }
 
 extension Database {
@@ -40,7 +40,7 @@ extension Database {
   public static func sqlite() -> Self {
     Self(
       openConnection: { path, key, migrations, openingOperations in
-        SQLiteConnection.open(
+        try SQLiteConnection.open(
           at: path,
           key: key,
           options: SQLITE_OPEN_CREATE

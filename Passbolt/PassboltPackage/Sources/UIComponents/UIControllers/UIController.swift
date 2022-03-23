@@ -28,20 +28,20 @@ public protocol UIController {
 
   associatedtype Context
 
-  static func instance(
+  @MainActor static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self
+  ) async throws -> Self
 }
 
 extension UIController where Context == Void {
 
-  public static func instance(
+  @MainActor public static func instance(
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    instance(
+  ) async throws -> Self {
+    try await instance(
       in: Context(),
       with: features,
       cancellables: cancellables

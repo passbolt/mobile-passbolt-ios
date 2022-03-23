@@ -29,8 +29,8 @@ import class Foundation.Bundle
 
 public struct UpdateCheck {
 
-  public var checkRequired: () async -> Bool
-  public var updateAvailable: () async throws -> Bool
+  public var checkRequired: @MainActor () async -> Bool
+  public var updateAvailable: @MainActor () async throws -> Bool
 }
 
 extension UpdateCheck: Feature {
@@ -39,8 +39,8 @@ extension UpdateCheck: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let updateChecker: UpdateChecker = .init(
+  ) async throws -> Self {
+    let updateChecker: UpdateChecker = try await .init(
       appMeta: environment.appMeta,
       networkClient: features.instance()
     )

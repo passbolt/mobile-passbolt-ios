@@ -31,23 +31,23 @@ import XCTest
 
 final class AccountTransferTests: TestCase {
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     #if DEBUG
     var mdmSupport: MDMSupport = .placeholder
     mdmSupport.transferedAccount = always(nil)
-    features.use(mdmSupport)
+    await features.use(mdmSupport)
     #endif
   }
 
-  func test_scanningProgressPublisher_publishesConfigurationValue_initially() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_scanningProgressPublisher_publishesConfigurationValue_initially() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
     var result: AccountTransfer.Progress?
     accountTransfer
@@ -68,18 +68,16 @@ final class AccountTransferTests: TestCase {
     }
   }
 
-  func test_scanningProgressPublisher_publishesProgressValue_afterProcessingFirstPart() {
+  func test_scanningProgressPublisher_publishesProgressValue_afterProcessingFirstPart() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-
-    processPart(qrCodePart0, using: accountTransfer)
+    let accountTransfer: AccountTransfer = try await testInstance()
 
     var result: AccountTransfer.Progress?
     accountTransfer
@@ -91,6 +89,8 @@ final class AccountTransferTests: TestCase {
         }
       )
       .store(in: cancellables)
+
+    try? await processPart(qrCodePart0, using: accountTransfer)
 
     if case let .scanningProgress(progressValue) = result {
       XCTAssertEqual(progressValue, 1 / 7)
@@ -100,24 +100,16 @@ final class AccountTransferTests: TestCase {
     }
   }
 
-  func test_scanningProgressPublisher_publishesFinishedValue_afterProcessingAllParts() {
+  func test_scanningProgressPublisher_publishesFinishedValue_afterProcessingAllParts() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-
-    processPart(qrCodePart0, using: accountTransfer)
-    processPart(qrCodePart1, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    processPart(qrCodePart6, using: accountTransfer)
+    let accountTransfer: AccountTransfer = try await testInstance()
 
     var result: AccountTransfer.Progress?
     accountTransfer
@@ -130,6 +122,14 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart1, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
+    try? await processPart(qrCodePart6, using: accountTransfer)
+
     if case .scanningFinished = result {
       /* expected */
     }
@@ -138,20 +138,18 @@ final class AccountTransferTests: TestCase {
     }
   }
 
-  func test_scanningProgressPublisher_completes_afterCancelation() {
+  func test_scanningProgressPublisher_completes_afterCancelation() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    accountTransfer.cancelTransfer()
-
-    var result: TheErrorLegacy?
+    var result: Error?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -164,24 +162,28 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .canceled)
-    XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-cancel")
+    await accountTransfer.cancelTransfer()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertError(result?.asLegacy.legacyBridge, matches: Cancelled.self)
   }
 
-  func test_scanningProgressPublisher_completesWithError_afterProcessingInvalidPart() {
+  func test_scanningProgressPublisher_completesWithError_afterProcessingInvalidPart() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
+    try? await processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
 
-    var result: TheErrorLegacy?
+    var result: Error?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -194,22 +196,26 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidContent() {
+  func test_processPayload_fails_withInvalidContent() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    var result: TheErrorLegacy?
-    accountTransfer
+    var result: Error?
+    await accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
         receiveCompletion: { completion in
@@ -221,47 +227,50 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withValidContentAndNetworkResponseFailure() {
+  func test_processPayload_fails_withValidContentAndNetworkResponseFailure() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .failingWith(MockIssue.error())
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
-    var result: TheErrorLegacy?
-    let accountTransfer: AccountTransfer = testInstance()
+    await features.use(accounts)
 
-    accountTransfer
-      .processPayload(qrCodePart0)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    var result: Error?
+    do {
+      _ =
+        try await accountTransfer
+        .processPayload(qrCodePart0)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result?.asLegacy.legacyBridge, matches: MockIssue.self)
   }
 
-  func test_processPayload_succeeds_withValidContent() {
+  func test_processPayload_succeeds_withValidContent() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
     var result: Void?
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePart0)
       .sink(
         receiveCompletion: { completion in
@@ -273,64 +282,73 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertNotNil(result)
   }
 
-  func test_processPayload_sendsNextPageRequest_withValidContent() {
+  func test_processPayload_sendsNextPageRequest_withValidContent() async throws {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
       accountTransferUpdateResponse,
       storeVariableIn: &result
     )
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 1)
     XCTAssertEqual(result?.status, .inProgress)
   }
 
-  func test_processPayload_sendsErrorStatus_withInvalidContentAndValidConfiguration() {
+  func test_processPayload_sendsErrorStatus_withInvalidContentAndValidConfiguration() async throws {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
       accountTransferUpdateResponse,
       storeVariableIn: &result
     )
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
     // we have to get configuration before
-    processPart(qrCodePart0, using: accountTransfer)
-    processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 0)
     XCTAssertEqual(result?.status, .error)
   }
 
-  func test_processPayload_fails_withInvalidVersionByte() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_processPayload_fails_withInvalidVersionByte() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePartInvalidVersionByte)
       .sink(
         receiveCompletion: { completion in
@@ -342,21 +360,24 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningRecoverableError)
-    XCTAssertEqual(result?.context, "part-decoding-invalid-version-or-code")
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningRecoverableError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidPageBytes() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_processPayload_fails_withInvalidPageBytes() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePartInvalidPageBytes)
       .sink(
         receiveCompletion: { completion in
@@ -368,21 +389,24 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "part-decoding-invalid-page")
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidPageNumber() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_processPayload_fails_withInvalidPageNumber() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePartInvalidPageNumber)
       .sink(
         receiveCompletion: { completion in
@@ -394,21 +418,24 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "decoding-invalid-page")
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidConfigurationPart() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_processPayload_fails_withInvalidConfigurationPart() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePart0InvalidConfiguration)
       .sink(
         receiveCompletion: { completion in
@@ -420,21 +447,24 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "configuration-decoding-invalid-json")
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidJSONInConfigurationPart() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_processPayload_fails_withInvalidJSONInConfigurationPart() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePart0InvalidJSON)
       .sink(
         receiveCompletion: { completion in
@@ -446,23 +476,26 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "configuration-decoding-invalid-json")
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidConfigurationDomain() {
+  func test_processPayload_fails_withInvalidConfigurationDomain() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePart0InvalidDomain)
       .sink(
         receiveCompletion: { completion in
@@ -474,267 +507,283 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "configuration-decoding-invalid-domain")
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidConfigurationHash() {
+  func test_processPayload_fails_withInvalidConfigurationHash() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0InvalidHash, using: accountTransfer)
-    processPart(qrCodePart1, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    accountTransfer
-      .processPayload(qrCodePart6)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await processPart(qrCodePart0InvalidHash, using: accountTransfer)
+    try? await processPart(qrCodePart1, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
+    var result: Error?
+    do {
+      try await accountTransfer
+        .processPayload(qrCodePart6)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidMiddlePart() {
+  func test_processPayload_fails_withInvalidMiddlePart() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
-    processPart(qrCodePart1Invalid, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    accountTransfer
-      .processPayload(qrCodePart6)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart1Invalid, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
+    var result: Error?
+    do {
+      try await accountTransfer
+        .processPayload(qrCodePart6)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidJSONInMiddlePart() {
+  func test_processPayload_fails_withInvalidJSONInMiddlePart() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
-    processPart(qrCodePart1, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    accountTransfer
-      .processPayload(qrCodePart6InvalidJSON)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart1, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
+    var result: Error?
+    do {
+      try await accountTransfer
+        .processPayload(qrCodePart6InvalidJSON)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withNoHashInConfig() {
+  func test_processPayload_fails_withNoHashInConfig() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0NoHash, using: accountTransfer)
-    processPart(qrCodePart1, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    accountTransfer
-      .processPayload(qrCodePart6)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await processPart(qrCodePart0NoHash, using: accountTransfer)
+    try? await processPart(qrCodePart1, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "missing-configuration-or-hash")
+    var result: Error?
+    do {
+      try await accountTransfer
+        .processPayload(qrCodePart6)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_processPayload_fails_withInvalidContentHash() {
+  func test_processPayload_fails_withInvalidContentHash() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
-    processPart(qrCodePart1Modified, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    accountTransfer
-      .processPayload(qrCodePart6)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart1Modified, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
 
-    XCTAssertEqual(result?.identifier, .accountTransferScanningError)
-    XCTAssertEqual(result?.context, "account-decoding-invalid-hash")
+    var result: Error?
+    do {
+      try await accountTransfer
+        .processPayload(qrCodePart6)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .accountTransferScanningError }
+    )
   }
 
-  func test_cancelTransfer_sendsCancelationRequest_withConfigurationAvailable() {
+  func test_cancelTransfer_sendsCancelationRequest_withConfigurationAvailable() async throws {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
       accountTransferUpdateResponse,
       storeVariableIn: &result
     )
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart0, using: accountTransfer)
 
-    accountTransfer.cancelTransfer()
+    await accountTransfer.cancelTransfer()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 0)
     XCTAssertEqual(result?.status, .cancel)
   }
 
-  func test_cancelTransfer_unloadsFeature() {
-    features.use(NetworkClient.placeholder)
-    features.use(AccountSession.placeholder)
+  func test_cancelTransfer_unloadsFeature() async throws {
+    await features.use(NetworkClient.placeholder)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    features.use(accountTransfer)
-    XCTAssertTrue(features.isLoaded(AccountTransfer.self))
+    let accountTransfer: AccountTransfer = try await testInstance()
+    await features.use(accountTransfer)
+    var isLoaded = await features.isLoaded(AccountTransfer.self)
+    XCTAssertTrue(isLoaded)
 
-    accountTransfer.cancelTransfer()
+    await accountTransfer.cancelTransfer()
 
-    XCTAssertFalse(features.isLoaded(AccountTransfer.self))
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    isLoaded = await features.isLoaded(AccountTransfer.self)
+    XCTAssertFalse(isLoaded)
   }
 
-  func test_processPayload_fails_withUnexpectedPage() {
+  func test_processPayload_fails_withUnexpectedPage() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
-    processPart(qrCodePart1, using: accountTransfer)
-    processPart(qrCodePart2, using: accountTransfer)
-    processPart(qrCodePart3, using: accountTransfer)
-    processPart(qrCodePart4, using: accountTransfer)
-    processPart(qrCodePart5, using: accountTransfer)
-    processPart(qrCodePart6, using: accountTransfer)
-    accountTransfer
-      .processPayload(qrCodePart7Unexpected)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart1, using: accountTransfer)
+    try? await processPart(qrCodePart2, using: accountTransfer)
+    try? await processPart(qrCodePart3, using: accountTransfer)
+    try? await processPart(qrCodePart4, using: accountTransfer)
+    try? await processPart(qrCodePart5, using: accountTransfer)
+    try? await processPart(qrCodePart6, using: accountTransfer)
 
-    XCTAssertEqual(result?.identifier, .canceled)
-    XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-unexpected-page")
+    var result: Error?
+    do {
+      try await accountTransfer
+        .processPayload(qrCodePart7Unexpected)
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result?.asLegacy.legacyBridge, matches: Cancelled.self)
   }
 
-  func test_processPayload_fails_withRepeatedPage() {
+  func test_processPayload_fails_withRepeatedPage() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([])
-    features.use(accounts)
-    let accountTransfer: AccountTransfer = testInstance()
+    await features.use(accounts)
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
-    var result: TheErrorLegacy?
-    accountTransfer
+    try? await processPart(qrCodePart0, using: accountTransfer)
+    var result: Error?
+    await accountTransfer
       .processPayload(qrCodePart0)
       .sink(
         receiveCompletion: { completion in
@@ -746,22 +795,24 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .canceled)
-    XCTAssertEqual(result?.context, "canceled-account-transfer-scanning-repeated-page")
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertError(result?.asLegacy.legacyBridge, matches: Cancelled.self)
   }
 
-  func test_processPayload_fails_withDuplicateAccount() {
+  func test_processPayload_fails_withDuplicateAccount() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([validAccount])
-    features.use(accounts)
-    let accountTransfer: AccountTransfer = testInstance()
-    var result: TheErrorLegacy?
+    await features.use(accounts)
+    let accountTransfer: AccountTransfer = try await testInstance()
+    var result: Error?
 
-    accountTransfer
+    await accountTransfer
       .processPayload(qrCodePart0)
       .sink(
         receiveCompletion: { completion in
@@ -773,40 +824,46 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertError(result?.legacyBridge, matches: AccountDuplicate.self)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertError(result, matches: AccountDuplicate.self)
   }
 
-  func test_processPayload_sendsCancelationRequest_withDuplicateAccount() {
+  func test_processPayload_sendsCancelationRequest_withDuplicateAccount() async throws {
     var networkClient: NetworkClient = .placeholder
     var result: AccountTransferUpdateRequestVariable?
     networkClient.accountTransferUpdate = .respondingWith(
       accountTransferUpdateResponse,
       storeVariableIn: &result
     )
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([validAccount])
-    features.use(accounts)
-    let accountTransfer: AccountTransfer = testInstance()
+    await features.use(accounts)
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart0, using: accountTransfer)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 0)
     XCTAssertEqual(result?.status, .cancel)
   }
 
-  func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() {
+  func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() async throws {
     var networkClient: NetworkClient = .placeholder
     networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    features.use(networkClient)
-    features.use(AccountSession.placeholder)
+    await features.use(networkClient)
+    await features.use(AccountSession.placeholder)
     var accounts: Accounts = .placeholder
     accounts.storedAccounts = always([validAccount])
-    features.use(accounts)
-    let accountTransfer: AccountTransfer = testInstance()
+    await features.use(accounts)
+    let accountTransfer: AccountTransfer = try await testInstance()
 
-    var result: TheErrorLegacy!
+    var result: Error?
     accountTransfer
       .progressPublisher()
       .sink(
@@ -819,9 +876,12 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    processPart(qrCodePart0, using: accountTransfer)
+    try? await processPart(qrCodePart0, using: accountTransfer)
 
-    XCTAssertError(result.legacyBridge, matches: AccountDuplicate.self)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertError(result, matches: AccountDuplicate.self)
   }
 }
 
@@ -830,14 +890,10 @@ extension AccountTransferTests {
   private func processPart(
     _ part: String,
     using accountTransfer: AccountTransfer
-  ) {
-    accountTransfer
+  ) async throws {
+    try await accountTransfer
       .processPayload(part)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
   }
 }
 

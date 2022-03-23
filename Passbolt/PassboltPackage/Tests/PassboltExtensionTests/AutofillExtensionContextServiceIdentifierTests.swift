@@ -30,12 +30,12 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
 
   typealias Identifier = AutofillExtensionContext.ServiceIdentifier
 
-  func test_matches_returnsFalse_withEmptyDomains() {
+  func test_matches_returnsFalse_withEmptyDomains() async throws {
     XCTAssertFalse(("" as Identifier).matches(url: "passbolt.com"))
     XCTAssertFalse(("passbolt.com" as Identifier).matches(url: ""))
   }
 
-  func test_matches_returnsTrue_withMatchingDomains() {
+  func test_matches_returnsTrue_withMatchingDomains() async throws {
     XCTAssertTrue(("http://www.passbolt.com" as Identifier).matches(url: "http://www.passbolt.com"))
     XCTAssertTrue(("https://www.passbolt.com" as Identifier).matches(url: "https://www.passbolt.com"))
     XCTAssertTrue(("https://www.passbolt.com:443" as Identifier).matches(url: "https://www.passbolt.com:443"))
@@ -54,7 +54,7 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertTrue(("https://www.passbolt.com/path" as Identifier).matches(url: "www.passbolt.com"))
   }
 
-  func test_matches_returnsTrue_withMatchingIPs() {
+  func test_matches_returnsTrue_withMatchingIPs() async throws {
     XCTAssertTrue(("http://[0:0:0:0:0:0:0:1]" as Identifier).matches(url: "http://[0:0:0:0:0:0:0:1]"))
     XCTAssertTrue(("http://127.0.0.1" as Identifier).matches(url: "http://127.0.0.1"))
     XCTAssertTrue(("https://127.0.0.1" as Identifier).matches(url: "https://127.0.0.1"))
@@ -68,20 +68,20 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertTrue(("http:127.1" as Identifier).matches(url: "http:127.1"))
   }
 
-  func test_matches_returnsTrue_withMatchingWithoutPort() {
+  func test_matches_returnsTrue_withMatchingWithoutPort() async throws {
     XCTAssertTrue(("http://passbolt.com:8080" as Identifier).matches(url: "passbolt.com"))
     XCTAssertTrue(("http://[0:0:0:0:0:0:0:1]:8080" as Identifier).matches(url: "[0:0:0:0:0:0:0:1]"))
     XCTAssertTrue(("http://127.0.0.1:8080" as Identifier).matches(url: "127.0.0.1"))
   }
 
-  func test_matches_returnsTrue_withMatchingSubdomains() {
+  func test_matches_returnsTrue_withMatchingSubdomains() async throws {
     XCTAssertTrue(("https://www.passbolt.com" as Identifier).matches(url: "passbolt.com"))
     XCTAssertTrue(("https://www.passbolt.com" as Identifier).matches(url: "https://passbolt.com"))
     XCTAssertTrue(("https://www.passbolt.com/path" as Identifier).matches(url: "https://passbolt.com/path"))
     XCTAssertTrue(("https://billing.admin.passbolt.com" as Identifier).matches(url: "passbolt.com"))
   }
 
-  func test_matches_returnsFalse_withNonMatchingDomains() {
+  func test_matches_returnsFalse_withNonMatchingDomains() async throws {
     XCTAssertFalse(("https://www.not-passbolt.com" as Identifier).matches(url: "passbolt.com"))
     XCTAssertFalse(("https://www.not-passbolt.com/path" as Identifier).matches(url: "passbolt.com/path"))
     XCTAssertFalse(("https://bolt.com" as Identifier).matches(url: "passbolt.com"))
@@ -92,7 +92,7 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertFalse(("https://titan.email" as Identifier).matches(url: "https://email"))
   }
 
-  func test_matches_returnsFalse_withNonMatchingSubdomains() {
+  func test_matches_returnsFalse_withNonMatchingSubdomains() async throws {
     XCTAssertFalse(("https://passbolt.com" as Identifier).matches(url: "www.passbolt.com"))
     XCTAssertFalse(("https://passbolt.com" as Identifier).matches(url: "https://www.passbolt.com"))
     XCTAssertFalse(("https://passbolt.com/path" as Identifier).matches(url: "https://www.passbolt.com/path"))
@@ -100,7 +100,7 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertFalse(("https://www.passbolt.com-attacker.com" as Identifier).matches(url: "passbolt.com"))
   }
 
-  func test_matches_returnsFalse_withNonMatchingIPs() {
+  func test_matches_returnsFalse_withNonMatchingIPs() async throws {
     XCTAssertFalse(("https://fake.127.0.0.1" as Identifier).matches(url: "127.0.0.1"))
     XCTAssertFalse(("https://127.127.0.0.1" as Identifier).matches(url: "127.0.0.1"))
     XCTAssertFalse(("https://[0:0:0:0:0:0:0:0:1]" as Identifier).matches(url: "https://[0:0:0:0:0:0:0:1]"))
@@ -109,7 +109,7 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertFalse(("https://127.1" as Identifier).matches(url: "127.2"))
   }
 
-  func test_matches_returnsFalse_withMatchingPathOrQueryOrHashOrPort() {
+  func test_matches_returnsFalse_withMatchingPathOrQueryOrHashOrPort() async throws {
     XCTAssertFalse(("https://attacker.com?passbolt.com" as Identifier).matches(url: "passbolt.com"))
     XCTAssertFalse(("https://attacker.com/passbolt.com" as Identifier).matches(url: "passbolt.com"))
     XCTAssertFalse(("https://attacker.com#passbolt.com" as Identifier).matches(url: "passbolt.com"))
@@ -119,7 +119,7 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertFalse(("https://attacker.com/url=https://passbolt.com" as Identifier).matches(url: "passbolt.com"))
   }
 
-  func test_matches_returnsFalse_whithNonMatchingScheme() {
+  func test_matches_returnsFalse_whithNonMatchingScheme() async throws {
     XCTAssertFalse(("http://127.0.0.1" as Identifier).matches(url: "https://127.0.0.1"))
     XCTAssertFalse(("https://127.0.0.1" as Identifier).matches(url: "http://127.0.0.1"))
     XCTAssertFalse(("http://[::1]" as Identifier).matches(url: "https://[::1]"))
@@ -129,7 +129,7 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertFalse(("http://www.passbolt.com/path" as Identifier).matches(url: "https://www.passbolt.com/path"))
   }
 
-  func test_matches_returnsFalse_withNonMatchingPort() {
+  func test_matches_returnsFalse_withNonMatchingPort() async throws {
     XCTAssertFalse(("http://127.0.0.1" as Identifier).matches(url: "127.0.0.1:444"))
     XCTAssertFalse(("http://www.passbolt.com" as Identifier).matches(url: "www.passbolt.com:444"))
     XCTAssertFalse(("https://www.passbolt.com" as Identifier).matches(url: "www.passbolt.com:80"))

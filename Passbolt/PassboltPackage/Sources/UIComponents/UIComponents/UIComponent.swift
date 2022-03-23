@@ -25,13 +25,13 @@ import UIKit
 
 @MainActor public protocol AnyUIComponent: UIViewController {
 
-  var lazyView: UIView { get }
+  @MainActor var lazyView: UIView { get }
   var components: UIComponentFactory { get }
 
-  func setup()
-  func setupView()
-  func activate()
-  func deactivate()
+  @MainActor func setup()
+  @MainActor func setupView()
+  @MainActor func activate()
+  @MainActor func deactivate()
 }
 
 @MainActor public protocol UIComponent: AnyUIComponent {
@@ -39,12 +39,12 @@ import UIKit
   associatedtype ContentView: UIView
   associatedtype Controller: UIController
 
-  static func instance(
+  @MainActor static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self
 
-  var contentView: ContentView { get }
+  @MainActor var contentView: ContentView { get }
 }
 
 extension UIComponent {

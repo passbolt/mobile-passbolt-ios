@@ -23,6 +23,7 @@
 import UICommons
 import UIComponents
 
+@MainActor
 internal final class WelcomeNavigationViewController: NavigationViewController, UIComponent {
 
   internal typealias Controller = WelcomeNavigationController
@@ -50,11 +51,11 @@ internal final class WelcomeNavigationViewController: NavigationViewController, 
   }
 
   internal func setup() {
-    let welcomeScreen: WelcomeScreenViewController = components.instance()
-    setViewControllers([welcomeScreen], animated: false)
-
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: WelcomeScreenViewController.self
+      )
     }
   }
 }

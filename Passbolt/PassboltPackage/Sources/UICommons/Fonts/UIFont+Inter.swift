@@ -120,7 +120,7 @@ extension UIFont {
     ofSize fontSize: CGFloat,
     weight: UIFont.Weight = .regular
   ) -> UIFont {
-    _ = registerFontsIfNeeded()
+    registerFontsIfNeeded()
     let font: UIFont?
     switch weight {
     case .light:

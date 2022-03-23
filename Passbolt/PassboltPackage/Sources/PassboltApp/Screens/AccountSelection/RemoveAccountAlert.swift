@@ -46,7 +46,7 @@ internal final class RemoveAccountAlertViewController:
           .localized(key: .remove),
           style: .destructive,
           accessibilityIdentifier: "button.remove",
-          handler: controller.removeAccount
+          handler: { self.controller.removeAccount() }
         )
       )
     }
@@ -55,20 +55,25 @@ internal final class RemoveAccountAlertViewController:
 
 internal struct RemoveAccountAlertController {
 
-  internal var removeAccount: () -> Void
+  internal var removeAccount: @MainActor () -> Void
 }
 
 extension RemoveAccountAlertController: UIController {
 
-  internal typealias Context = () -> Void
+  internal typealias Context = @MainActor () -> AnyPublisher<Void, Never>
 
   internal static func instance(
     in context: @escaping Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) -> RemoveAccountAlertController {
-    Self(
-      removeAccount: context
+
+    @MainActor func removeAccount() {
+      context().sinkDrop().store(in: cancellables)
+    }
+
+    return Self(
+      removeAccount: removeAccount
     )
   }
 }

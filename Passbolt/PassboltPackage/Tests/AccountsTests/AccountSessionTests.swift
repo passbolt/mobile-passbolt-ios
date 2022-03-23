@@ -36,34 +36,36 @@ final class AccountSessionTests: TestCase {
   var accountsDataStore: AccountsDataStore!
   var networkClient: NetworkClient!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     accountsDataStore = .placeholder
     accountsDataStore.loadLastUsedAccount = always(validAccount)
+    accountsDataStore.loadAccounts = always([])
     networkClient = .placeholder
     networkClient.setAuthorizationRequest = always(Void())
     networkClient.setMFARequest = always(Void())
-    networkClient.setSessionStatePublisher = always(Void())
+    networkClient.setSessionStateSource = always(Void())
     environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
     environment.time.timestamp = always(0)
     environment.pgp.verifyPassphrase = always(.success)
+    features.patch(\NetworkSession.refreshSessionIfNeeded, with: alwaysThrow(MockIssue.error()))
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     accountsDataStore = nil
     networkClient = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_statePublisher_publishesNoneState_initially() {
-    features.patch(
+  func test_statePublisher_publishesNoneState_initially() async throws {
+    await features.patch(
       \AccountsDataStore.loadLastUsedAccount,
       with: always(.none)
     )
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: AccountSessionState?
     feature
@@ -73,18 +75,21 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, .some(.none(lastUsed: .none)))
   }
 
-  func test_statePublisher_publishesLastUsedAccount_initially() {
-    features.patch(
+  func test_statePublisher_publishesLastUsedAccount_initially() async throws {
+    await features.patch(
       \AccountsDataStore.loadLastUsedAccount,
       with: always(validAccount)
     )
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: Account?
     feature
@@ -96,27 +101,23 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, validAccount)
   }
 
-  func test_statePublisher_publishesAuthorized_whenAuthorizationSucceeds() {
+  func test_statePublisher_publishesAuthorized_whenAuthorizationSucceeds() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: Account?
     feature
@@ -128,36 +129,31 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertEqual(result, validAccount)
   }
 
-  func test_statePublisher_publishesAuthorizationRequired_whenAppGoesIntoBackgroundWithSession() {
+  func test_statePublisher_publishesAuthorizationRequired_whenAppGoesIntoBackgroundWithSession() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
     let lifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
-    features.environment.appLifeCycle.lifeCyclePublisher = {
-      lifeCycleSubject.eraseToAnyPublisher()
+    try await FeaturesActor.execute {
+      self.features.environment.appLifeCycle.lifeCyclePublisher = {
+        lifeCycleSubject.eraseToAnyPublisher()
+      }
     }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: Account?
     feature
@@ -169,47 +165,36 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     lifeCycleSubject.send(.didEnterBackground)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, validAccount)
   }
 
-  func test_statePublisher_publishesNone_whenClosingSession() {
+  func test_statePublisher_publishesNone_whenClosingSession() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
+    let feature: AccountSession = try await testInstance()
 
     var result: Void?
     feature
@@ -222,42 +207,40 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.close()
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    await feature.close()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
 
-  func test_statePublisher_publishesNoLastUsedAccount_whenClosingSession() {
+  func test_statePublisher_publishesNoLastUsedAccount_whenClosingSession() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     var result: Account?
     feature
@@ -270,44 +253,37 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.close()
+    await feature.close()
 
     XCTAssertNil(result)
   }
 
-  func test_statePublisher_publishesAuthorizationRequired_whenPassphraseCacheIsExpired() {
+  func test_statePublisher_publishesAuthorizationRequired_whenPassphraseCacheIsExpired() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
     var currentTimestamp: Timestamp = 0
-    environment.time.timestamp = always(currentTimestamp)
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(currentTimestamp)
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
@@ -321,239 +297,195 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, validAccount)
   }
 
-  func test_decryptMessage_fails_whenPassphraseCacheIsExpired() {
+  func test_decryptMessage_fails_whenPassphraseCacheIsExpired() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
     var currentTimestamp: Timestamp = 0
-    environment.time.timestamp = always(currentTimestamp)
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(currentTimestamp)
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
-    var result: TheErrorLegacy?
-    feature
-      .decryptMessage("encrypted message", nil)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .decryptMessage("encrypted message", nil)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionAuthorizationRequired.self)
+    XCTAssertError(result, matches: SessionAuthorizationRequired.self)
   }
 
-  func test_decryptMessage_fails_withoutActiveSession() {
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+  func test_decryptMessage_fails_withoutActiveSession() async throws {
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .decryptMessage("encrypted message", nil)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .decryptMessage("encrypted message", nil)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
+    XCTAssertError(result, matches: SessionMissing.self)
   }
 
-  func test_decryptMessage_fails_whenLoadingAccountPrivateKeyFails() {
+  func test_decryptMessage_fails_whenLoadingAccountPrivateKeyFails() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    accountsDataStore.loadAccountPrivateKey = always(.failure(MockIssue.error()))
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    feature
-      .decryptMessage("encrypted message", nil)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .decryptMessage("encrypted message", nil)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_decryptMessage_fails_whenDecryptionFails() {
+  func test_decryptMessage_fails_whenDecryptionFails() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    environment.pgp.decrypt = always(.failure(MockIssue.error()))
+    try await FeaturesActor.execute {
+      self.environment.pgp.decrypt = always(.failure(MockIssue.error()))
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    feature
-      .decryptMessage("encrypted message", nil)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .decryptMessage("encrypted message", nil)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .legacyBridge)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_decryptMessage_succeeds_whenDecryptionSucceeds() {
+  func test_decryptMessage_succeeds_whenDecryptionSucceeds() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    environment.pgp.decrypt = always(.success("decrypted"))
+    try await FeaturesActor.execute {
+      self.environment.pgp.decrypt = always(.success("decrypted"))
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: String?
-    feature
+    let result: String? =
+      try? await feature
       .decryptMessage("encrypted message", nil)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { decrypted in
-          result = decrypted
-        }
-      )
-      .store(in: cancellables)
 
     XCTAssertEqual(result, "decrypted")
   }
 
   func
     test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenDecryptMessage_fails_withSessionAuthorizationRequired()
+    async throws
   {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success("PRIVATE KEY"))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
     )
 
     var currentTimestamp: Timestamp = 0
-    environment.time.timestamp = always(currentTimestamp)
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(currentTimestamp)
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", armoredPGPPrivateKey))
-      .sinkDrop()
-      .store(in: cancellables)
 
     var result: AuthorizationPromptRequest?
     feature
@@ -565,115 +497,76 @@ final class AccountSessionTests: TestCase {
 
     currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
-    feature
+    _ =
+      try? await feature
       .decryptMessage("message", nil)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
 
     XCTAssertEqual(result?.account, validAccount)
   }
 
-  func test_authorize_fails_whenSessionCreateFails() {
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+  func test_authorize_fails_whenSessionCreateFails() async throws {
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
-      with: always(
-        Fail(error: .testError())
-          .eraseToAnyPublisher()
+      with: alwaysThrow(
+        MockIssue.error()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var resultError: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          resultError = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .adHoc("passphrase", "private key"))
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(resultError?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_authorize_succeeds_whenSessionCreateSucceeds() {
+  func test_authorize_succeeds_whenSessionCreateSucceeds() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var resultError: TheErrorLegacy?
-    var result: Void?
-    feature
+    let result: Bool? =
+      try? await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          resultError = error
-        },
-        receiveValue: { _ in
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
 
-    XCTAssertNil(resultError)
     XCTAssertNotNil(result)
   }
 
-  func test_authorize_succeedsWithAuthorized_whenSessionCreateSucceedsWithNoMFAProviders() {
+  func test_authorize_succeedsWithAuthorized_whenSessionCreateSucceedsWithNoMFAProviders() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: AccountSessionState?
     feature
@@ -683,33 +576,26 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     guard case .authorized = result
     else { return XCTFail() }
   }
 
-  func test_authorize_succeedsWithAuthorizedMFARequired_whenSessionCreateSucceedsWithMFAProviders() {
+  func test_authorize_succeedsWithAuthorizedMFARequired_whenSessionCreateSucceedsWithMFAProviders() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>([.totp]))
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>([.totp])
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: AccountSessionState?
     feature
@@ -719,227 +605,173 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertEqual(result, .authorizedMFARequired(validAccount, providers: [.totp]))
   }
 
-  func test_authorize_fails_whenPrivateKeyIsInaccessibleWhileUsingPassphrase() {
-    accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+  func test_authorize_fails_whenPrivateKeyIsInaccessibleWhileUsingPassphrase() async throws {
+    accountsDataStore.loadAccountPrivateKey = always(.failure(MockIssue.error()))
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .passphrase("passphrase"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .passphrase("passphrase"))
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_authorize_succeeds_whenPrivateKeyIsAccessibleWhileUsingPassphrase() {
+  func test_authorize_succeeds_whenPrivateKeyIsAccessibleWhileUsingPassphrase() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .passphrase("passphrase"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .passphrase("passphrase"))
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNil(result)
   }
 
-  func test_authorize_fails_whenPrivateKeyIsInaccessibleWhileUsingBiometrics() {
+  func test_authorize_fails_whenPrivateKeyIsInaccessibleWhileUsingBiometrics() async throws {
     accountsDataStore.loadAccountPassphrase = always(.success("passphrase"))
-    accountsDataStore.loadAccountPrivateKey = always(.failure(.testError()))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    accountsDataStore.loadAccountPrivateKey = always(.failure(MockIssue.error()))
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .biometrics)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .biometrics)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_authorize_fails_whenPassphraseIsInaccessibleWhileUsingBiometrics() {
-    accountsDataStore.loadAccountPassphrase = always(.failure(.testError()))
+  func test_authorize_fails_whenPassphraseIsInaccessibleWhileUsingBiometrics() async throws {
+    accountsDataStore.loadAccountPassphrase = always(.failure(MockIssue.error()))
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .biometrics)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .biometrics)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_authorize_succeeds_whenPrivateKeyAndPassphraseIsAccessibleWhileUsingBiometrics() {
+  func test_authorize_succeeds_whenPrivateKeyAndPassphraseIsAccessibleWhileUsingBiometrics() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccountPassphrase = always(.success("passphrase"))
     accountsDataStore.loadAccountPrivateKey = always(.success(armoredPGPPrivateKey))
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .biometrics)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .biometrics)
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNil(result)
   }
 
-  func test_close_callsNetworkSessionClose() {
+  func test_close_callsNetworkSessionClose() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
+
     var result: Void?
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: {
         result = Void()
-        return Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        return Void()
       }
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     feature
       .statePublisher()
@@ -947,18 +779,18 @@ final class AccountSessionTests: TestCase {
       .sink { _ in }
       .store(in: cancellables)
 
-    feature.close()
+    await feature.close()
 
     XCTAssertNotNil(result)
   }
 
-  func test_close_doesNothing_withoutActiveSession() {
+  func test_close_doesNothing_withoutActiveSession() async throws {
     accountsDataStore.loadLastUsedAccount = always(nil)
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: Void?
     feature
@@ -969,17 +801,17 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.close()
+    await feature.close()
 
     XCTAssertNil(result)
   }
 
-  func test_authorizationPromptPresentationPublisher_doesNotPublish_initially() {
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+  func test_authorizationPromptPresentationPublisher_doesNotPublish_initially() async throws {
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: AuthorizationPromptRequest?
     feature
@@ -992,12 +824,14 @@ final class AccountSessionTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_authorizationPromptPresentationPublisher_doesNotPublish_whenRequestingExplicitlyWithoutActiveSession() {
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+  func test_authorizationPromptPresentationPublisher_doesNotPublish_whenRequestingExplicitlyWithoutActiveSession()
+    async throws
+  {
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
     var result: AuthorizationPromptRequest?
     feature
@@ -1007,34 +841,27 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.requestAuthorizationPrompt(.testMessage())
+    await feature.requestAuthorizationPrompt(.testMessage())
 
     XCTAssertNil(result)
   }
 
-  func test_authorizationPromptPresentationPublisher_publishesRequest_whenRequestingExplicitly() {
+  func test_authorizationPromptPresentationPublisher_publishesRequest_whenRequestingExplicitly() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     var result: AuthorizationPromptRequest?
     feature
@@ -1044,135 +871,103 @@ final class AccountSessionTests: TestCase {
       }
       .store(in: cancellables)
 
-    feature.requestAuthorizationPrompt(.testMessage())
+    await feature.requestAuthorizationPrompt(.testMessage())
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.message?.string(), "testLocalizationKey")
   }
 
-  func test_authorize_succeeds_whenSwitchingSession() {
+  func test_authorize_succeeds_whenSwitchingSession() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadServerFingerprint = always(.success(.init(rawValue: "FINGERPRINT")))
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccountAlternative, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var resultError: TheErrorLegacy?
-    var result: Void?
-    feature
+    let result: Bool? =
+      try? await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          resultError = error
-        },
-        receiveValue: { _ in
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
 
-    XCTAssertNil(resultError)
     XCTAssertNotNil(result)
   }
 
-  func test_authorize_doesNotClosePreviousSession_whenSwitchingToSameAccount() {
+  func test_authorize_doesNotClosePreviousSession_whenSwitchingToSameAccount() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
     var result: Void?
-    features.patch(
+    await features.patch(
       \NetworkSession.closeSession,
       with: {
         result = Void()
-        return Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        return Void()
       }
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNil(result)
   }
 
-  func test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenApplicationWillEnterForeground() {
+  func test_authorizationPromptPresentationPublisher_publishesCurrentAccount_whenApplicationWillEnterForeground()
+    async throws
+  {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
     )
 
     let appLifeCycleSubject: PassthroughSubject<AppLifeCycle.Transition, Never> = .init()
-    environment.appLifeCycle.lifeCyclePublisher = always(appLifeCycleSubject.eraseToAnyPublisher())
+    try await FeaturesActor.execute {
+      self.environment.appLifeCycle.lifeCyclePublisher = always(appLifeCycleSubject.eraseToAnyPublisher())
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     var result: AuthorizationPromptRequest?
     feature
@@ -1184,764 +979,670 @@ final class AccountSessionTests: TestCase {
 
     appLifeCycleSubject.send(.willEnterForeground)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result?.account, validAccount)
   }
 
-  func test_mfaAuthorization_fails_withNoActiveSession() {
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+  func test_mfaAuthorization_fails_withNoActiveSession() async throws {
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.createMFAToken,
       with: always(
-        Empty()
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .mfaAuthorize(.totp("OTP"), false)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await feature
+        .mfaAuthorize(.totp("OTP"), false)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
+    XCTAssertError(result, matches: SessionMissing.self)
   }
 
-  func test_mfaAuthorization_isForwardedToNetworkSession() {
+  func test_mfaAuthorization_isForwardedToNetworkSession() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
+
     var result: (account: Account, authorization: AccountSession.MFAAuthorizationMethod, remember: Bool)?
-    features.patch(
+    await features.patch(
       \NetworkSession.createMFAToken,
       with: { account, authorization, remember in
         result = (account, authorization, remember)
-        return Empty().eraseToAnyPublisher()
+        return Void()
       }
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    feature
+    try await feature
       .mfaAuthorize(.totp("OTP"), false)
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.authorization, .totp("OTP"))
     XCTAssertEqual(result?.remember, false)
   }
 
-  func test_authorize_fails_whenSessionRefreshIsAvailableAndPassphraseIsNotValid() {
-    environment.pgp.verifyPassphrase = always(.failure(MockIssue.error()))
+  func test_authorize_fails_whenSessionRefreshIsAvailableAndPassphraseIsNotValid() async throws {
+    try await FeaturesActor.execute {
+      self.environment.pgp.verifyPassphrase = always(.failure(MockIssue.error()))
+    }
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(true)
-    )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .authorize(validAccount, .adHoc("passphrase", "private key"))
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .legacyBridge)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_authorize_fallbacksToCreateSession_whenSessionRefreshIsAvailableAndSessionRefreshFails() {
+  func test_authorize_fallbacksToCreateSession_whenSessionRefreshIsAvailableAndSessionRefreshFails() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
     var result: Void?
-    features.patch(
+    await features.patch(
       \NetworkSession.createSession,
       with: { _, _, _ in
         result = Void()
-        return Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        return Array<MFAProvider>()
       }
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(true)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.refreshSessionIfNeeded,
-      with: always(
-        Fail(error: .testError())
-          .eraseToAnyPublisher()
+      with: alwaysThrow(
+        MockIssue.error()
       )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_authorize_doesSessionRefresh_whenSessionRefreshIsAvailableAndPassphraseIsValid() {
+  func test_authorize_doesSessionRefresh_whenSessionRefreshIsAvailableAndPassphraseIsValid() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(true)
-    )
+
     var result: Void?
-    features.patch(
+    await features.patch(
       \NetworkSession.refreshSessionIfNeeded,
       with: { _ in
         result = Void()
-        return Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        return Void()
       }
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
 
     XCTAssertNotNil(result)
   }
 
-  func test_authorize_succeeds_whenSessionRefreshSucceeds() {
+  func test_authorize_succeeds_whenSessionRefreshSucceeds() async throws {
     accountsDataStore.storeLastUsedAccount = always(Void())
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.patch(
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(true)
-    )
-    features.patch(
+    await features.patch(
       \NetworkSession.refreshSessionIfNeeded,
       with: always(
-        Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Void()
       )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    var result: Void?
-    feature
+    let result: Bool? =
+      try? await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          result = Void()
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_storePassphraseWithBiometry_failsStore_withoutSession() {
+  func test_storePassphraseWithBiometry_failsStore_withoutSession() async throws {
     accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> =
-      feature
+    let result: Error?
+    do {
+      try await feature
       .storePassphraseWithBiometry(true)
-
-    XCTAssertFailure(result)
-  }
-
-  func test_storePassphraseWithBiometry_failsStore_whenPassphraseExpires() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    var currentTimestamp: Timestamp = 0
-    environment.time.timestamp = always(currentTimestamp)
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
-
-    let result: Result<Void, TheErrorLegacy> =
-      feature
-      .storePassphraseWithBiometry(true)
-
-    XCTAssertFailure(result)
-  }
-
-  func test_storePassphraseWithBiometry_failsStore_whenPassphraseStoreFails() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.storeAccountPassphrase,
-      with: always(.failure(.testError()))
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    let result: Result<Void, TheErrorLegacy> =
-      feature
-      .storePassphraseWithBiometry(true)
-
-    XCTAssertFailure(result)
-  }
-
-  func test_storePassphraseWithBiometry_succeedsStore_whenPassphraseStoreSucceeds() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.storeAccountPassphrase,
-      with: always(.success)
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    let result: Result<Void, TheErrorLegacy> =
-      feature
-      .storePassphraseWithBiometry(true)
-
-    XCTAssertSuccess(result)
-  }
-
-  func test_storePassphraseWithBiometry_failsDelete_withoutSession() {
-    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
-    features.use(accountsDataStore)
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
-
-    let feature: AccountSession = testInstance()
-
-    let result: Result<Void, TheErrorLegacy> =
-      feature
-      .storePassphraseWithBiometry(false)
-
-    XCTAssertFailure(result)
-  }
-
-  func test_storePassphraseWithBiometry_failsDelete_whenPassphraseStoreFails() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.deleteAccountPassphrase,
-      with: always(.failure(.testError()))
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    let result: Result<Void, TheErrorLegacy> =
-      feature
-      .storePassphraseWithBiometry(false)
-
-    XCTAssertFailure(result)
-  }
-
-  func test_storePassphraseWithBiometry_succeedsDelete_whenPassphraseDeleteSucceeds() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.deleteAccountPassphrase,
-      with: always(.success)
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    let result: Result<Void, TheErrorLegacy> =
-      feature
-      .storePassphraseWithBiometry(false)
-
-    XCTAssertSuccess(result)
-  }
-
-  func test_encryptAndSignMessage_fails_withoutSession() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
-
-    let feature: AccountSession = testInstance()
-
-    var result: TheErrorLegacy?
-    feature
-      .encryptAndSignMessage("message", "public key")
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
-  }
-
-  func test_encryptAndSignMessage_fails_whenLoadingPrivateKeyFails() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.loadAccountPrivateKey,
-      with: always(.failure(.testError()))
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: TheErrorLegacy?
-    feature
-      .encryptAndSignMessage("message", "public key")
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .testError)
-  }
-
-  func test_encryptAndSignMessage_fails_whenEncryptAndSignFails() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.loadAccountPrivateKey,
-      with: always(.success("private key"))
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    environment.pgp.encryptAndSign = always(.failure(MockIssue.error()))
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: TheErrorLegacy?
-    feature
-      .encryptAndSignMessage("message", "public key")
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .legacyBridge)
-  }
-
-  func test_encryptAndSignMessage_succeeds_withHappyPath() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.loadAccountPrivateKey,
-      with: always(.success("private key"))
-    )
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
-      \NetworkSession.createSession,
-      with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
-    )
-    environment.pgp.encryptAndSign = always(.success("encrypted"))
-
-    let feature: AccountSession = testInstance()
-
-    feature
-      .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: Void?
-    feature
-      .encryptAndSignMessage("message", "public key")
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .finished = completion else { return }
-          result = Void()
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+      result = nil
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNotNil(result)
   }
 
-  func test_databaseKey_isNone_withoutSession() {
-    features.use(accountsDataStore)
-    features.patch(
+  func test_storePassphraseWithBiometry_failsStore_whenPassphraseExpires() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
       \AccountsDataStore.storeLastUsedAccount,
       with: always(Void())
     )
-    features.patch(
+    await features.patch(
       \AccountsDataStore.loadAccounts,
       with: always([validAccount, validAccountAlternative])
     )
-    features.use(networkClient)
-    features.usePlaceholder(for: NetworkSession.self)
-
-    let feature: AccountSession = testInstance()
-
-    let result: String? = feature.databaseKey()
-
-    XCTAssertNil(result)
-  }
-
-  func test_databaseKey_isNone_whenPassphraseCacheExpires() {
-    features.use(accountsDataStore)
-    features.patch(
-      \AccountsDataStore.storeLastUsedAccount,
-      with: always(Void())
-    )
-    features.patch(
-      \AccountsDataStore.loadAccounts,
-      with: always([validAccount, validAccountAlternative])
-    )
-    features.use(networkClient)
-    features.patch(
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
-    )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
     )
 
     var currentTimestamp: Timestamp = 0
-    environment.time.timestamp = always(currentTimestamp)
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(currentTimestamp)
+    }
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
     currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
 
-    let result: String? = feature.databaseKey()
+    let result: Error?
+    do {
+      try await feature
+      .storePassphraseWithBiometry(true)
+      result = nil
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsStore_whenPassphraseStoreFails() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.storeAccountPassphrase,
+      with: always(.failure(MockIssue.error()))
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    let result: Error?
+    do {
+      try await feature
+      .storePassphraseWithBiometry(true)
+      result = nil
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storePassphraseWithBiometry_succeedsStore_whenPassphraseStoreSucceeds() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.storeAccountPassphrase,
+      with: always(.success)
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    let result: Void? =
+      try? await feature
+      .storePassphraseWithBiometry(true)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsDelete_withoutSession() async throws {
+    accountsDataStore.loadAccounts = always([validAccount, validAccountAlternative])
+    await features.use(accountsDataStore)
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = try await testInstance()
+
+    let result: Error?
+    do {
+      try await feature
+      .storePassphraseWithBiometry(false)
+      result = nil
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storePassphraseWithBiometry_failsDelete_whenPassphraseStoreFails() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.deleteAccountPassphrase,
+      with: always(.failure(MockIssue.error()))
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    let result: Error?
+    do {
+      try await feature
+      .storePassphraseWithBiometry(false)
+      result = nil
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storePassphraseWithBiometry_succeedsDelete_whenPassphraseDeleteSucceeds() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.deleteAccountPassphrase,
+      with: always(.success)
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    let result: Void? =
+      try? await feature
+      .storePassphraseWithBiometry(false)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_encryptAndSignMessage_fails_withoutSession() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = try await testInstance()
+
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .encryptAndSignMessage("message", "public key")
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: SessionMissing.self)
+  }
+
+  func test_encryptAndSignMessage_fails_whenLoadingPrivateKeyFails() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always(.failure(MockIssue.error()))
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .encryptAndSignMessage("message", "public key")
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_encryptAndSignMessage_fails_whenEncryptAndSignFails() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always(.success("private key"))
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+    try await FeaturesActor.execute {
+      self.environment.pgp.encryptAndSign = always(.failure(MockIssue.error()))
+    }
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .encryptAndSignMessage("message", "public key")
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_encryptAndSignMessage_succeeds_withHappyPath() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.loadAccountPrivateKey,
+      with: always(.success("private key"))
+    )
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
+    )
+    try await FeaturesActor.execute {
+      self.environment.pgp.encryptAndSign = always(.success("encrypted"))
+    }
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    let result =
+      try? await feature
+      .encryptAndSignMessage("message", "public key")
+      .asAsyncValue()
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_databaseKey_isNone_withoutSession() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.usePlaceholder(for: NetworkSession.self)
+
+    let feature: AccountSession = try await testInstance()
+
+    let result: String? = try? await feature.databaseKey()
 
     XCTAssertNil(result)
   }
 
-  func test_databaseKey_isAvailable_withValidSession() {
-    features.use(accountsDataStore)
-    features.patch(
+  func test_databaseKey_isNone_whenPassphraseCacheExpires() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
       \AccountsDataStore.storeLastUsedAccount,
       with: always(Void())
     )
-    features.patch(
+    await features.patch(
       \AccountsDataStore.loadAccounts,
       with: always([validAccount, validAccountAlternative])
     )
-    features.use(networkClient)
-    features.patch(
+    await features.use(networkClient)
+    await features.patch(
       \NetworkSession.createSession,
       with: always(
-        Just(Array<MFAProvider>())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
+        Array<MFAProvider>()
       )
     )
-    features.patch(
-      \NetworkSession.sessionRefreshAvailable,
-      with: always(false)
+
+    var currentTimestamp: Timestamp = 0
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(currentTimestamp)
+    }
+
+    let feature: AccountSession = try await testInstance()
+
+    _ =
+      try await feature
+      .authorize(validAccount, .adHoc("passphrase", "private key"))
+
+    currentTimestamp = Timestamp(rawValue: 5 * 60)  // expired time
+
+    let result: String? = try? await feature.databaseKey()
+
+    XCTAssertNil(result)
+  }
+
+  func test_databaseKey_isAvailable_withValidSession() async throws {
+    await features.use(accountsDataStore)
+    await features.patch(
+      \AccountsDataStore.storeLastUsedAccount,
+      with: always(Void())
+    )
+    await features.patch(
+      \AccountsDataStore.loadAccounts,
+      with: always([validAccount, validAccountAlternative])
+    )
+    await features.use(networkClient)
+    await features.patch(
+      \NetworkSession.createSession,
+      with: always(
+        Array<MFAProvider>()
+      )
     )
 
-    let feature: AccountSession = testInstance()
+    let feature: AccountSession = try await testInstance()
 
-    feature
+    _ =
+      try await feature
       .authorize(validAccount, .adHoc("passphrase", "private key"))
-      .sinkDrop()
-      .store(in: cancellables)
 
-    let result: String? = feature.databaseKey()
+    let result: String = try await feature.databaseKey()
 
     XCTAssertNotNil(result)
   }

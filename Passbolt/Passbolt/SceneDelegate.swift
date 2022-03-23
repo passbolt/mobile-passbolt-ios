@@ -23,6 +23,7 @@
 
 import UIKit
 
+@MainActor
 internal class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   
   internal func scene(

@@ -51,62 +51,55 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
     networkClient = nil
   }
 
-  func test_switchAccount_closesSession() {
+  func test_switchAccount_closesSession() async throws {
     var result: Void?
     accountSession.close = { result = Void() }
-    features.use(accountSession)
-    features.use(accountSettings)
-    features.use(networkClient)
+    await features.use(accountSession)
+    await features.use(accountSettings)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
     controller.switchAccount()
-
+    // wait for detached tasks - temporary solution
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
     XCTAssertNotNil(result)
   }
 
-  func test_avatarImagePublisher_publishesImageData_fromMediaDownload() {
-    features.use(accountSession)
+  func test_avatarImagePublisher_publishesImageData_fromMediaDownload() async throws {
+    await features.use(accountSession)
     accountSettings.currentAccountProfilePublisher = always(
       Just(validAccountWithProfile)
         .eraseToAnyPublisher()
     )
-    features.use(accountSettings)
+    await features.use(accountSettings)
     let data: Data = Data([0x65, 0x66])
-    networkClient.mediaDownload.execute = always(
-      Just(data)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    features.use(networkClient)
+    networkClient.mediaDownload.execute = always(data)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
-    var result: Data?
-    controller
+    let result: Data? =
+      try? await controller
       .avatarImagePublisher()
-      .sink { imageData in
-        result = imageData
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, data)
   }
 
-  func test_avatarImagePublisher_fails_whenMediaDownloadFails() {
-    features.use(accountSession)
+  func test_avatarImagePublisher_fails_whenMediaDownloadFails() async throws {
+    await features.use(accountSession)
     accountSettings.currentAccountProfilePublisher = always(
       Just(validAccountWithProfile)
         .eraseToAnyPublisher()
     )
-    features.use(accountSettings)
-    networkClient.mediaDownload.execute = always(
-      Fail<Data, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(accountSettings)
+    networkClient.mediaDownload.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
     var result: Data?
     controller
@@ -121,12 +114,12 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_searchTextPublisher_publishesEmptyTextInitially() {
-    features.use(accountSession)
-    features.use(accountSettings)
-    features.use(networkClient)
+  func test_searchTextPublisher_publishesEmptyTextInitially() async throws {
+    await features.use(accountSession)
+    await features.use(accountSettings)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
     var result: String?
     controller
@@ -139,12 +132,12 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
     XCTAssertTrue(result?.isEmpty ?? false)
   }
 
-  func test_searchTextPublisher_publishesTextUpdates() {
-    features.use(accountSession)
-    features.use(accountSettings)
-    features.use(networkClient)
+  func test_searchTextPublisher_publishesTextUpdates() async throws {
+    await features.use(accountSession)
+    await features.use(accountSettings)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
     var result: String?
     controller
@@ -159,12 +152,12 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "updated")
   }
 
-  func test_resourcesFilterPublisher_publishesEmptyFilterInitially() {
-    features.use(accountSession)
-    features.use(accountSettings)
-    features.use(networkClient)
+  func test_resourcesFilterPublisher_publishesEmptyFilterInitially() async throws {
+    await features.use(accountSession)
+    await features.use(accountSettings)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
     var result: ResourcesFilter?
     controller
@@ -177,12 +170,12 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
     XCTAssertTrue(result?.text.isEmpty ?? false)
   }
 
-  func test_resourcesFilterPublisher_publishesUpdatesOnTextUpdates() {
-    features.use(accountSession)
-    features.use(accountSettings)
-    features.use(networkClient)
+  func test_resourcesFilterPublisher_publishesUpdatesOnTextUpdates() async throws {
+    await features.use(accountSession)
+    await features.use(accountSettings)
+    await features.use(networkClient)
 
-    let controller: ResourcesFilterController = testController()
+    let controller: ResourcesFilterController = try await testController()
 
     var result: ResourcesFilter?
     controller

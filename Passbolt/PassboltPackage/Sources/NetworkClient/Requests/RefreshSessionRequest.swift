@@ -31,7 +31,7 @@ extension RefreshSessionRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> EmptyNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -55,7 +55,7 @@ extension RefreshSessionRequest {
       },
       responseDecoder: .sessionRefreshResponse(),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }
@@ -128,19 +128,18 @@ where
 {
 
   fileprivate static func sessionRefreshResponse() -> Self {
-    Self { sessionVariable, requestVariable, httpRequest, httpResponse -> Result<RefreshSessionResponse, Error> in
+    Self { sessionVariable, requestVariable, httpRequest, httpResponse throws -> RefreshSessionResponse in
 
       guard
         let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let refreshTokenBounds: Range<String.Index> = cookieHeaderValue.range(of: "refresh_token=")
       else {
-        return .failure(
+        throw
           NetworkResponseInvalid
-            .error(
-              "Session refresh response does not contain refresh token",
-              response: httpResponse
-            )
-        )
+          .error(
+            "Session refresh response does not contain refresh token",
+            response: httpResponse
+          )
       }
       let refreshToken: String = .init(
         cookieHeaderValue[refreshTokenBounds.upperBound...]
@@ -149,15 +148,16 @@ where
           )
       )
 
-      return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<RefreshSessionResponseBody>>
-        .bodyAsJSON()
-        .decode(sessionVariable, requestVariable, httpRequest, httpResponse)
-        .map { body -> RefreshSessionResponse in
-          RefreshSessionResponse(
-            accessToken: body.body.accessToken,
-            refreshToken: refreshToken
-          )
-        }
+      let decodedBody = try NetworkResponseDecoding<
+        SessionVariable, RequestVariable, CommonResponse<RefreshSessionResponseBody>
+      >
+      .bodyAsJSON()
+      .decode(sessionVariable, requestVariable, httpRequest, httpResponse)
+
+      return RefreshSessionResponse(
+        accessToken: decodedBody.body.accessToken,
+        refreshToken: refreshToken
+      )
     }
   }
 }

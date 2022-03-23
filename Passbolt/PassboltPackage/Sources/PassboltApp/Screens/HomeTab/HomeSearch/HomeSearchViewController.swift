@@ -96,13 +96,14 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
 
     controller
       .homePresentationMenuPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] currentMode in
-        self?.view.endEditing(true)
-        self?.presentSheet(
-          HomePresentationMenuView.self,
-          in: currentMode
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          self?.view.endEditing(true)
+          await self?.presentSheet(
+            HomePresentationMenuView.self,
+            in: currentMode
+          )
+        }
       }
       .store(in: cancellables)
 
@@ -115,17 +116,18 @@ internal final class HomeSearchViewController: PlainViewController, UIComponent 
 
     controller
       .accountMenuPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] accountWithProfile in
-        guard let self = self else { return }
-        self.view.endEditing(true)
-        self.presentSheetMenu(
-          AccountMenuViewController.self,
-          in: (
-            accountWithProfile: accountWithProfile,
-            navigation: self.asComponentNavigation()
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          self.view.endEditing(true)
+          await self.presentSheetMenu(
+            AccountMenuViewController.self,
+            in: (
+              accountWithProfile: accountWithProfile,
+              navigation: self.asComponentNavigation()
+            )
           )
-        )
+        }
       }
       .store(in: cancellables)
   }

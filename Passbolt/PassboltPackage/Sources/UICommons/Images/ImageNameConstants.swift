@@ -66,6 +66,7 @@ extension ImageNameConstant {
   public static var share: Self { "Share" }
   public static var clock: Self { "Clock" }
   public static var folder: Self { "Folder" }
+  public static var sharedFolder: Self { "SharedFolder" }
   public static var chevronRight: Self { "ChevronRight" }
 
   // Dynamic images - rendered according to interface (Light/Dark)

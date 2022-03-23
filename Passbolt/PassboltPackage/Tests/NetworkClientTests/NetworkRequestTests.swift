@@ -32,411 +32,299 @@ import XCTest
 final class NetworkRequestTests: XCTestCase {
 
   var cancellables: Cancellables!
-  var sessionSubject: PassthroughSubject<AuthorizedNetworkSessionVariable, Error>!
-  var domainSubject: PassthroughSubject<DomainNetworkSessionVariable, Error>!
+  var authorizedSessionVariable: Result<AuthorizedNetworkSessionVariable, Error>!
+  var domainSessionVariable: Result<DomainNetworkSessionVariable, Error>!
   var networking: Networking!
   var request: NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable>!
 
   override func setUp() {
     super.setUp()
     cancellables = .init()
-    sessionSubject = .init()
-    domainSubject = .init()
+    authorizedSessionVariable = .failure(MockIssue.error())
+    domainSessionVariable = .failure(MockIssue.error())
     networking = .placeholder
   }
 
   override func tearDown() {
     cancellables = nil
-    sessionSubject = nil
-    domainSubject = nil
+    authorizedSessionVariable = nil
+    domainSessionVariable = nil
     networking = nil
     request = nil
     super.tearDown()
   }
 
-  func test_request_withFinishedSession_isNotExecuted() {
-    request = prepareRequest()
-    var completed: Bool = false
-
-    request
-      .make(using: .sample)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            completed = true
-
-          case .failure:
-            XCTFail("Unexpected behaviour")
-          }
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected behaviour")
-        }
-      )
-      .store(in: cancellables)
-
-    sessionSubject.send(completion: .finished)
-
-    XCTAssertTrue(completed)
-  }
-
-  func test_request_withSessionError_fails() {
+  func test_request_withSessionError_fails() async throws {
     request = prepareRequest()
     var result: Error? = nil
 
-    request
-      .make(using: .sample)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            XCTFail("Unexpected behaviour")
-
-          case let .failure(error):
-            result = error
-          }
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected behaviour")
-        }
-      )
-      .store(in: cancellables)
-
-    sessionSubject.send(completion: .failure(MockIssue.error()))
+    do {
+      _ =
+        try await request
+        .makeAsync(using: .sample)
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_request_withHTTPError_fails() {
-    networking.execute = { _, _ -> AnyPublisher<HTTPResponse, Error> in
-      Fail<HTTPResponse, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
+  func test_request_withHTTPError_fails() async throws {
+    networking.execute = { _, _ -> HTTPResponse in
+      throw MockIssue.error()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
 
     request = prepareRequest()
     var result: Error? = nil
 
-    request
-      .make(using: .sample)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            XCTFail("Unexpected behaviour")
-
-          case let .failure(error):
-            result = error
-          }
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected behaviour")
-        }
-      )
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
+    do {
+      _ =
+        try await request
+        .makeAsync(using: .sample)
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_requestBodyAndResponseBody_withBodyMirroring_areEqual() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 200,
-          headers: request.headers,
-          body: request.body
-        )
+  func test_requestBodyAndResponseBody_withBodyMirroring_areEqual() async throws {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 200,
+        headers: request.headers,
+        body: request.body
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
 
     request = prepareRequest()
     let bodySent: TestCodable = .sample
-    var bodyReceived: TestCodable?
-
-    request
-      .make(using: .sample)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            break
-
-          case .failure:
-            XCTFail("Unexpected behaviour")
-          }
-        },
-        receiveValue: { received in
-          bodyReceived = received
-        }
-      )
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
+    let bodyReceived: TestCodable? =
+      try await request
+      .makeAsync(using: .sample)
 
     XCTAssertEqual(bodySent, bodyReceived)
   }
 
-  func test_mfaRedirectHandler_isExecuted_whenRedirectIsReceived_andLocationMatchesDomain_andMfaErrorPath() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 302,
-          headers: ["Location": "https://passbolt.com/mfa/verify/error.json"],
-          body: .init()
-        )
+  func test_mfaRedirectHandler_isExecuted_whenRedirectIsReceived_andLocationMatchesDomain_andMfaErrorPath() async throws
+  {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 302,
+        headers: ["Location": "https://passbolt.com/mfa/verify/error.json"],
+        body: .init()
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
+    domainSessionVariable = .success(
+      DomainNetworkSessionVariable(domain: "https://passbolt.com")
+    )
 
-    var result: Void!
+    var result: Void?
 
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
-      return Just(.init())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init()
     })
 
-    request
-      .make(using: .sample)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
+    _ =
+      try? await request
+      .makeAsync(using: .sample)
 
     XCTAssertNotNil(result)
   }
 
-  func test_mfaRedirectHandler_isNotExecuted_whenNotFound_received() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 404,
-          headers: [:],
-          body: .init()
-        )
+  func test_mfaRedirectHandler_isNotExecuted_whenNotFound_received() async throws {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 404,
+        headers: [:],
+        body: .init()
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
+    domainSessionVariable = .success(
+      DomainNetworkSessionVariable(domain: "https://passbolt.com")
+    )
 
-    var result: Void!
+    var result: Void?
 
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
-      return Just(.init())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init()
     })
 
-    request
-      .make(using: .sample)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
+    _ =
+      try? await request
+      .makeAsync(using: .sample)
 
     XCTAssertNil(result)
   }
 
-  func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andLocationDoesNotMatchDomain() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 302,
-          headers: ["Location": "https://bolt.com/mfa/verify/error.json"],
-          body: .init()
-        )
+  func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andLocationDoesNotMatchDomain() async throws {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 302,
+        headers: ["Location": "https://bolt.com/mfa/verify/error.json"],
+        body: .init()
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
+    domainSessionVariable = .success(
+      DomainNetworkSessionVariable(domain: "https://passbolt.com")
+    )
 
-    var result: Void!
+    var result: Void?
 
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
-      return Just(.init())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init()
     })
 
-    request
-      .make(using: .sample)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
+    _ =
+      try? await request
+      .makeAsync(using: .sample)
 
     XCTAssertNil(result)
   }
 
-  func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andNoLocationIsPresent() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 302,
-          headers: [:],
-          body: .init()
-        )
+  func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andNoLocationIsPresent() async throws {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 302,
+        headers: [:],
+        body: .init()
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
+    domainSessionVariable = .success(
+      DomainNetworkSessionVariable(domain: "https://passbolt.com")
+    )
 
-    var result: Void!
+    var result: Void?
 
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
-      return Just(.init())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init()
     })
 
-    request
-      .make(using: .sample)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
+    _ =
+      try? await request
+      .makeAsync(using: .sample)
 
     XCTAssertNil(result)
   }
 
-  func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andLocationDoesNotMatchMfaErrorPath() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 302,
-          headers: ["Location": "https://passbolt.com/unknown.json"],
-          body: .init()
-        )
+  func test_mfaRedirectHandler_isNotExecuted_whenRedirectIsReceived_andLocationDoesNotMatchMfaErrorPath() async throws {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 302,
+        headers: ["Location": "https://passbolt.com/unknown.json"],
+        body: .init()
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
+    domainSessionVariable = .success(
+      DomainNetworkSessionVariable(domain: "https://passbolt.com")
+    )
 
-    var result: Void!
+    var result: Void?
 
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
-      return Just(.init())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init()
     })
 
-    request
-      .make(using: .sample)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-    domainSubject.send(DomainNetworkSessionVariable(domain: "https://passbolt.com"))
+    _ =
+      try? await request
+      .makeAsync(using: .sample)
 
     XCTAssertNil(result)
   }
 
-  func test_mfaRedirectHandler_isNotExecuted_whenDomainSubject_publishesInvalidDomain() {
-    networking.execute = { request, _ -> AnyPublisher<HTTPResponse, Error> in
-      Just(
-        HTTPResponse(
-          url: request.url ?? .test,
-          statusCode: 302,
-          headers: ["Location": "https://passbolt.com/mfa/verify/error.json"],
-          body: .init()
-        )
+  func test_mfaRedirectHandler_isNotExecuted_whenDomainSubject_publishesInvalidDomain() async throws {
+    networking.execute = { request, _ -> HTTPResponse in
+      HTTPResponse(
+        url: request.url ?? .test,
+        statusCode: 302,
+        headers: ["Location": "https://passbolt.com/mfa/verify/error.json"],
+        body: .init()
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
+    authorizedSessionVariable = .success(
+      AuthorizedNetworkSessionVariable(
+        domain: "https://passbolt.com",
+        accessToken: "",
+        mfaToken: ""
+      )
+    )
+    domainSessionVariable = .success(
+      DomainNetworkSessionVariable(domain: "invalid$#@")
+    )
 
-    var result: Void!
+    var result: Void?
 
     request = prepareRequest(mfaRedirectionHandler: { _ in
       result = Void()
-      return Just(.init())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init()
     })
 
-    request
-      .make(using: .sample)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    sessionSubject
-      .send(
-        AuthorizedNetworkSessionVariable(
-          domain: "https://passbolt.com",
-          accessToken: "",
-          mfaToken: ""
-        )
-      )
-    domainSubject.send(DomainNetworkSessionVariable(domain: ""))
+    _ =
+      try? await request
+      .makeAsync(using: .sample)
 
     XCTAssertNil(result)
   }
@@ -451,12 +339,12 @@ final class NetworkRequestTests: XCTestCase {
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,
-      with: sessionSubject.eraseToAnyPublisher()
+      with: { try self.authorizedSessionVariable.get() }
     )
   }
 
   func prepareRequest(
-    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, Error>
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) async -> MFARedirectResponse
   ) -> NetworkRequest<AuthorizedNetworkSessionVariable, TestCodable, TestCodable> {
     .init(
       template: NetworkRequestTemplate { sessionVariable, requestVariable in
@@ -467,14 +355,28 @@ final class NetworkRequestTests: XCTestCase {
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,
-      with: sessionSubject.eraseToAnyPublisher()
+      with: {
+        if let authorizedSessionVariable = self.authorizedSessionVariable {
+          return try authorizedSessionVariable.get()
+        }
+        else {
+          throw MockIssue.error()
+        }
+      }
     )
     .withAuthErrors(
       invalidateAccessToken: { /* NOP */  },
       authorizationRequest: { /* NOP */  },
       mfaRequest: { _ in /* NOP */ },
       mfaRedirectionHandler: mfaRedirectionHandler,
-      sessionPublisher: domainSubject.eraseToAnyPublisher()
+      sessionVariable: {
+        if let domainSessionVariable = self.domainSessionVariable {
+          return try domainSessionVariable.get()
+        }
+        else {
+          throw MockIssue.error()
+        }
+      }
     )
   }
 }

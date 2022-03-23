@@ -30,29 +30,29 @@ import let LocalAuthentication.errSecAuthFailed
 
 internal struct AccountsDataStore {
 
-  internal var verifyDataIntegrity: () -> Result<Void, TheErrorLegacy>
-  internal var loadAccounts: () -> Array<Account>
-  internal var loadLastUsedAccount: () -> Account?
-  internal var storeLastUsedAccount: (Account.LocalID) -> Void
-  internal var storeAccount: (Account, AccountProfile, ArmoredPGPPrivateKey) -> Result<Void, TheErrorLegacy>
-  internal var loadAccountPrivateKey: (Account.LocalID) -> Result<ArmoredPGPPrivateKey, TheErrorLegacy>
-  internal var storeAccountPassphrase: (Account.LocalID, Passphrase) -> Result<Void, TheErrorLegacy>
-  internal var loadAccountPassphrase: (Account.LocalID) -> Result<Passphrase, TheErrorLegacy>
-  internal var deleteAccountPassphrase: (Account.LocalID) -> Result<Void, TheErrorLegacy>
-  internal var storeAccountMFAToken: (Account.LocalID, MFAToken) -> Result<Void, TheErrorLegacy>
-  internal var loadAccountMFAToken: (Account.LocalID) -> Result<MFAToken?, TheErrorLegacy>
-  internal var deleteAccountMFAToken: (Account.LocalID) -> Result<Void, TheErrorLegacy>
-  internal var loadAccountProfile: (Account.LocalID) -> Result<AccountProfile, TheErrorLegacy>
-  internal var updateAccountProfile: (AccountProfile) -> Result<Void, TheErrorLegacy>
-  internal var deleteAccount: (Account.LocalID) -> Void
+  internal var verifyDataIntegrity: @StorageAccessActor () -> Result<Void, Error>
+  internal var loadAccounts: @StorageAccessActor () -> Array<Account>
+  internal var loadLastUsedAccount: @StorageAccessActor () -> Account?
+  internal var storeLastUsedAccount: @StorageAccessActor (Account.LocalID) -> Void
+  internal var storeAccount: @StorageAccessActor (Account, AccountProfile, ArmoredPGPPrivateKey) -> Result<Void, Error>
+  internal var loadAccountPrivateKey: @StorageAccessActor (Account.LocalID) -> Result<ArmoredPGPPrivateKey, Error>
+  internal var storeAccountPassphrase: @StorageAccessActor (Account.LocalID, Passphrase) -> Result<Void, Error>
+  internal var loadAccountPassphrase: @StorageAccessActor (Account.LocalID) -> Result<Passphrase, Error>
+  internal var deleteAccountPassphrase: @StorageAccessActor (Account.LocalID) -> Result<Void, Error>
+  internal var storeAccountMFAToken: @StorageAccessActor (Account.LocalID, MFAToken) -> Result<Void, Error>
+  internal var loadAccountMFAToken: @StorageAccessActor (Account.LocalID) -> Result<MFAToken?, Error>
+  internal var deleteAccountMFAToken: @StorageAccessActor (Account.LocalID) -> Result<Void, Error>
+  internal var loadAccountProfile: @StorageAccessActor (Account.LocalID) -> Result<AccountProfile, Error>
+  internal var updateAccountProfile: @StorageAccessActor (AccountProfile) -> Result<Void, Error>
+  internal var deleteAccount: @StorageAccessActor (Account.LocalID) -> Void
   internal var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   internal var accountDatabaseConnection:
-    (
+    @StorageAccessActor (
       _ accountID: Account.LocalID,
       _ key: String
-    ) -> Result<SQLiteConnection, TheErrorLegacy>
-  internal var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheErrorLegacy>
-  internal var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy>
+    ) throws -> SQLiteConnection
+  internal var storeServerFingerprint: @StorageAccessActor (Account.LocalID, Fingerprint) -> Result<Void, Error>
+  internal var loadServerFingerprint: @StorageAccessActor (Account.LocalID) -> Result<Fingerprint?, Error>
 }
 
 extension AccountsDataStore: Feature {
@@ -61,19 +61,17 @@ extension AccountsDataStore: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
     let files: Files = environment.files
     let preferences: Preferences = environment.preferences
     let keychain: Keychain = environment.keychain
     let database: Database = environment.database
 
-    let diagnostics: Diagnostics = features.instance()
-
-    let lock: OSUnfairLock = .init()
+    let diagnostics: Diagnostics = try await features.instance()
 
     let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
 
-    func forceDelete(matching query: KeychainQuery) {
+    @StorageAccessActor func forceDelete(matching query: KeychainQuery) {
       diagnostics.debugLog("Purging data for \(query.key)")
       switch keychain.delete(matching: query) {
       case .success:
@@ -86,7 +84,8 @@ extension AccountsDataStore: Feature {
           .asFatalError()
       }
     }
-    func ensureDataIntegrity() -> Result<Void, TheErrorLegacy> {
+
+    @StorageAccessActor func ensureDataIntegrity() -> Result<Void, Error> {
       let timeMeasurement: Diagnostics.TimeMeasurement = diagnostics.measurePerformance("Data integrity check")
       diagnostics.diagnosticLog("Verifying data integrity...")
       defer {
@@ -109,6 +108,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load accounts data, recovering with empty list"
         )
+        diagnostics.log(error)
         forceDelete(matching: .accountsQuery)
         storedAccounts = .init()
       }
@@ -124,6 +124,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load account profiles data, recovering with empty list"
         )
+        diagnostics.log(error)
         forceDelete(matching: .accountsProfilesQuery)
         storedAccountsProfiles = .init()
       }
@@ -142,6 +143,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load account mfa tokens data, recovering with empty list"
         )
+        diagnostics.log(error)
         forceDelete(matching: .accountsProfilesQuery)
         storedAccountMFATokens = .init()
       }
@@ -160,6 +162,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load account server fingerprint data, recovering with empty list"
         )
+        diagnostics.log(error)
         forceDelete(matching: .accountsProfilesQuery)
         storedServerFingerprints = .init()
       }
@@ -185,6 +188,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to load armored keys metadata, recovering with empty list"
         )
+        diagnostics.log(error)
         forceDelete(matching: armoredKeysQuery)
         storedAccountKeys = .init()
       }
@@ -218,7 +222,6 @@ extension AccountsDataStore: Feature {
               .asTheError()
               .pushing(.message("Failed to delete account"))
               .recording(accountID, for: "accountID")
-              .asLegacy
           )
         }
       }
@@ -240,7 +243,6 @@ extension AccountsDataStore: Feature {
               .asTheError()
               .pushing(.message("Failed to delete account profile"))
               .recording(accountID, for: "accountID")
-              .asLegacy
           )
         }
       }
@@ -259,7 +261,7 @@ extension AccountsDataStore: Feature {
           diagnostics.diagnosticLog(
             "Failed to delete account mfa token"
           )
-          return .failure(error.asLegacy)
+          return .failure(error)
         }
       }
       diagnostics.debugLog("Deleted account mfa tokens: \(mfaTokensToRemove)")
@@ -280,7 +282,6 @@ extension AccountsDataStore: Feature {
               .asTheError()
               .pushing(.message("Failed to delete server fingerpring"))
               .recording(accountID, for: "accountID")
-              .asLegacy
           )
         }
       }
@@ -302,7 +303,6 @@ extension AccountsDataStore: Feature {
               .asTheError()
               .pushing(.message("Failed to delete account private key"))
               .recording(accountID, for: "accountID")
-              .asLegacy
           )
         }
       }
@@ -319,7 +319,6 @@ extension AccountsDataStore: Feature {
           return .failure(
             error
               .pushing(.message("Failed to delete stored passphrases"))
-              .asLegacy
           )
         }
       }
@@ -335,7 +334,7 @@ extension AccountsDataStore: Feature {
 
       case let .failure(error):
         diagnostics.diagnosticLog("Failed to access application data directory")
-        return .failure(error.asLegacy)
+        return .failure(error)
       }
 
       let storedDatabasesResult: Result<Array<Account.LocalID>, Error> =
@@ -362,7 +361,7 @@ extension AccountsDataStore: Feature {
         diagnostics.diagnosticLog(
           "Failed to check database files"
         )
-        return .failure(error.asLegacy)
+        return .failure(error)
       }
       diagnostics.debugLog("Stored databases: \(storedDatabases)")
       timeMeasurement.event("Account databases loaded")
@@ -372,12 +371,14 @@ extension AccountsDataStore: Feature {
         .filter { !updatedAccountsList.contains($0) }
 
       for accountID in databasesToRemove {
-        let fileDeletionResult: Result<Void, Error> = _databaseURL(
-          forAccountWithID: accountID
-        )
-        .flatMap { url in
-          files.deleteFile(url)
-        }
+        let fileDeletionResult: Result<Void, Error> =
+          Result {
+            try _databaseURL(
+              forAccountWithID: accountID
+            )
+          }
+          .flatMap(files.deleteFile)
+
         switch fileDeletionResult {
         case .success:
           break
@@ -388,7 +389,6 @@ extension AccountsDataStore: Feature {
               .asTheError()
               .pushing(.message("Failed to delete accoiunt database"))
               .recording(accountID, for: "accountID")
-              .asLegacy
           )
         }
       }
@@ -410,10 +410,7 @@ extension AccountsDataStore: Feature {
       return .success
     }
 
-    func loadAccounts() -> Array<Account> {
-      lock.lock()
-      defer { lock.unlock() }
-
+    @StorageAccessActor func loadAccounts() -> Array<Account> {
       let keychainLoadResult: Result<Array<Account>, Error> = environment
         .keychain
         .loadAll(
@@ -433,10 +430,7 @@ extension AccountsDataStore: Feature {
       }
     }
 
-    func loadLastUsedAccount() -> Account? {
-      lock.lock()
-      defer { lock.unlock() }
-
+    @StorageAccessActor func loadLastUsedAccount() -> Account? {
       return environment
         .preferences
         .load(
@@ -464,23 +458,18 @@ extension AccountsDataStore: Feature {
         }
     }
 
-    func storeLastUsedAccount(_ accountID: Account.LocalID) {
-      lock.lock()
-      defer { lock.unlock() }
-
+    @StorageAccessActor func storeLastUsedAccount(_ accountID: Account.LocalID) {
       preferences.save(accountID, for: .lastUsedAccount)
     }
 
-    func store(
+    @StorageAccessActor func store(
       account: Account,
       profile: AccountProfile,
       armoredKey: ArmoredPGPPrivateKey
-    ) -> Result<Void, TheErrorLegacy> {
+    ) -> Result<Void, Error> {
       // data integrity check performs cleanup in case of partial success
-      lock.lock()
       defer {
         ensureDataIntegrity().forceSuccess("Data integrity protection")
-        lock.unlock()
         updatedAccountIDSubject.send(account.localID)
       }
       var accountIdentifiers: Array<Account.LocalID> = environment
@@ -505,15 +494,11 @@ extension AccountsDataStore: Feature {
                 )
             }
         }
-        .mapError { $0.asLegacy }
     }
 
-    func loadAccountPrivateKey(
+    @StorageAccessActor func loadAccountPrivateKey(
       for accountID: Account.LocalID
-    ) -> Result<ArmoredPGPPrivateKey, TheErrorLegacy> {
-      lock.lock()
-      defer { lock.unlock() }
-
+    ) -> Result<ArmoredPGPPrivateKey, Error> {
       return environment
         .keychain
         .loadFirst(
@@ -532,16 +517,12 @@ extension AccountsDataStore: Feature {
             )
           }
         }
-        .mapError { $0.asLegacy }
     }
 
-    func storePassphrase(
+    @StorageAccessActor func storePassphrase(
       for accountID: Account.LocalID,
       passphrase: Passphrase
-    ) -> Result<Void, TheErrorLegacy> {
-      lock.lock()
-      defer { lock.unlock() }
-
+    ) -> Result<Void, Error> {
       return environment
         .keychain
         .loadFirst(
@@ -585,16 +566,12 @@ extension AccountsDataStore: Feature {
             )
           }
         }
-        .mapError { $0.asLegacy }
     }
 
-    func loadPassphrase(
+    @StorageAccessActor func loadPassphrase(
       for accountID: Account.LocalID
-    ) -> Result<Passphrase, TheErrorLegacy> {
+    ) -> Result<Passphrase, Error> {
       // in case of failure we should change flag biometricsEnabled to false and propagate change
-      lock.lock()
-      defer { lock.unlock() }
-
       return environment
         .keychain
         .loadFirst(
@@ -662,15 +639,11 @@ extension AccountsDataStore: Feature {
             return error
           }
         }
-        .mapError { $0.asLegacy }
     }
 
-    func deletePassphrase(
+    @StorageAccessActor func deletePassphrase(
       for accountID: Account.LocalID
-    ) -> Result<Void, TheErrorLegacy> {
-      lock.lock()
-      defer { lock.unlock() }
-
+    ) -> Result<Void, Error> {
       return environment
         .keychain
         .loadFirst(
@@ -705,43 +678,36 @@ extension AccountsDataStore: Feature {
             )
           }
         }
-        .mapError { $0.asLegacy }
     }
 
-    func storeAccountMFAToken(
+    @StorageAccessActor func storeAccountMFAToken(
       accountID: Account.LocalID,
       token: MFAToken
-    ) -> Result<Void, TheErrorLegacy> {
+    ) -> Result<Void, Error> {
       environment
         .keychain
         .save(token, for: .accountMFATokenQuery(for: accountID))
-        .mapError { $0.asLegacy }
     }
 
-    func loadAccountMFAToken(
+    @StorageAccessActor func loadAccountMFAToken(
       accountID: Account.LocalID
-    ) -> Result<MFAToken?, TheErrorLegacy> {
+    ) -> Result<MFAToken?, Error> {
       environment
         .keychain
         .loadFirst(matching: .accountMFATokenQuery(for: accountID))
-        .mapError { $0.asLegacy }
     }
 
-    func deleteAccountMFAToken(
+    @StorageAccessActor func deleteAccountMFAToken(
       accountID: Account.LocalID
-    ) -> Result<Void, TheErrorLegacy> {
+    ) -> Result<Void, Error> {
       environment
         .keychain
         .delete(matching: .accountMFATokenQuery(for: accountID))
-        .mapError { $0.asLegacy }
     }
 
-    func loadAccountProfile(
+    @StorageAccessActor func loadAccountProfile(
       for accountID: Account.LocalID
-    ) -> Result<AccountProfile, TheErrorLegacy> {
-      lock.lock()
-      defer { lock.unlock() }
-
+    ) -> Result<AccountProfile, Error> {
       return environment
         .keychain
         .loadFirst(AccountProfile.self, matching: .accountProfileQuery(for: accountID))
@@ -757,14 +723,11 @@ extension AccountsDataStore: Feature {
             )
           }
         }
-        .mapError { $0.asLegacy }
     }
 
-    func update(
+    @StorageAccessActor func update(
       accountProfile: AccountProfile
-    ) -> Result<Void, TheErrorLegacy> {
-      lock.lock()
-
+    ) -> Result<Void, Error> {
       let accountsList: Array<Account.LocalID> = environment
         .preferences
         .load(Array<Account.LocalID>.self, for: .accountsList)
@@ -774,35 +737,29 @@ extension AccountsDataStore: Feature {
           AccountDataMissing
             .error("Failed to update account profile")
             .recording(accountProfile.accountID, for: "accountID")
-            .asLegacy
         )
       }
       return environment
         .keychain
         .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
         .map {
-          lock.unlock()
           updatedAccountIDSubject.send(accountProfile.accountID)
         }
         .mapError { error -> Error in
-          lock.unlock()
           return
             error
             .asTheError()
             .recording(accountProfile.accountID, for: "accountID")
         }
-        .mapError { $0.asLegacy }
     }
 
-    func deleteAccount(withID accountID: Account.LocalID) {
+    @StorageAccessActor func deleteAccount(withID accountID: Account.LocalID) {
       // There is a risk of calling this method with valid session for deleted account,
       // we should assert on that or make it impossible")
 
-      lock.lock()
       // data integrity check performs cleanup in case of partial success
       defer {
         ensureDataIntegrity().forceSuccess("Data integrity protection")
-        lock.unlock()
         updatedAccountIDSubject.send(accountID)
       }
 
@@ -856,13 +813,12 @@ extension AccountsDataStore: Feature {
           .delete(matching: .accountProfileQuery(for: accountID))
       )
       results.append(
-        _databaseURL(
-          forAccountWithID: accountID
-        )
-        .flatMap { databaseURL in
-          files
-            .deleteFile(databaseURL)
+        Result {
+          try _databaseURL(
+            forAccountWithID: accountID
+          )
         }
+        .flatMap(files.deleteFile)
       )
 
       do {
@@ -879,10 +835,11 @@ extension AccountsDataStore: Feature {
     }
 
     // swift-format-ignore: NoLeadingUnderscores
-    func _databaseURL(
+    @StorageAccessActor func _databaseURL(
       forAccountWithID accountID: Account.LocalID
-    ) -> Result<URL, Error> {
-      files.applicationDataDirectory()
+    ) throws -> URL {
+      try files
+        .applicationDataDirectory()
         .map { dir in
           dir
             .appendingPathComponent(accountID.rawValue)
@@ -896,63 +853,57 @@ extension AccountsDataStore: Feature {
               .pushing(.message("Cannot access database file"))
           )
         }
+        .get()
     }
 
-    func prepareDatabaseConnection(
+    @StorageAccessActor func prepareDatabaseConnection(
       forAccountWithID accountID: Account.LocalID,
       key: String
-    ) -> Result<SQLiteConnection, TheErrorLegacy> {
-      let databaseURL: URL
-      switch _databaseURL(forAccountWithID: accountID) {
-      case let .success(path):
-        databaseURL = path
+    ) throws -> SQLiteConnection {
+      let databaseURL: URL = try _databaseURL(forAccountWithID: accountID)
 
-      case let .failure(error):
-        return .failure(error.asLegacy)
+      let databaseConnection: SQLiteConnection
+      do {
+        databaseConnection =
+          try database
+          .openConnection(
+            databaseURL.absoluteString,
+            key,
+            SQLiteMigration.allCases,
+            SQLiteOpeningOperations.all
+          )
+      }
+      catch {
+        diagnostics.diagnosticLog("Failed to open database for accountID, cleaning up...")
+        _ = files.deleteFile(databaseURL)
+        // single retry after deleting previous database, fail if it fails
+        databaseConnection =
+          try database
+          .openConnection(
+            databaseURL.absoluteString,
+            key,
+            SQLiteMigration.allCases,
+            SQLiteOpeningOperations.all
+          )
       }
 
-      return
-        database
-        .openConnection(
-          databaseURL.absoluteString,
-          key,
-          SQLiteMigration.allCases,
-          SQLiteOpeningOperations.all
-        )
-        .flatMapError { error in
-          diagnostics.diagnosticLog("Failed to open database for accountID, cleaning up...")
-          _ = files.deleteFile(databaseURL)
-          // single retry after deleting previous database, fail if it fails
-          return
-            database
-            .openConnection(
-              databaseURL.absoluteString,
-              key,
-              SQLiteMigration.allCases,
-              SQLiteOpeningOperations.all
-            )
-            .mapError { $0.asLegacy }
-        }
+      return databaseConnection
     }
 
-    func storeServerFingerprint(accountID: Account.LocalID, fingerprint: Fingerprint) -> Result<Void, TheErrorLegacy> {
+    @StorageAccessActor func storeServerFingerprint(accountID: Account.LocalID, fingerprint: Fingerprint) -> Result<
+      Void, Error
+    > {
       keychain
         .save(fingerprint, for: .serverFingerprintQuery(for: accountID))
-        .mapError { $0.asLegacy }
     }
 
-    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy> {
+    @StorageAccessActor func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, Error> {
       keychain
         .loadFirst(Fingerprint.self, matching: .serverFingerprintQuery(for: accountID))
-        .mapError { $0.asLegacy }
     }
 
     return Self(
-      verifyDataIntegrity: {
-        lock.lock()
-        defer { lock.unlock() }
-        return ensureDataIntegrity()
-      },
+      verifyDataIntegrity: ensureDataIntegrity,
       loadAccounts: loadAccounts,
       loadLastUsedAccount: loadLastUsedAccount,
       storeLastUsedAccount: storeLastUsedAccount,

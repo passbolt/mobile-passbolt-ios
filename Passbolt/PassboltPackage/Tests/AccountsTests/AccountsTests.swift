@@ -32,37 +32,37 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountsStoreTests: TestCase {
 
-  func test_storedAccounts_returnsAccountsFromAccountsDataStore() {
+  func test_storedAccounts_returnsAccountsFromAccountsDataStore() async throws {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
-    features.use(accountsDataStore)
-    features.use(AccountSession.placeholder)
+    await features.use(accountsDataStore)
+    await features.use(AccountSession.placeholder)
 
-    let accounts: Accounts = testInstance()
+    let accounts: Accounts = try await testInstance()
 
-    let result: Array<Account> = accounts.storedAccounts()
+    let result: Array<Account> = await accounts.storedAccounts()
 
     XCTAssertEqual(result, [validAccount])
   }
 
-  func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() {
+  func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() async throws {
     var result: Void?
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.verifyDataIntegrity = {
       result = Void()
       return .success
     }
-    features.use(accountsDataStore)
-    features.use(AccountSession.placeholder)
+    await features.use(accountsDataStore)
+    await features.use(AccountSession.placeholder)
 
-    let accounts: Accounts = testInstance()
+    let accounts: Accounts = try await testInstance()
 
-    _ = accounts.verifyStorageDataIntegrity()
+    _ = await accounts.verifyStorageDataIntegrity()
 
     XCTAssertNotNil(result)
   }
 
-  func test_storeTransferedAccount_storesDataInAccountsDataStore() {
+  func test_storeTransferedAccount_storesDataInAccountsDataStore() async throws {
     var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)?
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.storeAccount = { account, details, key in
@@ -70,19 +70,19 @@ final class AccountsStoreTests: TestCase {
       return .success
     }
     accountsDataStore.loadAccounts = always([])
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     var accountSession: AccountSession = .placeholder
     accountSession.authorize = always(
-      Just(false)
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
+      false
     )
-    features.use(accountSession)
-    features.environment.uuidGenerator.uuid = always(.test)
+    await features.use(accountSession)
+    try await FeaturesActor.execute {
+      self.features.environment.uuidGenerator.uuid = always(.test)
+    }
 
-    let accounts: Accounts = testInstance()
+    let accounts: Accounts = try await testInstance()
 
-    accounts
+    try await accounts
       .transferAccount(
         validAccount.domain,
         validAccount.userID.rawValue,
@@ -94,54 +94,51 @@ final class AccountsStoreTests: TestCase {
         validPrivateKey,
         validPassphrase
       )
-      .sink(receiveCompletion: { _ in }, receiveValue: {})
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.details, validAccountProfile)
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
 
-  func test_storeTransferedAccount_failsWithDuplicateError_whenAccountAlreadyStored() {
+  func test_storeTransferedAccount_failsWithDuplicateError_whenAccountAlreadyStored() async throws {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
-    features.use(accountsDataStore)
-    features.use(AccountSession.placeholder)
+    await features.use(accountsDataStore)
+    await features.use(AccountSession.placeholder)
 
-    let accounts: Accounts = testInstance()
+    let accounts: Accounts = try await testInstance()
 
-    var result: TheErrorLegacy!
-    accounts
-      .transferAccount(
-        validAccount.domain,
-        validAccount.userID.rawValue,
-        validAccountProfile.username,
-        validAccountProfile.firstName,
-        validAccountProfile.lastName,
-        validAccountProfile.avatarImageURL,
-        validAccount.fingerprint,
-        validPrivateKey,
-        validPassphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await accounts
+        .transferAccount(
+          validAccount.domain,
+          validAccount.userID.rawValue,
+          validAccountProfile.username,
+          validAccountProfile.firstName,
+          validAccountProfile.lastName,
+          validAccountProfile.avatarImageURL,
+          validAccount.fingerprint,
+          validPrivateKey,
+          validPassphrase
+        )
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result.legacyBridge, matches: AccountDuplicate.self)
+    XCTAssertError(result, matches: AccountDuplicate.self)
   }
 
-  func test_removeAccount_removesDataFromAccountsDataStore() {
+  func test_removeAccount_removesDataFromAccountsDataStore() async throws {
     var result: Account.LocalID?
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.deleteAccount = { accountID in
       result = accountID
     }
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     var accountSession: AccountSession = .placeholder
     accountSession.statePublisher = always(
       Just(
@@ -150,12 +147,14 @@ final class AccountsStoreTests: TestCase {
       .eraseToAnyPublisher()
     )
     accountSession.close = always(Void())
-    features.use(accountSession)
-    features.environment.uuidGenerator.uuid = always(.test)
+    await features.use(accountSession)
+    try await FeaturesActor.execute {
+      self.features.environment.uuidGenerator.uuid = always(.test)
+    }
 
-    let accounts: Accounts = testInstance()
+    let accounts: Accounts = try await testInstance()
 
-    _ = accounts.removeAccount(validAccount)
+    _ = await accounts.removeAccount(validAccount)
 
     XCTAssertEqual(result, validAccount.localID)
   }

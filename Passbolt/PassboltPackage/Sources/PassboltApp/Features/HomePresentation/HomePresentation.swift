@@ -26,9 +26,9 @@ import Features
 
 internal struct HomePresentation {
 
-  internal var currentPresentationModePublisher: () -> AnyPublisher<HomePresentationMode, Never>
-  internal var setPresentationMode: (HomePresentationMode) -> Void
-  internal var availableHomePresentationModes: () -> Array<HomePresentationMode>
+  internal var currentPresentationModePublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
+  internal var setPresentationMode: @MainActor (HomePresentationMode) -> Void
+  internal var availableHomePresentationModes: @MainActor () -> Array<HomePresentationMode>
 }
 
 extension HomePresentation: Feature {
@@ -37,22 +37,24 @@ extension HomePresentation: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let featureConfig: FeatureConfig = features.instance()
+  ) async throws -> Self {
+    let featureConfig: FeatureConfig = try await features.instance()
+
+    let foldersConfig: FeatureFlags.Folders = await featureConfig.configuration(for: FeatureFlags.Folders.self)
 
     let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> = .init(.plainResourcesList)
 
-    func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
+    @MainActor func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
       currentPresentationModeSubject
         .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
-    func setPresentationMode(_ mode: HomePresentationMode) {
+    @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
       currentPresentationModeSubject.send(mode)
     }
 
-    func availableHomePresentationModes() -> Array<HomePresentationMode> {
+    @MainActor func availableHomePresentationModes() -> Array<HomePresentationMode> {
       // order is preserved on display
       var availableModes: Array<HomePresentationMode> = [
         .plainResourcesList,
@@ -62,7 +64,7 @@ extension HomePresentation: Feature {
         .ownedResourcesList,
       ]
 
-      switch featureConfig.configuration(for: FeatureFlags.Folders.self) {
+      switch foldersConfig {
       case .disabled:
         break  // skip
 
@@ -83,7 +85,7 @@ extension HomePresentation: Feature {
 
 extension HomePresentation {
 
-  var featureUnload: () -> Bool { { true } }
+  internal var featureUnload: @FeaturesActor () async throws -> Void { {} }
 }
 
 #if DEBUG

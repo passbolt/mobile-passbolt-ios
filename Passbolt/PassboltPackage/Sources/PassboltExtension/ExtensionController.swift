@@ -26,7 +26,7 @@ import UIComponents
 
 internal struct ExtensionController {
 
-  internal var destinationPublisher: () -> AnyPublisher<Destination, Never>
+  internal var destinationPublisher: @MainActor () -> AnyPublisher<Destination, Never>
 }
 
 extension ExtensionController {
@@ -48,10 +48,10 @@ extension ExtensionController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> ExtensionController {
+  ) async throws -> ExtensionController {
 
-    let accounts: Accounts = features.instance()
-    let accountSession: AccountSession = features.instance()
+    let accounts: Accounts = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
 
     let navigationDestionationSubject: CurrentValueSubject<Destination?, Never> = .init(.none)
 
@@ -73,12 +73,14 @@ extension ExtensionController: UIController {
             navigationDestionationSubject.send(.accountSelection(lastUsedAccount: lastUsedAccount))
           }
           else {
-            let storedAccounts: Array<Account> = accounts.storedAccounts()
-            if storedAccounts.count == 1 {
-              navigationDestionationSubject.send(.accountSelection(lastUsedAccount: storedAccounts.first))
-            }
-            else {
-              navigationDestionationSubject.send(.accountSelection(lastUsedAccount: nil))
+            cancellables.executeOnStorageAccessActor {
+              let storedAccounts: Array<Account> = accounts.storedAccounts()
+              if storedAccounts.count == 1 {
+                navigationDestionationSubject.send(.accountSelection(lastUsedAccount: storedAccounts.first))
+              }
+              else {
+                navigationDestionationSubject.send(.accountSelection(lastUsedAccount: nil))
+              }
             }
           }
         }
@@ -94,7 +96,9 @@ extension ExtensionController: UIController {
         // while session (and passphrase cache) lasts for 5 minutes.
         switch request {
         case .passphraseRequest:
-          accountSession.close()
+          cancellables.executeOnAccountSessionActor {
+            await accountSession.close()
+          }
 
         case .mfaRequest:
           navigationDestionationSubject.send(.mfaRequired)

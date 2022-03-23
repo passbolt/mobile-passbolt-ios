@@ -85,5 +85,5 @@ extension Biometry: Feature {
 
 extension Biometry {
 
-  public var featureUnload: () -> Bool { { true } }
+  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
 }

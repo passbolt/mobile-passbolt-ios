@@ -127,6 +127,7 @@ public func AsyncPublisher<Value>(
       subject.send(completion: .finished)
     }
   }
+  Task { await recurringTask.run() }
   return
     subject
     .handleEvents(
@@ -158,6 +159,7 @@ public func AsyncThrowingPublisher<Value>(
       subject.send(completion: .failure(error))
     }
   }
+  Task { await recurringTask.run() }
   return
     subject
     .handleEvents(

@@ -25,6 +25,7 @@ import SwiftUI
 
 extension View {
 
+  @MainActor
   public func styleTextTitle() -> some View {
     self.text(
       font: .inter(ofSize: 20, weight: .semibold),

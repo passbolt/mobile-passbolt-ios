@@ -60,13 +60,15 @@ internal struct Application {
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    features.environment.use(
-      features
-        .environment
-        .networking
-        .withLogs(using: features.instance())
-    )
+#if DEBUG
+    Task { @FeaturesActor in
+      try await features.environment.use(
+        features
+          .environment
+          .networking
+          .withLogs(using: features.instance())
+      )
+    }
     #endif
     
     self.ui = UI(features: features)
@@ -77,7 +79,17 @@ internal struct Application {
 extension Application {
   
   internal func initialize() -> Bool {
-    features.instance(of: Initialization.self).initialize()
+    Task { @FeaturesActor in
+      do {
+      try await features.instance(of: Initialization.self).initialize()
+      }
+      catch {
+        error
+          .asTheError()
+          .asFatalError()
+      }
+    }
+    return true
   }
 }
 

@@ -45,10 +45,10 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     linkOpener = nil
   }
 
-  func test_continueSetupPresentationPublisher_doesNotPublishInitially() {
-    features.use(autoFill)
-    features.use(linkOpener)
-    let controller: ExtensionSetupController = testController()
+  func test_continueSetupPresentationPublisher_doesNotPublishInitially() async throws {
+    await features.use(autoFill)
+    await features.use(linkOpener)
+    let controller: ExtensionSetupController = try await testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -58,11 +58,11 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_continueSetupPresentationPublisher_publish_afterSkip() {
-    features.use(autoFill)
-    features.use(linkOpener)
+  func test_continueSetupPresentationPublisher_publish_afterSkip() async throws {
+    await features.use(autoFill)
+    await features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testController()
+    let controller: ExtensionSetupController = try await testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -74,13 +74,13 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_continueSetupPresentationPublisher_publishes_afterEnablingExtensionInSettings() {
+  func test_continueSetupPresentationPublisher_publishes_afterEnablingExtensionInSettings() async throws {
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    features.use(autoFill)
+    await features.use(autoFill)
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    features.use(linkOpener)
+    await features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testController()
+    let controller: ExtensionSetupController = try await testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -95,13 +95,13 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_continueSetupPresentationPublisher_doesNotPublish_afterExtensionIsNotEnabledInSettings() {
+  func test_continueSetupPresentationPublisher_doesNotPublish_afterExtensionIsNotEnabledInSettings() async throws {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(autoFill)
+    await features.use(autoFill)
     linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    features.use(linkOpener)
+    await features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testController()
+    let controller: ExtensionSetupController = try await testController()
 
     var result: Void!
     controller.continueSetupPresentationPublisher()
@@ -116,17 +116,17 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_setupExtension_opensSystemSettings() {
+  func test_setupExtension_opensSystemSettings() async throws {
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(autoFill)
+    await features.use(autoFill)
     var result: Void!
     linkOpener.openSystemSettings = {
       result = Void()
       return Just(true).eraseToAnyPublisher()
     }
-    features.use(linkOpener)
+    await features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testController()
+    let controller: ExtensionSetupController = try await testController()
 
     controller
       .setupExtension()

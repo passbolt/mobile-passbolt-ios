@@ -29,7 +29,7 @@ import UIComponents
 
 internal struct WindowController {
 
-  internal var screenStateDispositionPublisher: () -> AnyPublisher<ScreenStateDisposition, Never>
+  internal var screenStateDispositionPublisher: @MainActor () -> AnyPublisher<ScreenStateDisposition, Never>
 }
 
 extension WindowController {
@@ -51,8 +51,8 @@ extension WindowController: UIController {
     in context: Void,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSession: AccountSession = features.instance()
+  ) async throws -> Self {
+    let accountSession: AccountSession = try await features.instance()
 
     let screenStateDispositionSubject: CurrentValueSubject<ScreenStateDisposition, Never> = .init(
       .useInitialScreenState(for: .none)
@@ -61,7 +61,8 @@ extension WindowController: UIController {
     Publishers.Merge(
       accountSession
         .authorizationPromptPresentationPublisher()
-        .compactMap { [unowned features] (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition? in
+        .eraseErrorType()
+        .asyncMap { [unowned features] (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition? in
           switch (screenStateDispositionSubject.value, promptRequest) {
           // Previous disposition presented authorization prompt for MFA and requesting passphrase
           case let (.requestMFA, .passphraseRequest(account, message)):
@@ -81,7 +82,7 @@ extension WindowController: UIController {
           // Previous disposition was not authorization prompt and requesting passphrase
           case let (.useCachedScreenState, .passphraseRequest(account, message)),
             let (.useInitialScreenState, .passphraseRequest(account, message)):
-            if features.isLoaded(AccountTransfer.self) {
+            if await features.isLoaded(AccountTransfer.self) {
               // Ignoring prompt requests during new account setup.
               // Setup is finished after successfully providing passphrase for the first time.
               return .none
@@ -94,7 +95,7 @@ extension WindowController: UIController {
           // Previous disposition was not authorization prompt and requesting mfa
           case let (.useCachedScreenState, .mfaRequest(account, mfaProviders)),
             let (.useInitialScreenState, .mfaRequest(account, mfaProviders)):
-            if features.isLoaded(AccountTransfer.self) {
+            if await features.isLoaded(AccountTransfer.self) {
               // Ignoring prompt requests during new account setup.
               // Setup is finished after successfully providing passphrase for the first time.
               return .none
@@ -104,11 +105,11 @@ extension WindowController: UIController {
               return .requestMFA(account, providers: mfaProviders)
             }
           }
-        },
+        }
+        .replaceError(with: nil)
+        .filterMapOptional(),
       accountSession
         .statePublisher()
-        .removeDuplicates()
-        .dropFirst()  // initial application state handles initial state
         .compactMap { sessionState -> ScreenStateDisposition? in
           switch (sessionState, screenStateDispositionSubject.value) {
           // authorized after prompting
@@ -176,7 +177,12 @@ extension WindowController: UIController {
 
     func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
       screenStateDispositionSubject
-        .filter { [unowned features] disposition in
+        .eraseErrorType()
+        .asyncMap { [weak features] (disposition: ScreenStateDisposition) -> (ScreenStateDisposition, Bool) in
+          let inTransfer = await features?.isLoaded(AccountTransfer.self) ?? false
+          return (disposition, inTransfer)
+        }
+        .filter { (disposition, inTransfer) in
           switch disposition {
           case .requestPassphrase, .requestMFA, .useCachedScreenState:
             return true
@@ -184,9 +190,11 @@ extension WindowController: UIController {
             // We are blocking automatic screen changes while
             // account transfer is in progress (from QR code scanning
             // up to successfull authorization)
-            return !features.isLoaded(AccountTransfer.self)
+            return !inTransfer
           }
         }
+        .map { $0.0 }
+        .replaceError(with: .useInitialScreenState(for: nil))
         .eraseToAnyPublisher()
     }
 

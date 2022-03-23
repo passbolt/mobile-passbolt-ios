@@ -23,85 +23,54 @@
 
 public final actor RecurringTask {
 
-  private var runningTask: Task<Void, Never>?
+  private let taskPriority: TaskPriority?
   private var operation: @Sendable () async -> Void
+  private var currentTask: Task<Void, Never>?
 
-  public init() {
-    self.runningTask = nil
-    self.operation = {}
-  }
-
-  public convenience init(
+  public init(
     priority: TaskPriority? = nil,
-    runImmediately: Bool = true,
-    operation: @Sendable @escaping () async -> Void
+    operation: @Sendable @escaping () async -> Void = {}
   ) {
-    self.init()
-    if runImmediately {
-      Task {
-        await self.run(
-          replacingCurrent: true,
-          priority: priority,
-          operation
-        )
-      }
-    }
-    else {
-      Task {
-        await self.setOperation(operation)
-      }
-    }
+    self.taskPriority = priority
+    self.operation = operation
+    self.currentTask = .none
   }
 
   deinit {
-    self.cancel()
+    self.currentTask?.cancel()
   }
 
   public func run(
-    replacingCurrent: Bool = true,
-    priority: TaskPriority? = nil
+    replacingCurrent: Bool = true
   ) async {
-    guard self.runningTask == nil || replacingCurrent else { return }
-    self.runningTask?.cancel()
-    self.runningTask = Task(
-      priority: priority,
+    if let runningTask: Task<Void, Never> = self.currentTask, !runningTask.isCancelled {
+      if replacingCurrent {
+        runningTask.cancel()
+        // it will continue to running new task
+      }
+      else {
+        return await runningTask.value
+      }
+    }
+    else { /* continue */
+    }
+
+    let newTask: Task<Void, Never> = Task(
+      priority: self.taskPriority,
       operation: self.operation
     )
-    await self.runningTask?.value
-  }
 
-  public func run(
-    replacingCurrent: Bool = true,
-    priority: TaskPriority? = nil,
-    _ operation: @Sendable @escaping () async -> Void
-  ) async {
-    self.setOperation(operation)
-    guard self.runningTask == nil || replacingCurrent else { return }
-    self.runningTask?.cancel()
-    self.runningTask = Task(
-      priority: priority,
-      operation: self.operation
-    )
-    await self.runningTask?.value
-  }
+    self.currentTask = newTask
+    await newTask.value
 
-  public func cancel() {
-    self.runningTask?.cancel()
-    self.runningTask = nil
-  }
-
-  private func setOperation(
-    _ operation: @Sendable @escaping () async -> Void
-  ) {
-    self.operation = {
-      guard !Task.isCancelled
-      else { return await self.completeTask() }
-      await operation()
-      await self.completeTask()
+    if !newTask.isCancelled {
+      self.currentTask = .none
+    }
+    else { /* NOP */
     }
   }
 
-  private func completeTask() {
-    self.runningTask = nil
+  public func cancel() {
+    self.currentTask?.cancel()
   }
 }

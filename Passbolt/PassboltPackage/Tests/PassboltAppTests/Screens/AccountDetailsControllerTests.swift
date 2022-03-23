@@ -33,23 +33,24 @@ import XCTest
 @MainActor
 final class AccountDetailsControllerTests: MainActorTestCase {
 
-  override func mainActorSetUp() {
-    features.usePlaceholder(for: AccountSettings.self)
-    features.usePlaceholder(for: NetworkClient.self)
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    await features.usePlaceholder(for: AccountSettings.self)
+    await features.usePlaceholder(for: NetworkClient.self)
   }
 
-  func test_currentAccountWithProfile_isEqualToProvidedInContext() {
-    let controller: AccountDetailsController = testController(
+  func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
     XCTAssertEqual(controller.currentAccountWithProfile, validAccountWithProfile)
   }
 
-  func test_currentAcountAvatarImagePublisher_usesMediaDownloadToRequestImage() {
+  func test_currentAcountAvatarImagePublisher_usesMediaDownloadToRequestImage() async throws {
 
     var result: MediaDownloadRequestVariable?
-    features
+    await features
       .patch(
         \NetworkClient.mediaDownload,
         with: .respondingWith(
@@ -57,20 +58,19 @@ final class AccountDetailsControllerTests: MainActorTestCase {
           storeVariableIn: &result
         )
       )
-    let controller: AccountDetailsController = testController(
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
-    controller
+    try await controller
       .currentAcountAvatarImagePublisher()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result?.urlString, validAccountWithProfile.avatarImageURL)
   }
 
-  func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() {
-    let controller: AccountDetailsController = testController(
+  func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() async throws {
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
@@ -85,8 +85,8 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     XCTAssertEqual(result?.value, validAccountWithProfile.label)
   }
 
-  func test_validatedAccountLabelPublisher_publishesValidValueWhenLabelIsValid() {
-    let controller: AccountDetailsController = testController(
+  func test_validatedAccountLabelPublisher_publishesValidValueWhenLabelIsValid() async throws {
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
@@ -103,8 +103,8 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     XCTAssertTrue(result?.isValid ?? false)
   }
 
-  func test_validatedAccountLabelPublisher_publishesInvalidValueWhenLabelIsTooLong() {
-    let controller: AccountDetailsController = testController(
+  func test_validatedAccountLabelPublisher_publishesInvalidValueWhenLabelIsTooLong() async throws {
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
@@ -121,8 +121,8 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     XCTAssertFalse(result?.isValid ?? true)
   }
 
-  func test_updateCurrentAccountLabel_updatesLabel() {
-    let controller: AccountDetailsController = testController(
+  func test_updateCurrentAccountLabel_updatesLabel() async throws {
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
@@ -139,96 +139,90 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     XCTAssertNotEqual(result?.value, validAccountWithProfile.label)
   }
 
-  func test_saveChanges_fails_whenLabelValidationFails() {
-    let controller: AccountDetailsController = testController(
+  func test_saveChanges_fails_whenLabelValidationFails() async throws {
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
     controller
       .updateCurrentAccountLabel(Array<String>(repeating: "a", count: 81).joined())
 
-    var result: TheErrorLegacy?
-    controller
-      .saveChanges()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await controller
+        .saveChanges()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertTrue(result?.isLegacyBridge(for: InvalidForm.self))
+    XCTAssertError(result, matches: InvalidForm.self)
   }
 
-  func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() {
+  func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() async throws {
     var result: String?
-    features.patch(
+    await features.patch(
       \AccountSettings.setAccountLabel,
       with: { label, _ in
         result = label
         return .success
       }
     )
-    let controller: AccountDetailsController = testController(
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
     controller.updateCurrentAccountLabel("")
 
-    controller
+    try await controller
       .saveChanges()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, "\(validAccountWithProfile.firstName) \(validAccountWithProfile.lastName)")
   }
 
-  func test_saveChanges_fails_whenLabelSaveFails() {
-    features.patch(
+  func test_saveChanges_fails_whenLabelSaveFails() async throws {
+    await features.patch(
       \AccountSettings.setAccountLabel,
-      with: always(.failure(.testError()))
+      with: always(.failure(MockIssue.error()))
     )
 
-    let controller: AccountDetailsController = testController(
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
-    var result: TheErrorLegacy?
-    controller
-      .saveChanges()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await controller
+        .saveChanges()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_saveChanges_succeeds_whenLabelSaveSucceeds() {
+  func test_saveChanges_succeeds_whenLabelSaveSucceeds() async throws {
     var result: String?
-    features.patch(
+    await features.patch(
       \AccountSettings.setAccountLabel,
       with: { label, _ in
         result = label
         return .success
       }
     )
-    let controller: AccountDetailsController = testController(
+    let controller: AccountDetailsController = try await testController(
       context: validAccountWithProfile
     )
 
-    controller
+    try await controller
       .saveChanges()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, validAccountWithProfile.label)
   }
@@ -255,26 +249,3 @@ private let validAccountWithProfile: AccountWithProfile = .init(
   account: validAccount,
   profile: validAccountProfile
 )
-
-//private let validAccountAlt: Account = .init(
-//  localID: .init(rawValue: UUID.testAlt.uuidString),
-//  domain: "passbolt.com",
-//  userID: .init(rawValue: UUID.testAlt.uuidString),
-//  fingerprint: "fingerprint"
-//)
-//
-//private let validAccountProfileAlt: AccountProfile = .init(
-//  accountID: .init(rawValue: UUID.testAlt.uuidString),
-//  label: "firstName lastName",
-//  username: "username",
-//  firstName: "firstName",
-//  lastName: "lastName",
-//  avatarImageURL: "avatarImagePath",
-//  biometricsEnabled: false
-//)
-//
-//private let validAccountWithProfileAlt: AccountWithProfile = .init(
-//  account: validAccountAlt,
-//  profile: validAccountProfileAlt
-//)
-//

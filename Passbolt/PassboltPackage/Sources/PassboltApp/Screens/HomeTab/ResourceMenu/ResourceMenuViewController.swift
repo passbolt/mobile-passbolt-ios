@@ -62,10 +62,11 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
       .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] completion in
-          guard case .failure = completion
-          else { return }
-          self?.presentingViewController?.presentErrorSnackbar()
-          self?.dismiss(ResourceMenuViewController.self)
+          guard case .failure = completion else { return }
+          self?.cancellables.executeOnMainActor { [weak self] in
+            self?.presentingViewController?.presentErrorSnackbar()
+            await self?.dismiss(ResourceMenuViewController.self)
+          }
         },
         receiveValue: { [weak self] resourceDetails in
           self?.title = resourceDetails.name
@@ -85,61 +86,57 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
       .map { [unowned self] action in
         self.controller
           .performAction(action)
-          .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] in
-            switch action {
-            case .edit, .delete:
-              break  // Actions handled elsewhere
+            self?.cancellables.executeOnMainActor { [weak self] in
+              switch action {
+              case .edit, .delete:
+                break  // Actions handled elsewhere
 
-            case .openURL:
-              self?.dismiss(ResourceMenuViewController.self)
+              case .openURL:
+                await self?.dismiss(ResourceMenuViewController.self)
 
-            case .copyURL:
-              self?.presentingViewController?.presentInfoSnackbar(
-                .localized("resource.menu.item.field.copied"),
-                with: [
-                  NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
-                ]
-              )
-              self?.dismiss(ResourceMenuViewController.self)
+              case .copyURL:
+                self?.presentingViewController?.presentInfoSnackbar(
+                  .localized("resource.menu.item.field.copied"),
+                  with: [
+                    NSLocalizedString("resource.menu.item.url", bundle: .localization, comment: "")
+                  ]
+                )
+                await self?.dismiss(ResourceMenuViewController.self)
 
-            case .copyPassword:
-              self?.presentingViewController?.presentInfoSnackbar(
-                .localized("resource.menu.item.field.copied"),
-                with: [
-                  NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
-                ]
-              )
-              self?.dismiss(ResourceMenuViewController.self)
+              case .copyPassword:
+                self?.presentingViewController?.presentInfoSnackbar(
+                  .localized("resource.menu.item.field.copied"),
+                  with: [
+                    NSLocalizedString("resource.menu.item.password", bundle: .localization, comment: "")
+                  ]
+                )
+                await self?.dismiss(ResourceMenuViewController.self)
 
-            case .copyUsername:
-              self?.presentingViewController?.presentInfoSnackbar(
-                .localized("resource.menu.item.field.copied"),
-                with: [
-                  NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
-                ]
-              )
-              self?.dismiss(ResourceMenuViewController.self)
+              case .copyUsername:
+                self?.presentingViewController?.presentInfoSnackbar(
+                  .localized("resource.menu.item.field.copied"),
+                  with: [
+                    NSLocalizedString("resource.menu.item.username", bundle: .localization, comment: "")
+                  ]
+                )
+                await self?.dismiss(ResourceMenuViewController.self)
 
-            case .copyDescription:
-              self?.presentingViewController?.presentInfoSnackbar(
-                .localized("resource.menu.item.field.copied"),
-                with: [
-                  NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
-                ]
-              )
-              self?.dismiss(ResourceMenuViewController.self)
+              case .copyDescription:
+                self?.presentingViewController?.presentInfoSnackbar(
+                  .localized("resource.menu.item.field.copied"),
+                  with: [
+                    NSLocalizedString("resource.menu.item.description", bundle: .localization, comment: "")
+                  ]
+                )
+                await self?.dismiss(ResourceMenuViewController.self)
+              }
             }
           })
           .handleErrors(
             ([.canceled], handler: { _ in true /* NOP */ }),
             defaultHandler: { [weak self] error in
-              if let displayable: DisplayableString = error.displayableString {
-                self?.presentErrorSnackbar(displayable)
-              }
-              else {
-                self?.presentErrorSnackbar()
-              }
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           )
           .mapToVoid()

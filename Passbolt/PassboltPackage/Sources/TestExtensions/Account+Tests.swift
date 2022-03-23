@@ -20,3 +20,22 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+
+import CommonModels
+
+extension Account {
+
+  public static let validAccount: Self = .init(
+    localID: .init(rawValue: UUID.test.uuidString),
+    domain: "https://passbolt.dev",
+    userID: "USER_ID",
+    fingerprint: "FINGERPRINT"
+  )
+
+  public static let validAccountAlternative: Self = .init(
+    localID: .init(rawValue: UUID.testAlt.uuidString),
+    domain: "https://alt.passbolt.dev",
+    userID: "USER_ID_ALT",
+    fingerprint: "FINGERPRINT_ALT"
+  )
+}

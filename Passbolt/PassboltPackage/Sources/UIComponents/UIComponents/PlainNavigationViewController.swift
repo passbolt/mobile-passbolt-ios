@@ -23,6 +23,7 @@
 
 import Foundation
 
+@MainActor
 public final class PlainNavigationViewController<Content: UIComponent>: NavigationViewController, UIComponent {
 
   public typealias Controller = EmptyController<Content.Controller.Context>
@@ -50,11 +51,12 @@ public final class PlainNavigationViewController<Content: UIComponent>: Navigati
   }
 
   public func setup() {
-    let content: Content = components.instance(in: controller.context)
-    setViewControllers([content], animated: false)
-
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
+    cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: Content.self,
+        in: self.controller.context
+      )
     }
   }
 }

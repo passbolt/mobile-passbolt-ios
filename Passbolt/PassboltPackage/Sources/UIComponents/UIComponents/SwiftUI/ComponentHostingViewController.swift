@@ -29,7 +29,7 @@ where HostedView: ComponentView {
 
   public typealias Controller = ComponentHostingController<HostedView.Controller.NavigationContext>
 
-  public static func instance(
+  @MainActor public static func instance(
     using controller: Controller,
     with components: UIComponentFactory
   ) -> Self {
@@ -65,27 +65,29 @@ where HostedView: ComponentView {
     mut(self.view) {
       .backgroundColor(.passboltBackground)
     }
-    let controller: HostedView.Controller = self.components
-      .controller(
-        HostedView.Controller.self,
-        context: self.controller.componentNavigation(using: self),
-        cancellables: self.cancellables
+    self.cancellables.executeOnMainActor {
+      let controller: HostedView.Controller = await self.components
+        .controller(
+          HostedView.Controller.self,
+          context: self.controller.componentNavigation(using: self),
+          cancellables: self.cancellables
+        )
+      let hostingController: UIHostingController<HostedView> = .init(
+        rootView: HostedView(
+          state: controller.viewState,
+          controller: controller
+        )
       )
-    let hostingController: UIHostingController<HostedView> = .init(
-      rootView: HostedView(
-        state: controller.viewState,
-        controller: controller
-      )
-    )
-    addChild(hostingController)
-    mut(hostingController.view) {
-      .combined(
-        .backgroundColor(.clear),
-        .subview(of: self.view),
-        .edges(equalTo: self.view, usingSafeArea: false)
-      )
+      self.addChild(hostingController)
+      mut(hostingController.view) {
+        .combined(
+          .backgroundColor(.clear),
+          .subview(of: self.view),
+          .edges(equalTo: self.view, usingSafeArea: false)
+        )
+      }
+      hostingController.didMove(toParent: self)
     }
-    hostingController.didMove(toParent: self)
   }
 
   override public func viewDidLoad() {

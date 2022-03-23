@@ -35,58 +35,53 @@ final class MFATests: TestCase {
 
   var accountSession: AccountSession!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     accountSession = .placeholder
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     accountSession = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_authorizeUsingYubikey_succeeds_whenMFAAuthorizeSucceeds() {
+  func test_authorizeUsingYubikey_succeeds_whenMFAAuthorizeSucceeds() async throws {
     accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
+      Void()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    environment.yubikey.readNFC = {
-      Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    try await FeaturesActor.execute {
+      self.environment.yubikey.readNFC = {
+        Just("cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      }
     }
 
-    let feature: MFA = testInstance()
-    var result: Void?
-
-    feature.authorizeUsingYubikey(false)
-      .sink(
-        receiveCompletion: { _ in
-        },
-        receiveValue: { value in
-          result = value
-        }
-      )
-      .store(in: cancellables)
+    let feature: MFA = try await testInstance()
+    let result: Void? =
+      try? await feature
+      .authorizeUsingYubikey(false)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_authorizeUsingYubikey_fails_whenReadNFCFails() {
-    features.use(accountSession)
+  func test_authorizeUsingYubikey_fails_whenReadNFCFails() async throws {
+    await features.use(accountSession)
 
-    environment.yubikey.readNFC = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
-    )
+    try await FeaturesActor.execute {
+      self.environment.yubikey.readNFC = always(
+        Fail(error: MockIssue.error())
+          .eraseToAnyPublisher()
+      )
+    }
 
-    let feature: MFA = testInstance()
-    var result: TheErrorLegacy?
+    let feature: MFA = try await testInstance()
+    var result: Error?
 
-    feature.authorizeUsingYubikey(false)
+    await feature.authorizeUsingYubikey(false)
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -99,29 +94,19 @@ final class MFATests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_authorizeUsingTOTP_succeeds_whenMFAAuthorizeSucceeds() {
+  func test_authorizeUsingTOTP_succeeds_whenMFAAuthorizeSucceeds() async throws {
     accountSession.mfaAuthorize = always(
-      Just(())
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
+      Void()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let feature: MFA = testInstance()
-    var result: Void?
-
-    feature.authorizeUsingTOTP("totp", false)
-      .sink(
-        receiveCompletion: { _ in
-        },
-        receiveValue: { value in
-          result = value
-        }
-      )
-      .store(in: cancellables)
+    let feature: MFA = try await testInstance()
+    var result: Void? =
+      try? await feature.authorizeUsingTOTP("totp", false)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }

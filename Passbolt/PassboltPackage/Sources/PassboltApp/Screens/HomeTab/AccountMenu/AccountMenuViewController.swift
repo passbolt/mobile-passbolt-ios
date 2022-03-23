@@ -71,9 +71,10 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
 
     controller
       .dismissPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.dismiss(AccountMenuViewController.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(AccountMenuViewController.self)
+        }
       }
       .store(in: cancellables)
 
@@ -93,19 +94,22 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
 
     controller
       .accountDetailsPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] accountWithProfile in
-        guard let self = self else { return }
-        self.dismiss(
-          AccountMenuViewController.self,
-          completion: {
-            self.controller.navigation
-              .push(
-                AccountDetailsViewController.self,
-                in: accountWithProfile
-              )
-          }
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          await self.dismiss(
+            AccountMenuViewController.self,
+            completion: { [weak self] in
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.controller.navigation
+                  .push(
+                    AccountDetailsViewController.self,
+                    in: accountWithProfile
+                  )
+              }
+            }
+          )
+        }
       }
       .store(in: cancellables)
 
@@ -120,17 +124,21 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .accountSwitchPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] account in
-        guard let self = self else { return }
-        self.dismiss(
-          AccountMenuViewController.self,
-          completion: {
-            self.controller.navigation
-              .push(
-                AuthorizationViewController.self,
-                in: account
-              )
-          }
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          await self.dismiss(
+            AccountMenuViewController.self,
+            completion: { [weak self] in
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.controller.navigation
+                  .push(
+                    AuthorizationViewController.self,
+                    in: account
+                  )
+              }
+            }
+          )
+        }
       }
       .store(in: cancellables)
 
@@ -145,17 +153,21 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
       .manageAccountsPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] in
-        guard let self = self else { return }
-        self.dismiss(
-          AccountMenuViewController.self,
-          completion: {
-            self.controller.navigation
-              .push(
-                AccountSelectionViewController.self,
-                in: .init(value: true)
-              )
-          }
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          await self.dismiss(
+            AccountMenuViewController.self,
+            completion: { [weak self] in
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.controller.navigation
+                  .push(
+                    AccountSelectionViewController.self,
+                    in: .init(value: true)
+                  )
+              }
+            }
+          )
+        }
       }
       .store(in: cancellables)
 

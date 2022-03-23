@@ -72,7 +72,9 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           .combined(
             .image(named: .help, from: .uiCommons),
             .action { [weak self] in
-              self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+              }
             }
           )
           .instantiate()
@@ -235,28 +237,30 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
 
     controller
       .presentForgotPassphraseAlertPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        guard let self = self else { return }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
 
-        if presented {
-          self.present(ForgotPassphraseAlertViewController.self)
-        }
-        else {
-          self.dismiss(ForgotPassphraseAlertViewController.self)
+          if presented {
+            await self.present(ForgotPassphraseAlertViewController.self)
+          }
+          else {
+            await self.dismiss(ForgotPassphraseAlertViewController.self)
+          }
         }
       }
       .store(in: cancellables)
 
     controller
       .accountNotFoundScreenPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] account in
-        self?.replaceLast(
-          Self.self,
-          with: AccountNotFoundViewController.self,
-          in: account
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.replaceLast(
+            Self.self,
+            with: AccountNotFoundViewController.self,
+            in: account
+          )
+        }
       }
       .store(in: cancellables)
   }
@@ -265,26 +269,29 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
     accountID: Account.LocalID,
     fingerprint: Fingerprint
   ) {
-    push(
-      ServerFingerprintViewController.self,
-      in: (accountID: accountID, fingerprint: fingerprint)
-    )
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.push(
+        ServerFingerprintViewController.self,
+        in: (accountID: accountID, fingerprint: fingerprint)
+      )
+    }
   }
 
   private func handleSignInAction(
-    _ signInAction: () -> AnyPublisher<Bool, TheErrorLegacy>
+    _ signInAction: () -> AnyPublisher<Bool, Error>
   ) -> AnyCancellable {
     signInAction()
       .receive(on: RunLoop.main)
       .handleEvents(receiveCompletion: { [weak self] completion in
         guard case let .failure(error) = completion
         else { return }
-        guard let theError = error.legacyBridge as? ServerPGPFingeprintInvalid
+        guard let theError = error.asLegacy.legacyBridge as? ServerPGPFingeprintInvalid
         else {
           return
         }
         let accountID: Account.LocalID = theError.account.localID
-        let fingerprint: Fingerprint = theError.fingerprint
+        let fingerprint: Fingerprint = theError.fingerprint ?? "N/A"
 
         self?.signInCancellable = nil
         self?.navigateToInvalidServerFingerprint(
@@ -322,43 +329,40 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           }
         ),
         defaultHandler: { [weak self] error in
-          if let theError: TheError = error.legacyBridge {
-            if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-            }
-            else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-            }
-            else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-            }
-            else if theError is AccountBiometryDataChanged {
-              self?.presentErrorSnackbar(
-                .localized(
-                  key: "sign.in.error.biometrics.changed.message"
-                ),
-                hideAfter: 5
-              )
-            }
-            else {
-              self?.presentErrorSnackbar(theError.displayableMessage)
-            }
-          }
-          else {
-            if let displayable: DisplayableString = error.displayableString {
-              self?.presentErrorSnackbar(displayable)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            if let theError: TheError = error.asLegacy.legacyBridge {
+              if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+              else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+              else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+              else if theError is AccountBiometryDataChanged {
+                await self?.presentErrorSnackbar(
+                  .localized(
+                    key: "sign.in.error.biometrics.changed.message"
+                  ),
+                  hideAfter: 5
+                )
+              }
+              else {
+                await self?.presentErrorSnackbar(theError.displayableMessage)
+              }
             }
             else {
-              self?.presentErrorSnackbar()
+              await self?.presentErrorSnackbar(error.displayableMessage)
             }
           }
         }

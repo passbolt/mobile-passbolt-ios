@@ -25,13 +25,13 @@ import UIComponents
 
 internal struct CodeScanningController {
 
-  internal var progressPublisher: () -> AnyPublisher<Double, Never>
-  internal var presentExitConfirmation: () -> Void
-  internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentHelp: () -> Void
-  internal var helpPresentationPublisher: () -> AnyPublisher<Bool, Never>
+  internal var progressPublisher: @MainActor () -> AnyPublisher<Double, Never>
+  internal var presentExitConfirmation: @MainActor () -> Void
+  internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var presentHelp: @MainActor () -> Void
+  internal var helpPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
   // We expect this publisher to finish on process success and fail on process error
-  internal var resultPresentationPublisher: () -> AnyPublisher<Never, TheErrorLegacy>
+  internal var resultPresentationPublisher: @MainActor () -> AnyPublisher<Never, Error>
 }
 
 extension CodeScanningController: UIController {
@@ -42,11 +42,11 @@ extension CodeScanningController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
+  ) async throws -> Self {
+    let accountTransfer: AccountTransfer = try await features.instance()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let helpPresentationSubject: PassthroughSubject<Bool, Never> = .init()
-    let resultPresentationSubject: PassthroughSubject<Never, TheErrorLegacy> = .init()
+    let resultPresentationSubject: PassthroughSubject<Never, Error> = .init()
 
     accountTransfer
       .progressPublisher()
@@ -100,7 +100,7 @@ extension CodeScanningController: UIController {
       helpPresentationSubject.eraseToAnyPublisher()
     }
 
-    func resultPresentationPublisher() -> AnyPublisher<Never, TheErrorLegacy> {
+    func resultPresentationPublisher() -> AnyPublisher<Never, Error> {
       resultPresentationSubject.eraseToAnyPublisher()
     }
 

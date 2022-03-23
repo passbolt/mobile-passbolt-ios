@@ -26,12 +26,12 @@ import UIComponents
 
 internal struct TOTPController {
 
-  internal var statusChangePublisher: () -> AnyPublisher<StatusChange, Never>
-  internal var otpPublisher: () -> AnyPublisher<String, Never>
-  internal var setOTP: (String) -> Void
-  internal var pasteOTP: () -> Void
-  internal var rememberDevicePublisher: () -> AnyPublisher<Bool, Never>
-  internal var toggleRememberDevice: () -> Void
+  internal var statusChangePublisher: @MainActor () -> AnyPublisher<StatusChange, Never>
+  internal var otpPublisher: @MainActor () -> AnyPublisher<String, Never>
+  internal var setOTP: @MainActor (String) -> Void
+  internal var pasteOTP: @MainActor () -> Void
+  internal var rememberDevicePublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var toggleRememberDevice: @MainActor () -> Void
 }
 
 extension TOTPController {
@@ -41,7 +41,7 @@ extension TOTPController {
   internal enum StatusChange {
     case idle
     case processing
-    case error(TheErrorLegacy)
+    case error(Error)
   }
 }
 
@@ -53,10 +53,9 @@ extension TOTPController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-
-    let mfa: MFA = features.instance()
-    let pasteboard: Pasteboard = features.instance()
+  ) async throws -> Self {
+    let mfa: MFA = try await features.instance()
+    let pasteboard: Pasteboard = try await features.instance()
 
     let statusChangeSubject: PassthroughSubject<StatusChange, Never> = .init()
     let otpSubject: CurrentValueSubject<String, Never> = .init("")
@@ -71,25 +70,28 @@ extension TOTPController: UIController {
       .compactMap { (otp, rememberDevice) -> AnyPublisher<Void, Never>? in
         if otp.count == Self.otpLength {
           statusChangeSubject.send(.processing)
-          return
+          return cancellables.executeOnAccountSessionActorWithPublisher {
             mfa
-            .authorizeUsingTOTP(otp, rememberDevice)
-            .handleEvents(
-              receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                  statusChangeSubject.send(.idle)
+              .authorizeUsingTOTP(otp, rememberDevice)
+              .handleEvents(
+                receiveCompletion: { completion in
+                  switch completion {
+                  case .finished:
+                    statusChangeSubject.send(.idle)
 
-                case let .failure(error):
-                  statusChangeSubject.send(.error(error))
+                  case let .failure(error):
+                    statusChangeSubject.send(.error(error))
+                  }
+                },
+                receiveCancel: {
+                  statusChangeSubject.send(.idle)
                 }
-              },
-              receiveCancel: {
-                statusChangeSubject.send(.idle)
-              }
-            )
-            .replaceError(with: Void())
-            .eraseToAnyPublisher()
+              )
+              .eraseToAnyPublisher()
+          }
+          .switchToLatest()
+          .replaceError(with: Void())
+          .eraseToAnyPublisher()
         }
         else {
           return nil
@@ -119,7 +121,7 @@ extension TOTPController: UIController {
         otpSubject.value = pasted
       }
       else {
-        statusChangeSubject.send(.error(.invalidPasteValue()))
+        statusChangeSubject.send(.error(TheErrorLegacy.invalidPasteValue()))
       }
     }
 

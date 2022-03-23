@@ -54,11 +54,11 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     networkClient = nil
   }
 
-  func test_accountsPublisher_publishesItemsWithImage() {
+  func test_accountsPublisher_publishesItemsWithImage() async throws {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -70,14 +70,13 @@ final class AccountSelectionControllerTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
     networkClient.mediaDownload = .respondingWith(Data())
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let controller: AccountSelectionController = testController(context: .signIn)
+    let controller: AccountSelectionController = try await testController(context: .signIn)
     var result: Array<AccountSelectionListItem> = []
-    var imageData: Data?
 
     controller.accountsPublisher()
       .sink { items in
@@ -92,12 +91,11 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       return cellItem
     }
 
-    accountItems.first!
-      .imagePublisher!
-      .sink { data in
-        imageData = data
-      }
-      .store(in: cancellables)
+    let imageData: Data? =
+      try? await accountItems
+      .first?
+      .imagePublisher?
+      .asAsyncValue()
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
@@ -106,11 +104,11 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     XCTAssertNotNil(imageData)
   }
 
-  func test_accountsPublisher_publishesItemsWithoutImage() {
+  func test_accountsPublisher_publishesItemsWithoutImage() async throws {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -122,12 +120,12 @@ final class AccountSelectionControllerTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
     networkClient.mediaDownload = .failingWith(MockIssue.error())
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let controller: AccountSelectionController = testController(context: .signIn)
+    let controller: AccountSelectionController = try await testController(context: .signIn)
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -158,15 +156,15 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     XCTAssertNil(imageData)
   }
 
-  func test_accountsPublisher_publishesEmptyList_whenAccountsAreEmpty() {
+  func test_accountsPublisher_publishesEmptyList_whenAccountsAreEmpty() async throws {
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
-    features.use(networkClient)
-    features.use(accountSettings)
+    await features.use(accountSession)
+    await features.use(networkClient)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .signIn)
+    let controller: AccountSelectionController = try await testController(context: .signIn)
     var result: Array<AccountSelectionListItem> = []
 
     controller.accountsPublisher()

@@ -31,14 +31,14 @@ import struct Foundation.Date
 
 public struct Resources {
 
-  public var refreshIfNeeded: () -> AnyPublisher<Void, TheErrorLegacy>
+  public var refreshIfNeeded: @AccountSessionActor () -> AnyPublisher<Void, Error>
   public var updatesPublisher: () -> AnyPublisher<Void, Never>
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
-  public var loadResourceSecret: (Resource.ID) -> AnyPublisher<ResourceSecret, TheErrorLegacy>
-  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, TheErrorLegacy>
-  public var deleteResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
-  public var featureUnload: () -> Bool
+  public var loadResourceSecret: @AccountSessionActor (Resource.ID) -> AnyPublisher<ResourceSecret, Error>
+  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, Error>
+  public var deleteResource: @AccountSessionActor (Resource.ID) -> AnyPublisher<Void, Error>
+  public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
 extension Resources: Feature {
@@ -47,18 +47,18 @@ extension Resources: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
     let time: Time = environment.time
 
-    let diagnostics: Diagnostics = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let accountDatabase: AccountDatabase = features.instance()
-    let networkClient: NetworkClient = features.instance()
-    let featureConfig: FeatureConfig = features.instance()
-    let folders: Folders = features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let accountDatabase: AccountDatabase = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
+    let featureConfig: FeatureConfig = try await features.instance()
+    let folders: Folders = try await features.instance()
 
     let foldersEnabled: Bool
-    switch featureConfig.configuration(for: FeatureFlags.Folders.self) {
+    switch await featureConfig.configuration(for: FeatureFlags.Folders.self) {
     case .disabled:
       foldersEnabled = false
 
@@ -68,36 +68,7 @@ extension Resources: Feature {
 
     let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
 
-    accountSession
-      .statePublisher()
-      .scan(
-        (
-          last: Optional<Account.LocalID>.none,
-          current: Optional<Account.LocalID>.none
-        )
-      ) { changes, sessionState in
-        switch sessionState {
-        case let .authorized(account):
-          return (last: changes.current, current: account.localID)
-
-        case let .authorizedMFARequired(account, _):
-          return (last: changes.current, current: account.localID)
-
-        case let .authorizationRequired(account):
-          return (last: changes.current, current: account.localID)
-
-        case .none:
-          return (last: changes.current, current: nil)
-        }
-      }
-      .filter { $0.last != $0.current }
-      .mapToVoid()
-      .sink { [unowned features] in
-        features.unload(Resources.self)
-      }
-      .store(in: cancellables)
-
-    func refreshIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
+    @AccountSessionActor func refreshIfNeeded() -> AnyPublisher<Void, Error> {
       return Future<Void, Error> { promise in
         Task {
           do {
@@ -190,13 +161,15 @@ extension Resources: Feature {
 
             try await accountDatabase.storeResources(resources)
 
-            try await accountDatabase.saveLastUpdate(time.dateNow())
-            resourcesUpdateSubject.send()
             if foldersEnabled {
               await folders.resourcesUpdated()
             }
             else { /* NOP */
             }
+
+            try await accountDatabase.saveLastUpdate(time.dateNow())
+
+            resourcesUpdateSubject.send()
             promise(.success(Void()))
           }
           catch {
@@ -204,16 +177,16 @@ extension Resources: Feature {
           }
         }
       }
-      .mapErrorsToLegacy()
+      .eraseErrorType()
       .collectErrorLog(using: diagnostics)
       .eraseToAnyPublisher()
     }
 
-    func updatesPublisher() -> AnyPublisher<Void, Never> {
+    nonisolated func updatesPublisher() -> AnyPublisher<Void, Never> {
       resourcesUpdateSubject.eraseToAnyPublisher()
     }
 
-    func filteredResourcesListPublisher(
+    nonisolated func filteredResourcesListPublisher(
       _ filterPublisher: AnyPublisher<ResourcesFilter, Never>
     ) -> AnyPublisher<Array<ListViewResource>, Never> {
       filterPublisher
@@ -235,65 +208,61 @@ extension Resources: Feature {
         .eraseToAnyPublisher()
     }
 
-    func loadResourceSecret(
+    @AccountSessionActor func loadResourceSecret(
       _ resourceID: Resource.ID
-    ) -> AnyPublisher<ResourceSecret, TheErrorLegacy> {
+    ) -> AnyPublisher<ResourceSecret, Error> {
       networkClient
         .resourceSecretRequest
         .make(using: .init(resourceID: resourceID.rawValue))
-        .mapErrorsToLegacy()
-        .map { response -> AnyPublisher<ResourceSecret, TheErrorLegacy> in
-          accountSession
+        .eraseErrorType()
+        .asyncMap { response throws -> ResourceSecret in
+          let decryptedMessage: String =
+          try await accountSession
             // We are not using public key yet since we are not
             // managing other users data yet, for now skipping public key
             // for signature verification.
             .decryptMessage(response.body.data, nil)
-            .map { decryptedMessage -> AnyPublisher<ResourceSecret, TheErrorLegacy> in
-              if let secret: ResourceSecret = .from(decrypted: decryptedMessage) {
-                return Just(secret)
-                  .setFailureType(to: TheErrorLegacy.self)
-                  .eraseToAnyPublisher()
-              }
-              else {
-                return Fail<ResourceSecret, TheErrorLegacy>(error: .invalidResourceSecret())
-                  .eraseToAnyPublisher()
-              }
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+
+          if let secret: ResourceSecret = .from(decrypted: decryptedMessage) {
+            return secret
+          }
+          else {
+            throw
+              TheErrorLegacy
+              .invalidResourceSecret()
+          }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    nonisolated func resourceDetailsPublisher(
+      resourceID: Resource.ID
+    ) -> AnyPublisher<DetailsViewResource, Error> {
+      resourcesUpdateSubject
+        .map {
+          accountDatabase
+            .fetchDetailsViewResources(resourceID)
+            .eraseErrorType()
         }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
 
-    func resourceDetailsPublisher(
+    @AccountSessionActor func deleteResource(
       resourceID: Resource.ID
-    ) -> AnyPublisher<DetailsViewResource, TheErrorLegacy> {
-      resourcesUpdateSubject.map {
-        accountDatabase
-          .fetchDetailsViewResources(resourceID)
-          .mapErrorsToLegacy()
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
-    }
-
-    func deleteResource(
-      resourceID: Resource.ID
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       networkClient
         .deleteResourceRequest
         .make(using: .init(resourceID: resourceID.rawValue))
-        .mapErrorsToLegacy()
+        .eraseErrorType()
         .map { refreshIfNeeded() }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
 
-    func featureUnload() -> Bool {
+    @FeaturesActor func featureUnload() async throws {
       // prevent from publishing values after unload
       resourcesUpdateSubject.send(completion: .finished)
-      return true
     }
 
     return Self(

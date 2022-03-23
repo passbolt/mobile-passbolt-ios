@@ -25,7 +25,7 @@ import Combine
 
 #warning("TODO: remove file after migration to TheError")
 
-extension Publisher where Failure == TheErrorLegacy {
+extension Publisher {
 
   public func handleErrors(
     _ cases: (Set<TheErrorLegacy.ID>, handler: (TheErrorLegacy) -> Bool)...,
@@ -33,7 +33,7 @@ extension Publisher where Failure == TheErrorLegacy {
     file: StaticString = #file,
     line: UInt = #line,
     column: UInt = #column,
-    defaultHandler: @escaping (TheErrorLegacy) -> Void
+    defaultHandler: @escaping (Error) -> Void
   ) -> Publishers.HandleEvents<Self> {
     self.handleEvents(receiveCompletion: { completion in
       guard case let .failure(error) = completion
@@ -41,9 +41,9 @@ extension Publisher where Failure == TheErrorLegacy {
 
       let handled: Bool =
         cases
-        .first { $0.0.contains(error.identifier) }
+        .first { $0.0.contains(error.asLegacy.identifier) }
         .map { $0.handler }
-        .map { $0(error) }
+        .map { $0(error.asLegacy) }
         ?? false
 
       if !handled {
@@ -58,22 +58,5 @@ extension Publisher where Failure == TheErrorLegacy {
           .recording("Handled at \(file)@\(line):\(column)", for: "HandlingLocation")
       )
     })
-  }
-}
-
-extension Publisher {
-
-  public func mapErrorsToLegacy() -> Publishers.MapError<Self, TheErrorLegacy> {
-    self.mapError { (error: Error) -> TheErrorLegacy in
-      if let theError: TheError = error as? TheError {
-        return theError.asLegacy
-      }
-      else if let legacyError: TheErrorLegacy = error as? TheErrorLegacy {
-        return legacyError
-      }
-      else {
-        return error.asUnidentified().asLegacy
-      }
-    }
   }
 }

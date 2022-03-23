@@ -196,32 +196,38 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
   }
 
   public func setupView() {
-    let child: Content = addChild(
-      Content.self,
-      in: controller.contentContext,
-      viewSetup: { parentView, childView in
-        parentView.setContent(view: childView)
-      }
-    )
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.addChild(
+        Content.self,
+        in: self.controller.contentContext,
+        viewSetup: { parentView, childView in
+          parentView.setContent(view: childView)
+        },
+        completion: { child in
+          self.observationToken = child.observe(\.title, options: [.initial, .new]) { [weak self] _, change in
+            guard
+              let newValue: String? = change.newValue,
+              newValue != change.oldValue,
+              let childTitle: String = newValue
+            else { return }
 
-    observationToken = child.observe(\.title, options: [.initial, .new]) { [weak self] _, change in
-      guard
-        let newValue: String? = change.newValue,
-        newValue != change.oldValue,
-        let childTitle: String = newValue
-      else { return }
+            self?.contentView.setTitle(childTitle)
+          }
+        }
+      )
 
-      self?.contentView.setTitle(childTitle)
+      self.setupSubscriptions()
     }
-
-    setupSubscriptions()
   }
 
   private func setupSubscriptions() {
     contentView
       .closeActionPublisher
       .sink { [weak self] in
-        self?.dismiss(Self.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(Self.self)
+        }
       }
       .store(in: cancellables)
   }

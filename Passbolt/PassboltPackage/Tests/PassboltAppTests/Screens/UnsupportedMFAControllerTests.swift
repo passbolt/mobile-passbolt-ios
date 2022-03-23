@@ -45,16 +45,19 @@ final class UnsupportedMFAControllerTests: MainActorTestCase {
     accountSession = nil
   }
 
-  func test_closeSession_succeeds() {
+  func test_closeSession_succeeds() async throws {
     var result: Void!
     accountSession.close = {
       result = Void()
     }
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: UnsupportedMFAController = testController()
+    let controller: UnsupportedMFAController = try await testController()
 
     controller.closeSession()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }

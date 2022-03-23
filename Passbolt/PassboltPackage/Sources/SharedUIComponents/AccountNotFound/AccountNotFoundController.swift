@@ -25,9 +25,9 @@ import UIComponents
 
 internal struct AccountNotFoundController {
 
-  internal var accountWithProfile: () -> AccountWithProfile
-  internal var navigateBack: () -> Void
-  internal var backNavigationPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var accountWithProfile: @MainActor () -> AccountWithProfile
+  internal var navigateBack: @MainActor () -> Void
+  internal var backNavigationPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
 }
 
 extension AccountNotFoundController: UIController {
@@ -38,13 +38,14 @@ extension AccountNotFoundController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSettings: AccountSettings = features.instance()
+  ) async throws -> Self {
+    let accountSettings: AccountSettings = try await features.instance()
 
     let backNavigationPresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let loadedAccountWithProfile = try await accountSettings.accountWithProfile(context)
 
     func accountWithProfile() -> AccountWithProfile {
-      accountSettings.accountWithProfile(context)
+      loadedAccountWithProfile
     }
 
     func navigateBack() {

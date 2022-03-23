@@ -104,13 +104,16 @@ internal final class ResourcesFilterViewController: PlainViewController, UICompo
   }
 
   private func setupResourcesListView() {
-    addChild(
-      ResourcesSelectionListViewController.self,
-      in: controller.resourcesFilterPublisher(),
-      viewSetup: { parentView, childView in
-        parentView.setResourcesView(childView)
-      }
-    )
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.addChild(
+        ResourcesSelectionListViewController.self,
+        in: self.controller.resourcesFilterPublisher(),
+        viewSetup: { parentView, childView in
+          parentView.setResourcesView(childView)
+        }
+      )
+    }
   }
 }
 

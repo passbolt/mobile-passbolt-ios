@@ -29,15 +29,15 @@ import UIComponents
 public struct ResourceEditController {
 
   internal var createsNewResource: Bool
-  internal var resourcePropertiesPublisher: () -> AnyPublisher<Array<ResourceProperty>, TheErrorLegacy>
-  internal var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<String>, Never>
-  internal var passwordEntropyPublisher: () -> AnyPublisher<Entropy, Never>
-  internal var sendForm: () -> AnyPublisher<Void, TheErrorLegacy>
-  internal var setValue: (String, ResourceField) -> AnyPublisher<Void, TheErrorLegacy>
-  internal var generatePassword: () -> Void
-  internal var presentExitConfirmation: () -> Void
-  internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var cleanup: () -> Void
+  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<Array<ResourceProperty>, Error>
+  internal var fieldValuePublisher: @MainActor (ResourceField) -> AnyPublisher<Validated<String>, Never>
+  internal var passwordEntropyPublisher: @MainActor () -> AnyPublisher<Entropy, Never>
+  internal var sendForm: @MainActor () -> AnyPublisher<Void, Error>
+  internal var setValue: @MainActor (String, ResourceField) -> AnyPublisher<Void, Error>
+  internal var generatePassword: @MainActor () -> Void
+  internal var presentExitConfirmation: @MainActor () -> Void
+  internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var cleanup: @MainActor () -> Void
 }
 
 extension ResourceEditController {
@@ -59,26 +59,28 @@ extension ResourceEditController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
+    let resources: Resources = try await features.instance()
+    let resourceForm: ResourceEditForm = try await features.instance()
+    let randomGenerator: RandomStringGenerator = try await features.instance()
 
-    let diagnostics: Diagnostics = features.instance()
-    let resources: Resources = features.instance()
-    let resourceForm: ResourceEditForm = features.instance()
-    let randomGenerator: RandomStringGenerator = features.instance()
-
-    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, TheErrorLegacy> = .init([])
+    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, Error> = .init([])
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
     let createsNewResource: Bool
     switch context.editing {
     case let .existing(resourceID):
       createsNewResource = false
-      resourceForm
+      await resourceForm
         .editResource(resourceID)
         .sink(
           receiveCompletion: { completion in
-            guard case let .failure(error) = completion
-            else { return }
+            cancellables.executeOnFeaturesActor {
+              try await features.unload(ResourceEditForm.self)
+            }
+            guard case let .failure(error) = completion else { return }
+
             resourcePropertiesSubject.send(completion: .failure(error))
           },
           receiveValue: { /* NOP */  }
@@ -95,6 +97,9 @@ extension ResourceEditController: UIController {
       .map(\.properties)
       .sink(
         receiveCompletion: { completion in
+          cancellables.executeOnFeaturesActor {
+            try await features.unload(ResourceEditForm.self)
+          }
           resourcePropertiesSubject.send(completion: completion)
         },
         receiveValue: { properties in
@@ -103,7 +108,7 @@ extension ResourceEditController: UIController {
       )
       .store(in: cancellables)
 
-    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, TheErrorLegacy> {
+    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, Error> {
       resourcePropertiesSubject
         .eraseToAnyPublisher()
     }
@@ -123,12 +128,12 @@ extension ResourceEditController: UIController {
     func setValue(
       _ value: String,
       for field: ResourceField
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       resourcePropertiesPublisher()
-        .map { properties -> AnyPublisher<Void, TheErrorLegacy> in
+        .map { properties -> AnyPublisher<Void, Error> in
           guard let property: ResourceProperty = properties.first(where: { $0.field == field })
           else {
-            return Fail(error: .invalidOrMissingResourceType())
+            return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
               .eraseToAnyPublisher()
           }
 
@@ -153,30 +158,36 @@ extension ResourceEditController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func sendForm() -> AnyPublisher<Void, TheErrorLegacy> {
-      resourceForm
-        .sendForm()
-        .map { resourceID -> AnyPublisher<Resource.ID, TheErrorLegacy> in
-          resources
-            .refreshIfNeeded()
-            .map { resourceID }
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .handleEvents(
-          receiveOutput: { resourceID in
-            context.completion(resourceID)
-          },
-          receiveCompletion: { completion in
-            guard case .finished = completion
-            else { return }
-
-            cleanup()
+    func sendForm() -> AnyPublisher<Void, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher {
+        resourceForm
+          .sendForm()
+          .map { resourceID -> AnyPublisher<Resource.ID, Error> in
+            resources
+              .refreshIfNeeded()
+              .map { resourceID }
+              .eraseToAnyPublisher()
           }
-        )
-        .mapToVoid()
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+          .switchToLatest()
+          .handleEvents(
+            receiveOutput: { resourceID in
+              context.completion(resourceID)
+            },
+            receiveCompletion: { completion in
+              guard case .finished = completion
+              else { return }
+
+              cancellables.executeOnMainActor {
+                cleanup()
+              }
+            }
+          )
+          .mapToVoid()
+          .collectErrorLog(using: diagnostics)
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func generatePassword() {
@@ -201,7 +212,9 @@ extension ResourceEditController: UIController {
     }
 
     func cleanup() {
-      features.unload(ResourceEditForm.self)
+      cancellables.executeOnFeaturesActor {
+        try await features.unload(ResourceEditForm.self)
+      }
     }
 
     return Self(

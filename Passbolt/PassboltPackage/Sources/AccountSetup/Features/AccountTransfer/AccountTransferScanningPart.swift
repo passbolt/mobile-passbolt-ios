@@ -36,12 +36,12 @@ extension AccountTransferScanningPart {
 
   internal static func from(
     qrCode string: String
-  ) -> Result<Self, TheErrorLegacy> {
+  ) -> Result<Self, Error> {
     var payloadPart: String = string
     guard !string.isEmpty
     else {
       return .failure(
-        .accountTransferScanningRecoverableError(
+        TheErrorLegacy.accountTransferScanningRecoverableError(
           context: "part-decoding-invalid-version-or-code"
         )
         .appending(
@@ -55,7 +55,7 @@ extension AccountTransferScanningPart {
     guard version == "1"
     else {
       return .failure(
-        .accountTransferScanningRecoverableError(
+        TheErrorLegacy.accountTransferScanningRecoverableError(
           context: "part-decoding-invalid-version-or-code"
         )
         .appending(
@@ -69,7 +69,7 @@ extension AccountTransferScanningPart {
     guard let page: Int = Int(pageString, radix: 16)
     else {
       return .failure(
-        .accountTransferScanningError(
+        TheErrorLegacy.accountTransferScanningError(
           context: "part-decoding-invalid-page"
         )
         .appending(
@@ -81,7 +81,7 @@ extension AccountTransferScanningPart {
     guard let payloadData = payloadPart.data(using: .utf8)
     else {
       return .failure(
-        .accountTransferScanningError(
+        TheErrorLegacy.accountTransferScanningError(
           context: "part-decoding-invalid-encoding"
         )
         .appending(

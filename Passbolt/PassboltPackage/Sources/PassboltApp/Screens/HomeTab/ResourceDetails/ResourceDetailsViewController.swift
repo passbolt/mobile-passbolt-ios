@@ -78,25 +78,30 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .sink { [weak self] completion in
         guard case .failure = completion
         else { return }
-
-        self?.navigationController?.presentErrorSnackbar()
-        self?.pop(if: Self.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          self?.navigationController?.presentErrorSnackbar()
+          await self?.pop(if: Self.self)
+        }
       } receiveValue: { [weak self] resourceDetailsWithConfig in
         self?.contentView.update(with: resourceDetailsWithConfig)
       }
 
     controller
       .resourceMenuPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [unowned self] resourceID in
-        self.presentSheetMenu(
-          ResourceMenuViewController.self,
-          in: (
-            resourceID: resourceID,
-            showEdit: self.controller.presentResourceEdit,
-            showDeleteAlert: self.controller.presentDeleteResourceAlert
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.presentSheetMenu(
+            ResourceMenuViewController.self,
+            in: (
+              resourceID: resourceID,
+              showEdit: { [weak self] resourceID in
+                self?.controller.presentResourceEdit(resourceID)
+              },
+              showDeleteAlert: { [weak self] resourceID in self?.controller.presentDeleteResourceAlert(resourceID)
+              }
+            )
           )
-        )
+        }
       }
       .store(in: cancellables)
 
@@ -133,21 +138,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           .handleErrors(
             ([.canceled], handler: { _ in return true }),
             defaultHandler: { [weak self] error in
-              if let displayable: DisplayableString = error.displayableString {
-                self?.presentErrorSnackbar(displayable)
-              }
-              else {
-                self?.present(
-                  snackbar: Mutation<UICommons.PlainView>
-                    .snackBarErrorMessage(
-                      .localized(
-                        key: .genericError
-                      )
-                    )
-                    .instantiate(),
-                  hideAfter: 2
-                )
-              }
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           )
           .mapToVoid()
@@ -207,12 +198,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           .handleErrors(
             ([.canceled], handler: { _ in true /* NOP */ }),
             defaultHandler: { [weak self] error in
-              if let displayable: DisplayableString = error.displayableString {
-                self?.presentErrorSnackbar(displayable)
-              }
-              else {
-                self?.presentErrorSnackbar()
-              }
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           )
           .mapToVoid()
@@ -226,14 +212,15 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
     controller
       .resourceEditPresentationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [unowned self] resourceID in
-        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
-          self.push(
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+          await self?.push(
             ResourceEditViewController.self,
             in: (
               .existing(resourceID),
               completion: { [weak self] _ in
-                DispatchQueue.main.async {
+                self?.cancellables.executeOnMainActor { [weak self] in
                   self?.presentInfoSnackbar(
                     .localized("resource.menu.action.edited"),
                     presentationMode: .global
@@ -247,13 +234,15 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       .store(in: cancellables)
 
     controller.resourceDeleteAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [unowned self] resourceID in
-        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
-          self.present(
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(
+            SheetMenuViewController<ResourceMenuViewController>.self
+          )
+          await self?.present(
             ResourceDeleteAlert.self,
-            in: { [unowned self] in
-              self.controller.resourceDeletionPublisher(resourceID)
+            in: { [weak self] in
+              self?.controller.resourceDeletionPublisher(resourceID)
                 .receive(on: RunLoop.main)
                 .handleStart { [weak self] in
                   self?.present(
@@ -273,21 +262,15 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                     handler: { _ in true /* NOP */ }
                   ),
                   defaultHandler: { [weak self] error in
-                    if let displayable: DisplayableString = error.displayableString {
-                      self?.presentErrorSnackbar(displayable)
-                    }
-                    else {
-                      self?.presentErrorSnackbar()
-                    }
+                    self?.presentErrorSnackbar(error.displayableMessage)
                   }
                 )
                 .handleEnd { [weak self] ending in
-                  resourceDetailsCancellable = nil
+                  self?.resourceDetailsCancellable = nil
 
                   self?.dismissOverlay()
 
-                  guard case .finished = ending
-                  else { return }
+                  guard case .finished = ending else { return }
 
                   self?.presentInfoSnackbar(
                     .localized(key: "resource.menu.action.deleted"),
@@ -296,11 +279,12 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                     ],
                     presentationMode: .global
                   )
-
-                  self?.pop(if: Self.self)
+                  self?.cancellables.executeOnMainActor { [weak self] in
+                    await self?.pop(if: Self.self)
+                  }
                 }
                 .sinkDrop()
-                .store(in: cancellables)
+                .store(in: self?.cancellables)
             }
           )
         }

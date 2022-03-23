@@ -23,6 +23,7 @@
 
 import SwiftUI
 
+@MainActor
 public struct TextStyle: ViewModifier {
 
   fileprivate let font: Font
@@ -39,6 +40,7 @@ public struct TextStyle: ViewModifier {
 
 extension View {
 
+  @MainActor
   public func text(
     font: Font,
     color: Color? = .none

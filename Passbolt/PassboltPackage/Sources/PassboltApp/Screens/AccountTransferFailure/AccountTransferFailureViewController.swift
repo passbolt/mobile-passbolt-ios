@@ -62,7 +62,7 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
       )
 
     switch controller.failureReason() {
-    case .canceled:
+    case let error where (error is Cancelled || error.asLegacy.identifier == .canceled):
       contentView
         .applyOn(
           title: .text(displayable: .localized(key: "transfer.account.result.canceled.title"))
@@ -90,10 +90,11 @@ internal final class AccountTransferFailureViewController: PlainViewController, 
   private func setupSubscriptions() {
     controller
       .backPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
-          self?.pop(to: TransferInfoScreenViewController.self)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            await self?.pop(to: TransferInfoScreenViewController.self)
+          }
         },
         receiveValue: { _ in }
       )

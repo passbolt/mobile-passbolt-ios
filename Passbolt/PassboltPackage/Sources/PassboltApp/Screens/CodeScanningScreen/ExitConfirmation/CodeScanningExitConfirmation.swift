@@ -42,7 +42,9 @@ internal final class CodeScanningExitConfirmationViewController:
           .localized(key: "code.scanning.exit.confirmation.confirm.button.title"),
           style: .destructive,
           accessibilityIdentifier: "alert.button.exit",
-          handler: controller.exit
+          handler: { [weak self] in
+            self?.controller.exit()
+          }
         )
       )
     }
@@ -51,7 +53,7 @@ internal final class CodeScanningExitConfirmationViewController:
 
 internal struct CodeScanningExitConfirmationController {
 
-  internal var exit: () -> Void
+  internal var exit: @MainActor () -> Void
 }
 
 extension CodeScanningExitConfirmationController: UIController {
@@ -62,10 +64,16 @@ extension CodeScanningExitConfirmationController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
+  ) async throws -> Self {
+    let accountTransfer: AccountTransfer = try await features.instance()
+
+    func exit() {
+      cancellables.executeOnAccountSessionActor {
+        await accountTransfer.cancelTransfer()
+      }
+    }
     return Self(
-      exit: accountTransfer.cancelTransfer
+      exit: exit
     )
   }
 }

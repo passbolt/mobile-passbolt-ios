@@ -54,11 +54,11 @@ final class TOTPControllerTests: MainActorTestCase {
     pasteboard = nil
   }
 
-  func test_statusChangePublisher_doesNotPublish_initially() {
-    features.use(mfa)
-    features.use(pasteboard)
+  func test_statusChangePublisher_doesNotPublish_initially() async throws {
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: Void?
     controller
@@ -71,11 +71,11 @@ final class TOTPControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_statusChangePublisher_doesNotPublish_whenOTPIsShorterThanRequired() {
-    features.use(mfa)
-    features.use(pasteboard)
+  func test_statusChangePublisher_doesNotPublish_whenOTPIsShorterThanRequired() async throws {
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -90,15 +90,15 @@ final class TOTPControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_statusChangePublisher_publishLoading_whenOTPProcessingStarts() {
+  func test_statusChangePublisher_publishLoading_whenOTPProcessingStarts() async throws {
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheErrorLegacy>()
+      PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
-    features.use(pasteboard)
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -118,16 +118,16 @@ final class TOTPControllerTests: MainActorTestCase {
     }
   }
 
-  func test_statusChangePublisher_publishIdle_whenOTPProcessingFinishes() {
+  func test_statusChangePublisher_publishIdle_whenOTPProcessingFinishes() async throws {
     mfa.authorizeUsingTOTP = always(
       Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
-    features.use(pasteboard)
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -138,6 +138,9 @@ final class TOTPControllerTests: MainActorTestCase {
       .store(in: cancellables)
 
     controller.setOTP("123456")
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     if case .idle = result {
     }
@@ -146,15 +149,15 @@ final class TOTPControllerTests: MainActorTestCase {
     }
   }
 
-  func test_statusChangePublisher_publishError_whenOTPProcessingFails() {
+  func test_statusChangePublisher_publishError_whenOTPProcessingFails() async throws {
     mfa.authorizeUsingTOTP = always(
-      Fail(error: .testError())
+      Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
-    features.use(pasteboard)
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -166,22 +169,25 @@ final class TOTPControllerTests: MainActorTestCase {
 
     controller.setOTP("123456")
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case let .error(error) = result
     else { return XCTFail() }
-    XCTAssertEqual(error.identifier, .testError)
+    XCTAssertError(error, matches: MockIssue.self)
   }
 
-  func test_statusChangePublisher_publishError_whenPastingOTPWithInvalidCharacters() {
+  func test_statusChangePublisher_publishError_whenPastingOTPWithInvalidCharacters() async throws {
     pasteboard.get = always("123abc")
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheErrorLegacy>()
+      PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -195,20 +201,20 @@ final class TOTPControllerTests: MainActorTestCase {
 
     guard case let .error(error) = result
     else { return XCTFail() }
-    XCTAssertEqual(error.identifier, .invalidPasteValue)
+    XCTAssertError(error, matches: TheErrorLegacy.self, verification: { $0.identifier == .invalidPasteValue })
   }
 
-  func test_statusChangePublisher_publishError_whenPastingTooLongOTP() {
+  func test_statusChangePublisher_publishError_whenPastingTooLongOTP() async throws {
     pasteboard.get = always("123456789")
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheErrorLegacy>()
+      PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: TOTPController.StatusChange?
     controller
@@ -222,92 +228,98 @@ final class TOTPControllerTests: MainActorTestCase {
 
     guard case let .error(error) = result
     else { return XCTFail() }
-    XCTAssertEqual(error.identifier, .invalidPasteValue)
+    XCTAssertError(error, matches: TheErrorLegacy.self, verification: { $0.identifier == .invalidPasteValue })
   }
 
-  func test_setOTP_doesNotStartProcessing_whenOTPIsShorterThanRequired() {
+  func test_setOTP_doesNotStartProcessing_whenOTPIsShorterThanRequired() async throws {
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheErrorLegacy>()
+      return PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     }
-    features.use(mfa)
-    features.use(pasteboard)
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     controller.setOTP("12345")
 
     XCTAssertNil(result)
   }
 
-  func test_setOTP_startsProcessing_whenOTPMeetsRequirements() {
+  func test_setOTP_startsProcessing_whenOTPMeetsRequirements() async throws {
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheErrorLegacy>()
+      return PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     }
-    features.use(mfa)
-    features.use(pasteboard)
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     controller.setOTP("123456")
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
 
-  func test_pasteOTP_doesNotStartProcessing_whenPastedOTPIsShorterThanRequired() {
+  func test_pasteOTP_doesNotStartProcessing_whenPastedOTPIsShorterThanRequired() async throws {
     pasteboard.get = always("12345")
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheErrorLegacy>()
+      return PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     }
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     controller.pasteOTP()
 
     XCTAssertNil(result)
   }
 
-  func test_pasteOTP_startsProcessing_whenPastedOTPMeetsRequirements() {
+  func test_pasteOTP_startsProcessing_whenPastedOTPMeetsRequirements() async throws {
     pasteboard.get = always("123456")
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     var result: Void?
     mfa.authorizeUsingTOTP = { _, _ in
       result = Void()
-      return PassthroughSubject<Void, TheErrorLegacy>()
+      return PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     }
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     controller.pasteOTP()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
 
-  func test_pasteOTP_doesNotChangeOTP_whenPastedOTPHasInvalidCharacters() {
+  func test_pasteOTP_doesNotChangeOTP_whenPastedOTPHasInvalidCharacters() async throws {
     pasteboard.get = always("123abc")
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheErrorLegacy>()
+      PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: String?
     controller
@@ -322,17 +334,17 @@ final class TOTPControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "")
   }
 
-  func test_pasteOTP_doesNotChangeOTP_whenPastedOTPIsTooLong() {
+  func test_pasteOTP_doesNotChangeOTP_whenPastedOTPIsTooLong() async throws {
     pasteboard.get = always("123456789")
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, TheErrorLegacy>()
+      PassthroughSubject<Void, Error>()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: String?
     controller
@@ -347,11 +359,11 @@ final class TOTPControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "")
   }
 
-  func test_rememberDevicePublisher_publishesTrue_initially() {
-    features.use(mfa)
-    features.use(pasteboard)
+  func test_rememberDevicePublisher_publishesTrue_initially() async throws {
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: Bool?
     controller
@@ -364,11 +376,11 @@ final class TOTPControllerTests: MainActorTestCase {
     XCTAssertEqual(result, true)
   }
 
-  func test_toggleRememberDevice_togglesRememberDevice() {
-    features.use(mfa)
-    features.use(pasteboard)
+  func test_toggleRememberDevice_togglesRememberDevice() async throws {
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: Bool?
     controller
@@ -383,11 +395,11 @@ final class TOTPControllerTests: MainActorTestCase {
     XCTAssertEqual(result, false)
   }
 
-  func test_otpPublisher_publishesEmptyString_initially() {
-    features.use(mfa)
-    features.use(pasteboard)
+  func test_otpPublisher_publishesEmptyString_initially() async throws {
+    await features.use(mfa)
+    await features.use(pasteboard)
 
-    let controller: TOTPController = testController()
+    let controller: TOTPController = try await testController()
 
     var result: String?
     controller

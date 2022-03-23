@@ -35,13 +35,13 @@ import Dispatch
 
 public struct AccountTransfer {
   // Publishes progess, finishes when process is completed or fails if it becomes interrupted.
-  public var progressPublisher: () -> AnyPublisher<Progress, TheErrorLegacy>
-  public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, TheErrorLegacy>
-  public var processPayload: (String) -> AnyPublisher<Never, TheErrorLegacy>
-  public var completeTransfer: (Passphrase) -> AnyPublisher<Never, TheErrorLegacy>
-  public var avatarPublisher: () -> AnyPublisher<Data, TheErrorLegacy>
-  public var cancelTransfer: () -> Void
-  public var featureUnload: () -> Bool
+  public var progressPublisher: () -> AnyPublisher<Progress, Error>
+  public var accountDetailsPublisher: () -> AnyPublisher<AccountDetails, Error>
+  public var processPayload: @StorageAccessActor (String) -> AnyPublisher<Never, Error>
+  public var completeTransfer: @StorageAccessActor (Passphrase) -> AnyPublisher<Never, Error>
+  public var avatarPublisher: () -> AnyPublisher<Data, Error>
+  public var cancelTransfer: @StorageAccessActor () -> Void
+  public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
 extension AccountTransfer {
@@ -60,22 +60,22 @@ extension AccountTransfer: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> AccountTransfer {
-    let diagnostics: Diagnostics = features.instance()
+  ) async throws -> AccountTransfer {
+    let diagnostics: Diagnostics = try await features.instance()
     diagnostics.diagnosticLog("Beginning new account transfer...")
     #if DEBUG
-    let mdmSupport: MDMSupport = features.instance()
+    let mdmSupport: MDMSupport = try await features.instance()
     #endif
-    let networkClient: NetworkClient = features.instance()
-    let accounts: Accounts = features.instance()
-    let transferState: CurrentValueSubject<AccountTransferState, TheErrorLegacy> = .init(.init())
+    let networkClient: NetworkClient = try await features.instance()
+    let accounts: Accounts = try await features.instance()
+    let transferState: CurrentValueSubject<AccountTransferState, Error> = .init(.init())
     var transferCancelationCancellable: AnyCancellable?
     _ = transferCancelationCancellable  // silence warning
 
     #if DEBUG
     if let mdmTransferedAccount: MDMSupport.TransferedAccount = mdmSupport.transferedAccount() {
       let accountAlreadyStored: Bool =
-        accounts
+        await accounts
         .storedAccounts()
         .contains(
           where: { stored in
@@ -124,7 +124,7 @@ extension AccountTransfer: Feature {
     }
     #endif
 
-    let progressPublisher: AnyPublisher<Progress, TheErrorLegacy> =
+    let progressPublisher: AnyPublisher<Progress, Error> =
       transferState
       .map { state -> Progress in
         if state.scanningFinished {
@@ -143,7 +143,7 @@ extension AccountTransfer: Feature {
       .collectErrorLog(using: diagnostics)
       .eraseToAnyPublisher()
 
-    let accountDetailsPublisher: AnyPublisher<AccountDetails, TheErrorLegacy> =
+    let accountDetailsPublisher: AnyPublisher<AccountDetails, Error> =
       transferState
       .compactMap { state in
         guard
@@ -159,7 +159,7 @@ extension AccountTransfer: Feature {
       }
       .eraseToAnyPublisher()
 
-    let mediaPublisher: AnyPublisher<Data, TheErrorLegacy> =
+    let mediaPublisher: AnyPublisher<Data, Error> =
       transferState
       .compactMap { $0.profile }
       .map {
@@ -170,16 +170,16 @@ extension AccountTransfer: Feature {
               urlString: $0.avatarImageURL
             )
           )
-          .mapErrorsToLegacy()
+          .eraseErrorType()
       }
       .switchToLatest()
       .eraseToAnyPublisher()
 
     // swift-format-ignore: NoLeadingUnderscores
-    func _processPayload(
+    @StorageAccessActor func _processPayload(
       _ payload: String,
       using features: FeatureFactory
-    ) -> AnyPublisher<Never, TheErrorLegacy> {
+    ) -> AnyPublisher<Never, Error> {
       diagnostics.diagnosticLog("Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
       case var .success(updatedState):
@@ -218,10 +218,11 @@ extension AccountTransfer: Feature {
                   AccountDuplicate
                     .error("Duplicate account used for account transfer")
                     .recording(configuration, for: "configuration")
-                    .asLegacy
                 )
               )
-              features.unload(Self.self)
+              cancellables.executeOnFeaturesActor {
+                try await features.unload(Self.self)
+              }
             })
             .ignoreOutput()
             .sink(receiveCompletion: { _ in })
@@ -232,7 +233,6 @@ extension AccountTransfer: Feature {
                 AccountDuplicate
                 .error("Duplicate account used for account transfer")
                 .recording(configuration, for: "configuration")
-                .asLegacy
             )
             .eraseToAnyPublisher()
           }
@@ -243,13 +243,15 @@ extension AccountTransfer: Feature {
             transferState
               .send(
                 completion: .failure(
-                  .accountTransferScanningError(
+                  TheErrorLegacy.accountTransferScanningError(
                     context: "account-transfer-complete-missing-profile"
                   )
                 )
               )
-            features.unload(Self.self)
-            return Empty<Never, TheErrorLegacy>()
+            cancellables.executeOnFeaturesActor {
+              try await features.unload(Self.self)
+            }
+            return Empty<Never, Error>()
               .eraseToAnyPublisher()
           }
 
@@ -290,16 +292,16 @@ extension AccountTransfer: Feature {
           .eraseToAnyPublisher()
         }
       case let .failure(error)
-      where error.identifier == .canceled:
+      where error.asLegacy.identifier == .canceled:
         diagnostics.diagnosticLog("...processing canceled!")
-        return Fail<Never, TheErrorLegacy>(error: error)
+        return Fail<Never, Error>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
       case let .failure(error)
-      where error.identifier == .accountTransferScanningRecoverableError:
+      where error.asLegacy.identifier == .accountTransferScanningRecoverableError:
         diagnostics.diagnosticLog("...processing failed, recoverable!")
-        return Fail<Never, TheErrorLegacy>(error: error)
+        return Fail<Never, Error>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
@@ -316,7 +318,9 @@ extension AccountTransfer: Feature {
             guard case let .failure(error) = completion
             else { unreachable("Cannot complete without an error when processing error") }
             transferState.send(completion: .failure(error))
-            features.unload(Self.self)
+            cancellables.executeOnFeaturesActor {
+              try await features.unload(Self.self)
+            }
           })
           .ignoreOutput()  // we care only about completion or failure
           .collectErrorLog(using: diagnostics)
@@ -324,19 +328,21 @@ extension AccountTransfer: Feature {
         }
         else {  // we can't cancel if we don't have configuration yet
           transferState.send(completion: .failure(error))
-          features.unload(Self.self)
-          return Fail<Never, TheErrorLegacy>(error: error)
+          cancellables.executeOnFeaturesActor {
+            try await features.unload(Self.self)
+          }
+          return Fail<Never, Error>(error: error)
             .collectErrorLog(using: diagnostics)
             .eraseToAnyPublisher()
         }
       }
     }
 
-    let processPayload: (String) -> AnyPublisher<Never, TheErrorLegacy> = { [unowned features] payload in
+    let processPayload: @StorageAccessActor (String) -> AnyPublisher<Never, Error> = { [unowned features] payload in
       _processPayload(payload, using: features)
     }
 
-    func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, TheErrorLegacy> {
+    @StorageAccessActor func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, Error> {
       diagnostics.diagnosticLog("Completing account transfer...")
       guard
         let configuration = transferState.value.configuration,
@@ -344,8 +350,8 @@ extension AccountTransfer: Feature {
         let profile = transferState.value.profile
       else {
         diagnostics.diagnosticLog("...missing required data!")
-        return Fail<Never, TheErrorLegacy>(
-          error: .accountTransferScanningRecoverableError(
+        return Fail<Never, Error>(
+          error: TheErrorLegacy.accountTransferScanningRecoverableError(
             context: "account-transfer-complete-invalid-state"
           )
         )
@@ -365,17 +371,21 @@ extension AccountTransfer: Feature {
           passphrase
         )
         .handleEvents(receiveCompletion: {
-          [weak features] (completion: Subscribers.Completion<TheErrorLegacy>) -> Void in
+          [weak features] (completion: Subscribers.Completion<Error>) -> Void in
           switch completion {
           case .finished:
             diagnostics.diagnosticLog("...account transfer succeeded!")
             transferState.send(completion: .finished)
-            features?.unload(Self.self)
+            cancellables.executeOnFeaturesActor {
+              try await features?.unload(Self.self)
+            }
           case let .failure(error)
-          where error.legacyBridge is AccountDuplicate:
+          where error.asLegacy.legacyBridge is AccountDuplicate:
             diagnostics.diagnosticLog("...account transfer failed!")
             transferState.send(completion: .failure(error))
-            features?.unload(Self.self)
+            cancellables.executeOnFeaturesActor {
+              try await features?.unload(Self.self)
+            }
 
           case .failure:
             diagnostics.diagnosticLog("...account transfer failed!")
@@ -387,7 +397,7 @@ extension AccountTransfer: Feature {
     }
 
     // swift-format-ignore: NoLeadingUnderscores
-    func _cancelTransfer(using features: FeatureFactory) {
+    @StorageAccessActor func _cancelTransfer(using features: FeatureFactory) {
       if let configuration: AccountTransferConfiguration = transferState.value.configuration,
         !transferState.value.scanningFinished
       {
@@ -404,29 +414,20 @@ extension AccountTransfer: Feature {
       }
       transferState.send(
         completion: .failure(
-          .canceled.appending(context: "account-transfer-scanning-cancel")
+          TheErrorLegacy.canceled.appending(context: "account-transfer-scanning-cancel")
         )
       )
-      features.unload(Self.self)
+      cancellables.executeOnFeaturesActor {
+        try await features.unload(Self.self)
+      }
     }
-    let cancelTransfer: () -> Void = { [unowned features] in
+    let cancelTransfer: @StorageAccessActor () -> Void = { [unowned features] in
       _cancelTransfer(using: features)
     }
 
-    func featureUnload() -> Bool {
+    @FeaturesActor func featureUnload() async throws {
       diagnostics.diagnosticLog("...account transfer process closed!")
-      #if DEBUG
-      _ =
-        progressPublisher
-        .receive(on: ImmediateScheduler.shared)
-        .sink(
-          receiveCompletion: { _ in /* expected */ },
-          receiveValue: { _ in
-            assertionFailure("\(Self.self) has to have finished (either completed or canceled) scanning to be unloaded")
-          }
-        )
-      #endif
-      return true  // we should unload this feature after use and it always succeeds
+      // we should unload this feature after use and it always succeeds
     }
 
     return Self(
@@ -459,12 +460,12 @@ extension AccountTransfer: Feature {
 private func processQRCodePayload(
   _ rawPayload: String,
   in state: AccountTransferState
-) -> Result<AccountTransferState, TheErrorLegacy> {
+) -> Result<AccountTransferState, Error> {
   // If state is completed (transferFinished) then we don't expect any next page
   guard let expectedPage: Int = state.nextScanningPage
   else {
     return .failure(
-      .canceled
+      TheErrorLegacy.canceled
         .appending(context: "account-transfer-scanning-unexpected-page")
         .appending(logMessage: "Processing unexpected page - ignored")
     )
@@ -481,7 +482,7 @@ private func processQRCodePayload(
 private func decodeQRCodePart(
   _ rawPayload: String,
   expectedPage: Int
-) -> Result<AccountTransferScanningPart, TheErrorLegacy> {
+) -> Result<AccountTransferScanningPart, Error> {
   switch AccountTransferScanningPart.from(qrCode: rawPayload) {
   case let .success(part):
     // Verify if decoded page number is the same as expected
@@ -491,7 +492,7 @@ private func decodeQRCodePart(
     else if part.page == expectedPage - 1 {
       // if we still get previous page we ignore it
       return .failure(
-        .canceled
+        TheErrorLegacy.canceled
           .appending(
             context: "account-transfer-scanning-repeated-page"
           )
@@ -502,7 +503,7 @@ private func decodeQRCodePart(
     }
     else {
       return .failure(
-        .accountTransferScanningError(
+        TheErrorLegacy.accountTransferScanningError(
           context: "decoding-invalid-page"
         )
         .appending(
@@ -519,7 +520,7 @@ private func decodeQRCodePart(
 private func updated(
   state: AccountTransferState,
   with part: AccountTransferScanningPart
-) -> Result<AccountTransferState, TheErrorLegacy> {
+) -> Result<AccountTransferState, Error> {
   var state: AccountTransferState = state  // make state mutable in scope
   state.scanningParts.append(part)
 
@@ -538,7 +539,7 @@ private func updated(
       guard let hash = state.configuration?.hash, !hash.isEmpty
       else {
         return .failure(
-          .accountTransferScanningError(context: "missing-configuration-or-hash")
+          TheErrorLegacy.accountTransferScanningError(context: "missing-configuration-or-hash")
             .appending(logMessage: "Missing verification hash")
         )
       }
@@ -562,11 +563,11 @@ private func updated(
 private func requestNextPage(
   for state: AccountTransferState,
   using networkClient: NetworkClient
-) -> AnyPublisher<Never, TheErrorLegacy> {
+) -> AnyPublisher<Never, Error> {
   guard let configuration: AccountTransferConfiguration = state.configuration
   else {
-    return Fail<Never, TheErrorLegacy>(
-      error: .accountTransferScanningError(context: "next-page-request-missing-configuration")
+    return Fail<Never, Error>(
+      error: TheErrorLegacy.accountTransferScanningError(context: "next-page-request-missing-configuration")
         .appending(logMessage: "Missing account transfer configuration")
     )
     .eraseToAnyPublisher()
@@ -585,20 +586,20 @@ private func requestNextPage(
         requestUserProfile: false
       )
     )
-    .mapErrorsToLegacy()
+    .eraseErrorType()
     .ignoreOutput()
-    .mapError { $0.appending(context: "next-page-request") }
+    .mapError { $0.asLegacy.appending(context: "next-page-request") }
     .eraseToAnyPublisher()
 }
 
 private func requestNextPageWithUserProfile(
   for state: AccountTransferState,
   using networkClient: NetworkClient
-) -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheErrorLegacy> {
+) -> AnyPublisher<AccountTransferUpdateResponseBody.User, Error> {
   guard let configuration: AccountTransferConfiguration = state.configuration
   else {
-    return Fail<AccountTransferUpdateResponseBody.User, TheErrorLegacy>(
-      error: .accountTransferScanningError(context: "next-page-request-missing-configuration")
+    return Fail<AccountTransferUpdateResponseBody.User, Error>(
+      error: TheErrorLegacy.accountTransferScanningError(context: "next-page-request-missing-configuration")
         .appending(logMessage: "Missing account transfer configuration")
     )
     .eraseToAnyPublisher()
@@ -617,23 +618,23 @@ private func requestNextPageWithUserProfile(
         requestUserProfile: true
       )
     )
-    .mapErrorsToLegacy()
-    .map { response -> AnyPublisher<AccountTransferUpdateResponseBody.User, TheErrorLegacy> in
+    .eraseErrorType()
+    .map { response -> AnyPublisher<AccountTransferUpdateResponseBody.User, Error> in
       if let user: AccountTransferUpdateResponseBody.User = response.body.user {
         return Just(user)
-          .setFailureType(to: TheErrorLegacy.self)
+          .eraseErrorType()
           .eraseToAnyPublisher()
       }
       else {
-        return Fail<AccountTransferUpdateResponseBody.User, TheErrorLegacy>(
-          error: .accountTransferScanningError(context: "next-page-request-missing-user-profile")
+        return Fail<AccountTransferUpdateResponseBody.User, Error>(
+          error: TheErrorLegacy.accountTransferScanningError(context: "next-page-request-missing-user-profile")
             .appending(logMessage: "Missing user profile data")
         )
         .eraseToAnyPublisher()
       }
     }
     .switchToLatest()
-    .mapError { $0.appending(context: "next-page-request") }
+    .mapError { $0.asLegacy.appending(context: "next-page-request") }
     .eraseToAnyPublisher()
 }
 
@@ -641,9 +642,9 @@ private func requestCancelation(
   with configuration: AccountTransferConfiguration,
   lastPage: Int,
   using networkClient: NetworkClient,
-  causedByError error: TheErrorLegacy? = nil
-) -> AnyPublisher<Never, TheErrorLegacy> {
-  let responsePublisher: AnyPublisher<Void, TheErrorLegacy> = networkClient
+  causedByError error: Error? = nil
+) -> AnyPublisher<Never, Error> {
+  let responsePublisher: AnyPublisher<Void, Error> = networkClient
     .accountTransferUpdate
     .make(
       using: AccountTransferUpdateRequestVariable(
@@ -655,13 +656,13 @@ private func requestCancelation(
         requestUserProfile: false
       )
     )
-    .mapErrorsToLegacy()
+    .eraseErrorType()
     .mapToVoid()
     .eraseToAnyPublisher()
-  if let error: TheErrorLegacy = error {
+  if let error: Error = error {
     return
       responsePublisher
-      .flatMap { _ in Fail<Void, TheErrorLegacy>(error: error) }
+      .flatMap { _ in Fail<Void, Error>(error: error) }
       .ignoreOutput()
       .eraseToAnyPublisher()
   }
@@ -670,7 +671,7 @@ private func requestCancelation(
       responsePublisher
       .ignoreOutput()
       .mapError { error in
-        error.appending(context: "account-transfer-scanning-cancelation-request")
+        error.asLegacy.appending(context: "account-transfer-scanning-cancelation-request")
       }
       .eraseToAnyPublisher()
   }

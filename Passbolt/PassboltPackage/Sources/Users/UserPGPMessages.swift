@@ -31,12 +31,12 @@ public struct UserPGPMessages {
 
   // Encrypt PGP message for given user by fetching that user public key from the server.
   // Automatically verifies public key for current user based on the local storage.
-  public var encryptMessageForUser: (User.ID, String) -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy>
+  public var encryptMessageForUser: @AccountSessionActor (User.ID, String) -> AnyPublisher<ArmoredPGPMessage, Error>
   // Encrypt PGP message for each user with permission to the resource with given id
   // by fetching users public keys associated with resource from the server.
   // Automatically verifies public key for current user based on the local storage.
   public var encryptMessageForResourceUsers:
-    (Resource.ID, String) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheErrorLegacy>
+    @AccountSessionActor (Resource.ID, String) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, Error>
 }
 
 extension UserPGPMessages: Feature {
@@ -45,37 +45,37 @@ extension UserPGPMessages: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
     let pgp: PGP = environment.pgp
-    let accountSession: AccountSession = features.instance()
-    let networkClient: NetworkClient = features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
-    func verifiedPublicKey(
+    @AccountSessionActor func verifiedPublicKey(
       _ userID: User.ID,
       publicKey: ArmoredPGPPublicKey
-    ) -> AnyPublisher<ArmoredPGPPublicKey, TheErrorLegacy> {
+    ) -> AnyPublisher<ArmoredPGPPublicKey, Error> {
       #warning("Currently we can verify only own public key, we might add other users keys verification in the future.")
       return
         accountSession
         .statePublisher()
         .first()
-        .map { accountSessionState -> AnyPublisher<ArmoredPGPPublicKey, TheErrorLegacy> in
+        .map { accountSessionState -> AnyPublisher<ArmoredPGPPublicKey, Error> in
           switch accountSessionState {
           case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
             if account.userID.rawValue == userID.rawValue {
               if (try? pgp.verifyPublicKeyFingerprint(publicKey, account.fingerprint).get()) ?? false {
                 return Just(publicKey)
-                  .setFailureType(to: TheErrorLegacy.self)
+                  .eraseErrorType()
                   .eraseToAnyPublisher()
               }
               else {
-                return Fail(error: .invalidUserPublicKey())
+                return Fail(error: TheErrorLegacy.invalidUserPublicKey())
                   .eraseToAnyPublisher()
               }
             }
             else {
               return Just(publicKey)
-                .setFailureType(to: TheErrorLegacy.self)
+                .eraseErrorType()
                 .eraseToAnyPublisher()
             }
 
@@ -84,7 +84,6 @@ extension UserPGPMessages: Feature {
               error:
                 SessionMissing
                 .error("No session provided for verifying public key")
-                .asLegacy
             )
             .eraseToAnyPublisher()
           }
@@ -93,18 +92,18 @@ extension UserPGPMessages: Feature {
         .eraseToAnyPublisher()
     }
 
-    func encryptMessageForUser(
+    @AccountSessionActor func encryptMessageForUser(
       _ userID: User.ID,
       message: String
-    ) -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> {
+    ) -> AnyPublisher<ArmoredPGPMessage, Error> {
       networkClient
         .userProfileRequest
         .make(using: .init(userID: userID.rawValue))
         .map(\.body)
-        .mapErrorsToLegacy()
-        .map { user -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> in
+        .eraseErrorType()
+        .map { user -> AnyPublisher<ArmoredPGPMessage, Error> in
           verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
-            .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> in
+            .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, Error> in
               accountSession
                 .encryptAndSignMessage(message, armoredPublicKey)
             }
@@ -115,21 +114,21 @@ extension UserPGPMessages: Feature {
         .eraseToAnyPublisher()
     }
 
-    func encryptMessageForResourceUsers(
+    @AccountSessionActor func encryptMessageForResourceUsers(
       _ resourceID: Resource.ID,
       message: String
-    ) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheErrorLegacy> {
+    ) -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, Error> {
       networkClient
         .userListRequest
         .make(using: .init(resourceIDFilter: resourceID.rawValue))
         .map(\.body)
-        .mapErrorsToLegacy()
-        .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheErrorLegacy> in
+        .eraseErrorType()
+        .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, Error> in
           Publishers.MergeMany(
             users
-              .map { user -> AnyPublisher<(User.ID, ArmoredPGPMessage), TheErrorLegacy> in
+              .map { user -> AnyPublisher<(User.ID, ArmoredPGPMessage), Error> in
                 verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
-                  .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, TheErrorLegacy> in
+                  .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, Error> in
                     accountSession
                       .encryptAndSignMessage(message, armoredPublicKey)
                   }
@@ -156,7 +155,7 @@ extension UserPGPMessages: Feature {
 
 extension UserPGPMessages {
 
-  public var featureUnload: () -> Bool { { true } }
+  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
 }
 
 #if DEBUG

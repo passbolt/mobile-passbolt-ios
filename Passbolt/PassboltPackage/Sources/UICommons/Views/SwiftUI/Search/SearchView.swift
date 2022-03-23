@@ -24,6 +24,7 @@
 import Commons
 import SwiftUI
 
+@MainActor
 public struct SearchView<LeftAccessoryView, RightAccessoryView>: View
 where LeftAccessoryView: View, RightAccessoryView: View {
 
@@ -65,7 +66,8 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           .frame(maxWidth: 48, maxHeight: 48)
       }
 
-      ZStack {
+      if let prompt: DisplayableString = self.prompt
+      {
         SwiftUI.TextField(
           "",  // Empty, we don't use this label at all
           text: self.$text.value,
@@ -76,28 +78,75 @@ where LeftAccessoryView: View, RightAccessoryView: View {
             self.isEditing = false
           }
         )
-        .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
-
-        if let prompt: DisplayableString = self.prompt,
-          !self.isEditing,
-          self.text.value.isEmpty
-        {
-          Text(displayable: prompt)
+        .contentShape(Rectangle())
+        .padding(
+          top: 8,
+          bottom: 8
+        )
+        .frame(maxWidth: .infinity, maxHeight: 48)
+        .overlay(
+          (!self.isEditing && self.text.value.isEmpty)
+          ?
+          AnyView(Text(displayable: prompt)
             .foregroundColor(.passboltSecondaryText)
-            .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: 20, alignment: .leading)
             .allowsHitTesting(false)
-        }  // else { /* NOP */ }
+           )
+          : AnyView(EmptyView())
+
+        )
       }
-      .padding(
-        top: 8,
-        bottom: 8
-      )
-      .frame(maxWidth: .infinity, maxHeight: 48)
-      .contentShape(Rectangle())
+      else {
+        SwiftUI.TextField(
+          "",  // Empty, we don't use this label at all
+          text: self.$text.value,
+          onEditingChanged: { changed in
+            self.isEditing = changed
+          },
+          onCommit: {
+            self.isEditing = false
+          }
+        )
+        .contentShape(Rectangle())
+        .padding(
+          top: 8,
+          bottom: 8
+        )
+        .frame(maxWidth: .infinity, maxHeight: 48)
+      }
+
+      //      ZStack {
+      //        SwiftUI.TextField(
+      //          "",  // Empty, we don't use this label at all
+      //          text: self.$text.value,
+      //          onEditingChanged: { changed in
+      //            self.isEditing = changed
+      //          },
+      //          onCommit: {
+      //            self.isEditing = false
+      //          }
+      //        )
+      //        .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
+      //
+      //        if let prompt: DisplayableString = self.prompt,
+      //          !self.isEditing,
+      //          self.text.value.isEmpty
+      //        {
+      //          Text(displayable: prompt)
+      //            .foregroundColor(.passboltSecondaryText)
+      //            .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
+      //            .allowsHitTesting(false)
+      //        }  // else { /* NOP */ }
+      //      }
+      //      .padding(
+      //        top: 8,
+      //        bottom: 8
+      //      )
+      //      .frame(maxWidth: .infinity, maxHeight: 48)
+      //      .contentShape(Rectangle())
 
       if !self.isEditing, self.text.value.isEmpty {
         rightAccessory()
-          .aspectRatio(1, contentMode: .fit)
           .padding(
             top: 8,
             bottom: 8
@@ -107,16 +156,25 @@ where LeftAccessoryView: View, RightAccessoryView: View {
       else {
         Button(
           action: {
-            self.text.value = ""
+            if self.text.value.isEmpty {
+              // end editing
+              // will be removed when switching
+              // to iOS 15 as minumal target
+              UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+            else {
+              self.text.value = ""
+            }
           },
           label: {
             ImageWithPadding(
               12,
               named: .close
             )
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: 48, maxHeight: 48)
           }
         )
-        .frame(maxWidth: 48, maxHeight: 48)
       }
     }
     .font(.inter(ofSize: 14, weight: .regular))
@@ -131,6 +189,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
             : Color.passboltDivider,
           lineWidth: 1
         )
+        .allowsHitTesting(false)
     )
   }
 }
@@ -182,6 +241,7 @@ extension SearchView where LeftAccessoryView == ImageWithPadding, RightAccessory
   }
 }
 
+@MainActor
 private func defaultSearchImage() -> ImageWithPadding {
   ImageWithPadding(
     4,

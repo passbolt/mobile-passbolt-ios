@@ -26,13 +26,13 @@ import UIComponents
 internal struct ErrorController {
 
   internal var signOutAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var retry: () -> AnyPublisher<Void?, Never>
-  internal var presentSignOut: () -> Void
+  internal var retry: @MainActor () async throws -> Void
+  internal var presentSignOut: @MainActor () -> Void
 }
 
 extension ErrorController: UIController {
 
-  internal typealias Context = () -> AnyPublisher<Void, TheErrorLegacy>
+  internal typealias Context = () async throws -> Void
 
   internal static func instance(
     in context: @escaping Context,
@@ -41,20 +41,15 @@ extension ErrorController: UIController {
   ) -> ErrorController {
     let signOutPresentationSubject: PassthroughSubject<Void, Never> = .init()
 
-    func signOutAlertPresentationPublisher() -> AnyPublisher<Void, Never> {
+    nonisolated func signOutAlertPresentationPublisher() -> AnyPublisher<Void, Never> {
       signOutPresentationSubject.eraseToAnyPublisher()
     }
 
-    func retry() -> AnyPublisher<Void?, Never> {
-      context()
-        .map { input -> Void? in
-          input
-        }
-        .replaceError(with: nil)
-        .eraseToAnyPublisher()
+    @MainActor func retry() async throws {
+      try await context()
     }
 
-    func presentSignOut() {
+    @MainActor func presentSignOut() {
       signOutPresentationSubject.send()
     }
 

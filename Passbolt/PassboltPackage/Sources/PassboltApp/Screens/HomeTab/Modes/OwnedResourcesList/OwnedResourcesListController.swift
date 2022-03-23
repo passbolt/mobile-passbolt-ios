@@ -29,8 +29,8 @@ import struct Foundation.Data
 
 internal struct OwnedResourcesListController {
 
-  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
-  internal var setSearchText: (String) -> Void
+  internal var resourcesFilterPublisher: @MainActor () -> AnyPublisher<ResourcesFilter, Never>
+  internal var setSearchText: @MainActor (String) -> Void
 }
 
 extension OwnedResourcesListController: UIController {

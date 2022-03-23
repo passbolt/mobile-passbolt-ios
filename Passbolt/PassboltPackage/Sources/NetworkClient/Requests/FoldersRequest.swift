@@ -35,7 +35,7 @@ extension FoldersRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> AuthorizedNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -55,7 +55,7 @@ extension FoldersRequest {
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }
@@ -71,6 +71,7 @@ public struct FoldersRequestResponseBodyItem: Decodable {
   public var id: String
   public var name: String
   public var permission: Permission
+  public var shared: Bool
   public var parentFolderID: String?
 
   public init(
@@ -83,6 +84,7 @@ public struct FoldersRequestResponseBodyItem: Decodable {
 
     let permissionContainer = try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
     self.permission = try permissionContainer.decode(Permission.self, forKey: .type)
+    self.shared = try !container.decode(Bool.self, forKey: .personal)
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -91,6 +93,7 @@ public struct FoldersRequestResponseBodyItem: Decodable {
     case name = "name"
     case parentFolderID = "folder_parent_id"
     case permission = "permission"
+    case personal = "personal"
   }
 
   private enum PermissionCodingKeys: String, CodingKey {

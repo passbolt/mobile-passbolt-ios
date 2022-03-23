@@ -98,19 +98,24 @@ internal final class OwnedResourcesListViewController: PlainViewController, UICo
   }
 
   private func setupContentView() {
-    addChild(
-      HomeSearchViewController.self,
-      in: self.controller.setSearchText,
-      viewSetup: { parentView, childView in
-        parentView.setFiltersView(childView)
-      }
-    )
-    addChild(
-      ResourcesListViewController.self,
-      in: controller.resourcesFilterPublisher(),
-      viewSetup: { parentView, childView in
-        parentView.setResourcesView(childView)
-      }
-    )
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.addChild(
+        HomeSearchViewController.self,
+        in: { [weak self] text in
+          self?.controller.setSearchText(text)
+        },
+        viewSetup: { parentView, childView in
+          parentView.setFiltersView(childView)
+        }
+      )
+      await self.addChild(
+        ResourcesListViewController.self,
+        in: self.controller.resourcesFilterPublisher(),
+        viewSetup: { parentView, childView in
+          parentView.setResourcesView(childView)
+        }
+      )
+    }
   }
 }

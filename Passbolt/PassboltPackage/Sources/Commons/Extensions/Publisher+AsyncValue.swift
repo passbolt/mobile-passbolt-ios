@@ -44,20 +44,3 @@ extension Publisher {
     }
   }
 }
-
-extension Task {
-
-  public func asPublisher() -> AnyPublisher<Success, Error> {
-    Future<Success, Error> { promise in
-      Task<Void, Never> {
-        do {
-          try await promise(.success(self.value))
-        }
-        catch {
-          promise(.failure(error))
-        }
-      }
-    }
-    .eraseToAnyPublisher()
-  }
-}

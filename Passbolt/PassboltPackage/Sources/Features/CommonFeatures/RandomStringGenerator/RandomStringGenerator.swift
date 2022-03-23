@@ -51,7 +51,7 @@ extension RandomStringGenerator: Feature {
 
     var randomness: Randomness = environment.randomness
 
-    func entropy(
+    nonisolated func entropy(
       password: String,
       alphabets: Set<Set<Character>>
     ) -> Entropy {
@@ -75,7 +75,7 @@ extension RandomStringGenerator: Feature {
       return .init(rawValue: Double(password.count) * (log(Double(usedAlphabet.count)) / log(2)))
     }
 
-    func generate(
+    nonisolated func generate(
       from alphabets: Set<Set<Character>>,
       minLength: Int,
       with targetEntropy: Entropy
@@ -108,7 +108,7 @@ extension RandomStringGenerator: Feature {
 
 extension RandomStringGenerator {
 
-  public var featureUnload: () -> Bool { { true } }
+  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
 }
 
 #if DEBUG

@@ -25,8 +25,8 @@ import Features
 
 public struct MFA {
 
-  public var authorizeUsingYubikey: (Bool) -> AnyPublisher<Void, TheErrorLegacy>
-  public var authorizeUsingTOTP: (String, Bool) -> AnyPublisher<Void, TheErrorLegacy>
+  public var authorizeUsingYubikey: @AccountSessionActor (Bool) -> AnyPublisher<Void, Error>
+  public var authorizeUsingTOTP: @AccountSessionActor (String, Bool) -> AnyPublisher<Void, Error>
 }
 
 extension MFA: Feature {
@@ -35,25 +35,28 @@ extension MFA: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> MFA {
-
+  ) async throws -> MFA {
     let yubikey: Yubikey = environment.yubikey
-    let accountSession: AccountSession = features.instance()
+    let accountSession: AccountSession = try await features.instance()
 
-    func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
+    @AccountSessionActor func authorizeUsingYubikey(saveLocally: Bool) -> AnyPublisher<Void, Error> {
       return
         yubikey
         .readNFC()
-        .mapErrorsToLegacy()
+        .eraseErrorType()
         .map { otp in
-          accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
+          cancellables.executeOnAccountSessionActorWithPublisher {
+            try await accountSession.mfaAuthorize(.yubikeyOTP(otp), saveLocally)
+          }
         }
         .switchToLatest()
         .eraseToAnyPublisher()
     }
 
-    func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
-      accountSession.mfaAuthorize(.totp(totp), saveLocally)
+    @AccountSessionActor func authorizeUsingOTP(totp: String, saveLocally: Bool) -> AnyPublisher<Void, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher {
+        try await accountSession.mfaAuthorize(.totp(totp), saveLocally)
+      }
     }
 
     return Self(
@@ -65,7 +68,7 @@ extension MFA: Feature {
 
 extension MFA {
 
-  public var featureUnload: () -> Bool { { true } }
+  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
 }
 
 #if DEBUG

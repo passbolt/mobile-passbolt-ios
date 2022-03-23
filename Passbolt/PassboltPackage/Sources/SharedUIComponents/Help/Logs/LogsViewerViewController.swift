@@ -75,7 +75,9 @@ public final class LogsViewerViewController: PlainViewController, UIComponent {
                 .style(.done),
                 .image(named: .close, from: .uiCommons),
                 .action { [weak self] in
-                  self?.dismiss(Self.self)
+                  self?.cancellables.executeOnMainActor { [weak self] in
+                    await self?.dismiss(Self.self)
+                  }
                 }
               )
               .instantiate()

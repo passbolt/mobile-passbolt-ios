@@ -47,18 +47,22 @@ extension UI {
   ) {
     switch scene {
     case let windowScene as UIWindowScene:
-      let window: Window = prepareWindow(
-        for: windowScene,
-        in: session,
-        with: options
-      )
-      if windows.isEmpty {
-        window.isActive = true
+      let cancellables: Cancellables = .init()
+      MainActor.execute {
+        let window: Window = await self.prepareWindow(
+          for: windowScene,
+          in: session,
+          with: options,
+          cancellables: cancellables
+        )
+        if self.windows.isEmpty {
+          window.isActive = true
+        }
+        else {
+          /* */
+        }
+        self.windows[windowScene.session.persistentIdentifier] = window
       }
-      else {
-        /* */
-      }
-      windows[windowScene.session.persistentIdentifier] = window
 
     case _:
       unreachable("Unsupported scene type")
@@ -84,17 +88,27 @@ extension UI {
   private func prepareWindow(
     for scene: UIWindowScene,
     in session: UISceneSession,
-    with options: UIScene.ConnectionOptions
-  ) -> Window {
-    let cancellables: Cancellables = .init()
-    return Window(
-      in: scene,
-      using: WindowController.instance(
-        with: features,
+    with options: UIScene.ConnectionOptions,
+    cancellables: Cancellables
+  ) async -> Window {
+    do {
+      return try await Window(
+        in: scene,
+        using: WindowController.instance(
+          with: features,
+          cancellables: cancellables
+        ),
+        within: components,
+        rootViewController:
+          await components
+          .instance(of: SplashScreenViewController.self),
         cancellables: cancellables
-      ),
-      within: components,
-      cancellables: cancellables
-    )
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
   }
 }

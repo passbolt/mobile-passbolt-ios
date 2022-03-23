@@ -32,16 +32,17 @@ import XCTest
 @MainActor
 final class LogsViewerControllerTests: MainActorTestCase {
 
-  override func mainActorSetUp() {
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     features.patch(
       \Executors.newBackgroundExecutor,
       with: AsyncExecutors.immediate.newBackgroundExecutor
     )
   }
 
-  func test_refreshLogs_triggersDiagnosticLogsRead() {
+  func test_refreshLogs_triggersDiagnosticLogsRead() async throws {
     var result: Void?
-    features.patch(
+    await features.patch(
       \Diagnostics.collectedLogs,
       with: { () -> Array<String> in
         result = Void()
@@ -49,7 +50,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
       }
     )
 
-    let controller: LogsViewerController = testController()
+    let controller: LogsViewerController = try await testController()
 
     controller
       .refreshLogs()
@@ -57,8 +58,8 @@ final class LogsViewerControllerTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_logsPublisher_publishesNil_initially() {
-    let controller: LogsViewerController = testController()
+  func test_logsPublisher_publishesNil_initially() async throws {
+    let controller: LogsViewerController = try await testController()
 
     var result: Array<String>?
     controller
@@ -71,13 +72,13 @@ final class LogsViewerControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() {
-    features.patch(
+  func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() async throws {
+    await features.patch(
       \Diagnostics.collectedLogs,
       with: always([])
     )
 
-    let controller: LogsViewerController = testController()
+    let controller: LogsViewerController = try await testController()
 
     controller.refreshLogs()
 
@@ -92,8 +93,8 @@ final class LogsViewerControllerTests: MainActorTestCase {
     XCTAssertEqual(result, [""])
   }
 
-  func test_shareMenuPresentationPublisher_doesNotPublishesInitially() {
-    let controller: LogsViewerController = testController()
+  func test_shareMenuPresentationPublisher_doesNotPublishesInitially() async throws {
+    let controller: LogsViewerController = try await testController()
 
     var result: String?
     controller
@@ -106,8 +107,10 @@ final class LogsViewerControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_shareMenuPresentationPublisher_publishesEmptyLogs_afterCallingPresentShareMenu_withoutLogsInCache() {
-    let controller: LogsViewerController = testController()
+  func test_shareMenuPresentationPublisher_publishesEmptyLogs_afterCallingPresentShareMenu_withoutLogsInCache()
+    async throws
+  {
+    let controller: LogsViewerController = try await testController()
 
     var result: String?
     controller
@@ -122,13 +125,15 @@ final class LogsViewerControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "Passbolt:\nN/A")
   }
 
-  func test_shareMenuPresentationPublisher_publishesJoinedLogs_afterCallingPresentShareMenu_withLogsInCache() {
-    features.patch(
+  func test_shareMenuPresentationPublisher_publishesJoinedLogs_afterCallingPresentShareMenu_withLogsInCache()
+    async throws
+  {
+    await features.patch(
       \Diagnostics.collectedLogs,
       with: always(["test", "another"])
     )
 
-    let controller: LogsViewerController = testController()
+    let controller: LogsViewerController = try await testController()
 
     var result: String?
     controller

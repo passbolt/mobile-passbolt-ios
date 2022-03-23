@@ -46,13 +46,13 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     biometry = nil
   }
 
-  func test_destinationPresentationPublisher_doesNotPublishInitially() {
-    features.use(accountSettings)
-    features.use(biometry)
+  func test_destinationPresentationPublisher_doesNotPublishInitially() async throws {
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
     controller.destinationPresentationPublisher()
@@ -62,13 +62,13 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_destinationPresentationPublisher_publishesFinish_WhenSkipping_andExtensionIsEnabled() {
-    features.use(accountSettings)
-    features.use(biometry)
+  func test_destinationPresentationPublisher_publishesFinish_WhenSkipping_andExtensionIsEnabled() async throws {
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
     controller.destinationPresentationPublisher()
@@ -80,13 +80,14 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     XCTAssertEqual(result, .finish)
   }
 
-  func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSkipping_andExtensionIsDisabled() {
-    features.use(accountSettings)
-    features.use(biometry)
+  func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSkipping_andExtensionIsDisabled() async throws
+  {
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
     controller.destinationPresentationPublisher()
@@ -98,93 +99,95 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     XCTAssertEqual(result, .extensionSetup)
   }
 
-  func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() {
+  func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() async throws {
     accountSettings.setBiometricsEnabled = always(
-      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just(Void()).eraseErrorType().eraseToAnyPublisher()
     )
-    features.use(accountSettings)
-    features.use(biometry)
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
     controller.destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
-    controller.setupBiometrics()
-      .sink(receiveCompletion: { _ in })
-      .store(in: cancellables)
+    try? await controller.setupBiometrics()
+      .asAsyncValue()
 
     XCTAssertEqual(result, .finish)
   }
 
-  func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSetupSucceed_andExtensionIsDisabled() {
+  func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSetupSucceed_andExtensionIsDisabled()
+    async throws
+  {
     accountSettings.setBiometricsEnabled = always(
-      Just(Void()).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just(Void()).eraseErrorType().eraseToAnyPublisher()
     )
-    features.use(accountSettings)
-    features.use(biometry)
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
     controller.destinationPresentationPublisher()
       .sink { result = $0 }
       .store(in: cancellables)
 
-    controller.setupBiometrics()
-      .sink(receiveCompletion: { _ in })
-      .store(in: cancellables)
+    _ = try? await controller.setupBiometrics()
+      .asAsyncValue()
 
     XCTAssertEqual(result, .extensionSetup)
   }
 
-  func test_setupBiometrics_setsBiometricsAsEnabled() {
+  func test_setupBiometrics_setsBiometricsAsEnabled() async throws {
     var result: Bool!
     accountSettings.setBiometricsEnabled = { enabled in
       result = enabled
-      return Just(Void()).setFailureType(to: TheErrorLegacy.self)
+      return Just(Void()).eraseErrorType()
         .eraseToAnyPublisher()
     }
-    features.use(accountSettings)
-    features.use(biometry)
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
-    controller.setupBiometrics()
-      .sink(receiveCompletion: { _ in })
-      .store(in: cancellables)
+    try? await controller
+      .setupBiometrics()
+      .asAsyncValue()
 
     XCTAssertTrue(result)
   }
 
-  func test_setupBiometrics_fails_whenBiometricsEnableFails() {
+  func test_setupBiometrics_fails_whenBiometricsEnableFails() async throws {
     accountSettings.setBiometricsEnabled = { _ in
-      Fail<Void, TheErrorLegacy>(error: .testError())
+      Fail<Void, Error>(error: MockIssue.error())
         .eraseToAnyPublisher()
     }
-    features.use(accountSettings)
-    features.use(biometry)
+    await features.use(accountSettings)
+    await features.use(biometry)
     var autoFill: AutoFill = .placeholder
     autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    features.use(autoFill)
-    let controller: BiometricsSetupController = testController()
+    await features.use(autoFill)
+    let controller: BiometricsSetupController = try await testController()
 
-    var result: TheErrorLegacy!
-    controller.setupBiometrics()
-      .sink(receiveCompletion: { completion in
-        guard case let .failure(error) = completion else { return }
-        result = error
-      })
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await controller.setupBiometrics()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 }

@@ -35,14 +35,15 @@ import XCTest
 @MainActor
 final class HomeSearchControllerTests: MainActorTestCase {
 
-  override func mainActorSetUp() {
-    features.usePlaceholder(for: NetworkClient.self)
-    features.usePlaceholder(for: HomePresentation.self)
-    features.usePlaceholder(for: AccountSettings.self)
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    await features.usePlaceholder(for: NetworkClient.self)
+    await features.usePlaceholder(for: HomePresentation.self)
+    await features.usePlaceholder(for: AccountSettings.self)
   }
 
-  func test_accountMenuPresentationPublisher_doesNotPublish_initially() {
-    features
+  func test_accountMenuPresentationPublisher_doesNotPublish_initially() async throws {
+    await features
       .patch(
         \AccountSettings.currentAccountProfilePublisher,
         with: always(
@@ -51,7 +52,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -66,8 +67,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_accountMenuPresentationPublisher_publishes_whenRequested() {
-    features
+  func test_accountMenuPresentationPublisher_publishes_whenRequested() async throws {
+    await features
       .patch(
         \AccountSettings.currentAccountProfilePublisher,
         with: always(
@@ -75,7 +76,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -92,8 +93,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_accountMenuPresentationPublisher_publishesCurrentAccountWithProfile_whenRequested() {
-    features
+  func test_accountMenuPresentationPublisher_publishesCurrentAccountWithProfile_whenRequested() async throws {
+    await features
       .patch(
         \AccountSettings.currentAccountProfilePublisher,
         with: always(
@@ -102,7 +103,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -119,8 +120,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertEqual(result, validAccountWithProfile)
   }
 
-  func test_homePresentationMenuPresentationPublisher_doesNotPublish_initially() {
-    features
+  func test_homePresentationMenuPresentationPublisher_doesNotPublish_initially() async throws {
+    await features
       .patch(
         \HomePresentation.currentPresentationModePublisher,
         with: always(
@@ -129,7 +130,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -144,8 +145,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_homePresentationMenuPresentationPublisher_publishes_whenRequested() {
-    features
+  func test_homePresentationMenuPresentationPublisher_publishes_whenRequested() async throws {
+    await features
       .patch(
         \HomePresentation.currentPresentationModePublisher,
         with: always(
@@ -154,7 +155,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -171,15 +172,15 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_homePresentationMenuPresentationPublisher_publishesCurrentPresentationMode_whenRequested() {
-    features
+  func test_homePresentationMenuPresentationPublisher_publishesCurrentPresentationMode_whenRequested() async throws {
+    await features
       .patch(
         \AccountSettings.currentAccountProfilePublisher,
         with: always(
           Just(validAccountWithProfile).eraseToAnyPublisher()
         )
       )
-    features
+    await features
       .patch(
         \HomePresentation.currentPresentationModePublisher,
         with: always(
@@ -188,7 +189,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -205,8 +206,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertEqual(result, .plainResourcesList)
   }
 
-  func test_avatarImagePublisher_publishesImageData_fromMediaDownload() {
-    features
+  func test_avatarImagePublisher_publishesImageData_fromMediaDownload() async throws {
+    await features
       .patch(
         \AccountSettings.currentAccountProfilePublisher,
         with: always(
@@ -215,28 +216,25 @@ final class HomeSearchControllerTests: MainActorTestCase {
         )
       )
     let data: Data = Data([0x65, 0x66])
-    features.patch(
+    await features.patch(
       \NetworkClient.mediaDownload,
       with: .respondingWith(data)
     )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
-    var result: Data?
-    controller
+    var result: Data? =
+      try? await controller
       .avatarImagePublisher()
-      .sink { imageData in
-        result = imageData
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, data)
   }
 
-  func test_avatarImagePublisher_fails_whenMediaDownloadFails() {
-    features
+  func test_avatarImagePublisher_fails_whenMediaDownloadFails() async throws {
+    await features
       .patch(
         \AccountSettings.currentAccountProfilePublisher,
         with: always(
@@ -244,13 +242,13 @@ final class HomeSearchControllerTests: MainActorTestCase {
             .eraseToAnyPublisher()
         )
       )
-    features
+    await features
       .patch(
         \NetworkClient.mediaDownload,
         with: .failingWith(MockIssue.error())
       )
 
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -267,8 +265,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_searchTextPublisher_publishesEmptyTextInitially() {
-    let controller: HomeSearchController = testController(
+  func test_searchTextPublisher_publishesEmptyTextInitially() async throws {
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -283,8 +281,8 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertTrue(result?.isEmpty ?? false)
   }
 
-  func test_searchTextPublisher_publishesTextUpdates() {
-    let controller: HomeSearchController = testController(
+  func test_searchTextPublisher_publishesTextUpdates() async throws {
+    let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
 
@@ -301,18 +299,18 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "updated")
   }
 
-  func test_context_searchTextUpdate_isCalledWithSearchText_initially() {
+  func test_context_searchTextUpdate_isCalledWithSearchText_initially() async throws {
     var result: String?
-    let _: HomeSearchController = testController(
+    let _: HomeSearchController = try await testController(
       context: { text in result = text }
     )
 
     XCTAssertEqual(result, "")
   }
 
-  func test_context_searchTextUpdate_isCalledWithSearchText_whenSearchTextIsUpdated() {
+  func test_context_searchTextUpdate_isCalledWithSearchText_whenSearchTextIsUpdated() async throws {
     var result: String?
-    let controller: HomeSearchController = testController(
+    let controller: HomeSearchController = try await testController(
       context: { text in result = text }
     )
 

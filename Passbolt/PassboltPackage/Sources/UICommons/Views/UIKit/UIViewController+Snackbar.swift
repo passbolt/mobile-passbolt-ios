@@ -33,7 +33,7 @@ public enum SnackbarPresentationMode {
 
 extension UIViewController {
 
-  public func presentErrorSnackbar(
+  @MainActor public func presentErrorSnackbar(
     _ displayable: DisplayableString = .localized(key: .genericError),
     with arguments: Array<CVarArg> = .init(),
     hideAfter: TimeInterval = 2
@@ -49,7 +49,7 @@ extension UIViewController {
     )
   }
 
-  public func presentInfoSnackbar(
+  @MainActor public func presentInfoSnackbar(
     _ displayable: DisplayableString,
     with arguments: Array<CVarArg> = .init(),
     presentationMode: SnackbarPresentationMode = .local
@@ -67,7 +67,7 @@ extension UIViewController {
     )
   }
 
-  public func present(
+  @MainActor public func present(
     snackbar: UIView,
     presentationMode: SnackbarPresentationMode = .local,
     hideAfter hideDelay: TimeInterval = 3,  // zero is not going to hide automatically
@@ -145,7 +145,7 @@ extension UIViewController {
     )
   }
 
-  public func dismissSnackbar(
+  @MainActor public func dismissSnackbar(
     animated: Bool = true
   ) {
     guard let snackbar = _snackbarView else { return }

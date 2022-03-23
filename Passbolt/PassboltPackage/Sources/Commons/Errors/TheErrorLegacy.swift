@@ -31,7 +31,7 @@ import struct Foundation.OSStatus
 @available(*, deprecated, message: "Please switch to `TheError`")
 public struct TheErrorLegacy: Error {
 
-  public typealias ID = Tagged<StaticString, TheErrorLegacy>
+  public typealias ID = Tagged<StaticString, Error>
   public typealias Extension = Tagged<StaticString, ID>
 
   public let identifier: ID
@@ -49,12 +49,23 @@ public struct TheErrorLegacy: Error {
   }
 }
 
-extension TheError {
-
-  public var asLegacy: TheErrorLegacy { .from(theError: self) }
-}
-
 extension Error {
+
+  public var displayableMessage: DisplayableString {
+    switch self {
+    case let theError as TheError:
+      return theError.displayableMessage
+
+    case let legacy as TheErrorLegacy:
+      return legacy.displayableMessage
+
+    case _:
+      return
+        Unidentified
+        .error(underlyingError: self)
+        .displayableMessage
+    }
+  }
 
   public var asLegacy: TheErrorLegacy {
     if let legacyError: TheErrorLegacy = self as? TheErrorLegacy {
@@ -216,7 +227,12 @@ extension TheErrorLegacy {
     return mutable
   }
 
-  public var displayableString: DisplayableString? { extensions[.displayableString] as? DisplayableString }
+  public var displayableString: DisplayableString {
+    (extensions[.displayableString] as? DisplayableString)
+      ?? .localized(
+        key: .genericError
+      )
+  }
   public var displayableStringArguments: Array<CVarArg>? { extensions[.displayableStringArguments] as? Array<CVarArg> }
 }
 
@@ -278,7 +294,10 @@ extension TheErrorLegacy {
   public static let canceled: Self = .init(
     identifier: .canceled,
     underlyingError: nil,
-    extensions: [.context: "canceled"]
+    extensions: [
+      .context: "canceled",
+      .legacyBridge: Cancelled.error(),
+    ]
   )
 
   public static func featureUnavailable(

@@ -33,7 +33,7 @@ extension TOTPAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> DomainNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -52,7 +52,7 @@ extension TOTPAuthorizationRequest {
       },
       responseDecoder: .mfaCookie,
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }
@@ -108,37 +108,33 @@ extension NetworkResponseDecoding where Response == TOTPAuthorizationResponse {
 
   fileprivate static var mfaCookie: Self {
     Self { _, _, httpRequest, httpResponse in
-      decodeStatusCode(
+      try decodeStatusCode(
         matching: 200..<300,
         httpRequest: httpRequest,
         httpResponse: httpResponse
       )
-      .flatMap {
-        if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
-          let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-        {
-          return .success(
-            .init(
-              mfaToken: .init(
-                rawValue: String(
-                  cookieHeaderValue[mfaCookieBounds.upperBound...]
-                    .prefix(
-                      while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-                    )
+
+      if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
+        let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
+      {
+        return .init(
+          mfaToken: .init(
+            rawValue: String(
+              cookieHeaderValue[mfaCookieBounds.upperBound...]
+                .prefix(
+                  while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
                 )
-              )
             )
           )
-        }
-        else {
-          return .failure(
-            NetworkResponseDecodingFailure
-              .error(
-                "Failed to decode MFA response cookie",
-                response: httpResponse
-              )
+        )
+      }
+      else {
+        throw
+          NetworkResponseDecodingFailure
+          .error(
+            "Failed to decode MFA response cookie",
+            response: httpResponse
           )
-        }
       }
     }
   }

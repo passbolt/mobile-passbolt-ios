@@ -29,6 +29,7 @@ import SwiftUI
 // operate on concrete ones we had to create intermediate view
 // for images with padding since applying padding changes
 // type of View to `some View` which is more or less unspecified.
+@MainActor
 public struct ImageWithPadding: View {
 
   private let padding: EdgeInsets

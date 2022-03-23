@@ -42,9 +42,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
   var passphrase: Passphrase!
   var tokens: Tokens!
 
-  override func setUp() {
-    super.setUp()
-
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     networkClient = .placeholder
     accountsDataStore = .placeholder
     fingerprintStorage = .placeholder
@@ -61,23 +60,26 @@ final class NetworkSessionCreateSessionTests: TestCase {
       refreshToken: refreshToken.uuidString
     )
 
-    features.environment.time.timestamp = always(1_516_000_000)
+    try await FeaturesActor.execute {
+      self.features.environment.time.timestamp = always(1_516_000_000)
 
-    features.environment.uuidGenerator.uuid = always(self.verificationToken)
-    features.environment.pgp.encryptAndSign = always(.success("EncryptedAndSigned"))
-    features.environment.pgp.decryptAndVerify = always(
-      .success(
-        String(
-          bytes: try! JSONEncoder()
-            .encode(self.tokens),
-          encoding: .utf8
-        )!
+      self.features.environment.uuidGenerator.uuid = always(self.verificationToken)
+      self.features.environment.pgp.encryptAndSign = always(.success("EncryptedAndSigned"))
+      self.features.environment.pgp.decryptAndVerify = always(
+        .success(
+          String(
+            bytes: try! JSONEncoder()
+              .encode(self.tokens),
+            encoding: .utf8
+          )!
+        )
       )
-    )
-    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
-    features.environment.pgp.extractFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
-    features.environment.signatureVerfication.verify = always(.success(Void()))
-
+      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
+      self.features.environment.pgp.extractFingerprint = always(
+        .success(.init(rawValue: serverPGPPublicKeyFingerprint))
+      )
+      self.features.environment.signatureVerfication.verify = always(.success(Void()))
+    }
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
 
     networkClient.serverRSAPublicKeyRequest = .respondingWith(
@@ -107,13 +109,13 @@ final class NetworkSessionCreateSessionTests: TestCase {
     )
 
     networkClient.setAccessTokenInvalidation = always(Void())
-    networkClient.setSessionStatePublisher = always(Void())
+    networkClient.setSessionStateSource = always(Void())
 
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     networkClient = nil
 
     verificationToken = nil
@@ -121,682 +123,582 @@ final class NetworkSessionCreateSessionTests: TestCase {
     domain = nil
     passphrase = nil
 
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_createSession_succeeds_withHappyPath() {
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+  func test_createSession_succeeds_withHappyPath() async throws {
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: Void?
-
-    networkSession
+    let result: Array<MFAProvider> =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { sessionToken in
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_createSession_fails_whenSignInFails() {
+  func test_createSession_fails_whenSignInFails() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    networkClient.signInRequest.execute = always(
-      Fail<SignInResponse, Error>(error: MockIssue.error()).eraseToAnyPublisher()
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    networkClient.signInRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
 
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      _ =
+        try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_createSession_fails_withoutServerPGPPublicKey() {
+  func test_createSession_fails_withoutServerPGPPublicKey() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     networkClient.serverPGPPublicKeyRequest = .failingWith(MockIssue.error())
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_createSession_fails_withoutServerRSAPublicKey() {
+  func test_createSession_fails_withoutServerRSAPublicKey() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     networkClient.serverRSAPublicKeyRequest = .failingWith(MockIssue.error())
 
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_createSession_fails_whenEncryptAndSignFails() {
+  func test_createSession_fails_whenEncryptAndSignFails() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
-    features.environment.pgp.encryptAndSign = always(.failure(MockIssue.error()))
+    await features.use(accountsDataStore)
+    try await FeaturesActor.execute {
+      self.features.environment.pgp.encryptAndSign = always(.failure(MockIssue.error()))
+    }
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .legacyBridge)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_createSession_fails_whenDecryptAndVerifyFails_andServerFingerprint_isValid() {
+  func test_createSession_fails_whenDecryptAndVerifyFails_andServerFingerprint_isValid() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(accountsDataStore)
-    features.environment.pgp.decryptAndVerify = always(.failure(MockIssue.error()))
-    features.use(networkClient)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    try await FeaturesActor.execute {
+      self.features.environment.pgp.decryptAndVerify = always(.failure(MockIssue.error()))
+    }
+    await features.use(networkClient)
+    await features.use(fingerprintStorage)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .legacyBridge)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_createSession_fails_whenSignatureVerificationFails() {
+  func test_createSession_fails_whenSignatureVerificationFails() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
-    features.environment.signatureVerfication.verify = always(.failure(MockIssue.error()))
+    await features.use(accountsDataStore)
+    try await FeaturesActor.execute {
+      self.features.environment.signatureVerfication.verify = always(.failure(MockIssue.error()))
+    }
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(networkClient)
-    features.use(fingerprintStorage)
+    await features.use(networkClient)
+    await features.use(fingerprintStorage)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .legacyBridge)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_createSession_fails_whenVerificationTokenIsInvalid() {
+  func test_createSession_fails_whenVerificationTokenIsInvalid() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     tokens.verificationToken = "invalid"
 
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionAuthorizationFailure.self)
+    XCTAssertError(result, matches: SessionAuthorizationFailure.self)
   }
 
-  func test_createSession_fails_whenServerFingerprintStore_fails_andNoFingerprintIsStored() {
+  func test_createSession_fails_whenServerFingerprintStore_fails_andNoFingerprintIsStored() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(nil))
-    fingerprintStorage.storeServerFingerprint = always(.failure(.testError()))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+    fingerprintStorage.storeServerFingerprint = always(.failure(MockIssue.error()))
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func
     test_createSession_fails_withInvalidServerFingerprintError_whenStoredFingerprint_doesNotMatchReceivedFingerprint()
+    async throws
   {
     let storedFingerprint: Fingerprint = .init(rawValue: otherServerFingerprint)
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(storedFingerprint))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.environment.pgp.verifyPublicKeyFingerprint = always(.success(false))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+    try await FeaturesActor.execute {
+      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.success(false))
+    }
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: ServerPGPFingeprintInvalid.self)
+    XCTAssertError(result, matches: ServerPGPFingeprintInvalid.self)
   }
 
-  func test_createSession_fails_whenServerFingerprintLoad_failsWithInvalidServerFingerprintError() {
+  func test_createSession_fails_whenServerFingerprintLoad_failsWithInvalidServerFingerprintError() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    fingerprintStorage.loadServerFingerprint = always(.failure(.testError()))
+    fingerprintStorage.loadServerFingerprint = always(.failure(MockIssue.error()))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
 
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
+    do {
+      try await networkSession
+        .createSession(
+          validAccount,
+          pgpPrivateKey,
+          passphrase
+        )
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: ServerPGPFingeprintInvalid.self)
+    XCTAssertError(result, matches: ServerPGPFingeprintInvalid.self)
   }
 
-  func test_createMFAToken_doesNotStoreMFAToken_whenStoreLocallyFlagIsFalse() {
+  func test_createMFAToken_doesNotStoreMFAToken_whenStoreLocallyFlagIsFalse() async throws {
     var result: MFAToken?
     accountsDataStore.storeAccountMFAToken = { _, mfaToken in
       result = mfaToken
       return .success
     }
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
-      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      .init(mfaToken: "mfa_token")
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    networkSession
+    try? await networkSession
       .createMFAToken(
         validAccount,
         .totp("totp"),
         false
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNil(result)
   }
 
-  func test_createMFAToken_storesMFAToken_whenStoreLocallyFlagIsTrue() {
+  func test_createMFAToken_storesMFAToken_whenStoreLocallyFlagIsTrue() async throws {
     var result: MFAToken?
     accountsDataStore.storeAccountMFAToken = { _, mfaToken in
       result = mfaToken
       return .success
     }
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     fingerprintStorage.loadServerFingerprint = always(.success(nil))
     fingerprintStorage.storeServerFingerprint = always(.success)
-    features.use(fingerprintStorage)
+    await features.use(fingerprintStorage)
 
     networkClient.totpAuthorizationRequest.execute = always(
-      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      .init(mfaToken: "mfa_token")
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    networkSession
+    _ =
+      try await networkSession
       .createMFAToken(
         validAccount,
         .totp("totp"),
         true
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertEqual(result, .init(rawValue: "mfa_token"))
   }
 
-  func test_createMFAToken_fails_whenThereIsNoMatchingSession() {
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+  func test_createMFAToken_fails_whenThereIsNoMatchingSession() async throws {
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
 
-    networkClient.totpAuthorizationRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    networkClient.totpAuthorizationRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    networkSession
-      .createMFAToken(
-        validAccount,
-        .totp("totp"),
-        true
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
+    var result: Error?
 
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
+    do {
+      try await networkSession
+        .createMFAToken(
+          validAccount,
+          .totp("totp"),
+          true
+        )
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: SessionMissing.self)
   }
 
-  func test_createMFAToken_fails_whenTOTPRequestFails() {
+  func test_createMFAToken_fails_whenTOTPRequestFails() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
 
-    networkClient.totpAuthorizationRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    networkClient.totpAuthorizationRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    networkSession
+    var result: Error?
+    do {
+      try await networkSession
+        .createMFAToken(
+          validAccount,
+          .totp("totp"),
+          true
+        )
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_createMFAToken_fails_whenYubikeyOTPRequestFails() async throws {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+
+    networkClient.yubikeyAuthorizationRequest.execute = alwaysThrow(
+      MockIssue.error()
+    )
+    await features.use(networkClient)
+
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+
+    var result: Error?
+
+    do {
+      try await networkSession
+        .createMFAToken(
+          validAccount,
+          .yubikeyOTP("otp"),
+          true
+        )
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_createMFAToken_fails_whenMFATokenStoreFails() async throws {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    accountsDataStore.storeAccountMFAToken = always(
+      .failure(MockIssue.error())
+    )
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      .init(mfaToken: "mfa_token")
+    )
+    await features.use(networkClient)
+
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+
+    var result: Error?
+
+    do {
+      try await networkSession
+        .createMFAToken(
+          validAccount,
+          .totp("totp"),
+          true
+        )
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_createMFAToken_succeeds_whenAllTOTPOperationsSucceed() async throws {
+    accountsDataStore.loadAccountMFAToken = always(.success(nil))
+    accountsDataStore.storeAccountMFAToken = always(.success)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+
+    networkClient.totpAuthorizationRequest.execute = always(
+      .init(mfaToken: "mfa_token")
+    )
+    await features.use(networkClient)
+
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
+      .createSession(
+        validAccount,
+        pgpPrivateKey,
+        passphrase
+      )
+
+    var result: Void? =
+      try? await networkSession
       .createMFAToken(
         validAccount,
         .totp("totp"),
         true
       )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertNotNil(result)
   }
 
-  func test_createMFAToken_fails_whenYubikeyOTPRequestFails() {
+  func test_createMFAToken_succeeds_whenAllYubikeyOTPOperationsSucceed() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    accountsDataStore.storeAccountMFAToken = always(.success)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
 
     networkClient.yubikeyAuthorizationRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+      .init(mfaToken: "mfa_token")
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    networkSession
+    var result: Void? =
+      try? await networkSession
       .createMFAToken(
         validAccount,
         .yubikeyOTP("otp"),
         true
       )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
-  }
-
-  func test_createMFAToken_fails_whenMFATokenStoreFails() {
-    accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    accountsDataStore.storeAccountMFAToken = always(.failure(TheErrorLegacy.testError()))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-
-    networkClient.totpAuthorizationRequest.execute = always(
-      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    features.use(networkClient)
-
-    let networkSession: NetworkSession = testInstance()
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: TheErrorLegacy?
-    networkSession
-      .createMFAToken(
-        validAccount,
-        .totp("totp"),
-        true
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .testError)
-  }
-
-  func test_createMFAToken_succeeds_whenAllTOTPOperationsSucceed() {
-    accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    accountsDataStore.storeAccountMFAToken = always(.success)
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-
-    networkClient.totpAuthorizationRequest.execute = always(
-      Just(TOTPAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    features.use(networkClient)
-
-    let networkSession: NetworkSession = testInstance()
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: Void?
-    networkSession
-      .createMFAToken(
-        validAccount,
-        .totp("totp"),
-        true
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          result = Void()
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_createMFAToken_succeeds_whenAllYubikeyOTPOperationsSucceed() {
-    accountsDataStore.loadAccountMFAToken = always(.success(nil))
-    accountsDataStore.storeAccountMFAToken = always(.success)
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-
-    networkClient.yubikeyAuthorizationRequest.execute = always(
-      Just(YubikeyAuthorizationResponse(mfaToken: .init(rawValue: "mfa_token")))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    features.use(networkClient)
-
-    let networkSession: NetworkSession = testInstance()
-    networkSession
-      .createSession(
-        validAccount,
-        pgpPrivateKey,
-        passphrase
-      )
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: Void?
-    networkSession
-      .createMFAToken(
-        validAccount,
-        .yubikeyOTP("otp"),
-        true
-      )
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          result = Void()
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_createSession_deletesMFAToken_withSuccessWhenResponseMFATokenIsNotValid() {
+  func test_createSession_deletesMFAToken_withSuccessWhenResponseMFATokenIsNotValid() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
     var result: Void?
     accountsDataStore.deleteAccountMFAToken = { _ in
@@ -805,8 +707,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
     }
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     networkClient.signInRequest = .respondingWith(
       .init(
         mfaTokenIsValid: false,
@@ -816,23 +718,22 @@ final class NetworkSessionCreateSessionTests: TestCase {
         )
       )
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    networkSession
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNotNil(result)
   }
 
-  func test_createSession_doesNotDeleteMFAToken_withSuccessWhenResponseMFATokenIsValid() {
+  func test_createSession_doesNotDeleteMFAToken_withSuccessWhenResponseMFATokenIsValid() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
     var result: Void?
     accountsDataStore.deleteAccountMFAToken = { _ in
@@ -841,8 +742,8 @@ final class NetworkSessionCreateSessionTests: TestCase {
     }
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     networkClient.signInRequest = .respondingWith(
       .init(
         mfaTokenIsValid: true,
@@ -852,23 +753,22 @@ final class NetworkSessionCreateSessionTests: TestCase {
         )
       )
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    networkSession
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNil(result)
   }
 
-  func test_createSession_doesNotDeleteMFAToken_whenSignInFails() {
+  func test_createSession_doesNotDeleteMFAToken_whenSignInFails() async throws {
     accountsDataStore.loadAccountMFAToken = always(.success("mfa_token"))
     accountsDataStore.loadAccounts = always([validAccount])
     var result: Void?
@@ -876,32 +776,30 @@ final class NetworkSessionCreateSessionTests: TestCase {
       result = Void()
       return .success
     }
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     fingerprintStorage.loadServerFingerprint = always(.success(.init(rawValue: serverPGPPublicKeyFingerprint)))
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(fingerprintStorage)
-    networkClient.signInRequest.execute = always(
-      Fail<SignInResponse, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(fingerprintStorage)
+    networkClient.signInRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
 
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    networkSession
+    _ =
+      try? await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNil(result)
   }
 
-  func test_saveServerFingerprint_succeeds_whenNoFingerprint_wasPreviouslyStored() {
+  func test_saveServerFingerprint_succeeds_whenNoFingerprint_wasPreviouslyStored() async throws {
     var storedFingerprint: Fingerprint?
     accountsDataStore.loadAccountMFAToken = always(.success(nil))
     fingerprintStorage.loadServerFingerprint = always(.success(storedFingerprint))
@@ -909,197 +807,168 @@ final class NetworkSessionCreateSessionTests: TestCase {
       storedFingerprint = fingerprint
       return .success(())
     }
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
     XCTAssertNil(storedFingerprint)
 
-    networkSession
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertEqual(storedFingerprint?.rawValue, serverPGPPublicKeyFingerprint)
   }
 
-  func test_sessionRefresh_fails_whenThereIsNoMatchingSession() {
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    features.use(networkClient)
+  func test_sessionRefresh_fails_whenThereIsNoMatchingSession() async throws {
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
+    let networkSession: NetworkSession = try await testInstance()
 
-    var result: TheErrorLegacy?
-    networkSession
-      .refreshSessionIfNeeded(validAccount)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    var result: Error?
 
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
+    do {
+      try await networkSession
+        .refreshSessionIfNeeded(validAccount)
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: SessionMissing.self)
   }
 
-  func test_sessionRefresh_isSkipped_whenAccessTokenIsStillValid() {
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+  func test_sessionRefresh_isSkipped_whenAccessTokenIsStillValid() async throws {
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     var result: Void?
     networkClient.refreshSessionRequest.execute = { _ in
       result = Void()
-      return Just(
-        RefreshSessionResponse(
-          accessToken: "invalid JWT",
-          refreshToken: "refreshToken"
-        )
+      return RefreshSessionResponse(
+        accessToken: "invalid JWT",
+        refreshToken: "refreshToken"
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
 
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    networkSession
+    try await networkSession
       .refreshSessionIfNeeded(validAccount)
-      .sinkDrop()
-      .store(in: cancellables)
 
     XCTAssertNil(result)
   }
 
-  func test_sessionRefresh_fails_whenAccessTokenIsNotValidJWT() {
+  func test_sessionRefresh_fails_whenAccessTokenIsNotValidJWT() async throws {
     // make current session (after create session) expired so it will allow session refresh
-    environment.time.timestamp = always(1_638_374_700)
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(1_638_374_700)
+    }
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     networkClient.refreshSessionRequest.execute = always(
-      Just(
-        RefreshSessionResponse(
-          accessToken: "invalid JWT",
-          refreshToken: "refreshToken"
-        )
+      RefreshSessionResponse(
+        accessToken: "invalid JWT",
+        refreshToken: "refreshToken"
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    networkSession
-      .refreshSessionIfNeeded(validAccount)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await networkSession
+        .refreshSessionIfNeeded(validAccount)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: JWTInvalid.self)
+    XCTAssertError(result, matches: JWTInvalid.self)
   }
 
-  func test_sessionRefresh_fails_whenSessionRefreshRequestFails() {
+  func test_sessionRefresh_fails_whenSessionRefreshRequestFails() async throws {
     // make current session (after create session) expired so it will allow session refresh
-    environment.time.timestamp = always(1_638_374_700)
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
-    networkClient.refreshSessionRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    try await FeaturesActor.execute {
+      self.environment.time.timestamp = always(1_638_374_700)
+    }
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
+    networkClient.refreshSessionRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    networkSession
-      .refreshSessionIfNeeded(validAccount)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await networkSession
+        .refreshSessionIfNeeded(validAccount)
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_sessionRefresh_succeeds_withHappyPath() {
-    features.use(accountsDataStore)
-    features.use(fingerprintStorage)
+  func test_sessionRefresh_succeeds_withHappyPath() async throws {
+    await features.use(accountsDataStore)
+    await features.use(fingerprintStorage)
     networkClient.refreshSessionRequest.execute = always(
-      Just(RefreshSessionResponse(accessToken: validToken, refreshToken: "refreshToken"))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      RefreshSessionResponse(accessToken: validToken, refreshToken: "refreshToken")
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let networkSession: NetworkSession = testInstance()
-    networkSession
+    let networkSession: NetworkSession = try await testInstance()
+    _ =
+      try await networkSession
       .createSession(
         validAccount,
         pgpPrivateKey,
         passphrase
       )
-      .sinkDrop()
-      .store(in: cancellables)
 
-    var result: TheErrorLegacy?
-    networkSession
-      .refreshSessionIfNeeded(validAccount)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await networkSession
+        .refreshSessionIfNeeded(validAccount)
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNil(result)
   }

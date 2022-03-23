@@ -23,6 +23,7 @@
 
 import SwiftUI
 
+@MainActor
 public struct EmptyListView: View {
 
   public init() {}

@@ -21,25 +21,33 @@
 // @since         v1.0
 //
 
-public struct WeakBox<Value> where Value: AnyObject {
+import Combine
 
-  public static func box(_ value: Value) -> Self {
-    .init(value)
-  }
+extension Task {
 
-  public weak var value: Value?
-
-  private init(_ value: Value) {
-    self.value = value
-  }
-
-  public var active: Bool {
-    switch self.value {
-    case .some:
-      return true
-
-    case .none:
-      return false
+  @inlinable public func asPublisher() -> AnyPublisher<Success, Error> {
+    Future { promise in
+      Task<Void, Never> {
+        do {
+          try await promise(.success(self.value))
+        }
+        catch {
+          promise(.failure(error))
+        }
+      }
     }
+    .eraseToAnyPublisher()
+  }
+}
+
+extension Task where Failure == Never {
+
+  @inlinable public func asPublisher() -> AnyPublisher<Success, Never> {
+    Future { promise in
+      Task<Void, Never> {
+        await promise(self.result)
+      }
+    }
+    .eraseToAnyPublisher()
   }
 }

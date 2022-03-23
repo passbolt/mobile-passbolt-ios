@@ -36,26 +36,27 @@ import XCTest
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
-  override func mainActorSetUp() {
-    features.usePlaceholder(for: Resources.self)
-    features.patch(
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    await features.usePlaceholder(for: Resources.self)
+    await features.patch(
       \Resources.refreshIfNeeded,
       with: always(
         Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
+          .eraseErrorType()
           .eraseToAnyPublisher()
       )
     )
-    features.usePlaceholder(for: Folders.self)
-    features.patch(
+    await features.usePlaceholder(for: Folders.self)
+    await features.patch(
       \Folders.filteredFolderContent,
       with: always(
         AnyAsyncSequence([])
       )
     )
-    features.usePlaceholder(for: HomePresentation.self)
-    features.usePlaceholder(for: AccountSettings.self)
-    features
+    await features.usePlaceholder(for: HomePresentation.self)
+    await features.usePlaceholder(for: AccountSettings.self)
+    await features
       .patch(
         \AccountSettings.currentAccountAvatarPublisher,
         with: always(
@@ -65,16 +66,16 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
       )
   }
 
-  func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async {
-    features.patch(
+  func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
+    await features.patch(
       \Resources.refreshIfNeeded,
       with: always(
-        Fail(error: MockIssue.error().asLegacy)
+        Fail(error: MockIssue.error())
           .eraseToAnyPublisher()
       )
     )
 
-    let controller: FoldersExplorerController = testController(
+    let controller: FoldersExplorerController = try await testController(
       context: .ignored(with: nil)
     )
 
@@ -83,9 +84,9 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     XCTAssertNotNil(controller.viewState.value.snackBarMessage)
   }
 
-  func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async {
+  func test_refreshIfNeeded_finishesWithoutError_whenRefreshingSucceeds() async throws {
 
-    let controller: FoldersExplorerController = testController(
+    let controller: FoldersExplorerController = try await testController(
       context: .ignored(with: nil)
     )
 
@@ -94,8 +95,8 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     XCTAssertNil(controller.viewState.value.snackBarMessage)
   }
 
-  func test_initally_viewStateTitle_isDefaultString_forRootFolder() async {
-    let controller: FoldersExplorerController = testController(
+  func test_initally_viewStateTitle_isDefaultString_forRootFolder() async throws {
+    let controller: FoldersExplorerController = try await testController(
       context: .ignored(with: nil)
     )
 
@@ -105,13 +106,14 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     )
   }
 
-  func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async {
-    let controller: FoldersExplorerController = testController(
+  func test_initally_viewStateTitle_isFolderName_forNonRootFolder() async throws {
+    let controller: FoldersExplorerController = try await testController(
       context: .ignored(
         with: .init(
           id: "folder",
           name: "folder",
           permission: .owner,
+          shared: false,
           parentFolderID: nil,
           contentCount: 0
         )

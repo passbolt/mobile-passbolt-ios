@@ -28,10 +28,10 @@ import UIComponents
 
 public struct LogsViewerController {
 
-  public var refreshLogs: () -> Void
-  public var logsPublisher: () -> AnyPublisher<Array<String>?, Never>
-  public var presentShareMenu: () -> Void
-  public var shareMenuPresentationPublisher: () -> AnyPublisher<String?, Never>
+  public var refreshLogs: @MainActor () -> Void
+  public var logsPublisher: @MainActor () -> AnyPublisher<Array<String>?, Never>
+  public var presentShareMenu: @MainActor () -> Void
+  public var shareMenuPresentationPublisher: @MainActor () -> AnyPublisher<String?, Never>
 }
 
 extension LogsViewerController: UIController {
@@ -42,9 +42,9 @@ extension LogsViewerController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let logsFetchExecutor: AsyncExecutor = features.instance(of: Executors.self).newBackgroundExecutor()
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
+    let logsFetchExecutor: AsyncExecutor = try await features.instance(of: Executors.self).newBackgroundExecutor()
 
     let logsCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()

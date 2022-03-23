@@ -41,7 +41,7 @@ extension AccountTransferConfiguration {
 
   internal static func from(
     _ part: AccountTransferScanningPart
-  ) -> Result<Self, TheErrorLegacy> {
+  ) -> Result<Self, Error> {
     let jsonDecoder: JSONDecoder = .init()
     var decoded: Self
     do {
@@ -54,7 +54,7 @@ extension AccountTransferConfiguration {
     }
     catch {
       return .failure(
-        .accountTransferScanningError(context: "configuration-decoding-invalid-json")
+        TheErrorLegacy.accountTransferScanningError(context: "configuration-decoding-invalid-json")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
       )
     }
@@ -67,7 +67,7 @@ extension AccountTransferConfiguration {
     }
     else {
       return .failure(
-        .accountTransferScanningError(context: "configuration-decoding-invalid-domain")
+        TheErrorLegacy.accountTransferScanningError(context: "configuration-decoding-invalid-domain")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration domain")
       )
     }

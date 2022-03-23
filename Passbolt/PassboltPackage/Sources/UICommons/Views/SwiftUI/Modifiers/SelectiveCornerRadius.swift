@@ -23,6 +23,7 @@
 
 import SwiftUI
 
+@MainActor
 public struct SelectiveCornerRadius: ViewModifier {
 
   fileprivate let radius: CGFloat
@@ -64,6 +65,7 @@ public struct SelectiveCornerRadius: ViewModifier {
 
 extension View {
 
+  @MainActor
   public func cornerRadius(
     _ radius: CGFloat,
     corners: UIRectCorner

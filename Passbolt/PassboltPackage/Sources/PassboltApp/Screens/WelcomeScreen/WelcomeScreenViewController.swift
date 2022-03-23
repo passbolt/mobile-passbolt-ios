@@ -60,7 +60,9 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
           .combined(
             .image(named: .help, from: .uiCommons),
             .action { [weak self] in
-              self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+              self?.cancellables.executeOnMainActor { [weak self] in
+                await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+              }
             }
           )
           .instantiate()
@@ -88,25 +90,26 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
     controller.noAccountAlertPresentationPublisher()
       .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        guard let self = self else { return }
-        if presented {
-          self.present(
-            WelcomeScreenNoAccountAlertViewController.self,
-            in: self.controller.dismissNoAccountAlert
-          )
-        }
-        else {
-          self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          if presented {
+            await self.present(
+              WelcomeScreenNoAccountAlertViewController.self,
+              in: self.controller.dismissNoAccountAlert
+            )
+          }
+          else {
+            await self.dismiss(WelcomeScreenNoAccountAlertViewController.self)
+          }
         }
       }
       .store(in: cancellables)
 
     controller.pushTransferInfoPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        guard let self = self else { return }
-        let viewController: TransferInfoScreenViewController = self.components.instance()
-        self.navigationController?.pushViewController(viewController, animated: true)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(TransferInfoScreenViewController.self)
+        }
       }
       .store(in: cancellables)
   }

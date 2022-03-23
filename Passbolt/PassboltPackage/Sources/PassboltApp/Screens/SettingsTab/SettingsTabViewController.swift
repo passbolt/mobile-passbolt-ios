@@ -51,16 +51,16 @@ internal final class SettingsTabViewController: NavigationViewController, UIComp
   }
 
   internal func setup() {
-    let accountSettings: SettingsViewController = components.instance()
-    setViewControllers([accountSettings], animated: false)
-
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
-    }
     mut(tabBarItem) {
       .combined(
         .title(.localized(key: "tab.settings")),
         .image(named: .settingsTab, from: .uiCommons)
+      )
+    }
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: SettingsViewController.self
       )
     }
   }

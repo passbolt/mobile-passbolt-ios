@@ -32,115 +32,154 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class UpdateCheckTests: TestCase {
 
-  func test_updateAvailable_throws_whenFetchingAvailableVersionFails() {
-    features.patch(
+  func test_updateAvailable_throws_whenFetchingAvailableVersionFails() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .failingWith(MockIssue.error())
     )
-    environment.appMeta.version = always("")
-
-    let feature: UpdateCheck = testInstance()
-
-    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
-      try await feature.updateAvailable()
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("")
     }
+
+    let feature: UpdateCheck = try await testInstance()
+    var result: Error?
+    do {
+      try await feature.updateAvailable()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
+    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
   }
 
-  func test_updateAvailable_throws_whenFetchedAvailableVersionIsMissing() {
-    features.patch(
+  func test_updateAvailable_throws_whenFetchedAvailableVersionIsMissing() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .respondingWith(.init(results: []))
     )
-    environment.appMeta.version = always("")
-
-    let feature: UpdateCheck = testInstance()
-
-    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
-      try await feature.updateAvailable()
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("")
     }
+
+    let feature: UpdateCheck = try await testInstance()
+
+    var result: Error?
+    do {
+      try await feature.updateAvailable()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
+    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
   }
 
-  func test_updateAvailable_throws_whenFetchedAvailableVersionIsInvalid() {
-    features.patch(
+  func test_updateAvailable_throws_whenFetchedAvailableVersionIsInvalid() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .respondingWith(.init(results: [.init(version: "invalid")]))
     )
-    environment.appMeta.version = always("")
-
-    let feature: UpdateCheck = testInstance()
-
-    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
-      try await feature.updateAvailable()
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("")
     }
+
+    let feature: UpdateCheck = try await testInstance()
+
+    var result: Error?
+    do {
+      try await feature.updateAvailable()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
+    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
   }
 
-  func test_updateAvailable_throws_whenFetchedAvailableVersionIsNotFullyValid() {
-    features.patch(
+  func test_updateAvailable_throws_whenFetchedAvailableVersionIsNotFullyValid() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .respondingWith(.init(results: [.init(version: "1.3.x")]))
     )
-    environment.appMeta.version = always("")
-
-    let feature: UpdateCheck = testInstance()
-
-    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
-      try await feature.updateAvailable()
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("")
     }
+
+    let feature: UpdateCheck = try await testInstance()
+
+    var result: Error?
+    do {
+      try await feature.updateAvailable()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
+    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
   }
 
-  func test_updateAvailable_throws_whenAppMetaVersionIsInvalid() {
-    features.patch(
+  func test_updateAvailable_throws_whenAppMetaVersionIsInvalid() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .respondingWith(.init(results: [.init(version: "1.3.x")]))
     )
-    environment.appMeta.version = always("")
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("")
+    }
 
-    let feature: UpdateCheck = testInstance()
+    let feature: UpdateCheck = try await testInstance()
 
-    XCTAssertThrows(TheErrorLegacy.self, identifier: .versionCheckFailed) {
+    var result: Error?
+    do {
       try await feature.updateAvailable()
+      XCTFail()
     }
+    catch {
+      result = error
+    }
+    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .versionCheckFailed })
   }
 
-  func test_checkRequired_returnsTrue_whenNotCheckedYet() {
-    features.usePlaceholder(for: NetworkClient.self)
-    let feature: UpdateCheck = testInstance()
+  func test_checkRequired_returnsTrue_whenNotCheckedYet() async throws {
+    await features.usePlaceholder(for: NetworkClient.self)
+    let feature: UpdateCheck = try await testInstance()
 
-    XCTAssertTrue {
-      await feature.checkRequired()
-    }
+    let result = await feature.checkRequired()
+    XCTAssertTrue(result)
   }
 
-  func test_checkRequired_returnsTrue_whenCheckingFails() {
-    features.patch(
+  func test_checkRequired_returnsTrue_whenCheckingFails() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .failingWith(MockIssue.error())
     )
-    environment.appMeta.version = always("")
-
-    let feature: UpdateCheck = testInstance()
-
-    Task {
-      try await feature.updateAvailable()
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("")
     }
 
-    XCTAssertTrue {
-      await feature.checkRequired()
-    }
+    let feature: UpdateCheck = try await testInstance()
+
+    _ = try? await feature.updateAvailable()
+
+    let result = await feature.checkRequired()
+    XCTAssertTrue(result)
   }
 
-  func test_checkRequired_returnsFalse_whenCheckingSucceeds() {
-    features.patch(
+  func test_checkRequired_returnsFalse_whenCheckingSucceeds() async throws {
+    await features.patch(
       \NetworkClient.appVersionsAvailableRequest,
       with: .respondingWith(.init(results: [.init(version: "1.2.3")]))
     )
-    environment.appMeta.version = always("1.2.3")
-
-    let feature: UpdateCheck = testInstance()
-
-    XCTAssertFalse {
-      _ = try await feature.updateAvailable()
-      return await feature.checkRequired()
+    try await FeaturesActor.execute {
+      self.environment.appMeta.version = always("1.2.3")
     }
+
+    let feature: UpdateCheck = try await testInstance()
+
+    _ = try await feature.updateAvailable()
+    let result = await feature.checkRequired()
+
+    XCTAssertFalse(result)
   }
 }

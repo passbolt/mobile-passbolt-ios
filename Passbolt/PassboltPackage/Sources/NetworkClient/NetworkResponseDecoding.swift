@@ -31,7 +31,7 @@ import struct Foundation.URL
 
 internal struct NetworkResponseDecoding<SessionVariable, RequestVariable, Response> {
 
-  internal var decode: (SessionVariable, RequestVariable, HTTPRequest, HTTPResponse) -> Result<Response, Error>
+  internal var decode: (SessionVariable, RequestVariable, HTTPRequest, HTTPResponse) throws -> Response
 }
 
 extension NetworkResponseDecoding where Response == Void {
@@ -41,7 +41,7 @@ extension NetworkResponseDecoding where Response == Void {
     using decoder: JSONDecoder = .init()
   ) -> Self {
     Self { _, _, httpRequest, httpResponse in
-      decodeStatusCode(
+      try decodeStatusCode(
         matching: statusCodes,
         httpRequest: httpRequest,
         httpResponse: httpResponse,
@@ -55,7 +55,7 @@ extension NetworkResponseDecoding where Response == Data {
 
   internal static var rawBody: Self {
     Self { _, _, _, response in
-      .success(response.body)
+      response.body
     }
   }
 }
@@ -67,16 +67,15 @@ extension NetworkResponseDecoding where Response == String {
   ) -> Self {
     Self { _, _, _, response in
       if let string: String = String(data: response.body, encoding: encoding) {
-        return .success(string)
+        return string
       }
       else {
-        return .failure(
+        throw
           NetworkResponseDecodingFailure
-            .error(
-              "Failed to decode string body",
-              response: response
-            )
-        )
+          .error(
+            "Failed to decode string body",
+            response: response
+          )
       }
     }
   }
@@ -88,7 +87,7 @@ extension NetworkResponseDecoding {
     httpRequest: HTTPRequest,
     httpResponse: HTTPResponse,
     using decoder: JSONDecoder = .init()
-  ) -> Result<Void, Error> {
+  ) throws {
     do {
       let mfaResponse: MFARequiredResponse =
         try decoder
@@ -96,27 +95,30 @@ extension NetworkResponseDecoding {
           MFARequiredResponse.self,
           from: httpResponse.body
         )
-
-      return .failure(
+      throw
         SessionMFAAuthorizationRequired
-          .error(mfaProviders: mfaResponse.body.mfaProviders)
-      )
+        .error(
+          mfaProviders: mfaResponse.body.mfaProviders
+        )
+    }
+    catch let error as SessionMFAAuthorizationRequired {
+      throw error
     }
     catch {
-      return .failure(
+      throw
         HTTPForbidden
-          .error(
-            request: httpRequest,
-            response: httpResponse
-          )
-      )
+        .error(
+          request: httpRequest,
+          response: httpResponse
+        )
+        .recording(error, for: "underlying error")
     }
   }
 
   internal static func decodeBadRequest(
     httpRequest: HTTPRequest,
     httpResponse: HTTPResponse
-  ) -> Result<Void, Error> {
+  ) throws {
     do {
       guard
         let validationViolations: Dictionary<String, Any> = try JSONSerialization.jsonObject(
@@ -124,56 +126,54 @@ extension NetworkResponseDecoding {
           options: .init()
         ) as? Dictionary<String, Any>
       else {
-        return .failure(
+        throw
           HTTPRequestInvalid
-            .error(
-              request: httpRequest,
-              response: httpResponse
-            )
-        )
+          .error(
+            request: httpRequest,
+            response: httpResponse
+          )
       }
 
-      return .failure(
+      throw
         NetworkRequestValidationFailure
-          .error(validationViolations: validationViolations)
-      )
+        .error(validationViolations: validationViolations)
+    }
+    catch let error as NetworkRequestValidationFailure {
+      throw error
     }
     catch let error {
-      return .failure(
+      throw
         NetworkResponseDecodingFailure
-          .error(
-            "Failed to decode bad request response",
-            response: httpResponse,
-            underlyingError: error
-          )
-      )
+        .error(
+          "Failed to decode bad request response",
+          response: httpResponse,
+          underlyingError: error
+        )
     }
   }
 
   internal static func decodeRedirect(
     httpRequest: HTTPRequest,
     httpResponse: HTTPResponse
-  ) -> Result<Void, Error> {
+  ) throws {
     if let locationString: String = httpResponse.headers["Location"],
       let locationURL: URL = .init(string: locationString)
     {
-      return .failure(
+      throw
         HTTPRedirect
-          .error(
-            request: httpRequest,
-            response: httpResponse,
-            location: locationURL
-          )
-      )
+        .error(
+          request: httpRequest,
+          response: httpResponse,
+          location: locationURL
+        )
     }
     else {
-      return .failure(
+      throw
         NetworkResponseInvalid
-          .error(
-            "Redirect response does not contain valid location URL",
-            response: httpResponse
-          )
-      )
+        .error(
+          "Redirect response does not contain valid location URL",
+          response: httpResponse
+        )
     }
   }
 
@@ -182,56 +182,53 @@ extension NetworkResponseDecoding {
     httpRequest: HTTPRequest,
     httpResponse: HTTPResponse,
     using decoder: JSONDecoder = .init()
-  ) -> Result<Void, Error> {
+  ) throws {
     if statusCodes ~= httpResponse.statusCode {
-      return .success(Void())
+      return
     }
     else if httpResponse.statusCode == 302 {
-      return decodeRedirect(
+      try decodeRedirect(
         httpRequest: httpRequest,
         httpResponse: httpResponse
       )
     }
     else if httpResponse.statusCode == 400 {
-      return decodeBadRequest(
+      try decodeBadRequest(
         httpRequest: httpRequest,
         httpResponse: httpResponse
       )
     }
     else if httpResponse.statusCode == 401 {
-      return .failure(
+      throw
         HTTPUnauthorized
-          .error(
-            request: httpRequest,
-            response: httpResponse
-          )
-      )
+        .error(
+          request: httpRequest,
+          response: httpResponse
+        )
     }
     else if httpResponse.statusCode == 403 {
-      return decodeForbidden(
+      try decodeForbidden(
         httpRequest: httpRequest,
         httpResponse: httpResponse,
         using: decoder
       )
     }
     else if httpResponse.statusCode == 404 {
-      return .failure(
+      throw
         HTTPNotFound
-          .error(
-            request: httpRequest,
-            response: httpResponse
-          )
-      )
+        .error(
+          request: httpRequest,
+          response: httpResponse
+        )
     }
     else {
-      return .failure(
+      throw
         HTTPStatusCodeUnexpected
-          .error(
-            "HTTP status code is not matching expected",
-            request: httpRequest,
-            response: httpResponse
-          )
-      )
+        .error(
+          "HTTP status code is not matching expected",
+          request: httpRequest,
+          response: httpResponse
+        )
     }
   }
 }
@@ -246,31 +243,27 @@ extension NetworkResponseDecoding where Response: Decodable {
     }()
   ) -> Self {
     Self { _, _, httpRequest, httpResponse in
-      decodeStatusCode(
+      try decodeStatusCode(
         matching: 200..<300,
         httpRequest: httpRequest,
         httpResponse: httpResponse,
         using: decoder
       )
-      .flatMap {
-        do {
-          return .success(
-            try decoder.decode(
-              Response.self,
-              from: httpResponse.body
-            )
+
+      do {
+        return try decoder.decode(
+          Response.self,
+          from: httpResponse.body
+        )
+      }
+      catch let error {
+        throw
+          NetworkResponseDecodingFailure
+          .error(
+            "Failed to decode bad request response",
+            response: httpResponse,
+            underlyingError: error
           )
-        }
-        catch let error {
-          return .failure(
-            NetworkResponseDecodingFailure
-              .error(
-                "Failed to decode bad request response",
-                response: httpResponse,
-                underlyingError: error
-              )
-          )
-        }
       }
     }
   }

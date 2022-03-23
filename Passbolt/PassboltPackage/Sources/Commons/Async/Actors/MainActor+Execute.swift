@@ -21,23 +21,54 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
+import Combine
 
-extension Mutation where Subject: NavigationBar {
+extension MainActor {
 
-  public static func backgroundColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBackgroundColor = color }
+  public static func execute<Success>(
+    _ operation: @escaping @MainActor () async throws -> Success
+  ) async throws -> Success {
+    try await Task { @MainActor in
+      try await operation()
+    }
+    .value
   }
 
-  public static func tintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicTintColor = color }
+  public static func execute(
+    _ operation: @MainActor @escaping () async throws -> Void
+  ) {
+    Task { @MainActor in
+      try await operation()
+    }
   }
 
-  public static func barTintColor(dynamic color: DynamicColor) -> Self {
-    .custom { (subject: Subject) in subject.dynamicBarTintColor = color }
+  public static func executeDetached(
+    _ operation: @MainActor @escaping () async throws -> Void
+  ) {
+    Task.detached { @MainActor in
+      try await operation()
+    }
   }
 
-  public static func isHidden(_ isHidden: Bool) -> Self {
-    .custom { (subject: Subject) in subject.isHidden = isHidden }
+  public static func executeWithPublisher<Success>(
+    _ operation: @escaping @MainActor () async throws -> Success
+  ) -> AnyPublisher<Success, Error> {
+    Task { @MainActor in
+      try await operation()
+    }
+    .asPublisher()
+  }
+
+  public static func executeWithPublisher<Success>(
+    _ operation: @MainActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success.Output, Error>
+  where Success: Publisher {
+    Task { @MainActor in
+      try await operation()
+        .eraseErrorType()
+    }
+    .asPublisher()
+    .switchToLatest()
+    .eraseToAnyPublisher()
   }
 }

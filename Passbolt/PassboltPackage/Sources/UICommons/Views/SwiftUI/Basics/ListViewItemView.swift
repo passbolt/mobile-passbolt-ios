@@ -24,6 +24,7 @@
 import Commons
 import SwiftUI
 
+@MainActor
 public struct ListViewItemView<LeftAccessoryView, TitleView, RightAccessoryView>: View
 where LeftAccessoryView: View, TitleView: View, RightAccessoryView: View {
 

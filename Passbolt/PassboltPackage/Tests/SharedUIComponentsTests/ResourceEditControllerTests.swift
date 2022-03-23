@@ -48,6 +48,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
     resourceForm = .placeholder
     resourceForm.setEnclosingFolder = always(Void())
     randomGenerator = .placeholder
+    resourceForm.featureUnload = always(Void())
   }
 
   override func mainActorTearDown() {
@@ -57,16 +58,16 @@ final class ResourceEditControllerTests: MainActorTestCase {
     randomGenerator = nil
   }
 
-  func test_resourceFieldsPublisher_publishesFields() {
-    features.use(resources)
+  func test_resourceFieldsPublisher_publishesFields() async throws {
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       CurrentValueSubject(defaultResourceType)
         .eraseToAnyPublisher()
     )
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { _ in /* NOP */ }
@@ -96,8 +97,8 @@ final class ResourceEditControllerTests: MainActorTestCase {
     )
   }
 
-  func test_resourceFieldsPublisher_editsGivenResourceInForm_whenEditingExistingResource() {
-    features.use(resources)
+  func test_resourceFieldsPublisher_editsGivenResourceInForm_whenEditingExistingResource() async throws {
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       CurrentValueSubject(defaultResourceType)
         .eraseToAnyPublisher()
@@ -106,13 +107,13 @@ final class ResourceEditControllerTests: MainActorTestCase {
     resourceForm.editResource = { resourceID in
       result = resourceID
       return Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let _: ResourceEditController = testController(
+    let _: ResourceEditController = try await testController(
       context: (
         .existing("resource-id"),
         completion: { _ in /* NOP */ }
@@ -122,26 +123,25 @@ final class ResourceEditControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "resource-id")
   }
 
-  func test_resourceFieldsPublisher_fails_whenEditingExistingResourceFails() {
-    features.use(resources)
+  func test_resourceFieldsPublisher_fails_whenEditingExistingResourceFails() async throws {
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       CurrentValueSubject(defaultResourceType)
         .eraseToAnyPublisher()
     )
     resourceForm.editResource = always(
-      Fail(error: .testError())
-        .eraseToAnyPublisher()
+      Fail(error: MockIssue.error()).eraseToAnyPublisher()
     )
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .existing("resource-id"),
         completion: { _ in /* NOP */ }
       )
     )
-    var result: TheErrorLegacy?
+    var result: Error?
 
     controller
       .resourcePropertiesPublisher()
@@ -155,14 +155,14 @@ final class ResourceEditControllerTests: MainActorTestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() {
+  func test_generatePassword_generatesPassword_andTriggersFieldValuePublisher() async throws {
     var resultPassword: ResourceFieldValue?
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resourceForm.setFieldValue = { value, field in
@@ -173,7 +173,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
         /* NOP */
       }
       return Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     var resultGenerate:
@@ -186,11 +186,11 @@ final class ResourceEditControllerTests: MainActorTestCase {
       resultGenerate = (alphabets, minLength, targetEntropy)
       return "&!)]V3rYstrP@$word___"
     }
-    features.use(resources)
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resources)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { _ in /* NOP */ }
@@ -205,22 +205,22 @@ final class ResourceEditControllerTests: MainActorTestCase {
     XCTAssertEqual(resultGenerate?.targetEntropy, .veryStrongPassword)
   }
 
-  func test_passwordEntropyPublisher_publishes_whenFieldPublisher_publishes() {
+  func test_passwordEntropyPublisher_publishes_whenFieldPublisher_publishes() async throws {
     let fieldValueSubject: PassthroughSubject<Validated<ResourceFieldValue>, Never> = .init()
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resourceForm.fieldValuePublisher = always(
       fieldValueSubject.eraseToAnyPublisher()
     )
     randomGenerator.entropy = always(.veryStrongPassword)
-    features.use(resources)
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resources)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { _ in /* NOP */ }
@@ -242,135 +242,129 @@ final class ResourceEditControllerTests: MainActorTestCase {
     XCTAssertEqual(result, .veryStrongPassword)
   }
 
-  func test_createResource_unloadsResourceEditForm_whenSendingFormSucceeds() {
+  func test_createResource_unloadsResourceEditForm_whenSendingFormSucceeds() async throws {
     var result: Void?
     resources.refreshIfNeeded = {
       Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
       Just("1")
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resourceForm.featureUnload = {
       result = Void()
-      return true
     }
-    features.use(resources)
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
 
-    controller
+    try await controller
       .sendForm()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_createResource_triggersRefreshIfNeeded_whenSendingFormSucceeds() {
+  func test_createResource_triggersRefreshIfNeeded_whenSendingFormSucceeds() async throws {
     var result: Void?
     resources.refreshIfNeeded = {
       result = Void()
       return Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
       Just("1")
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    resourceForm.featureUnload = {
-      true
-    }
-    features.use(resources)
+    resourceForm.featureUnload = {}
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { _ in /* NOP */ }
       )
     )
 
-    controller
+    try await controller
       .sendForm()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_createResource_callsContextCompletionWithCreatedResourceID_whenSendingFormSucceeds() {
+  func test_createResource_callsContextCompletionWithCreatedResourceID_whenSendingFormSucceeds() async throws {
     resources.refreshIfNeeded = {
       Just(Void())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
     resourceForm.sendForm = always(
       Just("1")
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    resourceForm.featureUnload = { true }
-    features.use(resources)
+    resourceForm.featureUnload = {}
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
     var result: Resource.ID?
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { id in result = id }
       )
     )
 
-    controller
+    try await controller
       .sendForm()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, "1")
   }
 
-  func test_resourceForm_isUnloaded_whenCleanupCalled() {
-    features.use(resources)
+  func test_resourceForm_isUnloaded_whenCleanupCalled() async throws {
+    await features.use(resources)
     resourceForm.resourceTypePublisher = always(
       Just(defaultResourceType)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    resourceForm.featureUnload = always(true)
-    features.use(resourceForm)
-    features.use(randomGenerator)
+    resourceForm.featureUnload = always(Void())
+    await features.use(resourceForm)
+    await features.use(randomGenerator)
 
-    let controller: ResourceEditController = testController(
+    let controller: ResourceEditController = try await testController(
       context: (
         .new(in: nil),
         completion: { _ in /* NOP */ }
@@ -379,7 +373,11 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     controller.cleanup()
 
-    XCTAssertFalse(features.isLoaded(ResourceEditForm.self))
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let isLoaded = await features.isLoaded(ResourceEditForm.self)
+    XCTAssertFalse(isLoaded)
   }
 }
 

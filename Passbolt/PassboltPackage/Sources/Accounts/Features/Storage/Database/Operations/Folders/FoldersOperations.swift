@@ -30,10 +30,10 @@ public typealias StoreFoldersOperation = DatabaseOperation<Array<Folder>, Void>
 extension StoreFoldersOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnectionInTransaction(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       // We have to remove all previously stored folders before updating
       // due to lack of ability to get information about deleted folders.
@@ -44,19 +44,7 @@ extension StoreFoldersOperation {
       // deleting records selecively becomes implemented.
       //
       // Delete currently stored folders
-      let deletionResult: Result<Void, Error> =
-        conn
-        .execute(
-          "DELETE FROM folders;"
-        )
-
-      switch deletionResult {
-      case .success:
-        break
-
-      case let .failure(error):
-        return .failure(error)
-      }
+      try conn.execute("DELETE FROM folders;")
 
       // Since Folders make tree like structure and
       // tree integrity is verified by database foreign
@@ -76,25 +64,16 @@ extension StoreFoldersOperation {
 
       // Insert or update all new folders
       for folder in sortedFolders {
-        let result: Result<Void, Error> =
-          conn
+        try conn
           .execute(
             upsertFoldersStatement,
             with: folder.id.rawValue,
             folder.name,
             folder.permission.rawValue,
+            folder.shared,
             folder.parentFolderID?.rawValue
           )
-
-        switch result {
-        case .success:
-          continue
-
-        case let .failure(error):
-          return .failure(error)
-        }
       }
-      return .success
     }
   }
 }
@@ -105,6 +84,7 @@ private let upsertFoldersStatement: SQLiteStatement = """
       id,
       name,
       permission,
+      shared,
       parentFolderID
     )
   VALUES
@@ -112,7 +92,8 @@ private let upsertFoldersStatement: SQLiteStatement = """
       ?1,
       ?2,
       ?3,
-      ?4
+      ?4,
+      ?5
     );
   """
 
@@ -121,16 +102,17 @@ public typealias FetchFolderOperation = DatabaseOperation<Folder.ID, Folder?>
 extension FetchFolderOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       let statement: SQLiteStatement = """
         SELECT
           id,
           name,
           permission,
+          shared,
           parentFolderID
         FROM
           folders
@@ -140,26 +122,25 @@ extension FetchFolderOperation {
       let params: Array<SQLiteBindable?> = [input.rawValue]
 
       return
-        conn
+        try conn
         .fetch(
           statement,
           with: params
         ) { rows in
-          .success(
-            rows.first.flatMap { row -> Folder? in
-              guard
-                let id: Folder.ID = (row.id as String?).map(ListViewFolder.ID.init(rawValue:)),
-                let name: String = row.name,
-                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:))
-              else { return nil }
-              return Folder(
-                id: id,
-                name: name,
-                permission: permission,
-                parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:))
-              )
-            }
-          )
+          rows.first.flatMap { row -> Folder? in
+            guard
+              let id: Folder.ID = (row.id as String?).map(ListViewFolder.ID.init(rawValue:)),
+              let name: String = row.name,
+              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:))
+            else { return nil }
+            return Folder(
+              id: id,
+              name: name,
+              permission: permission,
+              shared: row.shared ?? false,
+              parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:))
+            )
+          }
         }
     }
   }
@@ -170,10 +151,10 @@ public typealias FetchListViewFoldersOperation = DatabaseOperation<FoldersFilter
 extension FetchListViewFoldersOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       var statement: SQLiteStatement
       var params: Array<SQLiteBindable?>
@@ -191,7 +172,8 @@ extension FetchListViewFoldersOperation {
               id,
               name,
               permission,
-              parentFolderID
+              parentFolderID,
+              shared
             )
           AS
             (
@@ -199,7 +181,8 @@ extension FetchListViewFoldersOperation {
                 foldersListView.id,
                 foldersListView.name,
                 foldersListView.permission,
-                foldersListView.parentFolderID
+                foldersListView.parentFolderID,
+                foldersListView.shared
               FROM
                 foldersListView
               WHERE
@@ -211,7 +194,8 @@ extension FetchListViewFoldersOperation {
                 foldersListView.id,
                 foldersListView.name,
                 foldersListView.permission,
-                foldersListView.parentFolderID
+                foldersListView.parentFolderID,
+                foldersListView.shared
               FROM
                 foldersListView,
                 flattenedFoldersListView
@@ -223,6 +207,7 @@ extension FetchListViewFoldersOperation {
             flattenedFoldersListView.name AS name,
             flattenedFoldersListView.permission AS permission,
             flattenedFoldersListView.parentFolderID AS parentFolderID,
+            flattenedFoldersListView.shared AS shared,
             (
               SELECT
               (
@@ -259,6 +244,7 @@ extension FetchListViewFoldersOperation {
             foldersListView.name AS name,
             foldersListView.permission AS permission,
             foldersListView.parentFolderID AS parentFolderID,
+            foldersListView.shared AS shared,
             (
               SELECT
               (
@@ -334,27 +320,26 @@ extension FetchListViewFoldersOperation {
       statement.append(";")
 
       return
-        conn
+        try conn
         .fetch(
           statement,
           with: params
         ) { rows in
-          .success(
-            rows.compactMap { row -> ListViewFolder? in
-              guard
-                let id: ListViewFolder.ID = (row.id as String?).map(ListViewFolder.ID.init(rawValue:)),
-                let name: String = row.name,
-                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:))
-              else { return nil }
-              return ListViewFolder(
-                id: id,
-                name: name,
-                permission: permission,
-                parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:)),
-                contentCount: row.contentCount ?? 0
-              )
-            }
-          )
+          rows.compactMap { row -> ListViewFolder? in
+            guard
+              let id: ListViewFolder.ID = (row.id as String?).map(ListViewFolder.ID.init(rawValue:)),
+              let name: String = row.name,
+              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:))
+            else { return nil }
+            return ListViewFolder(
+              id: id,
+              name: name,
+              permission: permission,
+              shared: row.shared ?? false,
+              parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:)),
+              contentCount: row.contentCount ?? 0
+            )
+          }
         }
     }
   }
@@ -365,10 +350,10 @@ public typealias FetchListViewFolderResourcesOperation = DatabaseOperation<Folde
 extension FetchListViewFolderResourcesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       var statement: SQLiteStatement
       var params: Array<SQLiteBindable?>
@@ -484,25 +469,23 @@ extension FetchListViewFolderResourcesOperation {
       statement.append(";")
 
       return
-        conn
+        try conn
         .fetch(
           statement,
           with: params
         ) { rows in
-          .success(
-            rows.compactMap { row -> ListViewFolderResource? in
-              guard
-                let id: ListViewFolderResource.ID = (row.id as String?).map(ListViewFolderResource.ID.init(rawValue:)),
-                let name: String = row.name
-              else { return nil }
-              return ListViewFolderResource(
-                id: id,
-                name: name,
-                username: row.username,
-                parentFolderID: (row.parentFolderID as String?).map(Folder.ID.init(rawValue:))
-              )
-            }
-          )
+          rows.compactMap { row -> ListViewFolderResource? in
+            guard
+              let id: ListViewFolderResource.ID = (row.id as String?).map(ListViewFolderResource.ID.init(rawValue:)),
+              let name: String = row.name
+            else { return nil }
+            return ListViewFolderResource(
+              id: id,
+              name: name,
+              username: row.username,
+              parentFolderID: (row.parentFolderID as String?).map(Folder.ID.init(rawValue:))
+            )
+          }
         }
     }
   }

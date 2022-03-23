@@ -30,7 +30,7 @@ extension SignOutRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> EmptyNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -43,7 +43,7 @@ extension SignOutRequest {
       },
       responseDecoder: .statusCodes(200..<300),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }

@@ -53,24 +53,21 @@ internal final class AuthorizationNavigationViewController: NavigationViewContro
   }
 
   internal func setup() {
-    let accountSelectionScreen: AccountSelectionViewController = components.instance(
-      in: .init(value: false)
-    )
-    setViewControllers([accountSelectionScreen], animated: false)
-
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
-    }
-
-    if let selectedAccount: Account = controller.selectedAccount {
-      push(
-        AuthorizationViewController.self,
-        in: selectedAccount,
-        animated: false
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: AccountSelectionViewController.self,
+        in: .init(value: false)
       )
-    }
-    else {
-      /* */
+      if let selectedAccount: Account = self.controller.selectedAccount {
+        await self.push(
+          AuthorizationViewController.self,
+          in: selectedAccount,
+          animated: false
+        )
+      }
+      else { /* NOP */
+      }
     }
   }
 

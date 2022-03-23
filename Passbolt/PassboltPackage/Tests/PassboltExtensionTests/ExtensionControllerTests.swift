@@ -44,15 +44,15 @@ final class ExtensionControllerTests: MainActorTestCase {
     accountSession = nil
   }
 
-  func test_destinationPublisher_publishesAccountSelection_whenNoAccounts_arePresent_andNotAuthorized() {
+  func test_destinationPublisher_publishesAccountSelection_whenNoAccounts_arePresent_andNotAuthorized() async throws {
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
 
     accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: ExtensionController = testController()
+    let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -61,18 +61,21 @@ final class ExtensionControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, .accountSelection(lastUsedAccount: nil))
   }
 
-  func test_destinationPublisher_publishesHome_whenAccount_isPresent_andAuthorized() {
+  func test_destinationPublisher_publishesHome_whenAccount_isPresent_andAuthorized() async throws {
     accounts.storedAccounts = always([firstAccount])
-    features.use(accounts)
+    await features.use(accounts)
 
     accountSession.statePublisher = always(Just(.authorized(firstAccount)).eraseToAnyPublisher())
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: ExtensionController = testController()
+    let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -84,15 +87,15 @@ final class ExtensionControllerTests: MainActorTestCase {
     XCTAssertEqual(result, .home(firstAccount))
   }
 
-  func test_destinationPublisher_doesNotPublish_whenSessionAuthorizationRequired() {
+  func test_destinationPublisher_doesNotPublish_whenSessionAuthorizationRequired() async throws {
     accounts.storedAccounts = always([firstAccount, secondAccount])
-    features.use(accounts)
+    await features.use(accounts)
 
     accountSession.statePublisher = always(Just(.authorizationRequired(secondAccount)).eraseToAnyPublisher())
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: ExtensionController = testController()
+    let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -104,15 +107,16 @@ final class ExtensionControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_destinationPublisher_publishesAccountSelection_whenLastUsedAccount_isPresent_andNotAuthorized() {
+  func test_destinationPublisher_publishesAccountSelection_whenLastUsedAccount_isPresent_andNotAuthorized() async throws
+  {
     accounts.storedAccounts = always([firstAccount, secondAccount])
-    features.use(accounts)
+    await features.use(accounts)
 
     accountSession.statePublisher = always(Just(.none(lastUsed: secondAccount)).eraseToAnyPublisher())
     accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: ExtensionController = testController()
+    let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
 
     controller.destinationPublisher()
@@ -124,21 +128,21 @@ final class ExtensionControllerTests: MainActorTestCase {
     XCTAssertEqual(result, .accountSelection(lastUsedAccount: secondAccount))
   }
 
-  func test_sessionCloses_whenAuthorizationPromptIsRequired() {
-    features.use(accounts)
+  func test_sessionCloses_whenAuthorizationPromptIsRequired() async throws {
+    await features.use(accounts)
 
     var result: Void?
     accountSession.close = {
       result = Void()
     }
-    accountSession.statePublisher = always(Empty().eraseToAnyPublisher())
+    accountSession.statePublisher = always(Just(.authorized(.validAccount)).eraseToAnyPublisher())
     let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
     accountSession.authorizationPromptPresentationPublisher = always(
       authorizationPromptPresentationSubject.eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: ExtensionController = testController()
+    let controller: ExtensionController = try await testController()
     _ = controller  // silence warning
 
     authorizationPromptPresentationSubject
@@ -148,6 +152,9 @@ final class ExtensionControllerTests: MainActorTestCase {
           message: .none
         )
       )
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }

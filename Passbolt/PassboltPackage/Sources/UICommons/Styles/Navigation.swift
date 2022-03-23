@@ -23,17 +23,18 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: NavigationBar {
+extension Mutation where Subject: UINavigationBar {
 
   public static func primaryNavigationStyle() -> Self {
     .combined(
       .backgroundColor(.clear),
       .barTintColor(.passboltBackground),
-      .tintColor(dynamic: .primaryButtonTint),
+      .tintColor(.passboltPrimaryButtonTint),
       .translucent(true),
       .shadowImage(UIImage()),
       .backgroundImage(nil),
       .custom { (subject: Subject) in
+        subject.barStyle = .black
         subject.backIndicatorImage = UIImage(
           named: ImageNameConstant.arrowLeft.rawValue,
           in: .uiCommons,
@@ -44,8 +45,10 @@ extension Mutation where Subject: NavigationBar {
           in: .uiCommons,
           with: nil
         )
-        subject.titleFont = .inter(ofSize: 16, weight: .semibold)
-        subject.dynamicTitleColor = .primaryText
+        subject.titleTextAttributes = [
+          .foregroundColor: UIColor.passboltPrimaryText,
+          .font: UIFont.inter(ofSize: 16, weight: .semibold),
+        ]
         subject.scrollEdgeAppearance?.configureWithOpaqueBackground()
         if #available(iOS 15.0, *) {
           subject.compactScrollEdgeAppearance?.configureWithOpaqueBackground()

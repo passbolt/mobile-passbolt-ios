@@ -27,7 +27,7 @@ import SwiftUI
 public enum SnackBarMessage {
 
   case info(DisplayableString)
-  case error(Error)
+  case error(DisplayableString)
 }
 
 @MainActor
@@ -37,7 +37,7 @@ where SnackBarView: View {
   private var presenting: Binding<SnackBarModel?>
   private let autoDismissDelaySeconds: UInt64
   private let snackBar: (SnackBarModel) -> SnackBarView
-  @State private var dismissTask: RecurringTask = .init()
+  private var dismissTask: ManagedTask<Void> = .init()
 
   fileprivate init(
     presenting: Binding<SnackBarModel?>,
@@ -65,16 +65,11 @@ where SnackBarView: View {
             .onAppear {
               guard self.autoDismissDelaySeconds > 0 else { return }
               Task {
-                await self.dismissTask.run { @MainActor in
+                try await self.dismissTask.run { @MainActor in
                   try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
                   guard !Task.isCancelled else { return }
                   self.presenting.wrappedValue = nil
                 }
-              }
-            }
-            .onDisappear {
-              Task {
-                await self.dismissTask.cancel()
               }
             },
           alignment: .bottom
@@ -105,42 +100,6 @@ extension View {
     )
   }
 
-  public func errorSnackBar(
-    presenting: Binding<Error?>,
-    autoDismissDelaySeconds: UInt64 = 3
-  ) -> some View {
-    self.snackBar(
-      presenting: presenting,
-      autoDismissDelaySeconds: autoDismissDelaySeconds,
-      snackBar: { error in
-        Text(displayable: error.asTheError().displayableMessage)
-          .padding(16)
-          .frame(maxWidth: .infinity)
-          .font(.inter(ofSize: 14, weight: .regular))
-          .foregroundColor(.passboltPrimaryButtonText)
-          .background(Color.passboltSecondaryRed)
-      }
-    )
-  }
-
-  public func infoSnackBar(
-    presenting: Binding<DisplayableString?>,
-    autoDismissDelaySeconds: UInt64 = 3
-  ) -> some View {
-    self.snackBar(
-      presenting: presenting,
-      autoDismissDelaySeconds: autoDismissDelaySeconds,
-      snackBar: { message in
-        Text(displayable: message)
-          .padding(16)
-          .frame(maxWidth: .infinity)
-          .font(.inter(ofSize: 14, weight: .regular))
-          .foregroundColor(.passboltPrimaryTextInverted)
-          .background(Color.passboltPrimaryText)
-      }
-    )
-  }
-
   public func snackBarMessage(
     presenting: Binding<SnackBarMessage?>,
     autoDismissDelaySeconds: UInt64 = 3
@@ -151,22 +110,40 @@ extension View {
       snackBar: { message in
         switch message {
         case let .info(message):
-          Text(displayable: message)
-            .padding(16)
-            .frame(maxWidth: .infinity)
-            .font(.inter(ofSize: 14, weight: .regular))
-            .foregroundColor(.passboltPrimaryTextInverted)
-            .background(Color.passboltPrimaryText)
+          HStack(alignment: .center, spacing: 0) {
+            Text(displayable: message)
+              .padding(16)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .font(.inter(ofSize: 14, weight: .regular))
+
+            Image(named: .close)
+              .resizable()
+              .frame(width: 16, height: 16, alignment: .trailing)
+              .padding(16)
+          }
+          .frame(maxWidth: .infinity)
+          .foregroundColor(.passboltPrimaryAlertText)
+          .background(Color.passboltBackgroundAlert)
 
         case let .error(error):
-          Text(displayable: error.asTheError().displayableMessage)
-            .padding(16)
-            .frame(maxWidth: .infinity)
-            .font(.inter(ofSize: 14, weight: .regular))
-            .foregroundColor(.passboltPrimaryButtonText)
-            .background(Color.passboltSecondaryRed)
+          HStack(alignment: .center, spacing: 0) {
+            Text(displayable: error)
+              .padding(16)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .font(.inter(ofSize: 14, weight: .regular))
+
+            Image(named: .close)
+              .resizable()
+              .frame(width: 16, height: 16, alignment: .trailing)
+              .padding(16)
+          }
+          .frame(maxWidth: .infinity)
+          .foregroundColor(.passboltPrimaryAlertText)
+          .background(Color.passboltSecondaryRed)
         }
       }
     )
   }
 }
+
+extension SnackBarMessage: Hashable {}

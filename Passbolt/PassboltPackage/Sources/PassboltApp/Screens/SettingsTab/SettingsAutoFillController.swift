@@ -25,7 +25,8 @@ import UICommons
 import UIComponents
 
 internal struct SettingsAutoFillController {
-  internal var openSystemSettings: () -> Void
+
+  internal var openSystemSettings: @MainActor () -> Void
 }
 
 extension SettingsAutoFillController: UIController {
@@ -35,9 +36,9 @@ extension SettingsAutoFillController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> SettingsAutoFillController {
+  ) async throws -> SettingsAutoFillController {
 
-    let linkOpener: LinkOpener = features.instance()
+    let linkOpener: LinkOpener = try await features.instance()
 
     func openSystemSettings() {
       linkOpener.openSystemSettings()

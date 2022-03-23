@@ -29,10 +29,22 @@ public func always<V>(
   value
 }
 
+public func alwaysThrow<V>(
+  _ error: @autoclosure @escaping () -> Error
+) -> () throws -> V {
+  { throw error() }
+}
+
 public func always<A1, V>(
   _ value: @autoclosure @escaping () -> V
 ) -> (A1) -> V {
   { _ in value() }
+}
+
+public func alwaysThrow<A1, V>(
+  _ error: @autoclosure @escaping () -> Error
+) -> (A1) throws -> V {
+  { _ in throw error() }
 }
 
 public func always<A1, A2, V>(
@@ -41,10 +53,22 @@ public func always<A1, A2, V>(
   { _, _ in value() }
 }
 
+public func alwaysThrow<A1, A2, V>(
+  _ error: @autoclosure @escaping () -> Error
+) -> (A1, A2) throws -> V {
+  { _, _ in throw error() }
+}
+
 public func always<A1, A2, A3, V>(
   _ value: @autoclosure @escaping () -> V
 ) -> (A1, A2, A3) -> V {
   { _, _, _ in value() }
+}
+
+public func alwaysThrow<A1, A2, A3, V>(
+  _ error: @autoclosure @escaping () -> Error
+) -> (A1, A2, A3) throws -> V {
+  { _, _, _ in throw error() }
 }
 
 public func always<A1, A2, A3, A4, V>(

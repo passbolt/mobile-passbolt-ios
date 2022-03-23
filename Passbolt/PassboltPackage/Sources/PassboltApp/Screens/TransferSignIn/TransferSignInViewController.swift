@@ -76,7 +76,9 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
             .combined(
               .image(named: .help, from: .uiCommons),
               .action { [weak self] in
-                self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+                self?.cancellables.executeOnMainActor { [weak self] in
+                  await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
+                }
               }
             )
             .instantiate()
@@ -195,43 +197,40 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
               handler: { _ in true /* NOP */ }
             ),
             defaultHandler: { [weak self] error in
-              if let theError: TheError = error.legacyBridge {
-                if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                  self?.present(
-                    ServerNotReachableAlertViewController.self,
-                    in: serverError.serverURL
-                  )
-                }
-                else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-                  self?.present(
-                    ServerNotReachableAlertViewController.self,
-                    in: serverError.serverURL
-                  )
-                }
-                else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
-                  self?.present(
-                    ServerNotReachableAlertViewController.self,
-                    in: serverError.serverURL
-                  )
-                }
-                else if theError is AccountBiometryDataChanged {
-                  self?.presentErrorSnackbar(
-                    .localized(
-                      key: "sign.in.error.biometrics.changed.message"
-                    ),
-                    hideAfter: 5
-                  )
-                }
-                else {
-                  self?.presentErrorSnackbar(theError.displayableMessage)
-                }
-              }
-              else {
-                if let displayable: DisplayableString = error.displayableString {
-                  self?.presentErrorSnackbar(displayable)
+              self?.cancellables.executeOnMainActor { [weak self] in
+                if let theError: TheError = error.asLegacy.legacyBridge {
+                  if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                    await self?.present(
+                      ServerNotReachableAlertViewController.self,
+                      in: serverError.serverURL
+                    )
+                  }
+                  else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                    await self?.present(
+                      ServerNotReachableAlertViewController.self,
+                      in: serverError.serverURL
+                    )
+                  }
+                  else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
+                    await self?.present(
+                      ServerNotReachableAlertViewController.self,
+                      in: serverError.serverURL
+                    )
+                  }
+                  else if theError is AccountBiometryDataChanged {
+                    self?.presentErrorSnackbar(
+                      .localized(
+                        key: "sign.in.error.biometrics.changed.message"
+                      ),
+                      hideAfter: 5
+                    )
+                  }
+                  else {
+                    self?.presentErrorSnackbar(theError.displayableMessage)
+                  }
                 }
                 else {
-                  self?.presentErrorSnackbar()
+                  self?.presentErrorSnackbar(error.displayableMessage)
                 }
               }
             }
@@ -251,28 +250,30 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
 
     controller
       .presentForgotPassphraseAlertPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        guard let self = self else { return }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
 
-        if presented {
-          self.present(ForgotPassphraseAlertViewController.self)
-        }
-        else {
-          self.dismiss(ForgotPassphraseAlertViewController.self)
+          if presented {
+            await self.present(ForgotPassphraseAlertViewController.self)
+          }
+          else {
+            await self.dismiss(ForgotPassphraseAlertViewController.self)
+          }
         }
       }
       .store(in: cancellables)
 
     controller
       .exitConfirmationPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        if presented {
-          self?.present(TransferSignInExitConfirmationViewController.self)
-        }
-        else {
-          self?.dismiss(TransferSignInExitConfirmationViewController.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          if presented {
+            await self?.present(TransferSignInExitConfirmationViewController.self)
+          }
+          else {
+            await self?.dismiss(TransferSignInExitConfirmationViewController.self)
+          }
         }
       }
       .store(in: cancellables)
@@ -291,40 +292,44 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       )
       .sink(
         receiveCompletion: { [weak self] completion in
-          switch completion {
-          case .finished:
-            break
+          self?.cancellables.executeOnMainActor {
+            switch completion {
+            case .finished:
+              break
 
-          case .failure(.canceled):
-            switch self?.navigationController {
-            case .some(_ as WelcomeNavigationViewController),
-              .some(_ as AuthorizationNavigationViewController):
-              self?.popToRoot()
+            case .failure(_ as Cancelled):
+              switch self?.navigationController {
+              case .some(_ as WelcomeNavigationViewController),
+                .some(_ as AuthorizationNavigationViewController):
+                await self?.popToRoot()
 
-            case .some, .none:
-              self?.replaceWindowRoot(with: SplashScreenViewController.self)
+              case .some, .none:
+                await self?.replaceWindowRoot(with: SplashScreenViewController.self)
+              }
+
+            case let .failure(error):
+              await self?.push(
+                AccountTransferFailureViewController.self,
+                in: error
+              )
             }
-
-          case let .failure(error):
-            self?.push(
-              AccountTransferFailureViewController.self,
-              in: error
-            )
           }
         },
         receiveValue: { [weak self] destination in
-          switch destination {
-          case .biometryInfo:
-            self?.push(BiometricsInfoViewController.self)
+          self?.cancellables.executeOnMainActor {
+            switch destination {
+            case .biometryInfo:
+              await self?.push(BiometricsInfoViewController.self)
 
-          case .biometrySetup:
-            self?.push(BiometricsSetupViewController.self)
+            case .biometrySetup:
+              await self?.push(BiometricsSetupViewController.self)
 
-          case .extensionSetup:
-            self?.push(ExtensionSetupViewController.self)
+            case .extensionSetup:
+              await self?.push(ExtensionSetupViewController.self)
 
-          case .finish:
-            self?.replaceWindowRoot(with: MainTabsViewController.self)
+            case .finish:
+              await self?.replaceWindowRoot(with: MainTabsViewController.self)
+            }
           }
         }
       )

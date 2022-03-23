@@ -31,16 +31,16 @@ import struct Foundation.Data
 
 internal struct TransferSignInController {
 
-  internal var accountProfilePublisher: () -> AnyPublisher<AccountTransfer.AccountDetails, Never>
-  internal var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
-  internal var updatePassphrase: (String) -> Void
-  internal var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
-  internal var completeTransfer: () -> AnyPublisher<Never, TheErrorLegacy>
-  internal var presentForgotPassphraseAlert: () -> Void
-  internal var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentExitConfirmation: () -> Void
-  internal var exitConfirmationPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, TheErrorLegacy>
+  internal var accountProfilePublisher: @MainActor () -> AnyPublisher<AccountTransfer.AccountDetails, Never>
+  internal var accountAvatarPublisher: @MainActor () -> AnyPublisher<Data?, Never>
+  internal var updatePassphrase: @MainActor (String) -> Void
+  internal var validatedPassphrasePublisher: @MainActor () -> AnyPublisher<Validated<String>, Never>
+  internal var completeTransfer: @MainActor () -> AnyPublisher<Never, Error>
+  internal var presentForgotPassphraseAlert: @MainActor () -> Void
+  internal var presentForgotPassphraseAlertPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var presentExitConfirmation: @MainActor () -> Void
+  internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var presentationDestinationPublisher: @MainActor () -> AnyPublisher<Destination, Error>
 }
 
 extension TransferSignInController {
@@ -62,17 +62,17 @@ extension TransferSignInController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
-    let autoFill: AutoFill = features.instance()
-    let biometrics: Biometry = features.instance()
-    let diagnostics: Diagnostics = features.instance()
+  ) async throws -> Self {
+    let accountTransfer: AccountTransfer = try await features.instance()
+    let autoFill: AutoFill = try await features.instance()
+    let biometrics: Biometry = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
-    let presentationDestinationSubject: PassthroughSubject<Destination, TheErrorLegacy> = .init()
+    let presentationDestinationSubject: PassthroughSubject<Destination, Error> = .init()
 
     let validator: Validator<String> = .nonEmpty(
       displayable: .localized(
@@ -148,10 +148,13 @@ extension TransferSignInController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func completeTransfer() -> AnyPublisher<Never, TheErrorLegacy> {
+    func completeTransfer() -> AnyPublisher<Never, Error> {
       passphraseSubject
         .map(Passphrase.init(rawValue:))
-        .map(accountTransfer.completeTransfer)
+        .eraseErrorType()
+        .asyncMap {
+          await accountTransfer.completeTransfer($0)
+        }
         .switchToLatest()
         .ignoreOutput()
         .eraseToAnyPublisher()
@@ -173,7 +176,7 @@ extension TransferSignInController: UIController {
       exitConfirmationPresentationSubject.eraseToAnyPublisher()
     }
 
-    func presentationDestinationPublisher() -> AnyPublisher<Destination, TheErrorLegacy> {
+    func presentationDestinationPublisher() -> AnyPublisher<Destination, Error> {
       presentationDestinationSubject.eraseToAnyPublisher()
     }
 

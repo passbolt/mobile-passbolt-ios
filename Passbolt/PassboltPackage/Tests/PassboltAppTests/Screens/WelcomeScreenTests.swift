@@ -32,8 +32,8 @@ import XCTest
 @MainActor
 final class WelcomeScreenTests: MainActorTestCase {
 
-  func test_noAccountAlertAppears_whenTapped_Succeeds() {
-    let controller: WelcomeScreenController = testController()
+  func test_noAccountAlertAppears_whenTapped_Succeeds() async throws {
+    let controller: WelcomeScreenController = try await testController()
     var result: Bool!
 
     controller.noAccountAlertPresentationPublisher()
@@ -48,8 +48,8 @@ final class WelcomeScreenTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_noAccountAlertDisappears_whenDissmissed_Succeeds() {
-    let controller: WelcomeScreenController = testController()
+  func test_noAccountAlertDisappears_whenDissmissed_Succeeds() async throws {
+    let controller: WelcomeScreenController = try await testController()
     var result: Bool!
 
     controller.noAccountAlertPresentationPublisher()
@@ -64,8 +64,8 @@ final class WelcomeScreenTests: MainActorTestCase {
     XCTAssertFalse(result)
   }
 
-  func test_navigateToNextScreen_whenTriggered_Succeeds() {
-    let controller: WelcomeScreenController = testController()
+  func test_navigateToNextScreen_whenTriggered_Succeeds() async throws {
+    let controller: WelcomeScreenController = try await testController()
     var result: Void?
 
     controller.pushTransferInfoPublisher()

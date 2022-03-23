@@ -181,7 +181,8 @@ internal enum SQLiteOpeningOperations {
         id,
         parentFolderID,
         name,
-        permission
+        permission,
+        shared
       FROM
         folders;
       """,

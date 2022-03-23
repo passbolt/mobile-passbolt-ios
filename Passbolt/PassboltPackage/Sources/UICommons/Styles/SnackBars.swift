@@ -54,7 +54,7 @@ extension Mutation where Subject: PlainView {
             .lineBreakMode(.byWordWrapping),
             .font(.inter(ofSize: 14, weight: .regular)),
             .textColor(dynamic: textColor),
-            .textAlignment(.center),
+            .textAlignment(.left),
             .subview(of: subject),
             .edges(
               equalTo: subject,

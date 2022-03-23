@@ -36,16 +36,19 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
 
   override func mainActorSetUp() {
     accountSettings = .placeholder
+    accountSettings.accountWithProfile = always(
+      .validAccountWithProfile
+    )
   }
 
   override func mainActorTearDown() {
     accountSettings = nil
   }
 
-  func test_backNavigationPresentationPublisher_doesNotPublish_initially() {
-    features.use(accountSettings)
+  func test_backNavigationPresentationPublisher_doesNotPublish_initially() async throws {
+    await features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
     var result: Void?
     controller
@@ -58,10 +61,10 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_backNavigationPresentationPublisher_publishes_whenNavigatingBack() {
-    features.use(accountSettings)
+  func test_backNavigationPresentationPublisher_publishes_whenNavigatingBack() async throws {
+    await features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
     var result: Void?
     controller
@@ -76,11 +79,11 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_accountWithProfile_loadsAccountWithProfile_fromAccountSettings() {
+  func test_accountWithProfile_loadsAccountWithProfile_fromAccountSettings() async throws {
     accountSettings.accountWithProfile = always(accountWithProfile)
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
     let result: AccountWithProfile =
       controller
@@ -89,15 +92,15 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
     XCTAssertEqual(result, accountWithProfile)
   }
 
-  func test_accountWithProfile_loadsProfileForAccountFromContext() {
+  func test_accountWithProfile_loadsProfileForAccountFromContext() async throws {
     var result: Account?
     accountSettings.accountWithProfile = { account in
       result = account
       return accountWithProfile
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AccountNotFoundController = testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
     _ =
       controller

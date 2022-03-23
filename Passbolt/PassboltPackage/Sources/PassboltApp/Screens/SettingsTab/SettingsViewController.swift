@@ -109,7 +109,9 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
     contentView
       .autofillTapPublisher
       .sink { [weak self] in
-        self?.push(SettingsAutoFillViewController.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(SettingsAutoFillViewController.self)
+        }
       }
       .store(in: cancellables)
 
@@ -124,7 +126,9 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
     contentView
       .manageAccountsTapPublisher
       .sink { [weak self] in
-        self?.push(AccountSelectionViewController.self, in: .init(value: true))
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(AccountSelectionViewController.self, in: .init(value: true))
+        }
       }
       .store(in: cancellables)
 
@@ -177,13 +181,14 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
     controller
       .logsViewerPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] present in
-        if present {
-          self?.push(LogsViewerViewController.self)
-        }
-        else {
-          self?.pop(if: LogsViewerViewController.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          if present {
+            await self?.push(LogsViewerViewController.self)
+          }
+          else {
+            await self?.pop(if: LogsViewerViewController.self)
+          }
         }
       }
       .store(in: cancellables)
@@ -197,43 +202,44 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
     controller
       .signOutAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        guard let self = self else { return }
-        self.present(
-          SignOutAlertViewController.self
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.present(
+            SignOutAlertViewController.self
+          )
+        }
       }
       .store(in: cancellables)
 
     controller
       .biometricsDisableAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.present(
-          DisableBiometricsAlertViewController.self,
-          in: { [weak self] in
-            guard let self = self else { return }
-            self.controller
-              .disableBiometrics()
-              .receive(on: RunLoop.main)
-              .sink { [weak self] completion in
-                guard
-                  case let .failure(error) = completion,
-                  !(error.legacyBridge is SessionAuthorizationRequired)
-                else { return }
-                guard let self = self else { return }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.present(
+            DisableBiometricsAlertViewController.self,
+            in: { [weak self] in
+              guard let self = self else { return }
+              self.controller
+                .disableBiometrics()
+                .receive(on: RunLoop.main)
+                .sink { [weak self] completion in
+                  guard
+                    case let .failure(error) = completion,
+                    !(error.asLegacy.legacyBridge is SessionAuthorizationRequired)
+                  else { return }
+                  guard let self = self else { return }
 
-                self.present(
-                  snackbar: Mutation<UICommons.PlainView>
-                    .snackBarErrorMessage(.localized(key: "account.settings.biometrics.error"))
-                    .instantiate(),
-                  hideAfter: 2
-                )
-              }
-              .store(in: self.cancellables)
-          }
-        )
+                  self.present(
+                    snackbar: Mutation<UICommons.PlainView>
+                      .snackBarErrorMessage(.localized(key: "account.settings.biometrics.error"))
+                      .instantiate(),
+                    hideAfter: 2
+                  )
+                }
+                .store(in: self.cancellables)
+            }
+          )
+        }
       }
       .store(in: cancellables)
 
@@ -247,7 +253,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .sink { [weak self] completion in
             guard
               case let .failure(error) = completion,
-              !(error.legacyBridge is SessionAuthorizationRequired)
+              !(error.asLegacy.legacyBridge is SessionAuthorizationRequired)
             else { return }
             guard let self = self else { return }
 

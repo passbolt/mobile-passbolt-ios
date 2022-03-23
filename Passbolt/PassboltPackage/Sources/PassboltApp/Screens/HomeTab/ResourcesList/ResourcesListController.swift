@@ -28,19 +28,19 @@ import UIComponents
 
 internal struct ResourcesListController {
 
-  internal var refreshResources: () -> AnyPublisher<Void, TheErrorLegacy>
-  internal var resourcesListPublisher: () -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never>
-  internal var addResource: () -> Void
-  internal var presentResourceDetails: (ResourcesListViewResourceItem) -> Void
-  internal var presentResourceMenu: (ResourcesListViewResourceItem) -> Void
-  internal var presentResourceEdit: (Resource.ID) -> Void
-  internal var resourceEditPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var presentDeleteResourceAlert: (Resource.ID) -> Void
-  internal var resourceDetailsPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceMenuPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceCreatePresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var resourceDeleteAlertPresentationPublisher: () -> AnyPublisher<Resource.ID, Never>
-  internal var resourceDeletionPublisher: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
+  internal var refreshResources: @MainActor () -> AnyPublisher<Void, Error>
+  internal var resourcesListPublisher: @MainActor () -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never>
+  internal var addResource: @MainActor () -> Void
+  internal var presentResourceDetails: @MainActor (ResourcesListViewResourceItem) -> Void
+  internal var presentResourceMenu: @MainActor (ResourcesListViewResourceItem) -> Void
+  internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
+  internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
+  internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
+  internal var resourceDetailsPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceCreatePresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
+  internal var resourceDeletionPublisher: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
 }
 
 extension ResourcesListController: UIController {
@@ -51,9 +51,9 @@ extension ResourcesListController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
 
-    let resources: Resources = features.instance()
+    let resources: Resources = try await features.instance()
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -61,8 +61,12 @@ extension ResourcesListController: UIController {
     let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
-    func refreshResources() -> AnyPublisher<Void, TheErrorLegacy> {
-      resources.refreshIfNeeded()
+    func refreshResources() -> AnyPublisher<Void, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher {
+        resources.refreshIfNeeded()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func resourcesListPublisher() -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never> {
@@ -112,10 +116,14 @@ extension ResourcesListController: UIController {
       resourceDeleteAlertPresentationSubject.eraseToAnyPublisher()
     }
 
-    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, TheErrorLegacy> {
-      resources
-        .deleteResource(resourceID)
-        .eraseToAnyPublisher()
+    func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher {
+        resources
+          .deleteResource(resourceID)
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     return Self(

@@ -57,43 +57,31 @@ final class ErrorViewController: PlainViewController, UIComponent {
   }
 
   private func setupSubscriptions() {
-    contentView.refreshTapPublisher
-      .map { [unowned self] in
-        self.controller
-          .retry()
-          .receive(on: RunLoop.main)
-          .handleEvents(
-            receiveSubscription: { [weak self] _ in
-              self?.present(
-                overlay: LoaderOverlayView(
-                  longLoadingMessage: (
-                    message: .localized(
-                      key: .loadingLong
-                    ),
-                    delay: 5
-                  )
-                )
-              )
-            }
-          )
-      }
-      .switchToLatest()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] result in
-        self?.dismissOverlay()
-
-        guard result == nil
-        else { return }
-        self?.present(
-          snackbar: Mutation<UICommons.PlainView>
-            .snackBarErrorMessage(
-              .localized(
-                key: .genericError
-              )
+    self.contentView
+      .refreshTapPublisher
+      .asyncMap { [unowned self] in
+        self.present(
+          overlay: LoaderOverlayView(
+            longLoadingMessage: (
+              message: .localized(
+                key: .loadingLong
+              ),
+              delay: 5
             )
-            .instantiate()
+          )
         )
+        do {
+          try await self.controller.retry()
+          self.dismissOverlay()
+        }
+        catch {
+          self.dismissOverlay()
+          self.presentErrorSnackbar(
+            error.displayableMessage
+          )
+        }
       }
+      .sinkDrop()
       .store(in: cancellables)
 
     contentView.signOutTapPublisher
@@ -103,9 +91,10 @@ final class ErrorViewController: PlainViewController, UIComponent {
       .store(in: cancellables)
 
     controller.signOutAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.present(SignOutAlertViewController.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.present(SignOutAlertViewController.self)
+        }
       }
       .store(in: cancellables)
   }

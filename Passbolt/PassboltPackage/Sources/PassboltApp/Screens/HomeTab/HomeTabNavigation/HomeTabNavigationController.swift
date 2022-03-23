@@ -26,9 +26,9 @@ import UIComponents
 
 internal struct HomeTabNavigationController {
 
-  internal var currentHomePresentationModePublisher: () -> AnyPublisher<HomePresentationMode, Never>
-  internal var presentHomePresentationMenu: () -> Void
-  internal var homePresentationMenuPresentationPublisher: () -> AnyPublisher<HomePresentationMode, Never>
+  internal var currentHomePresentationModePublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
+  internal var presentHomePresentationMenu: @MainActor () -> Void
+  internal var homePresentationMenuPresentationPublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
 }
 extension HomeTabNavigationController: UIController {
 
@@ -38,8 +38,8 @@ extension HomeTabNavigationController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let homePresentation: HomePresentation = features.instance()
+  ) async throws -> Self {
+    let homePresentation: HomePresentation = try await features.instance()
 
     let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()
 

@@ -31,7 +31,7 @@ extension UserProfileRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> AuthorizedNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -56,7 +56,7 @@ extension UserProfileRequest {
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }

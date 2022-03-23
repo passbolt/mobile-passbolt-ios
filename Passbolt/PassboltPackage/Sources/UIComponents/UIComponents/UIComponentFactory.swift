@@ -36,36 +36,52 @@ public struct UIComponentFactory {
 
 extension UIComponentFactory {
 
-  public func instance<Component>(
+  @MainActor public func instance<Component>(
     of component: Component.Type = Component.self,
     in context: Component.Controller.Context
-  ) -> Component
+  ) async -> Component
   where Component: UIComponent {
     let cancellables: Cancellables = .init()
-    let component: Component = .instance(
-      using: .instance(
-        in: context,
-        with: features,
-        cancellables: cancellables
-      ),
-      with: self
-    )
+    let component: Component
+    do {
+      component = try await .instance(
+        using: .instance(
+          in: context,
+          with: features,
+          cancellables: cancellables
+        ),
+        with: self
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
     component.cancellables = cancellables
     return component
   }
 
-  public func instance<Component>(
+  @MainActor public func instance<Component>(
     of component: Component.Type = Component.self
-  ) -> Component
+  ) async -> Component
   where Component: UIComponent, Component.Controller.Context == Void {
     let cancellables: Cancellables = .init()
-    let component: Component = .instance(
-      using: .instance(
-        with: features,
-        cancellables: cancellables
-      ),
-      with: self
-    )
+    let component: Component
+    do {
+      component = try await .instance(
+        using: .instance(
+          with: features,
+          cancellables: cancellables
+        ),
+        with: self
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
     component.cancellables = cancellables
     return component
   }
@@ -73,17 +89,24 @@ extension UIComponentFactory {
 
 extension UIComponentFactory {
 
-  internal func controller<Controller>(
+  @MainActor internal func controller<Controller>(
     _: Controller.Type = Controller.self,
     context: Controller.Context,
     cancellables: Cancellables
-  ) -> Controller
+  ) async -> Controller
   where Controller: UIController {
-    .instance(
-      in: context,
-      with: features,
-      cancellables: cancellables
-    )
+    do {
+      return try await .instance(
+        in: context,
+        with: features,
+        cancellables: cancellables
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
   }
 }
 

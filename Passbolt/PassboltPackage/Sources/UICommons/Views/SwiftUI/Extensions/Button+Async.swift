@@ -31,10 +31,13 @@ public struct AsyncButton<LabelView>: View where LabelView: View {
   private let label: () -> LabelView
 
   public init(
-    action: @escaping () async -> Void,
+    action: @Sendable @escaping () async -> Void,
     @ViewBuilder label: @escaping () -> LabelView
   ) {
-    self.action = .init(runImmediately: false) { await action() }
+    self.action = .init(
+      priority: .userInitiated,
+      operation: action
+    )
     self.label = label
   }
 

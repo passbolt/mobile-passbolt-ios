@@ -43,4 +43,12 @@ public final class OSUnfairLock {
   @inlinable public func unlock() {
     os_unfair_lock_unlock(self.pointer)
   }
+
+  @inlinable public func withLock<Value>(
+    _ operation: () throws -> Value
+  ) rethrows -> Value {
+    os_unfair_lock_lock(self.pointer)
+    defer { os_unfair_lock_unlock(self.pointer) }
+    return try operation()
+  }
 }

@@ -29,10 +29,10 @@ import UIComponents
 internal struct AccountDetailsController {
 
   internal var currentAccountWithProfile: AccountWithProfile
-  internal var currentAcountAvatarImagePublisher: () -> AnyPublisher<Data?, Never>
-  internal var updateCurrentAccountLabel: (String) -> Void
-  internal var validatedAccountLabelPublisher: () -> AnyPublisher<Validated<String>, Never>
-  internal var saveChanges: () -> AnyPublisher<Void, TheErrorLegacy>
+  internal var currentAcountAvatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
+  internal var updateCurrentAccountLabel: @MainActor (String) -> Void
+  internal var validatedAccountLabelPublisher: @MainActor () -> AnyPublisher<Validated<String>, Never>
+  internal var saveChanges: @MainActor () -> AnyPublisher<Void, Error>
 }
 
 extension AccountDetailsController: UIController {
@@ -43,9 +43,9 @@ extension AccountDetailsController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let networkClient: NetworkClient = features.instance()
-    let accountSettings: AccountSettings = features.instance()
+  ) async throws -> Self {
+    let networkClient: NetworkClient = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
 
     let accountLabelValidator: Validator<String> =
       .maxLength(
@@ -81,11 +81,11 @@ extension AccountDetailsController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func saveChanges() -> AnyPublisher<Void, TheErrorLegacy> {
+    func saveChanges() -> AnyPublisher<Void, Error> {
       currentAccountLabelSubject
         .first()
-        .setFailureType(to: TheErrorLegacy.self)
-        .flatMapResult { validatedLabel -> Result<Void, TheErrorLegacy> in
+        .eraseErrorType()
+        .asyncMap { validatedLabel -> Result<Void, Error> in
           let label: String
           if validatedLabel.value.isEmpty {
             label = "\(context.firstName) \(context.lastName)"
@@ -101,13 +101,13 @@ extension AccountDetailsController: UIController {
                     key: "form.error.invalid"
                   )
                 )
-                .asLegacy
             )
           }
           return
-            accountSettings
+            await accountSettings
             .setAccountLabel(label, context.account)
         }
+        .flatMapResult { $0 }
         .eraseToAnyPublisher()
     }
 

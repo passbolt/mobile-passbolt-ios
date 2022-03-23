@@ -27,7 +27,7 @@ import Environment
 
 public struct NetworkRequest<SessionVariable, Variable, Response> {
 
-  public var execute: (Variable) -> AnyPublisher<Response, Error>
+  public var execute: (Variable) async throws -> Response
 }
 
 extension NetworkRequest {
@@ -36,30 +36,25 @@ extension NetworkRequest {
     template: NetworkRequestTemplate<SessionVariable, Variable>,
     responseDecoder: NetworkResponseDecoding<SessionVariable, Variable, Response>,
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<SessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> SessionVariable
   ) {
     self.execute = { requestVariable in
-      sessionVariablePublisher
-        .first()
-        .map { sessionVariable -> (SessionVariable, HTTPRequest) in
-          (
-            sessionVariable,
-            template
-              .prepareRequest(
-                with: sessionVariable,
-                and: requestVariable
-              )
-          )
-        }
-        .map { sessionVariable, request -> AnyPublisher<Response, Error> in
-          networking
-            .make(request, useCache: template.cacheResponse)
-            .map(withResultAsPublisher({ responseDecoder.decode(sessionVariable, requestVariable, request, $0) }))
-            .switchToLatest()
-            .eraseToAnyPublisher()
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+      let currentSessionVariable: SessionVariable = try await sessionVariable()
+      let request: HTTPRequest =
+        template
+        .prepareRequest(
+          with: currentSessionVariable,
+          and: requestVariable
+        )
+
+      return
+        try await responseDecoder
+        .decode(
+          currentSessionVariable,
+          requestVariable,
+          request,
+          networking.make(request)
+        )
     }
   }
 }
@@ -69,14 +64,16 @@ extension NetworkRequest {
   public func make(
     using variable: Variable
   ) -> AnyPublisher<Response, Error> {
-    execute(variable)
+    Task<Response, Error> {
+      try await self.execute(variable)
+    }
+    .asPublisher()
   }
 
   public func makeAsync(
     using variable: Variable
   ) async throws -> Response {
-    try await execute(variable)
-      .asAsyncValue()
+    try await self.execute(variable)
   }
 }
 
@@ -102,40 +99,37 @@ extension NetworkRequest {
   }
 
   public static func respondingWith(
-    _ publisher: AnyPublisher<Response, Error>,
+    _ result: @escaping @autoclosure () -> Result<Response, Error>,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
       execute: { variable in
         requestVariableReference?.pointee = variable
-        return publisher
+        return try result().get()
       }
     )
   }
 
   public static func respondingWith(
-    _ response: Response,
+    _ response: @escaping @autoclosure () -> Response,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
       execute: { variable in
         requestVariableReference?.pointee = variable
-        return Just(response)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
+        return response()
       }
     )
   }
 
   public static func failingWith(
-    _ error: TheError,
+    _ error: @escaping @autoclosure () -> TheError,
     storeVariableIn requestVariableReference: UnsafeMutablePointer<Variable?>? = nil
   ) -> Self {
     Self(
       execute: { variable in
         requestVariableReference?.pointee = variable
-        return Fail<Response, Error>(error: error)
-          .eraseToAnyPublisher()
+        throw error()
       }
     )
   }

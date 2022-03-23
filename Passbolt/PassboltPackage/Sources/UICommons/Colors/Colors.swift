@@ -74,6 +74,10 @@ extension UIColor {
     .init(named: "primaryTextInverted", in: .uiCommons, compatibleWith: .current)!
   }
 
+  public static var passboltPrimaryAlertText: Self {
+    .init(named: "primaryAlertText", in: .uiCommons, compatibleWith: .current)!
+  }
+
   public static var passboltSecondaryText: Self {
     .init(named: "secondaryText", in: .uiCommons, compatibleWith: .current)!
   }
@@ -107,6 +111,10 @@ extension UIColor {
 
   public static var passboltBackgroundAlternative: Self {
     .init(named: "backgroundAlternative", in: .uiCommons, compatibleWith: .current)!
+  }
+
+  public static var passboltBackgroundAlert: Self {
+    .init(named: "backgroundAlert", in: .uiCommons, compatibleWith: .current)!
   }
 }
 
@@ -160,6 +168,10 @@ extension Color {
     .init(UIColor.passboltPrimaryTextInverted)
   }
 
+  public static var passboltPrimaryAlertText: Self {
+    .init(UIColor.passboltPrimaryAlertText)
+  }
+
   public static var passboltSecondaryText: Self {
     .init(UIColor.passboltSecondaryText)
   }
@@ -193,5 +205,9 @@ extension Color {
 
   public static var passboltBackgroundAlternative: Self {
     .init(UIColor.passboltBackgroundAlternative)
+  }
+
+  public static var passboltBackgroundAlert: Self {
+    .init(UIColor.passboltBackgroundAlert)
   }
 }

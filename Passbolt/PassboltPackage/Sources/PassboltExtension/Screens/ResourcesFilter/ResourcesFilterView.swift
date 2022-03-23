@@ -86,7 +86,7 @@ internal final class ResourcesFilterView: PlainView {
             bottom: -8,
             right: -16
           ),
-          usingSafeArea: false
+          usingSafeArea: true
         )
       )
     }

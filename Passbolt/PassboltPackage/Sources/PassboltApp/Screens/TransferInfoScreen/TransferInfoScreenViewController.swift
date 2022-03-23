@@ -68,29 +68,31 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
         self?.controller.requestOrNavigatePublisher()
       }
       .switchToLatest()
-      .receive(on: RunLoop.main)
       .sink { [weak self] granted in
-        guard let self = self else { return }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
 
-        if granted {
-          self.push(CodeScanningViewController.self)
-        }
-        else {
-          self.controller.presentNoCameraPermissionAlert()
+          if granted {
+            await self.push(CodeScanningViewController.self)
+          }
+          else {
+            self.controller.presentNoCameraPermissionAlert()
+          }
         }
       }
       .store(in: cancellables)
 
     controller.presentNoCameraPermissionAlertPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] presented in
-        guard let self = self else { return }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
 
-        if presented {
-          self.present(TransferInfoCameraRequiredAlertViewController.self)
-        }
-        else {
-          self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
+          if presented {
+            await self.present(TransferInfoCameraRequiredAlertViewController.self)
+          }
+          else {
+            await self.dismiss(TransferInfoCameraRequiredAlertViewController.self)
+          }
         }
       }
       .store(in: cancellables)

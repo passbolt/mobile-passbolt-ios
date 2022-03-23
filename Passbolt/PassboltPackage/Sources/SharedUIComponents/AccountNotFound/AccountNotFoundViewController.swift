@@ -87,9 +87,10 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
 
     controller
       .backNavigationPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.pop(if: Self.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.pop(if: Self.self)
+        }
       }
       .store(in: cancellables)
   }

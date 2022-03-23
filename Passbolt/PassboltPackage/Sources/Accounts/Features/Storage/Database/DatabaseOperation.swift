@@ -27,32 +27,34 @@ import Environment
 
 public struct DatabaseOperation<Input, Output> {
 
-  public var execute: (Input) -> AnyPublisher<Output, Error>
+  public var execute: @StorageAccessActor (Input) async throws -> Output
 }
 
 extension DatabaseOperation {
 
-  public func callAsFunction(
+  public nonisolated func callAsFunction(
     _ input: Input
   ) -> AnyPublisher<Output, Error> {
-    execute(input)
+    return Task<Output, Error> {
+      try await execute(input)
+    }
+    .asPublisher()
   }
 
-  public func callAsFunction(
+  @StorageAccessActor public func callAsFunction(
     _ input: Input
   ) async throws -> Output {
     try await execute(input)
-      .asAsyncValue()
   }
 }
 
 extension DatabaseOperation where Input == Void {
 
-  public func callAsFunction() -> AnyPublisher<Output, Error> {
+  public nonisolated func callAsFunction() -> AnyPublisher<Output, Error> {
     self.callAsFunction(Void())
   }
 
-  public func callAsFunction() async throws -> Output {
+  @StorageAccessActor public func callAsFunction() async throws -> Output {
     try await self.callAsFunction(Void())
   }
 }
@@ -60,40 +62,24 @@ extension DatabaseOperation where Input == Void {
 extension DatabaseOperation {
 
   internal static func withConnection(
-    using connectionPublisher: AnyPublisher<SQLiteConnection, Error>,
-    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, Error>
+    using connection: @escaping () async throws -> SQLiteConnection,
+    execute operation: @StorageAccessActor @escaping (SQLiteConnection, Input) throws -> Output
   ) -> Self {
-    Self { input -> AnyPublisher<Output, Error> in
-      connectionPublisher
-        .first()
-        .map { conn -> AnyPublisher<Output, Error> in
-          conn
-            .withQueue { conn -> Result<Output, Error> in
-              operation(conn, input)
-            }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+    Self { @StorageAccessActor (input: Input) async throws -> Output in
+      let currentConnection = try await connection()
+      return try operation(currentConnection, input)
     }
   }
 
   internal static func withConnectionInTransaction(
-    using connectionPublisher: AnyPublisher<SQLiteConnection, Error>,
-    execute operation: @escaping (SQLiteConnection, Input) -> Result<Output, Error>
+    using connection: @escaping () async throws -> SQLiteConnection,
+    execute operation: @StorageAccessActor @escaping (SQLiteConnection, Input) throws -> Output
   ) -> Self {
-    Self { input -> AnyPublisher<Output, Error> in
-      connectionPublisher
-        .first()
-        .map { conn -> AnyPublisher<Output, Error> in
-          conn
-            .withQueue { conn -> Result<Output, Error> in
-              conn.withTransaction { conn in
-                operation(conn, input)
-              }
-            }
-        }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+    Self { @StorageAccessActor (input: Input) async throws -> Output in
+      let currentConnection = try await connection()
+      return try currentConnection.withTransaction { @StorageAccessActor conn in
+        return try operation(conn, input)
+      }
     }
   }
 }
@@ -108,13 +94,13 @@ extension DatabaseOperation {
   }
 
   public static func returning(
-    _ publisher: AnyPublisher<Output, Error>,
+    _ result: Result<Output, Error>,
     storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
   ) -> Self {
     Self(
       execute: { input in
         inputReference?.pointee = input
-        return publisher
+        return try result.get()
       }
     )
   }
@@ -126,9 +112,7 @@ extension DatabaseOperation {
     Self(
       execute: { input in
         inputReference?.pointee = input
-        return Just(output)
-          .eraseErrorType()
-          .eraseToAnyPublisher()
+        return output
       }
     )
   }
@@ -140,8 +124,7 @@ extension DatabaseOperation {
     Self(
       execute: { input in
         inputReference?.pointee = input
-        return Fail<Output, Error>(error: error)
-          .eraseToAnyPublisher()
+        throw error
       }
     )
   }

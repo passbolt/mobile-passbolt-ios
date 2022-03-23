@@ -71,7 +71,7 @@ extension Diagnostics: Feature {
     let diagnosticLog: OSLog = .init(subsystem: "com.passbolt.mobile", category: "diagnostic")
     let perfomanceLog: OSLog = .init(subsystem: "com.passbolt.mobile.performance", category: .pointsOfInterest)
 
-    func hardwareModel() -> String {
+    nonisolated func hardwareModel() -> String {
       var systemInfo: utsname = .init()
       uname(&systemInfo)
       let machineMirror = Mirror(reflecting: systemInfo.machine)
@@ -81,11 +81,7 @@ extension Diagnostics: Feature {
       }
     }
 
-    func osVersion() -> String {
-      UIDevice.current.systemVersion
-    }
-
-    func appVersion() -> String {
+    nonisolated func appVersion() -> String {
       Bundle.main
         .infoDictionary?["CFBundleShortVersionString"]
         as? String
@@ -118,7 +114,7 @@ extension Diagnostics: Feature {
       deviceInfo: {
         """
         Device: \(hardwareModel())
-        OS: \(osVersion())
+        OS: \(UIDevice.current.systemVersion)
         App: \(appVersion())
         ----------
         """
@@ -203,7 +199,7 @@ extension Diagnostics: Feature {
 
 extension Diagnostics {
 
-  public func log(
+  public nonisolated func log(
     _ error: Error,
     info: DiagnosticsInfo? = nil
   ) {
@@ -220,14 +216,14 @@ extension Diagnostics {
     #endif
   }
 
-  public func diagnosticLog(
+  public nonisolated func diagnosticLog(
     _ message: StaticString,
     variable: StaticString? = nil
   ) {
     self.diagnosticLog(message, variable.map { .variable($0) } ?? .none)
   }
 
-  public func diagnosticLog(
+  public nonisolated func diagnosticLog(
     _ message: StaticString,
     variables first: StaticString,
     _ second: StaticString
@@ -235,7 +231,7 @@ extension Diagnostics {
     self.diagnosticLog(message, .variables(first, second))
   }
 
-  public func diagnosticLog(
+  public nonisolated func diagnosticLog(
     _ message: StaticString,
     unsafeVariable: String
   ) {
@@ -243,7 +239,7 @@ extension Diagnostics {
   }
 
   // drop all diagnostics
-  public static var disabled: Self {
+  public nonisolated static var disabled: Self {
     Self(
       debugLog: { _ in },
       diagnosticLog: { _, _ in },

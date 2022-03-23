@@ -25,9 +25,9 @@ import UIComponents
 
 internal struct ExtensionSetupController {
 
-  internal var continueSetupPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var setupExtension: () -> AnyPublisher<Never, TheErrorLegacy>
-  internal var skipSetup: () -> Void
+  internal var continueSetupPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var setupExtension: @MainActor () -> AnyPublisher<Never, Error>
+  internal var skipSetup: @MainActor () -> Void
 }
 
 extension ExtensionSetupController: UIController {
@@ -38,9 +38,9 @@ extension ExtensionSetupController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let autoFill: AutoFill = features.instance()
-    let linkOpener: LinkOpener = features.instance()
+  ) async throws -> Self {
+    let autoFill: AutoFill = try await features.instance()
+    let linkOpener: LinkOpener = try await features.instance()
     let continueSetupPresentationSubject: CurrentValueSubject<Void?, Never> = .init(nil)
 
     func continueSetupPresentationPublisher() -> AnyPublisher<Void, Never> {
@@ -49,7 +49,7 @@ extension ExtensionSetupController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func setupExtension() -> AnyPublisher<Never, TheErrorLegacy> {
+    func setupExtension() -> AnyPublisher<Never, Error> {
       linkOpener
         .openSystemSettings()
         .map { (_: Bool) -> AnyPublisher<Bool, Never> in
@@ -58,7 +58,7 @@ extension ExtensionSetupController: UIController {
             .eraseToAnyPublisher()
         }
         .switchToLatest()
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .handleEvents(receiveOutput: { extensionEnabled in
           guard extensionEnabled else { return }
           continueSetupPresentationSubject.send(Void())

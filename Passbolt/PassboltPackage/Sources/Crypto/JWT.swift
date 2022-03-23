@@ -135,7 +135,7 @@ extension JWT {
           underlyingError:
             DataInvalid
             .error("JWT decoding failed")
-            .recording(input, for: "input")
+            .recording(input as Any, for: "input")
         )
       )
     }
@@ -150,7 +150,7 @@ extension JWT {
           underlyingError:
             DataInvalid
             .error("JWT decoding failed")
-            .recording(input, for: "input")
+            .recording(input as Any, for: "input")
             .recording(error, for: "decodingError")
         )
       }

@@ -250,7 +250,7 @@ private func loadKeychainData(
           .error("Failed to access biometric authorization for loading keychain data")
           .recording(key, for: "key")
           .recording(tag as Any, for: "tag")
-          .recording(errorPtr, for: "underlyingError")
+          .recording(errorPtr as Any, for: "underlyingError")
       )
     )
   }
@@ -313,7 +313,7 @@ private func loadKeychainData(
               .error("Keychain data invalid")
               .recording(key, for: "key")
               .recording(tag as Any, for: "tag")
-              .recording(queryResult, for: "queryResult")
+              .recording(queryResult as Any, for: "queryResult")
           )
         )
       }
@@ -336,7 +336,7 @@ private func loadKeychainMeta(
           .error("Failed to access biometric authorization for loading keychain data")
           .recording(key, for: "key")
           .recording(tag as Any, for: "tag")
-          .recording(errorPtr, for: "underlyingError")
+          .recording(errorPtr as Any, for: "underlyingError")
       )
     )
   }

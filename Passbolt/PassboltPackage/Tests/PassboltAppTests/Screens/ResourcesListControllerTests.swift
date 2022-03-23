@@ -46,65 +46,56 @@ final class ResourceListControllerTests: MainActorTestCase {
     resources = nil
   }
 
-  func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() {
+  func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() async throws {
     resources.refreshIfNeeded = always(
-      Empty<Void, TheErrorLegacy>(completeImmediately: true)
+      Just(Void())
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: Void?
-    controller
+    let result: Void? =
+      try? await controller
       .refreshResources()
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          result = Void()
-        },
-        receiveValue: { _ in /* NOP*/ }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_refreshResources_fails_whenResourcesRefreshFails() {
+  func test_refreshResources_fails_whenResourcesRefreshFails() async throws {
     resources.refreshIfNeeded = always(
-      Fail<Void, TheErrorLegacy>(error: .testError())
+      Fail<Void, Error>(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: TheErrorLegacy?
-    controller
-      .refreshResources()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await controller
+        .refreshResources()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_resourcesListPublisher_publishesResourcesListFromResources() {
+  func test_resourcesListPublisher_publishesResourcesListFromResources() async throws {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
@@ -123,13 +114,13 @@ final class ResourceListControllerTests: MainActorTestCase {
       Just(resourcesList)
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result: Array<ResourcesListViewResourceItem>?
 
@@ -143,7 +134,7 @@ final class ResourceListControllerTests: MainActorTestCase {
     XCTAssertEqual(result, resourcesList.map(ResourcesListViewResourceItem.init(from:)))
   }
 
-  func test_resourcesListPublisher_requestsResourcesListWithFilters() {
+  func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
     var result: ResourcesFilter?
     resources.filteredResourcesListPublisher = { filterPublisher in
       filterPublisher.map { filter in
@@ -152,13 +143,13 @@ final class ResourceListControllerTests: MainActorTestCase {
       }
       .eraseToAnyPublisher()
     }
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically, text: "1")
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
     controller
       .resourcesListPublisher()
@@ -168,7 +159,7 @@ final class ResourceListControllerTests: MainActorTestCase {
     XCTAssertEqual(result, ResourcesFilter(sorting: .nameAlphabetically, text: "1"))
   }
 
-  func test_resourceDetailsPresentationPublisher_publishesResourceID() {
+  func test_resourceDetailsPresentationPublisher_publishesResourceID() async throws {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
@@ -187,13 +178,13 @@ final class ResourceListControllerTests: MainActorTestCase {
       Just(resourcesList)
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result: Resource.ID!
 
@@ -210,7 +201,7 @@ final class ResourceListControllerTests: MainActorTestCase {
     XCTAssertEqual(result.rawValue, resourcesList.first!.id.rawValue)
   }
 
-  func test_resourceMenuPresentationPublisher_publishesResourceID() {
+  func test_resourceMenuPresentationPublisher_publishesResourceID() async throws {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
@@ -229,13 +220,13 @@ final class ResourceListControllerTests: MainActorTestCase {
       Just(resourcesList)
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result: Resource.ID!
 
@@ -252,7 +243,9 @@ final class ResourceListControllerTests: MainActorTestCase {
     XCTAssertEqual(result.rawValue, resourcesList.first!.id.rawValue)
   }
 
-  func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled() {
+  func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()
+    async throws
+  {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
@@ -271,13 +264,13 @@ final class ResourceListControllerTests: MainActorTestCase {
       Just(resourcesList)
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
 
-    let controller: ResourcesListController = testController(context: filtersSubject.eraseToAnyPublisher())
+    let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
     var result: Resource.ID!
 

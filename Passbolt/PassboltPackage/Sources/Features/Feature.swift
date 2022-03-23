@@ -27,34 +27,36 @@ import Environment
 
 public protocol AnyFeature {
 
-  var featureUnload: () -> Bool { get }
+  nonisolated var featureUnload: @FeaturesActor () async throws -> Void { get }
 }
 
 public protocol Feature: AnyFeature {
 
-  static func load(
+  @FeaturesActor static func load(
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self
+  ) async throws -> Self
 
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
-  static var placeholder: Self { get }
+  nonisolated static var placeholder: Self { get }
   #endif
 }
 
 extension Feature {
 
-  public var featureUnload: () -> Bool {
+  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void {
     {
-      assertionFailure("Unloading is not supported by \(Self.self)")
-      return false
+      throw
+        Unimplemented
+        .error("Unloading not supported")
+        .recording(Self.self, for: "feature")
     }
   }
 }
 
 extension Feature {
 
-  internal static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
+  internal nonisolated static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }

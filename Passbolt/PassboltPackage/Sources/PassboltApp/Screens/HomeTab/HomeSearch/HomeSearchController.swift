@@ -30,13 +30,13 @@ import struct Foundation.Data
 
 internal struct HomeSearchController {
 
-  internal var searchTextPublisher: () -> AnyPublisher<String, Never>
-  internal var updateSearchText: (String) -> Void
-  internal var avatarImagePublisher: () -> AnyPublisher<Data?, Never>
-  internal var presentHomePresentationMenu: () -> Void
-  internal var homePresentationMenuPresentationPublisher: () -> AnyPublisher<HomePresentationMode, Never>
-  internal var presentAccountMenu: () -> Void
-  internal var accountMenuPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
+  internal var searchTextPublisher: @MainActor () -> AnyPublisher<String, Never>
+  internal var updateSearchText: @MainActor (String) -> Void
+  internal var avatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
+  internal var presentHomePresentationMenu: @MainActor () -> Void
+  internal var homePresentationMenuPresentationPublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
+  internal var presentAccountMenu: @MainActor () -> Void
+  internal var accountMenuPresentationPublisher: @MainActor () -> AnyPublisher<AccountWithProfile, Never>
 }
 
 extension HomeSearchController: UIController {
@@ -47,10 +47,10 @@ extension HomeSearchController: UIController {
     in context: @escaping Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSettings: AccountSettings = features.instance()
-    let networkClient: NetworkClient = features.instance()
-    let homePresentation: HomePresentation = features.instance()
+  ) async throws -> Self {
+    let accountSettings: AccountSettings = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
+    let homePresentation: HomePresentation = try await features.instance()
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
     let homePresentationMenuPresentationSubject: PassthroughSubject<Void, Never> = .init()

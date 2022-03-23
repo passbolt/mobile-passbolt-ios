@@ -23,73 +23,256 @@
 
 import Combine
 
-import class Foundation.NSLock
-
 public final class Cancellables {
 
-  fileprivate let lock: NSLock = .init()
-  fileprivate var cancellables: Array<AnyCancellable>
-  fileprivate var tasks: Array<Task<Void, Never>>
+  private typealias Cancelation = () -> Void
+
+  private let state: CriticalState<Array<Cancelation>>
 
   public init() {
-    self.cancellables = .init()
-    self.tasks = .init()
+    self.state = .init(.init())
   }
 
   deinit {
-    for task in self.tasks {
-      task.cancel()
+    let cancellations: Array<Cancelation> = self.state.access { $0 }
+    for cancel in cancellations {
+      cancel()
     }
   }
 
   @discardableResult
-  public func take(_ other: Cancellables) -> Self {
-    self.cancellables.append(contentsOf: other.cancellables)
-    self.tasks.append(contentsOf: other.tasks)
-    other.cancellables = .init()
-    other.tasks = .init()
+  public func take(
+    _ other: Cancellables
+  ) -> Self {
+    let otherCancellations: Array<Cancelation> = other.state.access { cancellations in
+      defer { cancellations = .init() }
+      return cancellations
+    }
+    self.state.access { cancellations in
+      cancellations.append(contentsOf: otherCancellations)
+    }
     return self
   }
 
   public func store(_ cancellable: AnyCancellable) {
-    self.lock.lock()
-    self.cancellables.append(cancellable)
-    self.lock.unlock()
-  }
-
-  public func task(_ operation: @Sendable @escaping () async -> Void) {
-    self.lock.lock()
-    self.tasks.append(Task<Void, Never>(operation: operation))
-    self.lock.unlock()
-  }
-
-  public func store(_ task: Task<Void, Never>) {
-    self.lock.lock()
-    self.tasks.append(task)
-    self.lock.unlock()
-  }
-
-  public func clear() {
-    self.lock.lock()
-    self.cancellables = .init()
-    for task in self.tasks {
-      task.cancel()
+    self.state.access { cancellations in
+      cancellations.append(cancellable.cancel)
     }
-    self.tasks = .init()
-    self.lock.unlock()
+  }
+
+  public func task<Success>(
+    _ operation: @Sendable @escaping () async throws -> Success
+  ) {
+    self.store(Task<Success, Error>(operation: operation))
+  }
+
+  public func store<Success, Failure: Error>(
+    _ task: Task<Success, Failure>
+  ) {
+    self.state.access { cancellations in
+      cancellations.append(task.cancel)
+    }
+  }
+
+  public func cancelAll() {
+    let cancellations: Array<Cancelation> = self.state.access { cancellations in
+      defer { cancellations = .init() }
+      return cancellations
+    }
+    for cancel in cancellations {
+      cancel()
+    }
+  }
+
+  private func privateClean() {
+    self.state.access { cancellations in
+      cancellations = .init()
+    }
   }
 }
 
 extension AnyCancellable {
 
-  public func store(in cancellables: Cancellables) {
-    cancellables.store(self)
+  public func store(in cancellables: Cancellables?) {
+    cancellables?.store(self)
   }
 }
 
-extension Task where Success == Void, Failure == Never {
+extension Task {
 
-  public func store(in cancellables: Cancellables) {
-    cancellables.store(self)
+  public func store(in cancellables: Cancellables?) {
+    cancellables?.store(self)
+  }
+}
+
+extension Cancellables {
+
+  @discardableResult
+  public nonisolated func executeOnMainActor(
+    _ operation: @MainActor @escaping () async throws -> Void
+  ) -> Task<Void, Error> {
+    let task = Task { @MainActor in
+      try await operation()
+    }
+    self.store(task)
+    return task
+  }
+
+  public nonisolated func executeOnMainActorWithPublisher<Success>(
+    _ operation: @MainActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success, Error> {
+    let task = Task { @MainActor in
+      try await operation()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+  }
+
+  @_disfavoredOverload
+  public nonisolated func executeOnMainActorWithPublisher<Success>(
+    _ operation: @MainActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success.Output, Error>
+  where Success: Publisher {
+    let task = Task { @MainActor in
+      try await operation()
+        .eraseErrorType()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+      .switchToLatest()
+      .eraseToAnyPublisher()
+  }
+}
+
+extension Cancellables {
+
+  @discardableResult
+  public nonisolated func executeOnAccountSessionActor(
+    _ operation: @AccountSessionActor @escaping () async throws -> Void
+  ) -> Task<Void, Error> {
+    let task = Task { @AccountSessionActor in
+      try await operation()
+    }
+    self.store(task)
+    return task
+  }
+
+  public nonisolated func executeOnAccountSessionActorWithPublisher<Success>(
+    _ operation: @AccountSessionActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success, Error> {
+    let task = Task { @AccountSessionActor in
+      try await operation()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+  }
+
+  @_disfavoredOverload
+  public nonisolated func executeOnAccountSessionActorWithPublisher<Success>(
+    _ operation: @AccountSessionActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success.Output, Error>
+  where Success: Publisher {
+    let task = Task { @AccountSessionActor in
+      try await operation()
+        .eraseErrorType()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+      .switchToLatest()
+      .eraseToAnyPublisher()
+  }
+}
+
+extension Cancellables {
+
+  @discardableResult
+  public nonisolated func executeOnStorageAccessActor(
+    _ operation: @StorageAccessActor @escaping () async throws -> Void
+  ) -> Task<Void, Error> {
+    let task = Task { @StorageAccessActor in
+      try await operation()
+    }
+    self.store(task)
+    return task
+  }
+
+  public nonisolated func executeOnStorageAccessActorWithPublisher<Success>(
+    _ operation: @StorageAccessActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success, Error> {
+    let task = Task { @StorageAccessActor in
+      try await operation()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+  }
+
+  @_disfavoredOverload
+  public nonisolated func executeOnStorageAccessActorWithPublisher<Success>(
+    _ operation: @StorageAccessActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success.Output, Error>
+  where Success: Publisher {
+    let task = Task { @StorageAccessActor in
+      try await operation()
+        .eraseErrorType()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+      .switchToLatest()
+      .eraseToAnyPublisher()
+  }
+}
+
+extension Cancellables {
+
+  @discardableResult
+  public nonisolated func executeOnFeaturesActor(
+    _ operation: @FeaturesActor @escaping () async throws -> Void
+  ) -> Task<Void, Error> {
+    let task = Task { @FeaturesActor in
+      try await operation()
+    }
+    self.store(task)
+    return task
+  }
+
+  public nonisolated func executeOnFeaturesActorWithPublisher<Success>(
+    _ operation: @FeaturesActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success, Error> {
+    let task = Task { @FeaturesActor in
+      try await operation()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+  }
+
+  @_disfavoredOverload
+  public nonisolated func executeOnFeaturesActorWithPublisher<Success>(
+    _ operation: @FeaturesActor @escaping () async throws -> Success
+  ) -> AnyPublisher<Success.Output, Error>
+  where Success: Publisher {
+    let task = Task { @FeaturesActor in
+      try await operation()
+        .eraseErrorType()
+    }
+    self.store(task)
+    return
+      task
+      .asPublisher()
+      .switchToLatest()
+      .eraseToAnyPublisher()
   }
 }

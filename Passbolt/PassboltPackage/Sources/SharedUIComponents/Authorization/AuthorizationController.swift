@@ -29,18 +29,18 @@ import UIComponents
 
 public struct AuthorizationController {
 
-  public var accountWithProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
-  public var accountAvatarPublisher: () -> AnyPublisher<Data?, Never>
-  public var updatePassphrase: (String) -> Void
-  public var validatedPassphrasePublisher: () -> AnyPublisher<Validated<String>, Never>
-  public var biometricStatePublisher: () -> AnyPublisher<BiometricsState, Never>
+  public var accountWithProfilePublisher: @MainActor () -> AnyPublisher<AccountWithProfile, Never>
+  public var accountAvatarPublisher: @MainActor () -> AnyPublisher<Data?, Never>
+  public var updatePassphrase: @MainActor (String) -> Void
+  public var validatedPassphrasePublisher: @MainActor () -> AnyPublisher<Validated<String>, Never>
+  public var biometricStatePublisher: @MainActor () -> AnyPublisher<BiometricsState, Never>
   // returns true if MFA authorization screen should be displayed
-  public var signIn: () -> AnyPublisher<Bool, TheErrorLegacy>
+  public var signIn: @MainActor () -> AnyPublisher<Bool, Error>
   // returns true if MFA authorization screen should be displayed
-  public var biometricSignIn: () -> AnyPublisher<Bool, TheErrorLegacy>
-  public var presentForgotPassphraseAlert: () -> Void
-  public var presentForgotPassphraseAlertPublisher: () -> AnyPublisher<Bool, Never>
-  public var accountNotFoundScreenPresentationPublisher: () -> AnyPublisher<Account, Never>
+  public var biometricSignIn: @MainActor () -> AnyPublisher<Bool, Error>
+  public var presentForgotPassphraseAlert: @MainActor () -> Void
+  public var presentForgotPassphraseAlertPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  public var accountNotFoundScreenPresentationPublisher: @MainActor () -> AnyPublisher<Account, Never>
 }
 
 extension AuthorizationController {
@@ -61,12 +61,12 @@ extension AuthorizationController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSettings: AccountSettings = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let biometry: Biometry = features.instance()
-    let diagnostics: Diagnostics = features.instance()
-    let networkClient: NetworkClient = features.instance()
+  ) async throws -> Self {
+    let accountSettings: AccountSettings = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let biometry: Biometry = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -78,7 +78,7 @@ extension AuthorizationController: UIController {
     )
 
     let account: Account = context
-    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = .init(
+    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = try await .init(
       accountSettings.accountWithProfile(account)
     )
 
@@ -86,11 +86,13 @@ extension AuthorizationController: UIController {
       .updatedAccountIDsPublisher()
       .filter { $0 == account.localID }
       .sink { _ in
-        accountWithProfileSubject
-          .send(
-            accountSettings
-              .accountWithProfile(account)
-          )
+        _ = cancellables.executeOnStorageAccessActorWithPublisher {
+          try accountWithProfileSubject
+            .send(
+              accountSettings
+                .accountWithProfile(account)
+            )
+        }
       }
       .store(in: cancellables)
 
@@ -102,7 +104,7 @@ extension AuthorizationController: UIController {
       accountWithProfileSubject
         .map { accountWithProfile in
           networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
-            .mapErrorsToLegacy()
+            .eraseErrorType()
             .collectErrorLog(using: diagnostics)
             .map { data -> Data? in data }
             .replaceError(with: nil)
@@ -142,16 +144,16 @@ extension AuthorizationController: UIController {
       .eraseToAnyPublisher()
     }
 
-    func performSignIn() -> AnyPublisher<Bool, TheErrorLegacy> {
+    func performSignIn() -> AnyPublisher<Bool, Error> {
       passphraseSubject
         .first()
-        .map { passphrase in
-          accountSession.authorize(
+        .eraseErrorType()
+        .asyncMap { passphrase in
+          try await accountSession.authorize(
             account,
             .passphrase(.init(rawValue: passphrase))
           )
         }
-        .switchToLatest()
         .collectErrorLog(using: diagnostics)
         .handleErrors(
           (
@@ -171,29 +173,31 @@ extension AuthorizationController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func performBiometricSignIn() -> AnyPublisher<Bool, TheErrorLegacy> {
-      accountSession
-        .authorize(
-          account,
-          .biometrics
-        )
-        .collectErrorLog(using: diagnostics)
-        .handleErrors(
-          (
-            [.legacyBridge],
-            handler: { error in
-              if error.isLegacyBridge(for: HTTPNotFound.self) {
-                accountNotFoundScreenPresentationSubject.send(context)
-                return true
-              }
-              else {
-                return false
-              }
+    func performBiometricSignIn() -> AnyPublisher<Bool, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher { () async throws -> Bool in
+        try await accountSession
+          .authorize(
+            account,
+            .biometrics
+          )
+      }
+      .collectErrorLog(using: diagnostics)
+      .handleErrors(
+        (
+          [.legacyBridge],
+          handler: { error in
+            if error.isLegacyBridge(for: HTTPNotFound.self) {
+              accountNotFoundScreenPresentationSubject.send(context)
+              return true
             }
-          ),
-          defaultHandler: { _ in /* NOP */ }
-        )
-        .eraseToAnyPublisher()
+            else {
+              return false
+            }
+          }
+        ),
+        defaultHandler: { _ in /* NOP */ }
+      )
+      .eraseToAnyPublisher()
     }
 
     func presentForgotPassphraseAlert() {

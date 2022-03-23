@@ -50,17 +50,17 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     resources = nil
   }
 
-  func test_resourceDetailsPublisher_publishes_initially() {
+  func test_resourceDetailsPublisher_publishes_initially() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(linkOpener)
-    features.use(pasteboard)
-    features.use(resources)
+    await features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(resources)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -84,17 +84,17 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result?.id.rawValue, detailsViewResource.id.rawValue)
   }
 
-  func test_availableActionsPublisher_publishesActionAvailable_initially() {
+  func test_availableActionsPublisher_publishesActionAvailable_initially() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(linkOpener)
-    features.use(pasteboard)
-    features.use(resources)
+    await features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(resources)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -112,27 +112,27 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result, ResourceMenuController.Action.allCases)
   }
 
-  func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() {
+  func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var result: String?
     pasteboard.put = { string in
       result = string
     }
-    features.use(pasteboard)
-    features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -140,30 +140,32 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
     )
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .performAction(.copyPassword)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, resourceSecret.password)
   }
 
-  func test_performAction_copiesURLToPasteboard_forCopyURLAction() {
+  func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var result: String? = nil
     pasteboard.put = { string in
       result = string
     }
-    features.use(pasteboard)
-    features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -179,23 +181,23 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result, detailsViewResource.url)
   }
 
-  func test_performAction_opensURL_forOpenURLAction() {
+  func test_performAction_opensURL_forOpenURLAction() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     var result: URL? = nil
     linkOpener.openLink = { url in
       result = url
       return Just(true).eraseToAnyPublisher()
     }
-    features.use(linkOpener)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -211,22 +213,22 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result?.absoluteString, detailsViewResource.url)
   }
 
-  func test_performAction_fails_forOpenURLAction_whenOpeningFails() {
+  func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     linkOpener.openLink = { _ in
       Just(false)
         .eraseToAnyPublisher()
     }
-    features.use(linkOpener)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -234,7 +236,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
     )
 
-    var result: TheErrorLegacy?
+    var result: Error?
     controller
       .performAction(.openURL)
       .sink(
@@ -247,25 +249,25 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.identifier, .failedToOpenURL)
+    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .failedToOpenURL })
   }
 
-  func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() {
+  func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var result: String? = nil
     pasteboard.put = { string in
       result = string
     }
-    features.use(pasteboard)
-    features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -281,22 +283,24 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result, detailsViewResource.username)
   }
 
-  func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription() {
+  func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription()
+    async throws
+  {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var result: String? = nil
     pasteboard.put = { string in
       result = string
     }
-    features.use(pasteboard)
-    features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -312,27 +316,28 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     XCTAssertEqual(result, detailsViewResource.description)
   }
 
-  func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() {
+  func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() async throws
+  {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResourceWithoutDescription)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var result: String?
     pasteboard.put = { string in
       result = string
     }
-    features.use(pasteboard)
-    features.use(linkOpener)
+    await features.use(pasteboard)
+    await features.use(linkOpener)
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },
@@ -340,32 +345,34 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       )
     )
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .performAction(.copyDescription)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, "encrypted description")
   }
 
-  func test_performAction_triggersShowDeleteAlert_forDeleteAction() {
+  func test_performAction_triggersShowDeleteAlert_forDeleteAction() async throws {
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResourceWithoutDescription)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
-    features.use(pasteboard)
-    features.use(linkOpener)
+    await features.use(resources)
+    await features.use(pasteboard)
+    await features.use(linkOpener)
 
     var result: Resource.ID?
 
-    let controller: ResourceMenuController = testController(
+    let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
         showEdit: { _ in /* NOP */ },

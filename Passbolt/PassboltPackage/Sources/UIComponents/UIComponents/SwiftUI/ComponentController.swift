@@ -30,12 +30,12 @@ where Context == ComponentNavigation<NavigationContext>, ControlledView: Compone
   associatedtype ControlledView where ControlledView.Controller == Self
   associatedtype NavigationContext
 
-  static func instance(
+  @MainActor static func instance(
     context: NavigationContext,
     navigation: ComponentNavigation<NavigationContext>,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self
+  ) async throws -> Self
 
   var viewState: ObservableValue<ViewState> { get }
 }
@@ -48,8 +48,8 @@ extension ComponentController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    Self.instance(
+  ) async throws -> Self {
+    try await Self.instance(
       context: context.context,
       navigation: context,
       with: features,

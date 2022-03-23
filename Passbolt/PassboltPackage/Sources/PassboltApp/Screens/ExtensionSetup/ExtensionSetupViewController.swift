@@ -57,9 +57,10 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     continueSetupPresentationSubscriptionCancellable =
       controller
       .continueSetupPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.replaceWindowRoot(with: SplashScreenViewController.self)
+        self?.cancellables.executeOnMainActor {
+          await self?.replaceWindowRoot(with: SplashScreenViewController.self)
+        }
       }
   }
 

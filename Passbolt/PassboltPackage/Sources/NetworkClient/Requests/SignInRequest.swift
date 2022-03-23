@@ -31,7 +31,7 @@ extension SignInRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> EmptyNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -50,7 +50,7 @@ extension SignInRequest {
       },
       responseDecoder: .signInResponse(),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }
@@ -169,7 +169,7 @@ where
 {
 
   fileprivate static func signInResponse() -> Self {
-    Self { sessionVariable, requestVariable, httpRequest, httpResponse -> Result<SignInResponse, Error> in
+    Self { sessionVariable, requestVariable, httpRequest, httpResponse throws -> SignInResponse in
       let mfaTokenIsValid: Bool
       if let mfaToken: MFAToken = requestVariable.mfaToken {
         if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
@@ -196,15 +196,16 @@ where
         mfaTokenIsValid = false  // it was not sent so it is not valid (but that does not matter if it is not required)
       }
 
-      return NetworkResponseDecoding<SessionVariable, RequestVariable, CommonResponse<SignInResponseBody>>
-        .bodyAsJSON()
-        .decode(sessionVariable, requestVariable, httpRequest, httpResponse)
-        .map { body -> SignInResponse in
-          SignInResponse(
-            mfaTokenIsValid: mfaTokenIsValid,
-            body: body
-          )
-        }
+      let decodedBody = try NetworkResponseDecoding<
+        SessionVariable, RequestVariable, CommonResponse<SignInResponseBody>
+      >
+      .bodyAsJSON()
+      .decode(sessionVariable, requestVariable, httpRequest, httpResponse)
+
+      return SignInResponse(
+        mfaTokenIsValid: mfaTokenIsValid,
+        body: decodedBody
+      )
     }
   }
 }

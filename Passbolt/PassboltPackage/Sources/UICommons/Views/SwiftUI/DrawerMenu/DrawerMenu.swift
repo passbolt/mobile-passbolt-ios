@@ -23,6 +23,7 @@
 
 import SwiftUI
 
+@MainActor
 public struct DrawerMenu<TitleView, ContentView>: View
 where TitleView: View, ContentView: View {
 
@@ -80,6 +81,7 @@ where TitleView: View, ContentView: View {
           .padding(8)
       }
     }
+    .background(Color.passboltSheetBackground)
     .ignoresSafeArea()
   }
 }

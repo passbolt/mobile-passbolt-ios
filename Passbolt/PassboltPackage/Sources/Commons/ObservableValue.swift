@@ -23,14 +23,13 @@
 
 import Combine
 
-import protocol Foundation.ObservableObject
 import class Foundation.RunLoop
 
 @MainActor @dynamicMemberLookup
 public final class ObservableValue<Value>: ObservableObject
 where Value: Hashable {
 
-  public var value: Value {
+  @MainActor public var value: Value {
     get { self.valueGetter() }
     set { self.valueSetter(newValue) }
   }
@@ -50,9 +49,6 @@ where Value: Hashable {
     self.valuePublisher = valuePublisher
     self.cancellable =
       valuePublisher
-      // we don't want to trigger initially when using CurrentValueSubject
-      .dropFirst(1)
-      .receive(on: RunLoop.main)
       .sink { [weak self] _ in
         self?.objectWillChange.send()
       }
@@ -63,13 +59,15 @@ where Value: Hashable {
   ) {
     let updatesSubject: CurrentValueSubject<Value, Never> = .init(initial)
     var value: Value = initial {
-      willSet { updatesSubject.send(newValue) }
+      didSet { updatesSubject.send(value) }
     }
     self.init(
       valueGetter: { value },
       valueSetter: { newValue in value = newValue },
       valuePublisher:
         updatesSubject
+        // we don't want to refresh screen too often, 60 Hz is enough
+        .debounce(for: .seconds(1.0 / 60.0), scheduler: RunLoop.main)
         .removeDuplicates()
         .eraseToAnyPublisher()
     )
@@ -102,7 +100,9 @@ extension ObservableValue {
     )
   }
 
-  public func withValue(_ access: (inout Value) -> Void) {
+  public func withValue(
+    _ access: @MainActor (inout Value) -> Void
+  ) {
     var value: Value = self.value
     access(&value)
     self.value = value

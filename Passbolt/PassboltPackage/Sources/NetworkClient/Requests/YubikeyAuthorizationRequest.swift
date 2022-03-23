@@ -32,7 +32,7 @@ extension YubikeyAuthorizationRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> DomainNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -51,7 +51,7 @@ extension YubikeyAuthorizationRequest {
       },
       responseDecoder: .mfaCookie,
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }
@@ -110,27 +110,24 @@ extension NetworkResponseDecoding where Response == YubikeyAuthorizationResponse
       if let cookieHeaderValue: String = httpResponse.headers["Set-Cookie"],
         let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
       {
-        return .success(
-          .init(
-            mfaToken: .init(
-              rawValue: String(
-                cookieHeaderValue[mfaCookieBounds.upperBound...]
-                  .prefix(
-                    while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-                  )
-              )
+        return .init(
+          mfaToken: .init(
+            rawValue: String(
+              cookieHeaderValue[mfaCookieBounds.upperBound...]
+                .prefix(
+                  while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
+                )
             )
           )
         )
       }
       else {
-        return .failure(
+        throw
           NetworkResponseDecodingFailure
-            .error(
-              "Failed to decode cookies from MFA response",
-              response: httpResponse
-            )
-        )
+          .error(
+            "Failed to decode cookies from MFA response",
+            response: httpResponse
+          )
       }
     }
   }

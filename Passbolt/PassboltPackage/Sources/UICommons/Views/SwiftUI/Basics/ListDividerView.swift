@@ -23,6 +23,7 @@
 
 import SwiftUI
 
+@MainActor
 public struct ListDividerView: View {
 
   public init() {}

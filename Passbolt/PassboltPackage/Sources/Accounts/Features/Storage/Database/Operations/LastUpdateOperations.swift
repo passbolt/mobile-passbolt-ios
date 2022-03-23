@@ -33,12 +33,12 @@ public typealias FetchLastUpdateOperation = DatabaseOperation<Void, Date>
 extension FetchLastUpdateOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
-      conn
+      try conn
         .fetch(
           """
           SELECT
@@ -48,16 +48,14 @@ extension FetchLastUpdateOperation {
           LIMIT
             1;
           """,
-          mapping: { rows -> Result<Date, Error> in
-            .success(
-              rows
-                .first
-                .map { row -> Date in
-                  let timeInterval: TimeInterval = .init(row.lastUpdateTimestamp as Int? ?? 0)
-                  return Date(timeIntervalSince1970: timeInterval)
-                }
-                ?? Date(timeIntervalSince1970: 0)
-            )
+          mapping: { rows -> Date in
+            rows
+              .first
+              .map { row -> Date in
+                let timeInterval: TimeInterval = .init(row.lastUpdateTimestamp as Int? ?? 0)
+                return Date(timeIntervalSince1970: timeInterval)
+              }
+              ?? Date(timeIntervalSince1970: 0)
           }
         )
     }
@@ -69,12 +67,12 @@ public typealias SaveLastUpdateOperation = DatabaseOperation<Date, Void>
 extension SaveLastUpdateOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnectionInTransaction(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
-      conn
+      try conn
         .execute(
           """
           UPDATE OR FAIL

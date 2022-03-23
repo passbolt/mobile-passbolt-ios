@@ -43,7 +43,9 @@ internal final class SignOutAlertViewController:
           .localized(key: .signOut),
           style: .destructive,
           accessibilityIdentifier: "button.close",
-          handler: controller.exit
+          handler: { [weak self] in
+            self?.controller.exit()
+          }
         )
       )
     }
@@ -52,7 +54,7 @@ internal final class SignOutAlertViewController:
 
 internal struct SignOutAlertController {
 
-  internal var exit: () -> Void
+  internal var exit: @MainActor () -> Void
 }
 
 extension SignOutAlertController: UIController {
@@ -63,12 +65,18 @@ extension SignOutAlertController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
 
-    let accountSession: AccountSession = features.instance()
+    let accountSession: AccountSession = try await features.instance()
+
+    func close() {
+      cancellables.executeOnAccountSessionActor {
+        await accountSession.close()
+      }
+    }
 
     return Self(
-      exit: accountSession.close
+      exit: close
     )
   }
 }

@@ -35,8 +35,8 @@ internal struct FoldersExplorerController {
   internal var presentFolderContent: @MainActor (ListViewFolder) -> Void
   internal var presentResourceCreationFrom: @MainActor (Folder.ID?) -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
-  internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
-  internal var presentHomePresentationMenu: @MainActor () -> Void
+  internal var presentResourceMenu: @MainActor (Resource.ID) async -> Void
+  internal var presentHomePresentationMenu: @MainActor () async -> Void
   internal var presentAccountMenu: @MainActor () async -> Void
 }
 
@@ -50,11 +50,11 @@ extension FoldersExplorerController: ComponentController {
     navigation: ComponentNavigation<NavigationContext>,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> FoldersExplorerController {
-    let diagnostics: Diagnostics = features.instance()
-    let accountSettings: AccountSettings = features.instance()
-    let resources: Resources = features.instance()
-    let folders: Folders = features.instance()
+  ) async throws -> FoldersExplorerController {
+    let diagnostics: Diagnostics = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
+    let resources: Resources = try await features.instance()
+    let folders: Folders = try await features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -62,24 +62,29 @@ extension FoldersExplorerController: ComponentController {
       viewState = .init(
         initial: .init(
           title: .raw(folder.name),
-          folderID: folder.id
+          folderID: folder.id,
+          folderShared: folder.shared,
+          // temporarily disable create in shared folders
+          canCreateResources: !folder.shared && folder.permission != .read  // write / owned
         )
       )
     }
     else {
       viewState = .init(
         initial: .init(
-          title: .localized(key: "home.presentation.mode.folders.explorer.title")
+          title: .localized(key: "home.presentation.mode.folders.explorer.title"),
+          folderShared: false,
+          canCreateResources: true
         )
       )
       // if we enter root refresh stuff
-      cancellables.task { @MainActor in
+      cancellables.executeOnMainActor {
         await refreshIfNeeded()
       }
     }
 
     // get the the user avatar image
-    cancellables.task { @MainActor in
+    cancellables.executeOnMainActor {
       // ignore errors on getting avatar
       viewState.userAvatarImage =
         try? await accountSettings
@@ -88,7 +93,7 @@ extension FoldersExplorerController: ComponentController {
     }
 
     // refresh the list based on filters data
-    cancellables.task { @MainActor in
+    cancellables.executeOnMainActor {
       let filterSequence: AnyAsyncSequence<FoldersFilter> =
         viewState
         .scope(\.searchText)
@@ -122,7 +127,7 @@ extension FoldersExplorerController: ComponentController {
       }
     }
 
-    @Sendable @MainActor func refreshIfNeeded() async {
+    @MainActor func refreshIfNeeded() async {
       // TODO: [MOB-255] check if current folder was not deleted
       do {
         try await resources
@@ -131,15 +136,17 @@ extension FoldersExplorerController: ComponentController {
       }
       catch {
         diagnostics.log(error)
-        viewState.snackBarMessage = .error(error)
+        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
 
     @MainActor func presentFolderContent(_ folder: ListViewFolder) {
-      navigation.push(
-        FoldersExplorerView.self,
-        in: folder
-      )
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          FoldersExplorerView.self,
+          in: folder
+        )
+      }
     }
 
     @MainActor func presentResourceCreationFrom(
@@ -151,71 +158,77 @@ extension FoldersExplorerController: ComponentController {
     @MainActor func presentResourceEditingForm(
       for context: ResourceEditController.EditingContext
     ) {
-      navigation.push(
-        ResourceEditViewController.self,
-        in: (
-          context,
-          completion: { _ in
-            viewState.snackBarMessage = .info(
-              .localized(
-                key: "resource.form.new.password.created"
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          ResourceEditViewController.self,
+          in: (
+            context,
+            completion: { _ in
+              viewState.snackBarMessage = .info(
+                .localized(
+                  key: "resource.form.new.password.created"
+                )
               )
-            )
-          }
+            }
+          )
         )
-      )
+      }
     }
 
     @MainActor func presentResourceDetails(_ resourceID: Resource.ID) {
-      navigation.push(
-        ResourceDetailsViewController.self,
-        in: resourceID
-      )
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          ResourceDetailsViewController.self,
+          in: resourceID
+        )
+      }
     }
 
-    @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
-      navigation.presentSheetMenu(
+    @MainActor func presentResourceMenu(_ resourceID: Resource.ID) async {
+      await navigation.presentSheetMenu(
         ResourceMenuViewController.self,
         in: (
           resourceID: resourceID,
           showEdit: { (resourceID: Resource.ID) in
-            navigation
-              .dismiss(
-                SheetMenuViewController<ResourceMenuViewController>.self,
-                completion: {
-                  presentResourceEditingForm(for: .existing(resourceID))
-                }
-              )
+            cancellables.executeOnMainActor {
+              await navigation
+                .dismiss(
+                  SheetMenuViewController<ResourceMenuViewController>.self,
+                  completion: {
+                    presentResourceEditingForm(for: .existing(resourceID))
+                  }
+                )
+            }
           },
           showDeleteAlert: { (resourceID: Resource.ID) in
-            navigation
-              .dismiss(
-                SheetMenuViewController<ResourceMenuViewController>.self,
-                completion: {
-                  navigation.present(
-                    ResourceDeleteAlert.self,
-                    in: {
-                      Task {
-                        do {
-                          try await resources
-                            .deleteResource(resourceID)
-                            .asAsyncValue()
-                        }
-                        catch {
-                          viewState.snackBarMessage = .error(error)
-                        }
-                      }
+            cancellables.executeOnMainActor {
+              await navigation
+                .dismiss(
+                  SheetMenuViewController<ResourceMenuViewController>.self
+                )
+              await navigation.present(
+                ResourceDeleteAlert.self,
+                in: {
+                  Task {
+                    do {
+                      try await resources
+                        .deleteResource(resourceID)
+                        .asAsyncValue()
                     }
-                  )
+                    catch {
+                      viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+                    }
+                  }
                 }
               )
+            }
           }
         )
       )
     }
 
-    @MainActor func presentHomePresentationMenu() {
-      navigation.presentSheet(
+    @MainActor func presentHomePresentationMenu() async {
+      await navigation.presentSheet(
         HomePresentationMenuView.self,
         in: .foldersExplorer
       )
@@ -228,7 +241,7 @@ extension FoldersExplorerController: ComponentController {
           .currentAccountProfilePublisher()
           .asAsyncValue()
 
-        navigation.presentSheet(
+        await navigation.presentSheet(
           AccountMenuViewController.self,
           in: (
             accountWithProfile: accountWithProfile,
@@ -237,7 +250,7 @@ extension FoldersExplorerController: ComponentController {
         )
       }
       catch {
-        viewState.snackBarMessage = .error(error)
+        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }
 

@@ -23,7 +23,7 @@
 
 import Combine
 
-extension Publisher {
+extension Publisher where Failure == Error {
 
   public func asyncMap<NewOutput>(
     _ transform: @escaping (Output) async throws -> NewOutput
@@ -37,6 +37,21 @@ extension Publisher {
           catch {
             promise(.failure(error))
           }
+        }
+      }
+    }
+  }
+}
+
+extension Publisher where Failure == Never {
+
+  public func asyncMap<NewOutput>(
+    _ transform: @escaping (Output) async -> NewOutput
+  ) -> Publishers.FlatMap<Future<NewOutput, Never>, Self> {
+    self.flatMap { output in
+      Future<NewOutput, Never> { promise in
+        Task {
+          await promise(.success(transform(output)))
         }
       }
     }

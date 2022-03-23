@@ -56,11 +56,11 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     networkClient = nil
   }
 
-  func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() {
+  func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() async throws {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -72,14 +72,13 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
     networkClient.mediaDownload = .respondingWith(Data())
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
-    var imageData: Data?
 
     controller.accountsPublisher()
       .sink { items in
@@ -94,12 +93,10 @@ final class AccountSelectionScreenTests: MainActorTestCase {
       return cellItem
     }
 
-    accountItems.first!
-      .imagePublisher!
-      .sink { data in
-        imageData = data
-      }
-      .store(in: cancellables)
+    let imageData: Data? =
+      try await accountItems.first!
+      .imagePublisher?
+      .asAsyncValue()
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
@@ -109,11 +106,11 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     XCTAssertNotNil(imageData)
   }
 
-  func test_accountsPublisher_publishesItemsWithoutImage_inSelectionMode() {
+  func test_accountsPublisher_publishesItemsWithoutImage_inSelectionMode() async throws {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
+    await features.use(accountSession)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -125,12 +122,12 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
     networkClient.mediaDownload = .failingWith(MockIssue.error())
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
     var imageData: Data?
 
@@ -162,12 +159,12 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     XCTAssertNil(imageData)
   }
 
-  func test_accountsPublisher_publishes_withoutAddAccountItem_inRemovalMode() {
+  func test_accountsPublisher_publishes_withoutAddAccountItem_inRemovalMode() async throws {
     accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
-    features.use(networkClient)
+    await features.use(accountSession)
+    await features.use(networkClient)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -179,9 +176,9 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     controller.toggleMode()
 
     var result: Array<AccountSelectionListItem> = []
@@ -204,15 +201,15 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     XCTAssertFalse(result.contains(.addAccount(.default)))
   }
 
-  func test_accountsPublisher_publishesEmptyList_whenAccountsEmpty() {
+  func test_accountsPublisher_publishesEmptyList_whenAccountsEmpty() async throws {
     accounts.storedAccounts = always([])
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
-    features.use(networkClient)
-    features.use(accountSettings)
+    await features.use(accountSession)
+    await features.use(networkClient)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Array<AccountSelectionListItem> = []
 
     controller.accountsPublisher()
@@ -224,18 +221,18 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     XCTAssertTrue(result.isEmpty)
   }
 
-  func test_removeStoredAccount_Succeeds() {
+  func test_removeStoredAccount_Succeeds() async throws {
     var storedAccounts: Array<Account> = [firstAccount.account, secondAccount.account]
     accounts.storedAccounts = always(storedAccounts)
     accounts.removeAccount = { account in
       storedAccounts.removeAll { $0 == account }
       return .success(())
     }
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
     accountSession.close = always(Void())
-    features.use(accountSession)
-    features.use(networkClient)
+    await features.use(accountSession)
+    await features.use(networkClient)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -247,18 +244,19 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
-    var result: Array<AccountSelectionListItem> = []
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
 
-    let removeResult: Result<Void, TheErrorLegacy> = controller.removeAccount(firstAccount.account)
+    let removeResult: Void? =
+      try? await controller
+      .removeAccount(firstAccount.account)
+      .asAsyncValue()
 
-    controller.accountsPublisher()
-      .sink { items in
-        result = items
-      }
-      .store(in: cancellables)
+    let result: Array<AccountSelectionListItem> =
+      try await controller
+      .accountsPublisher()
+      .asAsyncValue()
 
     let accounts: Array<Account> = result.compactMap {
       guard case let .account(cellItem) = $0 else {
@@ -267,23 +265,23 @@ final class AccountSelectionScreenTests: MainActorTestCase {
       return cellItem.account
     }
 
-    XCTAssertSuccess(removeResult)
+    XCTAssertNotNil(removeResult)
     XCTAssertFalse(accounts.contains(firstAccount.account))
     XCTAssertTrue(accounts.contains(secondAccount.account))
     XCTAssertTrue(result.contains(.addAccount(.default)))
   }
 
-  func test_removeStoredAccount_updatesAccountsList() {
+  func test_removeStoredAccount_updatesAccountsList() async throws {
     var storedAccounts: Array<Account> = [firstAccount.account, secondAccount.account]
     accounts.storedAccounts = always(storedAccounts)
     accounts.removeAccount = { account in
       storedAccounts.removeAll { $0 == account }
       return .success(())
     }
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    features.use(accountSession)
-    features.use(networkClient)
+    await features.use(accountSession)
+    await features.use(networkClient)
     accountSettings.accountWithProfile = { account in
       if account.localID == firstAccount.localID {
         return firstAccount
@@ -295,22 +293,19 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         fatalError()
       }
     }
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
-    var result: Array<AccountSelectionListItem> = []
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
 
-    _ = controller.removeAccount(firstAccount.account)
+    _ =
+      try? await controller
+      .removeAccount(firstAccount.account)
+      .asAsyncValue()
 
-    controller
+    let result: Array<AccountSelectionListItem> =
+      try await controller
       .accountsPublisher()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { items in
-          result = items
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(
       result.compactMap {
@@ -322,15 +317,15 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     )
   }
 
-  func test_removeAccountAlertPresentationPublisher_publishes_whenPresentRemoveAccountCalled() {
+  func test_removeAccountAlertPresentationPublisher_publishes_whenPresentRemoveAccountCalled() async throws {
     accounts.storedAccounts = always([])
     accounts.removeAccount = { _ in return .success(()) }
-    features.use(accounts)
-    features.use(accountSession)
-    features.use(networkClient)
-    features.use(accountSettings)
+    await features.use(accounts)
+    await features.use(accountSession)
+    await features.use(networkClient)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Void?
 
     controller.removeAccountAlertPresentationPublisher()
@@ -344,16 +339,18 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_addAccountPresentationPublisher_publishesFalse_whenAddAccountCalledAndAccountTransferIsNotLoaded() {
+  func test_addAccountPresentationPublisher_publishesFalse_whenAddAccountCalledAndAccountTransferIsNotLoaded()
+    async throws
+  {
     accounts.storedAccounts = always([])
     accounts.removeAccount = always(.success(()))
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.close = always(Void())
-    features.use(accountSession)
-    features.use(networkClient)
-    features.use(accountSettings)
+    await features.use(accountSession)
+    await features.use(networkClient)
+    await features.use(accountSettings)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Bool?
 
     controller
@@ -364,21 +361,23 @@ final class AccountSelectionScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     controller.addAccount()
-
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
     XCTAssertEqual(result, false)
   }
 
-  func test_addAccountPresentationPublisher_publishesTrue_whenAddAccountCalledAndAccountTransferIsLoaded() {
+  func test_addAccountPresentationPublisher_publishesTrue_whenAddAccountCalledAndAccountTransferIsLoaded() async throws
+  {
     accounts.storedAccounts = always([])
     accounts.removeAccount = always(.success(()))
-    features.use(accounts)
+    await features.use(accounts)
     accountSession.close = always(Void())
-    features.use(accountSession)
-    features.use(networkClient)
-    features.use(accountSettings)
-    features.use(AccountTransfer.placeholder)
+    await features.use(accountSession)
+    await features.use(networkClient)
+    await features.use(accountSettings)
+    await features.use(AccountTransfer.placeholder)
 
-    let controller: AccountSelectionController = testController(context: .init(value: false))
+    let controller: AccountSelectionController = try await testController(context: .init(value: false))
     var result: Bool?
 
     controller
@@ -389,7 +388,8 @@ final class AccountSelectionScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     controller.addAccount()
-
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
     XCTAssertEqual(result, true)
   }
 }

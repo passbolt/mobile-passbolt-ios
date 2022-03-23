@@ -29,11 +29,13 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class RandomStringGeneratorTests: TestCase {
 
-  func test_generate_shortString_succeeds() {
-    environment.randomness = .system()
+  func test_generate_shortString_succeeds() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: String = generator.generate(
       alphabet,
       3,
@@ -44,11 +46,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertTrue(result.filter { !alphabet.flatMap { $0 }.contains($0) }.isEmpty)
   }
 
-  func test_generate_alphanumericString_succeeds() {
-    environment.randomness = .system()
+  func test_generate_alphanumericString_succeeds() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = CharacterSets.alphanumeric
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: String = generator.generate(
       alphabet,
       18,
@@ -59,11 +63,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertTrue(result.filter { !alphabet.flatMap { $0 }.contains($0) }.isEmpty)
   }
 
-  func test_generate_stringWithAllAvailableCharacters_succeeds() {
-    environment.randomness = .system()
+  func test_generate_stringWithAllAvailableCharacters_succeeds() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: String = generator.generate(
       alphabet,
       75,
@@ -74,15 +80,17 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertTrue(result.filter { !alphabet.flatMap { $0 }.contains($0) }.isEmpty)
   }
 
-  func test_generate_stringWithKoreanCharactersAndDigits_succeeds() {
-    environment.randomness = .system()
+  func test_generate_stringWithKoreanCharactersAndDigits_succeeds() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [
       CharacterSets.koreanCharacters,
       CharacterSets.digits,
     ]
 
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: String = generator.generate(
       alphabet,
       18,
@@ -93,8 +101,10 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertTrue(result.filter { !alphabet.flatMap { $0 }.contains($0) }.isEmpty)
   }
 
-  func test_generate_stringWithLatingAndKoreanCharacters_andDigits_succeeds() {
-    environment.randomness = .system()
+  func test_generate_stringWithLatingAndKoreanCharacters_andDigits_succeeds() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [
       CharacterSets.lowercaseLetters,
@@ -104,7 +114,7 @@ final class RandomStringGeneratorTests: TestCase {
       CharacterSets.digits,
     ]
 
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: String = generator.generate(
       alphabet,
       50,
@@ -115,11 +125,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertTrue(result.filter { !alphabet.flatMap { $0 }.contains($0) }.isEmpty)
   }
 
-  func test_entropy_forEmptyString() {
-    environment.randomness = .system()
+  func test_entropy_forEmptyString() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "",
       alphabet
@@ -128,11 +140,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result, .zero)
   }
 
-  func test_entropy_forEmptyAlphabet() {
-    environment.randomness = .system()
+  func test_entropy_forEmptyAlphabet() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [.init()]
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "ABC",
       alphabet
@@ -141,11 +155,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result, .zero)
   }
 
-  func test_entropy_forShortString_generated_fromShortCharacterSet() {
-    environment.randomness = .system()
+  func test_entropy_forShortString_generated_fromShortCharacterSet() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "ABC",
       alphabet
@@ -155,11 +171,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result.rawValue, 4.75, accuracy: 0.1)
   }
 
-  func test_entropy_forShortString_generated_fromAllCharacters() {
-    environment.randomness = .system()
+  func test_entropy_forShortString_generated_fromAllCharacters() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "ABC",
       alphabet
@@ -169,11 +187,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result.rawValue, 14.1, accuracy: 0.1)
   }
 
-  func test_entropy_forLongerAlphanumericString() {
-    environment.randomness = .system()
+  func test_entropy_forLongerAlphanumericString() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = CharacterSets.alphanumeric
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "oIabpwLaCaTYE3yOZheQ",
       alphabet
@@ -183,11 +203,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result.rawValue, 119, accuracy: 0.1)
   }
 
-  func test_entropy_forLongString_withAllAvailableCharacters() {
-    environment.randomness = .system()
+  func test_entropy_forLongString_withAllAvailableCharacters() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       ###"@L./Jfc^J&7{1cIs_W172Bir5qm"b:Lkd%3oY.\!]X#j(gi;B<Y"'SWOPX')_KGMZO.[/3:P!ibyJa?x\$gN#$dT~QOXF?.y9^AH?[teQDbkGsBTs[-ZQ8au/~@+ag$uFJ9D72uew?i!q!*J01[w:``_g"###,
       alphabet
@@ -197,11 +219,13 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result.rawValue, 1000, accuracy: 1)
   }
 
-  func test_entropyForString_withLatinAlphabet_andAdditionalKoreanCharacters() {
-    environment.randomness = .system()
+  func test_entropyForString_withLatinAlphabet_andAdditionalKoreanCharacters() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = CharacterSets.all
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "2!wㅎl;piwㅝWQca]영",
       alphabet
@@ -213,14 +237,16 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result.rawValue, 105.35, accuracy: 0.1)
   }
 
-  func test_entropyForString_withKoreanCharacters_andDigits() {
-    environment.randomness = .system()
+  func test_entropyForString_withKoreanCharacters_andDigits() async throws {
+    try await FeaturesActor.execute {
+      self.environment.randomness = .system()
+    }
 
     let alphabet: Set<Set<Character>> = [
       CharacterSets.koreanCharacters,
       CharacterSets.koreanDigits,
     ]
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: Entropy = generator.entropy(
       "ㄸㅉ삼공육ㄴㅌ오ㅡㅎㅁㅣ이ㄲ륙삼ㅁㅇㅋ육ㄱ팔삼",
       alphabet
@@ -230,7 +256,7 @@ final class RandomStringGeneratorTests: TestCase {
     XCTAssertEqual(result.rawValue, 132.36, accuracy: 0.1)
   }
 
-  func test_generate_shortString_requestsRandomNumber_forEachCharacter() {
+  func test_generate_shortString_requestsRandomNumber_forEachCharacter() async throws {
     var randomness: Randomness = .system()
     var calls: Int = 0
 
@@ -241,10 +267,12 @@ final class RandomStringGeneratorTests: TestCase {
       return next()
     }
 
-    environment.randomness = randomness
+    try await FeaturesActor.execute {
+      self.environment.randomness = randomness
+    }
 
     let alphabet: Set<Set<Character>> = [.init("ABC")]
-    let generator: RandomStringGenerator = testInstance()
+    let generator: RandomStringGenerator = try await testInstance()
     let result: String = generator.generate(
       alphabet,
       3,

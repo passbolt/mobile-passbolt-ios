@@ -34,16 +34,16 @@ import XCTest
 @MainActor
 final class CodeScanningScreenTests: MainActorTestCase {
 
-  func test_exitConfirmation_isPresented_whenCallingPresent() {
+  func test_exitConfirmation_isPresented_whenCallingPresent() async throws {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
       Just(.configuration)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
 
-    features.use(accountTransfer)
-    let controller: CodeScanningController = testController()
+    await features.use(accountTransfer)
+    let controller: CodeScanningController = try await testController()
     var result: Bool!
 
     controller.exitConfirmationPresentationPublisher()
@@ -58,15 +58,15 @@ final class CodeScanningScreenTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_help_isPresented_whenCallingPresent() {
+  func test_help_isPresented_whenCallingPresent() async throws {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
       Just(.configuration)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(accountTransfer)
-    let controller: CodeScanningController = testController()
+    await features.use(accountTransfer)
+    let controller: CodeScanningController = try await testController()
     var result: Bool!
 
     controller.helpPresentationPublisher()
@@ -81,15 +81,15 @@ final class CodeScanningScreenTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_initialProgress_isEmpty() {
+  func test_initialProgress_isEmpty() async throws {
     var accountTransfer: AccountTransfer = .placeholder
     accountTransfer.progressPublisher = always(
       Just(.configuration)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(accountTransfer)
-    let controller: CodeScanningController = testController()
+    await features.use(accountTransfer)
+    let controller: CodeScanningController = try await testController()
     var result: Double!
 
     controller.progressPublisher()

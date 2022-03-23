@@ -28,8 +28,8 @@ import UIComponents
 
 internal struct AccountSelectionController {
 
-  internal var accountsPublisher: () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
-  internal var screenMode: () -> AccountSelectionController.Mode
+  internal var accountsPublisher: @MainActor () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
+  internal var screenMode: @MainActor () -> AccountSelectionController.Mode
 }
 
 extension AccountSelectionController {
@@ -49,17 +49,19 @@ extension AccountSelectionController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> AccountSelectionController {
-    let accounts: Accounts = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let accountSettings: AccountSettings = features.instance()
-    let diagnostics: Diagnostics = features.instance()
-    let networkClient: NetworkClient = features.instance()
+  ) async throws -> AccountSelectionController {
+    let accounts: Accounts = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
+    var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
+    for account in await accounts.storedAccounts() {
+      try await initialAccountsWithProfiles.append(accountSettings.accountWithProfile(account))
+    }
     let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
-      accounts
-        .storedAccounts()
-        .compactMap(accountSettings.accountWithProfile)
+      initialAccountsWithProfiles
     )
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {

@@ -69,12 +69,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
               handler: { _ in true /* NOP */ }
             ),
             defaultHandler: { [weak self] error in
-              if let displayable: DisplayableString = error.displayableString {
-                self?.presentErrorSnackbar(displayable)
-              }
-              else {
-                self?.presentErrorSnackbar()
-              }
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           )
           .mapToVoid()
@@ -139,66 +134,69 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .store(in: self.cancellables)
 
     controller.resourceDetailsPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] resourceId in
-        self?.push(
-          ResourceDetailsViewController.self,
-          in: resourceId
-        )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(
+            ResourceDetailsViewController.self,
+            in: resourceId
+          )
+        }
       }
       .store(in: cancellables)
 
     controller.resourceMenuPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] resourceID in
-        guard let self = self
-        else { return }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
 
-        self.presentSheetMenu(
-          ResourceMenuViewController.self,
-          in: (
-            resourceID: resourceID,
-            showEdit: self.controller.presentResourceEdit,
-            showDeleteAlert: self.controller.presentDeleteResourceAlert
+          await self.presentSheetMenu(
+            ResourceMenuViewController.self,
+            in: (
+              resourceID: resourceID,
+              showEdit: self.controller.presentResourceEdit,
+              showDeleteAlert: self.controller.presentDeleteResourceAlert
+            )
           )
-        )
+        }
       }
       .store(in: cancellables)
 
     controller
       .resourceCreatePresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.push(
-          ResourceEditViewController.self,
-          in: (
-            .new(in: nil),
-            completion: { _ in
-              DispatchQueue.main.async {
-                self?.presentInfoSnackbar(
-                  .localized(
-                    key: "resource.form.new.password.created"
-                  ),
-                  presentationMode: .global
-                )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(
+            ResourceEditViewController.self,
+            in: (
+              .new(in: nil),
+              completion: { _ in
+                self?.cancellables.executeOnMainActor { [weak self] in
+                  self?.presentInfoSnackbar(
+                    .localized(
+                      key: "resource.form.new.password.created"
+                    ),
+                    presentationMode: .global
+                  )
+                }
               }
-            }
+            )
           )
-        )
+        }
       }
       .store(in: cancellables)
 
     controller
       .resourceEditPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [unowned self] resourceID in
-        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
-          self.push(
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          await self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+          await self.push(
             ResourceEditViewController.self,
             in: (
               .existing(resourceID),
               completion: { [weak self] _ in
-                DispatchQueue.main.async {
+                self?.cancellables.executeOnMainActor { [weak self] in
                   self?.presentInfoSnackbar(
                     .localized(key: "resource.menu.action.edited"),
                     presentationMode: .global
@@ -213,13 +211,13 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
 
     controller
       .resourceDeleteAlertPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [unowned self] resourceID in
-        self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self) {
-          self.present(
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+          await self?.present(
             ResourceDeleteAlert.self,
-            in: { [unowned self] in
-              self.controller.resourceDeletionPublisher(resourceID)
+            in: { [weak self] in
+              self?.controller.resourceDeletionPublisher(resourceID)
                 .receive(on: RunLoop.main)
                 .handleStart { [weak self] in
                   self?.present(
@@ -239,12 +237,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                     handler: { _ in true /* NOP */ }
                   ),
                   defaultHandler: { [weak self] error in
-                    if let displayable: DisplayableString = error.displayableString {
-                      self?.presentErrorSnackbar(displayable)
-                    }
-                    else {
-                      self?.presentErrorSnackbar()
-                    }
+                    self?.presentErrorSnackbar(error.displayableMessage)
                   }
                 )
                 .handleEnd { [weak self] ending in
@@ -261,7 +254,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                   )
                 }
                 .sinkDrop()
-                .store(in: cancellables)
+                .store(in: self?.cancellables)
             }
           )
         }

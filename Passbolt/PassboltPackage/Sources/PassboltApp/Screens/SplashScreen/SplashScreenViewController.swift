@@ -63,12 +63,11 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
     controller
       .navigationDestinationPublisher()
       .delay(for: 0.3, scheduler: RunLoop.main)
-      .receive(on: RunLoop.main)
       .sink { [weak self] destination in
-        Task { [weak self] in
+        self?.cancellables.executeOnMainActor { [weak self] in
           let presentUpdateAlert: Bool = await self?.controller.shouldDisplayUpdateAlert() ?? false
           if presentUpdateAlert {
-            self?.present(
+            await self?.present(
               UpdateAvailableViewController.self,
               in: { [weak self] in
                 self?.navigate(to: destination)
@@ -86,54 +85,53 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
 
   private func navigate(to destination: Controller.Destination) {
     showFeedbackAlertIfNeeded(presentationAnchor: self) { [weak self] in
-      switch destination {
-      case let .accountSelection(lastAccount, message):
-        self?.replaceWindowRoot(
-          with: AuthorizationNavigationViewController.self,
-          in: (
-            account: lastAccount,
-            message: message
+      self?.cancellables.executeOnMainActor {
+        switch destination {
+        case let .accountSelection(lastAccount, message):
+          await self?.replaceWindowRoot(
+            with: AuthorizationNavigationViewController.self,
+            in: (
+              account: lastAccount,
+              message: message
+            )
           )
-        )
 
-      case .accountSetup:
-        self?.replaceWindowRoot(
-          with: WelcomeNavigationViewController.self
-        )
-
-      case .diagnostics:
-        self?.replaceWindowRoot(
-          with: PlainNavigationViewController<LogsViewerViewController>.self
-        )
-
-      case .home:
-        self?.replaceWindowRoot(
-          with: MainTabsViewController.self
-        )
-
-      case let .mfaAuthorization(mfaProviders):
-        if mfaProviders.isEmpty {
-          self?.replaceWindowRoot(
-            with: PlainNavigationViewController<UnsupportedMFAViewController>.self
+        case .accountSetup:
+          await self?.replaceWindowRoot(
+            with: WelcomeNavigationViewController.self
           )
-        }
-        else {
-          self?.replaceWindowRoot(
-            with: PlainNavigationViewController<MFARootViewController>.self,
-            in: mfaProviders
+
+        case .diagnostics:
+          await self?.replaceWindowRoot(
+            with: PlainNavigationViewController<LogsViewerViewController>.self
           )
-        }
 
-      case .featureConfigFetchError:
-        self?.present(
-          ErrorViewController.self,
-          in: { [weak self] in
-            guard let self = self
-            else { return Empty().eraseToAnyPublisher() }
+        case .home:
+          await self?.replaceWindowRoot(
+            with: MainTabsViewController.self
+          )
 
-            return self.controller.retryFetchConfiguration()
+        case let .mfaAuthorization(mfaProviders):
+          if mfaProviders.isEmpty {
+            await self?.replaceWindowRoot(
+              with: PlainNavigationViewController<UnsupportedMFAViewController>.self
+            )
           }
-        )
+          else {
+            await self?.replaceWindowRoot(
+              with: PlainNavigationViewController<MFARootViewController>.self,
+              in: mfaProviders
+            )
+          }
+
+        case .featureConfigFetchError:
+          await self?.present(
+            ErrorViewController.self,
+            in: { [weak self] in
+              try await self?.controller.retryFetchConfiguration()
+            }
+          )
+        }
       }
     }
   }

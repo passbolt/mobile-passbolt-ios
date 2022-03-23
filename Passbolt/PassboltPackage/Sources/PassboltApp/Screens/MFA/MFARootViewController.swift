@@ -86,16 +86,17 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
           self?.presentErrorSnackbar()
         },
         receiveValue: { [weak self] provider in
-          guard let self = self
-          else { return }
-          switch provider {
-          case .yubikey:
-            self.addChild(YubikeyViewController.self) { parent, child in
-              parent.setContent(view: child)
-            }
-          case .totp:
-            self.addChild(TOTPViewController.self) { parent, child in
-              parent.setContent(view: child)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            guard let self = self else { return }
+            switch provider {
+            case .yubikey:
+              await self.addChild(YubikeyViewController.self) { parent, child in
+                parent.setContent(view: child)
+              }
+            case .totp:
+              await self.addChild(TOTPViewController.self) { parent, child in
+                parent.setContent(view: child)
+              }
             }
           }
         }

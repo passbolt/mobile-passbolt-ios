@@ -34,23 +34,21 @@ import XCTest
 @MainActor
 final class CodeReaderScreenTests: MainActorTestCase {
 
-  func test_processPayload_passesPayloadToAccountTransfer() {
+  func test_processPayload_passesPayloadToAccountTransfer() async throws {
     var accountTransfer: AccountTransfer = .placeholder
     var result: String?
     accountTransfer.processPayload = { payload in
       result = payload
-      return Empty<Never, TheErrorLegacy>()
+      return Empty<Never, Error>()
         .eraseToAnyPublisher()
     }
-    features.use(accountTransfer)
-    let controller: CodeReaderController = testController()
-    controller
+    await features.use(accountTransfer)
+    let controller: CodeReaderController = try await testController()
+
+    _ =
+      try? await controller
       .processPayload("TEST")
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, "TEST")
   }

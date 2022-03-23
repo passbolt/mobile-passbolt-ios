@@ -34,18 +34,18 @@ public struct ResourceEditForm {
 
   // sets currently edited resource, if it was not set default form creates new resource
   // note that editing resource will download and decrypt secrets to fill them in and allow editing
-  public var editResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
+  public var editResource: @StorageAccessActor (Resource.ID) -> AnyPublisher<Void, Error>
   // set enclosing folder (parentFolderID)
   public var setEnclosingFolder: (Folder.ID?) -> Void
   // initial version supports only one type of resource type, so there is no method to change it
-  public var resourceTypePublisher: () -> AnyPublisher<ResourceType, TheErrorLegacy>
+  public var resourceTypePublisher: () -> AnyPublisher<ResourceType, Error>
   // since currently the only field value is String we are not allowing other value types
-  public var setFieldValue: (ResourceFieldValue, ResourceField) -> AnyPublisher<Void, TheErrorLegacy>
+  public var setFieldValue: (ResourceFieldValue, ResourceField) -> AnyPublisher<Void, Error>
   // prepare publisher for given field, publisher will complete when field will be no longer available
   public var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
   // send the form and create resource on server
-  public var sendForm: () -> AnyPublisher<Resource.ID, TheErrorLegacy>
-  public var featureUnload: () -> Bool
+  public var sendForm: @AccountSessionActor () -> AnyPublisher<Resource.ID, Error>
+  public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
 extension ResourceEditForm: Feature {
@@ -54,17 +54,17 @@ extension ResourceEditForm: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSession: AccountSession = features.instance()
-    let database: AccountDatabase = features.instance()
-    let networkClient: NetworkClient = features.instance()
-    let userPGPMessages: UserPGPMessages = features.instance()
-    let resources: Resources = features.instance()
+  ) async throws -> Self {
+    let accountSession: AccountSession = try await features.instance()
+    let database: AccountDatabase = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
+    let userPGPMessages: UserPGPMessages = try await features.instance()
+    let resources: Resources = try await features.instance()
 
     let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
     let resourceParentFolderIDSubject: CurrentValueSubject<Folder.ID?, Never> = .init(nil)
-    let resourceTypeSubject: CurrentValueSubject<ResourceType?, TheErrorLegacy> = .init(nil)
-    let resourceTypePublisher: AnyPublisher<ResourceType, TheErrorLegacy> =
+    let resourceTypeSubject: CurrentValueSubject<ResourceType?, Error> = .init(nil)
+    let resourceTypePublisher: AnyPublisher<ResourceType, Error> =
       resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
     let formValuesSubject: CurrentValueSubject<Dictionary<ResourceField, Validated<ResourceFieldValue>>, Never> =
       .init(.init())
@@ -72,16 +72,16 @@ extension ResourceEditForm: Feature {
     // load initial resource type
     database
       .fetchResourcesTypesOperation()
-      .mapErrorsToLegacy()
-      .map { resourceTypes -> AnyPublisher<ResourceType, TheErrorLegacy> in
+      .eraseErrorType()
+      .map { resourceTypes -> AnyPublisher<ResourceType, Error> in
         // in initial version we are supporting only one type of resource for being created
         if let resourceType: ResourceType = resourceTypes.first(where: \.isDefault) {
           return Just(resourceType)
-            .setFailureType(to: TheErrorLegacy.self)
+            .eraseErrorType()
             .eraseToAnyPublisher()
         }
         else {
-          return Fail(error: .invalidOrMissingResourceType())
+          return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
             .eraseToAnyPublisher()
         }
       }
@@ -125,9 +125,9 @@ extension ResourceEditForm: Feature {
       )
       .store(in: cancellables)
 
-    func editResource(
+    @StorageAccessActor func editResource(
       _ resourceID: Resource.ID
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       assert(
         resourceIDSubject.value == nil,
         "Edited resource change is not supported"
@@ -135,9 +135,9 @@ extension ResourceEditForm: Feature {
       return
         database
         .fetchEditViewResourceOperation(resourceID)
-        .mapErrorsToLegacy()
-        .map { resource in
-          resources
+        .eraseErrorType()
+        .asyncMap { resource in
+          await resources
             .loadResourceSecret(resource.id)
             .map { secret in (resource, secret) }
             .eraseToAnyPublisher()
@@ -235,11 +235,11 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
     }
 
-    func setEnclosingFolder(_ folderID: Folder.ID?) {
+    nonisolated func setEnclosingFolder(_ folderID: Folder.ID?) {
       resourceParentFolderIDSubject.send(folderID)
     }
 
-    func propertyValidator(
+    nonisolated func propertyValidator(
       for property: ResourceProperty
     ) -> Validator<ResourceFieldValue> {
       switch property.type {
@@ -275,19 +275,19 @@ extension ResourceEditForm: Feature {
       }
     }
 
-    func setFieldValue(
+    nonisolated func setFieldValue(
       _ value: ResourceFieldValue,
       field: ResourceField
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       resourceTypePublisher
-        .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, TheErrorLegacy> in
+        .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, Error> in
           if let property: ResourceProperty = resourceType.properties.first(where: { $0.field == field }) {
             return Just(propertyValidator(for: property).validate(value))
-              .setFailureType(to: TheErrorLegacy.self)
+              .eraseErrorType()
               .eraseToAnyPublisher()
           }
           else {
-            return Fail(error: .invalidOrMissingResourceType())
+            return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
               .eraseToAnyPublisher()
           }
         }
@@ -299,7 +299,7 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
     }
 
-    func fieldValuePublisher(
+    nonisolated func fieldValuePublisher(
       field: ResourceField
     ) -> AnyPublisher<Validated<ResourceFieldValue>, Never> {
       formValuesSubject
@@ -320,13 +320,13 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
     }
 
-    func sendForm() -> AnyPublisher<Resource.ID, TheErrorLegacy> {
+    @AccountSessionActor func sendForm() -> AnyPublisher<Resource.ID, Error> {
       Publishers.CombineLatest3(
         resourceIDSubject
-          .setFailureType(to: TheErrorLegacy.self),
+          .eraseErrorType(),
         resourceTypePublisher,
         formValuesSubject
-          .setFailureType(to: TheErrorLegacy.self)
+          .eraseErrorType()
       )
       .first()
       .map {
@@ -339,7 +339,7 @@ extension ResourceEditForm: Feature {
             fieldValues: Dictionary<ResourceField, ResourceFieldValue>,
             encodedSecret: String
           ),
-          TheErrorLegacy
+          Error
         > in
         var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
         var secretFieldValues: Dictionary<ResourceField.RawValue, ResourceFieldValue> = .init()
@@ -360,7 +360,6 @@ extension ResourceEditForm: Feature {
                     key: "resource.form.error.invalid"
                   )
                 )
-                .asLegacy
             )
             .eraseToAnyPublisher()
           }
@@ -384,13 +383,13 @@ extension ResourceEditForm: Feature {
           }
         }
         catch {
-          return Fail(error: .invalidResourceData(underlyingError: error))
+          return Fail(error: TheErrorLegacy.invalidResourceData(underlyingError: error))
             .eraseToAnyPublisher()
         }
 
         guard let encodedSecret: String = encodedSecret
         else {
-          return Fail(error: .invalidResourceData())
+          return Fail(error: TheErrorLegacy.invalidResourceData())
             .eraseToAnyPublisher()
         }
 
@@ -402,14 +401,14 @@ extension ResourceEditForm: Feature {
             encodedSecret: encodedSecret
           )
         )
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .map { (resourceID, resourceTypeID, fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, TheErrorLegacy> in
+      .map { (resourceID, resourceTypeID, fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, Error> in
         guard let name: String = fieldValues[.name]?.stringValue
         else {
-          return Fail(error: .invalidOrMissingResourceType())
+          return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
             .eraseToAnyPublisher()
         }
         let parentFolderID: Folder.ID? = resourceParentFolderIDSubject.value
@@ -419,7 +418,7 @@ extension ResourceEditForm: Feature {
             accountSession
             .statePublisher()
             .first()
-            .map { sessionState -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, TheErrorLegacy> in
+            .map { sessionState -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, Error> in
               switch sessionState {
               case .authorized, .authorizedMFARequired:
                 return
@@ -428,9 +427,6 @@ extension ResourceEditForm: Feature {
                   .eraseToAnyPublisher()
 
               case let .authorizationRequired(account):
-                accountSession.requestAuthorizationPrompt(
-                  .localized("authorization.prompt.refresh.session.reason")
-                )
                 return Fail(
                   error:
                     SessionAuthorizationRequired
@@ -438,25 +434,20 @@ extension ResourceEditForm: Feature {
                       "Session authorization required for editing resource",
                       account: account
                     )
-                    .asLegacy
                 )
                 .eraseToAnyPublisher()
 
               case .none:
-                accountSession.requestAuthorizationPrompt(
-                  .localized("authorization.prompt.refresh.session.reason")
-                )  // TODO: verify this
                 return Fail(
                   error:
                     SessionMissing
                     .error("No session provided for editing resource")
-                    .asLegacy
                 )
                 .eraseToAnyPublisher()
               }
             }
             .switchToLatest()
-            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheErrorLegacy> in
+            .map { encryptedSecrets -> AnyPublisher<Resource.ID, Error> in
               networkClient
                 .updateResourceRequest
                 .make(
@@ -471,7 +462,7 @@ extension ResourceEditForm: Feature {
                     secrets: encryptedSecrets.map { (userID: $0.rawValue, data: $1.rawValue) }
                   )
                 )
-                .mapErrorsToLegacy()
+                .eraseErrorType()
                 .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
                 .eraseToAnyPublisher()
             }
@@ -485,7 +476,7 @@ extension ResourceEditForm: Feature {
             .first()
             .map {
               sessionState -> AnyPublisher<
-                Array<(userID: User.ID, encryptedMessage: ArmoredPGPMessage)>, TheErrorLegacy
+                Array<(userID: User.ID, encryptedMessage: ArmoredPGPMessage)>, Error
               > in
               switch sessionState {
               case let .authorized(account), let .authorizedMFARequired(account, _):
@@ -496,9 +487,6 @@ extension ResourceEditForm: Feature {
                   .eraseToAnyPublisher()
 
               case let .authorizationRequired(account):
-                accountSession.requestAuthorizationPrompt(
-                  .localized("authorization.prompt.refresh.session.reason")
-                )
                 return Fail(
                   error:
                     SessionAuthorizationRequired
@@ -506,26 +494,21 @@ extension ResourceEditForm: Feature {
                       "Session authorization required for creating resource",
                       account: account
                     )
-                    .asLegacy
                 )
                 .eraseToAnyPublisher()
 
               case .none:
-                accountSession.requestAuthorizationPrompt(
-                  .localized("authorization.prompt.refresh.session.reason")
-                )  // TODO: check this
                 return Fail(
                   error:
                     SessionMissing
                     .error("No session provided for creating resource")
-                    .asLegacy
                 )
                 .eraseToAnyPublisher()
 
               }
             }
             .switchToLatest()
-            .map { encryptedSecrets -> AnyPublisher<Resource.ID, TheErrorLegacy> in
+            .map { encryptedSecrets -> AnyPublisher<Resource.ID, Error> in
               return
                 networkClient
                 .createResourceRequest
@@ -540,7 +523,7 @@ extension ResourceEditForm: Feature {
                     secretData: encryptedSecrets.first?.encryptedMessage.rawValue ?? ""
                   )
                 )
-                .mapErrorsToLegacy()
+                .eraseErrorType()
                 .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
                 .eraseToAnyPublisher()
             }
@@ -552,8 +535,8 @@ extension ResourceEditForm: Feature {
       .eraseToAnyPublisher()
     }
 
-    func featureUnload() -> Bool {
-      true
+    @FeaturesActor func featureUnload() async throws {
+      // always succeed
     }
 
     return Self(

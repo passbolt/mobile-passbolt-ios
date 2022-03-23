@@ -96,9 +96,10 @@ extension LocalizedString: Hashable {
     lhs.key.rawValue == rhs.key.rawValue
       && lhs.bundle == rhs.bundle
       && lhs.tableName == rhs.tableName
-    // can't really check arguments,
-    // localized strings pointing to the same string are treated
-    // as equal ignoting arguments
+      // can't really check arguments,
+      // localized strings pointing to the same string are treated
+      // as equal ignoting arguments
+      && lhs.arguments.count == rhs.arguments.count
   }
 
   public func hash(into hasher: inout Hasher) {
@@ -106,6 +107,7 @@ extension LocalizedString: Hashable {
     hasher.combine(bundle)
     hasher.combine(tableName)
     // can't really combine arguments, skipping
+    hasher.combine(arguments.count)
   }
 }
 

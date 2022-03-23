@@ -35,11 +35,11 @@ public struct AccountSettings {
   // for current account
   public var biometricsEnabledPublisher: () -> AnyPublisher<Bool, Never>
   // for current account
-  public var setBiometricsEnabled: (Bool) -> AnyPublisher<Void, TheErrorLegacy>
-  public var setAccountLabel: (String, Account) -> Result<Void, TheErrorLegacy>
+  public var setBiometricsEnabled: @StorageAccessActor (Bool) -> AnyPublisher<Void, Error>
+  public var setAccountLabel: @StorageAccessActor (String, Account) -> Result<Void, Error>
   // for current account
-  public var setAvatarImageURL: (String) -> AnyPublisher<Void, TheErrorLegacy>
-  public var accountWithProfile: (Account) -> AccountWithProfile
+  public var setAvatarImageURL: @StorageAccessActor (String) -> AnyPublisher<Void, Error>
+  public var accountWithProfile: @StorageAccessActor (Account) throws -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   public var currentAccountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
   public var currentAccountAvatarPublisher: () -> AnyPublisher<Data?, Never>
@@ -51,30 +51,30 @@ extension AccountSettings: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSession: AccountSession = features.instance()
-    let accountsDataStore: AccountsDataStore = features.instance()
-    let diagnostics: Diagnostics = features.instance()
-    let permissions: OSPermissions = features.instance()
-    let networkClient: NetworkClient = features.instance()
+  ) async throws -> Self {
+    let accountSession: AccountSession = try await features.instance()
+    let accountsDataStore: AccountsDataStore = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let permissions: OSPermissions = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
     let currentAccountProfileSubject: CurrentValueSubject<AccountWithProfile?, Never> = .init(nil)
 
     accountSession
       .statePublisher()
-      .compactMap { (sessionState: AccountSessionState) -> AnyPublisher<AccountWithProfile?, Never>? in
+      .asyncMap { (sessionState: AccountSessionState) -> AnyPublisher<AccountWithProfile?, Never>? in
         switch sessionState {
         case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
           let initialProfilePublisher: AnyPublisher<AccountWithProfile?, Never>
 
-          switch accountsDataStore.loadAccountProfile(account.localID) {
+          switch await accountsDataStore.loadAccountProfile(account.localID) {
           case let .success(accountProfile):
             initialProfilePublisher = Just(.init(account: account, profile: accountProfile))
               .eraseToAnyPublisher()
 
           case let .failure(error):
             diagnostics.diagnosticLog("Failed to load account profile")
-            diagnostics.debugLog(error.description)
+            diagnostics.log(error)
             initialProfilePublisher = Just(.none)
               .eraseToAnyPublisher()
           }
@@ -83,15 +83,15 @@ extension AccountSettings: Feature {
             accountsDataStore
             .updatedAccountIDsPublisher()
             .filter { $0 == account.localID }
-            .compactMap { (accountID: Account.LocalID) -> AnyPublisher<AccountWithProfile?, Never> in
-              switch accountsDataStore.loadAccountProfile(accountID) {
+            .asyncMap { (accountID: Account.LocalID) -> AnyPublisher<AccountWithProfile?, Never> in
+              switch await accountsDataStore.loadAccountProfile(accountID) {
               case let .success(accountProfile):
                 return Just(.init(account: account, profile: accountProfile))
                   .eraseToAnyPublisher()
 
               case let .failure(error):
                 diagnostics.diagnosticLog("Failed to load account profile")
-                diagnostics.debugLog(error.description)
+                diagnostics.log(error)
                 return Just(.none)
                   .eraseToAnyPublisher()
               }
@@ -108,6 +108,7 @@ extension AccountSettings: Feature {
           return nil
         }
       }
+      .filterMapOptional()
       .switchToLatest()
       .removeDuplicates()
       .sink { accountProfile in
@@ -147,21 +148,21 @@ extension AccountSettings: Feature {
       }
       .filter { $0.last != $0.current }
       .compactMap { $0.current }
-      .map { account in
-        fetchAccountProfile(account)
+      .eraseErrorType()
+      .asyncMap { account in
+        await fetchAccountProfile(account)
           .replaceError(with: Void())
       }
-      .switchToLatest()
       .sinkDrop()
       .store(in: cancellables)
 
-    func updateProfile(
+    @StorageAccessActor func updateProfile(
       for accountID: Account.LocalID,
       _ update: (inout AccountProfile) -> Void
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       var updatedProfile: AccountProfile
 
-      let profileLoadResult: Result<AccountProfile, TheErrorLegacy> =
+      let profileLoadResult: Result<AccountProfile, Error> =
         accountsDataStore
         .loadAccountProfile(accountID)
 
@@ -170,36 +171,36 @@ extension AccountSettings: Feature {
         updatedProfile = profile
 
       case let .failure(error):
-        return Fail<Void, TheErrorLegacy>(error: error)
+        return Fail<Void, Error>(error: error)
           .eraseToAnyPublisher()
       }
 
       update(&updatedProfile)
 
-      let profileUpdateResult: Result<Void, TheErrorLegacy> =
+      let profileUpdateResult: Result<Void, Error> =
         accountsDataStore
         .updateAccountProfile(updatedProfile)
 
       switch profileUpdateResult {
       case .success:
         return Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
+          .eraseErrorType()
           .eraseToAnyPublisher()
 
       case let .failure(error):
-        return Fail<Void, TheErrorLegacy>(error: error)
+        return Fail<Void, Error>(error: error)
           .eraseToAnyPublisher()
       }
     }
 
-    func fetchAccountProfile(
+    @StorageAccessActor func fetchAccountProfile(
       _ account: Account
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       networkClient
         .userProfileRequest
         .make(using: .init(userID: account.userID.rawValue))
-        .mapErrorsToLegacy()
-        .map { response -> AnyPublisher<Void, TheErrorLegacy> in
+        .eraseErrorType()
+        .map { response -> AnyPublisher<Void, Error> in
           updateProfile(for: account.localID) { profile in
             profile.firstName = response.body.profile.firstName
             profile.lastName = response.body.profile.lastName
@@ -210,23 +211,22 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
-    func setBiometrics(enabled: Bool) -> AnyPublisher<Void, TheErrorLegacy> {
+    @StorageAccessActor func setBiometrics(enabled: Bool) -> AnyPublisher<Void, Error> {
       permissions
         .ensureBiometricsPermission()
-        .mapErrorsToLegacy()
-        .map { permissionGranted -> AnyPublisher<Void, TheErrorLegacy> in
-          accountSession
+        .first()
+        .eraseErrorType()
+        .asyncMap { permissionGranted in
+          try await accountSession
             .storePassphraseWithBiometry(enabled)
-            .asPublisher
         }
-        .switchToLatest()
         .eraseToAnyPublisher()
     }
 
-    func setAccountLabel(
+    @StorageAccessActor func setAccountLabel(
       _ label: String,
       for account: Account
-    ) -> Result<Void, TheErrorLegacy> {
+    ) -> Result<Void, Error> {
       accountsDataStore
         .loadAccountProfile(account.localID)
         .flatMap { accountProfile in
@@ -236,13 +236,13 @@ extension AccountSettings: Feature {
         }
     }
 
-    func setAvatarImageURL(
+    @StorageAccessActor func setAvatarImageURL(
       _ url: String
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
       accountSession
         .statePublisher()
         .first()
-        .map { (sessionState: AccountSessionState) -> AnyPublisher<Void, TheErrorLegacy> in
+        .map { (sessionState: AccountSessionState) -> AnyPublisher<Void, Error> in
           let account: Account
           switch sessionState {
           case let .authorized(currentAccount),
@@ -257,7 +257,6 @@ extension AccountSettings: Feature {
                   "Session authorization required for setting avatar",
                   account: currentAccount
                 )
-                .asLegacy
             )
             .eraseToAnyPublisher()
 
@@ -266,7 +265,6 @@ extension AccountSettings: Feature {
               error:
                 SessionMissing
                 .error("No session provided for setting avatar")
-                .asLegacy
             )
             .eraseToAnyPublisher()
           }
@@ -279,9 +277,9 @@ extension AccountSettings: Feature {
         .eraseToAnyPublisher()
     }
 
-    func accountWithProfile(
+    @StorageAccessActor func accountWithProfile(
       for account: Account
-    ) -> AccountWithProfile {
+    ) throws -> AccountWithProfile {
       switch accountsDataStore.loadAccountProfile(account.localID) {
       case let .success(accountProfile):
         return AccountWithProfile(
@@ -299,8 +297,8 @@ extension AccountSettings: Feature {
 
       case let .failure(error):
         diagnostics.diagnosticLog("Failed to load account profile")
-        diagnostics.debugLog(error.description)
-        fatalError("Internal inconsistency - invalid data storage state")
+        diagnostics.log(error)
+        throw error
       }
     }
 
@@ -310,17 +308,17 @@ extension AccountSettings: Feature {
       .removeDuplicates()
       .eraseToAnyPublisher()
 
-    func currentAccountAvatarPublisher() -> AnyPublisher<Data?, Never> {
+    nonisolated func currentAccountAvatarPublisher() -> AnyPublisher<Data?, Never> {
       accountProfilePublisher
+        .first()
         .map(\.avatarImageURL)
-        .map { avatarImageURL in
-          networkClient.mediaDownload.make(
-            using: .init(urlString: avatarImageURL)
-          )
-          .map { data -> Data? in data }
-          .replaceError(with: nil)
+        .asyncMap { avatarImageURL -> Data? in
+          try? await networkClient
+            .mediaDownload
+            .makeAsync(
+              using: .init(urlString: avatarImageURL)
+            )
         }
-        .switchToLatest()
         .eraseToAnyPublisher()
     }
 

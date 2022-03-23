@@ -37,7 +37,7 @@ public struct Folders {
   public var updates: () -> AnyAsyncSequence<Void>
   public var details: (Folder.ID) async throws -> FolderDetails?
   public var filteredFolderContent: (AnyAsyncSequence<FoldersFilter>) -> AnyAsyncSequence<FolderContent>
-  public var featureUnload: () -> Bool
+  public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
 public struct FolderContent {
@@ -63,14 +63,14 @@ extension Folders: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let networkClient: NetworkClient = features.instance()
-    let accountDatabase: AccountDatabase = features.instance()
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
+    let accountDatabase: AccountDatabase = try await features.instance()
 
     let updatesSequence: AsyncValue<Void> = .init(initial: Void())
 
-    func refreshIfNeeded() async throws {
+    nonisolated func refreshIfNeeded() async throws {
       let foldersResponse: FoldersRequestResponse =
         try await networkClient
         .foldersRequest
@@ -101,6 +101,7 @@ extension Folders: Feature {
                 id: .init(rawValue: responseFolder.id),
                 name: responseFolder.name,
                 permission: permission,
+                shared: responseFolder.shared,
                 parentFolderID: responseFolder
                   .parentFolderID
                   .map(Folder.ID.init(rawValue:))
@@ -109,16 +110,16 @@ extension Folders: Feature {
         )
     }
 
-    func resourcesUpdated() async {
-      await updatesSequence.update(Void())
+    nonisolated func resourcesUpdated() async {
+      updatesSequence.value = Void()
     }
 
-    func updates() -> AnyAsyncSequence<Void> {
+    nonisolated func updates() -> AnyAsyncSequence<Void> {
       updatesSequence
         .asAnyAsyncSequence()
     }
 
-    func details(
+    nonisolated func details(
       _ folderID: Folder.ID
     ) async throws -> FolderDetails? {
       guard let folder: Folder = try await accountDatabase.fetchFolder(folderID)
@@ -130,7 +131,7 @@ extension Folders: Feature {
       )
     }
 
-    func filteredFolderContent(
+    nonisolated func filteredFolderContent(
       filters: AnyAsyncSequence<FoldersFilter>
     ) -> AnyAsyncSequence<FolderContent> {
       AsyncCombineLatestSequence(updatesSequence, filters)
@@ -170,8 +171,8 @@ extension Folders: Feature {
         .asAnyAsyncSequence()
     }
 
-    func featureUnload() -> Bool {
-      true
+    @FeaturesActor func featureUnload() async throws {
+      // always succeed
     }
 
     return Self(

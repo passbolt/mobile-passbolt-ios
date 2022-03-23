@@ -50,55 +50,42 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     resources = nil
   }
 
-  func test_loadResourceDetails_succeeds_whenAvailable() {
+  func test_loadResourceDetails_succeeds_whenAvailable() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
-    var result: ResourceDetailsController.ResourceDetailsWithConfig!
-
-    controller.resourceDetailsWithConfigPublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else {
-            XCTFail("Unexpected failure")
-            return
-          }
-        },
-        receiveValue: { resourceDetailsConfig in
-          result = resourceDetailsConfig
-        }
-      )
-      .store(in: cancellables)
+    let controller: ResourceDetailsController = try await testController(context: context)
+    let result: ResourceDetailsController.ResourceDetailsWithConfig? =
+      try? await controller.resourceDetailsWithConfigPublisher()
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(result.resourceDetails.id.rawValue, context.rawValue)
+    XCTAssertEqual(result?.resourceDetails.id.rawValue, context.rawValue)
   }
 
-  func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() {
+  func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = { _ in
       var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
       detailsViewResourceWithReorderedFields.properties.reverse()
       return Just(detailsViewResourceWithReorderedFields)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
     let expectedOrderedFields: [ResourceField] = [
       .uri,
@@ -107,178 +94,130 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       .description,
     ]
 
-    var result: ResourceDetailsController.ResourceDetailsWithConfig!
-
-    controller.resourceDetailsWithConfigPublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else {
-            XCTFail("Unexpected failure")
-            return
-          }
-        },
-        receiveValue: { resourceDetailsConfig in
-          result = resourceDetailsConfig
-        }
-      )
-      .store(in: cancellables)
+    let result: ResourceDetailsController.ResourceDetailsWithConfig? =
+      try? await controller.resourceDetailsWithConfigPublisher()
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(result.resourceDetails.id.rawValue, context.rawValue)
-    XCTAssertEqual(result.resourceDetails.properties.map(\.field), expectedOrderedFields)
+    XCTAssertEqual(result?.resourceDetails.id.rawValue, context.rawValue)
+    XCTAssertEqual(result?.resourceDetails.properties.map(\.field), expectedOrderedFields)
   }
 
-  func test_loadResourceDetails_fails_whenErrorOnFetch() {
+  func test_loadResourceDetails_fails_whenErrorOnFetch() async throws {
     resources.resourceDetailsPublisher = always(
-      Fail(error: .testError()).eraseToAnyPublisher()
+      Fail(error: MockIssue.error()).eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
-    var result: TheErrorLegacy!
-
-    controller.resourceDetailsWithConfigPublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else {
-            XCTFail("Unexpected completion")
-            return
-          }
-          result = error
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected value")
-        }
-      )
-      .store(in: cancellables)
+    let controller: ResourceDetailsController = try await testController(context: context)
+    var result: Error?
+    do {
+      _ = try await controller.resourceDetailsWithConfigPublisher()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNotNil(result)
   }
 
-  func test_toggleDecrypt_publishes_whenResourceFetch_succeeds() {
+  func test_toggleDecrypt_publishes_whenResourceFetch_succeeds() async throws {
     resources.resourceDetailsPublisher = always(
       Empty().eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
-      Just(resourceSecret).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just(resourceSecret).eraseErrorType().eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
-    var result: String!
-
-    controller
+    let controller: ResourceDetailsController = try await testController(context: context)
+    let result: String? =
+      try? await controller
       .toggleDecrypt(
         .password
       )
-      .sink { completion in
-        guard case .finished = completion
-        else {
-          XCTFail("Unexpected error")
-          return
-        }
-      } receiveValue: { decrypted in
-        result = decrypted
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_toggleDecrypt_publishesError_whenResourceFetch_fails() {
+  func test_toggleDecrypt_publishesError_whenResourceFetch_fails() async throws {
     resources.resourceDetailsPublisher = always(
       Empty().eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
-      Fail(error: .testError()).eraseToAnyPublisher()
+      Fail(error: MockIssue.error()).eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
-    var result: TheErrorLegacy!
-
-    controller
-      .toggleDecrypt(.password)
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else {
-            XCTFail("Unexpected completion")
-            return
-          }
-          result = error
-        },
-        receiveValue: { _ in
-          XCTFail("Unexpected value")
-        }
-      )
-      .store(in: cancellables)
+    let controller: ResourceDetailsController = try await testController(context: context)
+    var result: Error?
+    do {
+      try await controller
+        .toggleDecrypt(.password)
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNotNil(result)
   }
 
-  func test_toggleDecrypt_publishesNil_whenTryingToDecryptAlreadyDecrypted() {
+  func test_toggleDecrypt_publishesNil_whenTryingToDecryptAlreadyDecrypted() async throws {
     resources.resourceDetailsPublisher = always(
       Empty().eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
-      Just(resourceSecret).setFailureType(to: TheErrorLegacy.self).eraseToAnyPublisher()
+      Just(resourceSecret).eraseErrorType().eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
-    var result: String!
+    let controller: ResourceDetailsController = try await testController(context: context)
 
-    controller
+    _ =
+      try await controller
       .toggleDecrypt(
         .password
       )
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
-    controller
+    let result: String? =
+      try? await controller
       .toggleDecrypt(.password)
-      .sink { completion in
-        guard case .finished = completion
-        else {
-          XCTFail("Unexpected error")
-          return
-        }
-      } receiveValue: { decrypted in
-        result = decrypted
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNil(result)
   }
 
-  func test_resourceMenuPresentationPublisher_publishesResourceID_whenPresentResourceMenuCalled() {
+  func test_resourceMenuPresentationPublisher_publishesResourceID_whenPresentResourceMenuCalled() async throws {
     resources.resourceDetailsPublisher = always(
       Empty().eraseToAnyPublisher()
     )
     resources.loadResourceSecret = always(
       Empty().eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
     var result: Resource.ID!
 
     controller.resourceMenuPresentationPublisher()
@@ -292,15 +231,15 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     XCTAssertEqual(result, context)
   }
 
-  func test_copyFieldUsername_succeeds() {
+  func test_copyFieldUsername_succeeds() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
+    await features.use(featureConfig)
+    await features.use(resources)
 
     var pasteboardContent: String? = nil
 
@@ -308,29 +247,31 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       pasteboardContent = string
     }
 
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .copyFieldValue(.username)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, detailsViewResource.username)
   }
 
-  func test_copyFieldDescription_succeeds() {
+  func test_copyFieldDescription_succeeds() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
+    await features.use(featureConfig)
+    await features.use(resources)
 
     var pasteboardContent: String? = nil
 
@@ -338,34 +279,36 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       pasteboardContent = string
     }
 
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .copyFieldValue(.description)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, detailsViewResource.description)
   }
 
-  func test_copyFieldEncryptedDescription_succeeds() {
+  func test_copyFieldEncryptedDescription_succeeds() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(encryptedDescriptionDetailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
+    await features.use(featureConfig)
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var pasteboardContent: String? = nil
 
@@ -373,29 +316,31 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       pasteboardContent = string
     }
 
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .copyFieldValue(.description)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, resourceSecret.description)
   }
 
-  func test_copyFieldURI_succeeds() {
+  func test_copyFieldURI_succeeds() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
+    await features.use(featureConfig)
+    await features.use(resources)
 
     var pasteboardContent: String? = nil
 
@@ -403,34 +348,36 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       pasteboardContent = string
     }
 
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .copyFieldValue(.uri)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, detailsViewResource.url)
   }
 
-  func test_copyFieldPassword_succeeds() {
+  func test_copyFieldPassword_succeeds() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
+    await features.use(featureConfig)
     resources.loadResourceSecret = always(
       Just(resourceSecret)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
 
     var pasteboardContent: String? = nil
 
@@ -438,33 +385,37 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       pasteboardContent = string
     }
 
-    features.use(pasteboard)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
-    controller
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await controller
       .copyFieldValue(.password)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(pasteboardContent)
     XCTAssertEqual(pasteboardContent, resourceSecret.password)
   }
 
-  func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled() {
+  func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()
+    async throws
+  {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(featureConfig)
-    features.use(resources)
-    features.use(pasteboard)
+    await features.use(featureConfig)
+    await features.use(resources)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
     var result: Resource.ID?
 
     controller.resourceDeleteAlertPresentationPublisher()
@@ -478,7 +429,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     XCTAssertEqual(result, context)
   }
 
-  func test_resourceDeletionPublisher_triggersRefreshIfNeeded_whenDeletion_succeeds() {
+  func test_resourceDeletionPublisher_triggersRefreshIfNeeded_whenDeletion_succeeds() async throws {
     var resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
@@ -490,7 +441,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
       Just(detailsViewResource)
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
     resources.filteredResourcesListPublisher = always(
@@ -500,7 +451,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     resources.deleteResource = { resourceID in
       resourcesList.removeAll { $0.id == resourceID }
       return Just(())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
 
@@ -510,20 +461,23 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
       result = Void()
       return Just(())
         .ignoreOutput()
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     }
-    features.use(resources)
-    features.use(featureConfig)
-    features.use(pasteboard)
+    await features.use(resources)
+    await features.use(featureConfig)
+    await features.use(pasteboard)
 
     let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = testController(context: context)
+    let controller: ResourceDetailsController = try await testController(context: context)
 
     controller
       .resourceDeletionPublisher(resourcesList.first!.id)
       .sinkDrop()
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
     XCTAssertTrue(resourcesList.isEmpty)

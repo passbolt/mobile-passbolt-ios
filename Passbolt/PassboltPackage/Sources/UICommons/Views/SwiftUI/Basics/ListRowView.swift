@@ -28,13 +28,13 @@ import SwiftUI
 public struct ListRowView<LeftAccessoryView, ContentView, RightAccessoryView>: View
 where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
-  private let action: () async -> Void
+  private let action: @Sendable () async -> Void
   private let leftAccessory: () -> LeftAccessoryView
   private let content: () -> ContentView
   private let rightAccessory: () -> RightAccessoryView
 
   public init(
-    action: @escaping () async -> Void,
+    action: @Sendable @escaping () async -> Void,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     @ViewBuilder content: @escaping () -> ContentView,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
@@ -56,9 +56,10 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
             self.content()
               .frame(maxWidth: .infinity, maxHeight: 52, alignment: .leading)
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .contentShape(Rectangle())
         }
       )
-      .contentShape(Rectangle())
 
       self.rightAccessory()
     }

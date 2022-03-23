@@ -78,7 +78,7 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
 
     self.contentView.acceptTapPublisher
       .receive(on: RunLoop.main)
-      .map { [unowned self] _ -> AnyPublisher<Void, TheErrorLegacy> in
+      .map { [unowned self] _ -> AnyPublisher<Void, Error> in
         self.controller.saveFingerprintPublisher()
           .eraseToAnyPublisher()
       }
@@ -97,7 +97,9 @@ public final class ServerFingerprintViewController: PlainViewController, UICompo
           )
         },
         receiveValue: { [weak self] in
-          self?.pop(to: AuthorizationViewController.self)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            await self?.pop(to: AuthorizationViewController.self)
+          }
         }
       )
       .store(in: cancellables)

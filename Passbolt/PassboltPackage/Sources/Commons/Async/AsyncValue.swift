@@ -21,120 +21,90 @@
 // @since         v1.0
 //
 
-//import Combine
-//
-//public final actor AsyncValue<Value> {
-//
-//  public var value: Value {
-//    get async {
-//      self.currentValueSubject.value
-//    }
-////    set {
-////      self.currentValueSubject.value = newValue
-////    }
-//  }
-//  private let currentValueSubject: CurrentValueSubject<Value, Never>
-//
-//  public init(initial: Value) {
-//    self.currentValueSubject = .init(initial)
-//  }
-//
-////  deinit {
-////    let iterators: Dictionary<AnyHashable, AsyncSharedIterator<Value>>.Values = iterators.values
-////    Task {
-////      for iterator in iterators {
-////        await iterator.finish()
-////      }
-////    }
-////  }
-//
-//  public func update(_ newValue: Value) async {
-//    self.currentValueSubject.value = newValue
-//  }
-//
-//  public func withValue<Returned>(
-//    _ access: (inout Value) async -> Returned
-//  ) async -> Returned {
-//    var mutableValue = self.currentValueSubject.value
-//    defer { self.currentValueSubject.value = mutableValue }
-//    return await access(&mutableValue)
-//  }
-//}
-//
-//extension AsyncValue: AsyncSequence {
-//
-//  public typealias AsyncIterator = AnyAsyncIterator<Value>
-//  public typealias Element = Value
-//
-//  public nonisolated func makeAsyncIterator() -> AnyAsyncIterator<Value> {
-//    AnyAsyncSequence(
-//      self.currentValueSubject,
-//      bufferingPolicy: .bufferingNewest(1)
-//    )
-//    .makeAsyncIterator()
-//  }
-//}
+public final class AsyncValue<Value> {
 
-public final actor AsyncValue<Value> {
+  private typealias Awaiter = CheckedContinuation<(value: Value?, generation: UInt64), Never>
+  private struct State {
 
-  public fileprivate(set) var value: Value
-  private var iterators: Dictionary<AnyHashable, AsyncSharedIterator<Value>> = .init()  // TODO: use WeakBox
-
-  public init(initial: Value) {
-    self.value = initial
+    fileprivate var value: Value
+    fileprivate var generation: UInt64 = 1
+    fileprivate var awaiters: Array<Awaiter> = .init()
   }
 
-  deinit {
-    let iterators: Dictionary<AnyHashable, AsyncSharedIterator<Value>>.Values = self.iterators.values
-    Task {
-      for iterator in iterators {
-        await iterator.finish()
+  public var value: Value {
+    get {
+      self.state.access(\.value)
+    }
+    set {
+      self.state.access { state in
+        state.value = newValue
+        state.generation &+= 1
+        while let awaiter = state.awaiters.popLast() {
+          awaiter.resume(returning: (state.value, state.generation))
+        }
       }
     }
   }
 
-  public func update(_ newValue: Value) async {
-    self.value = newValue
-    for iterator in self.iterators.values {
-      await iterator.yield(newValue)
+  private let state: CriticalState<State>
+
+  public init(initial: Value) {
+    self.state = .init(.init(value: initial))
+  }
+
+  deinit {
+    let awaiters: Array<Awaiter> = self.state.access(\.awaiters)
+    for awaiter in awaiters {
+      awaiter.resume(returning: (.none, .max))
+    }
+  }
+
+  private func next(
+    _ generation: UInt64
+  ) async -> (value: Value?, generation: UInt64) {
+    return await withCheckedContinuation { (continuation: Awaiter) in
+      self.state.access { state in
+        if state.generation > generation {
+          continuation.resume(returning: (state.value, state.generation))
+        }
+        else {
+          state.awaiters.append(continuation)
+        }
+      }
     }
   }
 
   public func withValue<Returned>(
-    _ access: (inout Value) async throws -> Returned
-  ) async rethrows -> Returned {
-    var mutableValue = self.value
-    defer { self.value = mutableValue }
-    return try await access(&mutableValue)
+    _ access: (inout Value) throws -> Returned
+  ) rethrows -> Returned {
+    try self.state.access { state in
+      try access(&state.value)
+    }
+  }
+
+  public func withValueAsync<Returned>(
+    _ access: @escaping (inout Value) async throws -> Returned
+  ) async throws -> Returned {
+    try await self.state.accessAsync { state in
+      try await access(&state.value)
+    }
   }
 }
 
 extension AsyncValue: AsyncSequence {
 
-  public typealias AsyncIterator = AsyncSharedIterator<Value>
+  public typealias AsyncIterator = AnyAsyncIterator<Value>
   public typealias Element = Value
 
-  public nonisolated func makeAsyncIterator() -> AsyncSharedIterator<Value> {
-    let iterator: AsyncSharedIterator<Value> = .init { identifier in
-      Task {
-        await self.remove(iteratorWithIdentifier: identifier)
-      }
+  public func makeAsyncIterator() -> AnyAsyncIterator<Value> {
+    var generation: UInt64 = self.state.access { $0.generation } &- 1
+    return AnyAsyncIterator<Value> { [weak self] in
+      guard
+        let next: (value: Value?, generation: UInt64) =
+          await self?.next(generation)
+      else { return nil }
+      generation = next.generation
+      return next.value
     }
-    Task {
-      await self.add(iterator: iterator)
-    }
-    return iterator
-  }
-}
-
-extension AsyncValue {
-
-  fileprivate func add(iterator: AsyncSharedIterator<Value>) async {
-    self.iterators[iterator.identifier] = iterator
-    await iterator.yield(self.value)
-  }
-
-  fileprivate func remove(iteratorWithIdentifier: AnyHashable) {
-    self.iterators[iteratorWithIdentifier] = .none
   }
 }

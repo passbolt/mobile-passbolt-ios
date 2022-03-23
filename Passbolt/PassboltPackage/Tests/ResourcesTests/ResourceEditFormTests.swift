@@ -41,8 +41,8 @@ final class ResourceEditFormTests: TestCase {
   var networkClient: NetworkClient!
   var userPGPMessages: UserPGPMessages!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     accountSession = .placeholder
     database = .placeholder
     resources = .placeholder
@@ -50,123 +50,125 @@ final class ResourceEditFormTests: TestCase {
     userPGPMessages = .placeholder
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     accountSession = nil
     database = nil
     resources = nil
     networkClient = nil
     userPGPMessages = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() {
-    features.use(accountSession)
+  func test_resourceTypePublisher_fails_whenNoResourceTypesAvailable() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      []
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .resourceTypePublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.identifier, .invalidOrMissingResourceType)
-  }
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .resourceTypePublisher()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
 
-  func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() {
-    features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(
-      Just([emptyResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .invalidOrMissingResourceType }
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
-
-    let feature: ResourceEditForm = testInstance()
-
-    var result: TheErrorLegacy?
-    feature
-      .resourceTypePublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .invalidOrMissingResourceType)
   }
 
-  func test_resourceTypePublisher_publishesDefaultResourceType_whenValidResourceTypeAvailable() {
-    features.use(accountSession)
+  func test_resourceTypePublisher_fails_whenNoValidResourceTypeAvailable() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [emptyResourceType]
+    )
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .resourceTypePublisher()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .invalidOrMissingResourceType }
+    )
+  }
+
+  func test_resourceTypePublisher_publishesDefaultResourceType_whenValidResourceTypeAvailable() async throws {
+    await features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: ResourceType?
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let result: ResourceType? =
+      try? await feature
       .resourceTypePublisher()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { resourceType in
-          result = resourceType
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssert(result?.isDefault ?? false)
   }
 
-  func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() {
-    features.use(accountSession)
+  func test_fieldValuePublisher_returnsNotPublishingPublisher_whenResourceFieldNotAvailable() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     var result: Void?
     feature
@@ -184,47 +186,43 @@ final class ResourceEditFormTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_fieldValuePublisher_returnsInitiallyPublishingPublisher_whenResourceFieldAvailable() {
-    features.use(accountSession)
+  func test_fieldValuePublisher_returnsInitiallyPublishingPublisher_whenResourceFieldAvailable() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: Validated<ResourceFieldValue>?
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let result: Validated<ResourceFieldValue>? =
+      try? await feature
       .fieldValuePublisher(.name)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { value in
-          result = value
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result?.value, .string(""))
   }
 
-  func test_fieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() {
-    features.use(accountSession)
+  func test_fieldValuePublisher_returnsPublisherPublishingChages_whenResourceFieldValueChanges() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     var result: Validated<ResourceFieldValue>?
     feature
@@ -237,27 +235,28 @@ final class ResourceEditFormTests: TestCase {
       )
       .store(in: cancellables)
 
-    feature
+    try? await feature
       .setFieldValue(.string("updated"), .name)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result?.value, .string("updated"))
   }
 
-  func test_fieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() {
-    features.use(accountSession)
+  func test_fieldValuePublisher_returnsPublisherPublishingValidatedValue_withResourceFieldValueValidation() async throws
+  {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     var result: Validated<ResourceFieldValue>?
     feature
@@ -272,821 +271,747 @@ final class ResourceEditFormTests: TestCase {
 
     XCTAssert(!(result?.isValid ?? false))
 
-    feature
+    try? await feature
       .setFieldValue(.string("updated"), .name)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssert(result?.isValid ?? false)
   }
 
-  func test_setFieldValue_fails_whenResourceFieldNotAvailable() {
-    features.use(accountSession)
+  func test_setFieldValue_fails_whenResourceFieldNotAvailable() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .setFieldValue(.string("updated"), .undefined(name: "unavailable"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.identifier, .invalidOrMissingResourceType)
+    var result: Error?
+    do {
+      try await feature
+        .setFieldValue(.string("updated"), .undefined(name: "unavailable"))
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(
+      result,
+      matches: TheErrorLegacy.self,
+      verification: { $0.identifier == .invalidOrMissingResourceType }
+    )
   }
 
-  func test_setFieldValue_succeeds_whenResourceFieldAvailable() {
-    features.use(accountSession)
+  func test_setFieldValue_succeeds_whenResourceFieldAvailable() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: Void?
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let result: Void? =
+      try? await feature
       .setFieldValue(.string("updated"), .name)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: {
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_sendForm_fails_whenFetchResourcesTypesOperationFails() {
-    features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+  func test_sendForm_fails_whenFetchResourcesTypesOperationFails() async throws {
+    await features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_sendForm_fails_whenFieldsValidationFails() {
-    features.use(accountSession)
+  func test_sendForm_fails_whenFieldsValidationFails() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultShrinkedResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultShrinkedResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    XCTAssertTrue(result?.isLegacyBridge(for: InvalidForm.self))
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: InvalidForm.self)
   }
 
-  func test_sendForm_fails_whenNoActiveUserSession() {
+  func test_sendForm_fails_whenNoActiveUserSession() async throws {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: nil))
         .eraseToAnyPublisher()
     )
     accountSession.requestAuthorizationPrompt = always(Void())
-    features.use(accountSession)
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultShrinkedResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultShrinkedResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try? await feature
       .setFieldValue(.string(name), .name)
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
-    var result: TheErrorLegacy?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
+    XCTAssertError(result, matches: SessionMissing.self)
   }
 
-  func test_sendForm_fails_whenEncryptMessageForUserFails() {
+  func test_sendForm_fails_whenEncryptMessageForUserFails() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultShrinkedResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      [defaultShrinkedResourceType]
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
     userPGPMessages.encryptMessageForUser = always(
-      Fail(error: .testError())
-        .eraseToAnyPublisher()
-    )
-    features.use(userPGPMessages)
-
-    let feature: ResourceEditForm = testInstance()
-
-    feature
-      .setFieldValue(.string(name), .name)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: TheErrorLegacy?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .testError)
-  }
-
-  func test_sendForm_fails_whenCreateResourceRequestFails() {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultShrinkedResourceType])
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    features.use(database)
-    features.use(resources)
-    networkClient.createResourceRequest.execute = always(
       Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
-    features.use(networkClient)
-    userPGPMessages.encryptMessageForUser = always(
-      Just("encrypted-message")
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(userPGPMessages)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    feature
-      .setFieldValue(.string("name"), .name)
-      .sinkDrop()
-      .store(in: cancellables)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    var result: TheErrorLegacy?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    try? await feature
+      .setFieldValue(.string(name), .name)
+      .asAsyncValue()
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_sendForm_succeeds_whenAllOperationsSucceed() {
+  func test_sendForm_fails_whenCreateResourceRequestFails() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([defaultShrinkedResourceType])
+      [defaultShrinkedResourceType]
+    )
+    await features.use(database)
+    await features.use(resources)
+    networkClient.createResourceRequest.execute = alwaysThrow(
+      MockIssue.error()
+    )
+    await features.use(networkClient)
+    userPGPMessages.encryptMessageForUser = always(
+      Just("encrypted-message")
         .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(database)
-    features.use(resources)
-    networkClient.createResourceRequest.execute = always(
-      Just(
-        .init(
-          header: .mock(),
-          body: .init(resourceID: "resource-id")
-        )
-      )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
-    )
-    features.use(networkClient)
-    userPGPMessages.encryptMessageForUser = always(
-      Just("encrypted-message")
-        .setFailureType(to: TheErrorLegacy.self)
+    await features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try? await feature
+      .setFieldValue(.string("name"), .name)
+      .asAsyncValue()
+
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_sendForm_succeeds_whenAllOperationsSucceed() async throws {
+    accountSession.statePublisher = always(
+      Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(userPGPMessages)
-
-    let feature: ResourceEditForm = testInstance()
-
-    feature
-      .setFieldValue(.string("name"), .name)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    var result: Resource.ID?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { resourceID in
-          result = resourceID
-        }
+    await features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      [defaultShrinkedResourceType]
+    )
+    await features.use(database)
+    await features.use(resources)
+    networkClient.createResourceRequest.execute = always(
+      .init(
+        header: .mock(),
+        body: .init(resourceID: "resource-id")
       )
-      .store(in: cancellables)
+    )
+    await features.use(networkClient)
+    userPGPMessages.encryptMessageForUser = always(
+      Just("encrypted-message")
+        .eraseErrorType()
+        .eraseToAnyPublisher()
+    )
+    await features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try await feature
+      .setFieldValue(.string("name"), .name)
+      .asAsyncValue()
+
+    let result: Resource.ID? =
+      try? await feature
+      .sendForm()
+      .asAsyncValue()
 
     XCTAssertEqual(result, "resource-id")
   }
 
-  func test_resourceEdit_fails_whenFetchingEditViewResourceFromDatabaseFails() {
-    features.use(accountSession)
+  func test_resourceEdit_fails_whenFetchingEditViewResourceFromDatabaseFails() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
+    )
+    database.fetchEditViewResourceOperation.execute = alwaysThrow(
+      MockIssue.error()
+    )
+    await features.use(database)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
+
+    let feature: ResourceEditForm = try await testInstance()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    var result: Error?
+    do {
+      try await feature
+        .editResource(.init(rawValue: "resource-id"))
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
+  }
+
+  func test_resourceEdit_fails_whenFetchingResourceSecretFails() async throws {
+    await features.use(accountSession)
+    database.fetchResourcesTypesOperation.execute = always(
+      [
+        .init(
+          id: "password-and-description",
+          slug: "password-and-description",
+          name: "password-and-description",
+          fields: []
+        )
+      ]
     )
     database.fetchEditViewResourceOperation.execute = always(
+      .init(
+        id: "resource-id",
+        type: .init(
+          id: "resource-type-id",
+          slug: "resource-slug",
+          name: "resource type",
+          fields: []
+        ),
+        parentFolderID: nil,
+        permission: .owner,
+        name: "resource name",
+        url: nil,
+        username: nil,
+        description: nil
+      )
+    )
+    await features.use(database)
+    resources.loadResourceSecret = always(
       Fail(error: MockIssue.error())
         .eraseToAnyPublisher()
     )
-    features.use(database)
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .editResource(.init(rawValue: "resource-id"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    var result: Error?
+    do {
+      try await feature
+        .editResource(.init(rawValue: "resource-id"))
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_resourceEdit_fails_whenFetchingResourceSecretFails() {
-    features.use(accountSession)
+  func test_resourceEdit_succeeds_whenLoadingResourceDataSucceeds() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      Just(
-        .init(
-          id: "resource-id",
-          type: .init(
-            id: "resource-type-id",
-            slug: "resource-slug",
-            name: "resource type",
-            fields: []
-          ),
-          parentFolderID: nil,
-          permission: .owner,
-          name: "resource name",
-          url: nil,
-          username: nil,
-          description: nil
-        )
-      )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
-    )
-    features.use(database)
-    resources.loadResourceSecret = always(
-      Fail(error: .testError())
-        .eraseToAnyPublisher()
-    )
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
-
-    let feature: ResourceEditForm = testInstance()
-
-    var result: TheErrorLegacy?
-    feature
-      .editResource(.init(rawValue: "resource-id"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.identifier, .testError)
-  }
-
-  func test_resourceEdit_succeeds_whenLoadingResourceDataSucceeds() {
-    features.use(accountSession)
-    database.fetchResourcesTypesOperation.execute = always(
-      Just([
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
+      .init(
+        id: "resource-id",
+        type: .init(
+          id: "resource-type-id",
+          slug: "resource-slug",
+          name: "resource type",
           fields: []
-        )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
-    )
-    database.fetchEditViewResourceOperation.execute = always(
-      Just(
-        .init(
-          id: "resource-id",
-          type: .init(
-            id: "resource-type-id",
-            slug: "resource-slug",
-            name: "resource type",
-            fields: []
-          ),
-          parentFolderID: nil,
-          permission: .owner,
-          name: "resource name",
-          url: nil,
-          username: nil,
-          description: nil
-        )
+        ),
+        parentFolderID: nil,
+        permission: .owner,
+        name: "resource name",
+        url: nil,
+        username: nil,
+        description: nil
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     )
-    features.use(database)
+    await features.use(database)
     resources.loadResourceSecret = always(
       Just(
         .init(
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    var result: Void?
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    let result: Void? =
+      try? await feature
       .editResource(.init(rawValue: "resource-id"))
-      .sink(
-        receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          result = Void()
-        },
-        receiveValue: { /* NOP */  }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_editResource_updatesResourceType_whenLoadingResourceDataSucceeds() {
-    features.use(accountSession)
+  func test_editResource_updatesResourceType_whenLoadingResourceDataSucceeds() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      Just(
-        .init(
-          id: "resource-id",
-          type: .init(
-            id: "resource-type-id",
-            slug: "resource-slug",
-            name: "resource type",
-            fields: []
-          ),
-          parentFolderID: nil,
-          permission: .owner,
-          name: "resource name",
-          url: nil,
-          username: nil,
-          description: nil
-        )
+      .init(
+        id: "resource-id",
+        type: .init(
+          id: "resource-type-id",
+          slug: "resource-slug",
+          name: "resource type",
+          fields: []
+        ),
+        parentFolderID: nil,
+        permission: .owner,
+        name: "resource name",
+        url: nil,
+        username: nil,
+        description: nil
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     )
-    features.use(database)
+    await features.use(database)
     resources.loadResourceSecret = always(
       Just(
         .init(
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try? await feature
       .editResource(.init(rawValue: "resource-id"))
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
-    var result: ResourceType.ID?
-    feature
+    let result: ResourceType.ID? =
+      try? await feature
       .resourceTypePublisher()
-      .sink(
-        receiveCompletion: { _ in /* NOP */ },
-        receiveValue: { resourceType in
-          result = resourceType.id
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
+      .id
 
     XCTAssertEqual(result, "resource-type-id")
   }
 
-  func test_editResource_updatesResourceFieldValues_whenLoadingResourceDataSucceeds() {
-    features.use(accountSession)
+  func test_editResource_updatesResourceFieldValues_whenLoadingResourceDataSucceeds() async throws {
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      Just(
-        .init(
-          id: "resource-id",
-          type: .init(
-            id: "resource-type-id",
-            slug: "resource-slug",
-            name: "resource type",
-            fields: [
-              .init(
-                name: "name",
-                typeString: "string",
-                required: true,
-                encrypted: false,
-                maxLength: nil
-              )!
-            ]
-          ),
-          parentFolderID: nil,
-          permission: .owner,
-          name: "resource name",
-          url: nil,
-          username: nil,
-          description: nil
-        )
+      .init(
+        id: "resource-id",
+        type: .init(
+          id: "resource-type-id",
+          slug: "resource-slug",
+          name: "resource type",
+          fields: [
+            .init(
+              name: "name",
+              typeString: "string",
+              required: true,
+              encrypted: false,
+              maxLength: nil
+            )!
+          ]
+        ),
+        parentFolderID: nil,
+        permission: .owner,
+        name: "resource name",
+        url: nil,
+        username: nil,
+        description: nil
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     )
-    features.use(database)
+    await features.use(database)
     resources.loadResourceSecret = always(
       Just(
         .init(
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(resources)
-    features.use(networkClient)
-    features.use(userPGPMessages)
+    await features.use(resources)
+    await features.use(networkClient)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try? await feature
       .editResource(.init(rawValue: "resource-id"))
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
-    var result: ResourceFieldValue?
-    feature
+    let result: ResourceFieldValue? =
+      try await feature
       .fieldValuePublisher(.name)
-      .sink(
-        receiveValue: { validatedName in
-          result = validatedName.value
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
+      .value
 
     XCTAssertEqual(result?.stringValue, "resource name")
   }
 
-  func test_sendForm_updatesResource_whenEditingResource() {
+  func test_sendForm_updatesResource_whenEditingResource() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      Just(
-        .init(
-          id: "resource-id",
-          type: .init(
-            id: "resource-type-id",
-            slug: "resource-slug",
-            name: "resource type",
-            fields: [
-              .init(
-                name: "name",
-                typeString: "string",
-                required: true,
-                encrypted: false,
-                maxLength: nil
-              )!
-            ]
-          ),
-          parentFolderID: nil,
-          permission: .owner,
-          name: "resource name",
-          url: nil,
-          username: nil,
-          description: nil
-        )
+      .init(
+        id: "resource-id",
+        type: .init(
+          id: "resource-type-id",
+          slug: "resource-slug",
+          name: "resource type",
+          fields: [
+            .init(
+              name: "name",
+              typeString: "string",
+              required: true,
+              encrypted: false,
+              maxLength: nil
+            )!
+          ]
+        ),
+        parentFolderID: nil,
+        permission: .owner,
+        name: "resource name",
+        url: nil,
+        username: nil,
+        description: nil
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     )
-    features.use(database)
+    await features.use(database)
     resources.loadResourceSecret = always(
       Just(
         .init(
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(resources)
+    await features.use(resources)
     var result: Resource.ID?
     networkClient.updateResourceRequest.execute = { variable in
       result = .init(rawValue: variable.resourceID)
-      return Just(
-        .init(
-          header: .mock(),
-          body: .init(
-            resourceID: variable.resourceID
-          )
+      return .init(
+        header: .mock(),
+        body: .init(
+          resourceID: variable.resourceID
         )
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
-    features.use(networkClient)
+    await features.use(networkClient)
     userPGPMessages.encryptMessageForResourceUsers = always(
       Just([
         ("USER_ID", "encrypted message")
       ])
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(userPGPMessages)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try? await feature
       .editResource(.init(rawValue: "resource-id"))
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
-    feature
+    _ =
+      try? await feature
       .sendForm()
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_sendForm_fails_whenUpdateResourceRequestFails() {
+  func test_sendForm_fails_whenUpdateResourceRequestFails() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      Just([
+      [
         .init(
           id: "password-and-description",
           slug: "password-and-description",
           name: "password-and-description",
           fields: []
         )
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+      ]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      Just(
-        .init(
-          id: "resource-id",
-          type: .init(
-            id: "resource-type-id",
-            slug: "resource-slug",
-            name: "resource type",
-            fields: [
-              .init(
-                name: "name",
-                typeString: "string",
-                required: true,
-                encrypted: false,
-                maxLength: nil
-              )!
-            ]
-          ),
-          parentFolderID: nil,
-          permission: .owner,
-          name: "resource name",
-          url: nil,
-          username: nil,
-          description: nil
-        )
+      .init(
+        id: "resource-id",
+        type: .init(
+          id: "resource-type-id",
+          slug: "resource-slug",
+          name: "resource type",
+          fields: [
+            .init(
+              name: "name",
+              typeString: "string",
+              required: true,
+              encrypted: false,
+              maxLength: nil
+            )!
+          ]
+        ),
+        parentFolderID: nil,
+        permission: .owner,
+        name: "resource name",
+        url: nil,
+        username: nil,
+        description: nil
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     )
-    features.use(database)
+    await features.use(database)
     resources.loadResourceSecret = always(
       Just(
         .init(
           values: ["password": "secret"]
         )
       )
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(resources)
-    networkClient.updateResourceRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(resources)
+    networkClient.updateResourceRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
     userPGPMessages.encryptMessageForResourceUsers = always(
       Just([
         ("USER_ID", "encrypted message")
       ])
-      .setFailureType(to: TheErrorLegacy.self)
+      .eraseErrorType()
       .eraseToAnyPublisher()
     )
-    features.use(userPGPMessages)
+    await features.use(userPGPMessages)
 
-    let feature: ResourceEditForm = testInstance()
+    let feature: ResourceEditForm = try await testInstance()
 
-    feature
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    try? await feature
       .editResource(.init(rawValue: "resource-id"))
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
-    var result: TheErrorLegacy?
-    feature
-      .sendForm()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 }
 

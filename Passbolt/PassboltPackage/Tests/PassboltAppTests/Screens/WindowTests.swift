@@ -44,7 +44,7 @@ final class WindowTests: MainActorTestCase {
     accountSession = nil
   }
 
-  func test_screenStateDispositionPublisher_publishesInitialScreen_initially() {
+  func test_screenStateDispositionPublisher_publishesInitialScreen_initially() async throws {
     accountSession.statePublisher = always(
       CurrentValueSubject<AccountSessionState, Never>(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -53,9 +53,9 @@ final class WindowTests: MainActorTestCase {
       Empty<AuthorizationPromptRequest, Never>()
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -63,12 +63,16 @@ final class WindowTests: MainActorTestCase {
       .sink { result = $0 }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case .some(.useInitialScreenState) = result
     else { return XCTFail() }
   }
 
   func
     test_screenStateDispositionPublisher_publishesRequestPassphrase_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequest()
+    async throws
   {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
@@ -79,9 +83,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -96,6 +100,9 @@ final class WindowTests: MainActorTestCase {
       )
     )
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case let .some(.requestPassphrase(account, message)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
@@ -104,6 +111,7 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequest()
+    async throws
   {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
@@ -114,9 +122,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -131,6 +139,9 @@ final class WindowTests: MainActorTestCase {
       )
     )
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case let .some(.requestMFA(account, providers)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
@@ -139,6 +150,7 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_publishesRequestPassphrase_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequestAndAccountTransferIsNotLoaded()
+    async throws
   {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
@@ -149,9 +161,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -166,6 +178,9 @@ final class WindowTests: MainActorTestCase {
       )
     )
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case let .some(.requestPassphrase(account, message)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
@@ -174,6 +189,7 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_publishesRequestMFA_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsNotLoaded()
+    async throws
   {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
@@ -184,9 +200,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -201,6 +217,9 @@ final class WindowTests: MainActorTestCase {
       )
     )
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case let .some(.requestMFA(account, providers)) = result
     else { return XCTFail() }
     XCTAssertEqual(account, validAccount)
@@ -209,8 +228,9 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesPassphraseRequestAndAccountTransferIsLoaded()
+    async throws
   {
-    features.use(AccountTransfer.placeholder)
+    await features.use(AccountTransfer.placeholder)
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -220,9 +240,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
     controller
@@ -242,8 +262,9 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_doesNotPublish_whenAuthorizationPromptPresentationPublisherPublishesMFARequestAndAccountTransferIsLoaded()
+    async throws
   {
-    features.use(AccountTransfer.placeholder)
+    await features.use(AccountTransfer.placeholder)
     accountSession.statePublisher = always(
       Just(.none(lastUsed: .none))
         .eraseToAnyPublisher()
@@ -253,9 +274,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
     controller
@@ -274,6 +295,7 @@ final class WindowTests: MainActorTestCase {
   }
 
   func test_screenStateDispositionPublisher_publishesUseInitialScreenState_whenAccountSessionStateChangesToAuthorized()
+    async throws
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -285,9 +307,9 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -297,12 +319,16 @@ final class WindowTests: MainActorTestCase {
 
     accountSessionStateSubject.send(.authorized(validAccount))
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     guard case .some(.useInitialScreenState) = result
     else { return XCTFail() }
   }
 
   func
     test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequired()
+    async throws
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -312,9 +338,9 @@ final class WindowTests: MainActorTestCase {
     accountSession.authorizationPromptPresentationPublisher = always(
       Empty().eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -330,8 +356,9 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedAndAccountTransferIsLoaded()
+    async throws
   {
-    features.use(AccountTransfer.placeholder)
+    await features.use(AccountTransfer.placeholder)
     let accountSessionStateSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
       accountSessionStateSubject
@@ -340,9 +367,9 @@ final class WindowTests: MainActorTestCase {
     accountSession.authorizationPromptPresentationPublisher = always(
       Empty().eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -358,8 +385,9 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_doesNotPublish_whenAccountSessionStateChangesToAuthorizedMFARequiredAndAccountTransferIsLoaded()
+    async throws
   {
-    features.use(AccountTransfer.placeholder)
+    await features.use(AccountTransfer.placeholder)
     let accountSessionStateSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
       accountSessionStateSubject
@@ -368,9 +396,9 @@ final class WindowTests: MainActorTestCase {
     accountSession.authorizationPromptPresentationPublisher = always(
       Empty().eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
@@ -386,6 +414,7 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountPassphraseRequest()
+    async throws
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -397,14 +426,16 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
       .screenStateDispositionPublisher()
-      .sink { result = $0 }
+      .sink {
+        result = $0
+      }
       .store(in: cancellables)
 
     authorizationPromptPresentationSubject.send(
@@ -413,7 +444,14 @@ final class WindowTests: MainActorTestCase {
         message: .none
       )
     )
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     accountSessionStateSubject.send(.authorized(validAccount))
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     guard case .some(.useCachedScreenState) = result
     else { return XCTFail() }
@@ -421,6 +459,7 @@ final class WindowTests: MainActorTestCase {
 
   func
     test_screenStateDispositionPublisher_publishesUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andAuthorizationPromptPresentationSubjectPublishedSameAccountMFARequest()
+    async throws
   {
     let accountSessionStateSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: .none))
     accountSession.statePublisher = always(
@@ -432,13 +471,14 @@ final class WindowTests: MainActorTestCase {
       authorizationPromptPresentationSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
 
-    let controller: WindowController = testController()
+    let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition!
 
     controller
       .screenStateDispositionPublisher()
+      .dropFirst()
       .sink { result = $0 }
       .store(in: cancellables)
 
@@ -448,7 +488,14 @@ final class WindowTests: MainActorTestCase {
         providers: []
       )
     )
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     accountSessionStateSubject.send(.authorized(validAccount))
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     guard case .some(.useCachedScreenState) = result
     else { return XCTFail() }

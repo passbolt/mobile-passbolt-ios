@@ -27,9 +27,9 @@ import UIComponents
 
 internal struct SplashScreenController {
 
-  internal var navigationDestinationPublisher: () -> AnyPublisher<Destination, Never>
-  internal var retryFetchConfiguration: () -> AnyPublisher<Void, TheErrorLegacy>
-  internal var shouldDisplayUpdateAlert: () async -> Bool
+  internal var navigationDestinationPublisher: @MainActor () -> AnyPublisher<Destination, Never>
+  internal var retryFetchConfiguration: @MainActor () async throws -> Void
+  internal var shouldDisplayUpdateAlert: @MainActor () async -> Bool
 }
 
 extension SplashScreenController {
@@ -53,87 +53,82 @@ extension SplashScreenController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accounts: Accounts = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let featureFlags: FeatureConfig = features.instance()
-    let updateCheck: UpdateCheck = features.instance()
+  ) async throws -> Self {
+    let accounts: Accounts = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let featureFlags: FeatureConfig = try await features.instance()
+    let updateCheck: UpdateCheck = try await features.instance()
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    func fetchConfiguration() -> AnyPublisher<Void, TheErrorLegacy> {
-      featureFlags
-        .fetchIfNeeded()
-        .eraseToAnyPublisher()
+    func fetchConfiguration() async throws {
+      try await featureFlags.fetchIfNeeded()
     }
 
-    func retryFetchConfiguration() -> AnyPublisher<Void, TheErrorLegacy> {
-      fetchConfiguration()
-        .handleEvents(receiveCompletion: { completion in
-          guard case .finished = completion
-          else { return }
-          destinationSubject.send(.home)
-        })
-        .eraseToAnyPublisher()
+    func retryFetchConfiguration() async throws {
+      try await fetchConfiguration()
+      destinationSubject.send(.home)
     }
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
       return destinationSubject.handleEvents(receiveSubscription: { _ in
-        guard case .success = accounts.verifyStorageDataIntegrity()
-        else {
-          return destinationSubject.send(.diagnostics)
-        }
-        let storedAccounts: Array<Account> = accounts.storedAccounts()
-        if storedAccounts.isEmpty {
-          return destinationSubject.send(.accountSetup)
-        }
-        else {
-          return
-            accountSession
-            .statePublisher()
-            .first()
-            .map { state -> AnyPublisher<Destination, Never> in
-              switch state {
-              case let .none(lastUsedAccount):
-                return Just(
-                  .accountSelection(
-                    lastUsedAccount,
-                    message: nil
+        cancellables.executeOnStorageAccessActor { () -> Void in
+          guard case .success = accounts.verifyStorageDataIntegrity()
+          else {
+            return destinationSubject.send(.diagnostics)
+          }
+          let storedAccounts: Array<Account> = accounts.storedAccounts()
+          if storedAccounts.isEmpty {
+            return destinationSubject.send(.accountSetup)
+          }
+          else {
+            return
+              accountSession
+              .statePublisher()
+              .first()
+              .map { state -> AnyPublisher<Destination, Never> in
+                switch state {
+                case let .none(lastUsedAccount):
+                  return Just(
+                    .accountSelection(
+                      lastUsedAccount,
+                      message: nil
+                    )
                   )
-                )
-                .eraseToAnyPublisher()
+                  .eraseToAnyPublisher()
 
-              case .authorized:
-                return fetchConfiguration()
-                  .map { () -> Destination in
-                    .home
+                case .authorized:
+                  return cancellables.executeOnMainActorWithPublisher {
+                    try await fetchConfiguration()
+                    return Destination.home
                   }
                   .replaceError(with: .featureConfigFetchError)
                   .eraseToAnyPublisher()
 
-              case let .authorizedMFARequired(_, mfaProviders):
-                return fetchConfiguration()
-                  .map { () -> Destination in
-                    .mfaAuthorization(mfaProviders)
+                case let .authorizedMFARequired(_, mfaProviders):
+                  return cancellables.executeOnMainActorWithPublisher {
+                    try await fetchConfiguration()
+                    return Destination.mfaAuthorization(mfaProviders)
                   }
                   .replaceError(with: .featureConfigFetchError)
                   .eraseToAnyPublisher()
 
-              case let .authorizationRequired(account):
-                return Just(
-                  .accountSelection(
-                    account,
-                    message: .localized("authorization.prompt.refresh.session.reason")
+                case let .authorizationRequired(account):
+                  return Just(
+                    .accountSelection(
+                      account,
+                      message: .localized("authorization.prompt.refresh.session.reason")
+                    )
                   )
-                )
-                .eraseToAnyPublisher()
+                  .eraseToAnyPublisher()
+                }
               }
-            }
-            .switchToLatest()
-            .sink { destination in
-              destinationSubject.send(destination)
-            }
-            .store(in: cancellables)
+              .switchToLatest()
+              .sink { destination in
+                destinationSubject.send(destination)
+              }
+              .store(in: cancellables)
+          }
         }
       })
       .filterMapOptional()

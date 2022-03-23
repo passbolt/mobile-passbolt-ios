@@ -210,7 +210,7 @@ public final class TextSearchView: PlainView {
     super.didMoveToSuperview()
     guard  // auto fill available space when used in navigation bar
       let parentView: UIView = self.superview,
-      parentView.superview is NavigationBar
+      parentView.superview is UINavigationBar
     else { return }
     mut(self) {
       .widthAnchor(.equalTo, parentView.widthAnchor, constant: -28)

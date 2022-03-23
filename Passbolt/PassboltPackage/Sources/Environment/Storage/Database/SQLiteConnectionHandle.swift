@@ -27,11 +27,11 @@ import SQLCipher
 @usableFromInline
 internal final class SQLiteConnectionHandle {
 
-  internal static func open(
+  @StorageAccessActor internal static func open(
     at path: String,
     key: String?,
     options: Int32
-  ) -> Result<SQLiteConnectionHandle, Error> {
+  ) throws -> SQLiteConnectionHandle {
     var handle: OpaquePointer?
     let openingStatus: Int32 = sqlite3_open_v2(
       path,
@@ -43,13 +43,13 @@ internal final class SQLiteConnectionHandle {
     if let key: String = key {
       guard sqlite3_key(handle, key, Int32(key.utf8CString.count)) == SQLITE_OK
       else {
-        return .failure(
-          DatabaseIssue.error(
+        throw
+          DatabaseIssue
+          .error(
             underlyingError:
               DatabaseConnectionIssue
               .error("Failed to decrypt database")
           )
-        )
       }
     }
     else {
@@ -69,8 +69,9 @@ internal final class SQLiteConnectionHandle {
       else {
         errorMessage = "Unable to open database at: \(path)"
       }
-      return .failure(
-        DatabaseIssue.error(
+      throw
+        DatabaseIssue
+        .error(
           underlyingError:
             DatabaseConnectionIssue
             .error("Failed to open database")
@@ -78,29 +79,15 @@ internal final class SQLiteConnectionHandle {
             .recording(openingStatus, for: "openingStatus")
             .recording(errorMessage, for: "errorMessage")
         )
-      )
     }
 
     let connectionHandle: SQLiteConnectionHandle = .init(handle)
 
-    return
-      connectionHandle
-      .execute("PRAGMA key;")
-      .flatMap {
-        connectionHandle
-          .execute("PRAGMA foreign_keys = ON;")
-      }
-      .flatMap {
-        connectionHandle
-          .execute("PRAGMA journal_mode = WAL;")
-      }
-      .flatMap {
-        connectionHandle
-          .execute("PRAGMA SQLITE_DBCONFIG_DEFENSIVE = ON;")
-      }
-      .map {
-        connectionHandle
-      }
+    try connectionHandle.execute("PRAGMA key;")
+    try connectionHandle.execute("PRAGMA foreign_keys = ON;")
+    try connectionHandle.execute("PRAGMA journal_mode = WAL;")
+    try connectionHandle.execute("PRAGMA SQLITE_DBCONFIG_DEFENSIVE = ON;")
+    return connectionHandle
   }
 
   private let handle: OpaquePointer?
@@ -116,23 +103,15 @@ internal final class SQLiteConnectionHandle {
   }
 
   @usableFromInline
-  internal func execute(
+  @StorageAccessActor internal func execute(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?> = .init()
-  ) -> Result<Void, Error> {
-    let statementPreparationResult: Result<OpaquePointer?, Error> = prepareStatement(
-      statement,
-      with: parameters
-    )
-
-    let statementHandle: OpaquePointer?
-    switch statementPreparationResult {
-    case let .success(handle):
-      statementHandle = handle
-
-    case let .failure(error):
-      return .failure(error)
-    }
+  ) throws {
+    let statementHandle: OpaquePointer? =
+      try prepareStatement(
+        statement,
+        with: parameters
+      )
 
     defer { sqlite3_finalize(statementHandle) }
 
@@ -148,8 +127,9 @@ internal final class SQLiteConnectionHandle {
 
     guard stepResult == SQLITE_DONE
     else {
-      return .failure(
-        DatabaseIssue.error(
+      throw
+        DatabaseIssue
+        .error(
           underlyingError:
             DatabaseStatementExecutionFailure
             .error()
@@ -157,30 +137,19 @@ internal final class SQLiteConnectionHandle {
             .recording(statement, for: "statement")
             .recording(parameters, for: "parameters")
         )
-      )
     }
-
-    return .success
   }
 
   @usableFromInline
-  internal func fetch(
+  @StorageAccessActor internal func fetch(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?> = .init()
-  ) -> Result<Array<SQLiteRow>, Error> {
-    let statementPreparationResult: Result<OpaquePointer?, Error> = prepareStatement(
-      statement,
-      with: parameters
-    )
-
-    let statementHandle: OpaquePointer?
-    switch statementPreparationResult {
-    case let .success(handle):
-      statementHandle = handle
-
-    case let .failure(error):
-      return .failure(error)
-    }
+  ) throws -> Array<SQLiteRow> {
+    let statementHandle: OpaquePointer? =
+      try prepareStatement(
+        statement,
+        with: parameters
+      )
 
     defer { sqlite3_finalize(statementHandle) }
 
@@ -203,8 +172,9 @@ internal final class SQLiteConnectionHandle {
 
     guard stepResult == SQLITE_DONE
     else {
-      return .failure(
-        DatabaseIssue.error(
+      throw
+        DatabaseIssue
+        .error(
           underlyingError:
             DatabaseStatementExecutionFailure
             .error()
@@ -212,17 +182,16 @@ internal final class SQLiteConnectionHandle {
             .recording(statement, for: "statement")
             .recording(parameters, for: "parameters")
         )
-      )
     }
 
-    return .success(rows)
+    return rows
   }
 
   @inline(__always)
-  private func prepareStatement(
+  @StorageAccessActor private func prepareStatement(
     _ statement: SQLiteStatement,
     with parameters: Array<SQLiteBindable?>
-  ) -> Result<OpaquePointer?, Error> {
+  ) throws -> OpaquePointer? {
     var statementHandle: OpaquePointer?
 
     let statementPreparationResult: Int32 = sqlite3_prepare_v2(
@@ -235,8 +204,9 @@ internal final class SQLiteConnectionHandle {
 
     guard statementPreparationResult == SQLITE_OK
     else {
-      return .failure(
-        DatabaseIssue.error(
+      throw
+        DatabaseIssue
+        .error(
           underlyingError:
             DatabaseStatementInvalid
             .error()
@@ -244,13 +214,13 @@ internal final class SQLiteConnectionHandle {
             .recording(statement, for: "statement")
             .recording(parameters, for: "parameters")
         )
-      )
     }
 
     guard sqlite3_bind_parameter_count(statementHandle) == parameters.count
     else {
-      return .failure(
-        DatabaseIssue.error(
+      throw
+        DatabaseIssue
+        .error(
           underlyingError:
             DatabaseBindingInvalid
             .error()
@@ -260,7 +230,6 @@ internal final class SQLiteConnectionHandle {
             .recording(statement, for: "statement")
             .recording(parameters, for: "parameters")
         )
-      )
     }
 
     for (idx, argument) in parameters.enumerated() {
@@ -274,8 +243,9 @@ internal final class SQLiteConnectionHandle {
 
         guard bindingSucceeded
         else {
-          return .failure(
-            DatabaseIssue.error(
+          throw
+            DatabaseIssue
+            .error(
               underlyingError:
                 DatabaseBindingInvalid
                 .error()
@@ -283,7 +253,6 @@ internal final class SQLiteConnectionHandle {
                 .recording(statement, for: "statement")
                 .recording(parameters, for: "parameters")
             )
-          )
         }
       }
       else {
@@ -293,8 +262,9 @@ internal final class SQLiteConnectionHandle {
         )
         guard bindingResult == SQLITE_OK
         else {
-          return .failure(
-            DatabaseIssue.error(
+          throw
+            DatabaseIssue
+            .error(
               underlyingError:
                 DatabaseBindingInvalid
                 .error()
@@ -302,40 +272,31 @@ internal final class SQLiteConnectionHandle {
                 .recording(statement, for: "statement")
                 .recording(parameters, for: "parameters")
             )
-          )
         }
       }
     }
 
-    return .success(statementHandle)
+    return statementHandle
   }
 
   @usableFromInline
-  internal func withTransaction(
-    _ transaction: (SQLiteConnectionHandle) -> Result<Void, Error>
-  ) -> Result<Void, Error> {
-    switch self.execute("BEGIN TRANSACTION;") {
-    case .success:
-      break
+  @StorageAccessActor internal func withTransaction(
+    _ transaction: (SQLiteConnectionHandle) throws -> Void
+  ) throws {
+    try self.execute("BEGIN TRANSACTION;")
 
-    case let .failure(error):
-      return .failure(error)
+    do {
+      try transaction(self)
+      try self.execute("END TRANSACTION;")
     }
-
-    switch transaction(self) {
-    case .success:
-      return self.execute("END TRANSACTION;")
-
-    case let .failure(error):
-      return self.execute("ROLLBACK TRANSACTION;")
-        .flatMap {
-          .failure(error)
-        }
+    catch {
+      try self.execute("ROLLBACK TRANSACTION;")
+      throw error
     }
   }
 
   @inline(__always)
-  private func lastErrorMessage() -> String {
+  @StorageAccessActor private func lastErrorMessage() -> String {
     sqlite3_errmsg(handle)
       .map(String.init(cString:))
       ?? "Unknown failure reason"

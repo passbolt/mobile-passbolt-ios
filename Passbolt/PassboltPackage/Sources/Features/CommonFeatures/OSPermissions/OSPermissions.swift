@@ -43,9 +43,8 @@ extension OSPermissions: Feature {
   ) -> Self {
     let camera: Camera = environment.camera
     let biometrics: Biometrics = environment.biometrics
-    let diagnostics: Diagnostics = features.instance()
 
-    func ensureCameraPermission() -> AnyPublisher<Void, Error> {
+    nonisolated func ensureCameraPermission() -> AnyPublisher<Void, Error> {
       camera.checkPermission()
         .map { status -> AnyPublisher<Void, Error> in
           switch status {
@@ -80,7 +79,7 @@ extension OSPermissions: Feature {
         .eraseToAnyPublisher()
     }
 
-    func ensureBiometricsPermission() -> AnyPublisher<Void, Error> {
+    nonisolated func ensureBiometricsPermission() -> AnyPublisher<Void, Error> {
       biometrics
         .requestBiometricsPermission()
         .eraseToAnyPublisher()

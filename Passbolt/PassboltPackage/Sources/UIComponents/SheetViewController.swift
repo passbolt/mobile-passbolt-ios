@@ -135,21 +135,26 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
   }
 
   public func setupView() {
-    addChild(
-      Content.self,
-      in: controller.contentContext,
-      viewSetup: { parentView, childView in
-        parentView.setContent(view: childView)
-      }
-    )
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.addChild(
+        Content.self,
+        in: self.controller.contentContext,
+        viewSetup: { parentView, childView in
+          parentView.setContent(view: childView)
+        }
+      )
 
-    setupSubscriptions()
+      self.setupSubscriptions()
+    }
   }
 
   private func setupSubscriptions() {
     contentView.backgroundTapPublisher
       .sink { [weak self] in
-        self?.dismiss(Self.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(Self.self)
+        }
       }
       .store(in: cancellables)
   }

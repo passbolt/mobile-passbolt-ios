@@ -31,7 +31,7 @@ extension ServerRSAPublicKeyRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> EmptyNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { _, requestVariable in
@@ -43,7 +43,7 @@ extension ServerRSAPublicKeyRequest {
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }

@@ -37,8 +37,8 @@ final class AccountSettingsTests: TestCase {
   var accountsDataStore: AccountsDataStore!
   var permissions: OSPermissions!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     accountSession = .placeholder
     accountsDataStore = .placeholder
     accountsDataStore.updateAccountProfile = always(.success)
@@ -66,26 +66,26 @@ final class AccountSettingsTests: TestCase {
     )
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     accountSession = nil
     accountsDataStore = nil
     permissions = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_biometricsEnabledPublisher_publishesProfileValueInitially() {
+  func test_biometricsEnabledPublisher_publishesProfileValueInitially() async throws {
     accountSession.statePublisher = always(
       CurrentValueSubject<AccountSessionState, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
     accountSession.requestAuthorizationPrompt = { _ in }
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
     var result: Bool?
     feature
@@ -98,20 +98,20 @@ final class AccountSettingsTests: TestCase {
     XCTAssertFalse(result)
   }
 
-  func test_biometricsEnabledPublisher_publishesTrue_afterBiometricsStateInProfileChangesToTrue() {
+  func test_biometricsEnabledPublisher_publishesTrue_afterBiometricsStateInProfileChangesToTrue() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     var currentAccount: AccountProfile = validAccountProfile
     accountsDataStore.loadAccountProfile = always(.success(currentAccount))
     let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
     accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
     var result: Bool?
     feature
@@ -125,23 +125,26 @@ final class AccountSettingsTests: TestCase {
     currentAccount.biometricsEnabled = true
     updatedAccountIDSubject.send(currentAccount.accountID)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertTrue(result)
   }
 
-  func test_biometricsEnabledPublisher_publishesFalse_whenProfileLoadingFails() {
+  func test_biometricsEnabledPublisher_publishesFalse_whenProfileLoadingFails() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.failure(.testError()))
+    await features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.failure(MockIssue.error()))
     accountsDataStore.updatedAccountIDsPublisher = always(Just(validAccount.localID).eraseToAnyPublisher())
 
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
-    features.use(permissions)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
     var result: Bool?
     feature
@@ -154,26 +157,26 @@ final class AccountSettingsTests: TestCase {
     XCTAssertFalse(result)
   }
 
-  func test_setBiometricsEnabled_succeedsEnabling_withAllRequirementsFulfilled() {
+  func test_setBiometricsEnabled_succeedsEnabling_withAllRequirementsFulfilled() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    features.patch(
+    await features.use(accountSession)
+    await features.patch(
       \AccountSession.storePassphraseWithBiometry,
-      with: always(.success)
+      with: always(Void())
     )
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
-    features.use(permissions)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
+    var result: Error?
+    await feature
       .setBiometricsEnabled(true)
       .sink(
         receiveCompletion: { completion in
@@ -187,27 +190,27 @@ final class AccountSettingsTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_setBiometricsEnabled_succeedsDisabling_withAllRequirementsFulfilled() {
+  func test_setBiometricsEnabled_succeedsDisabling_withAllRequirementsFulfilled() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    features.patch(
+    await features.use(accountSession)
+    await features.patch(
       \AccountSession.storePassphraseWithBiometry,
-      with: always(.success)
+      with: always(Void())
     )
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.deleteAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Just(Void()).eraseErrorType().eraseToAnyPublisher())
-    features.use(permissions)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
+    var result: Error?
+    await feature
       .setBiometricsEnabled(false)
       .sink(
         receiveCompletion: { completion in
@@ -221,23 +224,23 @@ final class AccountSettingsTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_setBiometricsEnabled_fails_withNoBiometricsPermission() {
+  func test_setBiometricsEnabled_fails_withNoBiometricsPermission() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.storeAccountPassphrase = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
+    await features.use(accountsDataStore)
     permissions.ensureBiometricsPermission = always(Fail(error: MockIssue.error()).eraseToAnyPublisher())
-    features.use(permissions)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
-    var result: TheErrorLegacy!
-    feature
+    var result: Error?
+    await feature
       .setBiometricsEnabled(true)
       .sink(
         receiveCompletion: { completion in
@@ -248,23 +251,23 @@ final class AccountSettingsTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .legacyBridge)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_currentAccountProfilePublisher_publishesInitialProfile() {
+  func test_currentAccountProfilePublisher_publishesInitialProfile() async throws {
     accountSession.statePublisher = always(
       CurrentValueSubject<AccountSessionState, Never>(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(
       Just(validAccountProfile.accountID).eraseToAnyPublisher()
     )
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
     var result: AccountProfile?
 
     feature
@@ -274,17 +277,20 @@ final class AccountSettingsTests: TestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result, validAccountProfile)
   }
 
-  func test_currentAccountProfilePublisher_publishesUpdatedProfile() {
+  func test_currentAccountProfilePublisher_publishesUpdatedProfile() async throws {
     let accountSessionAccountSubject: CurrentValueSubject<Account, Never> = .init(validAccount)
     accountSession.statePublisher = always(
       accountSessionAccountSubject
         .map(AccountSessionState.authorized)
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = {
       switch $0 {
       case validAccountProfile.accountID:
@@ -297,10 +303,10 @@ final class AccountSettingsTests: TestCase {
     }
     let updatedAccountIDSubject: PassthroughSubject<Account.LocalID, Never> = .init()
     accountsDataStore.updatedAccountIDsPublisher = always(updatedAccountIDSubject.eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
     var results: Array<AccountProfile> = .init()
 
     feature
@@ -312,24 +318,27 @@ final class AccountSettingsTests: TestCase {
 
     accountSessionAccountSubject.value = validAccountAlternative
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertEqual(results.popLast(), otherValidAccountProfile)
     XCTAssertEqual(results.popLast(), validAccountProfile)
   }
 
-  func test_currentAccountProfilePublisher_doesNotPublish_whenLoadingOfProfileFails() {
+  func test_currentAccountProfilePublisher_doesNotPublish_whenLoadingOfProfileFails() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
-    accountsDataStore.loadAccountProfile = always(.failure(.testError()))
+    await features.use(accountSession)
+    accountsDataStore.loadAccountProfile = always(.failure(MockIssue.error()))
     accountsDataStore.updatedAccountIDsPublisher = always(
       Just(validAccountProfile.accountID).eraseToAnyPublisher()
     )
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
     feature
       .currentAccountProfilePublisher()
@@ -344,22 +353,22 @@ final class AccountSettingsTests: TestCase {
       .store(in: cancellables)
   }
 
-  func test_setAvatarImageURL_succeeds_withHappyPath() {
+  func test_setAvatarImageURL_succeeds_withHappyPath() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updateAccountProfile = always(.success)
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
     var result: Void?
-    feature
+    await feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(
         receiveCompletion: { completion in
@@ -374,77 +383,73 @@ final class AccountSettingsTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_setAvatarImageURL_fails_withNoSession() {
+  func test_setAvatarImageURL_fails_withNoSession() async throws {
     accountSession.statePublisher = always(
       Just(.none(lastUsed: validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await feature
+        .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionMissing.self)
+    XCTAssertError(result, matches: SessionMissing.self)
   }
 
-  func test_setAvatarImageURL_fails_withSessionAuthorizationRequired() {
+  func test_setAvatarImageURL_fails_withSessionAuthorizationRequired() async throws {
     accountSession.statePublisher = always(
       Just(.authorizationRequired(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
-    var result: TheErrorLegacy?
-    feature
-      .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion else { return }
-          result = error
-        },
-        receiveValue: {}
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await feature
+        .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
+        .asAsyncValue()
+    }
+    catch {
+      result = error
+    }
 
-    XCTAssertError(result?.legacyBridge, matches: SessionAuthorizationRequired.self)
+    XCTAssertError(result, matches: SessionAuthorizationRequired.self)
   }
 
-  func test_setAvatarImageURL_fails_whenProfileSaveFails() {
+  func test_setAvatarImageURL_fails_whenProfileSaveFails() async throws {
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
-    accountsDataStore.updateAccountProfile = always(.failure(.testError()))
+    accountsDataStore.updateAccountProfile = always(.failure(MockIssue.error()))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
 
-    var result: TheErrorLegacy!
-    feature
+    var result: Error?
+    await feature
       .setAvatarImageURL("https://passbolt.com/avatar/image.jpg")
       .sink(
         receiveCompletion: { completion in
@@ -455,26 +460,26 @@ final class AccountSettingsTests: TestCase {
       )
       .store(in: cancellables)
 
-    XCTAssertEqual(result.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_currentAccountProfileUpdate_isTriggered_whenChangingAccount() {
+  func test_currentAccountProfileUpdate_isTriggered_whenChangingAccount() async throws {
     let accountSessionAccountSubject: CurrentValueSubject<AccountSessionState, Never> = .init(.none(lastUsed: nil))
     accountSession.statePublisher = always(
       accountSessionAccountSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
     var requestVariable: UserProfileRequestVariable? {
       didSet { result = Void() }
     }
     var result: Void?
-    features.patch(
+    await features.patch(
       \NetworkClient.userProfileRequest,
       with:
         .respondingWith(
@@ -498,7 +503,7 @@ final class AccountSettingsTests: TestCase {
         )
     )
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
     _ = feature  // silence warning
 
     accountSessionAccountSubject.value = .authorized(validAccount)
@@ -506,7 +511,7 @@ final class AccountSettingsTests: TestCase {
     XCTAssertNotNil(result)
   }
 
-  func test_currentAccountProfileUpdate_isNotTriggeredAgain_whenChangingToSameAccount() {
+  func test_currentAccountProfileUpdate_isNotTriggeredAgain_whenChangingToSameAccount() async throws {
     let accountSessionAccountSubject: CurrentValueSubject<AccountSessionState, Never> = .init(
       .authorized(validAccount)
     )
@@ -514,17 +519,17 @@ final class AccountSettingsTests: TestCase {
       accountSessionAccountSubject
         .eraseToAnyPublisher()
     )
-    features.use(accountSession)
+    await features.use(accountSession)
     accountsDataStore.loadAccountProfile = always(.success(validAccountProfile))
     accountsDataStore.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountsDataStore)
-    features.use(permissions)
+    await features.use(accountsDataStore)
+    await features.use(permissions)
 
     var requestVariable: UserProfileRequestVariable? {
       didSet { result += 1 }
     }
     var result: Int = 0
-    features.patch(
+    await features.patch(
       \NetworkClient.userProfileRequest,
       with:
         .respondingWith(
@@ -548,7 +553,7 @@ final class AccountSettingsTests: TestCase {
         )
     )
 
-    let feature: AccountSettings = testInstance()
+    let feature: AccountSettings = try await testInstance()
     _ = feature  // silence warning
 
     accountSessionAccountSubject.value = .authorized(validAccount)

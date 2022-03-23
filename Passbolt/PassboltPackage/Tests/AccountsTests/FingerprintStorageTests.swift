@@ -35,25 +35,25 @@ final class FingerprintStorageTests: TestCase {
 
   var accountDataStore: AccountsDataStore!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     accountDataStore = .placeholder
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     accountDataStore = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_loadServerFingerprint_succeeds_withNil_whenNoFingerprintWasStored() {
+  func test_loadServerFingerprint_succeeds_withNil_whenNoFingerprintWasStored() async throws {
     let storedFingerprint: Fingerprint? = nil
     accountDataStore.loadServerFingerprint = always(.success(storedFingerprint))
-    features.use(accountDataStore)
+    await features.use(accountDataStore)
 
-    let feature: FingerprintStorage = testInstance()
+    let feature: FingerprintStorage = try await testInstance()
     var result: Fingerprint?
 
-    switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
+    switch await feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
     case let .success(serverFingerprint):
       result = serverFingerprint
     case .failure:
@@ -63,14 +63,14 @@ final class FingerprintStorageTests: TestCase {
     XCTAssertNil(result)
   }
 
-  func test_loadServerFingerprint_succeeds_whenDataStoreLoadSucceeds() {
+  func test_loadServerFingerprint_succeeds_whenDataStoreLoadSucceeds() async throws {
     accountDataStore.loadServerFingerprint = always(.success("FINGERPRINT"))
-    features.use(accountDataStore)
+    await features.use(accountDataStore)
 
-    let feature: FingerprintStorage = testInstance()
+    let feature: FingerprintStorage = try await testInstance()
     var result: Fingerprint? = nil
 
-    switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
+    switch await feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
     case let .success(serverFingerprint):
       result = serverFingerprint
     case .failure:
@@ -80,24 +80,24 @@ final class FingerprintStorageTests: TestCase {
     XCTAssertEqual(result?.rawValue, "FINGERPRINT")
   }
 
-  func test_loadServerFingerprint_fails() {
-    accountDataStore.loadServerFingerprint = always(.failure(.testError()))
-    features.use(accountDataStore)
+  func test_loadServerFingerprint_fails() async throws {
+    accountDataStore.loadServerFingerprint = always(.failure(MockIssue.error()))
+    await features.use(accountDataStore)
 
-    let feature: FingerprintStorage = testInstance()
-    var result: TheErrorLegacy? = nil
+    let feature: FingerprintStorage = try await testInstance()
+    var result: Error?
 
-    switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
+    switch await feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
     case .success:
       break
     case let .failure(error):
       result = error
     }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_storeServerFingerprint_succeeds_whenDataStoreSaveSucceeds() {
+  func test_storeServerFingerprint_succeeds_whenDataStoreSaveSucceeds() async throws {
     var storedFingerprint: Fingerprint? = nil
 
     accountDataStore.loadServerFingerprint = always(.success(storedFingerprint))
@@ -106,14 +106,14 @@ final class FingerprintStorageTests: TestCase {
       return .success(())
     }
 
-    features.use(accountDataStore)
+    await features.use(accountDataStore)
 
-    let feature: FingerprintStorage = testInstance()
+    let feature: FingerprintStorage = try await testInstance()
     var result: Fingerprint?
 
-    _ = feature.storeServerFingerprint(.init(rawValue: "ACCOUNT_ID"), .init(rawValue: "FINGERPRINT"))
+    _ = await feature.storeServerFingerprint(.init(rawValue: "ACCOUNT_ID"), .init(rawValue: "FINGERPRINT"))
 
-    switch feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
+    switch await feature.loadServerFingerprint(.init(rawValue: "ACCOUNT_ID")) {
     case let .success(serverFingerprint):
       result = serverFingerprint
     case .failure:
@@ -123,22 +123,22 @@ final class FingerprintStorageTests: TestCase {
     XCTAssertEqual(result, storedFingerprint)
   }
 
-  func test_storeServerFingerprint_fails() {
+  func test_storeServerFingerprint_fails() async throws {
     accountDataStore.loadServerFingerprint = always(.success("FINGERPRINT"))
-    accountDataStore.storeServerFingerprint = always(.failure(.testError()))
+    accountDataStore.storeServerFingerprint = always(.failure(MockIssue.error()))
 
-    features.use(accountDataStore)
+    await features.use(accountDataStore)
 
-    let feature: FingerprintStorage = testInstance()
-    var result: TheErrorLegacy?
+    let feature: FingerprintStorage = try await testInstance()
+    var result: Error?
 
-    switch feature.storeServerFingerprint(.init(rawValue: "ACCOUNT_ID"), .init(rawValue: "FINGERPRINT")) {
+    switch await feature.storeServerFingerprint(.init(rawValue: "ACCOUNT_ID"), .init(rawValue: "FINGERPRINT")) {
     case .success:
       break
     case let .failure(error):
       result = error
     }
 
-    XCTAssertEqual(result?.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 }

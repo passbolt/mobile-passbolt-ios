@@ -39,7 +39,7 @@ where Content: View {
   ) {
     self.content = content
     self.refreshTask = .init(
-      runImmediately: false,
+      priority: .userInitiated,
       operation: action
     )
   }
@@ -74,8 +74,7 @@ where Content: View {
             }
             Task { @MainActor in
               await self.refreshTask.run(
-                replacingCurrent: false,
-                priority: .userInitiated
+                replacingCurrent: false
               )
               withAnimation {
                 self.isRefreshing = false

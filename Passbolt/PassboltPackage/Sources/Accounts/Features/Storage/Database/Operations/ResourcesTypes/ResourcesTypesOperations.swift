@@ -7,43 +7,31 @@ public typealias StoreResourcesTypesOperation = DatabaseOperation<Array<Resource
 extension StoreResourcesTypesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnectionInTransaction(
-      using: connectionPublisher
+      using: connection
     ) { conn, input in
       // iterate over resources types to insert or update
       for resourceType in input {
         // cleanup existing types as preparation for update
-        let result: Result<Void, Error> =
-          conn
+        try conn
           .execute(
             cleanFieldsStatement,
             with: resourceType.id.rawValue
           )
-          .flatMap {
-            conn
-              .execute(
-                upsertTypeStatement,
-                with: resourceType.id.rawValue,
-                resourceType.slug.rawValue,
-                resourceType.name
-              )
-          }
-
-        switch result {
-        case .success:
-          break
-
-        case let .failure(error):
-          return .failure(error)
-        }
+        try conn
+          .execute(
+            upsertTypeStatement,
+            with: resourceType.id.rawValue,
+            resourceType.slug.rawValue,
+            resourceType.name
+          )
 
         // iterate over fields for given resource type
         for field in resourceType.properties {
           // insert fields for type (previous were deleted, no need for update)
-          let result: Result<Int, Error> =
-            conn
+          try conn
             .execute(
               insertFieldStatement,
               with: field.field.rawValue,
@@ -52,53 +40,34 @@ extension StoreResourcesTypesOperation {
               field.encrypted,
               field.maxLength
             )
-            .flatMap {
-              conn
-                .fetch(
-                  fetchLastInsertedFieldStatement
-                ) { rows in
-                  if let id: Int = rows.first?.id {
-                    return .success(id)
-                  }
-                  else {
-                    return .failure(
-                      DatabaseIssue.error(
-                        underlyingError:
-                          DatabaseStatementExecutionFailure
-                          .error("Failed to insert resource type field to the database")
-                      )
-                    )
-                  }
-                }
+
+          let fieldID: Int =
+            try conn
+            .fetch(
+              fetchLastInsertedFieldStatement
+            ) { rows in
+              if let id: Int = rows.first?.id {
+                return id
+              }
+              else {
+                throw DatabaseIssue.error(
+                  underlyingError:
+                    DatabaseStatementExecutionFailure
+                    .error("Failed to insert resource type field to the database")
+                )
+              }
             }
 
-          switch result {
-          case let .success(fieldID):
-            // insert association between type and newly added field
-            let result: Result<Void, Error> =
-              conn
-              .execute(
-                insertTypeFieldStatement,
-                with: resourceType.id.rawValue,
-                fieldID
-              )
-
-            switch result {
-            case .success:
-              continue
-
-            case let .failure(error):
-              return .failure(error)
-            }
-
-          case let .failure(error):
-            return .failure(error)
-          }
+          // insert association between type and newly added field
+          try conn
+            .execute(
+              insertTypeFieldStatement,
+              with: resourceType.id.rawValue,
+              fieldID
+            )
         }
+        // if nothing failed we have succeeded
       }
-
-      // if nothing failed we have succeeded
-      return .success
     }
   }
 }
@@ -108,31 +77,29 @@ public typealias FetchResourcesTypesOperation = DatabaseOperation<Void, Array<Re
 extension FetchResourcesTypesOperation {
 
   static func using(
-    _ connectionPublisher: AnyPublisher<SQLiteConnection, Error>
+    _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnection(
-      using: connectionPublisher
+      using: connection
     ) { conn, _ in
-      conn
+      try conn
         .fetch(
           selectTypesStatement
         ) { rows in
-          .success(
-            rows.compactMap { row -> ResourceType? in
-              guard
-                let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
-                let slug: ResourceType.Slug = (row.slug as String?).map(ResourceType.Slug.init(rawValue:)),
-                let name: String = row.name,
-                let rawFields: String = row.fields
-              else { return nil }
-              return ResourceType(
-                id: id,
-                slug: slug,
-                name: name,
-                fields: ResourceProperty.arrayFrom(rawString: rawFields)
-              )
-            }
-          )
+          rows.compactMap { row -> ResourceType? in
+            guard
+              let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
+              let slug: ResourceType.Slug = (row.slug as String?).map(ResourceType.Slug.init(rawValue:)),
+              let name: String = row.name,
+              let rawFields: String = row.fields
+            else { return nil }
+            return ResourceType(
+              id: id,
+              slug: slug,
+              name: name,
+              fields: ResourceProperty.arrayFrom(rawString: rawFields)
+            )
+          }
         }
     }
   }

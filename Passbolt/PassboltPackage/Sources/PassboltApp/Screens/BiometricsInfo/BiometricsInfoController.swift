@@ -26,9 +26,9 @@ import UIComponents
 
 internal struct BiometricsInfoController {
 
-  internal var presentationDestinationPublisher: () -> AnyPublisher<Destination, Never>
-  internal var setupBiometrics: () -> Void
-  internal var skipSetup: () -> Void
+  internal var presentationDestinationPublisher: @MainActor () -> AnyPublisher<Destination, Never>
+  internal var setupBiometrics: @MainActor () -> Void
+  internal var skipSetup: @MainActor () -> Void
 }
 
 extension BiometricsInfoController {
@@ -49,10 +49,10 @@ extension BiometricsInfoController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let autoFill: AutoFill = features.instance()
-    let linkOpener: LinkOpener = features.instance()
-    let biometry: Biometry = features.instance()
+  ) async throws -> Self {
+    let autoFill: AutoFill = try await features.instance()
+    let linkOpener: LinkOpener = try await features.instance()
+    let biometry: Biometry = try await features.instance()
 
     let presentationDestinationSubject: PassthroughSubject<Destination, Never> = .init()
 

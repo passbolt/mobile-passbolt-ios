@@ -62,7 +62,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
           .receive(on: RunLoop.main)
           .handleEvents(receiveCompletion: { [weak self] completion in
             self?.contentView.finishDataRefresh()
-            guard case let .failure(error) = completion, error.identifier != .canceled
+            guard case let .failure(error) = completion, error.asLegacy.identifier != .canceled
             else { return }
             self?.present(
               snackbar: Mutation<UICommons.PlainView>
@@ -136,22 +136,23 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
 
     controller
       .resourceCreatePresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.push(
-          ResourceEditViewController.self,
-          in: (
-            .new(in: nil),
-            completion: { [weak self] resourceID in
-              guard let self = self else { return }
-              self.controller
-                .selectResource(resourceID)
-                .eraseToAnyPublisher()
-                .sinkDrop()
-                .store(in: self.cancellables)
-            }
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.push(
+            ResourceEditViewController.self,
+            in: (
+              .new(in: nil),
+              completion: { [weak self] resourceID in
+                guard let self = self else { return }
+                self.controller
+                  .selectResource(resourceID)
+                  .eraseToAnyPublisher()
+                  .sinkDrop()
+                  .store(in: self.cancellables)
+              }
+            )
           )
-        )
+        }
       }
       .store(in: cancellables)
 

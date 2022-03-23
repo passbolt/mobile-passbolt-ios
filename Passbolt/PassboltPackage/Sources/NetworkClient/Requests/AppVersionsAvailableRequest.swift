@@ -34,7 +34,7 @@ extension AppVersionsAvailableRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<EmptyNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> EmptyNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -47,7 +47,7 @@ extension AppVersionsAvailableRequest {
       },
       responseDecoder: .bodyAsJSON(),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }

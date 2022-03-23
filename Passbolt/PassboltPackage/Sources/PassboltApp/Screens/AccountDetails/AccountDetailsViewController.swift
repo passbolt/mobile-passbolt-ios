@@ -99,21 +99,14 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
               handler: { _ in /* NOP */ true }
             ),
             defaultHandler: { [weak self] error in
-              if let displayable: DisplayableString = error.displayableString {
-                self?.presentErrorSnackbar(displayable)
-              }
-              else {
-                self?.presentErrorSnackbar(
-                  .localized(
-                    key: .genericError
-                  )
-                )
-              }
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           )
           .handleEnd { [weak self] ending in
             guard case .finished = ending else { return }
-            self?.pop(if: Self.self)
+            self?.cancellables.executeOnMainActor { [weak self] in
+              await self?.pop(if: Self.self)
+            }
           }
           .replaceError(with: Void())
       }

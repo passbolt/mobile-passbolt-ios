@@ -35,8 +35,8 @@ final class AccountsDataStoreTests: TestCase {
   var mockPreferencesStore: Dictionary<Preferences.Key, Any>!
   var mockKeychainStore: Array<(data: Data, query: KeychainQuery)>!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     mockPreferencesStore = .init()
     mockKeychainStore = .init()
     features.environment.preferences.load = { [unowned self] key in
@@ -91,95 +91,111 @@ final class AccountsDataStoreTests: TestCase {
     features.environment.files.contentsOfDirectory = always(.success([]))
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     mockPreferencesStore = nil
     mockKeychainStore = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_loadAccounts_loadsItemsStoredInKeychain() {
-    features.environment.keychain.load = always(.success([validAccountKeychainData]))
+  func test_loadAccounts_loadsItemsStoredInKeychain() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.success([validAccountKeychainData]))
+    }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Array<Account> = dataStore.loadAccounts()
+    let result: Array<Account> = await dataStore.loadAccounts()
 
     XCTAssertEqual(result, [validAccount])
   }
 
-  func test_loadAccounts_loadsEmptyIfKeychainContainsInvalidItems() {
-    features.environment.keychain.load = always(.success([Data([65, 66, 67]), validAccountKeychainData]))
+  func test_loadAccounts_loadsEmptyIfKeychainContainsInvalidItems() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.success([Data([65, 66, 67]), validAccountKeychainData]))
+    }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Array<Account> = dataStore.loadAccounts()
-
-    XCTAssertEqual(result, [])
-  }
-
-  func test_loadAccounts_loadsEmptyIfKeychainLoadFails() {
-    features.environment.keychain.load = always(.failure(MockIssue.error()))
-
-    let dataStore: AccountsDataStore = testInstance()
-
-    let result: Array<Account> = dataStore.loadAccounts()
+    let result: Array<Account> = await dataStore.loadAccounts()
 
     XCTAssertEqual(result, [])
   }
 
-  func test_loadLastUsedAccount_loadsStoredLastAccount() {
-    features.environment.keychain.load = always(.success([validAccountKeychainData]))
-    features.environment.preferences.load = always(validAccount.localID.rawValue)
+  func test_loadAccounts_loadsEmptyIfKeychainLoadFails() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.failure(MockIssue.error()))
+    }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Account? = dataStore.loadLastUsedAccount()
+    let result: Array<Account> = await dataStore.loadAccounts()
+
+    XCTAssertEqual(result, [])
+  }
+
+  func test_loadLastUsedAccount_loadsStoredLastAccount() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.success([validAccountKeychainData]))
+      self.features.environment.preferences.load = always(validAccount.localID.rawValue)
+    }
+
+    let dataStore: AccountsDataStore = try await testInstance()
+
+    let result: Account? = await dataStore.loadLastUsedAccount()
 
     XCTAssertEqual(result, validAccount)
   }
 
-  func test_loadLastUsedAccount_loadsNoneIfKeychainDataIsMissing() {
-    features.environment.keychain.load = always(.success([]))
-    features.environment.preferences.load = always(validAccount.localID.rawValue)
-
-    let dataStore: AccountsDataStore = testInstance()
-
-    let result: Account? = dataStore.loadLastUsedAccount()
-
-    XCTAssertNil(result)
-  }
-
-  func test_loadLastUsedAccount_loadsNoneIfKeychainLoadFails() {
-    features.environment.keychain.load = always(.failure(MockIssue.error()))
-    features.environment.preferences.load = always(validAccount.localID.rawValue)
-
-    let dataStore: AccountsDataStore = testInstance()
-
-    let result: Account? = dataStore.loadLastUsedAccount()
-
-    XCTAssertNil(result)
-  }
-
-  func test_loadLastUsedAccount_loadsNoneIfNoAccountIDSaved() {
-    features.environment.keychain.load = always(.success([validAccountKeychainData]))
-    features.environment.preferences.load = always(nil)
-
-    let dataStore: AccountsDataStore = testInstance()
-
-    let result: Account? = dataStore.loadLastUsedAccount()
-
-    XCTAssertNil(result)
-  }
-
-  func test_saveLastUsedAccount_savesAccountID() {
-    var result: String?
-    features.environment.preferences.save = { value, _ in
-      result = value as? String
+  func test_loadLastUsedAccount_loadsNoneIfKeychainDataIsMissing() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.success([]))
+      self.features.environment.preferences.load = always(validAccount.localID.rawValue)
     }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    dataStore.storeLastUsedAccount(validAccount.localID)
+    let result: Account? = await dataStore.loadLastUsedAccount()
+
+    XCTAssertNil(result)
+  }
+
+  func test_loadLastUsedAccount_loadsNoneIfKeychainLoadFails() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.failure(MockIssue.error()))
+      self.features.environment.preferences.load = always(validAccount.localID.rawValue)
+    }
+
+    let dataStore: AccountsDataStore = try await testInstance()
+
+    let result: Account? = await dataStore.loadLastUsedAccount()
+
+    XCTAssertNil(result)
+  }
+
+  func test_loadLastUsedAccount_loadsNoneIfNoAccountIDSaved() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.load = always(.success([validAccountKeychainData]))
+      self.features.environment.preferences.load = always(nil)
+    }
+
+    let dataStore: AccountsDataStore = try await testInstance()
+
+    let result: Account? = await dataStore.loadLastUsedAccount()
+
+    XCTAssertNil(result)
+  }
+
+  func test_saveLastUsedAccount_savesAccountID() async throws {
+    var result: String?
+    try await FeaturesActor.execute {
+      self.features.environment.preferences.save = { value, _ in
+        result = value as? String
+      }
+    }
+
+    let dataStore: AccountsDataStore = try await testInstance()
+
+    await dataStore.storeLastUsedAccount(validAccount.localID)
 
     XCTAssertEqual(
       result,
@@ -187,10 +203,10 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_storeAccount_savesDataProperly() {
-    let dataStore: AccountsDataStore = testInstance()
+  func test_storeAccount_savesDataProperly() async throws {
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.storeAccount(
+    let result: Result<Void, Error> = await dataStore.storeAccount(
       validAccount,
       validAccountDetails,
       validPrivateKey
@@ -207,12 +223,14 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_storeAccount_failsIfKeychainSaveFails() {
-    features.environment.keychain.save = always(.failure(MockIssue.error()))
+  func test_storeAccount_failsIfKeychainSaveFails() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.save = always(.failure(MockIssue.error()))
+    }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.storeAccount(
+    let result: Result<Void, Error> = await dataStore.storeAccount(
       validAccount,
       validAccountDetails,
       validPrivateKey
@@ -221,48 +239,14 @@ final class AccountsDataStoreTests: TestCase {
     XCTAssertFailure(result)
   }
 
-  func test_storeAccount_dataIsNotSavedIfKeychainSaveFails() {
-    features.environment.keychain.save = always(.failure(MockIssue.error()))
+  func test_storeAccount_dataIsNotSavedIfKeychainSaveFails() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.save = always(.failure(MockIssue.error()))
+    }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    _ = dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
-
-    XCTAssertEqual(
-      mockPreferencesStore["accountsList"] as? Array<String>,
-      []
-    )
-    XCTAssertEqual(
-      mockKeychainStore.map(\.data),
-      []
-    )
-  }
-
-  func test_deleteAccount_removesAccountData() {
-    features.environment.files.deleteFile = always(.success)
-    mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
-    mockKeychainStore = [
-      (
-        data: validAccountKeychainData,
-        query: .init(
-          key: "account",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
-      ),
-      (
-        data: validPrivateKeyKeychainData,
-        query: .init(
-          key: "accountArmoredKey",
-          tag: .init(rawValue: validAccount.localID.rawValue),
-          requiresBiometrics: false
-        )
-      ),
-    ]
-
-    let dataStore: AccountsDataStore = testInstance()
-
-    dataStore.deleteAccount(validAccount.localID)
+    _ = await dataStore.storeAccount(validAccount, validAccountDetails, validPrivateKey)
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -274,11 +258,9 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_deleteAccount_removesAccountDatabase() {
-    var result: URL!
-    features.environment.files.deleteFile = { url in
-      result = url
-      return .success
+  func test_deleteAccount_removesAccountData() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.files.deleteFile = always(.success)
     }
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
@@ -300,9 +282,51 @@ final class AccountsDataStoreTests: TestCase {
       ),
     ]
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    dataStore.deleteAccount(validAccount.localID)
+    await dataStore.deleteAccount(validAccount.localID)
+
+    XCTAssertEqual(
+      mockPreferencesStore["accountsList"] as? Array<String>,
+      []
+    )
+    XCTAssertEqual(
+      mockKeychainStore.map(\.data),
+      []
+    )
+  }
+
+  func test_deleteAccount_removesAccountDatabase() async throws {
+    var result: URL!
+    try await FeaturesActor.execute {
+      self.features.environment.files.deleteFile = { url in
+        result = url
+        return .success
+      }
+    }
+    mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
+    mockKeychainStore = [
+      (
+        data: validAccountKeychainData,
+        query: .init(
+          key: "account",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: validPrivateKeyKeychainData,
+        query: .init(
+          key: "accountArmoredKey",
+          tag: .init(rawValue: validAccount.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+    ]
+
+    let dataStore: AccountsDataStore = try await testInstance()
+
+    await dataStore.deleteAccount(validAccount.localID)
 
     XCTAssertEqual(
       result.lastPathComponent,
@@ -310,39 +334,43 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_storeServerFingerprint_savesDataProperly() {
+  func test_storeServerFingerprint_savesDataProperly() async throws {
     var result: Void!
-    features.environment.keychain.save = { _, _ in
-      result = Void()
-      return .success
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.save = { _, _ in
+        result = Void()
+        return .success
+      }
     }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    _ = dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
+    _ = await dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
 
     XCTAssertNotNil(result)
   }
 
-  func test_storeServerFingerprint_failsIfKeychainSaveFails() {
-    features.environment.keychain.save = always(.failure(MockIssue.error()))
+  func test_storeServerFingerprint_failsIfKeychainSaveFails() async throws {
+    try await FeaturesActor.execute {
+      self.features.environment.keychain.save = always(.failure(MockIssue.error()))
+    }
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
+    let result: Result<Void, Error> = await dataStore.storeServerFingerprint(validAccount.localID, serverFingerprint)
 
     XCTAssertFailure(result)
   }
 
-  func test_verifyDataIntegrity_succeedsWithNoData() {
-    let dataStore: AccountsDataStore = testInstance()
+  func test_verifyDataIntegrity_succeedsWithNoData() async throws {
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, Error> = await dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
   }
 
-  func test_verifyDataIntegrity_succeedsWithValidData() {
+  func test_verifyDataIntegrity_succeedsWithValidData() async throws {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
       (
@@ -362,14 +390,14 @@ final class AccountsDataStoreTests: TestCase {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, Error> = await dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
   }
 
-  func test_verifyDataIntegrity_doesNotModifyValidData() {
+  func test_verifyDataIntegrity_doesNotModifyValidData() async throws {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
       (
@@ -397,9 +425,9 @@ final class AccountsDataStoreTests: TestCase {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    _ = dataStore.verifyDataIntegrity()
+    _ = await dataStore.verifyDataIntegrity()
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -411,7 +439,7 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_verifyDataIntegrity_removesAccountsData_whenAccountIDIsNotInList() {
+  func test_verifyDataIntegrity_removesAccountsData_whenAccountIDIsNotInList() async throws {
     mockPreferencesStore["accountsList"] = []
     mockKeychainStore = [
       (
@@ -431,9 +459,9 @@ final class AccountsDataStoreTests: TestCase {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, Error> = await dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -446,7 +474,7 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_verifyDataIntegrity_removesAccountsData_whenAccountDataIsNotStored() {
+  func test_verifyDataIntegrity_removesAccountsData_whenAccountDataIsNotStored() async throws {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
       (
@@ -459,9 +487,9 @@ final class AccountsDataStoreTests: TestCase {
       )
     ]
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, Error> = await dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -474,7 +502,7 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_verifyDataIntegrity_removesAccountsData_whenPrivateKeyIsNotStored() {
+  func test_verifyDataIntegrity_removesAccountsData_whenPrivateKeyIsNotStored() async throws {
     mockPreferencesStore["accountsList"] = [validAccount.localID.rawValue]
     mockKeychainStore = [
       (
@@ -487,9 +515,9 @@ final class AccountsDataStoreTests: TestCase {
       )
     ]
 
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, Error> = await dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(
@@ -502,12 +530,14 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_verifyDataIntegrity_removesAccountsDatabase_whenAccountIDIsNotInListAndDatabaseFileExists() {
-    features.environment.files.contentsOfDirectory = always(.success(["\(validAccount.localID).sqlite"]))
+  func test_verifyDataIntegrity_removesAccountsDatabase_whenAccountIDIsNotInListAndDatabaseFileExists() async throws {
     var result: URL!
-    features.environment.files.deleteFile = { url in
-      result = url
-      return .success
+    try await FeaturesActor.execute {
+      self.features.environment.files.contentsOfDirectory = always(.success(["\(validAccount.localID).sqlite"]))
+      self.features.environment.files.deleteFile = { url in
+        result = url
+        return .success
+      }
     }
     mockPreferencesStore["accountsList"] = []
     mockKeychainStore = [
@@ -528,9 +558,9 @@ final class AccountsDataStoreTests: TestCase {
         )
       ),
     ]
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    _ = dataStore.verifyDataIntegrity()
+    _ = await dataStore.verifyDataIntegrity()
 
     XCTAssertEqual(
       result.lastPathComponent,
@@ -538,7 +568,7 @@ final class AccountsDataStoreTests: TestCase {
     )
   }
 
-  func test_verifyDataIntegrity_removesServerFingerprintData_whenAccountIDIsNotInList() {
+  func test_verifyDataIntegrity_removesServerFingerprintData_whenAccountIDIsNotInList() async throws {
     mockKeychainStore = [
       (
         data: validServerFingerprint,
@@ -549,9 +579,9 @@ final class AccountsDataStoreTests: TestCase {
         )
       )
     ]
-    let dataStore: AccountsDataStore = testInstance()
+    let dataStore: AccountsDataStore = try await testInstance()
 
-    let result: Result<Void, TheErrorLegacy> = dataStore.verifyDataIntegrity()
+    let result: Result<Void, Error> = await dataStore.verifyDataIntegrity()
 
     XCTAssertSuccess(result)
     XCTAssertEqual(

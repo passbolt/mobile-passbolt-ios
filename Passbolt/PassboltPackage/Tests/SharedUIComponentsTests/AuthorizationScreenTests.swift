@@ -57,17 +57,17 @@ final class AuthorizationScreenTests: MainActorTestCase {
     biometry = nil
   }
 
-  func test_presentForgotPassphraseAlertPublisher_publishesTrue_whenPresentForgotPassphraseAlertCalled() {
-    features.use(networkClient)
+  func test_presentForgotPassphraseAlertPublisher_publishesTrue_whenPresentForgotPassphraseAlertCalled() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accounts)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
     var result: Bool!
@@ -84,17 +84,17 @@ final class AuthorizationScreenTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_validatedPassphrasePublisher_publishesValidatedPassphrase_whenUpdatePassphraseCalled() {
-    features.use(networkClient)
+  func test_validatedPassphrasePublisher_publishesValidatedPassphrase_whenUpdatePassphraseCalled() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accounts)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
     var result: Validated<String>!
@@ -111,303 +111,244 @@ final class AuthorizationScreenTests: MainActorTestCase {
     XCTAssertEqual(result.value, "SomeSecretPassphrase")
   }
 
-  func test_signIn_succeeds_whenAuthorizationSucceeds() {
-    features.use(networkClient)
+  func test_signIn_succeeds_whenAuthorizationSucceeds() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    accountSession.authorize = always(
-      Just(false)
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accounts)
+    accountSession.authorize = always(false)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: Void!
-
-    controller
+    let result: Bool? =
+      try? await controller
       .signIn()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_signIn_fails_whenAuthorizationFails() {
-    features.use(networkClient)
+  func test_signIn_fails_whenAuthorizationFails() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    accountSession.authorize = always(
-      Fail(error: .testError())
-        .eraseToAnyPublisher()
+    await features.use(accounts)
+    accountSession.authorize = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: TheErrorLegacy!
+    var result: Error?
+    do {
+      _ =
+        try await controller
+        .signIn()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    controller
-      .signIn()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_biometricSignIn_succeeds_whenAuthorizationSucceeds() {
-    features.use(networkClient)
+  func test_biometricSignIn_succeeds_whenAuthorizationSucceeds() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    accountSession.authorize = always(
-      Just(false)
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accounts)
+    accountSession.authorize = always(false)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: Void!
-
-    controller
+    let result: Bool? =
+      try? await controller
       .biometricSignIn()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { _ in
-          result = Void()
-        }
-      )
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_biometricSignIn_fails_whenAuthorizationFails() {
-    features.use(networkClient)
+  func test_biometricSignIn_fails_whenAuthorizationFails() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    accountSession.authorize = always(
-      Fail(error: .testError())
-        .eraseToAnyPublisher()
+    await features.use(accounts)
+    accountSession.authorize = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: TheErrorLegacy!
+    var result: Error?
+    do {
+      _ =
+        try await controller
+        .biometricSignIn()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    controller
-      .biometricSignIn()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_avatarPublisher_publishesData_whenNetworkRequestSucceeds() {
+  func test_avatarPublisher_publishesData_whenNetworkRequestSucceeds() async throws {
     let testData: Data = .init([0x01, 0x02])
     networkClient.mediaDownload = .respondingWith(testData)
-    features.use(networkClient)
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    accountSession.authorize = always(
-      Just(false)
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accounts)
+    accountSession.authorize = always(false)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: Data!
-
-    controller
+    let result: Data? =
+      try? await controller
       .accountAvatarPublisher()
-      .sink { data in
-        result = data
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, testData)
   }
 
-  func test_avatarPublisher_publishesNil_whenNetworkRequestFails() {
+  func test_avatarPublisher_publishesNil_whenNetworkRequestFails() async throws {
     networkClient.mediaDownload = .failingWith(MockIssue.error())
-    features.use(networkClient)
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    accountSession.authorize = always(
-      Just(false)
-        .setFailureType(to: TheErrorLegacy.self)
-        .eraseToAnyPublisher()
-    )
-    features.use(accountSession)
-    features.use(biometry)
+    await features.use(accounts)
+    accountSession.authorize = always(false)
+    await features.use(accountSession)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: Data!
-
-    controller
+    let result: Data? =
+      try? await controller
       .accountAvatarPublisher()
-      .sink { data in
-        result = data
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertNil(result)
   }
 
-  func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsUnavailable() {
-    features.use(networkClient)
+  func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsUnavailable() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    features.use(accountSession)
+    await features.use(accounts)
+    await features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.unavailable).eraseToAnyPublisher())
-    features.use(biometry)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: AuthorizationController.BiometricsState!
-
-    controller
+    let result: AuthorizationController.BiometricsState? =
+      try? await controller
       .biometricStatePublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, .unavailable)
   }
 
-  func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsAvailableAndAccountDoesNotUseIt() {
-    features.use(networkClient)
+  func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsAvailableAndAccountDoesNotUseIt() async throws
+  {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithoutBiometry.account])
-    features.use(accounts)
-    features.use(accountSession)
+    await features.use(accounts)
+    await features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(biometry)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithoutBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithoutBiometry.account
     )
-    var result: AuthorizationController.BiometricsState!
-
-    controller
+    let result: AuthorizationController.BiometricsState? =
+      try? await controller
       .biometricStatePublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, .unavailable)
   }
 
-  func test_biometricStatePublisher_publishesFaceID_whenAvailableBiometricsIsFaceIDAndAccountUsesIt() {
-    features.use(networkClient)
+  func test_biometricStatePublisher_publishesFaceID_whenAvailableBiometricsIsFaceIDAndAccountUsesIt() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    features.use(accountSession)
+    await features.use(accounts)
+    await features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(biometry)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: AuthorizationController.BiometricsState!
-
-    controller
+    let result: AuthorizationController.BiometricsState? =
+      try? await controller
       .biometricStatePublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, .faceID)
   }
 
-  func test_biometricStatePublisher_publishesTouchID_whenAvailableBiometricsIsTouchIDAndAccountUsesIt() {
-    features.use(networkClient)
+  func test_biometricStatePublisher_publishesTouchID_whenAvailableBiometricsIsTouchIDAndAccountUsesIt() async throws {
+    await features.use(networkClient)
     accounts.storedAccounts = always([accountWithBiometry.account])
-    features.use(accounts)
-    features.use(accountSession)
+    await features.use(accounts)
+    await features.use(accountSession)
     biometry.biometricsStatePublisher = always(Just(.configuredFaceID).eraseToAnyPublisher())
-    features.use(biometry)
+    await features.use(biometry)
     accountSettings.accountWithProfile = always(accountWithBiometry)
     accountSettings.updatedAccountIDsPublisher = always(Empty<Account.LocalID, Never>().eraseToAnyPublisher())
-    features.use(accountSettings)
+    await features.use(accountSettings)
 
-    let controller: AuthorizationController = testController(
+    let controller: AuthorizationController = try await testController(
       context: accountWithBiometry.account
     )
-    var result: AuthorizationController.BiometricsState!
-
-    controller
+    let result: AuthorizationController.BiometricsState? =
+      try? await controller
       .biometricStatePublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, .faceID)
   }

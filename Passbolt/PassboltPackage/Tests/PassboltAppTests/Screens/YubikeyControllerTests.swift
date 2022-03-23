@@ -45,10 +45,10 @@ final class YubikeyControllerTests: MainActorTestCase {
     mfa = nil
   }
 
-  func test_rememberDevicePublisher_initiallyPublishesTrue() {
-    features.use(mfa)
+  func test_rememberDevicePublisher_initiallyPublishesTrue() async throws {
+    await features.use(mfa)
 
-    let controller: YubikeyController = testController()
+    let controller: YubikeyController = try await testController()
     var result: Bool!
 
     controller.rememberDevicePublisher()
@@ -60,10 +60,10 @@ final class YubikeyControllerTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_rememberDevicePublisher_publishesFalse_whenToggleRememberDeviceIsCalled() {
-    features.use(mfa)
+  func test_rememberDevicePublisher_publishesFalse_whenToggleRememberDeviceIsCalled() async throws {
+    await features.use(mfa)
 
-    let controller: YubikeyController = testController()
+    let controller: YubikeyController = try await testController()
     var result: Bool!
 
     controller.rememberDevicePublisher()
@@ -77,51 +77,39 @@ final class YubikeyControllerTests: MainActorTestCase {
     XCTAssertFalse(result)
   }
 
-  func test_authorizeUsingOTP_succeeds() {
+  func test_authorizeUsingOTP_succeeds() async throws {
     mfa.authorizeUsingYubikey = always(
       Just(())
-        .setFailureType(to: TheErrorLegacy.self)
+        .eraseErrorType()
         .eraseToAnyPublisher()
     )
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: YubikeyController = testController()
-    var result: Void!
-
-    controller.authorizeUsingOTP()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { value in
-          result = value
-        }
-      )
-      .store(in: cancellables)
+    let controller: YubikeyController = try await testController()
+    let result: Void? =
+      try? await controller.authorizeUsingOTP()
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }
 
-  func test_authorizeUsingOTP_fails() {
+  func test_authorizeUsingOTP_fails() async throws {
     mfa.authorizeUsingYubikey = always(
-      Fail(error: .testError()).eraseToAnyPublisher()
+      Fail(error: MockIssue.error()).eraseToAnyPublisher()
     )
-    features.use(mfa)
+    await features.use(mfa)
 
-    let controller: YubikeyController = testController()
-    var result: TheErrorLegacy!
+    let controller: YubikeyController = try await testController()
+    var result: Error?
+    do {
+      try await controller.authorizeUsingOTP()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
-    controller.authorizeUsingOTP()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-
-          result = error
-        },
-        receiveValue: { _ in
-        }
-      )
-      .store(in: cancellables)
-
-    XCTAssertEqual(result.identifier, .testError)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 }

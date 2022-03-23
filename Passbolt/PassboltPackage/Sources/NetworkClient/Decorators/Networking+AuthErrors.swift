@@ -27,68 +27,58 @@ import Environment
 extension NetworkRequest {
 
   internal func withAuthErrors(
-    invalidateAccessToken: @escaping () -> Void,
-    authorizationRequest: @escaping () -> Void,
-    mfaRequest: @escaping (Array<MFAProvider>) -> Void,
-    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) -> AnyPublisher<MFARedirectResponse, Error>,
-    sessionPublisher: AnyPublisher<DomainNetworkSessionVariable, Error>
+    invalidateAccessToken: @AccountSessionActor @escaping () async throws -> Void,
+    authorizationRequest: @AccountSessionActor @escaping () async throws -> Void,
+    mfaRequest: @escaping @AccountSessionActor (Array<MFAProvider>) async throws -> Void,
+    mfaRedirectionHandler: @escaping (MFARedirectRequestVariable) async throws -> MFARedirectResponse,
+    sessionVariable: @AccountSessionActor @escaping () async throws -> DomainNetworkSessionVariable
   ) -> Self {
     Self(
       execute: { variable in
-        self.execute(variable)
-          .catch { error -> AnyPublisher<Response, Error> in
-            if let redirect: HTTPRedirect = error as? HTTPRedirect {
-              let locationURLString: URLString = redirect.location.urlString
-              return
-                sessionPublisher
-                .map(\.domain)
-                .map { domain -> AnyPublisher<Response, Error> in
-                  if URLString.domain(forURL: locationURLString, matches: domain),
-                    locationURLString.rawValue.hasSuffix("/mfa/verify/error.json")
-                  {
-                    return mfaRedirectionHandler(.init())
-                      .map { response -> AnyPublisher<Response, Error> in
-                        Fail(
-                          error:
-                            InternalInconsistency
-                            .error("Invalid MFA Redirect response")
-                            .recording(redirect, for: "redirect")
-                            .recording(response, for: "response")
-                        )
-                        .eraseToAnyPublisher()
-                      }
-                      .switchToLatest()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: error)
-                      .eraseToAnyPublisher()
-                  }
-                }
-                .switchToLatest()
-                .eraseToAnyPublisher()
+        do {
+          do {
+            return try await self.execute(variable)
+          }
+          catch let redirect as HTTPRedirect {
+            let locationURLString: URLString = redirect.location.urlString
+            let currentSessionVariable = try await sessionVariable()
+
+            if URLString.domain(forURL: locationURLString, matches: currentSessionVariable.domain),
+              locationURLString.rawValue.hasSuffix("/mfa/verify/error.json")
+            {
+              let response = try await mfaRedirectionHandler(.init())
+              // expecting to get SessionMFAAuthorizationRequired error
+              throw
+                InternalInconsistency
+                .error("Invalid MFA Redirect response")
+                .recording(redirect, for: "redirect")
+                .recording(response, for: "response")
             }
             else {
-              return Fail(error: error)
-                .eraseToAnyPublisher()
+              throw redirect
             }
           }
-          .mapError { (error: Error) -> Error in
-            switch error {
-            case let _ as SessionMissing, let _ as SessionAuthorizationRequired:
-              invalidateAccessToken()
-              authorizationRequest()
-
-            case let mfaRequired as SessionMFAAuthorizationRequired:
-              mfaRequest(mfaRequired.mfaProviders)
-
-            case _:
-              break  // NOP
-            }
-
-            return error
+          catch {
+            throw error
           }
-          .eraseToAnyPublisher()
+        }
+        catch let error as SessionMissing {
+          try await invalidateAccessToken()
+          try await authorizationRequest()
+          throw error
+        }
+        catch let error as SessionAuthorizationRequired {
+          try await invalidateAccessToken()
+          try await authorizationRequest()
+          throw error
+        }
+        catch let mfaRequired as SessionMFAAuthorizationRequired {
+          try await mfaRequest(mfaRequired.mfaProviders)
+          throw mfaRequired
+        }
+        catch {
+          throw error
+        }
       }
     )
   }

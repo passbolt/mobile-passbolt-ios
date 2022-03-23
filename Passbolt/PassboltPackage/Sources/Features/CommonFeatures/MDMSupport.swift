@@ -58,7 +58,7 @@ extension MDMSupport: Feature {
     let mdmConfig: MDMConfig = environment.mdmConfig
 
     #if DEBUG
-    func transferedAccount() -> TransferedAccount? {
+    nonisolated func transferedAccount() -> TransferedAccount? {
       var config: Dictionary<String, Any> = mdmConfig.loadConfig()
       guard
         let transferedAccountData: Dictionary<String, Any> = config["transferedAccountData"] as? Dictionary<String, Any>

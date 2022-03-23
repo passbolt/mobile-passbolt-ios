@@ -38,8 +38,8 @@ final class ResourceTests: TestCase {
   var accountDatabase: AccountDatabase!
   var networkClient: NetworkClient!
 
-  override func setUp() {
-    super.setUp()
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     accountSession = .placeholder
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -48,68 +48,56 @@ final class ResourceTests: TestCase {
 
     accountDatabase = .placeholder
     accountDatabase.fetchLastUpdate.execute = always(
-      Just(Date(timeIntervalSince1970: 0))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      Date(timeIntervalSince1970: 0)
     )
     accountDatabase.saveLastUpdate.execute = always(
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      Void()
     )
     accountDatabase.storeResourcesTypes.execute = always(
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      Void()
     )
     accountDatabase.storeResources.execute = always(
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      Void()
     )
 
     networkClient = .placeholder
     networkClient.resourcesTypesRequest.execute = always(
-      Just(.init(header: .mock(), body: []))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      .init(header: .mock(), body: [])
     )
     networkClient.resourcesRequest.execute = always(
-      Just(.init(header: .mock(), body: []))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      .init(header: .mock(), body: [])
     )
 
-    features.environment.time.timestamp = always(100)
-    features.usePlaceholder(for: Folders.self)
+    try await FeaturesActor.execute {
+      self.features.environment.time.timestamp = always(100)
+    }
+    await features.usePlaceholder(for: Folders.self)
     features.patch(\FeatureConfig.config, with: always(.none))
   }
 
-  override func tearDown() {
+  override func featuresActorTearDown() async throws {
     accountSession = nil
     accountDatabase = nil
     networkClient = nil
-    super.tearDown()
+    try await super.featuresActorTearDown()
   }
 
-  func test_refreshIfNeeded_refreshesData_whenDiffIsNotEmpty() {
+  func test_refreshIfNeeded_refreshesData_whenDiffIsNotEmpty() async throws {
     XCTExpectFailure()
     XCTFail("Data diff is not implemented yet")
   }
 
   func test_refreshIfNeeded_fetchesResourceTypes() async throws {
-    features.use(accountSession)
-    features.use(accountDatabase)
+    await features.use(accountSession)
+    await features.use(accountDatabase)
     var result: Void?
     networkClient.resourcesTypesRequest.execute = { _ in
       result = Void()
-      return Just(.init(header: .mock(), body: []))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init(header: .mock(), body: [])
     }
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     try await feature
       .refreshIfNeeded()
@@ -119,42 +107,39 @@ final class ResourceTests: TestCase {
   }
 
   func test_refreshIfNeeded_fails_whenResourceTypesFetchFails() async throws {
-    features.use(accountSession)
-    features.use(accountDatabase)
-    networkClient.resourcesTypesRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(accountSession)
+    await features.use(accountDatabase)
+    networkClient.resourcesTypesRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
     do {
       try await feature
         .refreshIfNeeded()
         .asAsyncValue()
     }
     catch {
-      result = error.asLegacy
+      result = error
     }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_refreshIfNeeded_savesResourceTypesToDatabase() async throws {
-    features.use(accountSession)
+    await features.use(accountSession)
     var result: Void?
     accountDatabase.storeResourcesTypes.execute = { _ in
       result = Void()
-      return Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return Void()
     }
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     try await feature
       .refreshIfNeeded()
@@ -164,42 +149,39 @@ final class ResourceTests: TestCase {
   }
 
   func test_refreshIfNeeded_fails_whenResourceTypesSaveFails() async throws {
-    features.use(accountSession)
-    accountDatabase.storeResourcesTypes.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(accountSession)
+    accountDatabase.storeResourcesTypes.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
     do {
       try await feature
         .refreshIfNeeded()
         .asAsyncValue()
     }
     catch {
-      result = error.asLegacy
+      result = error
     }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_refreshIfNeeded_fetchesResources() async throws {
-    features.use(accountSession)
-    features.use(accountDatabase)
+    await features.use(accountSession)
+    await features.use(accountDatabase)
     var result: Void?
     networkClient.resourcesRequest.execute = { _ in
       result = Void()
-      return Just(.init(header: .mock(), body: []))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init(header: .mock(), body: [])
     }
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     try await feature
       .refreshIfNeeded()
@@ -209,42 +191,39 @@ final class ResourceTests: TestCase {
   }
 
   func test_refreshIfNeeded_fails_whenResourceFetchFails() async throws {
-    features.use(accountSession)
-    features.use(accountDatabase)
-    networkClient.resourcesRequest.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(accountSession)
+    await features.use(accountDatabase)
+    networkClient.resourcesRequest.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
     do {
       try await feature
         .refreshIfNeeded()
         .asAsyncValue()
     }
     catch {
-      result = error.asLegacy
+      result = error
     }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_refreshIfNeeded_savesResourcesToDatabase() async throws {
-    features.use(accountSession)
+    await features.use(accountSession)
     var result: Void?
     accountDatabase.storeResources.execute = { _ in
       result = Void()
-      return Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return Void()
     }
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     try await feature
       .refreshIfNeeded()
@@ -254,120 +233,110 @@ final class ResourceTests: TestCase {
   }
 
   func test_refreshIfNeeded_fails_whenResourceSaveFails() async throws {
-    features.use(accountSession)
-    accountDatabase.storeResourcesTypes.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.use(accountSession)
+    accountDatabase.storeResourcesTypes.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
-    var result: TheErrorLegacy?
+    var result: Error?
     do {
       try await feature
         .refreshIfNeeded()
         .asAsyncValue()
     }
     catch {
-      result = error.asLegacy
+      result = error
     }
 
-    XCTAssertError(result?.legacyBridge, matches: MockIssue.self)
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_filteredResourcesListPublisher_publishesResourcesFromDatabase() {
-    features.use(accountSession)
+  func test_filteredResourcesListPublisher_publishesResourcesFromDatabase() async throws {
+    await features.use(accountSession)
     accountDatabase.fetchListViewResources.execute = always(
-      Just(testResources)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      testResources
     )
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
-    var result: Array<ListViewResource>?
-    feature
+    let result: Array<ListViewResource>? =
+      try await feature
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .sink { resources in
-        result = resources
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, testResources)
   }
 
-  func test_filteredResourcesListPublisher_usesFilterWhenAccessingDatabase() {
-    features.use(accountSession)
+  func test_filteredResourcesListPublisher_usesFilterWhenAccessingDatabase() async throws {
+    await features.use(accountSession)
     var result: ResourcesFilter?
     accountDatabase.fetchListViewResources.execute = { filter in
       result = filter
-      return Just(testResources)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return testResources
     }
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
-    feature
+    _ =
+      try await feature
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .sinkDrop()
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, testFilter)
   }
 
-  func test_filteredResourcesListPublisher_updatesData_whenFilterChanges() {
-    features.use(accountSession)
+  func test_filteredResourcesListPublisher_updatesData_whenFilterChanges() async throws {
+    await features.use(accountSession)
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
-      Just(resources)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      resources
     )
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
-    var result: Array<ListViewResource>?
-    feature
+    var result: Array<ListViewResource>? =
+      try? await feature
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .sink { resources in
-        result = resources
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     resources = testResourcesAlternative
 
     filterSubject.send(.init(sorting: .nameAlphabetically))
 
+    result =
+      try? await feature
+      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
+      .asAsyncValue()
+
     XCTAssertEqual(result, testResourcesAlternative)
   }
 
   func test_filteredResourcesListPublisher_publishesResourcesAfterUpdate() async throws {
-    features.use(accountSession)
+    await features.use(accountSession)
     var resources: Array<ListViewResource> = testResources
     accountDatabase.fetchListViewResources.execute = always(
-      Just(resources)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      resources
     )
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -388,48 +357,40 @@ final class ResourceTests: TestCase {
     XCTAssertEqual(result, testResourcesAlternative)
   }
 
-  func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() {
-    features.use(accountSession)
-    accountDatabase.fetchListViewResources.execute = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+  func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() async throws {
+    await features.use(accountSession)
+    accountDatabase.fetchListViewResources.execute = alwaysThrow(
+      MockIssue.error()
     )
-    features.use(accountDatabase)
-    features.use(networkClient)
+    await features.use(accountDatabase)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
-    var result: Array<ListViewResource>?
-    feature
+    let result: Array<ListViewResource>? =
+      try? await feature
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-      .sink { resources in
-        result = resources
-      }
-      .store(in: cancellables)
+      .asAsyncValue()
 
     XCTAssertEqual(result, [])
   }
 
   func test_delete_triggersRefreshIfNeeded_whenDeletion_succeeds() async throws {
     var result: Void?
-    features.use(accountSession)
-    features.use(accountDatabase)
+    await features.use(accountSession)
+    await features.use(accountDatabase)
     networkClient.deleteResourceRequest.execute = { _ in
-      return Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return Void()
     }
     networkClient.resourcesRequest.execute = { _ in
       result = Void()
-      return Just(.init(header: .mock(), body: .init()))
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+      return .init(header: .mock(), body: .init())
     }
-    features.use(networkClient)
+    await features.use(networkClient)
 
-    let feature: Resources = testInstance()
+    let feature: Resources = try await testInstance()
 
     try await feature
       .deleteResource(.init(rawValue: "test"))

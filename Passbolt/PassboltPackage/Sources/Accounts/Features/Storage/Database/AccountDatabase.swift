@@ -43,7 +43,7 @@ public struct AccountDatabase {
   public var fetchListViewFoldersOperation: FetchListViewFoldersOperation
   public var fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation
 
-  public var featureUnload: () -> Bool
+  public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
 extension AccountDatabase {
@@ -60,124 +60,77 @@ extension AccountDatabase: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> AccountDatabase {
+  ) async throws -> AccountDatabase {
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
 
-    let diagnostics: Diagnostics = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let accountsDataStore: AccountsDataStore = features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let accountsDataStore: AccountsDataStore = try await features.instance()
 
-    let databaseConnectionSubject: CurrentValueSubject<DatabaseConnection?, Error> = .init(nil)
+    // always access with StorageAccessActor
+    var currentDatabaseConnection: DatabaseConnection? = nil
 
-    accountSession
-      .statePublisher()
-      .compactMap { sessionState -> AnyPublisher<DatabaseConnection?, Never>? in
-        switch sessionState {
-        case let .authorized(account), let .authorizedMFARequired(account, _):
-          if databaseConnectionSubject.value == nil {
-            let databaseKey: String
-            if let key: String = accountSession.databaseKey() {
-              databaseKey = key
-            }
-            else {
-              diagnostics.diagnosticLog(
-                "Failed to open database for account due to invalid or missing database key"
-              )
-              // can't open without key
-              return Just(nil)
-                .eraseToAnyPublisher()
-            }
-
-            // create new database connection
-            switch accountsDataStore.accountDatabaseConnection(account.localID, databaseKey) {
-            case let .success(connection):
-              return Just((accountID: account.localID, connection: connection))
-                .eraseToAnyPublisher()
-            case let .failure(error)
-            where (error.legacyBridge as? DatabaseIssue)?.underlyingError is DatabaseMigrationFailure:
-              diagnostics.diagnosticLog("Database migration failed, deleting...\n")
-              return Just(nil)
-                .eraseToAnyPublisher()
-            case let .failure(error):
-              diagnostics.debugLog(
-                "Failed to open database for account: \(account.localID)\n"
-                  + error.description
-              )
-              return Just(nil)
-                .eraseToAnyPublisher()
-            }
-          }
-          else if databaseConnectionSubject.value?.accountID != account.localID {
-            assertionFailure("AccountDatabase has to be unloaded when switching account")
-            return Just(nil)  // close current database connection as fallback
-              .eraseToAnyPublisher()
-          }
-          else {
-            return nil  // keep current database connection
-          }
-
-        case .authorizationRequired:
-          // drop connection only when going to background
-          return
-            appLifeCycle
-            .lifeCyclePublisher()
-            .filter { $0 == .didEnterBackground }
-            .map { _ -> DatabaseConnection? in nil }
-            .eraseToAnyPublisher()
-
-        case .none:
-          return Just(nil)
-            .eraseToAnyPublisher()
+    @StorageAccessActor func currentSQLiteConnection() async throws -> SQLiteConnection {
+      switch await accountSession.currentState() {
+      case let .authorized(account), let .authorizedMFARequired(account, _):
+        if let currentConnection = currentDatabaseConnection, currentConnection.accountID == account.localID {
+          return currentConnection.connection
         }
+        else {
+          let databaseKey: String = try await accountSession.databaseKey()
+          let connection: SQLiteConnection = try accountsDataStore.accountDatabaseConnection(
+            account.localID,
+            databaseKey
+          )
+          currentDatabaseConnection =
+            (
+              accountID: account.localID,
+              connection: connection
+            )
+          return connection
+        }
+
+      case let .authorizationRequired(account):
+        throw
+          SessionAuthorizationRequired
+          .error(account: account)
+
+      case .none:
+        currentDatabaseConnection = .none
+        throw
+          SessionMissing
+          .error()
       }
-      .switchToLatest()
-      .sink { connection in
-        // previous connection is automatically closed when dealocating
-        databaseConnectionSubject.send(connection)
+    }
+
+    appLifeCycle
+      .lifeCyclePublisher()
+      .filter { $0 == .didEnterBackground }
+      .sink { _ in
+        cancellables.executeOnStorageAccessActor {
+          currentDatabaseConnection = .none
+        }
       }
       .store(in: cancellables)
 
-    let currentConnectionPublisher: AnyPublisher<SQLiteConnection, Error> =
-      databaseConnectionSubject
-      .map { connection -> AnyPublisher<SQLiteConnection, Error> in
-        if let connection: DatabaseConnection = connection {
-          return Just(connection.connection)
-            .eraseErrorType()
-            .eraseToAnyPublisher()
-        }
-        else {
-          return Fail<SQLiteConnection, Error>(
-            error: DatabaseIssue.error(
-              underlyingError:
-                DatabaseConnectionClosed
-                .error("There is no valid database connection")
-            )
-          )
-          .eraseToAnyPublisher()
-        }
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
-
-    func featureUnload() -> Bool {
+    @FeaturesActor func featureUnload() async throws {
       // previous connection is automatically closed when dealocating
-      databaseConnectionSubject.send(completion: .finished)
-      return true
+      currentDatabaseConnection = nil
     }
 
     return Self(
-      fetchLastUpdate: FetchLastUpdateOperation.using(currentConnectionPublisher),
-      saveLastUpdate: SaveLastUpdateOperation.using(currentConnectionPublisher),
-      storeResources: StoreResourcesOperation.using(currentConnectionPublisher),
-      storeResourcesTypes: StoreResourcesTypesOperation.using(currentConnectionPublisher),
-      fetchListViewResources: FetchListViewResourcesOperation.using(currentConnectionPublisher),
-      fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentConnectionPublisher),
-      fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentConnectionPublisher),
-      fetchEditViewResourceOperation: FetchEditViewResourcesOperation.using(currentConnectionPublisher),
-      storeFolders: StoreFoldersOperation.using(currentConnectionPublisher),
-      fetchFolder: FetchFolderOperation.using(currentConnectionPublisher),
-      fetchListViewFoldersOperation: FetchListViewFoldersOperation.using(currentConnectionPublisher),
-      fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation.using(currentConnectionPublisher),
+      fetchLastUpdate: FetchLastUpdateOperation.using(currentSQLiteConnection),
+      saveLastUpdate: SaveLastUpdateOperation.using(currentSQLiteConnection),
+      storeResources: StoreResourcesOperation.using(currentSQLiteConnection),
+      storeResourcesTypes: StoreResourcesTypesOperation.using(currentSQLiteConnection),
+      fetchListViewResources: FetchListViewResourcesOperation.using(currentSQLiteConnection),
+      fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentSQLiteConnection),
+      fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentSQLiteConnection),
+      fetchEditViewResourceOperation: FetchEditViewResourcesOperation.using(currentSQLiteConnection),
+      storeFolders: StoreFoldersOperation.using(currentSQLiteConnection),
+      fetchFolder: FetchFolderOperation.using(currentSQLiteConnection),
+      fetchListViewFoldersOperation: FetchListViewFoldersOperation.using(currentSQLiteConnection),
+      fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation.using(currentSQLiteConnection),
       featureUnload: featureUnload
     )
   }

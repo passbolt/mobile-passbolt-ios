@@ -42,7 +42,9 @@ internal final class TransferSignInExitConfirmationViewController:
         .action(
           .localized(key: "transfer.account.exit.confirmation.confirm.button.title"),
           style: .destructive,
-          handler: controller.exit
+          handler: { [weak self] in
+            self?.controller.exit()
+          }
         )
       )
     }
@@ -51,7 +53,7 @@ internal final class TransferSignInExitConfirmationViewController:
 
 internal struct TransferSignInExitConfirmationController {
 
-  internal var exit: () -> Void
+  internal var exit: @MainActor () -> Void
 }
 
 extension TransferSignInExitConfirmationController: UIController {
@@ -62,10 +64,16 @@ extension TransferSignInExitConfirmationController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountTransfer: AccountTransfer = features.instance()
+  ) async throws -> Self {
+    let accountTransfer: AccountTransfer = try await features.instance()
+
+    func exit() {
+      cancellables.executeOnStorageAccessActor {
+        accountTransfer.cancelTransfer()
+      }
+    }
     return Self(
-      exit: accountTransfer.cancelTransfer
+      exit: exit
     )
   }
 }

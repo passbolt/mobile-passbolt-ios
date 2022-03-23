@@ -79,10 +79,11 @@ internal final class CodeScanningSuccessViewController: PlainViewController, UIC
   private func setupSubscriptions() {
     controller
       .signInPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink(
         receiveCompletion: { [weak self] _ in
-          self?.push(TransferSignInViewController.self)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            await self?.push(TransferSignInViewController.self)
+          }
         },
         receiveValue: { _ in }
       )

@@ -28,10 +28,10 @@ import UIComponents
 
 public struct ServerFingerprintController {
 
-  public var formattedFingerprint: () -> Fingerprint
-  public var saveFingerprintPublisher: () -> AnyPublisher<Void, TheErrorLegacy>
-  public var toggleFingerprintMarkedAsChecked: () -> Void
-  public var fingerprintMarkedAsCheckedPublisher: () -> AnyPublisher<Bool, Never>
+  public var formattedFingerprint: @MainActor () -> Fingerprint
+  public var saveFingerprintPublisher: @MainActor () -> AnyPublisher<Void, Error>
+  public var toggleFingerprintMarkedAsChecked: @MainActor () -> Void
+  public var fingerprintMarkedAsCheckedPublisher: @MainActor () -> AnyPublisher<Bool, Never>
 }
 
 extension ServerFingerprintController: UIController {
@@ -45,9 +45,9 @@ extension ServerFingerprintController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> ServerFingerprintController {
+  ) async throws -> ServerFingerprintController {
 
-    let fingerprintStorage: FingerprintStorage = features.instance()
+    let fingerprintStorage: FingerprintStorage = try await features.instance()
 
     let fingerprintMarkedAsCheckedSubject: CurrentValueSubject<Bool, Never> = .init(false)
 
@@ -55,19 +55,20 @@ extension ServerFingerprintController: UIController {
       .init(rawValue: context.fingerprint.rawValue.splitIntoGroups(of: 4).joined(separator: " "))
     }
 
-    func saveFingerprintPublisher() -> AnyPublisher<Void, TheErrorLegacy> {
+    func saveFingerprintPublisher() -> AnyPublisher<Void, Error> {
       guard fingerprintMarkedAsCheckedSubject.value
       else {
         assertionFailure("Invalid state. Save fingerprint should be enabled")
-        return Fail(error: .internalInconsistency())
+        return Fail(error: InternalInconsistency.error())
           .eraseToAnyPublisher()
       }
 
-      return fingerprintStorage.storeServerFingerprint(
-        context.accountID,
-        context.fingerprint
-      )
-      .asPublisher
+      return cancellables.executeOnMainActorWithPublisher {
+        try await fingerprintStorage.storeServerFingerprint(
+          context.accountID,
+          context.fingerprint
+        ).get()
+      }
     }
 
     func toggleFingerprintChecked() {

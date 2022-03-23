@@ -44,10 +44,10 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
     fingerprintStorage = nil
   }
 
-  func test_fingerprint_isCorrectlyFormatted() {
-    features.use(fingerprintStorage)
+  func test_fingerprint_isCorrectlyFormatted() async throws {
+    await features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testController(
+    let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -56,10 +56,10 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "E8FE 388E 3858 41B3 82B6 74AD B02D ADCD 9565 E1B8")
   }
 
-  func test_fingerprintCheckedPublisher_initially_publishes_false() {
-    features.use(fingerprintStorage)
+  func test_fingerprintCheckedPublisher_initially_publishes_false() async throws {
+    await features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testController(
+    let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -74,10 +74,10 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
     XCTAssertFalse(result)
   }
 
-  func test_fingerprintCheckedPublisher_publishes_whenToggled() {
-    features.use(fingerprintStorage)
+  func test_fingerprintCheckedPublisher_publishes_whenToggled() async throws {
+    await features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testController(
+    let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -94,42 +94,37 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
     XCTAssertTrue(result)
   }
 
-  func test_saveFingerprintPublisher_publishes_whenSaveFingerprintEnabled_andTriggered() {
+  func test_saveFingerprintPublisher_publishes_whenSaveFingerprintEnabled_andTriggered() async throws {
     var storedFingerprint: Fingerprint?
     fingerprintStorage.storeServerFingerprint = { _, fingerprint in
       storedFingerprint = fingerprint
       return .success(())
     }
-    features.use(fingerprintStorage)
+    await features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testController(
+    let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
-    var result: Void!
-
     controller.toggleFingerprintMarkedAsChecked()
-
-    controller.saveFingerprintPublisher()
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { result = Void() }
-      )
-      .store(in: cancellables)
+    let result: Void? =
+      try? await controller
+      .saveFingerprintPublisher()
+      .asAsyncValue()
 
     XCTAssertNotNil(result)
     XCTAssertEqual(storedFingerprint, validFingerprint)
   }
 
-  func test_saveFingerprintPublisher_doesNotPublish_whenSaveFingerprintDisabled_andTriggered() {
+  func test_saveFingerprintPublisher_doesNotPublish_whenSaveFingerprintDisabled_andTriggered() async throws {
     XCTExpectFailure("TODO: Implement assertionFailure mocking via Environment")
 
     return XCTFail()
 
     fingerprintStorage.storeServerFingerprint = always(.success(()))
-    features.use(fingerprintStorage)
+    await features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testController(
+    let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
@@ -145,28 +140,25 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
     XCTAssertNil(result)
   }
 
-  func test_saveFingerprintPublisher_publishesError_whenSaveFingerprintFails() {
-    fingerprintStorage.storeServerFingerprint = always(.failure(.testError()))
-    features.use(fingerprintStorage)
+  func test_saveFingerprintPublisher_publishesError_whenSaveFingerprintFails() async throws {
+    fingerprintStorage.storeServerFingerprint = always(.failure(MockIssue.error()))
+    await features.use(fingerprintStorage)
 
-    let controller: ServerFingerprintController = testController(
+    let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
-    var result: TheErrorLegacy!
-
     controller.toggleFingerprintMarkedAsChecked()
 
-    controller.saveFingerprintPublisher()
-      .sink(
-        receiveCompletion: { completion in
-          guard case let .failure(error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+    var result: Error?
+    do {
+      try await controller.saveFingerprintPublisher()
+        .asAsyncValue()
+      XCTFail()
+    }
+    catch {
+      result = error
+    }
 
     XCTAssertNotNil(result)
   }

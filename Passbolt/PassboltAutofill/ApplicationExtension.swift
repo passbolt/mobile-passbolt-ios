@@ -35,7 +35,6 @@ internal struct ApplicationExtension {
   internal let ui: UI
   private let features: FeatureFactory
   private let requestedServicesSubject: CurrentValueSubject<Array<AutofillExtensionContext.ServiceIdentifier>, Never>
-    = .init(Array())
   
   internal init(
     rootViewController: ASCredentialProviderViewController,
@@ -61,20 +60,24 @@ internal struct ApplicationExtension {
       AppMeta.live
     )
   ) {
+    let requestedServicesSubject: CurrentValueSubject<Array<AutofillExtensionContext.ServiceIdentifier>, Never>
+    = .init(Array())
     let features: FeatureFactory = .init(environment: environment)
     #if DEBUG
-    features.environment.use(
-      features
-        .environment
-        .networking
-        .withLogs(using: features.instance())
-    )
+    Task { @FeaturesActor in
+      try await features.environment.use(
+        features
+          .environment
+          .networking
+          .withLogs(using: features.instance())
+      )
+    }
     #endif
-
+    Task { @FeaturesActor in
     features.use(
       AutofillExtensionContext(
         completeWithCredential: { credential in
-          DispatchQueue.main.async {
+          Task { @MainActor in
             rootViewController
               .extensionContext
               .completeRequest(
@@ -87,14 +90,14 @@ internal struct ApplicationExtension {
           }
         },
         completeWithError: { error in
-          DispatchQueue.main.async {
+          Task { @MainActor in
             rootViewController
               .extensionContext
               .cancelRequest(withError: error)
           }
         },
         completeExtensionConfiguration: {
-          DispatchQueue.main.async {
+          Task { @MainActor in
             rootViewController
               .extensionContext
               .completeExtensionConfigurationRequest()
@@ -103,19 +106,30 @@ internal struct ApplicationExtension {
         requestedServiceIdentifiersPublisher: requestedServicesSubject.eraseToAnyPublisher
       )
     )
+  }
     
     self.ui = UI(
       rootViewController: rootViewController,
       features: features
     )
     self.features = features
+    self.requestedServicesSubject = requestedServicesSubject
   }
 }
 
 extension ApplicationExtension {
   
   internal func initialize() {
-    features.instance(of: Initialization.self).initialize()
+    Task { @FeaturesActor in
+      do {
+        try await features.instance(of: Initialization.self).initialize()
+      }
+      catch {
+        error
+          .asTheError()
+          .asFatalError()
+      }
+    }
   }
   
   internal func requestSuggestions(

@@ -25,9 +25,9 @@ import UIComponents
 
 public struct HelpMenuController {
 
-  public var actions: () -> Array<Action>
-  public var logsPresentationPublisher: () -> AnyPublisher<Void, Never>
-  public var websiteHelpPresentationPublisher: () -> AnyPublisher<Void, Never>
+  public var actions: @MainActor () -> Array<Action>
+  public var logsPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  public var websiteHelpPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
 }
 
 extension HelpMenuController: UIController {
@@ -58,8 +58,8 @@ extension HelpMenuController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let linkOpener: LinkOpener = features.instance()
+  ) async throws -> Self {
+    let linkOpener: LinkOpener = try await features.instance()
 
     let logsPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let websiteHelpPresentationSubject: PassthroughSubject<Void, Never> = .init()

@@ -32,12 +32,15 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class HomePresentationTests: TestCase {
 
-  func test_currentPresentationModePublisher_publishesPlainResourcesList_initially() {
-    features.usePlaceholder(for: FeatureConfig.self)
-    let feature: HomePresentation = testInstance()
+  func test_currentPresentationModePublisher_publishesPlainResourcesList_initially() async throws {
+    await features.patch(
+      \FeatureConfig.config,
+      with: always(FeatureFlags.Folders.disabled)
+    )
+    let feature: HomePresentation = try await testInstance()
 
     var result: HomePresentationMode?
-    feature
+    await feature
       .currentPresentationModePublisher()
       .sink { mode in
         result = mode

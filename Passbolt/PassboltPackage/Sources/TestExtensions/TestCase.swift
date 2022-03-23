@@ -33,34 +33,58 @@ open class TestCase: XCTestCase {
 
   public var features: FeatureFactory!
   public var cancellables: Cancellables!
-  public var environment: AppEnvironment {
+  @FeaturesActor public var environment: AppEnvironment {
     get { features.environment }
     set { features.environment = newValue }
   }
 
-  override open class func setUp() {
+  final override public class func setUp() {
     super.setUp()
-    FeatureFactory.autoLoadFeatures = false
+    FeaturesActor.execute {
+      FeatureFactory.autoLoadFeatures = false
+    }
   }
 
-  override open func setUp() {
-    super.setUp()
-    features = .init(environment: testEnvironment())
-    features.use(Diagnostics.disabled)
-    features.environment.asyncExecutors = .immediate
-    cancellables = .init()
+  public final override func setUp() {
+    /* NOP - overrding to ignore calls from default setUp methods calling order */
   }
 
-  override open func tearDown() {
-    features = nil
-    cancellables = nil
-    super.tearDown()
+  public final override func setUp() async throws {
+    // casting to specify correct method to be called,
+    // by default async one is selected by the compiler
+    (super.setUp as () -> Void)()
+    try await super.setUp()
+    try await featuresActorSetUp()
+  }
+
+  @FeaturesActor open func featuresActorSetUp() async throws {
+    self.features = .init(environment: testEnvironment())
+    self.features.use(Diagnostics.disabled)
+    self.features.environment.asyncExecutors = .immediate
+    self.cancellables = .init()
+  }
+
+  public final override func tearDown() {
+    /* NOP - overrding to ignore calls from default tearDown methods calling order */
+  }
+
+  public final override func tearDown() async throws {
+    try await featuresActorTearDown()
+    try await super.tearDown()
+    // casting to specify correct method to be called,
+    // by default async one is selected by the compiler
+    (super.tearDown as () -> Void)()
+  }
+
+  @FeaturesActor open func featuresActorTearDown() async throws {
+    self.features = nil
+    self.cancellables = nil
   }
 
   public final func testInstance<F: Feature>(
     _ type: F.Type = F.self
-  ) -> F {
-    F.load(
+  ) async throws -> F {
+    try await F.load(
       in: environment,
       using: features,
       cancellables: cancellables

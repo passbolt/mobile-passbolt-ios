@@ -26,9 +26,9 @@ import UIComponents
 
 internal struct YubikeyController {
 
-  internal var toggleRememberDevice: () -> Void
-  internal var rememberDevicePublisher: () -> AnyPublisher<Bool, Never>
-  internal var authorizeUsingOTP: () -> AnyPublisher<Void, TheErrorLegacy>
+  internal var toggleRememberDevice: @MainActor () -> Void
+  internal var rememberDevicePublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var authorizeUsingOTP: @MainActor () -> AnyPublisher<Void, Error>
 }
 
 extension YubikeyController: UIController {
@@ -39,8 +39,8 @@ extension YubikeyController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> YubikeyController {
-    let mfa: MFA = features.instance()
+  ) async throws -> YubikeyController {
+    let mfa: MFA = try await features.instance()
     let rememberDeviceSubject: CurrentValueSubject<Bool, Never> = .init(true)
 
     func toggleRememberDevice() {
@@ -51,9 +51,13 @@ extension YubikeyController: UIController {
       rememberDeviceSubject.removeDuplicates().eraseToAnyPublisher()
     }
 
-    func authorizeUsingOTP() -> AnyPublisher<Void, TheErrorLegacy> {
-      mfa.authorizeUsingYubikey(rememberDeviceSubject.value)
-        .eraseToAnyPublisher()
+    func authorizeUsingOTP() -> AnyPublisher<Void, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher {
+        mfa.authorizeUsingYubikey(rememberDeviceSubject.value)
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     return Self(

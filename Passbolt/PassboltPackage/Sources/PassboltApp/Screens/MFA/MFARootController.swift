@@ -28,10 +28,10 @@ import UIComponents
 
 internal struct MFARootController {
 
-  internal var mfaProviderPublisher: () -> AnyPublisher<MFAProvider, TheErrorLegacy>
-  internal var navigateToOtherMFA: () -> Void
-  internal var closeSession: () -> Void
-  internal var isProviderSwitchingAvailable: () -> Bool
+  internal var mfaProviderPublisher: @MainActor () -> AnyPublisher<MFAProvider, Error>
+  internal var navigateToOtherMFA: @MainActor () -> Void
+  internal var closeSession: @MainActor () -> Void
+  internal var isProviderSwitchingAvailable: @MainActor () -> Bool
 }
 
 extension MFARootController: UIController {
@@ -42,12 +42,11 @@ extension MFARootController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> MFARootController {
+  ) async throws -> MFARootController {
+    let accountSession: AccountSession = try await features.instance()
+    let mfaProviderSubject: CurrentValueSubject<MFAProvider?, Error> = .init(context.first)
 
-    let accountSession: AccountSession = features.instance()
-    let mfaProviderSubject: CurrentValueSubject<MFAProvider?, TheErrorLegacy> = .init(context.first)
-
-    func mfaProviderPublisher() -> AnyPublisher<MFAProvider, TheErrorLegacy> {
+    func mfaProviderPublisher() -> AnyPublisher<MFAProvider, Error> {
       mfaProviderSubject
         .handleEvents(receiveOutput: { provider in
           if provider == nil {
@@ -78,7 +77,9 @@ extension MFARootController: UIController {
     }
 
     func closeSession() {
-      accountSession.close()
+      cancellables.executeOnAccountSessionActor {
+        await accountSession.close()
+      }
     }
 
     func isProviderSwitchingAvailable() -> Bool {

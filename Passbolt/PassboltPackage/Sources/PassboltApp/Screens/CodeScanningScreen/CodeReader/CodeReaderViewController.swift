@@ -83,21 +83,25 @@ internal final class CodeReaderViewController: PlainViewController, UIComponent 
   private func setupSubscriptions() {}
 
   internal func activate() {
-    if let cameraSession: AVCaptureSession = cameraSession {
-      cameraSession.startRunning()
-      present(
-        snackbar: Mutation<UICommons.PlainView>
-          .snackBarMessage(
-            .localized("code.scanning.begin"),
-            backgroundColor: .background,
-            textColor: .primaryText
-          )
-          .instantiate(),
-        hideAfter: 2
-      )
-    }
-    else {
-      present(CodeScanningCameraInaccessibleViewController.self)
+    self.cancellables.executeOnMainActor { [weak self] in
+      if let cameraSession: AVCaptureSession = self?.cameraSession {
+        cameraSession.startRunning()
+        self?.present(
+          snackbar: Mutation<UICommons.PlainView>
+            .snackBarMessage(
+              .localized("code.scanning.begin"),
+              backgroundColor: .background,
+              textColor: .primaryText
+            )
+            .instantiate(),
+          hideAfter: 2
+        )
+      }
+      else {
+        await self?.present(
+          CodeScanningCameraInaccessibleViewController.self
+        )
+      }
     }
   }
 
@@ -158,42 +162,32 @@ extension CodeReaderViewController: AVCaptureMetadataOutputObjectsDelegate {
           }
         ),
         defaultHandler: { [weak self] error in
-          if let theError: TheError = error.legacyBridge {
-            if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-            }
-            else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-            }
-            else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
-              self?.present(
-                ServerNotReachableAlertViewController.self,
-                in: serverError.serverURL
-              )
-            }
-            else {
-              self?.presentErrorSnackbar(theError.displayableMessage)
-            }
-          }
-          else {
-            if let displayable: DisplayableString = error.displayableString {
-              self?.presentErrorSnackbar(displayable)
+          self?.cancellables.executeOnMainActor { [weak self] in
+            if let theError: TheError = error.asLegacy.legacyBridge {
+              if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+              else if let serverError: ServerConnectionIssue = theError as? ServerConnectionIssue {
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+              else if let serverError: ServerResponseTimeout = theError as? ServerResponseTimeout {
+                await self?.present(
+                  ServerNotReachableAlertViewController.self,
+                  in: serverError.serverURL
+                )
+              }
+              else {
+                self?.presentErrorSnackbar(theError.displayableMessage)
+              }
             }
             else {
-              self?.present(
-                snackbar: Mutation<UICommons.PlainView>
-                  .snackBarErrorMessage(
-                    .localized(key: .genericErrorRetry)
-                  )
-                  .instantiate(),
-                hideAfter: 3
-              )
+              self?.presentErrorSnackbar(error.displayableMessage)
             }
           }
         }

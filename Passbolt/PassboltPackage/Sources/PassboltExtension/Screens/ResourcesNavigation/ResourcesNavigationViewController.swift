@@ -53,13 +53,11 @@ internal final class ResourcesNavigationViewController: NavigationViewController
   }
 
   internal func setup() {
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
+    self.cancellables.executeOnMainActor { [weak self] in
+      guard let self = self else { return }
+      await self.replaceNavigationRoot(
+        with: ResourcesFilterViewController.self
+      )
     }
-
-    setViewControllers(
-      [components.instance(of: ResourcesFilterViewController.self)],
-      animated: false
-    )
   }
 }

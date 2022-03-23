@@ -39,10 +39,10 @@ extension AuthorizationNavigationController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accounts: Accounts = features.instance()
+  ) async throws -> Self {
+    let accounts: Accounts = try await features.instance()
 
-    let storedAccounts: Array<Account> = accounts.storedAccounts()
+    let storedAccounts: Array<Account> = await accounts.storedAccounts()
 
     if let account = context.account, storedAccounts.contains(account) {
       return Self(

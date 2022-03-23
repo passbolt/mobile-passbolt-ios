@@ -30,17 +30,20 @@ public struct Folder {
   public let id: ID
   public var name: String
   public var permission: Permission
+  public var shared: Bool
   public var parentFolderID: ID?
 
   public init(
     id: ID,
     name: String,
     permission: Permission,
+    shared: Bool,
     parentFolderID: ID?
   ) {
     self.id = id
     self.name = name
     self.permission = permission
+    self.shared = shared
     self.parentFolderID = parentFolderID
   }
 }

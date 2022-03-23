@@ -52,9 +52,6 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
   }
 
   internal func setup() {
-    mut(navigationBarView) {
-      .primaryNavigationStyle()
-    }
     mut(tabBarItem) {
       .combined(
         .title(.localized(key: "tab.home")),
@@ -67,46 +64,47 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
   private func setupSubscriptions() {
     self.controller
       .currentHomePresentationModePublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] mode in
-        guard let self = self else { return }
-        switch mode {
-        case .plainResourcesList:
-          self.replaceNavigationRoot(
-            with: PlainResourcesListViewController.self,
-            animated: false
-          )
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          switch mode {
+          case .plainResourcesList:
+            await self.replaceNavigationRoot(
+              with: PlainResourcesListViewController.self,
+              animated: false
+            )
 
-        case .favoriteResourcesList:
-          self.replaceNavigationRoot(
-            with: FavoriteResourcesListViewController.self,
-            animated: false
-          )
+          case .favoriteResourcesList:
+            await self.replaceNavigationRoot(
+              with: FavoriteResourcesListViewController.self,
+              animated: false
+            )
 
-        case .modifiedResourcesList:
-          self.replaceNavigationRoot(
-            with: ModifiedResourcesListViewController.self,
-            animated: false
-          )
+          case .modifiedResourcesList:
+            await self.replaceNavigationRoot(
+              with: ModifiedResourcesListViewController.self,
+              animated: false
+            )
 
-        case .sharedResourcesList:
-          self.replaceNavigationRoot(
-            with: SharedResourcesListViewController.self,
-            animated: false
-          )
+          case .sharedResourcesList:
+            await self.replaceNavigationRoot(
+              with: SharedResourcesListViewController.self,
+              animated: false
+            )
 
-        case .ownedResourcesList:
-          self.replaceNavigationRoot(
-            with: OwnedResourcesListViewController.self,
-            animated: false
-          )
+          case .ownedResourcesList:
+            await self.replaceNavigationRoot(
+              with: OwnedResourcesListViewController.self,
+              animated: false
+            )
 
-        case .foldersExplorer:
-          self.replaceNavigationRoot(
-            with: FoldersExplorerView.self,
-            in: nil,  // root folder
-            animated: false
-          )
+          case .foldersExplorer:
+            await self.replaceNavigationRoot(
+              with: FoldersExplorerView.self,
+              in: nil,  // root folder
+              animated: false
+            )
+          }
         }
       }
       .store(in: cancellables)

@@ -21,11 +21,12 @@
 // @since         v1.0
 //
 
+@MainActor
 public struct ComponentHostingController<Context>: UIController {
 
   internal let context: Context
 
-  public static func instance(
+  @MainActor public static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
@@ -33,7 +34,7 @@ public struct ComponentHostingController<Context>: UIController {
     Self(context: context)
   }
 
-  internal func componentNavigation(
+  @MainActor internal func componentNavigation(
     using componentViewController: AnyUIComponent
   ) -> ComponentNavigation<Context> {
     ComponentNavigation(

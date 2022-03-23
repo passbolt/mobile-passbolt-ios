@@ -69,27 +69,25 @@ public final class HelpMenuViewController: PlainViewController, UIComponent {
   private func setupSubscriptions() {
     controller
       .logsPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        if let parent: AnyUIComponent = self?.presentingViewController as? AnyUIComponent {
-          self?.dismiss(
-            Self.self,
-            completion: {
-              parent.present(PlainNavigationViewController<LogsViewerViewController>.self)
-            }
-          )
-        }
-        else {
-          self?.present(PlainNavigationViewController<LogsViewerViewController>.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          if let parent: AnyUIComponent = self?.presentingViewController as? AnyUIComponent {
+            await self?.dismiss(Self.self)
+            await parent.present(PlainNavigationViewController<LogsViewerViewController>.self)
+          }
+          else {
+            await self?.present(PlainNavigationViewController<LogsViewerViewController>.self)
+          }
         }
       }
       .store(in: cancellables)
 
     controller
       .websiteHelpPresentationPublisher()
-      .receive(on: RunLoop.main)
       .sink { [weak self] in
-        self?.dismiss(Self.self)
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(Self.self)
+        }
       }
       .store(in: cancellables)
   }

@@ -27,8 +27,8 @@ import UIComponents
 
 internal struct MainTabsController {
 
-  internal var setActiveTab: (MainTab) -> Void
-  internal var activeTabPublisher: () -> AnyPublisher<MainTab, Never>
+  internal var setActiveTab: @MainActor (MainTab) -> Void
+  internal var activeTabPublisher: @MainActor () -> AnyPublisher<MainTab, Never>
 }
 
 extension MainTabsController: UIController {

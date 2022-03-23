@@ -81,12 +81,7 @@ internal final class YubikeyViewController: PlainViewController, UIComponent {
             guard case let .failure(error) = completion
             else { return }
 
-            if let message: DisplayableString = error.displayableString {
-              self?.parent?.presentErrorSnackbar(message)
-            }
-            else {
-              self?.parent?.presentErrorSnackbar()
-            }
+            self?.parent?.presentErrorSnackbar(error.displayableMessage)
           })
           .replaceError(with: ())
           .eraseToAnyPublisher()

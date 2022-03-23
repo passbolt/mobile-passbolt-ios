@@ -28,7 +28,7 @@ public struct ServerPGPFingeprintInvalid: TheError {
   public static func error(
     _ message: StaticString = "ServerPGPFingeprintInvalid",
     account: Account,
-    fingerprint: Fingerprint,
+    fingerprint: Fingerprint?,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
@@ -49,5 +49,5 @@ public struct ServerPGPFingeprintInvalid: TheError {
   public var context: DiagnosticsContext
   public var displayableMessage: DisplayableString
   public var account: Account
-  public var fingerprint: Fingerprint
+  public var fingerprint: Fingerprint?
 }

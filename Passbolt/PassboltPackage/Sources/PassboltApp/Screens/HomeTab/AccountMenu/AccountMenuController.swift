@@ -29,19 +29,19 @@ internal struct AccountMenuController {
 
   internal let currentAccountWithProfile: AccountWithProfile
   internal let navigation: ComponentNavigation<Void>
-  internal var currentAcountAvatarImagePublisher: () -> AnyPublisher<Data?, Never>
+  internal var currentAcountAvatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
   internal var accountsListPublisher:
-    () -> AnyPublisher<
+    @MainActor () -> AnyPublisher<
       Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)>, Never
     >
-  internal var dismissPublisher: () -> AnyPublisher<Void, Never>
-  internal var presentAccountDetails: () -> Void
-  internal var accountDetailsPresentationPublisher: () -> AnyPublisher<AccountWithProfile, Never>
-  internal var signOut: () -> Void
-  internal var presentAccountSwitch: (Account) -> Void
-  internal var accountSwitchPresentationPublisher: () -> AnyPublisher<Account, Never>
-  internal var presentManageAccounts: () -> Void
-  internal var manageAccountsPresentationPublisher: () -> AnyPublisher<Void, Never>
+  internal var dismissPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var presentAccountDetails: @MainActor () -> Void
+  internal var accountDetailsPresentationPublisher: @MainActor () -> AnyPublisher<AccountWithProfile, Never>
+  internal var signOut: @MainActor () -> Void
+  internal var presentAccountSwitch: @MainActor (Account) -> Void
+  internal var accountSwitchPresentationPublisher: @MainActor () -> AnyPublisher<Account, Never>
+  internal var presentManageAccounts: @MainActor () -> Void
+  internal var manageAccountsPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
 }
 
 extension AccountMenuController: UIController {
@@ -55,28 +55,39 @@ extension AccountMenuController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accounts: Accounts = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let networkClient: NetworkClient = features.instance()
-    let accountSettings: AccountSettings = features.instance()
+  ) async throws -> Self {
+    let accounts: Accounts = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
+
+    var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
+    let filteredAccounts =
+      await accounts
+      .storedAccounts()
+      .filter { $0 != context.accountWithProfile.account }
+    for account in filteredAccounts {
+      try await initialAccountsWithProfiles.append(accountSettings.accountWithProfile(account))
+    }
 
     let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
-      accounts
-        .storedAccounts()
-        .filter { $0 != context.accountWithProfile.account }
-        .compactMap(accountSettings.accountWithProfile)
+      initialAccountsWithProfiles
     )
     accountSettings
       .updatedAccountIDsPublisher()
       .sink { updatedAccountID in
-        storedAccountsWithProfilesSubject
-          .send(
+        cancellables.executeOnStorageAccessActor {
+          var updated: Array<AccountWithProfile> = .init()
+          let filteredAccounts =
             accounts
-              .storedAccounts()
-              .filter { $0 != context.accountWithProfile.account }
-              .compactMap(accountSettings.accountWithProfile)
-          )
+            .storedAccounts()
+            .filter { $0 != context.accountWithProfile.account }
+          for account in filteredAccounts {
+            try updated.append(accountSettings.accountWithProfile(account))
+          }
+          storedAccountsWithProfilesSubject
+            .send(updated)
+        }
       }
       .store(in: cancellables)
 
@@ -153,7 +164,9 @@ extension AccountMenuController: UIController {
     }
 
     func signOut() {
-      accountSession.close()
+      cancellables.executeOnStorageAccessActor {
+        await accountSession.close()
+      }
     }
 
     let accountSwitchPresentationSubject: PassthroughSubject<Account, Never> = .init()

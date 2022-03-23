@@ -42,7 +42,7 @@ extension AccountTransferAccount {
   internal static func from(
     _ parts: Array<AccountTransferScanningPart>,
     verificationHash: String
-  ) -> Result<Self, TheErrorLegacy> {
+  ) -> Result<Self, Error> {
     let joinedDataParts: Data = Data(parts.map(\.payload).joined())
     let computedHash: String =
       SHA512
@@ -52,7 +52,7 @@ extension AccountTransferAccount {
     guard verificationHash == computedHash
     else {
       return .failure(
-        .accountTransferScanningError(
+        TheErrorLegacy.accountTransferScanningError(
           context: "account-decoding-invalid-hash"
         )
         .appending(
@@ -72,7 +72,7 @@ extension AccountTransferAccount {
     }
     catch {
       return .failure(
-        .accountTransferScanningError(context: "account-decoding-invalid-json")
+        TheErrorLegacy.accountTransferScanningError(context: "account-decoding-invalid-json")
           .appending(logMessage: "Invalid QRCode data - not a valid configuration json")
       )
     }

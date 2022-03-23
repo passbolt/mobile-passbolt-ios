@@ -26,7 +26,7 @@ import UIComponents
 
 internal struct ExtensionSetupController {
 
-  internal var closeConfiguration: () -> Void
+  internal var closeConfiguration: @MainActor () -> Void
 }
 
 extension ExtensionSetupController: UIController {
@@ -37,9 +37,8 @@ extension ExtensionSetupController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let linkOpener: LinkOpener = features.instance()
-    let autofillExtensionContext: AutofillExtensionContext = features.instance()
+  ) async throws -> Self {
+    let autofillExtensionContext: AutofillExtensionContext = try await features.instance()
 
     func closeConfiguration() {
       autofillExtensionContext.completeExtensionConfiguration()

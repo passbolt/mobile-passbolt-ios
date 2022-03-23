@@ -30,7 +30,7 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class JWTTests: TestCase {
 
-  func test_decodeValidToken_Succeeds() {
+  func test_decodeValidToken_Succeeds() async throws {
     let jwt: JWT = try! .from(rawValue: validToken).get()
 
     XCTAssertEqual(jwt.header.algorithm, .rs256)
@@ -41,7 +41,7 @@ final class JWTTests: TestCase {
     XCTAssertEqual(jwt.payload.subject, "1234567890")
   }
 
-  func test_decode_withInvalidHeader_Fails() {
+  func test_decode_withInvalidHeader_Fails() async throws {
     let result: Result<JWT, Error> = JWT.from(rawValue: tokenWithInvalidHeader)
 
     XCTAssertFailureUnderlyingError(
@@ -50,7 +50,7 @@ final class JWTTests: TestCase {
     )
   }
 
-  func test_decode_withInvalidPayload_Fails() {
+  func test_decode_withInvalidPayload_Fails() async throws {
     let result: Result<JWT, Error> = JWT.from(rawValue: tokenWithInvalidPayload)
 
     XCTAssertFailureUnderlyingError(
@@ -59,7 +59,7 @@ final class JWTTests: TestCase {
     )
   }
 
-  func test_decode_withEmptyToken_Fails() {
+  func test_decode_withEmptyToken_Fails() async throws {
     let result: Result<JWT, Error> = JWT.from(rawValue: "")
 
     XCTAssertFailureUnderlyingError(
@@ -68,7 +68,7 @@ final class JWTTests: TestCase {
     )
   }
 
-  func test_decode_withMissingSignature_Fails() {
+  func test_decode_withMissingSignature_Fails() async throws {
     let result: Result<JWT, Error> = JWT.from(rawValue: tokenWithoutSignature)
 
     XCTAssertFailureUnderlyingError(
@@ -77,7 +77,7 @@ final class JWTTests: TestCase {
     )
   }
 
-  func test_decode_withMalformedToken_Fails() {
+  func test_decode_withMalformedToken_Fails() async throws {
     let result: Result<JWT, Error> = JWT.from(rawValue: malformedToken)
 
     XCTAssertFailureUnderlyingError(
@@ -86,17 +86,17 @@ final class JWTTests: TestCase {
     )
   }
 
-  func test_tokenIsNotExpired() {
+  func test_tokenIsNotExpired() async throws {
     let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
     XCTAssertFalse(jwt.isExpired(timestamp: 1_516_000_000))
   }
 
-  func test_tokenIsExpired() {
+  func test_tokenIsExpired() async throws {
     let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
     XCTAssertTrue(jwt.isExpired(timestamp: 2_000_000_000))
   }
 
-  func test_tokenIsExpiredEarlierWithLeeway() {
+  func test_tokenIsExpiredEarlierWithLeeway() async throws {
     let jwt: JWT = try! .from(rawValue: validToken).get()  // expiration = 1_516_239_022
     XCTAssertTrue(jwt.isExpired(timestamp: 1_516_239_012, leeway: 10))
   }

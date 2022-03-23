@@ -32,15 +32,8 @@ import XCTest
 @MainActor
 open class MainActorTestCase: TestCase {
 
-  public final override func setUp() {
-    /* NOP - overrding to ignore calls from default setUp methods calling order */
-  }
-
-  public final override func setUp() async throws {
-    // casting to specify correct method to be called,
-    // by default async one is selected by the compiler
-    (super.setUp as () -> Void)()
-    try await super.setUp()
+  open override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     await mainActorSetUp()
   }
 
@@ -48,16 +41,9 @@ open class MainActorTestCase: TestCase {
     // to be overriden
   }
 
-  public final override func tearDown() {
-    /* NOP - overrding to ignore calls from default tearDown methods calling order */
-  }
-
-  public final override func tearDown() async throws {
+  open override func featuresActorTearDown() async throws {
     await mainActorTearDown()
-    try await super.tearDown()
-    // casting to specify correct method to be called,
-    // by default async one is selected by the compiler
-    (super.tearDown as () -> Void)()
+    try await super.featuresActorTearDown()
   }
 
   open func mainActorTearDown() {
@@ -67,8 +53,8 @@ open class MainActorTestCase: TestCase {
   public final func testController<Controller: UIController>(
     _ type: Controller.Type = Controller.self,
     context: Controller.Context
-  ) -> Controller {
-    Controller.instance(
+  ) async throws -> Controller {
+    try await Controller.instance(
       in: context,
       with: features,
       cancellables: cancellables
@@ -77,9 +63,9 @@ open class MainActorTestCase: TestCase {
 
   public final func testController<Controller: UIController>(
     _ type: Controller.Type = Controller.self
-  ) -> Controller
+  ) async throws -> Controller
   where Controller.Context == Void {
-    Controller.instance(
+    try await Controller.instance(
       in: Void(),
       with: features,
       cancellables: cancellables

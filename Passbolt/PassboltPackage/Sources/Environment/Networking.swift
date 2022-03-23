@@ -44,7 +44,7 @@ public struct Networking: EnvironmentElement {
     (
       _ request: HTTPRequest,
       _ useCache: Bool
-    ) -> AnyPublisher<HTTPResponse, Error>
+    ) async throws -> HTTPResponse
 
   public var clearCache: () -> Void
 
@@ -52,7 +52,7 @@ public struct Networking: EnvironmentElement {
     execute: @escaping (
       _ request: HTTPRequest,
       _ useCache: Bool
-    ) -> AnyPublisher<HTTPResponse, Error>,
+    ) async throws -> HTTPResponse,
     clearCache: @escaping () -> Void
   ) {
     self.execute = execute
@@ -65,8 +65,8 @@ extension Networking {
   public func make(
     _ request: HTTPRequest,
     useCache: Bool = false
-  ) -> AnyPublisher<HTTPResponse, Error> {
-    execute(request, useCache)
+  ) async throws -> HTTPResponse {
+    try await execute(request, useCache)
   }
 }
 
@@ -114,265 +114,105 @@ extension Networking {
         )
       }()
 
-    let lock: NSLock = .init()
-    var inMemoryCache: Dictionary<HTTPRequest, HTTPResponse> = .init()
+    let memoryCache: MemoryCache = .init()
 
     return Self(
       execute: { request, useCache in
+        if useCache, let cachedResponse: HTTPResponse = await memoryCache.value(for: request) {
+          return cachedResponse
+        }
+        else { /* NOP */
+        }
+
         let urlRequest: URLRequest? = request.urlRequest(
-          cachePolicy: useCache
-            ? .returnCacheDataElseLoad
-            : .reloadIgnoringLocalAndRemoteCacheData
+          cachePolicy: .reloadIgnoringLocalAndRemoteCacheData
         )
 
         guard let url: URL = request.url
         else {
-          return Fail<HTTPResponse, Error>(
-            error:
-              URLInvalid
-              .error(
-                "Failed to prepare valid URL for HTTP request",
-                rawString: request.urlComponents.description
-              )
-          )
-          .eraseToAnyPublisher()
+          throw
+            URLInvalid
+            .error(
+              "Failed to prepare valid URL for HTTP request",
+              rawString: request.urlComponents.description
+            )
         }
 
         guard let urlRequest: URLRequest = urlRequest
         else {
-          return Fail<HTTPResponse, Error>(
-            error:
-              HTTPRequestInvalid
-              .error(
-                "Failed to prepare valid HTTP request",
-                request: request,
-                response: nil
-              )
-          )
-          .eraseToAnyPublisher()
+          throw
+            HTTPRequestInvalid
+            .error(
+              "Failed to prepare valid HTTP request",
+              request: request,
+              response: nil
+            )
         }
 
-        func mapURLErrors(
-          _ error: URLError,
-          request: HTTPRequest,
-          serverURL: URLString
-        ) -> TheError {
-          switch error.code {
-          case .cancelled:
-            return
-              Cancelled
-              .error("HTTP request cancelled")
-
-          case .badURL, .unsupportedURL:
-            return
-              URLInvalid
-              .error(
-                "Invalid URL for HTTP request",
-                rawString: url.absoluteString
-              )
-
-          case .notConnectedToInternet:
-            return
-              InternetConnectionIssue
-              .error("Not connected to the internet")
-
-          case .cannotFindHost:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Cannot find host",
-                serverURL: serverURL
-              )
-
-          case .cannotConnectToHost:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Cannot connect to host",
-                serverURL: serverURL
-              )
-
-          case .dnsLookupFailed:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - DNS lookup failed",
-                serverURL: serverURL
-              )
-
-          case .httpTooManyRedirects:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Too many redirects",
-                serverURL: serverURL
-              )
-
-          case .redirectToNonExistentLocation:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Invalid redirect",
-                serverURL: serverURL
-              )
-
-          case .secureConnectionFailed:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Secure connection failed",
-                serverURL: serverURL
-              )
-
-          case .appTransportSecurityRequiresSecureConnection:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Insecure connection forbidden",
-                serverURL: serverURL
-              )
-
-          case .serverCertificateHasBadDate:
-            return
-              ServerCertificateInvalid
-              .error(
-                "ServerCertificateInvalid - Bad certificate date",
-                serverURL: serverURL
-              )
-
-          case .serverCertificateUntrusted:
-            return
-              ServerCertificateInvalid
-              .error(
-                "ServerCertificateInvalid - Untrusted certificate",
-                serverURL: serverURL
-              )
-
-          case .serverCertificateHasUnknownRoot:
-            return
-              ServerCertificateInvalid
-              .error(
-                "ServerCertificateInvalid - Unknown root certificate",
-                serverURL: serverURL
-              )
-
-          case .serverCertificateNotYetValid:
-            return
-              ServerCertificateInvalid
-              .error(
-                "ServerCertificateInvalid - Certificate not yet valid",
-                serverURL: serverURL
-              )
-
-          case .clientCertificateRequired:
-            return
-              ClientCertificateInvalid
-              .error("ClientCertificateInvalid - No client certificate.")
-
-          case .clientCertificateRejected:
-            return
-              ClientCertificateInvalid
-              .error("ClientCertificateInvalid - Client certificate rejected.")
-
-          case .timedOut:
-            return
-              ServerResponseTimeout
-              .error(
-                "HTTP request timed out",
-                serverURL: serverURL
-              )
-
-          case .badServerResponse:
-            return
-              ServerResponseInvalid
-              .error("ServerResponseInvalid - Bad response")
-
-          case .cannotParseResponse:
-            return
-              ServerResponseInvalid
-              .error("ServerResponseInvalid - Cannot parse response")
-
-          case .dataLengthExceedsMaximum:
-            return
-              ServerResponseInvalid
-              .error("ServerResponseInvalid - Data length exceeds maximum")
-
-          case .networkConnectionLost:
-            return
-              ServerConnectionIssue
-              .error(
-                "ServerConnectionIssue - Connection lost",
-                serverURL: serverURL
-              )
-
-          case _:  // fill more errors if needed
-            return
-              Unidentified
-              .error(
-                "Unidentified network error",
-                underlyingError: error
-              )
-              .recording(serverURL, for: "serverURL")
-              .recording(request, for: "request")
-          }
-        }
-
-        if useCache,
-          let cachedResponse: HTTPResponse = {
-            lock.lock()
-            defer { lock.unlock() }
-            return inMemoryCache[request]
-          }()
-        {
-          return Just(cachedResponse)
-            .setFailureType(to: Error.self)
-            .eraseToAnyPublisher()
-        }
-        else {
-          return
-            urlSession
-            .dataTaskPublisher(for: urlRequest)
-            .mapError { mapURLErrors($0, request: request, serverURL: url.serverURLString) }
-            .flatMap { data, response -> AnyPublisher<HTTPResponse, Error> in
-              if let httpResponse: HTTPResponse = HTTPResponse(from: response, with: data) {
+        return try await withCheckedThrowingContinuation { continuation in
+          urlSession
+            .dataTask(with: urlRequest) { (data: Data?, response: URLResponse?, error: Error?) in
+              if let error: Error = error {
+                if let urlError: URLError = error as? URLError {
+                  continuation
+                    .resume(
+                      throwing: mapURLErrors(
+                        urlError,
+                        request: request,
+                        serverURL: url.serverURLString
+                      )
+                    )
+                }
+                else {
+                  continuation
+                    .resume(
+                      throwing:
+                        Unidentified
+                        .error(
+                          "Unidentified network error",
+                          underlyingError: error
+                        )
+                        .recording(url.serverURLString, for: "serverURL")
+                        .recording(request, for: "request")
+                    )
+                }
+              }
+              else if let urlResponse = response as? HTTPURLResponse,
+                let httpResponse: HTTPResponse = HTTPResponse(from: urlResponse, with: data)
+              {
                 if useCache {
-                  lock.lock()
-                  // clear cache if exceeds 25 MB
-                  if inMemoryCache.values.reduce(into: 0, { $0 += $1.body.count }) >= 26_214_400 {
-                    inMemoryCache.removeAll()
+                  Task.detached {
+                    await memoryCache.update(
+                      value: httpResponse,
+                      for: request
+                    )
                   }
-                  else {
-                    /* NOP */
-                  }
-                  inMemoryCache[request] = httpResponse
-                  lock.unlock()
                 }
                 else {
                   /* NOP */
                 }
-                return Just(httpResponse)
-                  .setFailureType(to: Error.self)
-                  .eraseToAnyPublisher()
+
+                continuation.resume(returning: httpResponse)
               }
               else {
-                return Fail<HTTPResponse, Error>(
-                  error:
-                    HTTPResponseInvalid
-                    .error(
-                      "ServerResponseInvalid - Cannot create HTTPResponse",
-                      request: request
-                    )
-                )
-                .eraseToAnyPublisher()
+                continuation
+                  .resume(
+                    throwing:
+                      HTTPResponseInvalid
+                      .error(
+                        "ServerResponseInvalid - Cannot create HTTPResponse",
+                        request: request
+                      )
+                  )
               }
             }
-            .eraseToAnyPublisher()
+            .resume()
         }
       },
       clearCache: {
-        lock.lock()
-        inMemoryCache.removeAll()
-        lock.unlock()
+        Task {
+          await memoryCache.clear()
+        }
       }
     )
   }
@@ -434,5 +274,199 @@ extension HTTPResponse {
       headers: httpResponse.allHeaderFields as? Dictionary<String, String> ?? .init(),
       body: body ?? Data()
     )
+  }
+}
+
+// current cache implementation does not track
+// ongoing requests - it should be improved in future
+private final actor MemoryCache {
+
+  private var cache: Dictionary<HTTPRequest, HTTPResponse> = .init()
+
+  fileprivate func value(for request: HTTPRequest) -> HTTPResponse? {
+    cache[request]
+  }
+
+  fileprivate func update(
+    value response: HTTPResponse?,
+    for request: HTTPRequest
+  ) {
+    // clear cache if exceeds 25 MB
+    if cache.values.reduce(into: 0, { $0 += $1.body.count }) >= 26_214_400 {
+      cache.removeAll()
+    }
+    else {
+      /* NOP */
+    }
+    cache[request] = response
+  }
+
+  fileprivate func clear() {
+    cache.removeAll()
+  }
+}
+
+private func mapURLErrors(
+  _ error: URLError,
+  request: HTTPRequest,
+  serverURL: URLString
+) -> TheError {
+  switch error.code {
+  case .cancelled:
+    return
+      Cancelled
+      .error("HTTP request cancelled")
+
+  case .badURL, .unsupportedURL:
+    return
+      URLInvalid
+      .error(
+        "Invalid URL for HTTP request",
+        rawString: request.url?.absoluteString ?? "N/A"
+      )
+
+  case .notConnectedToInternet:
+    return
+      InternetConnectionIssue
+      .error("Not connected to the internet")
+
+  case .cannotFindHost:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Cannot find host",
+        serverURL: serverURL
+      )
+
+  case .cannotConnectToHost:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Cannot connect to host",
+        serverURL: serverURL
+      )
+
+  case .dnsLookupFailed:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - DNS lookup failed",
+        serverURL: serverURL
+      )
+
+  case .httpTooManyRedirects:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Too many redirects",
+        serverURL: serverURL
+      )
+
+  case .redirectToNonExistentLocation:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Invalid redirect",
+        serverURL: serverURL
+      )
+
+  case .secureConnectionFailed:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Secure connection failed",
+        serverURL: serverURL
+      )
+
+  case .appTransportSecurityRequiresSecureConnection:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Insecure connection forbidden",
+        serverURL: serverURL
+      )
+
+  case .serverCertificateHasBadDate:
+    return
+      ServerCertificateInvalid
+      .error(
+        "ServerCertificateInvalid - Bad certificate date",
+        serverURL: serverURL
+      )
+
+  case .serverCertificateUntrusted:
+    return
+      ServerCertificateInvalid
+      .error(
+        "ServerCertificateInvalid - Untrusted certificate",
+        serverURL: serverURL
+      )
+
+  case .serverCertificateHasUnknownRoot:
+    return
+      ServerCertificateInvalid
+      .error(
+        "ServerCertificateInvalid - Unknown root certificate",
+        serverURL: serverURL
+      )
+
+  case .serverCertificateNotYetValid:
+    return
+      ServerCertificateInvalid
+      .error(
+        "ServerCertificateInvalid - Certificate not yet valid",
+        serverURL: serverURL
+      )
+
+  case .clientCertificateRequired:
+    return
+      ClientCertificateInvalid
+      .error("ClientCertificateInvalid - No client certificate.")
+
+  case .clientCertificateRejected:
+    return
+      ClientCertificateInvalid
+      .error("ClientCertificateInvalid - Client certificate rejected.")
+
+  case .timedOut:
+    return
+      ServerResponseTimeout
+      .error(
+        "HTTP request timed out",
+        serverURL: serverURL
+      )
+
+  case .badServerResponse:
+    return
+      ServerResponseInvalid
+      .error("ServerResponseInvalid - Bad response")
+
+  case .cannotParseResponse:
+    return
+      ServerResponseInvalid
+      .error("ServerResponseInvalid - Cannot parse response")
+
+  case .dataLengthExceedsMaximum:
+    return
+      ServerResponseInvalid
+      .error("ServerResponseInvalid - Data length exceeds maximum")
+
+  case .networkConnectionLost:
+    return
+      ServerConnectionIssue
+      .error(
+        "ServerConnectionIssue - Connection lost",
+        serverURL: serverURL
+      )
+
+  case _:  // fill more errors if needed
+    return
+      Unidentified
+      .error(
+        "Unidentified network error",
+        underlyingError: error
+      )
+      .recording(serverURL, for: "serverURL")
+      .recording(request, for: "request")
   }
 }

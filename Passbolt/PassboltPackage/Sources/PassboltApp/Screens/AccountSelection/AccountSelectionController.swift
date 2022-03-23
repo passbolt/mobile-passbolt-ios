@@ -29,15 +29,15 @@ import UIComponents
 
 internal struct AccountSelectionController {
 
-  internal var accountsPublisher: () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
-  internal var listModePublisher: () -> AnyPublisher<AccountSelectionListMode, Never>
-  internal var removeAccountAlertPresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var presentRemoveAccountAlert: () -> Void
-  internal var removeAccount: (Account) -> Result<Void, TheErrorLegacy>
-  internal var addAccount: () -> Void
-  internal var addAccountPresentationPublisher: () -> AnyPublisher<Bool, Never>
-  internal var toggleMode: () -> Void
-  internal var shouldHideTitle: () -> Bool
+  internal var accountsPublisher: @MainActor () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
+  internal var listModePublisher: @MainActor () -> AnyPublisher<AccountSelectionListMode, Never>
+  internal var removeAccountAlertPresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var presentRemoveAccountAlert: @MainActor () -> Void
+  internal var removeAccount: @MainActor (Account) -> AnyPublisher<Void, Error>
+  internal var addAccount: @MainActor () -> Void
+  internal var addAccountPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var toggleMode: @MainActor () -> Void
+  internal var shouldHideTitle: @MainActor () -> Bool
 }
 
 extension AccountSelectionController {
@@ -56,17 +56,19 @@ extension AccountSelectionController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> AccountSelectionController {
-    let accounts: Accounts = features.instance()
-    let accountSession: AccountSession = features.instance()
-    let accountSettings: AccountSettings = features.instance()
-    let diagnostics: Diagnostics = features.instance()
-    let networkClient: NetworkClient = features.instance()
+  ) async throws -> AccountSelectionController {
+    let accounts: Accounts = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
+    var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
+    for account in await accounts.storedAccounts() {
+      try await initialAccountsWithProfiles.append(accountSettings.accountWithProfile(account))
+    }
     let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
-      accounts
-        .storedAccounts()
-        .compactMap(accountSettings.accountWithProfile)
+      initialAccountsWithProfiles
     )
 
     let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
@@ -140,20 +142,23 @@ extension AccountSelectionController: UIController {
       removeAccountAlertPresentationSubject.send(Void())
     }
 
-    func removeAccount(_ account: Account) -> Result<Void, TheErrorLegacy> {
-      let result: Result<Void, TheErrorLegacy> = accounts.removeAccount(account)
-      let storedAccounts: Array<AccountWithProfile> =
-        accounts
-        .storedAccounts()
-        .compactMap(accountSettings.accountWithProfile)
+    func removeAccount(_ account: Account) -> AnyPublisher<Void, Error> {
+      cancellables.executeOnStorageAccessActorWithPublisher {
+        let result: Result<Void, Error> = accounts.removeAccount(account)
+        var accountsWithProfiles: Array<AccountWithProfile> = .init()
+        for account in accounts.storedAccounts() {
+          try accountsWithProfiles.append(accountSettings.accountWithProfile(account))
+        }
+        storedAccountsWithProfilesSubject.send(accountsWithProfiles)
 
-      storedAccountsWithProfilesSubject.send(storedAccounts)
-
-      return result
+        return try result.get()
+      }
     }
 
     func addAccount() {
-      addAccountPresentationSubject.send(features.isLoaded(AccountTransfer.self))
+      cancellables.executeOnFeaturesActor {
+        addAccountPresentationSubject.send(features.isLoaded(AccountTransfer.self))
+      }
     }
 
     func addAccountPresentationPublisher() -> AnyPublisher<Bool, Never> {

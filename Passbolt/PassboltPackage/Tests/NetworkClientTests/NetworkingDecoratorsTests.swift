@@ -48,7 +48,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
     super.tearDown()
   }
 
-  func test_withLogs_logsMessagesForRequestAndResponse() {
+  func test_withLogs_logsMessagesForRequestAndResponse() async throws {
     var result: Array<String> = .init()
     diagnostics.debugLog = { message in
       result.append(message)
@@ -56,20 +56,16 @@ final class NetworkingDecoratorsTests: XCTestCase {
 
     var networking: Networking = .placeholder
     networking.execute = { _, _ in
-      Just(
-        HTTPResponse(
-          url: URL(string: "https://passbolt.com")!,
-          statusCode: 200,
-          headers: [:],
-          body: .empty
-        )
+      HTTPResponse(
+        url: URL(string: "https://passbolt.com")!,
+        statusCode: 200,
+        headers: [:],
+        body: .empty
       )
-      .eraseErrorType()
-      .eraseToAnyPublisher()
     }
     networking = networking.withLogs(using: diagnostics)
 
-    networking.make(
+    _ = try await networking.make(
       HTTPRequest(
         url: URL(string: "https://passbolt.com")!,
         method: .get,
@@ -77,12 +73,6 @@ final class NetworkingDecoratorsTests: XCTestCase {
         body: .empty
       )
     )
-    .receive(on: ImmediateScheduler.shared)
-    .sink(
-      receiveCompletion: { _ in },
-      receiveValue: { _ in }
-    )
-    .store(in: cancellables)
 
     XCTAssertEqual(
       result,
@@ -93,7 +83,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
     )
   }
 
-  func test_withLogs_logsMessagesForRequestAndError() {
+  func test_withLogs_logsMessagesForRequestAndError() async throws {
     var result: Array<String> = .init()
     diagnostics.debugLog = { message in
       result.append(message)
@@ -101,25 +91,20 @@ final class NetworkingDecoratorsTests: XCTestCase {
 
     var networking: Networking = .placeholder
     networking.execute = { _, _ in
-      Fail<HTTPResponse, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
+      throw MockIssue.error()
     }
     networking = networking.withLogs(using: diagnostics)
 
-    networking.make(
-      HTTPRequest(
-        url: URL(string: "https://passbolt.com")!,
-        method: .get,
-        headers: [:],
-        body: .empty
+    _ =
+      try? await networking
+      .make(
+        HTTPRequest(
+          url: URL(string: "https://passbolt.com")!,
+          method: .get,
+          headers: [:],
+          body: .empty
+        )
       )
-    )
-    .receive(on: ImmediateScheduler.shared)
-    .sink(
-      receiveCompletion: { _ in },
-      receiveValue: { _ in }
-    )
-    .store(in: cancellables)
 
     XCTAssertEqual(
       result,

@@ -26,14 +26,14 @@ import CommonModels
 
 extension Mutation where Subject: UIAlertController {
 
-  @inlinable public static func title(
-    _ displayableString: DisplayableString,
-    with arguments: Array<CVarArg> = .init()
-  ) -> Self {
-    Self { (subject: Subject) in
-      subject.title = displayableString.string(with: arguments)
-    }
-  }
+  //  @inlinable public static func title(
+  //    _ displayableString: DisplayableString,
+  //    with arguments: Array<CVarArg> = .init()
+  //  ) -> Self {
+  //    Self { (subject: Subject) in
+  //      subject.title = displayableString.string(with: arguments)
+  //    }
+  //  }
 
   @inlinable public static func message(
     _ displayableString: DisplayableString,

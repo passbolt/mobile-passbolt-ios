@@ -57,58 +57,60 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
   internal func setupView() {
     controller.destinationPublisher()
       .receive(on: RunLoop.main)
-      .sink { [unowned self] destination in
-        showFeedbackAlertIfNeeded(presentationAnchor: self) { [unowned self] in
-          children.forEach {
+      .sink { [weak self] destination in
+        showFeedbackAlertIfNeeded(presentationAnchor: self) { [weak self] in
+          self?.children.forEach {
             $0.willMove(toParent: nil)
             $0.view.removeFromSuperview()
             $0.removeFromParent()
           }
 
-          switch destination {
-          case let .authorization(account):
-            self.replaceContent(
-              with: self.components
-                .instance(
-                  of: AuthorizationNavigationViewController.self,
-                  in: (account: account, mode: .signIn)
-                )
-            )
+          self?.cancellables.executeOnMainActor { [weak self] in
+            guard let self = self else { return }
+            switch destination {
+            case let .authorization(account):
+              await self.replaceContent(
+                with: self.components
+                  .instance(
+                    of: AuthorizationNavigationViewController.self,
+                    in: (account: account, mode: .signIn)
+                  )
+              )
 
-          case let .accountSelection(.some(lastUsedAccount)):
+            case let .accountSelection(.some(lastUsedAccount)):
+              await self.replaceContent(
+                with: self.components
+                  .instance(
+                    of: AuthorizationNavigationViewController.self,
+                    in: (account: lastUsedAccount, mode: .switchAccount)
+                  )
+              )
 
-            self.replaceContent(
-              with: self.components
-                .instance(
-                  of: AuthorizationNavigationViewController.self,
-                  in: (account: lastUsedAccount, mode: .switchAccount)
-                )
-            )
+            case .accountSelection(.none):
+              await self.replaceContent(
+                with: self.components
+                  .instance(
+                    of: AuthorizationNavigationViewController.self,
+                    in: (account: nil, mode: .signIn)
+                  )
+              )
 
-          case .accountSelection(.none):
-            self.replaceContent(
-              with: self.components
-                .instance(
-                  of: AuthorizationNavigationViewController.self,
-                  in: (account: nil, mode: .signIn)
-                )
-            )
+            case .home:
+              await self.replaceContent(
+                with: self.components
+                  .instance(
+                    of: ResourcesNavigationViewController.self
+                  )
+              )
 
-          case .home:
-            self.replaceContent(
-              with: self.components
-                .instance(
-                  of: ResourcesNavigationViewController.self
-                )
-            )
-
-          case .mfaRequired:
-            self.replaceContent(
-              with: self.components
-                .instance(
-                  of: PlainNavigationViewController<MFARequiredViewController>.self
-                )
-            )
+            case .mfaRequired:
+              await self.replaceContent(
+                with: self.components
+                  .instance(
+                    of: PlainNavigationViewController<MFARequiredViewController>.self
+                  )
+              )
+            }
           }
         }
       }

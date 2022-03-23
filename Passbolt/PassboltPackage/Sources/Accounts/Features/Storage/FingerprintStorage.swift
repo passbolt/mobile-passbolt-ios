@@ -27,8 +27,8 @@ import Features
 
 public struct FingerprintStorage {
 
-  public var loadServerFingerprint: (Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy>
-  public var storeServerFingerprint: (Account.LocalID, Fingerprint) -> Result<Void, TheErrorLegacy>
+  public var loadServerFingerprint: @StorageAccessActor (Account.LocalID) -> Result<Fingerprint?, Error>
+  public var storeServerFingerprint: @StorageAccessActor (Account.LocalID, Fingerprint) -> Result<Void, Error>
 }
 
 extension FingerprintStorage: Feature {
@@ -37,18 +37,18 @@ extension FingerprintStorage: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> FingerprintStorage {
+  ) async throws -> FingerprintStorage {
 
-    let accountDataStore: AccountsDataStore = features.instance()
+    let accountDataStore: AccountsDataStore = try await features.instance()
 
-    func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, TheErrorLegacy> {
+    @StorageAccessActor func loadServerFingerprint(accountID: Account.LocalID) -> Result<Fingerprint?, Error> {
       accountDataStore.loadServerFingerprint(accountID)
     }
 
-    func storeServerFingerprint(
+    @StorageAccessActor func storeServerFingerprint(
       accountID: Account.LocalID,
       fingerprint: Fingerprint
-    ) -> Result<Void, TheErrorLegacy> {
+    ) -> Result<Void, Error> {
       accountDataStore.storeServerFingerprint(accountID, fingerprint)
     }
 

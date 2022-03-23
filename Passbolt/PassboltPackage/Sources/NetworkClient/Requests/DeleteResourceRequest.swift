@@ -34,7 +34,7 @@ extension DeleteResourceRequest {
 
   internal static func live(
     using networking: Networking,
-    with sessionVariablePublisher: AnyPublisher<AuthorizedNetworkSessionVariable, Error>
+    with sessionVariable: @AccountSessionActor @escaping () async throws -> AuthorizedNetworkSessionVariable
   ) -> Self {
     Self(
       template: .init { sessionVariable, requestVariable in
@@ -53,7 +53,7 @@ extension DeleteResourceRequest {
       },
       responseDecoder: .statusCodes(200..<300),
       using: networking,
-      with: sessionVariablePublisher
+      with: sessionVariable
     )
   }
 }

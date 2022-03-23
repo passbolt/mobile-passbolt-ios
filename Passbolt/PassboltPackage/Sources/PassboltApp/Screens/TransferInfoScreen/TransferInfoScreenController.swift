@@ -28,9 +28,9 @@ internal struct TransferInfoScreenController {
 
   internal typealias Context = Void
 
-  internal var presentNoCameraPermissionAlert: () -> Void
-  internal var requestOrNavigatePublisher: () -> AnyPublisher<Bool, Never>
-  internal var presentNoCameraPermissionAlertPublisher: () -> AnyPublisher<Bool, Never>
+  internal var presentNoCameraPermissionAlert: @MainActor () -> Void
+  internal var requestOrNavigatePublisher: @MainActor () -> AnyPublisher<Bool, Never>
+  internal var presentNoCameraPermissionAlertPublisher: @MainActor () -> AnyPublisher<Bool, Never>
 }
 
 extension TransferInfoScreenController: UIController {
@@ -39,8 +39,8 @@ extension TransferInfoScreenController: UIController {
     in context: Void,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> TransferInfoScreenController {
-    let permissions: OSPermissions = features.instance()
+  ) async throws -> TransferInfoScreenController {
+    let permissions: OSPermissions = try await features.instance()
     let presentNoCameraPermissionAlertSubject: PassthroughSubject<Bool, Never> = .init()
 
     func presentNoCameraPermissionAlert() {

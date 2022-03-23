@@ -41,8 +41,8 @@ extension HomePresentationMenuController: ComponentController {
     navigation: ComponentNavigation<NavigationContext>,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let homePresentation: HomePresentation = features.instance()
+  ) async throws -> Self {
+    let homePresentation: HomePresentation = try await features.instance()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
@@ -62,11 +62,15 @@ extension HomePresentationMenuController: ComponentController {
       _ mode: HomePresentationMode
     ) {
       homePresentation.setPresentationMode(mode)
-      navigation.dismiss(ControlledView.self)
+      cancellables.executeOnMainActor {
+        await navigation.dismiss(ControlledView.self)
+      }
     }
 
     @MainActor func dismissView() {
-      navigation.dismiss(ControlledView.self)
+      cancellables.executeOnMainActor {
+        await navigation.dismiss(ControlledView.self)
+      }
     }
 
     return Self(

@@ -34,8 +34,8 @@ extension FeatureConfigItem {
 
 public struct FeatureConfig {
 
-  public var config: (FeatureConfigItem.Type) -> FeatureConfigItem?
-  public var fetchIfNeeded: () -> AnyPublisher<Void, TheErrorLegacy>
+  public var config: @AccountSessionActor (FeatureConfigItem.Type) -> FeatureConfigItem?
+  public var fetchIfNeeded: @AccountSessionActor () async throws -> Void
 }
 
 extension FeatureConfig: Feature {
@@ -44,41 +44,43 @@ extension FeatureConfig: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> FeatureConfig {
-    let accountSession: AccountSession = features.instance()
-    let diagnostics: Diagnostics = features.instance()
-    let networkClient: NetworkClient = features.instance()
+  ) async throws -> FeatureConfig {
+    let accountSession: AccountSession = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
     var accountID: Account.LocalID?
-    let all: CurrentValueSubject<Dictionary<ObjectIdentifier, FeatureConfigItem>, Never> = .init(.init())
+    var configuration: Dictionary<ObjectIdentifier, FeatureConfigItem> = .init()
 
     accountSession
       .statePublisher()
       .sink { state in
-        switch state {
-        case let .authorizationRequired(account) where account.localID == accountID,
-          let .authorized(account) where account.localID == accountID,
-          let .authorizedMFARequired(account, _) where account.localID == accountID:
-          break
-        case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account, _):
-          accountID = account.localID
-          all.value = .init()
-        case .none:
-          accountID = nil
-          all.value = .init()
+        cancellables.executeOnAccountSessionActor {
+          switch state {
+          case let .authorizationRequired(account) where account.localID == accountID,
+            let .authorized(account) where account.localID == accountID,
+            let .authorizedMFARequired(account, _) where account.localID == accountID:
+            break
+          case let .authorizationRequired(account), let .authorized(account), let .authorizedMFARequired(account, _):
+            accountID = account.localID
+            configuration = .init()
+          case .none:
+            accountID = nil
+            configuration = .init()
+          }
         }
       }
       .store(in: cancellables)
 
-    func config(for featureType: FeatureConfigItem.Type) -> FeatureConfigItem {
-      return all.value[featureType.featureFlagIdentifier] ?? featureType.default
+    @AccountSessionActor func config(for featureType: FeatureConfigItem.Type) -> FeatureConfigItem {
+      return configuration[featureType.featureFlagIdentifier] ?? featureType.default
     }
 
-    func handle(response: ConfigResponse) {
+    @AccountSessionActor func handle(response: ConfigResponse) {
       let config: Config = response.body.config
 
       if let legal: Config.Legal = config.legal {
-        all.value[FeatureFlags.Legal.featureFlagIdentifier] = { () -> FeatureFlags.Legal in
+        configuration[FeatureFlags.Legal.featureFlagIdentifier] = { () -> FeatureFlags.Legal in
           let termsURL: URL? = .init(string: legal.terms.url)
           let privacyPolicyURL: URL? = .init(string: legal.privacyPolicy.url)
 
@@ -95,18 +97,20 @@ extension FeatureConfig: Feature {
         }()
       }
       else {
-        all.value[FeatureFlags.Legal.featureFlagIdentifier] = FeatureFlags.Legal.default
+        configuration[FeatureFlags.Legal.featureFlagIdentifier] = FeatureFlags.Legal.default
       }
 
       if let folders: Config.Folders = config.plugins.firstElementOfType(), folders.enabled {
-        all.value[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.enabled(version: folders.version)
+        configuration[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.enabled(
+          version: folders.version
+        )
       }
       else {
-        all.value[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.default
+        configuration[FeatureFlags.Folders.featureFlagIdentifier] = FeatureFlags.Folders.default
       }
 
       if let previewPassword: Config.PreviewPassword = config.plugins.firstElementOfType() {
-        all.value[FeatureFlags.PreviewPassword.featureFlagIdentifier] = { () -> FeatureFlags.PreviewPassword in
+        configuration[FeatureFlags.PreviewPassword.featureFlagIdentifier] = { () -> FeatureFlags.PreviewPassword in
           if previewPassword.enabled {
             return .enabled
           }
@@ -116,40 +120,26 @@ extension FeatureConfig: Feature {
         }()
       }
       else {
-        all.value[FeatureFlags.PreviewPassword.featureFlagIdentifier] = FeatureFlags.PreviewPassword.default
+        configuration[FeatureFlags.PreviewPassword.featureFlagIdentifier] = FeatureFlags.PreviewPassword.default
       }
 
       if let tags: Config.Tags = config.plugins.firstElementOfType(), tags.enabled {
-        all.value[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.enabled
+        configuration[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.enabled
       }
       else {
-        all.value[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.default
+        configuration[FeatureFlags.Tags.featureFlagIdentifier] = FeatureFlags.Tags.default
       }
     }
 
-    func fetchIfNeeded() -> AnyPublisher<Void, TheErrorLegacy> {
-      let isFetched: Bool = all.value.isEmpty
-
-      guard isFetched
-      else {
-        return Just(Void())
-          .setFailureType(to: TheErrorLegacy.self)
-          .eraseToAnyPublisher()
-      }
+    @AccountSessionActor func fetchIfNeeded() async throws {
+      guard configuration.isEmpty
+      else { return }
 
       diagnostics.diagnosticLog("Fetching server configuration...")
 
-      return networkClient
-        .configRequest
-        .make()
-        .mapErrorsToLegacy()
-        .map { (response: ConfigResponse) in
-          handle(response: response)
-          diagnostics.diagnosticLog("...server configuration fetched!")
-          return Void()
-        }
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+      let response: ConfigResponse = try await networkClient.configRequest.makeAsync()
+      handle(response: response)
+      diagnostics.diagnosticLog("...server configuration fetched!")
     }
 
     return Self(
@@ -161,7 +151,7 @@ extension FeatureConfig: Feature {
 
 extension FeatureConfig {
 
-  public func configuration<F: FeatureConfigItem>(
+  @AccountSessionActor public func configuration<F: FeatureConfigItem>(
     for featureFlagType: F.Type = F.self
   ) -> F {
     config(featureFlagType) as? F ?? .default
@@ -170,7 +160,7 @@ extension FeatureConfig {
 
 extension FeatureConfig {
 
-  public var featureUnload: () -> Bool { { true } }
+  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
 }
 
 extension Array where Element == Plugin {

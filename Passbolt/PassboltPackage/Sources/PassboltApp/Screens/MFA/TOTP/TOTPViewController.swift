@@ -131,7 +131,7 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
             )
           )
 
-        case let .error(error) where error.identifier == .invalidPasteValue:
+        case let .error(error) where error.asLegacy.identifier == .invalidPasteValue:
           self?.dismissOverlay()
           self?.presentErrorSnackbar(
             .localized(
@@ -139,12 +139,12 @@ internal final class TOTPViewController: PlainViewController, UIComponent {
             )
           )
 
-        case let .error(error) where error.identifier != .canceled:
+        case let .error(error) where error.asLegacy.identifier != .canceled:
           self?.dismissOverlay()
           self?.presentErrorSnackbar()
 
         case let .error(error):
-          if let theError: TheError = error.legacyBridge,
+          if let theError: TheError = error.asLegacy.legacyBridge,
             theError is NetworkRequestValidationFailure
           {
             self?.dismissOverlay()

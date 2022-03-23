@@ -46,11 +46,15 @@ public final class UI {
 extension UI {
 
   public func prepareCredentialList() {
-    setRootContent(components.instance(of: ExtensionViewController.self))
+    MainActor.execute {
+      await self.setRootContent(self.components.instance(of: ExtensionViewController.self))
+    }
   }
 
   public func prepareInterfaceForExtensionConfiguration() {
-    setRootContent(components.instance(of: ExtensionSetupViewController.self))
+    MainActor.execute {
+      await self.setRootContent(self.components.instance(of: ExtensionSetupViewController.self))
+    }
   }
 
   private func setRootContent(_ viewController: UIViewController) {

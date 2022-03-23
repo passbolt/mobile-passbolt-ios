@@ -26,10 +26,10 @@ import UIComponents
 
 internal struct BiometricsSetupController {
 
-  internal var destinationPresentationPublisher: () -> AnyPublisher<Destination, Never>
-  internal var biometricsStatePublisher: () -> AnyPublisher<Biometrics.State, Never>
-  internal var setupBiometrics: () -> AnyPublisher<Never, TheErrorLegacy>
-  internal var skipSetup: () -> Void
+  internal var destinationPresentationPublisher: @MainActor () -> AnyPublisher<Destination, Never>
+  internal var biometricsStatePublisher: @MainActor () -> AnyPublisher<Biometrics.State, Never>
+  internal var setupBiometrics: @MainActor () -> AnyPublisher<Never, Error>
+  internal var skipSetup: @MainActor () -> Void
 }
 
 extension BiometricsSetupController {
@@ -48,11 +48,11 @@ extension BiometricsSetupController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let autoFill: AutoFill = features.instance()
-    let diagnostics: Diagnostics = features.instance()
-    let accountSettings: AccountSettings = features.instance()
-    let biometry: Biometry = features.instance()
+  ) async throws -> Self {
+    let autoFill: AutoFill = try await features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
+    let biometry: Biometry = try await features.instance()
 
     let destinationPresentationSubject: PassthroughSubject<Destination, Never> = .init()
 
@@ -64,22 +64,26 @@ extension BiometricsSetupController: UIController {
       biometry.biometricsStatePublisher()
     }
 
-    func setupBiometrics() -> AnyPublisher<Never, TheErrorLegacy> {
-      accountSettings
-        .setBiometricsEnabled(true)
-        .map { autoFill.extensionEnabledStatePublisher().setFailureType(to: TheErrorLegacy.self) }
-        .switchToLatest()
-        .handleEvents(receiveOutput: { enabled in
-          if enabled {
-            destinationPresentationSubject.send(.finish)
-          }
-          else {
-            destinationPresentationSubject.send(.extensionSetup)
-          }
-        })
-        .ignoreOutput()
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+    func setupBiometrics() -> AnyPublisher<Never, Error> {
+      cancellables.executeOnStorageAccessActorWithPublisher {
+        accountSettings
+          .setBiometricsEnabled(true)
+          .map { autoFill.extensionEnabledStatePublisher().eraseErrorType() }
+          .switchToLatest()
+          .handleEvents(receiveOutput: { enabled in
+            if enabled {
+              destinationPresentationSubject.send(.finish)
+            }
+            else {
+              destinationPresentationSubject.send(.extensionSetup)
+            }
+          })
+          .ignoreOutput()
+          .collectErrorLog(using: diagnostics)
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
     }
 
     func skipSetup() {

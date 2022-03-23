@@ -103,7 +103,7 @@ let package = Package(
     .package(
       name: "Aegithalos",
       url: "https://github.com/miquido/aegithalos.git",
-      .upToNextMajor(from: "2.3.0")
+      .upToNextMajor(from: "2.3.1")
     )
   ],
   targets: [

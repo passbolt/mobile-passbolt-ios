@@ -24,6 +24,7 @@
 import Accounts
 import UIComponents
 
+@MainActor
 internal struct FoldersExplorerView: ComponentView {
 
   @ObservedObject private var state: ObservableValue<ViewState>
@@ -69,7 +70,7 @@ internal struct FoldersExplorerView: ComponentView {
 
   @ViewBuilder private var titleView: some View {
     HStack(alignment: .center, spacing: 0) {
-      Image(named: .folder)
+      Image(named: self.state.folderShared ? .sharedFolder : .folder)
         .aspectRatio(1, contentMode: .fit)
         .frame(width: 24)
         .padding(trailing: 16)
@@ -93,7 +94,9 @@ internal struct FoldersExplorerView: ComponentView {
       leftAccessory: {
         Button(
           action: {
-            self.controller.presentHomePresentationMenu()
+            MainActor.execute {
+              await self.controller.presentHomePresentationMenu()
+            }
           },
           label: {
             ImageWithPadding(4, named: .filter)
@@ -133,10 +136,12 @@ internal struct FoldersExplorerView: ComponentView {
         await self.controller.refreshIfNeeded()
       },
       listContent: {
-        ResourceListAddView {
-          self.controller.presentResourceCreationFrom(self.state.folderID)
-        }
-        .backport.hiddenRowSeparators()
+        if self.state.canCreateResources {
+          ResourceListAddView {
+            self.controller.presentResourceCreationFrom(self.state.folderID)
+          }
+          .backport.hiddenRowSeparators()
+        }  // else { /* NOP */ }
 
         if self.state.directFolders.isEmpty,
           self.state.directResources.isEmpty,
@@ -262,7 +267,7 @@ internal struct FoldersExplorerView: ComponentView {
         accessory: {
           AsyncButton(
             action: {
-              self.controller.presentResourceMenu(resource.id)
+              await self.controller.presentResourceMenu(resource.id)
             },
             label: {
               Image(named: .more)
@@ -309,7 +314,7 @@ internal struct FoldersExplorerView: ComponentView {
         accessory: {
           AsyncButton(
             action: {
-              self.controller.presentResourceMenu(resource.id)
+              await self.controller.presentResourceMenu(resource.id)
             },
             label: {
               Image(named: .more)
@@ -334,6 +339,8 @@ extension FoldersExplorerView {
 
     internal var title: DisplayableString
     internal var folderID: Folder.ID?
+    internal var folderShared: Bool
+    internal var canCreateResources: Bool
     internal var userAvatarImage: Data? = .none
     internal var searchText: String = ""
     internal var directFolders: Array<ListViewFolder> = .init()
@@ -344,23 +351,4 @@ extension FoldersExplorerView {
   }
 }
 
-extension FoldersExplorerView.ViewState: Hashable {
-
-  internal static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    (lhs.snackBarMessage == nil && rhs.snackBarMessage == nil
-      || lhs.snackBarMessage != nil && rhs.snackBarMessage != nil)
-      && lhs.searchText == rhs.searchText
-      && lhs.directFolders == rhs.directFolders
-      && lhs.directResources == rhs.directResources
-  }
-
-  internal func hash(into hasher: inout Hasher) {
-    hasher.combine(self.snackBarMessage == nil)
-    hasher.combine(self.searchText)
-    hasher.combine(self.directFolders)
-    hasher.combine(self.directResources)
-  }
-}
+extension FoldersExplorerView.ViewState: Hashable {}

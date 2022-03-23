@@ -27,7 +27,7 @@ import UIKit
 @MainActor open class NavigationViewController: UINavigationController {
 
   @MainActor public init() {
-    super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
+    super.init(nibName: nil, bundle: nil)
     isModalInPresentation = true
     delegate = self
     (self as? AnyUIComponent)?.setup()
@@ -50,28 +50,14 @@ import UIKit
     unreachable(#function)
   }
 
-  public lazy var dynamicBackgroundColor: DynamicColor = .background {
-    didSet {
-      viewIfLoaded?.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
-    }
-  }
-
-  public var navigationBarView: NavigationBar {
-    guard let navigationBar = navigationBar as? NavigationBar else {
-      Unreachable
-        .error("Invalid navigation bar type")
-        .recording(NavigationBar.self, for: "expected")
-        .recording(type(of: navigationBar), for: "received")
-        .asFatalError()
-    }
-
-    return navigationBar
-  }
-
   override open func loadView() {
     super.loadView()
-    view.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
+    view.backgroundColor = .passboltBackground
     interactivePopGestureRecognizer?.isEnabled = false
+
+    mut(navigationBar) {
+      .primaryNavigationStyle()
+    }
   }
 
   override open func viewDidLoad() {
@@ -128,7 +114,7 @@ import UIKit
     CATransaction.begin()
     CATransaction.setCompletionBlock {
       (viewController.navigationItem.backBarButtonItem?.menu = UIMenu(
-        title: "TEST",
+        title: "",
         image: nil,
         identifier: nil,
         options: [],
@@ -224,19 +210,6 @@ import UIKit
       /* NOP */
     }
     return super.popToRootViewController(animated: animated)
-  }
-
-  override public func traitCollectionDidChange(
-    _ previousTraitCollection: UITraitCollection?
-  ) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    guard traitCollection != previousTraitCollection
-    else { return }
-    updateColors()
-  }
-
-  private func updateColors() {
-    viewIfLoaded?.backgroundColor = dynamicBackgroundColor(in: traitCollection.userInterfaceStyle)
   }
 }
 

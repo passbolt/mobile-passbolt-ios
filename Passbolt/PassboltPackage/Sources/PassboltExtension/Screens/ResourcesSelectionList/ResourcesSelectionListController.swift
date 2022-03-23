@@ -28,15 +28,15 @@ import UIComponents
 
 internal struct ResourcesSelectionListController {
 
-  internal var refreshResources: () -> AnyPublisher<Void, TheErrorLegacy>
+  internal var refreshResources: @MainActor () -> AnyPublisher<Void, Error>
   internal var resourcesListPublisher:
-    () -> AnyPublisher<
+    @MainActor () -> AnyPublisher<
       (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
       Never
     >
-  internal var addResource: () -> Void
-  internal var resourceCreatePresentationPublisher: () -> AnyPublisher<Void, Never>
-  internal var selectResource: (Resource.ID) -> AnyPublisher<Void, TheErrorLegacy>
+  internal var addResource: @MainActor () -> Void
+  internal var resourceCreatePresentationPublisher: @MainActor () -> AnyPublisher<Void, Never>
+  internal var selectResource: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
 }
 
 extension ResourcesSelectionListController: UIController {
@@ -47,15 +47,17 @@ extension ResourcesSelectionListController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let diagnostics: Diagnostics = features.instance()
-    let autofillContext: AutofillExtensionContext = features.instance()
-    let resources: Resources = features.instance()
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
+    let autofillContext: AutofillExtensionContext = try await features.instance()
+    let resources: Resources = try await features.instance()
 
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
 
-    func refreshResources() -> AnyPublisher<Void, TheErrorLegacy> {
-      resources.refreshIfNeeded()
+    func refreshResources() -> AnyPublisher<Void, Error> {
+      cancellables.executeOnAccountSessionActorWithPublisher {
+        return resources.refreshIfNeeded()
+      }
     }
 
     func resourcesListPublisher() -> AnyPublisher<
@@ -92,39 +94,41 @@ extension ResourcesSelectionListController: UIController {
 
     func selectResource(
       _ resourceID: Resource.ID
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
-      resources
-        .loadResourceSecret(resourceID)
-        .map { resourceSecret -> AnyPublisher<String, TheErrorLegacy> in
-          if let password: String = resourceSecret.password {
-            return Just(password)
-              .setFailureType(to: TheErrorLegacy.self)
-              .eraseToAnyPublisher()
-          }
-          else {
-            return Fail<String, TheErrorLegacy>(error: .invalidResourceSecret())
-              .eraseToAnyPublisher()
-          }
-        }
-        .switchToLatest()
-        .combineLatest(
+    ) -> AnyPublisher<Void, Error> {
+      return cancellables.executeOnAccountSessionActorWithPublisher {
+        return
           resources
-            .resourceDetailsPublisher(resourceID)
-            .first()
-            .map { $0.username }
-        )
-        .handleEvents(receiveOutput: { (password, username) in
-          autofillContext
-            .completeWithCredential(
-              AutofillExtensionContext.Credential(
-                user: username ?? "",
-                password: password
+          .loadResourceSecret(resourceID)
+          .map { resourceSecret -> AnyPublisher<String, Error> in
+            if let password: String = resourceSecret.password {
+              return Just(password)
+                .eraseErrorType()
+                .eraseToAnyPublisher()
+            }
+            else {
+              return Fail<String, Error>(error: TheErrorLegacy.invalidResourceSecret())
+                .eraseToAnyPublisher()
+            }
+          }
+          .switchToLatest()
+          .combineLatest(
+            resources
+              .resourceDetailsPublisher(resourceID)
+              .first()
+              .map { $0.username }
+          )
+          .handleEvents(receiveOutput: { (password, username) in
+            autofillContext
+              .completeWithCredential(
+                AutofillExtensionContext.Credential(
+                  user: username ?? "",
+                  password: password
+                )
               )
-            )
-        })
-        .mapToVoid()
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+          })
+          .mapToVoid()
+          .collectErrorLog(using: diagnostics)
+      }
     }
 
     return Self(

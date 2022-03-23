@@ -44,15 +44,15 @@ final class ExtensionSetupControllerTests: MainActorTestCase {
     extensionContext = nil
   }
 
-  func test_closeConfiguration_closesExtension() {
+  func test_closeConfiguration_closesExtension() async throws {
     var result: Void!
     extensionContext.completeExtensionConfiguration = {
       result = Void()
     }
-    features.use(extensionContext)
-    features.use(linkOpener)
+    await features.use(extensionContext)
+    await features.use(linkOpener)
 
-    let controller: ExtensionSetupController = testController()
+    let controller: ExtensionSetupController = try await testController()
 
     controller.closeConfiguration()
 

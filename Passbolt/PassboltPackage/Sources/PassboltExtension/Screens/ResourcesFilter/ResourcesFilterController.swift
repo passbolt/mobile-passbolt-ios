@@ -30,11 +30,11 @@ import struct Foundation.Data
 
 internal struct ResourcesFilterController {
 
-  internal var resourcesFilterPublisher: () -> AnyPublisher<ResourcesFilter, Never>
-  internal var updateSearchText: (String) -> Void
-  internal var searchTextPublisher: () -> AnyPublisher<String, Never>
-  internal var avatarImagePublisher: () -> AnyPublisher<Data?, Never>
-  internal var switchAccount: () -> Void
+  internal var resourcesFilterPublisher: @MainActor () -> AnyPublisher<ResourcesFilter, Never>
+  internal var updateSearchText: @MainActor (String) -> Void
+  internal var searchTextPublisher: @MainActor () -> AnyPublisher<String, Never>
+  internal var avatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
+  internal var switchAccount: @MainActor () -> Void
 }
 
 extension ResourcesFilterController: UIController {
@@ -45,10 +45,10 @@ extension ResourcesFilterController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
-    let accountSession: AccountSession = features.instance()
-    let accountSettings: AccountSettings = features.instance()
-    let networkClient: NetworkClient = features.instance()
+  ) async throws -> Self {
+    let accountSession: AccountSession = try await features.instance()
+    let accountSettings: AccountSettings = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
 
@@ -87,7 +87,9 @@ extension ResourcesFilterController: UIController {
     }
 
     func switchAccount() {
-      accountSession.close()
+      cancellables.executeOnAccountSessionActor {
+        await accountSession.close()
+      }
     }
 
     return Self(

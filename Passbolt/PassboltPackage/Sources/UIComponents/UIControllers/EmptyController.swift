@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+@MainActor
 public struct EmptyController<Context>: UIController {
 
   public var context: Context

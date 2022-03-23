@@ -27,11 +27,11 @@ import Features
 
 public struct Accounts {
 
-  public var verifyStorageDataIntegrity: () -> Result<Void, TheErrorLegacy>
-  public var storedAccounts: () -> Array<Account>
+  public var verifyStorageDataIntegrity: @StorageAccessActor () -> Result<Void, Error>
+  public var storedAccounts: @StorageAccessActor () -> Array<Account>
   // Saves account data if authorization succeeds and creates session.
   public var transferAccount:
-    (
+    @StorageAccessActor (
       _ domain: URLString,
       _ userID: String,
       _ username: String,
@@ -41,8 +41,8 @@ public struct Accounts {
       _ fingerprint: Fingerprint,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) -> AnyPublisher<Void, TheErrorLegacy>
-  public var removeAccount: (Account) -> Result<Void, TheErrorLegacy>
+    ) -> AnyPublisher<Void, Error>
+  public var removeAccount: @StorageAccessActor (Account) -> Result<Void, Error>
 }
 
 extension Accounts: Feature {
@@ -51,22 +51,22 @@ extension Accounts: Feature {
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Self {
+  ) async throws -> Self {
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
 
-    let diagnostics: Diagnostics = features.instance()
-    let session: AccountSession = features.instance()
-    let dataStore: AccountsDataStore = features.instance()
+    let diagnostics: Diagnostics = try await features.instance()
+    let session: AccountSession = try await features.instance()
+    let dataStore: AccountsDataStore = try await features.instance()
 
-    func verifyAccountsDataIntegrity() -> Result<Void, TheErrorLegacy> {
+    @StorageAccessActor func verifyAccountsDataIntegrity() -> Result<Void, Error> {
       dataStore.verifyDataIntegrity()
     }
 
-    func storedAccounts() -> Array<Account> {
+    @StorageAccessActor func storedAccounts() -> Array<Account> {
       dataStore.loadAccounts()
     }
 
-    func transferAccount(
+    @StorageAccessActor func transferAccount(
       domain: URLString,
       userID: String,
       username: String,
@@ -76,7 +76,7 @@ extension Accounts: Feature {
       fingerprint: Fingerprint,
       armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<Void, TheErrorLegacy> {
+    ) -> AnyPublisher<Void, Error> {
 
       let accountAlreadyStored: Bool =
         dataStore
@@ -95,7 +95,6 @@ extension Accounts: Feature {
             .error("Duplicate account used for account transfer")
             .recording(domain, for: "domain")
             .recording(userID, for: "userID")
-            .asLegacy
         )
         .eraseToAnyPublisher()
       }
@@ -117,33 +116,30 @@ extension Accounts: Feature {
         biometricsEnabled: false  // it is always disabled initially
       )
 
-      return
-        session
-        .authorize(account, .adHoc(passphrase, armoredKey))
-        .map { _ -> AnyPublisher<Void, TheErrorLegacy> in
-          switch dataStore.storeAccount(account, accountProfile, armoredKey) {
-          case .success:
-            return Just(Void())
-              .setFailureType(to: TheErrorLegacy.self)
-              .eraseToAnyPublisher()
-          case let .failure(error):
-            diagnostics.diagnosticLog("...failed to store account data...")
-            diagnostics.debugLog(
-              "Failed to save account: \(account.localID)"
-                + " - status: \(error.osStatus.map(String.init(describing:)) ?? "N/A")"
-            )
-            session.close()  // cleanup session
-            return Fail<Void, TheErrorLegacy>(error: error)
-              .eraseToAnyPublisher()
-          }
+      return cancellables.executeOnStorageAccessActorWithPublisher { () -> Void in
+        _ =
+          try await session
+          .authorize(account, .adHoc(passphrase, armoredKey))
+
+        switch dataStore.storeAccount(account, accountProfile, armoredKey) {
+        case .success:
+          return Void()
+
+        case let .failure(error):
+          diagnostics.diagnosticLog("...failed to store account data...")
+          diagnostics.debugLog(
+            "Failed to save account: \(account.localID): \(error)"
+          )
+          await session.close()  // cleanup session
+          throw error
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+      }
+      .eraseToAnyPublisher()
     }
 
-    func remove(
+    @StorageAccessActor func remove(
       account: Account
-    ) -> Result<Void, TheErrorLegacy> {
+    ) -> Result<Void, Error> {
       diagnostics.diagnosticLog("Removing local account data...")
       dataStore.deleteAccount(account.localID)
       session
@@ -154,7 +150,7 @@ extension Accounts: Feature {
           case let .authorized(currentAccount) where currentAccount.localID == account.localID,
             let .authorizedMFARequired(currentAccount, _) where currentAccount.localID == account.localID,
             let .authorizationRequired(currentAccount) where currentAccount.localID == account.localID:
-            session.close()
+            cancellables.executeOnAccountSessionActor(session.close)
 
           case .authorized, .authorizedMFARequired, .authorizationRequired, .none:
             break
