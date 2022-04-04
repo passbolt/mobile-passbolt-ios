@@ -1180,7 +1180,7 @@ final class AccountSessionTests: TestCase {
     let result: Error?
     do {
       try await feature
-      .storePassphraseWithBiometry(true)
+        .storePassphraseWithBiometry(true)
       result = nil
     }
     catch {
@@ -1224,7 +1224,7 @@ final class AccountSessionTests: TestCase {
     let result: Error?
     do {
       try await feature
-      .storePassphraseWithBiometry(true)
+        .storePassphraseWithBiometry(true)
       result = nil
     }
     catch {
@@ -1265,7 +1265,7 @@ final class AccountSessionTests: TestCase {
     let result: Error?
     do {
       try await feature
-      .storePassphraseWithBiometry(true)
+        .storePassphraseWithBiometry(true)
       result = nil
     }
     catch {
@@ -1321,7 +1321,7 @@ final class AccountSessionTests: TestCase {
     let result: Error?
     do {
       try await feature
-      .storePassphraseWithBiometry(false)
+        .storePassphraseWithBiometry(false)
       result = nil
     }
     catch {
@@ -1362,7 +1362,7 @@ final class AccountSessionTests: TestCase {
     let result: Error?
     do {
       try await feature
-      .storePassphraseWithBiometry(false)
+        .storePassphraseWithBiometry(false)
       result = nil
     }
     catch {

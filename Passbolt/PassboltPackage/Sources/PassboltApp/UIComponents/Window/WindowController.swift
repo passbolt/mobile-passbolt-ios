@@ -61,7 +61,6 @@ extension WindowController: UIController {
     Publishers.Merge(
       accountSession
         .authorizationPromptPresentationPublisher()
-        .eraseErrorType()
         .asyncMap { [unowned features] (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition? in
           switch (screenStateDispositionSubject.value, promptRequest) {
           // Previous disposition presented authorization prompt for MFA and requesting passphrase
@@ -82,15 +81,8 @@ extension WindowController: UIController {
           // Previous disposition was not authorization prompt and requesting passphrase
           case let (.useCachedScreenState, .passphraseRequest(account, message)),
             let (.useInitialScreenState, .passphraseRequest(account, message)):
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring prompt requests during new account setup.
-              // Setup is finished after successfully providing passphrase for the first time.
-              return .none
-            }
-            else {
               // Presenting passphrase prompt
               return .requestPassphrase(account, message: message)
-            }
 
           // Previous disposition was not authorization prompt and requesting mfa
           case let (.useCachedScreenState, .mfaRequest(account, mfaProviders)),
@@ -106,11 +98,10 @@ extension WindowController: UIController {
             }
           }
         }
-        .replaceError(with: nil)
         .filterMapOptional(),
       accountSession
         .statePublisher()
-        .compactMap { sessionState -> ScreenStateDisposition? in
+        .asyncMap { sessionState -> ScreenStateDisposition? in
           switch (sessionState, screenStateDispositionSubject.value) {
           // authorized after prompting
           case let (.authorized(account), .requestPassphrase(promptedAccount, _))
@@ -122,21 +113,45 @@ extension WindowController: UIController {
           // switched to same account (mfa has to be handled by sign in flow if needed)
           case let (.authorized(account), .useInitialScreenState(previousAccount))
           where account == previousAccount:
-            return .useInitialScreenState(for: account)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useInitialScreenState(for: account)
+            }
 
           // switched to same account (mfa has to be handled by sign in flow if needed)
           case let (.authorized(account), .useCachedScreenState(previousAccount))
           where account == previousAccount:
-            return .useInitialScreenState(for: account)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useInitialScreenState(for: account)
+            }
 
           // initially authorized (mfa has to be handled by sign in flow if needed)
           case let (.authorized(account), .useInitialScreenState),
             let (.authorized(account), .requestPassphrase):
-            return .useInitialScreenState(for: account)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useInitialScreenState(for: account)
+            }
 
           // switched to other account (mfa has to be handled by sign in flow if needed)
           case let (.authorized(account), .useCachedScreenState):
-            return .useInitialScreenState(for: account)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useInitialScreenState(for: account)
+            }
 
           // passphrase cache cleared or started authorization for other account
           case (.authorizationRequired, _):
@@ -148,12 +163,24 @@ extension WindowController: UIController {
 
           // signed out after requesting MFA
           case (.none, .requestMFA):
-            return .useInitialScreenState(for: nil)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useInitialScreenState(for: nil)
+            }
 
           // signed out
           case (.none, .useInitialScreenState(.some)),
             (.none, .useCachedScreenState):
-            return .useInitialScreenState(for: .none)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useInitialScreenState(for: .none)
+            }
 
           // Session state changed to mfa required
           case (.authorizedMFARequired, _):
@@ -164,37 +191,26 @@ extension WindowController: UIController {
           // mfa auth succeeded
           case let (.authorized(account), .requestMFA(previousAccount, _))
           where account == previousAccount:
-            return .useCachedScreenState(for: account)
+            if await features.isLoaded(AccountTransfer.self) {
+              // Ignoring during new account setup.
+              return .none
+            }
+            else {
+              return .useCachedScreenState(for: account)
+            }
 
           // mfa auth succeeded but for wrong account
           case (.authorized, .requestMFA):
             unreachable("Cannot authorize to an account after requesting MFA for a different one")
           }
         }
+        .filterMapOptional()
     )
     .subscribe(screenStateDispositionSubject)
     .store(in: cancellables)
 
     func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
       screenStateDispositionSubject
-        .eraseErrorType()
-        .asyncMap { [weak features] (disposition: ScreenStateDisposition) -> (ScreenStateDisposition, Bool) in
-          let inTransfer = await features?.isLoaded(AccountTransfer.self) ?? false
-          return (disposition, inTransfer)
-        }
-        .filter { (disposition, inTransfer) in
-          switch disposition {
-          case .requestPassphrase, .requestMFA, .useCachedScreenState:
-            return true
-          case .useInitialScreenState:
-            // We are blocking automatic screen changes while
-            // account transfer is in progress (from QR code scanning
-            // up to successfull authorization)
-            return !inTransfer
-          }
-        }
-        .map { $0.0 }
-        .replaceError(with: .useInitialScreenState(for: nil))
         .eraseToAnyPublisher()
     }
 

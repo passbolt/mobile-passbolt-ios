@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import UICommons
 import Features
+import UICommons
 
 public struct Initialization {
 

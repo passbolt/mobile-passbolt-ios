@@ -184,15 +184,16 @@ extension AccountSession: Feature {
               internalSessionStateSubject.value
             let updated: InternalState =
               current.withExpiration(
-              dateNow: time.dateNow(),
-              requestAuthorization: {
-                requestAuthorization(message: nil)
-              }
-            )
+                dateNow: time.dateNow(),
+                requestAuthorization: {
+                  requestAuthorization(message: nil)
+                }
+              )
             if updated != current {
               internalSessionStateSubject.value = current
             }
-            else { /* NOP */ }
+            else { /* NOP */
+            }
           }
         }
       )
@@ -211,16 +212,17 @@ extension AccountSession: Feature {
       let current: InternalState =
         internalSessionStateSubject.value
       let updated: InternalState =
-      current.withExpiration(
-        dateNow: time.dateNow(),
-        requestAuthorization: {
-          requestAuthorization(message: nil)
-        }
-      )
+        current.withExpiration(
+          dateNow: time.dateNow(),
+          requestAuthorization: {
+            requestAuthorization(message: nil)
+          }
+        )
       if updated != current {
         internalSessionStateSubject.value = updated
       }
-      else { /* NOP */ }
+      else { /* NOP */
+      }
       return updated
     }
 
@@ -604,14 +606,16 @@ extension AccountSession: Feature {
         }
 
       case let .authorizationRequired(account):
-        throw SessionAuthorizationRequired
+        throw
+          SessionAuthorizationRequired
           .error(
             "Session authorization required for decrypting message",
             account: account
           )
 
       case .none:
-        throw SessionMissing
+        throw
+          SessionMissing
           .error("No session provided for decrypting message")
       }
     }
@@ -648,15 +652,17 @@ extension AccountSession: Feature {
           }
 
         case let .authorizationRequired(account):
-          throw SessionAuthorizationRequired
-              .error(
-                "Session authorization required for decrypting message",
-                account: account
-              )
+          throw
+            SessionAuthorizationRequired
+            .error(
+              "Session authorization required for decrypting message",
+              account: account
+            )
 
         case .none:
-          throw SessionMissing
-              .error("No session provided for encrypting message")
+          throw
+            SessionMissing
+            .error("No session provided for encrypting message")
         }
       }
       .eraseToAnyPublisher()
@@ -683,15 +689,15 @@ extension AccountSession: Feature {
 
         throw
           SessionAuthorizationRequired
-            .error(
-              "Session authorization required for storing passphrase",
-              account: account
-            )
+          .error(
+            "Session authorization required for storing passphrase",
+            account: account
+          )
 
       case .none:
         throw
           SessionMissing
-            .error("No session provided for storign passphrase")
+          .error("No session provided for storing passphrase")
       }
 
       if store {

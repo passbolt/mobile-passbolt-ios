@@ -217,7 +217,7 @@ extension Resources: Feature {
         .eraseErrorType()
         .asyncMap { response throws -> ResourceSecret in
           let decryptedMessage: String =
-          try await accountSession
+            try await accountSession
             // We are not using public key yet since we are not
             // managing other users data yet, for now skipping public key
             // for signature verification.

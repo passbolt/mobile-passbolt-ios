@@ -55,5 +55,6 @@ import AegithalosCocoa
   if #available(iOS 15.0, *) {
     UINavigationBar.appearance().compactScrollEdgeAppearance = appearance
   }
-  else { /* NOP */ }
+  else { /* NOP */
   }
+}

@@ -66,8 +66,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           .frame(maxWidth: 48, maxHeight: 48)
       }
 
-      if let prompt: DisplayableString = self.prompt
-      {
+      if let prompt: DisplayableString = self.prompt {
         SwiftUI.TextField(
           "",  // Empty, we don't use this label at all
           text: self.$text.value,
@@ -86,13 +85,13 @@ where LeftAccessoryView: View, RightAccessoryView: View {
         .frame(maxWidth: .infinity, maxHeight: 48)
         .overlay(
           (!self.isEditing && self.text.value.isEmpty)
-          ?
-          AnyView(Text(displayable: prompt)
-            .foregroundColor(.passboltSecondaryText)
-            .frame(maxWidth: .infinity, maxHeight: 20, alignment: .leading)
-            .allowsHitTesting(false)
-           )
-          : AnyView(EmptyView())
+            ? AnyView(
+              Text(displayable: prompt)
+                .foregroundColor(.passboltSecondaryText)
+                .frame(maxWidth: .infinity, maxHeight: 20, alignment: .leading)
+                .allowsHitTesting(false)
+            )
+            : AnyView(EmptyView())
 
         )
       }

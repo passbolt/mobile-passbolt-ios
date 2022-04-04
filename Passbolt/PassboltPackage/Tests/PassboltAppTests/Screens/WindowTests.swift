@@ -247,6 +247,8 @@ final class WindowTests: MainActorTestCase {
 
     controller
       .screenStateDispositionPublisher()
+      // ignore initial disposition
+      .dropFirst()
       .sink { result = $0 }
       .store(in: cancellables)
 
@@ -281,6 +283,8 @@ final class WindowTests: MainActorTestCase {
 
     controller
       .screenStateDispositionPublisher()
+      // ignore initial disposition
+      .dropFirst()
       .sink { result = $0 }
       .store(in: cancellables)
 
