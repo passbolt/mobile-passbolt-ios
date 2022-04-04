@@ -69,7 +69,12 @@ extension HomePresentation: Feature {
         break  // skip
 
       case .enabled:
-        availableModes.append(.foldersExplorer)
+        if #available(iOS 15, *) {
+          availableModes.append(.foldersExplorer)
+        }
+        else {
+          break  // temporarily disable on iOS 14
+        }
       }
 
       return availableModes
