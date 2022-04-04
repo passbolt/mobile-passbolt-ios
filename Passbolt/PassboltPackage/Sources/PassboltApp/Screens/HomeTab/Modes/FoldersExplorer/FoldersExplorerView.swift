@@ -40,11 +40,7 @@ internal struct FoldersExplorerView: ComponentView {
 
   internal var body: some View {
     VStack(spacing: 0) {
-      VStack(spacing: 0) {
-        self.titleView
-        self.searchView
-      }
-      .background(
+      ZStack(alignment: .top) {
         Rectangle()
           .fill(Color.passboltBackground)
           .shadow(
@@ -53,7 +49,14 @@ internal struct FoldersExplorerView: ComponentView {
             x: 0,
             y: -10
           )
-      )
+          .ignoresSafeArea(.all, edges: .top)
+        VStack(spacing: 0) {
+          self.titleView
+          self.searchView
+        }
+        .padding(top: -42)
+      }
+      .fixedSize(horizontal: false, vertical: true)
       .zIndex(1)
 
       if self.state.searchText.isEmpty {
@@ -64,16 +67,19 @@ internal struct FoldersExplorerView: ComponentView {
       }
     }
     .background(Color.passboltBackground)
-    .ignoresSafeArea(.all, edges: .top)
     .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 
   @ViewBuilder private var titleView: some View {
     HStack(alignment: .center, spacing: 0) {
-      Image(named: self.state.folderShared ? .sharedFolder : .folder)
-        .aspectRatio(1, contentMode: .fit)
-        .frame(width: 24)
-        .padding(trailing: 16)
+      Image(
+        named: self.state.folderShared
+          ? .sharedFolder
+          : .folder
+      )
+      .aspectRatio(1, contentMode: .fit)
+      .frame(width: 24)
+      .padding(trailing: 16)
       Text(displayable: self.state.title)
         .font(.inter(ofSize: 16, weight: .semibold))
 
@@ -81,7 +87,6 @@ internal struct FoldersExplorerView: ComponentView {
     .foregroundColor(.passboltPrimaryText)
     .frame(height: 40)
     .padding(
-      top: 46,
       leading: 32,
       trailing: 32
     )
@@ -92,11 +97,9 @@ internal struct FoldersExplorerView: ComponentView {
       prompt: .localized(key: "resources.search.placeholder"),
       text: self.state.scope(\.searchText),
       leftAccessory: {
-        Button(
+        AsyncButton(
           action: {
-            MainActor.execute {
-              await self.controller.presentHomePresentationMenu()
-            }
+            await self.controller.presentHomePresentationMenu()
           },
           label: {
             ImageWithPadding(4, named: .filter)

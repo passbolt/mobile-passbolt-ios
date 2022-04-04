@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import Darwin
 import Features
+import UICommons
 
 public struct Initialization {
 
@@ -58,6 +58,7 @@ extension Initialization: Feature {
       try await features.unload(Initialization.self)
     }
     let initialize: @MainActor () -> Void = { [unowned features] in
+      setupApplicationAppearance()
       cancellables.executeOnFeaturesActor {
         try await _initialize(with: features)
       }

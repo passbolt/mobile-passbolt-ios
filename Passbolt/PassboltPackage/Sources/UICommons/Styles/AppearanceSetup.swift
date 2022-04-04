@@ -23,39 +23,37 @@
 
 import AegithalosCocoa
 
-extension Mutation where Subject: UINavigationBar {
+@MainActor public func setupApplicationAppearance() {
+  let appearance: UINavigationBarAppearance = .init()
 
-  public static func primaryNavigationStyle() -> Self {
-    .combined(
-      .backgroundColor(.clear),
-      .barTintColor(.passboltBackground),
-      .tintColor(.passboltPrimaryButtonTint),
-      .translucent(true),
-      .shadowImage(UIImage()),
-      .backgroundImage(nil),
-      .custom { (subject: Subject) in
-        subject.barStyle = .black
-        subject.backIndicatorImage = UIImage(
-          named: ImageNameConstant.arrowLeft.rawValue,
-          in: .uiCommons,
-          with: nil
-        )
-        subject.backIndicatorTransitionMaskImage = UIImage(
-          named: ImageNameConstant.arrowLeft.rawValue,
-          in: .uiCommons,
-          with: nil
-        )
-        subject.titleTextAttributes = [
-          .foregroundColor: UIColor.passboltPrimaryText,
-          .font: UIFont.inter(ofSize: 16, weight: .semibold),
-        ]
-        subject.scrollEdgeAppearance?.configureWithOpaqueBackground()
-        if #available(iOS 15.0, *) {
-          subject.compactScrollEdgeAppearance?.configureWithOpaqueBackground()
-        }
-        else { /* NOP */
-        }
-      }
+  appearance.backgroundColor = .clear
+  appearance.backgroundImage = UIImage()
+  appearance.shadowImage = UIImage()
+  appearance.shadowColor = .none
+  appearance.backgroundEffect = .none
+  appearance.setBackIndicatorImage(
+    UIImage(
+      named: ImageNameConstant.arrowLeft.rawValue,
+      in: .uiCommons,
+      with: nil
+    ),
+    transitionMaskImage: UIImage(
+      named: ImageNameConstant.arrowLeft.rawValue,
+      in: .uiCommons,
+      with: nil
     )
+  )
+  appearance.titleTextAttributes = [
+    .foregroundColor: UIColor.passboltPrimaryText,
+    .font: UIFont.inter(ofSize: 16, weight: .semibold),
+  ]
+  UINavigationBar.appearance().tintColor = .passboltPrimaryButtonTint
+  UINavigationBar.appearance().barTintColor = .clear
+  UINavigationBar.appearance().standardAppearance = appearance
+  UINavigationBar.appearance().compactAppearance = appearance
+  UINavigationBar.appearance().scrollEdgeAppearance = appearance
+  if #available(iOS 15.0, *) {
+    UINavigationBar.appearance().compactScrollEdgeAppearance = appearance
   }
-}
+  else { /* NOP */ }
+  }

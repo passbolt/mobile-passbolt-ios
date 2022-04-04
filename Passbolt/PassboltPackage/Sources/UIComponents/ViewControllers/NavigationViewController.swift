@@ -54,10 +54,6 @@ import UIKit
     super.loadView()
     view.backgroundColor = .passboltBackground
     interactivePopGestureRecognizer?.isEnabled = false
-
-    mut(navigationBar) {
-      .primaryNavigationStyle()
-    }
   }
 
   override open func viewDidLoad() {
