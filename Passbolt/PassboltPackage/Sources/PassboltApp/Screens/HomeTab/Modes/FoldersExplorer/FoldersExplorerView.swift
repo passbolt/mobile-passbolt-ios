@@ -248,7 +248,7 @@ internal struct FoldersExplorerView: ComponentView {
     ) { folder in
       FolderListItemView(
         name: folder.name,
-        shared: folder.permission != .owner,
+        shared: folder.shared,
         contentCount: folder.contentCount,
         action: {
           self.controller.presentFolderContent(folder)
@@ -295,7 +295,7 @@ internal struct FoldersExplorerView: ComponentView {
     ) { folder in
       FolderListItemView(
         name: folder.name,
-        shared: folder.permission != .owner,
+        shared: folder.shared,
         contentCount: folder.contentCount,
         action: {
           self.controller.presentFolderContent(folder)
