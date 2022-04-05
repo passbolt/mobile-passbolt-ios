@@ -44,6 +44,7 @@ extension ResourcesRequest {
           .pathSuffix("/resources.json"),
           .queryItem("contain[permission]", value: "1"),
           .queryItem("contain[favorite]", value: "1"),
+          .queryItem("contain[tag]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
@@ -78,6 +79,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
   public var username: String?
   public var description: String?
   public var favorite: Bool
+  public var tags: Array<Tag>
   public var modified: Date
 
   public init(
@@ -107,6 +109,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
       self.favorite = false
     }
     self.modified = try container.decode(Date.self, forKey: .modified)
+    self.tags = try container.decodeIfPresent(Array<Tag>.self, forKey: .tags) ?? .init()
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -120,6 +123,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     case parentFolderID = "folder_parent_id"
     case permission = "permission"
     case favorite = "favorite"
+    case tags = "tags"
     case modified = "modified"
   }
 
@@ -138,5 +142,19 @@ extension ResourcesRequestResponseBodyItem {
     case read = 1
     case write = 7
     case owner = 15
+  }
+
+  public struct Tag: Decodable {
+
+    public var id: String
+    public var slug: String
+    public var shared: Bool
+
+    private enum CodingKeys: String, CodingKey {
+
+      case id = "id"
+      case slug = "slug"
+      case shared = "is_shared"
+    }
   }
 }
