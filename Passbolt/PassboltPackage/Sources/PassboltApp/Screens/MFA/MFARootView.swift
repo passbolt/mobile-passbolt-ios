@@ -55,13 +55,14 @@ internal final class MFARootView: KeyboardAwareView {
 
     mut(scrolledStack) {
       .combined(
+        .clipsToBounds(true),
         .isLayoutMarginsRelativeArrangement(true),
         .contentInset(.init(top: 0, left: 16, bottom: 8, right: 16)),
         .axis(.vertical),
         .subview(of: self),
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, topAnchor),
+        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
         .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
         .append(container),
         .append(button)

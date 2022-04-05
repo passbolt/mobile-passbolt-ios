@@ -43,9 +43,10 @@ internal final class ResourceMenuView: PlainView {
 
     mut(stack) {
       .combined(
+        .clipsToBounds(true),
         .isLayoutMarginsRelativeArrangement(true),
         .subview(of: self),
-        .topAnchor(.equalTo, topAnchor),
+        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .bottomAnchor(.equalTo, bottomAnchor),

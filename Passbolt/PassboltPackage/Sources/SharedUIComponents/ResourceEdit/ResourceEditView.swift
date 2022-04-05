@@ -47,10 +47,11 @@ public final class ResourceEditView: KeyboardAwareView {
 
     mut(scrolledStack) {
       .combined(
+        .clipsToBounds(true),
         .subview(of: self),
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
-        .topAnchor(.equalTo, topAnchor),
+        .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
         .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
         .isLayoutMarginsRelativeArrangement(true),
         .contentInset(.init(top: 0, left: 16, bottom: 16, right: 16)),
