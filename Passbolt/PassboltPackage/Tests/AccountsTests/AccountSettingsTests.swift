@@ -95,6 +95,9 @@ final class AccountSettingsTests: TestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
     XCTAssertFalse(result)
   }
 
@@ -116,7 +119,6 @@ final class AccountSettingsTests: TestCase {
     var result: Bool?
     feature
       .biometricsEnabledPublisher()
-      .dropFirst()
       .sink { enabled in
         result = enabled
       }
@@ -153,6 +155,9 @@ final class AccountSettingsTests: TestCase {
         result = enabled
       }
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     XCTAssertFalse(result)
   }
@@ -315,6 +320,9 @@ final class AccountSettingsTests: TestCase {
         results.append(accountWithProfile.profile)
       }
       .store(in: cancellables)
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     accountSessionAccountSubject.value = validAccountAlternative
 

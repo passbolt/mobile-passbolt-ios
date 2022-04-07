@@ -57,7 +57,7 @@ extension Error {
       return theError.displayableMessage
 
     case let legacy as TheErrorLegacy:
-      return legacy.displayableMessage
+      return legacy.displayableString
 
     case _:
       return

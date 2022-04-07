@@ -58,62 +58,46 @@ extension AccountSettings: Feature {
     let permissions: OSPermissions = try await features.instance()
     let networkClient: NetworkClient = try await features.instance()
 
-    let currentAccountProfileSubject: CurrentValueSubject<AccountWithProfile?, Never> = .init(nil)
+    let currentAccountProfileSubject: CurrentValueSubject<AccountWithProfile?, Never> =
+      .init(.none)
 
     accountSession
       .statePublisher()
-      .asyncMap { (sessionState: AccountSessionState) -> AnyPublisher<AccountWithProfile?, Never>? in
-        switch sessionState {
-        case let .authorized(account), let .authorizedMFARequired(account, _), let .authorizationRequired(account):
-          let initialProfilePublisher: AnyPublisher<AccountWithProfile?, Never>
-
-          switch await accountsDataStore.loadAccountProfile(account.localID) {
-          case let .success(accountProfile):
-            initialProfilePublisher = Just(.init(account: account, profile: accountProfile))
-              .eraseToAnyPublisher()
-
-          case let .failure(error):
-            diagnostics.diagnosticLog("Failed to load account profile")
-            diagnostics.log(error)
-            initialProfilePublisher = Just(.none)
-              .eraseToAnyPublisher()
-          }
-
-          let profileUpdatesPublisher: AnyPublisher<AccountWithProfile?, Never> =
-            accountsDataStore
-            .updatedAccountIDsPublisher()
-            .filter { $0 == account.localID }
-            .asyncMap { (accountID: Account.LocalID) -> AnyPublisher<AccountWithProfile?, Never> in
-              switch await accountsDataStore.loadAccountProfile(accountID) {
-              case let .success(accountProfile):
-                return Just(.init(account: account, profile: accountProfile))
-                  .eraseToAnyPublisher()
-
-              case let .failure(error):
-                diagnostics.diagnosticLog("Failed to load account profile")
-                diagnostics.log(error)
-                return Just(.none)
-                  .eraseToAnyPublisher()
-              }
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
-
+      .map(\.currentAccount)
+      .removeDuplicates()
+      .map { (account: Account?) -> AnyPublisher<AccountWithProfile?, Never> in
+        if let account: Account = account {
           return Publishers.Merge(
-            initialProfilePublisher,
-            profileUpdatesPublisher
+            Just(account.localID),
+            accountsDataStore
+              .updatedAccountIDsPublisher()
+              .filter { $0 == account.localID }
           )
+          .asyncMap { @StorageAccessActor (accountID: Account.LocalID) -> AccountWithProfile? in
+            switch accountsDataStore.loadAccountProfile(accountID) {
+            case let .success(accountProfile):
+              return AccountWithProfile(
+                account: account,
+                profile: accountProfile
+              )
+
+            case let .failure(error):
+              diagnostics.diagnosticLog("Failed to load account profile")
+              diagnostics.log(error)
+              return .none
+            }
+          }
           .eraseToAnyPublisher()
-        case .none:
-          return nil
+        }
+        else {
+          return Just(.none)
+            .eraseToAnyPublisher()
         }
       }
-      .filterMapOptional()
       .switchToLatest()
-      .removeDuplicates()
-      .sink { accountProfile in
-        currentAccountProfileSubject.send(accountProfile)
-      }
+      .sink(receiveValue: { (profile: AccountWithProfile?) in
+        currentAccountProfileSubject.send(profile)
+      })
       .store(in: cancellables)
 
     let biometricsEnabledPublisher: AnyPublisher<Bool, Never> =
@@ -123,38 +107,6 @@ extension AccountSettings: Feature {
       }
       .removeDuplicates()
       .eraseToAnyPublisher()
-
-    accountSession
-      .statePublisher()
-      .scan(
-        (
-          last: Optional<Account>.none,
-          current: Optional<Account>.none
-        )
-      ) { changes, sessionState in
-        switch sessionState {
-        case let .authorized(account):
-          return (last: changes.current, current: account)
-
-        case let .authorizedMFARequired(account, _) where account == changes.current:
-          return (last: changes.current, current: account)
-
-        case let .authorizationRequired(account) where account == changes.current:
-          return (last: changes.current, current: account)
-
-        case .authorizationRequired, .authorizedMFARequired, .none:
-          return (last: changes.current, current: nil)
-        }
-      }
-      .filter { $0.last != $0.current }
-      .compactMap { $0.current }
-      .eraseErrorType()
-      .asyncMap { account in
-        await fetchAccountProfile(account)
-          .replaceError(with: Void())
-      }
-      .sinkDrop()
-      .store(in: cancellables)
 
     @StorageAccessActor func updateProfile(
       for accountID: Account.LocalID,

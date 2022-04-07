@@ -482,7 +482,6 @@ final class WindowTests: MainActorTestCase {
 
     controller
       .screenStateDispositionPublisher()
-      .dropFirst()
       .sink { result = $0 }
       .store(in: cancellables)
 

@@ -94,7 +94,6 @@ final class AccountsStoreTests: TestCase {
         validPrivateKey,
         validPassphrase
       )
-      .asAsyncValue()
 
     XCTAssertEqual(result?.account, validAccount)
     XCTAssertEqual(result?.details, validAccountProfile)
@@ -123,7 +122,6 @@ final class AccountsStoreTests: TestCase {
           validPrivateKey,
           validPassphrase
         )
-        .asAsyncValue()
     }
     catch {
       result = error

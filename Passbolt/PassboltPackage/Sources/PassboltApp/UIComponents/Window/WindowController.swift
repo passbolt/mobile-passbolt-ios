@@ -81,8 +81,8 @@ extension WindowController: UIController {
           // Previous disposition was not authorization prompt and requesting passphrase
           case let (.useCachedScreenState, .passphraseRequest(account, message)),
             let (.useInitialScreenState, .passphraseRequest(account, message)):
-              // Presenting passphrase prompt
-              return .requestPassphrase(account, message: message)
+            // Presenting passphrase prompt
+            return .requestPassphrase(account, message: message)
 
           // Previous disposition was not authorization prompt and requesting mfa
           case let (.useCachedScreenState, .mfaRequest(account, mfaProviders)),

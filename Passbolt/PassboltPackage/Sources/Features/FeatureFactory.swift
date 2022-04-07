@@ -37,7 +37,9 @@ public final class FeatureFactory {
   private nonisolated let environment: AppEnvironment
   #endif
   private var rootFeatures: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
+  private var pendingRootFeatures: Dictionary<ObjectIdentifier, Task<FeatureInstance, Error>> = .init()
   private var scopeFeatures: Dictionary<ObjectIdentifier, FeatureInstance> = .init()
+  private var pendingScopeFeatures: Dictionary<ObjectIdentifier, Task<FeatureInstance, Error>> = .init()
   private var scopeID: AnyHashable?
 
   nonisolated public init(
@@ -82,7 +84,10 @@ public final class FeatureFactory {
     guard scopeID != self.scopeID
     else { return }
     self.scopeID = scopeID
-    for instance in scopeFeatures.values {
+    for pending in self.pendingScopeFeatures.values {
+      pending.cancel()
+    }
+    for instance in self.scopeFeatures.values {
       do {
         try await instance.feature.featureUnload()
       }
@@ -90,7 +95,7 @@ public final class FeatureFactory {
         assertionFailure("Feature unloading failed: \(error)")
       }
     }
-    scopeFeatures = .init()
+    self.scopeFeatures = .init()
   }
 }
 
@@ -100,11 +105,21 @@ extension FeatureFactory {
     of feature: F.Type = F.self
   ) async throws -> F
   where F: Feature {
-    if let loaded: F = rootFeatures[F.featureIdentifier]?.feature as? F {
+    if let loaded: F = self.rootFeatures[F.featureIdentifier]?.feature as? F {
       return loaded
     }
-    else if let loaded: F = scopeFeatures[F.featureIdentifier]?.feature as? F {
+    else if let loaded: F = self.scopeFeatures[F.featureIdentifier]?.feature as? F {
       return loaded
+    }
+    else if let pendingLoad: Task<FeatureInstance, Error> = self.pendingRootFeatures[F.featureIdentifier]
+      ?? self.pendingScopeFeatures[F.featureIdentifier]
+    {
+      if let loaded: F = try await pendingLoad.value.feature as? F {
+        return loaded
+      }
+      else {
+        unreachable("Cannot create wrong type of feature")
+      }
     }
     else {
       #if DEBUG
@@ -120,37 +135,81 @@ extension FeatureFactory {
       #endif
       let featureCancellables: Cancellables = .init()
 
-      let loaded: F = try await .load(
-        in: environment,
-        using: self,
-        cancellables: featureCancellables
-      )
-      if scopeID == nil {
-        rootFeatures[F.featureIdentifier] = .init(
-          feature: loaded,
-          cancellables: featureCancellables
-        )
+      let pendingLoad: Task<FeatureInstance, Error>
+      if self.scopeID == nil {
+        pendingLoad = Task<FeatureInstance, Error> { @FeaturesActor in
+          let loaded: F = try await .load(
+            in: self.environment,
+            using: self,
+            cancellables: featureCancellables
+          )
+          self.rootFeatures[F.featureIdentifier] = .init(
+            feature: loaded,
+            cancellables: featureCancellables
+          )
+          self.pendingRootFeatures[F.featureIdentifier] = .none
+          return FeatureInstance(
+            feature: loaded,
+            cancellables: featureCancellables
+          )
+        }
+        self.pendingRootFeatures[F.featureIdentifier] = pendingLoad
       }
       else {
-        scopeFeatures[F.featureIdentifier] = .init(
-          feature: loaded,
-          cancellables: featureCancellables
-        )
+        pendingLoad = Task<FeatureInstance, Error> { @FeaturesActor in
+          let loaded: F = try await .load(
+            in: self.environment,
+            using: self,
+            cancellables: featureCancellables
+          )
+          assert(self.scopeID != nil)
+          self.scopeFeatures[F.featureIdentifier] = .init(
+            feature: loaded,
+            cancellables: featureCancellables
+          )
+          self.pendingScopeFeatures[F.featureIdentifier] = .none
+          return FeatureInstance(
+            feature: loaded,
+            cancellables: featureCancellables
+          )
+        }
+        self.pendingScopeFeatures[F.featureIdentifier] = pendingLoad
       }
-      return loaded
+
+      if let loaded: F = try await pendingLoad.value.feature as? F {
+        return loaded
+      }
+      else {
+        unreachable("Cannot create wrong type of feature")
+      }
     }
   }
 
   @FeaturesActor public func unload<F>(
     _ feature: F.Type
   ) async throws where F: Feature {
-    if let feature: F = scopeFeatures[F.featureIdentifier]?.feature as? F {
-      try await feature.featureUnload()
-      scopeFeatures[F.featureIdentifier] = nil
+    if let pendingFeature: Task<FeatureInstance, Error> = self.pendingScopeFeatures[F.featureIdentifier] {
+      pendingFeature.cancel()
     }
-    else if let feature: F = rootFeatures[F.featureIdentifier]?.feature as? F {
+    else {
+      /* NOP */
+    }
+    if let feature: F = self.scopeFeatures[F.featureIdentifier]?.feature as? F {
       try await feature.featureUnload()
-      rootFeatures[F.featureIdentifier] = nil
+      self.scopeFeatures[F.featureIdentifier] = nil
+    }
+    else {
+      /* NOP */
+    }
+    if let pendingFeature: Task<FeatureInstance, Error> = self.pendingRootFeatures[F.featureIdentifier] {
+      pendingFeature.cancel()
+    }
+    else {
+      /* NOP */
+    }
+    if let feature: F = self.rootFeatures[F.featureIdentifier]?.feature as? F {
+      try await feature.featureUnload()
+      self.rootFeatures[F.featureIdentifier] = nil
     }
     else {
       /* NOP */
@@ -160,6 +219,7 @@ extension FeatureFactory {
   @FeaturesActor public func isLoaded<F>(
     _ feature: F.Type
   ) -> Bool where F: Feature {
+    #warning("TODO: to check if we should not check for pending instances also")
     if scopeFeatures[F.featureIdentifier]?.feature is F {
       return true
     }
@@ -181,22 +241,24 @@ extension FeatureFactory {
     _ feature: F,
     cancellables: Cancellables = .init()
   ) where F: Feature {
-    if scopeID == nil {
+    if self.scopeID == nil {
       assert(
-        rootFeatures[F.featureIdentifier] == nil,
+        self.rootFeatures[F.featureIdentifier] == nil
+          && self.pendingRootFeatures[F.featureIdentifier] == nil,
         "Feature should not be replaced after initialization"
       )
-      rootFeatures[F.featureIdentifier] = .init(
+      self.rootFeatures[F.featureIdentifier] = .init(
         feature: feature,
         cancellables: cancellables
       )
     }
     else {
       assert(
-        scopeFeatures[F.featureIdentifier] == nil,
+        self.scopeFeatures[F.featureIdentifier] == nil
+          && self.pendingScopeFeatures[F.featureIdentifier] == nil,
         "Feature should not be replaced after initialization"
       )
-      scopeFeatures[F.featureIdentifier] = .init(
+      self.scopeFeatures[F.featureIdentifier] = .init(
         feature: feature,
         cancellables: cancellables
       )
@@ -205,6 +267,8 @@ extension FeatureFactory {
 }
 
 #if DEBUG
+// WARNING: debug methods does not take
+// into account pending feature loads
 extension FeatureFactory {
 
   public static var autoLoadFeatures: Bool = true
@@ -213,14 +277,14 @@ extension FeatureFactory {
   @FeaturesActor public func usePlaceholder<F>(
     for featureType: F.Type
   ) async where F: Feature {
-    if scopeID == nil {
-      rootFeatures[F.featureIdentifier] = .init(
+    if self.scopeID == nil {
+      self.rootFeatures[F.featureIdentifier] = .init(
         feature: F.placeholder,
         cancellables: .init()
       )
     }
     else {
-      scopeFeatures[F.featureIdentifier] = .init(
+      self.scopeFeatures[F.featureIdentifier] = .init(
         feature: F.placeholder,
         cancellables: .init()
       )
@@ -231,23 +295,23 @@ extension FeatureFactory {
     _ keyPath: WritableKeyPath<F, P>,
     with updated: P
   ) where F: Feature {
-    if let instance: FeatureInstance = rootFeatures[F.featureIdentifier],
+    if let instance: FeatureInstance = self.rootFeatures[F.featureIdentifier],
       var loaded: F = instance.feature as? F
     {
       withExtendedLifetime(loaded) {
         loaded[keyPath: keyPath] = updated
-        rootFeatures[F.featureIdentifier] = .init(
+        self.rootFeatures[F.featureIdentifier] = .init(
           feature: loaded,
           cancellables: instance.cancellables
         )
       }
     }
-    else if let instance: FeatureInstance = scopeFeatures[F.featureIdentifier],
+    else if let instance: FeatureInstance = self.scopeFeatures[F.featureIdentifier],
       var loaded: F = instance.feature as? F
     {
       withExtendedLifetime(loaded) {
         loaded[keyPath: keyPath] = updated
-        scopeFeatures[F.featureIdentifier] = .init(
+        self.scopeFeatures[F.featureIdentifier] = .init(
           feature: loaded,
           cancellables: instance.cancellables
         )
@@ -257,7 +321,7 @@ extension FeatureFactory {
       var feature: F = .placeholder
       withExtendedLifetime(feature) {
         feature[keyPath: keyPath] = updated
-        rootFeatures[F.featureIdentifier] = .init(
+        self.rootFeatures[F.featureIdentifier] = .init(
           feature: feature,
           cancellables: .init()
         )
@@ -267,7 +331,7 @@ extension FeatureFactory {
       var feature: F = .placeholder
       withExtendedLifetime(feature) {
         feature[keyPath: keyPath] = updated
-        scopeFeatures[F.featureIdentifier] = .init(
+        self.scopeFeatures[F.featureIdentifier] = .init(
           feature: feature,
           cancellables: .init()
         )

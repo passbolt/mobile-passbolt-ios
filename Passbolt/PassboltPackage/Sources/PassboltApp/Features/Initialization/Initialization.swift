@@ -57,6 +57,7 @@ extension Initialization: Feature {
       try await features.loadIfNeeded(FingerprintStorage.self)
       try await features.loadIfNeeded(Accounts.self)
       try await features.loadIfNeeded(AccountSession.self)
+      try await features.loadIfNeeded(AccountSettings.self)
       try await features.loadIfNeeded(AutoFill.self)
 
       try await features.unload(Initialization.self)

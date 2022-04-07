@@ -41,7 +41,7 @@ public struct Accounts {
       _ fingerprint: Fingerprint,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) -> AnyPublisher<Void, Error>
+    ) async throws -> Void
   public var removeAccount: @StorageAccessActor (Account) -> Result<Void, Error>
 }
 
@@ -76,8 +76,7 @@ extension Accounts: Feature {
       fingerprint: Fingerprint,
       armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
-    ) -> AnyPublisher<Void, Error> {
-
+    ) async throws {
       let accountAlreadyStored: Bool =
         dataStore
         .loadAccounts()
@@ -89,14 +88,11 @@ extension Accounts: Feature {
         )
       guard !accountAlreadyStored
       else {
-        return Fail(
-          error:
-            AccountDuplicate
-            .error("Duplicate account used for account transfer")
-            .recording(domain, for: "domain")
-            .recording(userID, for: "userID")
-        )
-        .eraseToAnyPublisher()
+        throw
+          AccountDuplicate
+          .error("Duplicate account used for account transfer")
+          .recording(domain, for: "domain")
+          .recording(userID, for: "userID")
       }
 
       let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
@@ -116,25 +112,24 @@ extension Accounts: Feature {
         biometricsEnabled: false  // it is always disabled initially
       )
 
-      return cancellables.executeOnStorageAccessActorWithPublisher { () -> Void in
-        _ =
-          try await session
-          .authorize(account, .adHoc(passphrase, armoredKey))
+      switch dataStore.storeAccount(account, accountProfile, armoredKey) {
+      case .success:
+        break
 
-        switch dataStore.storeAccount(account, accountProfile, armoredKey) {
-        case .success:
-          return Void()
-
-        case let .failure(error):
-          diagnostics.diagnosticLog("...failed to store account data...")
-          diagnostics.debugLog(
-            "Failed to save account: \(account.localID): \(error)"
-          )
-          await session.close()  // cleanup session
-          throw error
-        }
+      case let .failure(error):
+        diagnostics.diagnosticLog("...failed to store account data...")
+        diagnostics.debugLog(
+          "Failed to save account: \(account.localID): \(error)"
+        )
+        throw error
       }
-      .eraseToAnyPublisher()
+
+      _ =
+        try await session
+        .authorize(
+          account,
+          .adHoc(passphrase, armoredKey)
+        )
     }
 
     @StorageAccessActor func remove(

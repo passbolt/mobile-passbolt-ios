@@ -103,14 +103,8 @@ extension AccountSession {
     }
 
     // Warning: expiration time verification has to be done separately
-    @AccountSessionActor fileprivate func asStateWithExpiration(
-      dateNow: Date,
-      requestAuthorization: @AccountSessionActor () -> Void
-    ) -> AccountSessionState {
-      switch self.withExpiration(
-        dateNow: dateNow,
-        requestAuthorization: requestAuthorization
-      ) {
+    @AccountSessionActor fileprivate var asPublicState: AccountSessionState {
+      switch self {
       case let .authorized(account, _, _):
         return .authorized(account)
 
@@ -169,44 +163,38 @@ extension AccountSession: Feature {
 
     let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
 
-    let sessionStatePublisher: AnyPublisher<AccountSessionState, Never> =
+    nonisolated func sessionStatePublisher() -> AnyPublisher<AccountSessionState, Never> {
       internalSessionStateSubject
-      .handleEvents(
-        receiveSubscription: { [weak internalSessionStateSubject] _ in
-          sessionCancellables.executeOnAccountSessionActor {
-            // force refresh state if needed
-            // TODO: we should more proactively change status
-            // on publisher by using timer instead
-            guard let internalSessionStateSubject = internalSessionStateSubject, !Task.isCancelled
-            else { return }
+        .map(\.asPublicState)
+        .handleEvents(
+          receiveSubscription: { [weak internalSessionStateSubject] _ in
+            sessionCancellables.executeOnAccountSessionActor { [weak internalSessionStateSubject] in
+              // force refresh state if needed
+              // TODO: we should more proactively change status
+              // on publisher by using timer instead
+              guard let internalSessionStateSubject = internalSessionStateSubject, !Task.isCancelled
+              else { return }
 
-            let current: InternalState =
-              internalSessionStateSubject.value
-            let updated: InternalState =
-              current.withExpiration(
-                dateNow: time.dateNow(),
-                requestAuthorization: {
-                  requestAuthorization(message: nil)
-                }
-              )
-            if updated != current {
-              internalSessionStateSubject.value = current
+              let current: InternalState = internalSessionStateSubject.value
+              let updated: InternalState =
+                current
+                .withExpiration(
+                  dateNow: time.dateNow(),
+                  requestAuthorization: {
+                    requestAuthorization(message: nil)
+                  }
+                )
+              if updated != current {
+                internalSessionStateSubject.value = updated
+              }
+              else { /* NOP */
+              }
             }
-            else { /* NOP */
-            }
-          }
-        }
-      )
-      .asyncMap { @AccountSessionActor state in
-        state.asStateWithExpiration(
-          dateNow: time.dateNow(),
-          requestAuthorization: {
-            requestAuthorization(message: nil)
           }
         )
-      }
-      .removeDuplicates()
-      .eraseToAnyPublisher()
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
 
     @AccountSessionActor func currentSessionState() -> InternalState {
       let current: InternalState =
@@ -281,17 +269,18 @@ extension AccountSession: Feature {
     // Close current session and change session state (sign out)
     let closeSession: @AccountSessionActor () async -> Void = { [weak features] in
       diagnostics.diagnosticLog("Closing current session...")
-      sessionCancellables.cancelAll()
-      await authorizationTask.cancel()  // cancel ongoing authorization if any
       await features?.setScope(.none)  // cleanup features
 
-      switch currentSessionState() {
+      switch internalSessionStateSubject.value {
       case .authorized, .authorizationRequired, .authorizedMFARequired:
         await networkSession.closeSession()
 
       case .none:
         break  // do nothing
       }
+
+      sessionCancellables.cancelAll()
+      await authorizationTask.cancel()  // cancel ongoing authorization if any
 
       // we provide none for last used to avoid skipping
       // account list in favor of the last account
@@ -773,6 +762,7 @@ extension AccountSession: Feature {
         authorizationPromptPresentationSubject.send(
           .passphraseRequest(account: account, message: message)
         )
+
       case .none:
         break
       }
@@ -805,16 +795,9 @@ extension AccountSession: Feature {
     return Self(
       currentState: { @AccountSessionActor in
         currentSessionState()
-          .asStateWithExpiration(
-            dateNow: time.dateNow(),
-            requestAuthorization: {
-              cancellables.executeOnAccountSessionActor {
-                await requestAuthorization(message: nil)
-              }
-            }
-          )
+          .asPublicState
       },
-      statePublisher: { sessionStatePublisher },
+      statePublisher: sessionStatePublisher,
       authorize: authorize(account:authorizationMethod:),
       mfaAuthorize: mfaAuthorize(method:rememberDevice:),
       decryptMessage: decryptMessage,
@@ -823,8 +806,8 @@ extension AccountSession: Feature {
       databaseKey: databaseKey,
       authorizationPromptPresentationPublisher: authorizationPromptPresentationPublisher,
       requestAuthorizationPrompt: { message in
-        cancellables.executeOnAccountSessionActor {
-          await requestAuthorization(message: message)
+        sessionCancellables.executeOnAccountSessionActor {
+          requestAuthorization(message: message)
         }
       },
       close: closeSession

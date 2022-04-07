@@ -28,3 +28,18 @@ public enum AccountSessionState: Equatable {
   case authorizationRequired(Account)
   case none(lastUsed: Account?)
 }
+
+extension AccountSessionState {
+
+  public var currentAccount: Account? {
+    switch self {
+    case let .authorized(account),
+      let .authorizedMFARequired(account, providers: _),
+      let .authorizationRequired(account):
+      return account
+
+    case .none:
+      return .none
+    }
+  }
+}

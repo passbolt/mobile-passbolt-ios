@@ -357,43 +357,38 @@ extension AccountTransfer: Feature {
         )
         .eraseToAnyPublisher()
       }
-      return
-        accounts
-        .transferAccount(
-          configuration.domain,
-          account.userID,
-          profile.username,
-          profile.firstName,
-          profile.lastName,
-          profile.avatarImageURL,
-          account.fingerprint,
-          account.armoredKey,
-          passphrase
-        )
-        .handleEvents(receiveCompletion: {
-          [weak features] (completion: Subscribers.Completion<Error>) -> Void in
-          switch completion {
-          case .finished:
-            diagnostics.diagnosticLog("...account transfer succeeded!")
-            transferState.send(completion: .finished)
-            cancellables.executeOnFeaturesActor {
-              try await features?.unload(Self.self)
-            }
-          case let .failure(error)
-          where error.asLegacy.legacyBridge is AccountDuplicate:
-            diagnostics.diagnosticLog("...account transfer failed!")
-            transferState.send(completion: .failure(error))
-            cancellables.executeOnFeaturesActor {
-              try await features?.unload(Self.self)
-            }
-
-          case .failure:
-            diagnostics.diagnosticLog("...account transfer failed!")
-          }
-        })
-        .ignoreOutput()
-        .collectErrorLog(using: diagnostics)
-        .eraseToAnyPublisher()
+      return cancellables.executeOnStorageAccessActorWithPublisher { [weak features] in
+        do {
+          try await accounts
+            .transferAccount(
+              configuration.domain,
+              account.userID,
+              profile.username,
+              profile.firstName,
+              profile.lastName,
+              profile.avatarImageURL,
+              account.fingerprint,
+              account.armoredKey,
+              passphrase
+            )
+          diagnostics.diagnosticLog("...account transfer succeeded!")
+          transferState.send(completion: .finished)
+          try await features?.unload(Self.self)
+        }
+        catch let error as AccountDuplicate {
+          diagnostics.log(error)
+          diagnostics.diagnosticLog("...account transfer failed!")
+          transferState.send(completion: .failure(error))
+          try await features?.unload(Self.self)
+        }
+        catch {
+          diagnostics.log(error)
+          diagnostics.diagnosticLog("...account transfer failed!")
+          throw error
+        }
+      }
+      .ignoreOutput()
+      .eraseToAnyPublisher()
     }
 
     // swift-format-ignore: NoLeadingUnderscores
@@ -408,7 +403,7 @@ extension AccountTransfer: Feature {
         )
         .collectErrorLog(using: diagnostics)
         // we don't care about response, user exits process anyway
-        .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+        .sinkDrop()
       }
       else { /* we can't cancel if we don't have configuration yet */
       }
