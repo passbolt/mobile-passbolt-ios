@@ -148,13 +148,26 @@ extension Resources: Feature {
                 return Resource(
                   id: .init(rawValue: resource.id),
                   typeID: .init(rawValue: resource.resourceTypeID),
-                  parentFolderID: resource.parentFolderID.map(Folder.ID.init(rawValue:)),
+                  parentFolderID: resource
+                    .parentFolderID
+                    .map(Folder.ID.init(rawValue:)),
                   name: resource.name,
                   url: resource.url,
                   username: resource.username,
                   description: resource.description,
                   permission: permission,
                   favorite: resource.favorite,
+                  tags: Set(
+                    resource
+                      .tags
+                      .map {
+                        .init(
+                          id: .init(rawValue: $0.id),
+                          slug: $0.slug,
+                          shared: $0.shared
+                        )
+                      }
+                  ),
                   modified: resource.modified
                 )
               }

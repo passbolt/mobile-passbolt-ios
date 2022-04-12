@@ -36,13 +36,14 @@ internal enum SQLiteOpeningOperations {
         resourcesListView
       AS
       SELECT
-        id,
-        name,
-        permission,
-        url,
-        username,
-        favorite,
-        modified
+        resources.id,
+        resources.name,
+        resources.permission,
+        resources.url,
+        resources.username,
+        resources.favorite,
+        resources.modified,
+        resources.parentFolderID
       FROM
         resources;
       """,
@@ -185,20 +186,6 @@ internal enum SQLiteOpeningOperations {
         shared
       FROM
         folders;
-      """,
-      // - folderResourcesListView - //
-      """
-      CREATE TEMPORARY VIEW
-        folderResourcesListView
-      AS
-      SELECT
-        id,
-        parentFolderID,
-        name,
-        url,
-        username
-      FROM
-        resources;
       """,
     ]
   }

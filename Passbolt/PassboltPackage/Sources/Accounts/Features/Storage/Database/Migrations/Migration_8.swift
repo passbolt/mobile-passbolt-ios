@@ -21,30 +21,39 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Environment
 
-import struct Foundation.Date
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-public struct ListViewFolderResource {
-
-  public typealias ID = Resource.ID
-
-  public let id: ID
-  public var name: String
-  public var username: String?
-  public var parentFolderID: Folder.ID?
-
-  public init(
-    id: ID,
-    name: String,
-    username: String?,
-    parentFolderID: Folder.ID?
-  ) {
-    self.id = id
-    self.name = name
-    self.username = username
-    self.parentFolderID = parentFolderID
+  internal static var migration_8: Self {
+    [
+      // - add tags table - //
+      """
+      CREATE TABLE
+        tags
+      (
+        id TEXT UNIQUE NOT NULL PRIMARY KEY,
+        slug TEXT NOT NULL,
+        shared INTEGER NOT NULL -- used as BOOL
+      ); -- create tags table
+      """,
+      // - add resources tags table - //
+      """
+      CREATE TABLE
+        resourceTags
+      (
+        resourceID TEXT NOT NULL,
+        tagID TEXT NOT NULL,
+        FOREIGN KEY(resourceID) REFERENCES resources(id) ON DELETE CASCADE,
+        FOREIGN KEY(tagID) REFERENCES tags(id) ON DELETE CASCADE,
+        UNIQUE(resourceID, tagID)
+      ); -- create resource tags table
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 9; -- persistent, used to track schema version
+      """,
+    ]
   }
 }
-
-extension ListViewFolderResource: Hashable {}

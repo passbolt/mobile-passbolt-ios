@@ -99,15 +99,17 @@ final class ResourceListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
+        parentFolderID: .none,
         name: "Resoure 1",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
       ListViewResource(
         id: "resource_2",
+        parentFolderID: .none,
         name: "Resoure 2",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -163,15 +165,17 @@ final class ResourceListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
+        parentFolderID: .none,
         name: "Resoure 1",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
       ListViewResource(
         id: "resource_2",
+        parentFolderID: .none,
         name: "Resoure 2",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -205,15 +209,17 @@ final class ResourceListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
+        parentFolderID: .none,
         name: "Resoure 1",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
       ListViewResource(
         id: "resource_2",
+        parentFolderID: .none,
         name: "Resoure 2",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
     ]
     resources.filteredResourcesListPublisher = always(
@@ -249,15 +255,17 @@ final class ResourceListControllerTests: MainActorTestCase {
     let resourcesList: Array<ListViewResource> = [
       ListViewResource(
         id: "resource_1",
+        parentFolderID: .none,
         name: "Resoure 1",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
       ListViewResource(
         id: "resource_2",
+        parentFolderID: .none,
         name: "Resoure 2",
-        url: "passbolt.com",
-        username: "test"
+        username: "test",
+        url: "passbolt.com"
       ),
     ]
     resources.filteredResourcesListPublisher = always(

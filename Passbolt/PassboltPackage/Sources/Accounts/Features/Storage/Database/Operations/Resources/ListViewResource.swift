@@ -23,27 +23,28 @@
 
 import CommonModels
 
-import struct Foundation.Date
-
 public struct ListViewResource {
 
   public typealias ID = Resource.ID
 
   public let id: ID
+  public var parentFolderID: Folder.ID?
   public var name: String
-  public var url: String?
   public var username: String?
+  public var url: String?
 
   public init(
     id: ID,
+    parentFolderID: Folder.ID?,
     name: String,
-    url: String?,
-    username: String?
+    username: String?,
+    url: String?
   ) {
     self.id = id
+    self.parentFolderID = parentFolderID
     self.name = name
-    self.url = url
     self.username = username
+    self.url = url
   }
 }
 

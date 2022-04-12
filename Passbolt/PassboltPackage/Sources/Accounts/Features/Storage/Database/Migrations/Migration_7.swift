@@ -28,7 +28,7 @@ extension SQLiteMigration {
 
   internal static var migration_7: Self {
     [
-      // - add modified date to resources table - //
+      // - add shared field to folders table - //
       """
       ALTER TABLE
         folders

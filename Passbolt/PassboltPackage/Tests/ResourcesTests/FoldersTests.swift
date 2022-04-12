@@ -118,12 +118,12 @@ final class FoldersTests: TestCase {
   func test_filteredFolderContent_producesContentForRequestedFolderIDAndFlatteningMode() async throws {
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFoldersOperation,
+        \AccountDatabase.fetchListViewFolders,
         with: .failingWith(MockIssue.error())
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolderResourcesOperation,
+        \AccountDatabase.fetchListViewResources,
         with: .failingWith(MockIssue.error())
       )
     let filter: FoldersFilter = .init(
@@ -154,12 +154,12 @@ final class FoldersTests: TestCase {
   func test_filteredFolderContent_producesEmptyContent_whenDatabaseFetchingFail() async throws {
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFoldersOperation,
+        \AccountDatabase.fetchListViewFolders,
         with: .failingWith(MockIssue.error())
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolderResourcesOperation,
+        \AccountDatabase.fetchListViewResources,
         with: .failingWith(MockIssue.error())
       )
     let filter: FoldersFilter = .init(
@@ -199,23 +199,16 @@ final class FoldersTests: TestCase {
       )
     ]
 
-    let resources: Array<ListViewFolderResource> = [
-      .init(
-        id: .init(rawValue: "resourceID"),
-        name: "Folder Resource",
-        username: "Username",
-        parentFolderID: nil
-      )
-    ]
+    let resources: Array<ListViewResource> = .testResources
 
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFoldersOperation,
+        \AccountDatabase.fetchListViewFolders,
         with: .returning(folders)
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolderResourcesOperation,
+        \AccountDatabase.fetchListViewResources,
         with: .returning(resources)
       )
     let filter: FoldersFilter = .init(
@@ -255,23 +248,16 @@ final class FoldersTests: TestCase {
       )
     ]
 
-    let resources: Array<ListViewFolderResource> = [
-      .init(
-        id: .init(rawValue: "resourceID"),
-        name: "Folder Resource",
-        username: "Username",
-        parentFolderID: nil
-      )
-    ]
+    let resources: Array<ListViewResource> = .testResources
 
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFoldersOperation,
+        \AccountDatabase.fetchListViewFolders,
         with: .returning(folders)
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolderResourcesOperation,
+        \AccountDatabase.fetchListViewResources,
         with: .returning(resources)
       )
     let filter: FoldersFilter = .init(
@@ -311,23 +297,16 @@ final class FoldersTests: TestCase {
       )
     ]
 
-    let resources: Array<ListViewFolderResource> = [
-      .init(
-        id: .init(rawValue: "resourceID"),
-        name: "Folder Resource",
-        username: "Username",
-        parentFolderID: nil
-      )
-    ]
+    let resources: Array<ListViewResource> = .testResources
 
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFoldersOperation,
+        \AccountDatabase.fetchListViewFolders,
         with: .returning(folders)
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolderResourcesOperation,
+        \AccountDatabase.fetchListViewResources,
         with: .returning(resources)
       )
     let filters: Array<FoldersFilter> = [

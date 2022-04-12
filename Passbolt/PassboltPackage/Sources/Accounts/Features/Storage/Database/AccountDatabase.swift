@@ -40,8 +40,8 @@ public struct AccountDatabase {
   public var fetchEditViewResourceOperation: FetchEditViewResourcesOperation
   public var storeFolders: StoreFoldersOperation
   public var fetchFolder: FetchFolderOperation
-  public var fetchListViewFoldersOperation: FetchListViewFoldersOperation
-  public var fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation
+  public var fetchListViewFolders: FetchListViewFoldersOperation
+  public var fetchResourceTagList: FetchResourceTagListOperation
 
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
@@ -63,7 +63,6 @@ extension AccountDatabase: Feature {
   ) async throws -> AccountDatabase {
     let appLifeCycle: AppLifeCycle = environment.appLifeCycle
 
-    let diagnostics: Diagnostics = try await features.instance()
     let accountSession: AccountSession = try await features.instance()
     let accountsDataStore: AccountsDataStore = try await features.instance()
 
@@ -129,8 +128,8 @@ extension AccountDatabase: Feature {
       fetchEditViewResourceOperation: FetchEditViewResourcesOperation.using(currentSQLiteConnection),
       storeFolders: StoreFoldersOperation.using(currentSQLiteConnection),
       fetchFolder: FetchFolderOperation.using(currentSQLiteConnection),
-      fetchListViewFoldersOperation: FetchListViewFoldersOperation.using(currentSQLiteConnection),
-      fetchListViewFolderResourcesOperation: FetchListViewFolderResourcesOperation.using(currentSQLiteConnection),
+      fetchListViewFolders: FetchListViewFoldersOperation.using(currentSQLiteConnection),
+      fetchResourceTagList: FetchResourceTagListOperation.using(currentSQLiteConnection),
       featureUnload: featureUnload
     )
   }
@@ -148,8 +147,8 @@ extension AccountDatabase: Feature {
       fetchEditViewResourceOperation: .placeholder,
       storeFolders: .placeholder,
       fetchFolder: .placeholder,
-      fetchListViewFoldersOperation: .placeholder,
-      fetchListViewFolderResourcesOperation: .placeholder,
+      fetchListViewFolders: .placeholder,
+      fetchResourceTagList: .placeholder,
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }

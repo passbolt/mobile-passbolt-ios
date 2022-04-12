@@ -21,49 +21,38 @@
 // @since         v1.0
 //
 
-import Commons
+import Accounts
 
-import struct Foundation.Date
+extension Array where Element == ListViewResource {
 
-public struct Resource {
+  public static var testResources: Array<ListViewResource> {
+    [
+    .init(
+      id: .init(rawValue: "test"),
+      parentFolderID: .none,
+      name: "test",
+      username: "test",
+      url: "test"
+    )
+  ]
+  }
 
-  public typealias ID = Tagged<String, Self>
-
-  public let id: ID
-  public var typeID: ResourceType.ID
-  public var parentFolderID: Folder.ID?
-  public var name: String
-  public var url: String?
-  public var username: String?
-  public var description: String?
-  public var permission: Permission
-  public var favorite: Bool
-  public var tags: Set<ResourceTag>
-  public var modified: Date
-
-  public init(
-    id: ID,
-    typeID: ResourceType.ID,
-    parentFolderID: Folder.ID?,
-    name: String,
-    url: String?,
-    username: String?,
-    description: String?,
-    permission: Permission,
-    favorite: Bool,
-    tags: Set<ResourceTag>,
-    modified: Date
-  ) {
-    self.id = id
-    self.typeID = typeID
-    self.parentFolderID = parentFolderID
-    self.name = name
-    self.url = url
-    self.username = username
-    self.description = description
-    self.permission = permission
-    self.favorite = favorite
-    self.tags = tags
-    self.modified = modified
+  public static var testResourcesAlternative: Array<ListViewResource> {
+    [
+      .init(
+        id: .init(rawValue: "test"),
+        parentFolderID: .none,
+        name: "test",
+        username: "test",
+        url: "test"
+      ),
+      .init(
+        id: .init(rawValue: "testAlt"),
+        parentFolderID: .none,
+        name: "testAlt",
+        username: "testAlt",
+        url: "testAlt"
+      ),
+    ]
   }
 }

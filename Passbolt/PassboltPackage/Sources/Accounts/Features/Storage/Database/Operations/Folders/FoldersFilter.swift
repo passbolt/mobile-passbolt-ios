@@ -27,7 +27,7 @@ public struct FoldersFilter {
 
   // ordering of results
   public var sorting: FoldersSorting
-  // name search (AND) - empty ignores this parameter
+  // text search (AND) - empty ignores this parameter
   public var text: String
   // current folder contents search (AND) - search on folders root on no value
   // current folder itself won't appear in results

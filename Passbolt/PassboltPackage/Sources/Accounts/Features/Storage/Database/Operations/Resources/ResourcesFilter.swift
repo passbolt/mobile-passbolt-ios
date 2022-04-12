@@ -27,7 +27,7 @@ public struct ResourcesFilter {
 
   // ordering of results
   public var sorting: ResourcesSorting
-  // name/url/username search (AND) - empty ignores this parameter
+  // name OR url OR username search (AND) - empty ignores this parameter
   public var text: String
   // name search (AND) - empty ignores this parameter
   public var name: String
@@ -39,6 +39,11 @@ public struct ResourcesFilter {
   public var favoriteOnly: Bool
   // included permissions search (AND) - empty ignores this parameter
   public var permissions: Set<Permission>
+  // included tags search (AND) - empty ignores this parameter
+  public var tags: Set<ResourceTag.ID>
+  // set of folder related filters, none ignores this parameter
+  // see ResourcesFolderFilter for details
+  public var folders: ResourcesFolderFilter?
 
   public init(
     sorting: ResourcesSorting,
@@ -47,7 +52,9 @@ public struct ResourcesFilter {
     url: String = .init(),
     username: String = .init(),
     favoriteOnly: Bool = false,
-    permissions: Set<Permission> = .init()
+    permissions: Set<Permission> = .init(),
+    tags: Set<ResourceTag.ID> = .init(),
+    folders: ResourcesFolderFilter? = .none
   ) {
     self.sorting = sorting
     self.text = text
@@ -56,7 +63,29 @@ public struct ResourcesFilter {
     self.username = username
     self.favoriteOnly = favoriteOnly
     self.permissions = permissions
+    self.tags = tags
+    self.folders = folders
   }
 }
 
 extension ResourcesFilter: Equatable {}
+
+public struct ResourcesFolderFilter {
+
+  // current folder contents search (AND) - search on folders root on no value
+  public var folderID: Folder.ID?
+  // folder content flattening from current folderID
+  // false - filters only within current folderID direct descendants
+  // true - filters recursively within current folderID and all its subfolders
+  public var flattenContent: Bool
+
+  public init(
+    folderID: Folder.ID?,
+    flattenContent: Bool = false
+  ) {
+    self.folderID = folderID
+    self.flattenContent = flattenContent
+  }
+}
+
+extension ResourcesFolderFilter: Equatable {}

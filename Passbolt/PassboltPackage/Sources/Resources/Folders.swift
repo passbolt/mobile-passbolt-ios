@@ -45,7 +45,7 @@ public struct FolderContent {
   public var folderID: Folder.ID?  // none means root
   public var flattened: Bool
   public var subfolders: Array<ListViewFolder>
-  public var resources: Array<ListViewFolderResource>
+  public var resources: Array<ListViewResource>
 }
 
 public struct FolderDetails {
@@ -143,18 +143,27 @@ extension Folders: Feature {
           do {
             folders =
               try await accountDatabase
-              .fetchListViewFoldersOperation(filter)
+              .fetchListViewFolders(filter)
           }
           catch {
             diagnostics.log(error)
             folders = .init()
           }
 
-          let resources: Array<ListViewFolderResource>
+          let resources: Array<ListViewResource>
           do {
             resources =
               try await accountDatabase
-              .fetchListViewFolderResourcesOperation(filter)
+              .fetchListViewResources(
+                .init(
+                  sorting: .nameAlphabetically,
+                  text: filter.text,
+                  folders: .init(
+                    folderID: filter.folderID,
+                    flattenContent: filter.flattenContent
+                  )
+                )
+              )
           }
           catch {
             diagnostics.log(error)

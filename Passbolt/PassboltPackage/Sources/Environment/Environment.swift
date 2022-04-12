@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CommonModels
+@_exported import CommonModels
 import Crypto
 
 public protocol EnvironmentElement {}

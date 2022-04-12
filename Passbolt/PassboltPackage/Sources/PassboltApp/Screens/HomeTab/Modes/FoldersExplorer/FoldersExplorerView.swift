@@ -259,7 +259,7 @@ internal struct FoldersExplorerView: ComponentView {
     .backport.hiddenSectionSeparators()
     ForEach(
       self.state.directResources,
-      id: \ListViewFolderResource.id
+      id: \ListViewResource.id
     ) { resource in
       ResourceListItemView(
         name: resource.name,
@@ -306,7 +306,7 @@ internal struct FoldersExplorerView: ComponentView {
     .backport.hiddenSectionSeparators()
     ForEach(
       self.state.nestedResources,
-      id: \ListViewFolderResource.id
+      id: \ListViewResource.id
     ) { resource in
       ResourceListItemView(
         name: resource.name,
@@ -348,8 +348,8 @@ extension FoldersExplorerView {
     internal var searchText: String = ""
     internal var directFolders: Array<ListViewFolder> = .init()
     internal var nestedFolders: Array<ListViewFolder> = .init()
-    internal var directResources: Array<ListViewFolderResource> = .init()
-    internal var nestedResources: Array<ListViewFolderResource> = .init()
+    internal var directResources: Array<ListViewResource> = .init()
+    internal var nestedResources: Array<ListViewResource> = .init()
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

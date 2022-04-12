@@ -398,6 +398,7 @@ let package = Package(
         "Features",
         "UIComponents",
         "NetworkClient",
+        "Accounts",
       ]
     ),
     .target(

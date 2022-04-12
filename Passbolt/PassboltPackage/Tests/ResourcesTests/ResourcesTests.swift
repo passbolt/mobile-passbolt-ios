@@ -258,7 +258,7 @@ final class ResourceTests: TestCase {
   func test_filteredResourcesListPublisher_publishesResourcesFromDatabase() async throws {
     await features.use(accountSession)
     accountDatabase.fetchListViewResources.execute = always(
-      testResources
+      .testResources
     )
     await features.use(accountDatabase)
     await features.use(networkClient)
@@ -272,7 +272,7 @@ final class ResourceTests: TestCase {
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
       .asAsyncValue()
 
-    XCTAssertEqual(result, testResources)
+    XCTAssertEqual(result, .testResources)
   }
 
   func test_filteredResourcesListPublisher_usesFilterWhenAccessingDatabase() async throws {
@@ -280,7 +280,7 @@ final class ResourceTests: TestCase {
     var result: ResourcesFilter?
     accountDatabase.fetchListViewResources.execute = { filter in
       result = filter
-      return testResources
+      return .testResources
     }
     await features.use(accountDatabase)
     await features.use(networkClient)
@@ -299,7 +299,7 @@ final class ResourceTests: TestCase {
 
   func test_filteredResourcesListPublisher_updatesData_whenFilterChanges() async throws {
     await features.use(accountSession)
-    var resources: Array<ListViewResource> = testResources
+    var resources: Array<ListViewResource> = .testResources
     accountDatabase.fetchListViewResources.execute = always(
       resources
     )
@@ -315,7 +315,7 @@ final class ResourceTests: TestCase {
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
       .asAsyncValue()
 
-    resources = testResourcesAlternative
+    resources = .testResourcesAlternative
 
     filterSubject.send(.init(sorting: .nameAlphabetically))
 
@@ -324,12 +324,12 @@ final class ResourceTests: TestCase {
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
       .asAsyncValue()
 
-    XCTAssertEqual(result, testResourcesAlternative)
+    XCTAssertEqual(result, .testResourcesAlternative)
   }
 
   func test_filteredResourcesListPublisher_publishesResourcesAfterUpdate() async throws {
     await features.use(accountSession)
-    var resources: Array<ListViewResource> = testResources
+    var resources: Array<ListViewResource> = .testResources
     accountDatabase.fetchListViewResources.execute = always(
       resources
     )
@@ -348,13 +348,13 @@ final class ResourceTests: TestCase {
       }
       .store(in: cancellables)
 
-    resources = testResourcesAlternative
+    resources = .testResourcesAlternative
 
     try await feature
       .refreshIfNeeded()
       .asAsyncValue()
 
-    XCTAssertEqual(result, testResourcesAlternative)
+    XCTAssertEqual(result, .testResourcesAlternative)
   }
 
   func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() async throws {
@@ -413,27 +413,3 @@ private let testFilter: ResourcesFilter = .init(
   name: "test",
   url: "test"
 )
-
-private let testResources: Array<ListViewResource> = [
-  .init(
-    id: .init(rawValue: "test"),
-    name: "test",
-    url: "test",
-    username: "test"
-  )
-]
-
-private let testResourcesAlternative: Array<ListViewResource> = [
-  .init(
-    id: .init(rawValue: "test"),
-    name: "test",
-    url: "test",
-    username: "test"
-  ),
-  .init(
-    id: .init(rawValue: "testAlt"),
-    name: "testAlt",
-    url: "testAlt",
-    username: "testAlt"
-  ),
-]
