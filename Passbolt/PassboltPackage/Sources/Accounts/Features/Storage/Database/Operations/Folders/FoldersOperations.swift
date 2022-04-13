@@ -378,7 +378,7 @@ extension FetchListViewFolderResourcesOperation {
                 FROM
                   foldersListView
                 WHERE
-                  foldersListView.parentFolderID IS ?
+                  foldersListView.id IS ?
 
                 UNION ALL
 
