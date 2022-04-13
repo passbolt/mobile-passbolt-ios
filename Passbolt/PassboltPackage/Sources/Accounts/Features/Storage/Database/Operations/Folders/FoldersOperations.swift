@@ -190,7 +190,7 @@ extension FetchListViewFoldersOperation {
 
               UNION ALL
 
-              SELECT
+              SELECT DISTINCT
                 foldersListView.id,
                 foldersListView.name,
                 foldersListView.permission,
@@ -200,7 +200,7 @@ extension FetchListViewFoldersOperation {
                 foldersListView,
                 flattenedFoldersListView
               WHERE
-                foldersListView.parentFolderID = flattenedFoldersListView.id
+                foldersListView.parentFolderID IS flattenedFoldersListView.id
             )
           SELECT DISTINCT
             flattenedFoldersListView.id AS id,
@@ -386,10 +386,20 @@ extension FetchListViewFolderResourcesOperation {
                   foldersListView.id,
                   foldersListView.parentFolderID
                 FROM
+                  foldersListView
+                WHERE
+                  foldersListView.parentFolderID IS ?
+
+                UNION ALL
+
+                SELECT DISTINCT
+                  foldersListView.id,
+                  foldersListView.parentFolderID
+                FROM
                   foldersListView,
                   flattenedFoldersListView
                 WHERE
-                  foldersListView.parentFolderID = flattenedFoldersListView.id
+                  foldersListView.parentFolderID IS flattenedFoldersListView.id
               )
             SELECT DISTINCT
               folderResourcesListView.id AS id,
@@ -407,7 +417,7 @@ extension FetchListViewFolderResourcesOperation {
             WHERE
               1 -- equivalent of true, used to simplify dynamic query building
           """
-        params = [input.folderID?.rawValue, input.folderID?.rawValue]
+        params = [input.folderID?.rawValue, input.folderID?.rawValue, input.folderID?.rawValue]
       }
       else {
         statement = """
