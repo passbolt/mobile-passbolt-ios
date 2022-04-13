@@ -54,14 +54,16 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
   }
 
   func setupView() {
-    contentView
+    self.contentView
       .pullToRefreshPublisher
       .map { [unowned self] () -> AnyPublisher<Void, Never> in
         self.controller
           .refreshResources()
           .receive(on: RunLoop.main)
-          .handleEvents(receiveCompletion: { [weak self] completion in
+          .handleEnd { [weak self] _ in
             self?.contentView.finishDataRefresh()
+          }
+          .handleEvents(receiveCompletion: { [weak self] completion in
             guard case let .failure(error) = completion, error.asLegacy.identifier != .canceled
             else { return }
             self?.present(
@@ -100,6 +102,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
         }
 
         self?.contentView.update(data: items)
+        self?.contentView.finishDataRefresh()
       }
       .store(in: self.cancellables)
 
@@ -156,19 +159,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
       }
       .store(in: cancellables)
 
-    // Initially refresh resources (ignoring errors)
-    self.controller
-      .refreshResources()
-      .receive(on: RunLoop.main)
-      .handleEvents(receiveSubscription: { [weak self] _ in
-        self?.contentView.startDataRefresh()
-      })
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          self?.contentView.finishDataRefresh()
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
-      .store(in: self.cancellables)
+    // load with loading state
+    self.contentView.startDataRefresh()
   }
 }

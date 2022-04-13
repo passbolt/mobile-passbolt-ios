@@ -74,4 +74,8 @@ public final actor ManagedTask<Success> {
   public func cancel() {
     self.currentTask?.cancel()
   }
+
+  public func waitForCompletion() async {
+    _ = try? await currentTask?.value
+  }
 }

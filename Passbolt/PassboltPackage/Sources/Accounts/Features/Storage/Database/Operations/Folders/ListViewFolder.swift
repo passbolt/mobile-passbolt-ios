@@ -34,7 +34,7 @@ public struct ListViewFolder {
   public var permission: Permission
   public var shared: Bool
   public var parentFolderID: ID?
-  public var contentCount: UInt
+  public var contentCount: Int
 
   public init(
     id: ID,
@@ -42,7 +42,7 @@ public struct ListViewFolder {
     permission: Permission,
     shared: Bool,
     parentFolderID: ID?,
-    contentCount: UInt
+    contentCount: Int
   ) {
     self.id = id
     self.name = name

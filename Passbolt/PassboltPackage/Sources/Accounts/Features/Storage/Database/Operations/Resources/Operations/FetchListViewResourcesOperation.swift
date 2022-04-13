@@ -58,7 +58,7 @@ extension FetchListViewResourcesOperation {
                   FROM
                     foldersListView
                   WHERE
-                    foldersListView.parentFolderID IS ?
+                    foldersListView.id IS ?
 
                   UNION ALL
 
@@ -69,7 +69,7 @@ extension FetchListViewResourcesOperation {
                     foldersListView,
                     flattenedFoldersListView
                   WHERE
-                    foldersListView.parentFolderID = flattenedFoldersListView.id
+                    foldersListView.parentFolderID IS flattenedFoldersListView.id
                 )
               SELECT DISTINCT
                 resourcesListView.id,
@@ -79,7 +79,7 @@ extension FetchListViewResourcesOperation {
                 resourcesListView.url AS url
               FROM
                 resourcesListView
-              INNER JOIN
+              LEFT JOIN
                 flattenedFoldersListView
               ON
                 resourcesListView.parentFolderID IS ?

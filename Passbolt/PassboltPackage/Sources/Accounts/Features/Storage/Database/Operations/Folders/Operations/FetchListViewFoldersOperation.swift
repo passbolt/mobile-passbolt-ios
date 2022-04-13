@@ -67,7 +67,7 @@ extension FetchListViewFoldersOperation {
 
               UNION ALL
 
-              SELECT
+              SELECT DISTINCT
                 foldersListView.id,
                 foldersListView.name,
                 foldersListView.permission,
@@ -77,7 +77,7 @@ extension FetchListViewFoldersOperation {
                 foldersListView,
                 flattenedFoldersListView
               WHERE
-                foldersListView.parentFolderID = flattenedFoldersListView.id
+                foldersListView.parentFolderID IS flattenedFoldersListView.id
             )
           SELECT DISTINCT
             flattenedFoldersListView.id AS id,

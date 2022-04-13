@@ -23,32 +23,32 @@
 
 extension AsyncSequence {
 
-  @discardableResult
-  public func asyncSink(
-    values: @escaping (Element) -> Void
-  ) -> Task<Void, Error> {
-    Task<Void, Error> {
-      for try await element in self {
-        values(element)
-      }
-    }
-  }
+  public func forLatest(
+    execute operation: @escaping (Element) async -> Void
+  ) async throws {
+    try await withThrowingTaskGroup(of: Void.self) { (taskGroup: inout ThrowingTaskGroup<Void, Error>) in
+      var iterator: Self.AsyncIterator = self.makeAsyncIterator()
 
-  @discardableResult
-  public func asyncSink(
-    values: @escaping (Element) -> Void,
-    completion: @escaping (Result<Void, Error>) -> Void = { _ in }
-  ) -> Task<Void, Never> {
-    Task<Void, Never> {
-      do {
-        for try await element in self {
-          values(element)
+      guard let firstElement: Element = try await iterator.next()
+      else { return }  // just end
+
+      try Task.checkCancellation()
+
+      let variable: AsyncVariable<Element> = .init(initial: firstElement)
+
+      taskGroup.addTask {
+        for await value in variable {
+          try Task.checkCancellation()
+          await operation(value)
         }
-        completion(.success)
       }
-      catch {
-        completion(.failure(error))
+
+      while let nextValue = try await iterator.next() {
+        try Task.checkCancellation()
+        variable.value = nextValue
       }
+
+      try await taskGroup.waitForAll()
     }
   }
 }

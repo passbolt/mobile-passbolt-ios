@@ -41,7 +41,7 @@ public struct AccountDatabase {
   public var storeFolders: StoreFoldersOperation
   public var fetchFolder: FetchFolderOperation
   public var fetchListViewFolders: FetchListViewFoldersOperation
-  public var fetchResourceTagList: FetchResourceTagListOperation
+  public var fetchResourceTagList: FetchListViewResourceTagOperation
 
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
@@ -129,7 +129,7 @@ extension AccountDatabase: Feature {
       storeFolders: StoreFoldersOperation.using(currentSQLiteConnection),
       fetchFolder: FetchFolderOperation.using(currentSQLiteConnection),
       fetchListViewFolders: FetchListViewFoldersOperation.using(currentSQLiteConnection),
-      fetchResourceTagList: FetchResourceTagListOperation.using(currentSQLiteConnection),
+      fetchResourceTagList: FetchListViewResourceTagOperation.using(currentSQLiteConnection),
       featureUnload: featureUnload
     )
   }

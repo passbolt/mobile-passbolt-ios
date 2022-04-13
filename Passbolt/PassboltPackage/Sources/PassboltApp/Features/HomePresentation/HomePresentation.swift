@@ -41,6 +41,7 @@ extension HomePresentation: Feature {
     let featureConfig: FeatureConfig = try await features.instance()
 
     let foldersConfig: FeatureFlags.Folders = await featureConfig.configuration(for: FeatureFlags.Folders.self)
+    let tagsConfig: FeatureFlags.Tags = await featureConfig.configuration(for: FeatureFlags.Tags.self)
 
     let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> = .init(.plainResourcesList)
 
@@ -71,6 +72,19 @@ extension HomePresentation: Feature {
       case .enabled:
         if #available(iOS 15, *) {
           availableModes.append(.foldersExplorer)
+        }
+        else {
+          break  // temporarily disable on iOS 14
+        }
+      }
+
+      switch tagsConfig {
+      case .disabled:
+        break  // skip
+
+      case .enabled:
+        if #available(iOS 15, *) {
+          availableModes.append(.tagsExplorer)
         }
         else {
           break  // temporarily disable on iOS 14

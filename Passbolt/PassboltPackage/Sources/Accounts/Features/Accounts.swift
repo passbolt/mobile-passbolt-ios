@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
-import CommonModels
+@_exported import CommonModels
 import Crypto
-import Features
+@_exported import Features
 
 public struct Accounts {
 

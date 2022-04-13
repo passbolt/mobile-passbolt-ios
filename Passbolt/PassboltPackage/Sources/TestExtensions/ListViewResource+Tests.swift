@@ -27,14 +27,14 @@ extension Array where Element == ListViewResource {
 
   public static var testResources: Array<ListViewResource> {
     [
-    .init(
-      id: .init(rawValue: "test"),
-      parentFolderID: .none,
-      name: "test",
-      username: "test",
-      url: "test"
-    )
-  ]
+      .init(
+        id: .init(rawValue: "test"),
+        parentFolderID: .none,
+        name: "test",
+        username: "test",
+        url: "test"
+      )
+    ]
   }
 
   public static var testResourcesAlternative: Array<ListViewResource> {

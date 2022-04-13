@@ -276,7 +276,7 @@ extension FeatureFactory {
 
   @FeaturesActor public func usePlaceholder<F>(
     for featureType: F.Type
-  ) async where F: Feature {
+  ) where F: Feature {
     if self.scopeID == nil {
       self.rootFeatures[F.featureIdentifier] = .init(
         feature: F.placeholder,

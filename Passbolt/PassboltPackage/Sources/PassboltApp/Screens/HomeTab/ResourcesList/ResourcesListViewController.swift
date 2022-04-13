@@ -54,7 +54,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
   }
 
   func setupView() {
-    contentView
+    self.contentView
       .pullToRefreshPublisher
       .map { [unowned self] () -> AnyPublisher<Void, Never> in
         self.controller
@@ -92,6 +92,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           items = [.add] + resources.map { .resource($0) }
         }
         self?.contentView.update(data: items)
+        self?.contentView.finishDataRefresh()
       }
       .store(in: self.cancellables)
 
@@ -114,23 +115,6 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
       .sink { [weak self] item in
         self?.controller.presentResourceMenu(item)
       }
-      .store(in: self.cancellables)
-
-    // Initially refresh resources (ignoring errors)
-    self.controller
-      .refreshResources()
-      .receive(on: RunLoop.main)
-      .handleEvents(
-        receiveSubscription: { [weak self] _ in
-          self?.contentView.startDataRefresh()
-        }
-      )
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          self?.contentView.finishDataRefresh()
-        },
-        receiveValue: { _ in /* NOP */ }
-      )
       .store(in: self.cancellables)
 
     controller.resourceDetailsPresentationPublisher()
@@ -260,5 +244,8 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
         }
       }
       .store(in: cancellables)
+
+    // load view in loading state
+    self.contentView.startDataRefresh()
   }
 }

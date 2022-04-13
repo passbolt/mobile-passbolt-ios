@@ -21,9 +21,12 @@
 // @since         v1.0
 //
 
-public final class AsyncValue<Value> {
+import Combine
+
+public final class AsyncVariable<Value> {
 
   private typealias Awaiter = CheckedContinuation<(value: Value?, generation: UInt64), Never>
+
   private struct State {
 
     fileprivate var value: Value
@@ -60,7 +63,7 @@ public final class AsyncValue<Value> {
   }
 
   private func next(
-    _ generation: UInt64
+    after generation: UInt64
   ) async -> (value: Value?, generation: UInt64) {
     return await withCheckedContinuation { (continuation: Awaiter) in
       self.state.access { state in
@@ -91,7 +94,7 @@ public final class AsyncValue<Value> {
   }
 }
 
-extension AsyncValue: AsyncSequence {
+extension AsyncVariable: AsyncSequence {
 
   public typealias AsyncIterator = AnyAsyncIterator<Value>
   public typealias Element = Value
@@ -101,7 +104,7 @@ extension AsyncValue: AsyncSequence {
     return AnyAsyncIterator<Value> { [weak self] in
       guard
         let next: (value: Value?, generation: UInt64) =
-          await self?.next(generation)
+          await self?.next(after: generation)
       else { return nil }
       generation = next.generation
       return next.value

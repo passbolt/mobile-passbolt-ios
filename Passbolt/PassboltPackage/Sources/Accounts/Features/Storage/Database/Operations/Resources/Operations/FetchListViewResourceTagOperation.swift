@@ -24,9 +24,9 @@
 import CommonModels
 import Environment
 
-public typealias FetchResourceTagListOperation = DatabaseOperation<String, Array<ResourceTag>>
+public typealias FetchListViewResourceTagOperation = DatabaseOperation<String, Array<ListViewResourceTag>>
 
-extension FetchResourceTagListOperation {
+extension FetchListViewResourceTagOperation {
 
   internal static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -38,7 +38,15 @@ extension FetchResourceTagListOperation {
         SELECT
           id,
           slug,
-          shared
+          shared,
+          (
+            SELECT
+              count(*)
+            FROM
+              resourceTags
+            WHERE
+              tagID IS id
+          ) AS contentCount
         FROM
           tags
         WHERE
@@ -68,13 +76,14 @@ extension FetchResourceTagListOperation {
         .fetch(
           statement,
           with: params
-        ) { rows -> Array<ResourceTag> in
+        ) { rows -> Array<ListViewResourceTag> in
           try rows
-            .map { row -> ResourceTag in
+            .map { row -> ListViewResourceTag in
               guard
-                let id: ResourceTag.ID = row.id.map(ResourceTag.ID.init(rawValue:)),
+                let id: ListViewResourceTag.ID = row.id.map(ListViewResourceTag.ID.init(rawValue:)),
                 let slug: String = row.slug,
-                let shared: Bool = row.shared
+                let shared: Bool = row.shared,
+                let contentCount: Int = row.contentCount
               else {
                 throw
                   DatabaseIssue
@@ -85,10 +94,11 @@ extension FetchResourceTagListOperation {
                   )
               }
 
-              return ResourceTag(
+              return ListViewResourceTag(
                 id: id,
                 slug: slug,
-                shared: shared
+                shared: shared,
+                contentCount: contentCount
               )
             }
         }

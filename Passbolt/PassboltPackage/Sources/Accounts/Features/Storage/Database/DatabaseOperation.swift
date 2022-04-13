@@ -94,37 +94,37 @@ extension DatabaseOperation {
   }
 
   public static func returning(
-    _ result: Result<Output, Error>,
+    _ result: @autoclosure @escaping () -> Result<Output, Error>,
     storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
   ) -> Self {
     Self(
       execute: { input in
         inputReference?.pointee = input
-        return try result.get()
+        return try result().get()
       }
     )
   }
 
   public static func returning(
-    _ output: Output,
+    _ output: @autoclosure @escaping () -> Output,
     storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
   ) -> Self {
     Self(
       execute: { input in
         inputReference?.pointee = input
-        return output
+        return output()
       }
     )
   }
 
   public static func failingWith(
-    _ error: TheError,
+    _ error: @autoclosure @escaping () -> TheError,
     storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
   ) -> Self {
     Self(
       execute: { input in
         inputReference?.pointee = input
-        throw error
+        throw error()
       }
     )
   }

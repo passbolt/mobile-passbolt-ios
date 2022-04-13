@@ -21,29 +21,39 @@
 // @since         v1.0
 //
 
-// warn - unfair values distribution, there is no guarantee that each
-// awaiter will get all values
-public struct AsyncPassthroughSequence<Element> {
+import CommonModels
 
-  private let sharedIterator: AsyncSharedIterator<Element> = .init()
+public struct ListViewResourceTag {
 
-  public init() {}
-}
+  public typealias ID = ResourceTag.ID
 
-extension AsyncPassthroughSequence: AsyncSequence {
+  public var id: ID
+  public var slug: String
+  public var shared: Bool
+  public var contentCount: Int
 
-  public func makeAsyncIterator() -> AsyncSharedIterator<Element> {
-    self.sharedIterator
+  public init(
+    id: ID,
+    slug: String,
+    shared: Bool,
+    contentCount: Int
+  ) {
+    self.id = id
+    self.slug = slug
+    self.shared = shared
+    self.contentCount = contentCount
   }
 }
 
-extension AsyncPassthroughSequence {
+extension ListViewResourceTag: Hashable {}
 
-  public func yield(_ element: Element) async throws {
-    await self.sharedIterator.yield(element)
-  }
+extension ListViewResourceTag {
 
-  public func finish() async {
-    await self.sharedIterator.finish()
+  public var tag: ResourceTag {
+    .init(
+      id: self.id,
+      slug: self.slug,
+      shared: self.shared
+    )
   }
 }

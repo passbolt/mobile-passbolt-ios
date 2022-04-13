@@ -68,9 +68,21 @@ extension Resources: Feature {
 
     let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
 
+    let refreshTask: ManagedTask<Void> = .init()
+
+    // initial refresh after loading
+    cancellables.executeOnAccountSessionActor {
+      do {
+        try await refreshIfNeeded().asAsyncValue()
+      }
+      catch {
+        diagnostics.log(error)
+      }
+    }
+
     @AccountSessionActor func refreshIfNeeded() -> AnyPublisher<Void, Error> {
-      return Future<Void, Error> { promise in
-        Task {
+      Task {
+        try await refreshTask.run {
           do {
             // implement diff request here instead when available
             let _ /*lastUpdate*/: Date? = try await accountDatabase.fetchLastUpdate()
@@ -183,13 +195,13 @@ extension Resources: Feature {
             try await accountDatabase.saveLastUpdate(time.dateNow())
 
             resourcesUpdateSubject.send()
-            promise(.success(Void()))
           }
           catch {
-            promise(.failure(error))
+            throw error
           }
         }
       }
+      .asPublisher()
       .eraseErrorType()
       .collectErrorLog(using: diagnostics)
       .eraseToAnyPublisher()

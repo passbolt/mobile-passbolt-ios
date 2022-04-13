@@ -54,6 +54,7 @@ internal struct FoldersExplorerView: ComponentView {
           self.titleView
           self.searchView
         }
+        // hide under navigation bar
         .padding(top: -42)
       }
       .fixedSize(horizontal: false, vertical: true)

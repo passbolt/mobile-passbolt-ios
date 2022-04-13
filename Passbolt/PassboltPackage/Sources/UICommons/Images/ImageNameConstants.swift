@@ -67,6 +67,7 @@ extension ImageNameConstant {
   public static var clock: Self { "Clock" }
   public static var folder: Self { "Folder" }
   public static var sharedFolder: Self { "SharedFolder" }
+  public static var tag: Self { "Tag" }
   public static var chevronRight: Self { "ChevronRight" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
@@ -91,5 +92,7 @@ extension ImageNameConstant {
   public static var duplicateMark: Self { "DuplicateMark" }
   public static var folderIcon: Self { "FolderIcon" }
   public static var sharedFolderIcon: Self { "SharedFolderIcon" }
+  public static var tagIcon: Self { "TagIcon" }
+  public static var sharedTagIcon: Self { "SharedTagIcon" }
   public static var create: Self { "Create" }
 }

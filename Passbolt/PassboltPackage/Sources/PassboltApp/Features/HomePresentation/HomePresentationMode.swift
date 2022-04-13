@@ -31,6 +31,7 @@ internal enum HomePresentationMode: Hashable {
   case sharedResourcesList
   case ownedResourcesList
   case foldersExplorer
+  case tagsExplorer
 }
 
 extension HomePresentationMode {
@@ -54,6 +55,9 @@ extension HomePresentationMode {
 
     case .foldersExplorer:
       return .localized(key: "home.presentation.mode.folders.explorer.title")
+
+    case .tagsExplorer:
+      return .localized(key: "home.presentation.mode.tags.explorer.title")
     }
   }
 
@@ -76,6 +80,9 @@ extension HomePresentationMode {
 
     case .foldersExplorer:
       return .folder
+
+    case .tagsExplorer:
+      return .tag
     }
   }
 }

@@ -34,7 +34,7 @@ where Value: Hashable {
     set { self.valueSetter(newValue) }
   }
 
-  fileprivate let valuePublisher: AnyPublisher<Value, Never>
+  public let valuePublisher: AnyPublisher<Value, Never>
   private let valueGetter: () -> Value
   private let valueSetter: (Value) -> Void
   private var cancellable: AnyCancellable?

@@ -68,46 +68,50 @@ extension Folders: Feature {
     let networkClient: NetworkClient = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
 
-    let updatesSequence: AsyncValue<Void> = .init(initial: Void())
+    let updatesSequence: AsyncVariable<Void> = .init(initial: Void())
+
+    let refreshTask: ManagedTask<Void> = .init()
 
     nonisolated func refreshIfNeeded() async throws {
-      let foldersResponse: FoldersRequestResponse =
-        try await networkClient
-        .foldersRequest
-        .makeAsync()
+      try await refreshTask.run {
+        let foldersResponse: FoldersRequestResponse =
+          try await networkClient
+          .foldersRequest
+          .makeAsync()
 
-      // TODO: when diffing endpoint becomes available
-      // there should be some additional logic deciding
-      // if to do the refresh or not
+        // TODO: when diffing endpoint becomes available
+        // there should be some additional logic deciding
+        // if to do the refresh or not
 
-      try await accountDatabase
-        .storeFolders(
-          foldersResponse
-            .body
-            .map { responseFolder in
-              let permission: Permission = {
-                switch responseFolder.permission {
-                case .read:
-                  return .read
+        try await accountDatabase
+          .storeFolders(
+            foldersResponse
+              .body
+              .map { responseFolder in
+                let permission: Permission = {
+                  switch responseFolder.permission {
+                  case .read:
+                    return .read
 
-                case .write:
-                  return .write
+                  case .write:
+                    return .write
 
-                case .owner:
-                  return .owner
-                }
-              }()
-              return Folder(
-                id: .init(rawValue: responseFolder.id),
-                name: responseFolder.name,
-                permission: permission,
-                shared: responseFolder.shared,
-                parentFolderID: responseFolder
-                  .parentFolderID
-                  .map(Folder.ID.init(rawValue:))
-              )
-            }
-        )
+                  case .owner:
+                    return .owner
+                  }
+                }()
+                return Folder(
+                  id: .init(rawValue: responseFolder.id),
+                  name: responseFolder.name,
+                  permission: permission,
+                  shared: responseFolder.shared,
+                  parentFolderID: responseFolder
+                    .parentFolderID
+                    .map(Folder.ID.init(rawValue:))
+                )
+              }
+          )
+      }
     }
 
     nonisolated func resourcesUpdated() async {

@@ -82,6 +82,24 @@ final class ResourceTests: TestCase {
     try await super.featuresActorTearDown()
   }
 
+  func test_loading_refreshesData() async throws {
+    await features.use(accountSession)
+    await features.use(accountDatabase)
+    var result: Void?
+    networkClient.resourcesRequest.execute = { _ -> ResourcesRequestResponse in
+      result = Void()
+      return .init(header: .mock(), body: [])
+    }
+    await features.use(networkClient)
+
+    let _: Resources = try await testInstance()
+
+    // wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+
+    XCTAssertNotNil(result)
+  }
+
   func test_refreshIfNeeded_refreshesData_whenDiffIsNotEmpty() async throws {
     XCTExpectFailure()
     XCTFail("Data diff is not implemented yet")
