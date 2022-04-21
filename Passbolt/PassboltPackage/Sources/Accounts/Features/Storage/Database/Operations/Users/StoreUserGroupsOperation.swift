@@ -23,11 +23,11 @@
 
 import Environment
 
-public typealias StoreFoldersOperation = DatabaseOperation<Array<Folder>, Void>
+public typealias StoreUserGroupsOperation = DatabaseOperation<Array<UserGroup>, Void>
 
-extension StoreFoldersOperation {
+extension StoreUserGroupsOperation {
 
-  internal static func using(
+  static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
   ) -> Self {
     withConnectionInTransaction(
@@ -41,56 +41,37 @@ extension StoreFoldersOperation {
       // Please remove later on when diffing becomes available or other method of
       // deleting records selecively becomes implemented.
       //
-      // Delete currently stored folders
-      try conn.execute("DELETE FROM folders;")
+      // Delete currently stored userGroups
+      try conn.execute("DELETE FROM userGroups;")
 
-      // Since Folders make tree like structure and
-      // tree integrity is verified by database foreign
-      // key constraints it has to be inserted in a valid
-      // order for operation to succeed (from root to leaf)
-      var inputReminder: Array<Folder> = input
-      var sortedFolders: Array<Folder> = .init()
-
-      func isValidFolder(_ folder: Folder) -> Bool {
-        folder.parentFolderID == nil
-          || sortedFolders.contains(where: { $0.id == folder.parentFolderID })
-      }
-
-      while let index: Array<Folder>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
-        sortedFolders.append(inputReminder.remove(at: index))
-      }
-
-      // Insert or update all new folders
-      for folder in sortedFolders {
+      for userGroup in input {
         try conn
           .execute(
-            upsertFoldersStatement,
-            with: folder.id.rawValue,
-            folder.name,
-            folder.permission.rawValue,
-            folder.shared,
-            folder.parentFolderID?.rawValue
+            upsertUserGroupStatement,
+            with: userGroup.id.rawValue,
+            userGroup.name
           )
       }
     }
   }
 }
 
-private let upsertFoldersStatement: SQLiteStatement = """
-  INSERT OR REPLACE INTO
-    folders(
+private let upsertUserGroupStatement: SQLiteStatement = """
+  INSERT INTO
+    userGroups(
       id,
-      name,
-      permission,
-      shared,
-      parentFolderID
+      name
     )
   VALUES
     (
       ?1,
-      ?2,
-      ?3,
-      ?4,
-      ?5
-    );
+      ?2
+    )
+  ON CONFLICT
+    (
+      id
+    )
+  DO UPDATE SET
+    name=?2
+  ;
   """

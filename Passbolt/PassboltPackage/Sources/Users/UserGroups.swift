@@ -26,16 +26,17 @@ import CommonModels
 import Features
 import NetworkClient
 
-public struct ResourceTags {
+public struct UserGroups {
 
-  // WARNING: do not call manually, it is intended to be called after
-  // refreshing resources it is called by Resources if needed
-  internal var resourcesUpdated: () async -> Void
-  public var filteredTagsList: (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ListViewResourceTag>>
+  // WARNING: to refresh data use Resources.refreshIfNeeded instead
+  // this function is called by Resources if needed
+  public var refreshIfNeeded: () async throws -> Void
+  public var filteredResourceUserGroupList:
+    (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ListViewResourcesUserGroup>>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension ResourceTags: Feature {
+extension UserGroups: Feature {
 
   public static func load(
     in environment: AppEnvironment,
@@ -43,31 +44,60 @@ extension ResourceTags: Feature {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
+    let networkClient: NetworkClient = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
 
     let updatesSequence: AsyncVariable<Void> = .init(initial: Void())
 
-    nonisolated func resourcesUpdated() async {
+    let refreshTask: ManagedTask<Void> = .init()
+
+    nonisolated func refreshIfNeeded() async throws {
+      try await refreshTask.run {
+        let userGroupsResponse: UserGroupsRequestResponse =
+          try await networkClient
+          .userGroupsRequest
+          .makeAsync()
+
+        // TODO: when diffing endpoint becomes available
+        // there should be some additional logic here
+
+        try await accountDatabase
+          .storeUserGroups(
+            userGroupsResponse
+              .body
+              .map { responseGroup in
+                UserGroup(
+                  id: .init(rawValue: responseGroup.id),
+                  name: responseGroup.name
+                )
+              }
+          )
+      }
+
+      await userGroupsUpdated()
+    }
+
+    nonisolated func userGroupsUpdated() async {
       try? await updatesSequence.send(Void())
     }
 
-    nonisolated func filteredTagsList(
+    nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
-    ) -> AnyAsyncSequence<Array<ListViewResourceTag>> {
+    ) -> AnyAsyncSequence<Array<ListViewResourcesUserGroup>> {
       AsyncCombineLatestSequence(updatesSequence, filters)
-        .map { (_, filter: String) async -> Array<ListViewResourceTag> in
-          let tags: Array<ListViewResourceTag>
+        .map { (_, filter: String) async -> Array<ListViewResourcesUserGroup> in
+          let userGroups: Array<ListViewResourcesUserGroup>
           do {
-            tags =
+            userGroups =
               try await accountDatabase
-              .fetchResourceTagList(filter)
+              .fetchResourceUserGroupList(filter)
           }
           catch {
             diagnostics.log(error)
-            tags = .init()
+            userGroups = .init()
           }
 
-          return tags
+          return userGroups
         }
         .asAnyAsyncSequence()
     }
@@ -77,8 +107,8 @@ extension ResourceTags: Feature {
     }
 
     return Self(
-      resourcesUpdated: resourcesUpdated,
-      filteredTagsList: filteredTagsList(filters:),
+      refreshIfNeeded: refreshIfNeeded,
+      filteredResourceUserGroupList: filteredResourceUserGroupList(filters:),
       featureUnload: featureUnload
     )
   }
@@ -86,12 +116,12 @@ extension ResourceTags: Feature {
 
 #if DEBUG
 
-extension ResourceTags {
+extension UserGroups {
 
   public static var placeholder: Self {
     Self(
-      resourcesUpdated: unimplemented("You have to provide mocks for used methods"),
-      filteredTagsList: unimplemented("You have to provide mocks for used methods"),
+      refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
+      filteredResourceUserGroupList: unimplemented("You have to provide mocks for used methods"),
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }

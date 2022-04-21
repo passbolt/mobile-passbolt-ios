@@ -33,18 +33,21 @@ extension StoreResourcesOperation {
     withConnectionInTransaction(
       using: connection
     ) { conn, input in
-      // We have to remove all previously stored resources before updating
-      // due to lack of ability to get information about deleted resources.
+      // We have to remove all previously stored data before updating
+      // due to lack of ability to get information about deleted parts.
       // Until data diffing endpoint becomes implemented we are replacing
       // whole data set with the new one as an update.
       // We are getting all possible results anyway until diffing becomes implemented.
       // Please remove later on when diffing becomes available or other method of
       // deleting records selecively becomes implemented.
       //
+      //
       // Delete currently stored resources
       try conn.execute("DELETE FROM resources;")
       // Delete currently stored tags
       try conn.execute("DELETE FROM tags;")
+      // Delete currently stored group associations
+      try conn.execute("DELETE FROM resourcesUserGroups;")
 
       // Insert or update all new tags
       for tag in input.flatMap(\.tags) {
@@ -80,6 +83,15 @@ extension StoreResourcesOperation {
               upsertResourceTagStatement,
               with: resource.id.rawValue,
               tag.id.rawValue
+            )
+        }
+
+        for groupID in resource.groups {
+          try conn
+            .execute(
+              upsertResourcesUserGroupStatement,
+              with: resource.id.rawValue,
+              groupID.rawValue
             )
         }
       }
@@ -131,15 +143,36 @@ private let upsertTagStatement: SQLiteStatement = """
     );
   """
 
-private let upsertResourceTagStatement: SQLiteStatement = """
-  INSERT OR REPLACE INTO
-    resourceTags(
-      resourceID,
-      tagID
-    )
-  VALUES
-    (
-      ?1,
+private let upsertResourceTagStatement: SQLiteStatement =
+  """
+    INSERT OR REPLACE INTO
+      resourceTags(
+        resourceID,
+        tagID
+      )
+    SELECT
+      id,
       ?2
-    );
+    FROM
+      resources
+    WHERE
+      resources.id IS ?1
+    ;
+  """
+
+private let upsertResourcesUserGroupStatement: SQLiteStatement =
+  """
+    INSERT OR REPLACE INTO
+      resourcesUserGroups(
+        resourceID,
+        userGroupID
+      )
+    SELECT
+      id,
+      ?2
+    FROM
+      resources
+    WHERE
+      resources.id IS ?1
+    ;
   """

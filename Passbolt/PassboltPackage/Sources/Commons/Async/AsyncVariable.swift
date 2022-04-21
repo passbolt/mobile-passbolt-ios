@@ -35,61 +35,61 @@ public final class AsyncVariable<Value> {
   }
 
   public var value: Value {
-    get {
-      self.state.access(\.value)
-    }
-    set {
-      self.state.access { state in
-        state.value = newValue
-        state.generation &+= 1
-        while let awaiter = state.awaiters.popLast() {
-          awaiter.resume(returning: (state.value, state.generation))
-        }
-      }
+    get async {
+      await self.state.getAsync(\.value)
     }
   }
 
   private let state: CriticalState<State>
 
-  public init(initial: Value) {
-    self.state = .init(.init(value: initial))
+  public init(
+    initial: Value
+  ) {
+    self.state =
+      .init(
+        .init(
+          value: initial
+        )
+      )
   }
 
   deinit {
-    let awaiters: Array<Awaiter> = self.state.access(\.awaiters)
+    let awaiters: Array<Awaiter> = self.state.get(\.awaiters)
     for awaiter in awaiters {
-      awaiter.resume(returning: (.none, .max))
+      awaiter.resume(
+        returning: (
+          .none,
+          .max
+        )
+      )
     }
   }
+}
 
-  private func next(
-    after generation: UInt64
-  ) async -> (value: Value?, generation: UInt64) {
-    return await withCheckedContinuation { (continuation: Awaiter) in
-      self.state.access { state in
-        if state.generation > generation {
-          continuation.resume(returning: (state.value, state.generation))
-        }
-        else {
-          state.awaiters.append(continuation)
-        }
+extension AsyncVariable {
+
+  public func send(
+    _ newValue: Value
+  ) async throws {
+    try await self.state.accessAsync { state in
+      state.value = newValue
+      state.generation &+= 1
+      while let awaiter = state.awaiters.popLast() {
+        awaiter.resume(
+          returning: (
+            state.value,
+            state.generation
+          )
+        )
       }
     }
   }
 
   public func withValue<Returned>(
-    _ access: (inout Value) throws -> Returned
-  ) rethrows -> Returned {
-    try self.state.access { state in
-      try access(&state.value)
-    }
-  }
-
-  public func withValueAsync<Returned>(
-    _ access: @escaping (inout Value) async throws -> Returned
+    _ access: @escaping (inout Value) throws -> Returned
   ) async throws -> Returned {
     try await self.state.accessAsync { state in
-      try await access(&state.value)
+      try access(&state.value)
     }
   }
 }
@@ -100,7 +100,7 @@ extension AsyncVariable: AsyncSequence {
   public typealias Element = Value
 
   public func makeAsyncIterator() -> AnyAsyncIterator<Value> {
-    var generation: UInt64 = self.state.access { $0.generation } &- 1
+    var generation: UInt64 = self.state.get(\.generation) &- 1
     return AnyAsyncIterator<Value> { [weak self] in
       guard
         let next: (value: Value?, generation: UInt64) =
@@ -108,6 +108,29 @@ extension AsyncVariable: AsyncSequence {
       else { return nil }
       generation = next.generation
       return next.value
+    }
+  }
+}
+
+extension AsyncVariable {
+
+  private func next(
+    after generation: UInt64
+  ) async -> (value: Value?, generation: UInt64) {
+    return await withCheckedContinuation { (continuation: Awaiter) in
+      self.state.access { state in
+        if state.generation > generation {
+          continuation.resume(
+            returning: (
+              state.value,
+              state.generation
+            )
+          )
+        }
+        else {
+          state.awaiters.append(continuation)
+        }
+      }
     }
   }
 }

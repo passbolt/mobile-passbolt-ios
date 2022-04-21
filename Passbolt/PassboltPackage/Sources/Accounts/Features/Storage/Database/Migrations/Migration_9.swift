@@ -21,52 +21,38 @@
 // @since         v1.0
 //
 
-import Commons
+import Environment
 
-import struct Foundation.Date
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-public struct Resource {
-
-  public typealias ID = Tagged<String, Self>
-
-  public let id: ID
-  public var typeID: ResourceType.ID
-  public var parentFolderID: Folder.ID?
-  public var name: String
-  public var url: String?
-  public var username: String?
-  public var description: String?
-  public var permission: Permission
-  public var favorite: Bool
-  public var tags: Set<ResourceTag>
-  public var groups: Set<UserGroup.ID>
-  public var modified: Date
-
-  public init(
-    id: ID,
-    typeID: ResourceType.ID,
-    parentFolderID: Folder.ID?,
-    name: String,
-    url: String?,
-    username: String?,
-    description: String?,
-    permission: Permission,
-    favorite: Bool,
-    tags: Set<ResourceTag>,
-    groups: Set<UserGroup.ID>,
-    modified: Date
-  ) {
-    self.id = id
-    self.typeID = typeID
-    self.parentFolderID = parentFolderID
-    self.name = name
-    self.url = url
-    self.username = username
-    self.description = description
-    self.permission = permission
-    self.favorite = favorite
-    self.tags = tags
-    self.groups = groups
-    self.modified = modified
+  internal static var migration_9: Self {
+    [
+      // - add userGroups table - //
+      """
+      CREATE TABLE
+        userGroups
+      (
+        id TEXT UNIQUE NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL
+      ); -- create user groups table
+      """,
+      // - add resourcesUserGroups table - //
+      """
+      CREATE TABLE
+        resourcesUserGroups
+      (
+        resourceID TEXT NOT NULL,
+        userGroupID TEXT NOT NULL,
+        FOREIGN KEY(resourceID) REFERENCES resources(id) ON DELETE CASCADE,
+        FOREIGN KEY(userGroupID) REFERENCES userGroups(id) ON DELETE CASCADE,
+        UNIQUE(resourceID, userGroupID)
+      ); -- create resources user groups table
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 10; -- persistent, used to track schema version
+      """,
+    ]
   }
 }

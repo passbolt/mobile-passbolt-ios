@@ -26,6 +26,7 @@ import CommonModels
 import Crypto
 import Features
 import NetworkClient
+import Users
 
 import struct Foundation.Date
 
@@ -56,6 +57,8 @@ extension Resources: Feature {
     let networkClient: NetworkClient = try await features.instance()
     let featureConfig: FeatureConfig = try await features.instance()
     let folders: Folders = try await features.instance()
+    let resourceTags: ResourceTags = try await features.instance()
+    let userGroups: UserGroups = try await features.instance()
 
     let foldersEnabled: Bool
     switch await featureConfig.configuration(for: FeatureFlags.Folders.self) {
@@ -64,6 +67,15 @@ extension Resources: Feature {
 
     case .enabled:
       foldersEnabled = true
+    }
+
+    let tagsEnabled: Bool
+    switch await featureConfig.configuration(for: FeatureFlags.Tags.self) {
+    case .disabled:
+      tagsEnabled = false
+
+    case .enabled:
+      tagsEnabled = true
     }
 
     let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
@@ -91,6 +103,9 @@ extension Resources: Feature {
             }
             else { /* NOP */
             }
+
+            try await userGroups.refreshIfNeeded()
+
             let resourceTypes: Array<ResourceType> =
               try await networkClient
               .resourcesTypesRequest
@@ -180,6 +195,15 @@ extension Resources: Feature {
                         )
                       }
                   ),
+                  groups: Set(
+                    resource
+                      .groups
+                      .map {
+                        UserGroup.ID(
+                          rawValue: $0.id
+                        )
+                      }
+                  ),
                   modified: resource.modified
                 )
               }
@@ -188,6 +212,12 @@ extension Resources: Feature {
 
             if foldersEnabled {
               await folders.resourcesUpdated()
+            }
+            else { /* NOP */
+            }
+
+            if tagsEnabled {
+              await resourceTags.resourcesUpdated()
             }
             else { /* NOP */
             }

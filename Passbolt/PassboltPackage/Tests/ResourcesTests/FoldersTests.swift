@@ -36,9 +36,9 @@ final class FoldersTests: TestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    await self.features
+    self.features
       .usePlaceholder(for: NetworkClient.self)
-    await self.features
+    self.features
       .usePlaceholder(for: AccountDatabase.self)
   }
 

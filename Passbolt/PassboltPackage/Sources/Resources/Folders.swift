@@ -34,7 +34,6 @@ public struct Folders {
   // WARNING: do not call manually, it is intended to be called after
   // refreshing resources it is called by Resources if needed
   internal var resourcesUpdated: () async -> Void
-  public var updates: () -> AnyAsyncSequence<Void>
   public var details: (Folder.ID) async throws -> FolderDetails?
   public var filteredFolderContent: (AnyAsyncSequence<FoldersFilter>) -> AnyAsyncSequence<FolderContent>
   public var featureUnload: @FeaturesActor () async throws -> Void
@@ -80,8 +79,7 @@ extension Folders: Feature {
           .makeAsync()
 
         // TODO: when diffing endpoint becomes available
-        // there should be some additional logic deciding
-        // if to do the refresh or not
+        // there should be some additional logic here
 
         try await accountDatabase
           .storeFolders(
@@ -112,10 +110,16 @@ extension Folders: Feature {
               }
           )
       }
+
+      await foldersUpdated()
+    }
+
+    nonisolated func foldersUpdated() async {
+      try? await updatesSequence.send(Void())
     }
 
     nonisolated func resourcesUpdated() async {
-      updatesSequence.value = Void()
+      try? await updatesSequence.send(Void())
     }
 
     nonisolated func updates() -> AnyAsyncSequence<Void> {
@@ -139,10 +143,7 @@ extension Folders: Feature {
       filters: AnyAsyncSequence<FoldersFilter>
     ) -> AnyAsyncSequence<FolderContent> {
       AsyncCombineLatestSequence(updatesSequence, filters)
-        .map { (_: Void, filter: FoldersFilter) -> FoldersFilter in
-          filter
-        }
-        .map { (filter: FoldersFilter) async -> FolderContent in
+        .map { (_, filter: FoldersFilter) async -> FolderContent in
           let folders: Array<ListViewFolder>
           do {
             folders =
@@ -191,7 +192,6 @@ extension Folders: Feature {
     return Self(
       refreshIfNeeded: refreshIfNeeded,
       resourcesUpdated: resourcesUpdated,
-      updates: updates,
       details: details(_:),
       filteredFolderContent: filteredFolderContent(filters:),
       featureUnload: featureUnload
@@ -207,7 +207,6 @@ extension Folders {
     Self(
       refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
       resourcesUpdated: unimplemented("You have to provide mocks for used methods"),
-      updates: unimplemented("You have to provide mocks for used methods"),
       details: unimplemented("You have to provide mocks for used methods"),
       filteredFolderContent: unimplemented("You have to provide mocks for used methods"),
       featureUnload: unimplemented("You have to provide mocks for used methods")

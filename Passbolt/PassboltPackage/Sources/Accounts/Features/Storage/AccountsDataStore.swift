@@ -874,7 +874,8 @@ extension AccountsDataStore: Feature {
           )
       }
       catch {
-        diagnostics.diagnosticLog("Failed to open database for accountID, cleaning up...")
+        diagnostics.log(error)
+        diagnostics.diagnosticLog("Failed to open database, cleaning up...")
         _ = files.deleteFile(databaseURL)
         // single retry after deleting previous database, fail if it fails
         databaseConnection =

@@ -26,6 +26,7 @@ import Crypto
 import Features
 import NetworkClient
 import TestExtensions
+import Users
 import XCTest
 
 @testable import Accounts
@@ -71,8 +72,14 @@ final class ResourceTests: TestCase {
     try await FeaturesActor.execute {
       self.features.environment.time.timestamp = always(100)
     }
-    await features.usePlaceholder(for: Folders.self)
+    features.usePlaceholder(for: Folders.self)
     features.patch(\FeatureConfig.config, with: always(.none))
+    features.usePlaceholder(for: ResourceTags.self)
+    features.usePlaceholder(for: UserGroups.self)
+    features.patch(
+      \UserGroups.refreshIfNeeded,
+      with: always(Void())
+    )
   }
 
   override func featuresActorTearDown() async throws {

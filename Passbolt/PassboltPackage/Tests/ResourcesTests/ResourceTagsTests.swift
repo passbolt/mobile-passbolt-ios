@@ -31,8 +31,7 @@ final class ResourceTagsTests: TestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    await self.features
-      .usePlaceholder(for: AccountDatabase.self)
+    self.features.usePlaceholder(for: AccountDatabase.self)
   }
 
   func test_filteredTagsList_fetchesData_withGivenFilter() async throws {
@@ -126,11 +125,12 @@ final class ResourceTagsTests: TestCase {
 
     let feature: ResourceTags = try await self.testInstance()
 
-    let filteredTagsSequenceIterator = feature.filteredTagsList(filtersSequence.asAnyAsyncSequence()).makeAsyncIterator()
+    let filteredTagsSequenceIterator = feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
+      .makeAsyncIterator()
     // ignoring first, expecting update
     _ = await filteredTagsSequenceIterator.next()
 
-    filtersSequence.value = "updated"
+    try await filtersSequence.send("updated")
 
     let result: Array<ListViewResourceTag>? = await filteredTagsSequenceIterator.next()
 

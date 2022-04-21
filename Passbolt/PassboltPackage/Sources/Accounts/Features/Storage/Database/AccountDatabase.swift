@@ -42,6 +42,8 @@ public struct AccountDatabase {
   public var fetchFolder: FetchFolderOperation
   public var fetchListViewFolders: FetchListViewFoldersOperation
   public var fetchResourceTagList: FetchListViewResourceTagOperation
+  public var storeUserGroups: StoreUserGroupsOperation
+  public var fetchResourceUserGroupList: FetchListViewResourcesUserGroupOperation
 
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
@@ -130,6 +132,8 @@ extension AccountDatabase: Feature {
       fetchFolder: FetchFolderOperation.using(currentSQLiteConnection),
       fetchListViewFolders: FetchListViewFoldersOperation.using(currentSQLiteConnection),
       fetchResourceTagList: FetchListViewResourceTagOperation.using(currentSQLiteConnection),
+      storeUserGroups: StoreUserGroupsOperation.using(currentSQLiteConnection),
+      fetchResourceUserGroupList: FetchListViewResourcesUserGroupOperation.using(currentSQLiteConnection),
       featureUnload: featureUnload
     )
   }
@@ -149,6 +153,8 @@ extension AccountDatabase: Feature {
       fetchFolder: .placeholder,
       fetchListViewFolders: .placeholder,
       fetchResourceTagList: .placeholder,
+      storeUserGroups: .placeholder,
+      fetchResourceUserGroupList: .placeholder,
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }

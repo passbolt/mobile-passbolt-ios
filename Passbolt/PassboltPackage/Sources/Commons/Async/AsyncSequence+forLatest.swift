@@ -45,7 +45,7 @@ extension AsyncSequence {
 
       while let nextValue = try await iterator.next() {
         try Task.checkCancellation()
-        variable.value = nextValue
+        try await variable.send(nextValue)
       }
 
       try await taskGroup.waitForAll()

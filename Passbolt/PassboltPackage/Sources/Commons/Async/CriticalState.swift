@@ -41,7 +41,7 @@ public struct CriticalState<State> {
     return try access(&self.memory.statePtr.pointee)
   }
 
-  @inlinable public func state<Value>(
+  @inlinable public func get<Value>(
     _ keyPath: KeyPath<State, Value>
   ) -> Value {
     while !atomic_flag_test_and_set(self.memory.flagPtr) {}
@@ -60,12 +60,11 @@ public struct CriticalState<State> {
     return try await access(&self.memory.statePtr.pointee)
   }
 
-  @inlinable public func stateAsync<Value>(
+  @inlinable public func getAsync<Value>(
     _ keyPath: KeyPath<State, Value>
-  ) async throws -> Value {
+  ) async -> Value {
     while !atomic_flag_test_and_set(self.memory.flagPtr) {
       await Task.yield()
-      try Task.checkCancellation()
     }
     defer { atomic_flag_clear(self.memory.flagPtr) }
     return self.memory.statePtr.pointee[keyPath: keyPath]

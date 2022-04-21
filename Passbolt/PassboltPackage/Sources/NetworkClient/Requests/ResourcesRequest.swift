@@ -45,6 +45,7 @@ extension ResourcesRequest {
           .queryItem("contain[permission]", value: "1"),
           .queryItem("contain[favorite]", value: "1"),
           .queryItem("contain[tag]", value: "1"),
+          .queryItem("contain[permissions]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
@@ -72,7 +73,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
 
   public var id: String
   public var resourceTypeID: String
-  public var permission: Permission
+  public var permission: PermissionType
   public var parentFolderID: String?
   public var name: String
   public var url: String?
@@ -80,6 +81,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
   public var description: String?
   public var favorite: Bool
   public var tags: Array<Tag>
+  public var groups: Array<GroupPermission>
   public var modified: Date
 
   public init(
@@ -95,7 +97,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     self.parentFolderID = try container.decodeIfPresent(String.self, forKey: .parentFolderID)
 
     let permissionContainer = try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
-    self.permission = try permissionContainer.decode(Permission.self, forKey: .type)
+    self.permission = try permissionContainer.decode(PermissionType.self, forKey: .type)
     do {
       // favorite is an object but we don't care about its content
       // if it is present (not null) resource is favorite and not favorite otherwise
@@ -110,6 +112,22 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     }
     self.modified = try container.decode(Date.self, forKey: .modified)
     self.tags = try container.decodeIfPresent(Array<Tag>.self, forKey: .tags) ?? .init()
+
+    self.groups =
+      try container
+      .decodeIfPresent(
+        Array<Permission>.self,
+        forKey: .permissions
+      )?
+      .compactMap { permission in
+        guard permission.aro == "Group"
+        else { return nil }
+        return .init(
+          id: permission.aroForeignKey,
+          type: permission.type
+        )
+      }
+      ?? .init()
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -124,6 +142,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
     case permission = "permission"
     case favorite = "favorite"
     case tags = "tags"
+    case permissions = "permissions"
     case modified = "modified"
   }
 
@@ -137,7 +156,7 @@ public struct ResourcesRequestResponseBodyItem: Decodable {
 
 extension ResourcesRequestResponseBodyItem {
 
-  public enum Permission: Int, Decodable {
+  public enum PermissionType: Int, Decodable {
 
     case read = 1
     case write = 7
@@ -155,6 +174,32 @@ extension ResourcesRequestResponseBodyItem {
       case id = "id"
       case slug = "slug"
       case shared = "is_shared"
+    }
+  }
+
+  public struct Permission: Decodable {
+
+    public var aro: String
+    public var aroForeignKey: String
+    public var type: PermissionType
+
+    private enum CodingKeys: String, CodingKey {
+
+      case aro = "aro"
+      case aroForeignKey = "aro_foreign_key"
+      case type = "type"
+    }
+  }
+
+  public struct GroupPermission: Decodable {
+
+    public var id: String
+    public var type: PermissionType
+
+    private enum CodingKeys: String, CodingKey {
+
+      case id = "id"
+      case type = "type"
     }
   }
 }

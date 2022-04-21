@@ -46,6 +46,7 @@ public struct NetworkClient {
   public var deleteResourceRequest: DeleteResourceRequest
   public var userListRequest: UserListRequest
   public var foldersRequest: FoldersRequest
+  public var userGroupsRequest: UserGroupsRequest
   public var appVersionsAvailableRequest: AppVersionsAvailableRequest
   public var setSessionStateSource:
     @AccountSessionActor (@AccountSessionActor @escaping () async throws -> SessionState?) -> Void
@@ -339,6 +340,17 @@ extension NetworkClient: Feature {
         mfaRedirectionHandler: mfaRedirectRequest.execute,
         sessionVariable: currentDomainSessionState
       ),
+      userGroupsRequest: .live(
+        using: networking,
+        with: currentAuthorizedSessionState
+      )
+      .withAuthErrors(
+        invalidateAccessToken: invalidateAccessToken,
+        authorizationRequest: requestAuthorization,
+        mfaRequest: requestMFA,
+        mfaRedirectionHandler: mfaRedirectRequest.execute,
+        sessionVariable: currentDomainSessionState
+      ),
       appVersionsAvailableRequest: .live(
         using: networking,
         with: emptySession
@@ -373,6 +385,7 @@ extension NetworkClient: Feature {
       deleteResourceRequest: .placeholder,
       userListRequest: .placeholder,
       foldersRequest: .placeholder,
+      userGroupsRequest: .placeholder,
       appVersionsAvailableRequest: .placeholder,
       setSessionStateSource: unimplemented("You have to provide mocks for used methods"),
       setAccessTokenInvalidation: unimplemented("You have to provide mocks for used methods"),
