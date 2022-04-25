@@ -39,8 +39,12 @@ public struct ResourcesFilter {
   public var favoriteOnly: Bool
   // included permissions search (AND) - empty ignores this parameter
   public var permissions: Set<Permission>
-  // included tags search (AND) - empty ignores this parameter
+  // included tags search (AND) - matches when any of tags matches,
+  // empty ignores this parameter
   public var tags: Set<ResourceTag.ID>
+  // included user groups search (AND) - matches when any of user
+  // groups matches, empty ignores this parameter
+  public var userGroups: Set<UserGroup.ID>
   // set of folder related filters, none ignores this parameter
   // see ResourcesFolderFilter for details
   public var folders: ResourcesFolderFilter?
@@ -54,6 +58,7 @@ public struct ResourcesFilter {
     favoriteOnly: Bool = false,
     permissions: Set<Permission> = .init(),
     tags: Set<ResourceTag.ID> = .init(),
+    userGroups: Set<UserGroup.ID> = .init(),
     folders: ResourcesFolderFilter? = .none
   ) {
     self.sorting = sorting
@@ -64,6 +69,7 @@ public struct ResourcesFilter {
     self.favoriteOnly = favoriteOnly
     self.permissions = permissions
     self.tags = tags
+    self.userGroups = userGroups
     self.folders = folders
   }
 }

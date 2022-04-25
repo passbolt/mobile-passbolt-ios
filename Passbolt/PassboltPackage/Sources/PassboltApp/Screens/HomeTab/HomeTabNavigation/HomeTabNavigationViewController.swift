@@ -108,7 +108,14 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
           case .tagsExplorer:
             await self.replaceNavigationRoot(
               with: TagsExplorerView.self,
-              in: nil,  // root folder
+              in: nil,  // tag list
+              animated: false
+            )
+
+          case .resourceUserGroupsExplorer:
+            await self.replaceNavigationRoot(
+              with: ResourceUserGroupsExplorerView.self,
+              in: nil,  // user group list
               animated: false
             )
           }

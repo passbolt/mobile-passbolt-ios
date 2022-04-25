@@ -316,6 +316,7 @@ Contact your administrator for more information.";
 "home.presentation.mode.folders.explorer.search.direct.results" = "in \"%@\"";
 "home.presentation.mode.folders.explorer.search.nested.results" = "in subfolders:";
 "home.presentation.mode.tags.explorer.title" = "Tags";
+"home.presentation.mode.resource.user.groups.explorer.title" = "Groups";
 
 "error.internal.inconsistency" = "Internal inconsistency, please report a bug.";
 "error.feature.unavailable" = "Feature unavailable.";

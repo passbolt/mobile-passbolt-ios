@@ -129,7 +129,8 @@ extension PGP {
       }
 
       if nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        // gopenpgp has multiple strings for the same error...
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
         errorDescription.contains("gopenpgp: unable to unlock key")
           || errorDescription.contains(
             "gopenpgp: error in unlocking key"
@@ -197,7 +198,8 @@ extension PGP {
       }
 
       if nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        // gopenpgp has multiple strings for the same error...
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
         errorDescription.contains("gopenpgp: unable to unlock key")
           || errorDescription.contains(
             "gopenpgp: error in unlocking key"
@@ -296,7 +298,8 @@ extension PGP {
       }
 
       if nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        // gopenpgp has multiple strings for the same error...
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
         errorDescription.contains("gopenpgp: unable to unlock key")
           || errorDescription.contains(
             "gopenpgp: error in unlocking key"
@@ -361,7 +364,8 @@ extension PGP {
       }
 
       if nsError.domain == "go",
-        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,  // gopenpgp has multiple strings for the same error...
+        // gopenpgp has multiple strings for the same error...
+        let errorDescription: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String,
         errorDescription.contains("gopenpgp: unable to unlock key")
           || errorDescription.contains(
             "gopenpgp: error in unlocking key"

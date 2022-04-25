@@ -91,6 +91,13 @@ extension HomePresentation: Feature {
         }
       }
 
+      if #available(iOS 15, *) {
+        availableModes.append(.resourceUserGroupsExplorer)
+      }
+      else {
+        // NOP - temporarily disable on iOS 14
+      }
+
       return availableModes
     }
 

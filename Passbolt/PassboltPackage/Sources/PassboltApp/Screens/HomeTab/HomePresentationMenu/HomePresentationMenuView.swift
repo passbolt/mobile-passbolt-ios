@@ -56,6 +56,9 @@ internal struct HomePresentationMenuView: ComponentView {
             // rethink adding divider when adding tags or groups
             if case .foldersExplorer = mode {
               ListDividerView()
+            }
+            else if case .foldersExplorer = mode, !self.state.availableModes.contains(.foldersExplorer) {
+              ListDividerView()
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {

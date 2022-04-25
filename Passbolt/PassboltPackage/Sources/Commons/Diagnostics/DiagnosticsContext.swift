@@ -70,8 +70,7 @@ extension DiagnosticsContext {
   /// Does nothing in nondebug builds. Recording value for a key
   /// which already holds any value replaces current one.
   ///
-  /// - Parameters:
-  ///   - values: Values to be recorded.
+  /// - Parameter values: Values to be recorded.
   public mutating func record(
     values: @autoclosure () -> Dictionary<StaticString, Any>
   ) {
@@ -109,8 +108,7 @@ extension DiagnosticsContext {
   /// Does nothing in nondebug builds.Recording value for a key
   /// which already holds any value replaces current one.
   ///
-  /// - Parameters:
-  ///   - value: Values to be recorded.
+  /// - Parameter values: Values to be recorded.
   /// - Returns: Copy of this context with additional values associated.
   public func recording(
     values: @autoclosure () -> Dictionary<StaticString, Any>

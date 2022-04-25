@@ -141,8 +141,7 @@ extension TheError {
   /// Does nothing in nondebug builds. Recording value for a key
   /// which already holds any value replaces current one.
   ///
-  /// - Parameters:
-  ///   - values: Values to be recorded.
+  /// - Parameter values: Values to be recorded.
   public mutating func record(
     values: @autoclosure () -> Dictionary<StaticString, Any>
   ) {
@@ -174,8 +173,7 @@ extension TheError {
   /// Does nothing in nondebug builds. Recording value for a key
   /// which already holds any value replaces current one.
   ///
-  /// - Parameters:
-  ///   - value: Values to be recorded.
+  /// - Parameter values: Values to be recorded.
   /// - Returns: Copy of this error with additional values associated with current context.
   public func recording(
     values: @autoclosure () -> Dictionary<StaticString, Any>

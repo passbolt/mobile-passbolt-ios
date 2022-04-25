@@ -37,7 +37,7 @@ extension FetchListViewResourcesUserGroupOperation {
       var statement: SQLiteStatement = """
         SELECT
           id,
-          name
+          name,
           (
             SELECT
               count(*)
@@ -80,7 +80,7 @@ extension FetchListViewResourcesUserGroupOperation {
             .map { row -> ListViewResourcesUserGroup in
               guard
                 let id: ListViewResourcesUserGroup.ID = row.id.map(ListViewResourcesUserGroup.ID.init(rawValue:)),
-                let name: String = row.slug,
+                let name: String = row.name,
                 let resourcesCount: Int = row.resourcesCount
               else {
                 throw

@@ -207,15 +207,11 @@ extension FetchListViewResourcesOperation {
             SELECT
               1
             FROM
-              tags
-            JOIN
               resourceTags
-            ON
-              resourceTags.tagID == tags.id
             WHERE
               resourceTags.resourceID == resourcesListView.id
             AND
-              tags.id
+              resourceTags.tagID
             IN (
           )
           """
@@ -229,7 +225,7 @@ extension FetchListViewResourcesOperation {
           }
           params.append(input.tags[index].rawValue)
         }
-        statement.append(") ")
+        statement.append(") LIMIT 1")
       }
       else if let tag: ResourceTag.ID = input.tags.first {
         statement.append(
@@ -238,19 +234,67 @@ extension FetchListViewResourcesOperation {
             SELECT
               1
             FROM
-              tags
-            JOIN
               resourceTags
-            ON
-              resourceTags.tagID == tags.id
             WHERE
               resourceTags.resourceID == resourcesListView.id
             AND
-              tags.id == ?
+              resourceTags.tagID == ?
+            LIMIT 1
           )
           """
         )
         params.append(tag.rawValue)
+      }
+      else {
+        /* NOP */
+      }
+
+      // since we cannot use array in query directly
+      // we are preparing it manually as argument for each element
+      if input.userGroups.count > 1 {
+        statement.append(
+          """
+          AND (
+            SELECT
+              1
+            FROM
+              resourcesUserGroups
+            WHERE
+              resourcesUserGroups.resourceID == resourcesListView.id
+            AND
+              resourcesUserGroups.userGroupID
+            IN (
+          )
+          """
+        )
+        for index in input.userGroups.indices {
+          if index == input.userGroups.startIndex {
+            statement.append("?")
+          }
+          else {
+            statement.append(", ?")
+          }
+          params.append(input.userGroups[index].rawValue)
+        }
+        statement.append(") LIMIT 1")
+      }
+      else if let userGroup: UserGroup.ID = input.userGroups.first {
+        statement.append(
+          """
+          AND (
+            SELECT
+              1
+            FROM
+              resourcesUserGroups
+            WHERE
+              resourcesUserGroups.resourceID == resourcesListView.id
+            AND
+              resourcesUserGroups.userGroupID == ?
+            LIMIT 1
+          )
+          """
+        )
+        params.append(userGroup.rawValue)
       }
       else {
         /* NOP */

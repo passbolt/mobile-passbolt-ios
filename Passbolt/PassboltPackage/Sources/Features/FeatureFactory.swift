@@ -75,6 +75,8 @@ public final class FeatureFactory {
   /// will be executed within that scope prioritizing caching new and unloading
   /// instances of features from scoped container and loaded from cache
   /// priritizing root container.
+  ///
+  /// - Parameter scopeID: ID of scope to be set.
   @FeaturesActor public func setScope(
     _ scopeID: AnyHashable?
   ) async {
