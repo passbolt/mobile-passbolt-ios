@@ -168,11 +168,14 @@ private let upsertResourcesUserGroupStatement: SQLiteStatement =
         userGroupID
       )
     SELECT
-      id,
-      ?2
+      resources.id,
+      userGroups.id
     FROM
-      resources
+      resources,
+      userGroups
     WHERE
       resources.id IS ?1
+    AND
+      userGroups.id IS ?2
     ;
   """

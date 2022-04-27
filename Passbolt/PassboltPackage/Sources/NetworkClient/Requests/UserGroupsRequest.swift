@@ -38,6 +38,7 @@ extension UserGroupsRequest {
         .combined(
           .url(string: sessionVariable.domain.rawValue),
           .pathSuffix("/groups.json"),
+          .queryItem("filter[has-users] ", value: "\(requestVariable.userID.rawValue)"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
@@ -55,7 +56,16 @@ extension UserGroupsRequest {
   }
 }
 
-public typealias UserGroupsRequestVariable = Void
+public struct UserGroupsRequestVariable {
+
+  public var userID: User.ID
+
+  public init(
+    userID: User.ID
+  ) {
+    self.userID = userID
+  }
+}
 
 public typealias UserGroupsRequestResponse = CommonResponse<UserGroupsRequestResponseBody>
 

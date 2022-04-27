@@ -43,6 +43,7 @@ extension UserGroups: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    let session: AccountSession = try await features.instance()
     let diagnostics: Diagnostics = try await features.instance()
     let networkClient: NetworkClient = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
@@ -53,10 +54,14 @@ extension UserGroups: Feature {
 
     nonisolated func refreshIfNeeded() async throws {
       try await refreshTask.run {
+        guard let currentUserID: Account.UserID = await session.currentState().currentAccount?.userID
+        else {
+          throw SessionMissing.error()
+        }
         let userGroupsResponse: UserGroupsRequestResponse =
           try await networkClient
           .userGroupsRequest
-          .makeAsync()
+          .makeAsync(using: .init(userID: .init(rawValue: currentUserID.rawValue)))
 
         // TODO: when diffing endpoint becomes available
         // there should be some additional logic here

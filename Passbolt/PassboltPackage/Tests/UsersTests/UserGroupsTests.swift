@@ -38,8 +38,30 @@ final class UserGroupsTests: TestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
+    self.features.usePlaceholder(for: AccountSession.self)
+    self.features.patch(
+      \AccountSession.currentState,
+       with: always(.authorized(.validAccount))
+    )
     self.features.usePlaceholder(for: AccountDatabase.self)
     self.features.usePlaceholder(for: NetworkClient.self)
+  }
+
+  func test_refreshIfNeeded_fails_whenNoSession() async throws {
+    await self.features.patch(
+      \AccountSession.currentState,
+       with: always(.none(lastUsed: .none))
+    )
+
+    let feature: UserGroups = try await self.testInstance()
+
+    do {
+      try await feature.refreshIfNeeded()
+      XCTFail("Expected error throw")
+    }
+    catch {
+      // expected result
+    }
   }
 
   func test_refreshIfNeeded_fails_whenNetworkRequestFails() async throws {
