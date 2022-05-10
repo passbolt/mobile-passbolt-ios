@@ -75,7 +75,7 @@ extension AccountDetailsController: UIController {
     func currentAcountAvatarImagePublisher() -> AnyPublisher<Data?, Never> {
       networkClient
         .mediaDownload
-        .make(using: .init(urlString: context.avatarImageURL))
+        .make(using: context.avatarImageURL)
         .mapToOptional()
         .replaceError(with: nil)
         .eraseToAnyPublisher()

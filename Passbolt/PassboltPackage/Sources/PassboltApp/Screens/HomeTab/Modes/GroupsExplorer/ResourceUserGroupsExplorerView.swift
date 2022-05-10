@@ -156,11 +156,11 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
   @ViewBuilder private var resourcesUserGroupsListContent: some View {
     ForEach(
       self.state.groups,
-      id: \ListViewResourcesUserGroup.id
+      id: \ResourceUserGroupListItemDSV.id
     ) { listGroup in
       ResourceUserGroupListItemView(
         name: listGroup.name,
-        resourcesCount: listGroup.resourcesCount,
+        contentCount: listGroup.contentCount,
         action: {
           self.controller.presentGroupContent(listGroup)
         }
@@ -173,7 +173,7 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
   @ViewBuilder private var resourcesListContent: some View {
     ForEach(
       self.state.resources,
-      id: \ListViewResource.id
+      id: \ResourceListItemDSV.id
     ) { resource in
       ResourceListItemView(
         name: resource.name,
@@ -212,8 +212,8 @@ extension ResourceUserGroupsExplorerView {
     internal var canCreateResources: Bool
     internal var userAvatarImage: Data? = .none
     internal var searchText: String = ""
-    internal var groups: Array<ListViewResourcesUserGroup> = .init()
-    internal var resources: Array<ListViewResource> = .init()
+    internal var groups: Array<ResourceUserGroupListItemDSV> = .init()
+    internal var resources: Array<ResourceListItemDSV> = .init()
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

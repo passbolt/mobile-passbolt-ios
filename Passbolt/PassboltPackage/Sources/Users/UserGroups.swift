@@ -28,11 +28,8 @@ import NetworkClient
 
 public struct UserGroups {
 
-  // WARNING: to refresh data use Resources.refreshIfNeeded instead
-  // this function is called by Resources if needed
-  public var refreshIfNeeded: () async throws -> Void
   public var filteredResourceUserGroupList:
-    (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ListViewResourcesUserGroup>>
+    (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
@@ -43,59 +40,26 @@ extension UserGroups: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let session: AccountSession = try await features.instance()
     let diagnostics: Diagnostics = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
+    let accountSession: AccountSession = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
-
-    let updatesSequence: AsyncVariable<Void> = .init(initial: Void())
-
-    let refreshTask: ManagedTask<Void> = .init()
-
-    nonisolated func refreshIfNeeded() async throws {
-      try await refreshTask.run {
-        guard let currentUserID: Account.UserID = await session.currentState().currentAccount?.userID
-        else {
-          throw SessionMissing.error()
-        }
-        let userGroupsResponse: UserGroupsRequestResponse =
-          try await networkClient
-          .userGroupsRequest
-          .makeAsync(using: .init(userID: .init(rawValue: currentUserID.rawValue)))
-
-        // TODO: when diffing endpoint becomes available
-        // there should be some additional logic here
-
-        try await accountDatabase
-          .storeUserGroups(
-            userGroupsResponse
-              .body
-              .map { responseGroup in
-                UserGroup(
-                  id: .init(rawValue: responseGroup.id),
-                  name: responseGroup.name
-                )
-              }
-          )
-      }
-
-      await userGroupsUpdated()
-    }
-
-    nonisolated func userGroupsUpdated() async {
-      try? await updatesSequence.send(Void())
-    }
 
     nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
-    ) -> AnyAsyncSequence<Array<ListViewResourcesUserGroup>> {
-      AsyncCombineLatestSequence(updatesSequence, filters)
-        .map { (_, filter: String) async -> Array<ListViewResourcesUserGroup> in
-          let userGroups: Array<ListViewResourcesUserGroup>
+    ) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>> {
+      AsyncCombineLatestSequence(sessionData.updatesSequence(), filters)
+        .map { (_, filterText: String) async -> Array<ResourceUserGroupListItemDSV> in
+          let userGroups: Array<ResourceUserGroupListItemDSV>
           do {
             userGroups =
               try await accountDatabase
-              .fetchResourceUserGroupList(filter)
+              .fetchResourceUserGroupList(
+                .init(
+                  userID: accountSession.currentState().currentAccount?.userID,
+                  text: filterText
+                )
+              )
           }
           catch {
             diagnostics.log(error)
@@ -112,7 +76,6 @@ extension UserGroups: Feature {
     }
 
     return Self(
-      refreshIfNeeded: refreshIfNeeded,
       filteredResourceUserGroupList: filteredResourceUserGroupList(filters:),
       featureUnload: featureUnload
     )
@@ -125,7 +88,6 @@ extension UserGroups {
 
   public static var placeholder: Self {
     Self(
-      refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
       filteredResourceUserGroupList: unimplemented("You have to provide mocks for used methods"),
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )

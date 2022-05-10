@@ -26,19 +26,19 @@ import UICommons
 
 internal final class ResourceDetailsView: ScrolledStackView {
 
-  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceField, Never> {
+  internal var toggleEncryptedFieldTapPublisher: AnyPublisher<ResourceFieldNameDSV, Never> {
     toggleEncryptedFieldTapSubject.eraseToAnyPublisher()
   }
 
-  internal var copyFieldNameTapPublisher: AnyPublisher<ResourceField, Never> {
+  internal var copyFieldNameTapPublisher: AnyPublisher<ResourceFieldNameDSV, Never> {
     copyFieldNameTapSubject.eraseToAnyPublisher()
   }
 
   private let iconView: LetterIconView = .init()
   private let titleLabel: Label = .init()
-  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceField, Never> = .init()
-  private let copyFieldNameTapSubject: PassthroughSubject<ResourceField, Never> = .init()
-  private var fieldUpdates: Dictionary<ResourceField, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
+  private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()
+  private let copyFieldNameTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()
+  private var fieldUpdates: Dictionary<ResourceFieldNameDSV, (Mutation<ResourceDetailsItemView>) -> Void> = [:]
 
   // Used to identify dynamic items in the stack
   private static let formItemTag: Int = 42
@@ -99,7 +99,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     iconView.update(from: resourceDetails.name)
     titleLabel.text = resourceDetails.name
 
-    let setupSteps: Array<FieldSetup> = resourceDetails.properties.compactMap { property in
+    let setupSteps: Array<FieldSetup> = resourceDetails.fields.compactMap { field in
       let encryptedPlaceholder: String = .init(repeating: "*", count: 10)
 
       let contentButtonMutation: Mutation<ResourceDetailsItemView>
@@ -107,13 +107,13 @@ internal final class ResourceDetailsView: ScrolledStackView {
       let valueMutation: Mutation<TextView>
       let accessoryButtonMutation: Mutation<ImageButton>
 
-      switch property.field {
+      switch field.name {
       case .name:
         return nil
 
       case .username:
         contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(property.field)
+          self?.copyFieldNameTapSubject.send(field.name)
         }
         titleMutation = .text(
           displayable: .localized(key: "resource.detail.field.username")
@@ -121,7 +121,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
         valueMutation = .combined(
           .userInteractionEnabled(false),
           .when(
-            property.encrypted,
+            field.encrypted,
             then: .text(encryptedPlaceholder),
             else: .text(resourceDetails.username ?? "")
           )
@@ -129,13 +129,13 @@ internal final class ResourceDetailsView: ScrolledStackView {
         accessoryButtonMutation = .combined(
           .image(named: .copy, from: .uiCommons),
           .action { [weak self] in
-            self?.copyFieldNameTapSubject.send(property.field)
+            self?.copyFieldNameTapSubject.send(field.name)
           }
         )
 
       case .password:
         contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(property.field)
+          self?.copyFieldNameTapSubject.send(field.name)
         }
         titleMutation = .text(
           displayable: .localized(
@@ -145,7 +145,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
         valueMutation = .combined(
           .userInteractionEnabled(false),
           .when(
-            property.encrypted,
+            field.encrypted,
             then: .text(encryptedPlaceholder),
             else: .text("")
           )
@@ -153,12 +153,12 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
         if config.revealPasswordEnabled {
           accessoryButtonMutation = .when(
-            property.encrypted,
+            field.encrypted,
             then:
               .combined(
                 .image(named: .eye, from: .uiCommons),
                 .action { [weak self] in
-                  self?.toggleEncryptedFieldTapSubject.send(property.field)
+                  self?.toggleEncryptedFieldTapSubject.send(field.name)
                 }
               ),
             else: .hidden(true)
@@ -169,7 +169,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
         }
       case .uri:
         contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(property.field)
+          self?.copyFieldNameTapSubject.send(field.name)
         }
         titleMutation = .text(
           displayable: .localized(
@@ -179,7 +179,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
         valueMutation = .combined(
           .userInteractionEnabled(true),
           .when(
-            property.encrypted,
+            field.encrypted,
             then: .text(encryptedPlaceholder),
             else: .attributedString(
               .displayable(
@@ -195,13 +195,13 @@ internal final class ResourceDetailsView: ScrolledStackView {
         accessoryButtonMutation = .combined(
           .image(named: .copy, from: .uiCommons),
           .action { [weak self] in
-            self?.copyFieldNameTapSubject.send(property.field)
+            self?.copyFieldNameTapSubject.send(field.name)
           }
         )
 
       case .description:
         contentButtonMutation = .action { [weak self] in
-          self?.copyFieldNameTapSubject.send(property.field)
+          self?.copyFieldNameTapSubject.send(field.name)
         }
         titleMutation = .text(
           displayable: .localized(
@@ -212,19 +212,19 @@ internal final class ResourceDetailsView: ScrolledStackView {
           .combined(
             .userInteractionEnabled(false),
             .when(
-              property.encrypted,
+              field.encrypted,
               then: .text(encryptedPlaceholder),
               else: .text(resourceDetails.description ?? "")
             )
           )
         )
         accessoryButtonMutation = .when(
-          property.encrypted,
+          field.encrypted,
           then:
             .combined(
               .image(named: .eye, from: .uiCommons),
               .action { [weak self] in
-                self?.toggleEncryptedFieldTapSubject.send(property.field)
+                self?.toggleEncryptedFieldTapSubject.send(field.name)
               }
             ),
           else: .hidden(true)
@@ -236,7 +236,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
       }
 
       return .init(
-        field: property.field,
+        fieldName: field.name,
         contentButtonMutation: contentButtonMutation,
         titleMutation: titleMutation,
         valueMutation: valueMutation,
@@ -250,7 +250,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     )
 
     let fieldViews: Array<ItemWithUpdate> = setupSteps.map { setup in
-      let itemView: ResourceDetailsItemView = .init(field: setup.field)
+      let itemView: ResourceDetailsItemView = .init(fieldName: setup.fieldName)
       itemView.tag = Self.formItemTag
 
       let fieldUpdate: (Mutation<ResourceDetailsItemView>) -> Void = { itemMutation in
@@ -269,7 +269,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     }
 
     fieldViews.forEach { itemWithUpdate in
-      fieldUpdates[itemWithUpdate.itemView.field] = itemWithUpdate.fieldUpdate
+      fieldUpdates[itemWithUpdate.itemView.fieldName] = itemWithUpdate.fieldUpdate
     }
 
     mut(self) {
@@ -286,11 +286,11 @@ internal final class ResourceDetailsView: ScrolledStackView {
   }
 
   internal func applyOn(
-    field: ResourceField,
+    field fieldName: ResourceFieldNameDSV,
     buttonMutation: Mutation<ImageButton>,
     valueTextViewMutation: Mutation<TextView>
   ) {
-    guard let itemViewUpdate = fieldUpdates[field]
+    guard let itemViewUpdate = fieldUpdates[fieldName]
     else { return }
 
     itemViewUpdate(
@@ -304,7 +304,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
 internal final class ResourceDetailsItemView: PlainButton {
 
-  fileprivate var field: ResourceField
+  fileprivate var fieldName: ResourceFieldNameDSV
   fileprivate var titleLabel: Label = .init()
   fileprivate var valueTextView: TextView = .init()
   fileprivate var accessoryButton: ImageButton = .init()
@@ -319,8 +319,8 @@ internal final class ResourceDetailsItemView: PlainButton {
     unreachable(#function)
   }
 
-  internal init(field: ResourceField) {
-    self.field = field
+  internal init(fieldName: ResourceFieldNameDSV) {
+    self.fieldName = fieldName
     super.init()
 
     mut(self) {
@@ -374,7 +374,7 @@ internal final class ResourceDetailsItemView: PlainButton {
 
 fileprivate struct FieldSetup {
 
-  fileprivate var field: ResourceField
+  fileprivate var fieldName: ResourceFieldNameDSV
   fileprivate var contentButtonMutation: Mutation<ResourceDetailsItemView>
   fileprivate var titleMutation: Mutation<Label>
   fileprivate var valueMutation: Mutation<TextView>

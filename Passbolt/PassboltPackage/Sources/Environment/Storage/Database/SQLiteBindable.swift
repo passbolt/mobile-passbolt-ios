@@ -21,12 +21,14 @@
 // @since         v1.0
 //
 
+import CommonModels
 import SQLCipher
 
 import struct Foundation.Data
 import struct Foundation.Date
 
-public protocol SQLiteBindable {
+@usableFromInline
+internal protocol SQLiteBindable {
 
   func bind(
     _ handle: OpaquePointer?,
@@ -34,105 +36,65 @@ public protocol SQLiteBindable {
   ) -> Bool
 }
 
-extension Int64: SQLiteBindable {
+extension SQLiteValue: SQLiteBindable {
 
   public func bind(
     _ handle: OpaquePointer?,
     at index: Int32
   ) -> Bool {
-    sqlite3_bind_int64(
-      handle,
-      index,
-      self
-    ) == SQLITE_OK
-  }
-}
+    switch self {
+    case .null:
+      return sqlite3_bind_null(
+        handle,
+        index
+      ) == SQLITE_OK
 
-extension Int: SQLiteBindable {
+    case let .bool(value):
+      return sqlite3_bind_int(
+        handle,
+        index,
+        value ? 1 : 0
+      ) == SQLITE_OK
 
-  public func bind(
-    _ handle: OpaquePointer?,
-    at index: Int32
-  ) -> Bool {
-    sqlite3_bind_int64(
-      handle,
-      index,
-      Int64(self)
-    ) == SQLITE_OK
-  }
-}
+    case let .int(value):
+      return sqlite3_bind_int64(
+        handle,
+        index,
+        Int64(value)
+      ) == SQLITE_OK
 
-extension String: SQLiteBindable {
+    case let .double(value):
+      return sqlite3_bind_double(
+        handle,
+        index,
+        value
+      ) == SQLITE_OK
 
-  public func bind(
-    _ handle: OpaquePointer?,
-    at index: Int32
-  ) -> Bool {
-    sqlite3_bind_text(
-      handle,
-      index,
-      self,
-      -1,
-      SQLITE_TRANSIENT
-    ) == SQLITE_OK
-  }
-}
+    case let .string(value):
+      return sqlite3_bind_text(
+        handle,
+        index,
+        value,
+        -1,
+        SQLITE_TRANSIENT
+      ) == SQLITE_OK
 
-extension Bool: SQLiteBindable {
+    case let .date(value):
+      return sqlite3_bind_int64(
+        handle,
+        index,
+        Int64(value.timeIntervalSince1970)
+      ) == SQLITE_OK
 
-  public func bind(
-    _ handle: OpaquePointer?,
-    at index: Int32
-  ) -> Bool {
-    sqlite3_bind_int(
-      handle,
-      index,
-      self ? 1 : 0
-    ) == SQLITE_OK
-  }
-}
-
-extension Double: SQLiteBindable {
-
-  public func bind(
-    _ handle: OpaquePointer?,
-    at index: Int32
-  ) -> Bool {
-    sqlite3_bind_double(
-      handle,
-      index,
-      self
-    ) == SQLITE_OK
-  }
-}
-
-extension Date: SQLiteBindable {
-
-  public func bind(
-    _ handle: OpaquePointer?,
-    at index: Int32
-  ) -> Bool {
-    sqlite3_bind_int64(
-      handle,
-      index,
-      Int64(self.timeIntervalSince1970)
-    ) == SQLITE_OK
-  }
-}
-
-extension Data: SQLiteBindable {
-
-  public func bind(
-    _ handle: OpaquePointer?,
-    at index: Int32
-  ) -> Bool {
-    sqlite3_bind_blob(
-      handle,
-      index,
-      [UInt8](self),
-      Int32(self.count),
-      SQLITE_TRANSIENT
-    ) == SQLITE_OK
+    case let .data(value):
+      return sqlite3_bind_blob(
+        handle,
+        index,
+        [UInt8](value),
+        Int32(value.count),
+        SQLITE_TRANSIENT
+      ) == SQLITE_OK
+    }
   }
 }
 

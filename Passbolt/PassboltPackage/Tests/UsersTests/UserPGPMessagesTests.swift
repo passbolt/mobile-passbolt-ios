@@ -36,18 +36,21 @@ final class UserPGPMessagesTests: TestCase {
   var accountSession: AccountSession!
   var database: AccountDatabase!
   var networkClient: NetworkClient!
+  var mockUserDTO: UserDTO!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
     accountSession = .placeholder
     database = .placeholder
     networkClient = .placeholder
+    mockUserDTO = .random()
   }
 
   override func featuresActorTearDown() async throws {
     accountSession = nil
     database = nil
     networkClient = nil
+    mockUserDTO = nil
     try await super.featuresActorTearDown()
   }
 
@@ -85,7 +88,7 @@ final class UserPGPMessagesTests: TestCase {
           .init(
             localID: "local-id",
             domain: "https://passbolt.com",
-            userID: "user-id",
+            userID: self.mockUserDTO.id,
             fingerprint: "fingerpring"
           )
         )
@@ -97,21 +100,7 @@ final class UserPGPMessagesTests: TestCase {
     networkClient.userProfileRequest.execute = always(
       UserProfileRequestResponse(
         header: .mock(),
-        body: .init(
-          id: "user-id",
-          profile: .init(
-            firstName: "firstName",
-            lastName: "lastName",
-            avatar: .init(
-              url: .init(
-                medium: "avatar-url"
-              )
-            )
-          ),
-          gpgKey: .init(
-            armoredKey: "armored-public-key"
-          )
-        )
+        body: self.mockUserDTO
       )
     )
     await features.use(networkClient)
@@ -122,7 +111,7 @@ final class UserPGPMessagesTests: TestCase {
     do {
       _ =
         try await feature
-        .encryptMessageForUser("user-id", "message")
+        .encryptMessageForUser(mockUserDTO.id, "message")
         .asAsyncValue()
     }
     catch {
@@ -142,7 +131,7 @@ final class UserPGPMessagesTests: TestCase {
           .init(
             localID: "local-id",
             domain: "https://passbolt.com",
-            userID: "user.id",
+            userID: self.mockUserDTO.id,
             fingerprint: "fingerpring"
           )
         )
@@ -157,21 +146,7 @@ final class UserPGPMessagesTests: TestCase {
     networkClient.userProfileRequest.execute = always(
       .init(
         header: .mock(),
-        body: .init(
-          id: "user-id",
-          profile: .init(
-            firstName: "firstName",
-            lastName: "lastName",
-            avatar: .init(
-              url: .init(
-                medium: "avatar-url"
-              )
-            )
-          ),
-          gpgKey: .init(
-            armoredKey: "armored-public-key"
-          )
-        )
+        body: self.mockUserDTO
       )
     )
     await features.use(networkClient)
@@ -201,7 +176,7 @@ final class UserPGPMessagesTests: TestCase {
           .init(
             localID: "local-id",
             domain: "https://passbolt.com",
-            userID: "user.id",
+            userID: self.mockUserDTO.id,
             fingerprint: "fingerpring"
           )
         )
@@ -218,21 +193,7 @@ final class UserPGPMessagesTests: TestCase {
     networkClient.userProfileRequest.execute = always(
       .init(
         header: .mock(),
-        body: .init(
-          id: "user-id",
-          profile: .init(
-            firstName: "firstName",
-            lastName: "lastName",
-            avatar: .init(
-              url: .init(
-                medium: "avatar-url"
-              )
-            )
-          ),
-          gpgKey: .init(
-            armoredKey: "armored-public-key"
-          )
-        )
+        body: self.mockUserDTO
       )
     )
     await features.use(networkClient)
@@ -241,7 +202,7 @@ final class UserPGPMessagesTests: TestCase {
 
     let result: ArmoredPGPMessage? =
       try? await feature
-      .encryptMessageForUser("user-id", "message")
+      .encryptMessageForUser(self.mockUserDTO.id, "message")
       .asAsyncValue()
 
     XCTAssertEqual(result?.rawValue, "encrypted-armored-message")
@@ -281,7 +242,7 @@ final class UserPGPMessagesTests: TestCase {
           .init(
             localID: "local-id",
             domain: "https://passbolt.com",
-            userID: "user-id",
+            userID: self.mockUserDTO.id,
             fingerprint: "fingerpring"
           )
         )
@@ -297,21 +258,7 @@ final class UserPGPMessagesTests: TestCase {
       .init(
         header: .mock(),
         body: [
-          .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
-                )
-              )
-            ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
-            )
-          )
+          self.mockUserDTO
         ]
       )
     )
@@ -343,7 +290,7 @@ final class UserPGPMessagesTests: TestCase {
           .init(
             localID: "local-id",
             domain: "https://passbolt.com",
-            userID: "user-id",
+            userID: self.mockUserDTO.id,
             fingerprint: "fingerpring"
           )
         )
@@ -358,23 +305,7 @@ final class UserPGPMessagesTests: TestCase {
     networkClient.userListRequest.execute = always(
       .init(
         header: .mock(),
-        body: [
-          .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
-                )
-              )
-            ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
-            )
-          )
-        ]
+        body: [self.mockUserDTO]
       )
     )
     await features.use(networkClient)
@@ -405,7 +336,7 @@ final class UserPGPMessagesTests: TestCase {
           .init(
             localID: "local-id",
             domain: "https://passbolt.com",
-            userID: "user.id",
+            userID: self.mockUserDTO.id,
             fingerprint: "fingerpring"
           )
         )
@@ -419,40 +350,13 @@ final class UserPGPMessagesTests: TestCase {
     )
     await features.use(accountSession)
     await features.use(database)
+    let additionalMockUserDTO: UserDTO = .random()
     networkClient.userListRequest.execute = always(
       .init(
         header: .mock(),
         body: [
-          .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
-                )
-              )
-            ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
-            )
-          ),
-          .init(
-            id: "another-user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "avatar-url"
-                )
-              )
-            ),
-            gpgKey: .init(
-              armoredKey: "armored-public-key"
-            )
-          ),
+          self.mockUserDTO,
+          additionalMockUserDTO,
         ]
       )
     )
@@ -465,7 +369,9 @@ final class UserPGPMessagesTests: TestCase {
       .encryptMessageForResourceUsers("resource-id", "message")
       .asAsyncValue()
 
-    XCTAssertTrue(result?.contains(where: { $0 == "user-id" && $1 == "encrypted-armored-message" }) ?? false)
-    XCTAssertTrue(result?.contains(where: { $0 == "another-user-id" && $1 == "encrypted-armored-message" }) ?? false)
+    XCTAssertTrue(result?.contains(where: { $0 == self.mockUserDTO.id && $1 == "encrypted-armored-message" }) ?? false)
+    XCTAssertTrue(
+      result?.contains(where: { $0 == additionalMockUserDTO.id && $1 == "encrypted-armored-message" }) ?? false
+    )
   }
 }

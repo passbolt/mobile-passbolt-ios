@@ -23,28 +23,25 @@
 
 import Commons
 
-public struct UserGroup {
+public enum UserGroup {}
+
+extension UserGroup {
 
   public typealias ID = Tagged<String, Self>
-  public var id: ID
-  public var name: String
-
-  public init(
-    id: ID,
-    name: String
-  ) {
-    self.id = id
-    self.name = name
-  }
 }
 
-extension UserGroup: Decodable {
+#if DEBUG
 
-  public enum CodingKeys: String, CodingKey {
+// cannot conform to RandomlyGenerated
+extension UserGroup.ID {
 
-    case id = "id"
-    case name = "name"
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    UUID
+      .randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
   }
 }
-
-extension UserGroup: Hashable {}
+#endif

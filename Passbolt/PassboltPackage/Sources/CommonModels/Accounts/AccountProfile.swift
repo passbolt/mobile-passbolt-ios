@@ -32,7 +32,7 @@ public struct AccountProfile {
   public var username: String
   public var firstName: String
   public var lastName: String
-  public var avatarImageURL: String
+  public var avatarImageURL: URLString
   public var biometricsEnabled: Bool
   // Due to data migration limitations, properties that are yet undefined can be stored
   // in this dictionary until migration becomes implemented.
@@ -44,7 +44,7 @@ public struct AccountProfile {
     username: String,
     firstName: String,
     lastName: String,
-    avatarImageURL: String,
+    avatarImageURL: URLString,
     biometricsEnabled: Bool,
     settings: Dictionary<String, String> = .init()
   ) {

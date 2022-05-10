@@ -138,10 +138,10 @@ internal struct TagsExplorerView: ComponentView {
           .backport.hiddenRowSeparators()
         }  // else { /* NOP */ }
 
-        if self.state.tagID != nil, !self.state.resources.isEmpty {
+        if self.state.resourceTagID != nil, !self.state.resources.isEmpty {
           self.resourcesListContent
         }
-        else if self.state.tagID == nil, !self.state.tags.isEmpty {
+        else if self.state.resourceTagID == nil, !self.state.tags.isEmpty {
           self.tagsListContent
         }
         else {
@@ -155,14 +155,21 @@ internal struct TagsExplorerView: ComponentView {
   @ViewBuilder private var tagsListContent: some View {
     ForEach(
       self.state.tags,
-      id: \ListViewResourceTag.id
+      id: \ResourceTagListItemDSV.id
     ) { listTag in
       TagListItemView(
-        name: listTag.slug,
+        name: listTag.slug.rawValue,
         shared: listTag.shared,
         contentCount: listTag.contentCount,
         action: {
-          self.controller.presentTagContent(listTag.tag)
+          self.controller
+            .presentTagContent(
+              .init(
+                id: listTag.id,
+                slug: listTag.slug,
+                shared: listTag.shared
+              )
+            )
         }
       )
       .backport.hiddenRowSeparators()
@@ -173,7 +180,7 @@ internal struct TagsExplorerView: ComponentView {
   @ViewBuilder private var resourcesListContent: some View {
     ForEach(
       self.state.resources,
-      id: \ListViewResource.id
+      id: \ResourceListItemDSV.id
     ) { resource in
       ResourceListItemView(
         name: resource.name,
@@ -208,12 +215,12 @@ extension TagsExplorerView {
   internal struct ViewState {
 
     internal var title: DisplayableString
-    internal var tagID: ResourceTag.ID?
+    internal var resourceTagID: ResourceTag.ID?
     internal var canCreateResources: Bool
     internal var userAvatarImage: Data? = .none
     internal var searchText: String = ""
-    internal var tags: Array<ListViewResourceTag> = .init()
-    internal var resources: Array<ListViewResource> = .init()
+    internal var tags: Array<ResourceTagListItemDSV> = .init()
+    internal var resources: Array<ResourceListItemDSV> = .init()
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

@@ -31,7 +31,10 @@ internal struct ResourcesSelectionListController {
   internal var refreshResources: @MainActor () -> AnyPublisher<Void, Error>
   internal var resourcesListPublisher:
     @MainActor () -> AnyPublisher<
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      ),
       Never
     >
   internal var addResource: @MainActor () -> Void
@@ -51,17 +54,21 @@ extension ResourcesSelectionListController: UIController {
     let diagnostics: Diagnostics = try await features.instance()
     let autofillContext: AutofillExtensionContext = try await features.instance()
     let resources: Resources = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
 
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func refreshResources() -> AnyPublisher<Void, Error> {
       cancellables.executeOnAccountSessionActorWithPublisher {
-        return resources.refreshIfNeeded()
+        return try await sessionData.refreshIfNeeded()
       }
     }
 
     func resourcesListPublisher() -> AnyPublisher<
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>),
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      ),
       Never
     > {
       Publishers.CombineLatest(
@@ -76,9 +83,9 @@ extension ResourcesSelectionListController: UIController {
             .filter { resource in
               requested.matches(resource)
             }
-            .map(ResourcesSelectionListViewResourceItem.init(from:))
+            .map(ResourcesSelectionResourceListItemDSVItem.init(from:))
             .map(\.suggestionCopy),
-          all: resources.map(ResourcesSelectionListViewResourceItem.init(from:))
+          all: resources.map(ResourcesSelectionResourceListItemDSVItem.init(from:))
         )
       }
       .eraseToAnyPublisher()

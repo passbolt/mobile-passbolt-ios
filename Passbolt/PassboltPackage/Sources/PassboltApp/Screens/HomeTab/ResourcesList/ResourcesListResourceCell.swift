@@ -121,7 +121,7 @@ internal final class ResourcesListResourceCell: CollectionViewCell {
   }
 
   internal func setup(
-    from item: ResourcesListViewResourceItem,
+    from item: ResourcesResourceListItemDSVItem,
     tapAction: @escaping (() -> Void),
     menuTapAction: @escaping (() -> Void)
   ) {

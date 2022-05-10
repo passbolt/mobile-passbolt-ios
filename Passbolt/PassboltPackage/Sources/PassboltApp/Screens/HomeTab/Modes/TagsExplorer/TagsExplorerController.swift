@@ -32,7 +32,7 @@ internal struct TagsExplorerController {
 
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
-  internal var presentTagContent: @MainActor (ResourceTag) -> Void
+  internal var presentTagContent: @MainActor (ResourceTagDSV) -> Void
   internal var presentResourceCreationFrom: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) async -> Void
@@ -43,7 +43,7 @@ internal struct TagsExplorerController {
 extension TagsExplorerController: ComponentController {
 
   internal typealias ControlledView = TagsExplorerView
-  internal typealias NavigationContext = ResourceTag?
+  internal typealias NavigationContext = ResourceTagDSV?
 
   internal static func instance(
     context: NavigationContext,
@@ -55,14 +55,15 @@ extension TagsExplorerController: ComponentController {
     let accountSettings: AccountSettings = try await features.instance()
     let resources: Resources = try await features.instance()
     let resourceTags: ResourceTags = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
 
     let viewState: ObservableValue<ViewState>
 
-    if let tag: ResourceTag = context {
+    if let resourceTag: ResourceTagDSV = context {
       viewState = .init(
         initial: .init(
-          title: .raw(tag.slug),
-          tagID: tag.id,
+          title: .raw(resourceTag.slug.rawValue),
+          resourceTagID: resourceTag.id,
           // temporarily disable create for tags
           canCreateResources: false
         )
@@ -77,7 +78,7 @@ extension TagsExplorerController: ComponentController {
             ResourcesFilter(
               sorting: .nameAlphabetically,
               text: filter.searchText,
-              tags: [tag.id]
+              tags: [resourceTag.id]
             )
           }
           .removeDuplicates()
@@ -131,9 +132,8 @@ extension TagsExplorerController: ComponentController {
 
     @MainActor func refreshIfNeeded() async {
       do {
-        try await resources
+        try await sessionData
           .refreshIfNeeded()
-          .asAsyncValue()
       }
       catch {
         diagnostics.log(error)
@@ -141,7 +141,7 @@ extension TagsExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentTagContent(_ tag: ResourceTag) {
+    @MainActor func presentTagContent(_ tag: ResourceTagDSV) {
       cancellables.executeOnMainActor {
         await navigation.push(
           TagsExplorerView.self,

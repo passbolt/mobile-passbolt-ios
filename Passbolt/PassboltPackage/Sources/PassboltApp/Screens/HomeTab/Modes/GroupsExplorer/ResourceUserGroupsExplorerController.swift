@@ -33,7 +33,7 @@ internal struct ResourceUserGroupsExplorerController {
 
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
-  internal var presentGroupContent: @MainActor (ListViewResourcesUserGroup) -> Void
+  internal var presentGroupContent: @MainActor (ResourceUserGroupListItemDSV) -> Void
   internal var presentResourceCreationFrom: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) async -> Void
@@ -44,7 +44,7 @@ internal struct ResourceUserGroupsExplorerController {
 extension ResourceUserGroupsExplorerController: ComponentController {
 
   internal typealias ControlledView = ResourceUserGroupsExplorerView
-  internal typealias NavigationContext = ListViewResourcesUserGroup?
+  internal typealias NavigationContext = ResourceUserGroupListItemDSV?
 
   internal static func instance(
     context: NavigationContext,
@@ -56,10 +56,11 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     let accountSettings: AccountSettings = try await features.instance()
     let resources: Resources = try await features.instance()
     let userGroups: UserGroups = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
 
     let viewState: ObservableValue<ViewState>
 
-    if let userGroup: ListViewResourcesUserGroup = context {
+    if let userGroup: ResourceUserGroupListItemDSV = context {
       viewState = .init(
         initial: .init(
           title: .raw(userGroup.name),
@@ -132,9 +133,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
     @MainActor func refreshIfNeeded() async {
       do {
-        try await resources
+        try await sessionData
           .refreshIfNeeded()
-          .asAsyncValue()
       }
       catch {
         diagnostics.log(error)
@@ -142,7 +142,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentGroupContent(_ userGroup: ListViewResourcesUserGroup) {
+    @MainActor func presentGroupContent(_ userGroup: ResourceUserGroupListItemDSV) {
       cancellables.executeOnMainActor {
         await navigation.push(
           ResourceUserGroupsExplorerView.self,

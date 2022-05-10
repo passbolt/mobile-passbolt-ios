@@ -29,21 +29,19 @@ import struct Foundation.Data
 
 public struct AccountDatabase {
 
-  public var fetchLastUpdate: FetchLastUpdateOperation
-  public var saveLastUpdate: SaveLastUpdateOperation
-
   public var storeResources: StoreResourcesOperation
   public var storeResourcesTypes: StoreResourcesTypesOperation
-  public var fetchListViewResources: FetchListViewResourcesOperation
-  public var fetchDetailsViewResources: FetchDetailsViewResourcesOperation
+  public var fetchResourceListItemDSVs: FetchResourceListItemDSVsOperation
+  public var fetchResourceDetailsDSVs: FetchResourceDetailsDSVsOperation
   public var fetchResourcesTypesOperation: FetchResourcesTypesOperation
   public var fetchEditViewResourceOperation: FetchEditViewResourcesOperation
   public var storeFolders: StoreFoldersOperation
   public var fetchFolder: FetchFolderOperation
-  public var fetchListViewFolders: FetchListViewFoldersOperation
-  public var fetchResourceTagList: FetchListViewResourceTagOperation
+  public var fetchResourceFolderListItemDSVs: FetchResourceFolderListItemDSVsOperation
+  public var fetchResourceTagList: FetchResourceTagListItemDSVOperation
   public var storeUserGroups: StoreUserGroupsOperation
-  public var fetchResourceUserGroupList: FetchListViewResourcesUserGroupOperation
+  public var storeUsers: StoreUsersOperation
+  public var fetchResourceUserGroupList: FetchResourceListItemDSVsUserGroupOperation
 
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
@@ -120,20 +118,19 @@ extension AccountDatabase: Feature {
     }
 
     return Self(
-      fetchLastUpdate: FetchLastUpdateOperation.using(currentSQLiteConnection),
-      saveLastUpdate: SaveLastUpdateOperation.using(currentSQLiteConnection),
       storeResources: StoreResourcesOperation.using(currentSQLiteConnection),
       storeResourcesTypes: StoreResourcesTypesOperation.using(currentSQLiteConnection),
-      fetchListViewResources: FetchListViewResourcesOperation.using(currentSQLiteConnection),
-      fetchDetailsViewResources: FetchDetailsViewResourcesOperation.using(currentSQLiteConnection),
+      fetchResourceListItemDSVs: FetchResourceListItemDSVsOperation.using(currentSQLiteConnection),
+      fetchResourceDetailsDSVs: FetchResourceDetailsDSVsOperation.using(currentSQLiteConnection),
       fetchResourcesTypesOperation: FetchResourcesTypesOperation.using(currentSQLiteConnection),
       fetchEditViewResourceOperation: FetchEditViewResourcesOperation.using(currentSQLiteConnection),
       storeFolders: StoreFoldersOperation.using(currentSQLiteConnection),
       fetchFolder: FetchFolderOperation.using(currentSQLiteConnection),
-      fetchListViewFolders: FetchListViewFoldersOperation.using(currentSQLiteConnection),
-      fetchResourceTagList: FetchListViewResourceTagOperation.using(currentSQLiteConnection),
+      fetchResourceFolderListItemDSVs: FetchResourceFolderListItemDSVsOperation.using(currentSQLiteConnection),
+      fetchResourceTagList: FetchResourceTagListItemDSVOperation.using(currentSQLiteConnection),
       storeUserGroups: StoreUserGroupsOperation.using(currentSQLiteConnection),
-      fetchResourceUserGroupList: FetchListViewResourcesUserGroupOperation.using(currentSQLiteConnection),
+      storeUsers: StoreUsersOperation.using(currentSQLiteConnection),
+      fetchResourceUserGroupList: FetchResourceListItemDSVsUserGroupOperation.using(currentSQLiteConnection),
       featureUnload: featureUnload
     )
   }
@@ -141,19 +138,18 @@ extension AccountDatabase: Feature {
   #if DEBUG
   public static var placeholder: AccountDatabase {
     Self(
-      fetchLastUpdate: .placeholder,
-      saveLastUpdate: .placeholder,
       storeResources: .placeholder,
       storeResourcesTypes: .placeholder,
-      fetchListViewResources: .placeholder,
-      fetchDetailsViewResources: .placeholder,
+      fetchResourceListItemDSVs: .placeholder,
+      fetchResourceDetailsDSVs: .placeholder,
       fetchResourcesTypesOperation: .placeholder,
       fetchEditViewResourceOperation: .placeholder,
       storeFolders: .placeholder,
       fetchFolder: .placeholder,
-      fetchListViewFolders: .placeholder,
+      fetchResourceFolderListItemDSVs: .placeholder,
       fetchResourceTagList: .placeholder,
       storeUserGroups: .placeholder,
+      storeUsers: .placeholder,
       fetchResourceUserGroupList: .placeholder,
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )

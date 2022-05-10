@@ -103,7 +103,7 @@ internal final class ResourcesSelectionListResourceCell: CollectionViewCell {
   }
 
   internal func setup(
-    from item: ResourcesSelectionListViewResourceItem,
+    from item: ResourcesSelectionResourceListItemDSVItem,
     tapAction: @escaping (() -> Void)
   ) {
     self.iconView.update(from: item.name)

@@ -112,8 +112,8 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
       )
       .sink(
         receiveCompletion: { _ in /* NOP */ },
-        receiveValue: { [weak self] properties in
-          self?.contentView.update(with: properties)
+        receiveValue: { [weak self] fields in
+          self?.contentView.update(with: fields)
           self?.setupFieldSubscriptions()
         }
       )
@@ -220,10 +220,10 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
       .first()
       .receive(on: RunLoop.main)
       .handleEvents(receiveOutput: { [weak self] resourceProperties in
-        _ = resourceProperties.map { resourceProperty in
+        _ = resourceProperties.map { resourceField in
           guard let self = self
           else { return }
-          let fieldValuePublisher = self.controller.fieldValuePublisher(resourceProperty.field)
+          let fieldValuePublisher = self.controller.fieldValuePublisher(resourceField.name)
 
           fieldValuePublisher
             .first()  // skipping error just to update intial value
@@ -244,16 +244,16 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
             .sink(receiveValue: { [weak self] validated in
               self?.contentView.update(
                 validated: validated,
-                for: resourceProperty.field
+                for: resourceField.name
               )
             })
             .store(in: self.fieldCancellables)
 
           self.contentView
-            .fieldValuePublisher(for: resourceProperty.field)
+            .fieldValuePublisher(for: resourceField.name)
             .removeDuplicates()
             .map { [unowned self] value -> AnyPublisher<Void, Error> in
-              self.controller.setValue(value, resourceProperty.field)
+              self.controller.setValue(value, resourceField.name)
             }
             .switchToLatest()
             .sinkDrop()

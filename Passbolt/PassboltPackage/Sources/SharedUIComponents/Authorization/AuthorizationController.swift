@@ -103,7 +103,7 @@ extension AuthorizationController: UIController {
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
       accountWithProfileSubject
         .map { accountWithProfile in
-          networkClient.mediaDownload.make(using: .init(urlString: accountWithProfile.avatarImageURL))
+          networkClient.mediaDownload.make(using: accountWithProfile.avatarImageURL)
             .eraseErrorType()
             .collectErrorLog(using: diagnostics)
             .map { data -> Data? in data }

@@ -29,11 +29,11 @@ import UIComponents
 public struct ResourceEditController {
 
   internal var createsNewResource: Bool
-  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<Array<ResourceProperty>, Error>
-  internal var fieldValuePublisher: @MainActor (ResourceField) -> AnyPublisher<Validated<String>, Never>
+  internal var resourcePropertiesPublisher: @MainActor () -> AnyPublisher<Array<ResourceFieldDSV>, Error>
+  internal var fieldValuePublisher: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<Validated<String>, Never>
   internal var passwordEntropyPublisher: @MainActor () -> AnyPublisher<Entropy, Never>
   internal var sendForm: @MainActor () -> AnyPublisher<Void, Error>
-  internal var setValue: @MainActor (String, ResourceField) -> AnyPublisher<Void, Error>
+  internal var setValue: @MainActor (String, ResourceFieldNameDSV) -> AnyPublisher<Void, Error>
   internal var generatePassword: @MainActor () -> Void
   internal var presentExitConfirmation: @MainActor () -> Void
   internal var exitConfirmationPresentationPublisher: @MainActor () -> AnyPublisher<Bool, Never>
@@ -43,7 +43,7 @@ public struct ResourceEditController {
 extension ResourceEditController {
 
   public enum EditingContext {
-    case new(in: Folder.ID?)
+    case new(in: ResourceFolder.ID?)
     case existing(Resource.ID)
   }
 }
@@ -61,11 +61,11 @@ extension ResourceEditController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
-    let resources: Resources = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
     let resourceForm: ResourceEditForm = try await features.instance()
     let randomGenerator: RandomStringGenerator = try await features.instance()
 
-    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceProperty>, Error> = .init([])
+    let resourcePropertiesSubject: CurrentValueSubject<Array<ResourceFieldDSV>, Error> = .init([])
     let exitConfirmationPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
     let createsNewResource: Bool
@@ -94,7 +94,7 @@ extension ResourceEditController: UIController {
 
     resourceForm
       .resourceTypePublisher()
-      .map(\.properties)
+      .map(\.fields)
       .sink(
         receiveCompletion: { completion in
           cancellables.executeOnFeaturesActor {
@@ -108,12 +108,12 @@ extension ResourceEditController: UIController {
       )
       .store(in: cancellables)
 
-    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceProperty>, Error> {
+    func resourcePropertiesPublisher() -> AnyPublisher<Array<ResourceFieldDSV>, Error> {
       resourcePropertiesSubject
         .eraseToAnyPublisher()
     }
 
-    func fieldValuePublisher(field: ResourceField) -> AnyPublisher<Validated<String>, Never> {
+    func fieldValuePublisher(field: ResourceFieldNameDSV) -> AnyPublisher<Validated<String>, Never> {
       resourceForm
         .fieldValuePublisher(field)
         .map { validatedFieldValue -> Validated<String> in
@@ -127,11 +127,11 @@ extension ResourceEditController: UIController {
 
     func setValue(
       _ value: String,
-      for field: ResourceField
+      for fieldName: ResourceFieldNameDSV
     ) -> AnyPublisher<Void, Error> {
       resourcePropertiesPublisher()
         .map { properties -> AnyPublisher<Void, Error> in
-          guard let property: ResourceProperty = properties.first(where: { $0.field == field })
+          guard let property: ResourceFieldDSV = properties.first(where: { $0.name == fieldName })
           else {
             return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
               .eraseToAnyPublisher()
@@ -139,7 +139,7 @@ extension ResourceEditController: UIController {
 
           return
             resourceForm
-            .setFieldValue(.init(fromString: value, forType: property.type), field)
+            .setFieldValue(.init(fromString: value, forType: property.valueType), fieldName)
         }
         .switchToLatest()
         .collectErrorLog(using: diagnostics)
@@ -162,13 +162,11 @@ extension ResourceEditController: UIController {
       cancellables.executeOnAccountSessionActorWithPublisher {
         resourceForm
           .sendForm()
-          .map { resourceID -> AnyPublisher<Resource.ID, Error> in
-            resources
+          .asyncMap { resourceID -> Resource.ID in
+            try await sessionData
               .refreshIfNeeded()
-              .map { resourceID }
-              .eraseToAnyPublisher()
+            return resourceID
           }
-          .switchToLatest()
           .handleEvents(
             receiveOutput: { resourceID in
               context.completion(resourceID)

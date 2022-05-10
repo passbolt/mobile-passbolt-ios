@@ -23,7 +23,7 @@
 
 import Environment
 
-public typealias StoreResourcesTypesOperation = DatabaseOperation<Array<ResourceType>, Void>
+public typealias StoreResourcesTypesOperation = DatabaseOperation<Array<ResourceTypeDSO>, Void>
 
 extension StoreResourcesTypesOperation {
 
@@ -33,156 +33,105 @@ extension StoreResourcesTypesOperation {
     withConnectionInTransaction(
       using: connection
     ) { conn, input in
-      // iterate over resources types to insert or update
+      // cleanup existing types as preparation for update
+      try conn.execute("DELETE FROM resourceFields;")
+
       for resourceType in input {
-        // cleanup existing types as preparation for update
-        try conn
-          .execute(
-            cleanFieldsStatement,
-            with: resourceType.id.rawValue
-          )
-        try conn
-          .execute(
-            upsertTypeStatement,
-            with: resourceType.id.rawValue,
-            resourceType.slug.rawValue,
+        try conn.execute(
+          .statement(
+            """
+            INSERT INTO
+              resourceTypes(
+                id,
+                slug,
+                name
+              )
+            VALUES
+              (
+                ?1,
+                ?2,
+                ?3
+              )
+            ON CONFLICT
+              (
+                id
+              )
+            DO UPDATE SET
+              slug=?2,
+              name=?3
+            ;
+            """,
+            arguments: resourceType.id,
+            resourceType.slug,
             resourceType.name
           )
+        )
 
-        // iterate over fields for given resource type
-        for field in resourceType.properties {
-          // insert fields for type (previous were deleted, no need for update)
-          try conn
-            .execute(
-              insertFieldStatement,
-              with: field.field.rawValue,
-              field.type.rawValue,
-              field.required,
-              field.encrypted,
-              field.maxLength
-            )
+        for field in resourceType.fields {
+          let resourceFieldID: Int? =
+            try conn.fetchFirst(
+              using: .statement(
+                """
+                INSERT INTO
+                  resourceFields(
+                    name,
+                    valueType,
+                    required,
+                    encrypted,
+                    maxLength
+                  )
+                VALUES
+                  (
+                    ?1,
+                    ?2,
+                    ?3,
+                    ?4,
+                    ?5
+                  )
+                RETURNING
+                  id AS id
+                ;
+                """,
+                arguments: field.name.rawValue,
+                field.valueType.rawValue,
+                field.required,
+                field.encrypted,
+                field.maxLength
+              )
+            )?
+            .id
 
-          let fieldID: Int =
-            try conn
-            .fetch(
-              fetchLastInsertedFieldStatement
-            ) { rows in
-              if let id: Int = rows.first?.id {
-                return id
-              }
-              else {
-                throw DatabaseIssue.error(
-                  underlyingError:
-                    DatabaseStatementExecutionFailure
-                    .error("Failed to insert resource type field to the database")
+          guard let resourceFieldID: Int = resourceFieldID
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseResultInvalid
+                  .error("Failed to get inserted resource field id")
+              )
+          }
+          try conn.execute(
+            .statement(
+              """
+              INSERT INTO
+                resourceTypesFields(
+                  resourceTypeID,
+                  resourceFieldID
                 )
-              }
-            }
-
-          // insert association between type and newly added field
-          try conn
-            .execute(
-              insertTypeFieldStatement,
-              with: resourceType.id.rawValue,
-              fieldID
+              VALUES
+                (
+                  ?1,
+                  ?2
+                )
+              ;
+              """,
+              arguments: resourceType.id,
+              resourceFieldID
             )
+          )
         }
-        // if nothing failed we have succeeded
       }
     }
   }
 }
-
-// remove all existing fields for given type
-private let cleanFieldsStatement: SQLiteStatement = """
-  DELETE FROM
-    resourceFields
-  WHERE
-    id
-  IN
-    (
-      SELECT
-        resourceFieldID
-      FROM
-        resourceTypesFields
-      WHERE
-        resourceTypeID=?1
-    )
-  ;
-
-  DELETE FROM
-    resourceTypesFields
-  WHERE
-    resourceTypeID=?1
-  ;
-  """
-
-// insert or update type
-private let upsertTypeStatement: SQLiteStatement = """
-  INSERT INTO
-    resourceTypes(
-      id,
-      slug,
-      name
-    )
-  VALUES
-    (
-      ?1,
-      ?2,
-      ?3
-    )
-  ON CONFLICT
-    (
-      id
-    )
-  DO UPDATE SET
-    slug=?2,
-    name=?3
-  ;
-  """
-
-// insert single field
-private let insertFieldStatement: SQLiteStatement = """
-  INSERT INTO
-    resourceFields(
-      name,
-      type,
-      required,
-      encrypted,
-      maxLength
-    )
-  VALUES
-    (
-      ?1,
-      ?2,
-      ?3,
-      ?4,
-      ?5
-    )
-  ;
-  """
-
-// select last inserted field id
-// RETURNING syntax is available from SQLite 3.35
-private let fetchLastInsertedFieldStatement: SQLiteStatement = """
-  SELECT
-    MAX(id) as id
-  FROM
-    resourceFields
-  ;
-  """
-
-// insert association between type and field
-private let insertTypeFieldStatement: SQLiteStatement = """
-  INSERT INTO
-    resourceTypesFields(
-      resourceTypeID,
-      resourceFieldID
-    )
-  VALUES
-    (
-      ?1,
-      ?2
-    )
-  ;
-  """

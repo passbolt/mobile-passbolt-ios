@@ -23,9 +23,9 @@
 
 import Accounts
 
-extension Array where Element == ListViewResource {
+extension Array where Element == ResourceListItemDSV {
 
-  public static var testResources: Array<ListViewResource> {
+  public static var testResources: Array<ResourceListItemDSV> {
     [
       .init(
         id: .init(rawValue: "test"),
@@ -37,7 +37,7 @@ extension Array where Element == ListViewResource {
     ]
   }
 
-  public static var testResourcesAlternative: Array<ListViewResource> {
+  public static var testResourcesAlternative: Array<ResourceListItemDSV> {
     [
       .init(
         id: .init(rawValue: "test"),

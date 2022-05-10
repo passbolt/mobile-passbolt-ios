@@ -38,7 +38,7 @@ public struct AccountSettings {
   public var setBiometricsEnabled: @StorageAccessActor (Bool) -> AnyPublisher<Void, Error>
   public var setAccountLabel: @StorageAccessActor (String, Account) -> Result<Void, Error>
   // for current account
-  public var setAvatarImageURL: @StorageAccessActor (String) -> AnyPublisher<Void, Error>
+  public var setAvatarImageURL: @StorageAccessActor (URLString) -> AnyPublisher<Void, Error>
   public var accountWithProfile: @StorageAccessActor (Account) throws -> AccountWithProfile
   public var updatedAccountIDsPublisher: () -> AnyPublisher<Account.LocalID, Never>
   public var currentAccountProfilePublisher: () -> AnyPublisher<AccountWithProfile, Never>
@@ -156,7 +156,7 @@ extension AccountSettings: Feature {
           updateProfile(for: account.localID) { profile in
             profile.firstName = response.body.profile.firstName
             profile.lastName = response.body.profile.lastName
-            profile.avatarImageURL = response.body.profile.avatar.url.medium
+            profile.avatarImageURL = response.body.profile.avatar.urlString
           }
         }
         .switchToLatest()
@@ -189,7 +189,7 @@ extension AccountSettings: Feature {
     }
 
     @StorageAccessActor func setAvatarImageURL(
-      _ url: String
+      _ url: URLString
     ) -> AnyPublisher<Void, Error> {
       accountSession
         .statePublisher()
@@ -267,9 +267,7 @@ extension AccountSettings: Feature {
         .asyncMap { avatarImageURL -> Data? in
           try? await networkClient
             .mediaDownload
-            .makeAsync(
-              using: .init(urlString: avatarImageURL)
-            )
+            .makeAsync(using: avatarImageURL)
         }
         .eraseToAnyPublisher()
     }

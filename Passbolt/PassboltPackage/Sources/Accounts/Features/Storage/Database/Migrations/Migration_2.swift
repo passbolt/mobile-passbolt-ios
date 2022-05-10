@@ -37,7 +37,6 @@ extension SQLiteMigration {
       SELECT
         resources.id AS id,
         resources.name AS name,
-        resources.permission AS permission,
         resources.url AS url,
         resources.username AS username,
         resources.description AS description,

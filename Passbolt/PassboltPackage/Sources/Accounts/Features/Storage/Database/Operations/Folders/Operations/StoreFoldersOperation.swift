@@ -23,7 +23,7 @@
 
 import Environment
 
-public typealias StoreFoldersOperation = DatabaseOperation<Array<Folder>, Void>
+public typealias StoreFoldersOperation = DatabaseOperation<Array<ResourceFolderDSO>, Void>
 
 extension StoreFoldersOperation {
 
@@ -42,55 +42,67 @@ extension StoreFoldersOperation {
       // deleting records selecively becomes implemented.
       //
       // Delete currently stored folders
-      try conn.execute("DELETE FROM folders;")
+      try conn.execute("DELETE FROM resourceFolders;")
 
       // Since Folders make tree like structure and
       // tree integrity is verified by database foreign
       // key constraints it has to be inserted in a valid
       // order for operation to succeed (from root to leaf)
-      var inputReminder: Array<Folder> = input
-      var sortedFolders: Array<Folder> = .init()
+      var inputReminder: Array<ResourceFolderDTO> = input
+      var sortedFolders: Array<ResourceFolderDTO> = .init()
 
-      func isValidFolder(_ folder: Folder) -> Bool {
+      func isValidFolder(_ folder: ResourceFolderDTO) -> Bool {
         folder.parentFolderID == nil
           || sortedFolders.contains(where: { $0.id == folder.parentFolderID })
       }
 
-      while let index: Array<Folder>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
+      while let index: Array<ResourceFolderDTO>.Index = inputReminder.firstIndex(where: isValidFolder(_:)) {
         sortedFolders.append(inputReminder.remove(at: index))
       }
 
-      // Insert or update all new folders
       for folder in sortedFolders {
-        try conn
-          .execute(
-            upsertFoldersStatement,
-            with: folder.id.rawValue,
+        try conn.execute(
+          .statement(
+            """
+            INSERT INTO
+              resourceFolders(
+                id,
+                name,
+                permissionType,
+                shared,
+                parentFolderID
+              )
+            VALUES
+              (
+                ?1,
+                ?2,
+                ?3,
+                ?4,
+                ?5
+              )
+            ON CONFLICT
+              (
+                id
+              )
+            DO UPDATE SET
+              name=?2,
+              permissionType=?3,
+              shared=?4,
+              parentFolderID=?5
+            ;
+            """,
+            arguments: folder.id,
             folder.name,
-            folder.permission.rawValue,
+            folder.permissionType.rawValue,
             folder.shared,
-            folder.parentFolderID?.rawValue
+            folder.parentFolderID
           )
+        )
+
+        for permission in folder.permissions {
+          try conn.execute(permission.storeStatement)
+        }
       }
     }
   }
 }
-
-private let upsertFoldersStatement: SQLiteStatement = """
-  INSERT OR REPLACE INTO
-    folders(
-      id,
-      name,
-      permission,
-      shared,
-      parentFolderID
-    )
-  VALUES
-    (
-      ?1,
-      ?2,
-      ?3,
-      ?4,
-      ?5
-    );
-  """

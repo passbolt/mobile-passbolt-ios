@@ -29,9 +29,9 @@ public enum ResourceFieldValue {
 extension ResourceFieldValue {
 
   public init(
-    defaultFor type: ResourceFieldType
+    defaultFor valueType: ResourceFieldValueType
   ) {
-    switch type {
+    switch valueType {
     case .string:
       self = .string("")
     }
@@ -39,9 +39,9 @@ extension ResourceFieldValue {
 
   public init(
     fromString string: String,
-    forType type: ResourceFieldType
+    forType valueType: ResourceFieldValueType
   ) {
-    switch type {
+    switch valueType {
     case .string:
       self = .string(string)
     }
@@ -50,7 +50,7 @@ extension ResourceFieldValue {
 
 extension ResourceFieldValue {
 
-  public var fieldType: ResourceFieldType {
+  public var fieldType: ResourceFieldValueType {
     switch self {
     case .string:
       return .string
@@ -73,7 +73,7 @@ extension ResourceFieldValue {
   }
 }
 
-extension ResourceFieldValue: Equatable {
+extension ResourceFieldValue: Hashable {
 
   public static func == (
     _ lhs: Self,
@@ -84,17 +84,28 @@ extension ResourceFieldValue: Equatable {
       return lhsv == rhsv
     }
   }
-}
 
-extension ResourceFieldValue: Encodable {
-
-  public func encode(
-    to encoder: Encoder
-  ) throws {
-    var container: SingleValueEncodingContainer = encoder.singleValueContainer()
+  public func hash(
+    into hasher: inout Hasher
+  ) {
     switch self {
     case let .string(value):
-      try container.encode(value)
+      hasher.combine(value)
     }
   }
 }
+
+#if DEBUG
+
+extension ResourceFieldValue: RandomlyGenerated {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    [
+      Self.string("string")
+    ]
+    .randomNonEmptyElementGenerator(using: randomnessGenerator)
+  }
+}
+#endif

@@ -73,13 +73,12 @@ extension AccountSelectionController: UIController {
         accountsWithProfiles
           .map { accountWithProfile in
             let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
-              networkClient.mediaDownload.make(
-                using: .init(urlString: accountWithProfile.avatarImageURL)
-              )
-              .map { data -> Data? in data }
-              .collectErrorLog(using: diagnostics)
-              .replaceError(with: nil)
-              .eraseToAnyPublisher()
+              networkClient.mediaDownload
+                .make(using: accountWithProfile.avatarImageURL)
+                .map { data -> Data? in data }
+                .collectErrorLog(using: diagnostics)
+                .replaceError(with: nil)
+                .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
 

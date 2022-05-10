@@ -23,9 +23,9 @@
 
 import Environment
 
-public typealias FetchListViewResourcesOperation = DatabaseOperation<ResourcesFilter, Array<ListViewResource>>
+public typealias FetchResourceListItemDSVsOperation = DatabaseOperation<ResourcesFilter, Array<ResourceListItemDSV>>
 
-extension FetchListViewResourcesOperation {
+extension FetchResourceListItemDSVsOperation {
 
   internal static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -34,7 +34,6 @@ extension FetchListViewResourcesOperation {
       using: connection
     ) { conn, input in
       var statement: SQLiteStatement
-      var params: Array<SQLiteBindable?> = .init()
 
       if let foldersFilter: ResourcesFolderFilter = input.folders {
 
@@ -46,76 +45,79 @@ extension FetchListViewResourcesOperation {
         if foldersFilter.flattenContent {
           statement = """
               WITH RECURSIVE
-                flattenedFoldersListView(
+                flattenedResourceFolders(
                   id,
                   parentFolderID
                 )
               AS
                 (
                   SELECT
-                    foldersListView.id,
-                    foldersListView.parentFolderID
+                    resourceFolders.id,
+                    resourceFolders.parentFolderID
                   FROM
-                    foldersListView
+                    resourceFolders
                   WHERE
-                    foldersListView.id IS ?
+                    resourceFolders.id IS ?
 
                   UNION ALL
 
                   SELECT
-                    foldersListView.id,
-                    foldersListView.parentFolderID
+                    resourceFolders.id,
+                    resourceFolders.parentFolderID
                   FROM
-                    foldersListView,
-                    flattenedFoldersListView
+                    resourceFolders,
+                    flattenedResourceFolders
                   WHERE
-                    foldersListView.parentFolderID IS flattenedFoldersListView.id
+                    resourceFolders.parentFolderID IS flattenedResourceFolders.id
                 )
               SELECT DISTINCT
-                resourcesListView.id,
-                resourcesListView.parentFolderID,
-                resourcesListView.name AS name,
-                resourcesListView.username AS username,
-                resourcesListView.url AS url
+                resources.id,
+                resources.parentFolderID,
+                resources.name AS name,
+                resources.username AS username,
+                resources.url AS url
               FROM
-                resourcesListView
+                resources
               LEFT JOIN
-                flattenedFoldersListView
+                flattenedResourceFolders
               ON
-                resourcesListView.parentFolderID IS ?
+                resources.parentFolderID IS ?
               OR
-                resourcesListView.parentFolderID IS flattenedFoldersListView.id
+                resources.parentFolderID IS flattenedResourceFolders.id
               WHERE
                 1 -- equivalent of true, used to simplify dynamic query building
             """
-          params = [foldersFilter.folderID?.rawValue, foldersFilter.folderID?.rawValue]
+          statement.appendArguments(
+            foldersFilter.folderID,
+            foldersFilter.folderID
+          )
         }
         else {
           statement = """
               SELECT
-                resourcesListView.id,
-                resourcesListView.parentFolderID,
-                resourcesListView.name AS name,
-                resourcesListView.username AS username,
-                resourcesListView.url AS url
+                resources.id,
+                resources.parentFolderID,
+                resources.name AS name,
+                resources.username AS username,
+                resources.url AS url
               FROM
-                resourcesListView
+                resources
               WHERE
-                parentFolderID IS ?
+                resources.parentFolderID IS ?
             """
-          params = [foldersFilter.folderID?.rawValue]
+          statement.appendArgument(foldersFilter.folderID)
         }
       }
       else {
         statement = """
             SELECT
-              resourcesListView.id,
-              resourcesListView.parentFolderID,
-              resourcesListView.name AS name,
-              resourcesListView.username AS username,
-              resourcesListView.url AS url
+              resources.id,
+              resources.parentFolderID,
+              resources.name AS name,
+              resources.username AS username,
+              resources.url AS url
             FROM
-              resourcesListView
+              resources
             WHERE
               1 -- equivalent of true, used to simplify dynamic query building
           """
@@ -127,49 +129,49 @@ extension FetchListViewResourcesOperation {
             """
             AND
             (
-               resourcesListView.name LIKE '%' || ? || '%'
-            OR resourcesListView.url LIKE '%' || ? || '%'
-            OR resourcesListView.username LIKE '%' || ? || '%'
+               resources.name LIKE '%' || ? || '%'
+            OR resources.url LIKE '%' || ? || '%'
+            OR resources.username LIKE '%' || ? || '%'
             )
 
             """
           )
         // adding multiple times since we can't count args when using dynamic query
         // and argument has to be used multiple times
-        params.append(input.text)
-        params.append(input.text)
-        params.append(input.text)
+        statement.appendArgument(input.text)
+        statement.appendArgument(input.text)
+        statement.appendArgument(input.text)
       }
       else {
         /* NOP */
       }
 
       if !input.name.isEmpty {
-        statement.append("AND resourcesListView.name LIKE '%' || ? || '%' ")
-        params.append(input.name)
+        statement.append("AND resources.name LIKE '%' || ? || '%' ")
+        statement.appendArgument(input.name)
       }
       else {
         /* NOP */
       }
 
       if !input.url.isEmpty {
-        statement.append("AND resourcesListView.url LIKE '%' || ? || '%' ")
-        params.append(input.url)
+        statement.append("AND resources.url LIKE '%' || ? || '%' ")
+        statement.appendArgument(input.url)
       }
       else {
         /* NOP */
       }
 
       if !input.username.isEmpty {
-        statement.append("AND resourcesListView.username LIKE '%' || ? || '%' ")
-        params.append(input.username)
+        statement.append("AND resources.username LIKE '%' || ? || '%' ")
+        statement.appendArgument(input.username)
       }
       else {
         /* NOP */
       }
 
       if input.favoriteOnly {
-        statement.append("AND resourcesListView.favorite != 0 ")
+        statement.append("AND resources.favorite != 0 ")
       }
       else {
         /* NOP */
@@ -178,7 +180,7 @@ extension FetchListViewResourcesOperation {
       // since we cannot use array in query directly
       // we are preparing it manually as argument for each element
       if input.permissions.count > 1 {
-        statement.append("AND resourcesListView.permission IN (")
+        statement.append("AND resources.permissionType IN (")
         for index in input.permissions.indices {
           if index == input.permissions.startIndex {
             statement.append("?")
@@ -186,13 +188,13 @@ extension FetchListViewResourcesOperation {
           else {
             statement.append(", ?")
           }
-          params.append(input.permissions[index].rawValue)
+          statement.appendArgument(input.permissions[index].rawValue)
         }
         statement.append(") ")
       }
-      else if let permission: Permission = input.permissions.first {
-        statement.append("AND resourcesListView.permission = ? ")
-        params.append(permission.rawValue)
+      else if let permissionType: PermissionType = input.permissions.first {
+        statement.append("AND resources.permissionType == ? ")
+        statement.appendArgument(permissionType)
       }
       else {
         /* NOP */
@@ -207,11 +209,11 @@ extension FetchListViewResourcesOperation {
             SELECT
               1
             FROM
-              resourceTags
+              resourcesTags
             WHERE
-              resourceTags.resourceID == resourcesListView.id
+              resourcesTags.resourceID == resources.id
             AND
-              resourceTags.tagID
+              resourcesTags.resourceTagID
             IN (
           )
           """
@@ -223,7 +225,7 @@ extension FetchListViewResourcesOperation {
           else {
             statement.append(", ?")
           }
-          params.append(input.tags[index].rawValue)
+          statement.appendArgument(input.tags[index])
         }
         statement.append(") LIMIT 1")
       }
@@ -234,16 +236,16 @@ extension FetchListViewResourcesOperation {
             SELECT
               1
             FROM
-              resourceTags
+              resourcesTags
             WHERE
-              resourceTags.resourceID == resourcesListView.id
+              resourcesTags.resourceID == resources.id
             AND
-              resourceTags.tagID == ?
+              resourcesTags.resourceTagID == ?
             LIMIT 1
           )
           """
         )
-        params.append(tag.rawValue)
+        statement.appendArgument(tag)
       }
       else {
         /* NOP */
@@ -258,11 +260,11 @@ extension FetchListViewResourcesOperation {
             SELECT
               1
             FROM
-              resourcesUserGroups
+              userGroupsResources
             WHERE
-              resourcesUserGroups.resourceID == resourcesListView.id
+              userGroupsResources.resourceID == resources.id
             AND
-              resourcesUserGroups.userGroupID
+              userGroupsResources.userGroupID
             IN (
           )
           """
@@ -274,7 +276,7 @@ extension FetchListViewResourcesOperation {
           else {
             statement.append(", ?")
           }
-          params.append(input.userGroups[index].rawValue)
+          statement.appendArgument(input.userGroups[index])
         }
         statement.append(") LIMIT 1")
       }
@@ -285,16 +287,16 @@ extension FetchListViewResourcesOperation {
             SELECT
               1
             FROM
-              resourcesUserGroups
+              userGroupsResources
             WHERE
-              resourcesUserGroups.resourceID == resourcesListView.id
+              userGroupsResources.resourceID == resources.id
             AND
-              resourcesUserGroups.userGroupID == ?
+              userGroupsResources.userGroupID == ?
             LIMIT 1
           )
           """
         )
-        params.append(userGroup.rawValue)
+        statement.appendArgument(userGroup)
       }
       else {
         /* NOP */
@@ -302,10 +304,10 @@ extension FetchListViewResourcesOperation {
 
       switch input.sorting {
       case .nameAlphabetically:
-        statement.append("ORDER BY resourcesListView.name COLLATE NOCASE ASC")
+        statement.append("ORDER BY resources.name COLLATE NOCASE ASC")
 
       case .modifiedRecently:
-        statement.append("ORDER BY resourcesListView.modified DESC")
+        statement.append("ORDER BY resources.modified DESC")
       }
 
       // end query
@@ -313,29 +315,33 @@ extension FetchListViewResourcesOperation {
 
       return
         try conn
-        .fetch(
-          statement,
-          with: params
-        ) { rows in
-          rows.compactMap { row -> ListViewResource? in
-            guard
-              let id: ListViewResource.ID = (row.id as String?).map(ListViewResource.ID.init(rawValue:)),
-              let name: String = row.name
-            else { return nil }
-            return ListViewResource(
-              id: id,
-              parentFolderID: (row.parentFolderID as String?).map(Folder.ID.init(rawValue:)),
-              name: name,
-              username: row.username,
-              url: row.url
-            )
+        .fetch(using: statement) { dataRow -> ResourceListItemDSV in
+          guard
+            let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+            let name: String = dataRow.name
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseDataInvalid
+                  .error(for: ResourceListItemDSV.self)
+              )
           }
+
+          return ResourceListItemDSV(
+            id: id,
+            parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+            name: name,
+            username: dataRow.username,
+            url: dataRow.url
+          )
         }
     }
   }
 }
 
-extension ResourceTag {
+extension ResourceTagDSV {
 
   internal static func setFrom(
     rawString: String
@@ -353,11 +359,13 @@ extension ResourceTag {
     var fields = string.components(separatedBy: ";")
     guard
       let shared: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
-      let slug: String = fields.popLast()?.components(separatedBy: "=").last,
+      let slug: ResourceTag.Slug = fields.popLast()?.components(separatedBy: "=").last.map(
+        ResourceTag.Slug.init(rawValue:)
+      ),
       let id: ResourceTag.ID = fields.popLast()?.components(separatedBy: "=").last.map(ResourceTag.ID.init(rawValue:))
     else { return nil }
 
-    return .init(
+    return ResourceTagDSV(
       id: id,
       slug: slug,
       shared: shared

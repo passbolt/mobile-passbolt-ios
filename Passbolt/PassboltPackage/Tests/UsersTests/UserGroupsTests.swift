@@ -38,103 +38,23 @@ final class UserGroupsTests: TestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
+    self.features.usePlaceholder(for: AccountDatabase.self)
+    self.features.usePlaceholder(for: NetworkClient.self)
+    self.features.usePlaceholder(for: AccountSessionData.self)
+    self.features.patch(
+      \AccountSessionData.updatesSequence,
+      with: always(
+        AsyncVariable(initial: Void())
+          .asAnyAsyncSequence()
+      )
+    )
     self.features.usePlaceholder(for: AccountSession.self)
     self.features.patch(
       \AccountSession.currentState,
-       with: always(.authorized(.validAccount))
+      with: always(
+        .authorized(.validAccount)
+      )
     )
-    self.features.usePlaceholder(for: AccountDatabase.self)
-    self.features.usePlaceholder(for: NetworkClient.self)
-  }
-
-  func test_refreshIfNeeded_fails_whenNoSession() async throws {
-    await self.features.patch(
-      \AccountSession.currentState,
-       with: always(.none(lastUsed: .none))
-    )
-
-    let feature: UserGroups = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-      XCTFail("Expected error throw")
-    }
-    catch {
-      // expected result
-    }
-  }
-
-  func test_refreshIfNeeded_fails_whenNetworkRequestFails() async throws {
-    await self.features
-      .patch(
-        \NetworkClient.userGroupsRequest,
-        with: .failingWith(MockIssue.error())
-      )
-
-    let feature: UserGroups = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-      XCTFail("Expected error throw")
-    }
-    catch {
-      // expected result
-    }
-  }
-
-  func test_refreshIfNeeded_fails_whenStoringInDatabaseFails() async throws {
-    await self.features
-      .patch(
-        \NetworkClient.userGroupsRequest,
-        with: .respondingWith(
-          .init(
-            header: .mock(),
-            body: .init()
-          )
-        )
-      )
-    await self.features
-      .patch(
-        \AccountDatabase.storeUserGroups,
-        with: .failingWith(MockIssue.error())
-      )
-
-    let feature: UserGroups = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-      XCTFail("Expected error throw")
-    }
-    catch {
-      // expected result
-    }
-  }
-
-  func test_refreshIfNeeded_succeeds_whenAllOperationsSucceed() async throws {
-    await self.features
-      .patch(
-        \NetworkClient.userGroupsRequest,
-        with: .respondingWith(
-          .init(
-            header: .mock(),
-            body: .init()
-          )
-        )
-      )
-    await self.features
-      .patch(
-        \AccountDatabase.storeUserGroups,
-        with: .returning(Void())
-      )
-
-    let feature: UserGroups = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-    }
-    catch {
-      XCTFail("Unexpected error throw")
-    }
   }
 
   func test_filteredUserGroups_producesEmptyList_whenDatabaseFetchingFail() async throws {
@@ -147,7 +67,7 @@ final class UserGroupsTests: TestCase {
 
     let feature: UserGroups = try await self.testInstance()
 
-    let result: Array<ListViewResourcesUserGroup>? =
+    let result: Array<ResourceUserGroupListItemDSV>? =
       await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
@@ -158,11 +78,11 @@ final class UserGroupsTests: TestCase {
   }
 
   func test_filteredUserGroups_producesNonEmptyList_whenDatabaseFetchingSucceeds() async throws {
-    let expectedResult: Array<ListViewResourcesUserGroup> = [
+    let expectedResult: Array<ResourceUserGroupListItemDSV> = [
       .init(
         id: "id",
         name: "name",
-        resourcesCount: 0
+        contentCount: 0
       )
     ]
     await self.features
@@ -174,7 +94,7 @@ final class UserGroupsTests: TestCase {
 
     let feature: UserGroups = try await self.testInstance()
 
-    let result: Array<ListViewResourcesUserGroup>? =
+    let result: Array<ResourceUserGroupListItemDSV>? =
       await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
@@ -185,17 +105,17 @@ final class UserGroupsTests: TestCase {
   }
 
   func test_filteredUserGroups_producesUpdatedList_whenFiltersChange() async throws {
-    var expectedResult: Array<ListViewResourcesUserGroup> = []
+    var expectedResult: Array<ResourceUserGroupListItemDSV> = []
     let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
 
-    let nextResult: () -> Array<ListViewResourcesUserGroup> = {
+    let nextResult: () -> Array<ResourceUserGroupListItemDSV> = {
       defer {
         if expectedResult.isEmpty {
           expectedResult.append(
             .init(
               id: "id",
               name: "name",
-              resourcesCount: 0
+              contentCount: 0
             )
           )
         }
@@ -215,9 +135,9 @@ final class UserGroupsTests: TestCase {
     _ = await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 
-    try await filtersSequence.send("changed")
+    await filtersSequence.send("changed")
 
-    let result: Array<ListViewResourcesUserGroup>? =
+    let result: Array<ResourceUserGroupListItemDSV>? =
       await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
 

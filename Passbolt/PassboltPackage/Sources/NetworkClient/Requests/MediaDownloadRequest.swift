@@ -39,7 +39,7 @@ extension MediaDownloadRequest {
     Self(
       template: .init(cacheResponse: true) { _, requestVariable in
         .combined(
-          .url(string: requestVariable.urlString),
+          .url(string: requestVariable.rawValue),
           .method(.get)
         )
       },
@@ -50,13 +50,6 @@ extension MediaDownloadRequest {
   }
 }
 
-public struct MediaDownloadRequestVariable {
-
-  public var urlString: String
-
-  public init(urlString: String) {
-    self.urlString = urlString
-  }
-}
+public typealias MediaDownloadRequestVariable = URLString
 
 public typealias MediaDownloadResponse = Data

@@ -27,12 +27,12 @@ import CommonModels
 internal enum ResourcesSelectionListViewItem {
 
   case add
-  case resource(ResourcesSelectionListViewResourceItem)
+  case resource(ResourcesSelectionResourceListItemDSVItem)
 }
 
 extension ResourcesSelectionListViewItem: Hashable {}
 
-internal struct ResourcesSelectionListViewResourceItem {
+internal struct ResourcesSelectionResourceListItemDSVItem {
 
   public typealias ID = Resource.ID
 
@@ -44,7 +44,7 @@ internal struct ResourcesSelectionListViewResourceItem {
   private let suggestionTag: Bool
 
   public init(
-    from resource: ListViewResource
+    from resource: ResourceListItemDSV
   ) {
     self.init(
       id: resource.id,
@@ -94,4 +94,4 @@ internal struct ResourcesSelectionListViewResourceItem {
   }
 }
 
-extension ResourcesSelectionListViewResourceItem: Hashable {}
+extension ResourcesSelectionResourceListItemDSVItem: Hashable {}

@@ -38,7 +38,7 @@ public struct ResourcesFilter {
   // favorite only search (AND)
   public var favoriteOnly: Bool
   // included permissions search (AND) - empty ignores this parameter
-  public var permissions: Set<Permission>
+  public var permissions: Set<PermissionType>
   // included tags search (AND) - matches when any of tags matches,
   // empty ignores this parameter
   public var tags: Set<ResourceTag.ID>
@@ -56,7 +56,7 @@ public struct ResourcesFilter {
     url: String = .init(),
     username: String = .init(),
     favoriteOnly: Bool = false,
-    permissions: Set<Permission> = .init(),
+    permissions: Set<PermissionType> = .init(),
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),
     folders: ResourcesFolderFilter? = .none
@@ -79,14 +79,14 @@ extension ResourcesFilter: Equatable {}
 public struct ResourcesFolderFilter {
 
   // current folder contents search (AND) - search on folders root on no value
-  public var folderID: Folder.ID?
+  public var folderID: ResourceFolder.ID?
   // folder content flattening from current folderID
   // false - filters only within current folderID direct descendants
   // true - filters recursively within current folderID and all its subfolders
   public var flattenContent: Bool
 
   public init(
-    folderID: Folder.ID?,
+    folderID: ResourceFolder.ID?,
     flattenContent: Bool = false
   ) {
     self.folderID = folderID

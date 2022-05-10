@@ -110,7 +110,7 @@ final class NetworkingDecoratorsTests: XCTestCase {
       result,
       [
         "Executing request <uniqueID> (useCache: false):\nGET  HTTP/1.1\n\n\n\n---",
-        "Received <uniqueID>:\nMockIssue\ntest\nDiagnosticsContext\nMock:42-MockIssue\n---",
+        "Received <uniqueID>:\nMockIssue\ntest\nDiagnosticsContext\nMock:42-MockIssue\n\n\n---",
       ]
     )
   }

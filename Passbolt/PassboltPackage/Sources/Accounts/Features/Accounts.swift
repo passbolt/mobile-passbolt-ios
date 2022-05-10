@@ -37,7 +37,7 @@ public struct Accounts {
       _ username: String,
       _ firstName: String,
       _ lastName: String,
-      _ avatarImageURL: String,
+      _ avatarImageURL: URLString,
       _ fingerprint: Fingerprint,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
@@ -72,7 +72,7 @@ extension Accounts: Feature {
       username: String,
       firstName: String,
       lastName: String,
-      avatarImageURL: String,
+      avatarImageURL: URLString,
       fingerprint: Fingerprint,
       armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase

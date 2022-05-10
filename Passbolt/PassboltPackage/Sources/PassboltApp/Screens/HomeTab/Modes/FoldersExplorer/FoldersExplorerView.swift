@@ -245,7 +245,7 @@ internal struct FoldersExplorerView: ComponentView {
   @ViewBuilder private var directListContent: some View {
     ForEach(
       self.state.directFolders,
-      id: \ListViewFolder.id
+      id: \ResourceFolderListItemDSV.id
     ) { folder in
       FolderListItemView(
         name: folder.name,
@@ -260,7 +260,7 @@ internal struct FoldersExplorerView: ComponentView {
     .backport.hiddenSectionSeparators()
     ForEach(
       self.state.directResources,
-      id: \ListViewResource.id
+      id: \ResourceListItemDSV.id
     ) { resource in
       ResourceListItemView(
         name: resource.name,
@@ -292,7 +292,7 @@ internal struct FoldersExplorerView: ComponentView {
   @ViewBuilder private var nestedListContent: some View {
     ForEach(
       self.state.nestedFolders,
-      id: \ListViewFolder.id
+      id: \ResourceFolderListItemDSV.id
     ) { folder in
       FolderListItemView(
         name: folder.name,
@@ -307,7 +307,7 @@ internal struct FoldersExplorerView: ComponentView {
     .backport.hiddenSectionSeparators()
     ForEach(
       self.state.nestedResources,
-      id: \ListViewResource.id
+      id: \ResourceListItemDSV.id
     ) { resource in
       ResourceListItemView(
         name: resource.name,
@@ -342,15 +342,15 @@ extension FoldersExplorerView {
   internal struct ViewState {
 
     internal var title: DisplayableString
-    internal var folderID: Folder.ID?
+    internal var folderID: ResourceFolder.ID?
     internal var folderShared: Bool
     internal var canCreateResources: Bool
     internal var userAvatarImage: Data? = .none
     internal var searchText: String = ""
-    internal var directFolders: Array<ListViewFolder> = .init()
-    internal var nestedFolders: Array<ListViewFolder> = .init()
-    internal var directResources: Array<ListViewResource> = .init()
-    internal var nestedResources: Array<ListViewResource> = .init()
+    internal var directFolders: Array<ResourceFolderListItemDSV> = .init()
+    internal var nestedFolders: Array<ResourceFolderListItemDSV> = .init()
+    internal var directResources: Array<ResourceListItemDSV> = .init()
+    internal var nestedResources: Array<ResourceListItemDSV> = .init()
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

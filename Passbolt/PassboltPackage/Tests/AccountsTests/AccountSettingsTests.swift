@@ -48,19 +48,7 @@ final class AccountSettingsTests: TestCase {
       with: .respondingWith(
         .init(
           header: .mock(),
-          body: .init(
-            id: "user-id",
-            profile: .init(
-              firstName: "firstName",
-              lastName: "lastName",
-              avatar: .init(
-                url: .init(
-                  medium: "https://passbolt.com/image.jpg"
-                )
-              )
-            ),
-            gpgKey: .init(armoredKey: "armored-public-key")
-          )
+          body: .random()
         )
       )
     )
@@ -493,19 +481,7 @@ final class AccountSettingsTests: TestCase {
         .respondingWith(
           .init(
             header: .mock(),
-            body: .init(
-              id: "user-id",
-              profile: .init(
-                firstName: "firstName",
-                lastName: "lastName",
-                avatar: .init(
-                  url: .init(
-                    medium: "https://passbolt.com/image.jpg"
-                  )
-                )
-              ),
-              gpgKey: .init(armoredKey: "armored-public-key")
-            )
+            body: .random()
           ),
           storeVariableIn: &requestVariable
         )
@@ -543,19 +519,7 @@ final class AccountSettingsTests: TestCase {
         .respondingWith(
           .init(
             header: .mock(),
-            body: .init(
-              id: "user-id",
-              profile: .init(
-                firstName: "firstName",
-                lastName: "lastName",
-                avatar: .init(
-                  url: .init(
-                    medium: "https://passbolt.com/image.jpg"
-                  )
-                )
-              ),
-              gpgKey: .init(armoredKey: "armored-public-key")
-            )
+            body: .random()
           ),
           storeVariableIn: &requestVariable
         )

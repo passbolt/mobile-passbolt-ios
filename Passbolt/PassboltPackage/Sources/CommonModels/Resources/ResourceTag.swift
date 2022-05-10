@@ -21,23 +21,44 @@
 // @since         v1.0
 //
 
-public struct ResourceTag {
+import Commons
+
+public enum ResourceTag {}
+
+extension ResourceTag {
 
   public typealias ID = Tagged<String, Self>
+  public typealias Slug = Tagged<String, ID>
+}
 
-  public var id: ID
-  public var slug: String
-  public var shared: Bool
+#if DEBUG
 
-  public init(
-    id: ID,
-    slug: String,
-    shared: Bool
-  ) {
-    self.id = id
-    self.slug = slug
-    self.shared = shared
+// cannot conform to RandomlyGenerated
+extension ResourceTag.ID {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    UUID
+      .randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
   }
 }
 
-extension ResourceTag: Hashable {}
+// cannot conform to RandomlyGenerated
+extension ResourceTag.Slug {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    [
+      "tagSlug"
+    ]
+    .randomNonEmptyElementGenerator(
+      using: randomnessGenerator
+    )
+    .map(Self.init(rawValue:))
+  }
+}
+#endif

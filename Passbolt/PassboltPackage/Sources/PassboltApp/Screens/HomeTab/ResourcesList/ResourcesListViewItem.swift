@@ -27,12 +27,12 @@ import CommonModels
 internal enum ResourcesListViewItem {
 
   case add
-  case resource(ResourcesListViewResourceItem)
+  case resource(ResourcesResourceListItemDSVItem)
 }
 
 extension ResourcesListViewItem: Hashable {}
 
-internal struct ResourcesListViewResourceItem {
+internal struct ResourcesResourceListItemDSVItem {
 
   public typealias ID = Resource.ID
 
@@ -41,7 +41,7 @@ internal struct ResourcesListViewResourceItem {
   public var username: String?
 
   public init(
-    from resource: ListViewResource
+    from resource: ResourceListItemDSV
   ) {
     self.init(
       id: resource.id,
@@ -61,4 +61,4 @@ internal struct ResourcesListViewResourceItem {
   }
 }
 
-extension ResourcesListViewResourceItem: Hashable {}
+extension ResourcesResourceListItemDSVItem: Hashable {}

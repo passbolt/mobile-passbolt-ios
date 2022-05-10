@@ -29,16 +29,16 @@ internal final class ResourcesListView: CollectionView<SingleSection, ResourcesL
   internal var addTapPublisher: AnyPublisher<Void, Never> {
     addTapSubject.eraseToAnyPublisher()
   }
-  internal var itemTapPublisher: AnyPublisher<ResourcesListViewResourceItem, Never> {
+  internal var itemTapPublisher: AnyPublisher<ResourcesResourceListItemDSVItem, Never> {
     itemTapSubject.eraseToAnyPublisher()
   }
-  internal var itemMenuTapPublisher: AnyPublisher<ResourcesListViewResourceItem, Never> {
+  internal var itemMenuTapPublisher: AnyPublisher<ResourcesResourceListItemDSVItem, Never> {
     itemMenuTapSubject.eraseToAnyPublisher()
   }
 
   private let addTapSubject: PassthroughSubject<Void, Never> = .init()
-  private var itemTapSubject: PassthroughSubject<ResourcesListViewResourceItem, Never> = .init()
-  private var itemMenuTapSubject: PassthroughSubject<ResourcesListViewResourceItem, Never> = .init()
+  private var itemTapSubject: PassthroughSubject<ResourcesResourceListItemDSVItem, Never> = .init()
+  private var itemMenuTapSubject: PassthroughSubject<ResourcesResourceListItemDSVItem, Never> = .init()
 
   internal init() {
     super.init(

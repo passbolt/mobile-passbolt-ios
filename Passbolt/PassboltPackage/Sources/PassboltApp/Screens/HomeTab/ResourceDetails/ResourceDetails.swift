@@ -29,26 +29,26 @@ extension ResourceDetailsController {
   internal struct ResourceDetails: Equatable {
 
     internal let id: Resource.ID
-    internal var permission: Permission
+    internal var permissionType: PermissionTypeDSV
     internal var name: String
     internal var url: String?
     internal var username: String?
     internal var description: String?
-    internal var properties: Array<ResourceProperty>
+    internal var fields: Array<ResourceFieldDSV>
 
     internal static func from(
-      detailsViewResource: DetailsViewResource
+      detailsViewResource: ResourceDetailsDSV
     ) -> ResourceDetails {
       .init(
         id: .init(rawValue: detailsViewResource.id.rawValue),
-        permission: detailsViewResource.permission,
+        permissionType: detailsViewResource.permissionType,
         name: detailsViewResource.name,
         url: detailsViewResource.url,
         username: detailsViewResource.username,
         description: detailsViewResource.description,
-        properties: detailsViewResource
-          .properties
-          .sorted()
+        fields: detailsViewResource
+          .fields
+          .sorted(by: { $0.name < $1.name })
       )
     }
   }

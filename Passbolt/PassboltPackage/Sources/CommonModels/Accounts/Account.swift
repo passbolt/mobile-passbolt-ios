@@ -21,14 +21,16 @@
 // @since         v1.0
 //
 
+import Commons
+
 // Immutable part of account, used to identify account and associated server.
 // WARNING: Do not add new or rename fields in this structure
 // - it will cause data wipe on devices after update.
 // Prepare data migration mechanism before making such changes.
 public struct Account {
 
-  public typealias UserID = Tagged<String, Self>
-  public typealias LocalID = Tagged<String, UserID>
+  public typealias UserID = User.ID
+  public typealias LocalID = Tagged<String, Self>
 
   public let localID: LocalID
   public let domain: URLString

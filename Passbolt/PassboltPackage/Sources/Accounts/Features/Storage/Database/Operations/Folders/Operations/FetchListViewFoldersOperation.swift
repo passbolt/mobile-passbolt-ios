@@ -23,9 +23,11 @@
 
 import Environment
 
-public typealias FetchListViewFoldersOperation = DatabaseOperation<FoldersFilter, Array<ListViewFolder>>
+public typealias FetchResourceFolderListItemDSVsOperation = DatabaseOperation<
+  ResourceFoldersFilter, Array<ResourceFolderListItemDSV>
+>
 
-extension FetchListViewFoldersOperation {
+extension FetchResourceFolderListItemDSVsOperation {
 
   internal static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -34,7 +36,6 @@ extension FetchListViewFoldersOperation {
       using: connection
     ) { conn, input in
       var statement: SQLiteStatement
-      var params: Array<SQLiteBindable?>
 
       // note that current filters application is not optimal,
       // it should be more performant if applied on recursive
@@ -45,46 +46,46 @@ extension FetchListViewFoldersOperation {
       if input.flattenContent {
         statement = """
           WITH RECURSIVE
-            flattenedFoldersListView(
+            flattenedResourceFolders(
               id,
               name,
-              permission,
+              permissionType,
               parentFolderID,
               shared
             )
           AS
             (
               SELECT
-                foldersListView.id,
-                foldersListView.name,
-                foldersListView.permission,
-                foldersListView.parentFolderID,
-                foldersListView.shared
+                resourceFolders.id,
+                resourceFolders.name,
+                resourceFolders.permissionType,
+                resourceFolders.parentFolderID,
+                resourceFolders.shared
               FROM
-                foldersListView
+                resourceFolders
               WHERE
-                foldersListView.parentFolderID IS ?
+                resourceFolders.parentFolderID IS ?
 
               UNION ALL
 
               SELECT DISTINCT
-                foldersListView.id,
-                foldersListView.name,
-                foldersListView.permission,
-                foldersListView.parentFolderID,
-                foldersListView.shared
+                resourceFolders.id,
+                resourceFolders.name,
+                resourceFolders.permissionType,
+                resourceFolders.parentFolderID,
+                resourceFolders.shared
               FROM
-                foldersListView,
-                flattenedFoldersListView
+                resourceFolders,
+                flattenedResourceFolders
               WHERE
-                foldersListView.parentFolderID IS flattenedFoldersListView.id
+                resourceFolders.parentFolderID IS flattenedResourceFolders.id
             )
           SELECT DISTINCT
-            flattenedFoldersListView.id AS id,
-            flattenedFoldersListView.name AS name,
-            flattenedFoldersListView.permission AS permission,
-            flattenedFoldersListView.parentFolderID AS parentFolderID,
-            flattenedFoldersListView.shared AS shared,
+            flattenedResourceFolders.id AS id,
+            flattenedResourceFolders.name AS name,
+            flattenedResourceFolders.permissionType AS permissionType,
+            flattenedResourceFolders.parentFolderID AS parentFolderID,
+            flattenedResourceFolders.shared AS shared,
             (
               SELECT
               (
@@ -94,34 +95,34 @@ extension FetchListViewFoldersOperation {
                   FROM
                     resources
                   WHERE
-                    resources.parentFolderID IS flattenedFoldersListView.id
+                    resources.parentFolderID IS flattenedResourceFolders.id
                 )
               +
                 (
                   SELECT
                     COUNT(*)
                   FROM
-                    folders
+                    resourceFolders
                   WHERE
-                    folders.parentFolderID IS flattenedFoldersListView.id
+                    resourceFolders.parentFolderID IS flattenedResourceFolders.id
                 )
               )
             ) AS contentCount
           FROM
-            flattenedFoldersListView
+            flattenedResourceFolders
           WHERE
             1 -- equivalent of true, used to simplify dynamic query building
           """
-        params = [input.folderID?.rawValue]
+        statement.appendArgument(input.folderID)
       }
       else {
         statement = """
           SELECT
-            foldersListView.id AS id,
-            foldersListView.name AS name,
-            foldersListView.permission AS permission,
-            foldersListView.parentFolderID AS parentFolderID,
-            foldersListView.shared AS shared,
+            resourceFolders.id AS id,
+            resourceFolders.name AS name,
+            resourceFolders.permissionType AS permissionType,
+            resourceFolders.parentFolderID AS parentFolderID,
+            resourceFolders.shared AS shared,
             (
               SELECT
               (
@@ -131,25 +132,25 @@ extension FetchListViewFoldersOperation {
                   FROM
                     resources
                   WHERE
-                    resources.parentFolderID IS foldersListView.id
+                    resources.parentFolderID IS resourceFolders.id
                 )
               +
                 (
                   SELECT
                     COUNT(*)
                   FROM
-                    folders
+                    resourceFolders
                   WHERE
-                    folders.parentFolderID IS foldersListView.id
+                    resourceFolders.parentFolderID IS resourceFolders.id
                 )
               )
             ) AS contentCount
           FROM
-            foldersListView
+            resourceFolders
           WHERE
-            foldersListView.parentFolderID IS ?
+            resourceFolders.parentFolderID IS ?
           """
-        params = [input.folderID?.rawValue]
+        statement.appendArgument(input.folderID)
       }
 
       if !input.text.isEmpty {
@@ -159,7 +160,7 @@ extension FetchListViewFoldersOperation {
             AND name LIKE '%' || ? || '%'
             """
           )
-        params.append(input.text)
+        statement.appendArgument(input.text)
       }
       else {
         /* NOP */
@@ -168,7 +169,7 @@ extension FetchListViewFoldersOperation {
       // since we cannot use array in query directly
       // we are preparing it manually as argument for each element
       if input.permissions.count > 1 {
-        statement.append("AND permission IN (")
+        statement.append("AND permissionType IN (")
         for index in input.permissions.indices {
           if index == input.permissions.startIndex {
             statement.append("?")
@@ -176,13 +177,13 @@ extension FetchListViewFoldersOperation {
           else {
             statement.append(", ?")
           }
-          params.append(input.permissions[index].rawValue)
+          statement.appendArgument(input.permissions[index])
         }
         statement.append(") ")
       }
-      else if let permission: Permission = input.permissions.first {
-        statement.append("AND permission = ? ")
-        params.append(permission.rawValue)
+      else if let permission: PermissionType = input.permissions.first {
+        statement.append("AND permissionType == ? ")
+        statement.appendArgument(permission)
       }
       else {
         /* NOP */
@@ -197,26 +198,30 @@ extension FetchListViewFoldersOperation {
       statement.append(";")
 
       return
-        try conn
-        .fetch(
-          statement,
-          with: params
-        ) { rows in
-          rows.compactMap { row -> ListViewFolder? in
-            guard
-              let id: ListViewFolder.ID = (row.id as String?).map(ListViewFolder.ID.init(rawValue:)),
-              let name: String = row.name,
-              let permission: Permission = row.permission.flatMap(Permission.init(rawValue:))
-            else { return nil }
-            return ListViewFolder(
-              id: id,
-              name: name,
-              permission: permission,
-              shared: row.shared ?? false,
-              parentFolderID: (row.parentFolderID as String?).map(ListViewFolder.ID.init(rawValue:)),
-              contentCount: row.contentCount ?? 0
-            )
+        try conn.fetch(using: statement) { dataRow -> ResourceFolderListItemDSV in
+          guard
+            let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+            let name: String = dataRow.name,
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let shared: Bool = dataRow.shared
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseDataInvalid
+                  .error(for: ResourceFolderListItemDSV.self)
+              )
           }
+
+          return ResourceFolderListItemDSV(
+            id: id,
+            name: name,
+            permissionType: permissionType,
+            shared: shared,
+            parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+            contentCount: dataRow.contentCount ?? 0
+          )
         }
     }
   }

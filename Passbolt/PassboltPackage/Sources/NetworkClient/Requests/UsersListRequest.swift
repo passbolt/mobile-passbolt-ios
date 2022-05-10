@@ -74,4 +74,4 @@ public struct UserListRequestVariable {
   }
 }
 
-public typealias UserListRequestResponse = CommonResponse<Array<User>>
+public typealias UserListRequestResponse = CommonResponse<Array<UserDTO>>

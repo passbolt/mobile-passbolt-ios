@@ -29,7 +29,7 @@ import UIComponents
 internal struct ResourceDetailsController {
 
   internal var resourceDetailsWithConfigPublisher: @MainActor () -> AnyPublisher<ResourceDetailsWithConfig, Error>
-  internal var toggleDecrypt: @MainActor (ResourceField) -> AnyPublisher<String?, Error>
+  internal var toggleDecrypt: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<String?, Error>
   internal var presentResourceMenu: @MainActor () -> Void
   internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
   internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
@@ -37,7 +37,7 @@ internal struct ResourceDetailsController {
   internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeletionPublisher: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
-  internal var copyFieldValue: @MainActor (ResourceField) -> AnyPublisher<Void, Error>
+  internal var copyFieldValue: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<Void, Error>
 }
 
 extension ResourceDetailsController {
@@ -63,7 +63,7 @@ extension ResourceDetailsController: UIController {
     let pasteboard: Pasteboard = try await features.instance()
     let featureConfig: FeatureConfig = try await features.instance()
 
-    var revealedFields: Set<ResourceField> = .init()
+    var revealedFields: Set<ResourceFieldNameDSV> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -109,12 +109,12 @@ extension ResourceDetailsController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func toggleDecrypt(field: ResourceField) -> AnyPublisher<String?, Error> {
-      if revealedFields.contains(field) {
+    func toggleDecrypt(fieldName: ResourceFieldNameDSV) -> AnyPublisher<String?, Error> {
+      if revealedFields.contains(fieldName) {
         return Just(nil)
           .eraseErrorType()
           .handleEvents(receiveOutput: { _ in
-            revealedFields.remove(field)
+            revealedFields.remove(fieldName)
           })
           .eraseToAnyPublisher()
       }
@@ -123,10 +123,10 @@ extension ResourceDetailsController: UIController {
           resources
             .loadResourceSecret(context)
             .map { resourceSecret -> String in
-              resourceSecret[dynamicMember: field.rawValue] ?? ""
+              resourceSecret[dynamicMember: fieldName.rawValue] ?? ""
             }
             .handleEvents(receiveOutput: { _ in
-              revealedFields.insert(field)
+              revealedFields.insert(fieldName)
             })
         }
         .switchToLatest()
@@ -148,25 +148,25 @@ extension ResourceDetailsController: UIController {
         .map { detailsWithConfig -> AnyPublisher<Void, Error> in
           guard
             let resourceDetails = detailsWithConfig?.resourceDetails,
-            let property: ResourceProperty = detailsWithConfig?.resourceDetails
-              .properties
-              .first(where: { $0.field == .uri })
+            let field: ResourceFieldDSV = detailsWithConfig?.resourceDetails
+              .fields
+              .first(where: { $0.name == .uri })
           else {
             return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
               .eraseToAnyPublisher()
           }
 
-          if property.encrypted {
+          if field.encrypted {
             return cancellables.executeOnAccountSessionActorWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: property.field.rawValue] {
+                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
                     return Just(secret)
                       .eraseErrorType()
                       .eraseToAnyPublisher()
                   }
-                  else if !property.required {
+                  else if !field.required {
                     return Just("")
                       .eraseErrorType()
                       .eraseToAnyPublisher()
@@ -208,25 +208,25 @@ extension ResourceDetailsController: UIController {
         .map { detailsWithConfig -> AnyPublisher<Void, Error> in
           guard
             let resourceDetails = detailsWithConfig?.resourceDetails,
-            let property: ResourceProperty = detailsWithConfig?.resourceDetails
-              .properties
-              .first(where: { $0.field == .password })
+            let field: ResourceFieldDSV = detailsWithConfig?.resourceDetails
+              .fields
+              .first(where: { $0.name == .password })
           else {
             return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
               .eraseToAnyPublisher()
           }
 
-          if property.encrypted {
+          if field.encrypted {
             return cancellables.executeOnAccountSessionActorWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: property.field.rawValue] {
+                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
                     return Just(secret)
                       .eraseErrorType()
                       .eraseToAnyPublisher()
                   }
-                  else if !property.required {
+                  else if !field.required {
                     return Just("")
                       .eraseErrorType()
                       .eraseToAnyPublisher()
@@ -260,25 +260,25 @@ extension ResourceDetailsController: UIController {
         .map { detailsWithConfig -> AnyPublisher<Void, Error> in
           guard
             let resourceDetails = detailsWithConfig?.resourceDetails,
-            let property: ResourceProperty = detailsWithConfig?.resourceDetails
-              .properties
-              .first(where: { $0.field == .username })
+            let field: ResourceFieldDSV = detailsWithConfig?.resourceDetails
+              .fields
+              .first(where: { $0.name == .username })
           else {
             return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
               .eraseToAnyPublisher()
           }
 
-          if property.encrypted {
+          if field.encrypted {
             return cancellables.executeOnAccountSessionActorWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: property.field.rawValue] {
+                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
                     return Just(secret)
                       .eraseErrorType()
                       .eraseToAnyPublisher()
                   }
-                  else if !property.required {
+                  else if !field.required {
                     return Just("")
                       .eraseErrorType()
                       .eraseToAnyPublisher()
@@ -320,9 +320,9 @@ extension ResourceDetailsController: UIController {
         .map { detailsWithConfig -> AnyPublisher<Void, Error> in
           guard
             let resourceDetails = detailsWithConfig?.resourceDetails,
-            let property: ResourceProperty = detailsWithConfig?.resourceDetails
-              .properties
-              .first(where: { $0.field == .description })
+            let property: ResourceFieldDSV = detailsWithConfig?.resourceDetails
+              .fields
+              .first(where: { $0.name == .description })
           else {
             return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
               .eraseToAnyPublisher()
@@ -333,7 +333,7 @@ extension ResourceDetailsController: UIController {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: property.field.rawValue] {
+                  if let secret: String = resourceSecret[dynamicMember: property.name.rawValue] {
                     return Just(secret)
                       .eraseErrorType()
                       .eraseToAnyPublisher()
@@ -375,9 +375,9 @@ extension ResourceDetailsController: UIController {
     }
 
     func copyField(
-      _ field: ResourceField
+      _ fieldName: ResourceFieldNameDSV
     ) -> AnyPublisher<Void, Error> {
-      switch field {
+      switch fieldName {
       case .uri:
         return copyURLAction()
 
@@ -391,7 +391,7 @@ extension ResourceDetailsController: UIController {
         return copyDescriptionAction()
 
       case _:
-        assertionFailure("Unhandled resource field - \(field)")
+        assertionFailure("Unhandled resource field - \(fieldName)")
         return Fail(error: TheErrorLegacy.invalidResourceData())
           .eraseToAnyPublisher()
       }
@@ -416,8 +416,6 @@ extension ResourceDetailsController: UIController {
     func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
       cancellables.executeOnAccountSessionActorWithPublisher {
         resources.deleteResource(resourceID)
-          .map { resources.refreshIfNeeded() }
-          .switchToLatest()
       }
       .switchToLatest()
       .eraseToAnyPublisher()
@@ -425,7 +423,7 @@ extension ResourceDetailsController: UIController {
 
     return Self(
       resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
-      toggleDecrypt: toggleDecrypt(field:),
+      toggleDecrypt: toggleDecrypt(fieldName:),
       presentResourceMenu: presentResourceMenu,
       presentResourceEdit: presentResourceEdit(resourceID:),
       resourceEditPresentationPublisher: resourceEditPresentationPublisher,

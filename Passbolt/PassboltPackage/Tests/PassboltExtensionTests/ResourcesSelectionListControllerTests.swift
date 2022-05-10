@@ -43,6 +43,11 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     autofillContext = .placeholder
   }
 
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    features.usePlaceholder(for: AccountSessionData.self)
+  }
+
   override func mainActorTearDown() {
     resources = nil
     autofillContext = nil
@@ -50,10 +55,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() async throws {
     await features.use(autofillContext)
-    resources.refreshIfNeeded = always(
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: always(Void())
     )
     await features.use(resources)
 
@@ -75,9 +79,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
   func test_refreshResources_fails_whenResourcesRefreshFails() async throws {
     await features.use(autofillContext)
-    resources.refreshIfNeeded = always(
-      Fail<Void, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
     )
     await features.use(resources)
 
@@ -109,15 +113,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         .eraseToAnyPublisher()
     )
     await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -140,7 +144,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
 
     var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
 
     controller
       .resourcesListPublisher()
@@ -149,8 +156,8 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.suggested, Array<ResourcesSelectionListViewResourceItem>())
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+    XCTAssertEqual(result?.suggested, Array<ResourcesSelectionResourceListItemDSVItem>())
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
   }
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
@@ -193,15 +200,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         .eraseToAnyPublisher()
     )
     await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -224,59 +231,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
 
     var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
-
-    controller
-      .resourcesListPublisher()
-      .sink { values in
-        result = values
-      }
-      .store(in: cancellables)
-
-    XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[1]).suggestionCopy])
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
-  }
-
-  func test_resourcesListPublisher_publishesOneMatchingResourcesListFromResources_usingRequestedServiceIdentifiers()
-    async throws
-  {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
-        .eraseToAnyPublisher()
-    )
-    await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
-        id: "resource_1",
-        parentFolderID: .none,
-        name: "Resoure 1",
-        username: "test",
-        url: "passbolt.com"
-      ),
-      ListViewResource(
-        id: "resource_2",
-        parentFolderID: .none,
-        name: "Resoure 2",
-        username: "test",
-        url: "alterpassbolt.com"
-      ),
-    ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-
-    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
-      ResourcesFilter(sorting: .nameAlphabetically)
-    )
-
-    let controller: ResourcesSelectionListController = try await testController(
-      context: filtersSubject.eraseToAnyPublisher()
-    )
-
-    var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
 
     controller
       .resourcesListPublisher()
@@ -287,9 +245,67 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
     XCTAssertEqual(
       result?.suggested,
-      [ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy]
+      [ResourcesSelectionResourceListItemDSVItem(from: resourcesList[1]).suggestionCopy]
     )
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
+  }
+
+  func test_resourcesListPublisher_publishesOneMatchingResourcesListFromResources_usingRequestedServiceIdentifiers()
+    async throws
+  {
+    autofillContext.requestedServiceIdentifiersPublisher = always(
+      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
+        .eraseToAnyPublisher()
+    )
+    await features.use(autofillContext)
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
+        id: "resource_1",
+        parentFolderID: .none,
+        name: "Resoure 1",
+        username: "test",
+        url: "passbolt.com"
+      ),
+      ResourceListItemDSV(
+        id: "resource_2",
+        parentFolderID: .none,
+        name: "Resoure 2",
+        username: "test",
+        url: "alterpassbolt.com"
+      ),
+    ]
+    resources.filteredResourcesListPublisher = always(
+      Just(resourcesList)
+        .eraseToAnyPublisher()
+    )
+    await features.use(resources)
+
+    let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
+      ResourcesFilter(sorting: .nameAlphabetically)
+    )
+
+    let controller: ResourcesSelectionListController = try await testController(
+      context: filtersSubject.eraseToAnyPublisher()
+    )
+
+    var result:
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
+
+    controller
+      .resourcesListPublisher()
+      .sink { values in
+        result = values
+      }
+      .store(in: cancellables)
+
+    XCTAssertEqual(
+      result?.suggested,
+      [ResourcesSelectionResourceListItemDSVItem(from: resourcesList[0]).suggestionCopy]
+    )
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
   }
 
   func
@@ -301,15 +317,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         .eraseToAnyPublisher()
     )
     await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -332,7 +348,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
 
     var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
 
     controller
       .resourcesListPublisher()
@@ -343,9 +362,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
     XCTAssertEqual(
       result?.suggested,
-      [ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy]
+      [ResourcesSelectionResourceListItemDSVItem(from: resourcesList[0]).suggestionCopy]
     )
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
   }
 
   func
@@ -357,15 +376,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         .eraseToAnyPublisher()
     )
     await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -388,7 +407,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
 
     var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
 
     controller
       .resourcesListPublisher()
@@ -397,8 +419,11 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy])
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+    XCTAssertEqual(
+      result?.suggested,
+      [ResourcesSelectionResourceListItemDSVItem(from: resourcesList[0]).suggestionCopy]
+    )
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
   }
 
   func
@@ -410,15 +435,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         .eraseToAnyPublisher()
     )
     await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -441,7 +466,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
 
     var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
 
     controller
       .resourcesListPublisher()
@@ -450,8 +478,11 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy])
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+    XCTAssertEqual(
+      result?.suggested,
+      [ResourcesSelectionResourceListItemDSVItem(from: resourcesList[0]).suggestionCopy]
+    )
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
   }
 
   func
@@ -463,15 +494,15 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         .eraseToAnyPublisher()
     )
     await features.use(autofillContext)
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com/some/path/here"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -494,7 +525,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     )
 
     var result:
-      (suggested: Array<ResourcesSelectionListViewResourceItem>, all: Array<ResourcesSelectionListViewResourceItem>)?
+      (
+        suggested: Array<ResourcesSelectionResourceListItemDSVItem>,
+        all: Array<ResourcesSelectionResourceListItemDSVItem>
+      )?
 
     controller
       .resourcesListPublisher()
@@ -503,7 +537,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.suggested, [ResourcesSelectionListViewResourceItem(from: resourcesList[0]).suggestionCopy])
-    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionListViewResourceItem.init(from:)))
+    XCTAssertEqual(
+      result?.suggested,
+      [ResourcesSelectionResourceListItemDSVItem(from: resourcesList[0]).suggestionCopy]
+    )
+    XCTAssertEqual(result?.all, resourcesList.map(ResourcesSelectionResourceListItemDSVItem.init(from:)))
   }
 }

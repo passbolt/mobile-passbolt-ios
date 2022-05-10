@@ -23,7 +23,7 @@
 
 import Environment
 
-public typealias FetchResourcesTypesOperation = DatabaseOperation<Void, Array<ResourceType>>
+public typealias FetchResourcesTypesOperation = DatabaseOperation<Void, Array<ResourceTypeDSV>>
 
 extension FetchResourcesTypesOperation {
 
@@ -35,67 +35,38 @@ extension FetchResourcesTypesOperation {
     ) { conn, _ in
       try conn
         .fetch(
-          selectTypesStatement
-        ) { rows in
-          rows.compactMap { row -> ResourceType? in
-            guard
-              let id: ResourceType.ID = (row.id as String?).map(ResourceType.ID.init(rawValue:)),
-              let slug: ResourceType.Slug = (row.slug as String?).map(ResourceType.Slug.init(rawValue:)),
-              let name: String = row.name,
-              let rawFields: String = row.fields
-            else { return nil }
-            return ResourceType(
-              id: id,
-              slug: slug,
-              name: name,
-              fields: ResourceProperty.arrayFrom(rawString: rawFields)
-            )
+          using: """
+            SELECT
+              id,
+              slug,
+              name,
+              fields
+            FROM
+              resourceTypesView;
+            """
+        ) { dataRow in
+          guard
+            let id: ResourceType.ID = dataRow.id.flatMap(ResourceType.ID.init(rawValue:)),
+            let slug: ResourceType.Slug = dataRow.slug.flatMap(ResourceType.Slug.init(rawValue:)),
+            let name: String = dataRow.name,
+            let rawFields: String = dataRow.fields
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseDataInvalid
+                  .error(for: ResourceTypeDSV.self)
+              )
           }
+
+          return ResourceTypeDSV(
+            id: id,
+            slug: slug,
+            name: name,
+            fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
+          )
         }
     }
-  }
-}
-
-// select types
-private let selectTypesStatement: SQLiteStatement = """
-  SELECT
-    id,
-    slug,
-    name,
-    fields
-  FROM
-    resourceTypesView;
-  """
-
-extension ResourceProperty {
-
-  internal static func arrayFrom(
-    rawString: String
-  ) -> Array<Self> {
-    rawString.components(separatedBy: ",").compactMap(from(string:))
-  }
-
-  internal static func from(
-    string: String
-  ) -> Self? {
-    var fields = string.components(separatedBy: ";")
-
-    let maxLength: Int? = fields.popLast()?.components(separatedBy: "=").last.flatMap { Int($0) }
-
-    guard
-      let encrypted: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
-      let required: Bool = fields.popLast()?.components(separatedBy: "=").last.flatMap({ $0 == "1" }),
-      var nameAndTypeString: Array<String> = fields.popLast()?.components(separatedBy: ":"),
-      let typeString: String = nameAndTypeString.popLast(),
-      let name: String = nameAndTypeString.popLast()
-    else { return nil }
-
-    return .init(
-      name: name,
-      typeString: typeString,
-      required: required,
-      encrypted: encrypted,
-      maxLength: maxLength
-    )
   }
 }

@@ -21,10 +21,12 @@
 // @since         v1.0
 //
 
+import CommonModels
+
 internal struct AccountTransferAccountProfile {
 
   internal var username: String
   internal var firstName: String
   internal var lastName: String
-  internal var avatarImageURL: String
+  internal var avatarImageURL: URLString
 }

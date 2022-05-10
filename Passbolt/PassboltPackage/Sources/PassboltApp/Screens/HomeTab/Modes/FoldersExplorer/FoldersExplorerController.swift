@@ -32,8 +32,8 @@ internal struct FoldersExplorerController {
 
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
-  internal var presentFolderContent: @MainActor (ListViewFolder) -> Void
-  internal var presentResourceCreationFrom: @MainActor (Folder.ID?) -> Void
+  internal var presentFolderContent: @MainActor (ResourceFolderListItemDSV) -> Void
+  internal var presentResourceCreationFrom: @MainActor (ResourceFolder.ID?) -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) async -> Void
   internal var presentHomePresentationMenu: @MainActor () async -> Void
@@ -43,7 +43,7 @@ internal struct FoldersExplorerController {
 extension FoldersExplorerController: ComponentController {
 
   internal typealias ControlledView = FoldersExplorerView
-  internal typealias NavigationContext = ListViewFolder?
+  internal typealias NavigationContext = ResourceFolderListItemDSV?
 
   internal static func instance(
     context: NavigationContext,
@@ -54,18 +54,19 @@ extension FoldersExplorerController: ComponentController {
     let diagnostics: Diagnostics = try await features.instance()
     let accountSettings: AccountSettings = try await features.instance()
     let resources: Resources = try await features.instance()
-    let folders: Folders = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
+    let folders: ResourceFolders = try await features.instance()
 
     let viewState: ObservableValue<ViewState>
 
-    if let folder: ListViewFolder = context {
+    if let folder: ResourceFolderListItemDSV = context {
       viewState = .init(
         initial: .init(
           title: .raw(folder.name),
           folderID: folder.id,
           folderShared: folder.shared,
           // temporarily disable create in shared folders
-          canCreateResources: !folder.shared && folder.permission != .read  // write / owned
+          canCreateResources: !folder.shared && folder.permissionType != .read  // write / owned
         )
       )
     }
@@ -90,11 +91,11 @@ extension FoldersExplorerController: ComponentController {
 
     // refresh the list based on filters data
     cancellables.executeOnMainActor {
-      let filterSequence: AnyAsyncSequence<FoldersFilter> =
+      let filterSequence: AnyAsyncSequence<ResourceFoldersFilter> =
         viewState
         .valuePublisher
         .map { filter in
-          FoldersFilter(
+          ResourceFoldersFilter(
             sorting: .nameAlphabetically,
             text: filter.searchText,
             folderID: context?.id,
@@ -127,9 +128,8 @@ extension FoldersExplorerController: ComponentController {
     @MainActor func refreshIfNeeded() async {
       // TODO: [MOB-255] check if current folder was not deleted
       do {
-        try await resources
+        try await sessionData
           .refreshIfNeeded()
-          .asAsyncValue()
       }
       catch {
         diagnostics.log(error)
@@ -137,7 +137,7 @@ extension FoldersExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentFolderContent(_ folder: ListViewFolder) {
+    @MainActor func presentFolderContent(_ folder: ResourceFolderListItemDSV) {
       cancellables.executeOnMainActor {
         await navigation.push(
           FoldersExplorerView.self,
@@ -147,7 +147,7 @@ extension FoldersExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceCreationFrom(
-      folderID: Folder.ID?
+      folderID: ResourceFolder.ID?
     ) {
       presentResourceEditingForm(for: .new(in: folderID))
     }

@@ -128,14 +128,7 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceTypePublisher_publishesDefaultResourceType_whenValidResourceTypeAvailable() async throws {
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [defaultResourceType]
     )
     await features.use(database)
     await features.use(resources)
@@ -147,7 +140,7 @@ final class ResourceEditFormTests: TestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
-    let result: ResourceType? =
+    let result: ResourceTypeDSV? =
       try? await feature
       .resourceTypePublisher()
       .asAsyncValue()
@@ -560,14 +553,7 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceEdit_fails_whenFetchingEditViewResourceFromDatabaseFails() async throws {
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [defaultResourceType]
     )
     database.fetchEditViewResourceOperation.execute = alwaysThrow(
       MockIssue.error()
@@ -598,31 +584,10 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceEdit_fails_whenFetchingResourceSecretFails() async throws {
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [defaultResourceType]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      .init(
-        id: "resource-id",
-        type: .init(
-          id: "resource-type-id",
-          slug: "resource-slug",
-          name: "resource type",
-          fields: []
-        ),
-        parentFolderID: nil,
-        permission: .owner,
-        name: "resource name",
-        url: nil,
-        username: nil,
-        description: nil
-      )
+      .random()
     )
     await features.use(database)
     resources.loadResourceSecret = always(
@@ -654,31 +619,10 @@ final class ResourceEditFormTests: TestCase {
   func test_resourceEdit_succeeds_whenLoadingResourceDataSucceeds() async throws {
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [defaultResourceType]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      .init(
-        id: "resource-id",
-        type: .init(
-          id: "resource-type-id",
-          slug: "resource-slug",
-          name: "resource type",
-          fields: []
-        ),
-        parentFolderID: nil,
-        permission: .owner,
-        name: "resource name",
-        url: nil,
-        username: nil,
-        description: nil
-      )
+      .random()
     )
     await features.use(database)
     resources.loadResourceSecret = always(
@@ -710,31 +654,10 @@ final class ResourceEditFormTests: TestCase {
   func test_editResource_updatesResourceType_whenLoadingResourceDataSucceeds() async throws {
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [resourceEditDetails.type, defaultResourceType]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      .init(
-        id: "resource-id",
-        type: .init(
-          id: "resource-type-id",
-          slug: "resource-slug",
-          name: "resource type",
-          fields: []
-        ),
-        parentFolderID: nil,
-        permission: .owner,
-        name: "resource name",
-        url: nil,
-        username: nil,
-        description: nil
-      )
+      resourceEditDetails
     )
     await features.use(database)
     resources.loadResourceSecret = always(
@@ -756,7 +679,7 @@ final class ResourceEditFormTests: TestCase {
     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(.init(rawValue: "resource-id"))
+      .editResource(resourceEditDetails.id)
       .asAsyncValue()
 
     let result: ResourceType.ID? =
@@ -765,45 +688,16 @@ final class ResourceEditFormTests: TestCase {
       .asAsyncValue()
       .id
 
-    XCTAssertEqual(result, "resource-type-id")
+    XCTAssertEqual(result, resourceEditDetails.type.id)
   }
 
   func test_editResource_updatesResourceFieldValues_whenLoadingResourceDataSucceeds() async throws {
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [defaultResourceType]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      .init(
-        id: "resource-id",
-        type: .init(
-          id: "resource-type-id",
-          slug: "resource-slug",
-          name: "resource type",
-          fields: [
-            .init(
-              name: "name",
-              typeString: "string",
-              required: true,
-              encrypted: false,
-              maxLength: nil
-            )!
-          ]
-        ),
-        parentFolderID: nil,
-        permission: .owner,
-        name: "resource name",
-        url: nil,
-        username: nil,
-        description: nil
-      )
+      resourceEditDetails
     )
     await features.use(database)
     resources.loadResourceSecret = always(
@@ -825,8 +719,11 @@ final class ResourceEditFormTests: TestCase {
     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(.init(rawValue: "resource-id"))
+      .editResource(resourceEditDetails.id)
       .asAsyncValue()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     let result: ResourceFieldValue? =
       try await feature
@@ -834,7 +731,7 @@ final class ResourceEditFormTests: TestCase {
       .asAsyncValue()
       .value
 
-    XCTAssertEqual(result?.stringValue, "resource name")
+    XCTAssertEqual(result?.stringValue, resourceEditDetails.name)
   }
 
   func test_sendForm_updatesResource_whenEditingResource() async throws {
@@ -844,39 +741,10 @@ final class ResourceEditFormTests: TestCase {
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [resourceEditDetails.type, defaultResourceType]
     )
     database.fetchEditViewResourceOperation.execute = always(
-      .init(
-        id: "resource-id",
-        type: .init(
-          id: "resource-type-id",
-          slug: "resource-slug",
-          name: "resource type",
-          fields: [
-            .init(
-              name: "name",
-              typeString: "string",
-              required: true,
-              encrypted: false,
-              maxLength: nil
-            )!
-          ]
-        ),
-        parentFolderID: nil,
-        permission: .owner,
-        name: "resource name",
-        url: nil,
-        username: nil,
-        description: nil
-      )
+      resourceEditDetails
     )
     await features.use(database)
     resources.loadResourceSecret = always(
@@ -915,13 +783,18 @@ final class ResourceEditFormTests: TestCase {
     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(.init(rawValue: "resource-id"))
+      .editResource(resourceEditDetails.id)
       .asAsyncValue()
 
-    _ =
-      try? await feature
-      .sendForm()
-      .asAsyncValue()
+    do {
+      _ =
+        try await feature
+        .sendForm()
+        .asAsyncValue()
+    }
+    catch {
+      XCTFail("\(error)")
+    }
 
     XCTAssertNotNil(result)
   }
@@ -933,39 +806,11 @@ final class ResourceEditFormTests: TestCase {
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
-      [
-        .init(
-          id: "password-and-description",
-          slug: "password-and-description",
-          name: "password-and-description",
-          fields: []
-        )
-      ]
+      [defaultResourceType, resourceEditDetails.type]
     )
+
     database.fetchEditViewResourceOperation.execute = always(
-      .init(
-        id: "resource-id",
-        type: .init(
-          id: "resource-type-id",
-          slug: "resource-slug",
-          name: "resource type",
-          fields: [
-            .init(
-              name: "name",
-              typeString: "string",
-              required: true,
-              encrypted: false,
-              maxLength: nil
-            )!
-          ]
-        ),
-        parentFolderID: nil,
-        permission: .owner,
-        name: "resource name",
-        url: nil,
-        username: nil,
-        description: nil
-      )
+      resourceEditDetails
     )
     await features.use(database)
     resources.loadResourceSecret = always(
@@ -997,7 +842,7 @@ final class ResourceEditFormTests: TestCase {
     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(.init(rawValue: "resource-id"))
+      .editResource(resourceEditDetails.id)
       .asAsyncValue()
 
     var result: Error?
@@ -1015,32 +860,32 @@ final class ResourceEditFormTests: TestCase {
   }
 }
 
-private let emptyResourceType: ResourceType = .init(
+private let emptyResourceType: ResourceTypeDTO = .init(
   id: "empty",
   slug: "empty",
   name: "empty",
   fields: []
 )
 
-private let defaultShrinkedResourceType: ResourceType = .init(
+private let defaultShrinkedResourceType: ResourceTypeDTO = .init(
   id: "password-and-description-shrinked",
   slug: "password-and-description",
   name: "password-and-description-shrinked",
   fields: [
-    .init(name: "name", typeString: "string", required: true, encrypted: false, maxLength: nil)!
+    .init(name: .name, valueType: .string, required: true, encrypted: false, maxLength: nil)
   ]
 )
 
-private let defaultResourceType: ResourceType = .init(
+private let defaultResourceType: ResourceTypeDTO = .init(
   id: "password-and-description",
   slug: "password-and-description",
   name: "password-and-description",
   fields: [
-    .init(name: "name", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "uri", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
-    .init(name: "username", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
-    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: false, encrypted: true, maxLength: nil)!,
+    .init(name: .name, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .uri, valueType: .string, required: false, encrypted: false, maxLength: nil),
+    .init(name: .username, valueType: .string, required: false, encrypted: false, maxLength: nil),
+    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
+    .init(name: .description, valueType: .string, required: false, encrypted: true, maxLength: nil),
   ]
 )
 
@@ -1049,4 +894,27 @@ private let validAccount: Account = .init(
   domain: "https://passbolt.dev",
   userID: "USER_ID",
   fingerprint: "FINGERPRINT"
+)
+
+private let resourceEditDetails: ResourceEditDetailsDSV = .init(
+  id: "resource-id",
+  type: .init(
+    id: "resource-type-id",
+    slug: .defaultSlug,
+    name: "default",
+    fields: [
+      .init(
+        name: .name,
+        valueType: .string,
+        required: true,
+        encrypted: false,
+        maxLength: .none
+      )
+    ]
+  ),
+  parentFolderID: .none,
+  name: "resource",
+  url: .none,
+  username: .none,
+  description: .none
 )

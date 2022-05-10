@@ -28,10 +28,7 @@ import NetworkClient
 
 public struct ResourceTags {
 
-  // WARNING: do not call manually, it is intended to be called after
-  // refreshing resources it is called by Resources if needed
-  internal var resourcesUpdated: () async -> Void
-  public var filteredTagsList: (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ListViewResourceTag>>
+  public var filteredTagsList: (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceTagListItemDSV>>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
@@ -44,19 +41,14 @@ extension ResourceTags: Feature {
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
-
-    let updatesSequence: AsyncVariable<Void> = .init(initial: Void())
-
-    nonisolated func resourcesUpdated() async {
-      try? await updatesSequence.send(Void())
-    }
+    let sessionData: AccountSessionData = try await features.instance()
 
     nonisolated func filteredTagsList(
       filters: AnyAsyncSequence<String>
-    ) -> AnyAsyncSequence<Array<ListViewResourceTag>> {
-      AsyncCombineLatestSequence(updatesSequence, filters)
-        .map { (_, filter: String) async -> Array<ListViewResourceTag> in
-          let tags: Array<ListViewResourceTag>
+    ) -> AnyAsyncSequence<Array<ResourceTagListItemDSV>> {
+      AsyncCombineLatestSequence(sessionData.updatesSequence(), filters)
+        .map { (_, filter: String) async -> Array<ResourceTagListItemDSV> in
+          let tags: Array<ResourceTagListItemDSV>
           do {
             tags =
               try await accountDatabase
@@ -77,7 +69,6 @@ extension ResourceTags: Feature {
     }
 
     return Self(
-      resourcesUpdated: resourcesUpdated,
       filteredTagsList: filteredTagsList(filters:),
       featureUnload: featureUnload
     )
@@ -90,7 +81,6 @@ extension ResourceTags {
 
   public static var placeholder: Self {
     Self(
-      resourcesUpdated: unimplemented("You have to provide mocks for used methods"),
       filteredTagsList: unimplemented("You have to provide mocks for used methods"),
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )

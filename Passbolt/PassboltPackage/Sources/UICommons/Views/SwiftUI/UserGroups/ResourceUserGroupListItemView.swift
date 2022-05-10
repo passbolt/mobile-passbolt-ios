@@ -28,16 +28,16 @@ import SwiftUI
 public struct ResourceUserGroupListItemView: View {
 
   private let name: String
-  private let resourcesCount: Int
+  private let contentCount: Int
   private let action: () async -> Void
 
   public init(
     name: String,
-    resourcesCount: Int,
+    contentCount: Int,
     action: @escaping () async -> Void
   ) {
     self.name = name
-    self.resourcesCount = resourcesCount
+    self.contentCount = contentCount
     self.action = action
   }
 
@@ -63,7 +63,7 @@ public struct ResourceUserGroupListItemView: View {
       },
       rightAccessory: {
         HStack(spacing: 0) {
-          Text("\(self.resourcesCount)")
+          Text("\(self.contentCount)")
             .font(.inter(ofSize: 14, weight: .regular))
           Image(named: .chevronRight)
             .aspectRatio(1, contentMode: .fit)
@@ -87,7 +87,7 @@ internal struct ResourceUserGroupListItemView_Previews: PreviewProvider {
   internal static var previews: some View {
     ResourceUserGroupListItemView(
       name: "UserGroup",
-      resourcesCount: 0,
+      contentCount: 0,
       action: {
         // action
       }

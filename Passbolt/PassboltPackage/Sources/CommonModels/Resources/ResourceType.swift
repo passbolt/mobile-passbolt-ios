@@ -23,31 +23,47 @@
 
 import Commons
 
-public struct ResourceType {
+public enum ResourceType {}
 
-  public static let defaultResourceSlug: Slug = "password-and-description"
+extension ResourceType {
 
   public typealias ID = Tagged<String, Self>
   public typealias Slug = Tagged<String, ID>
+}
 
-  public var id: ID
-  public var slug: Slug
-  public var name: String
-  public var properties: Array<ResourceProperty>
+extension ResourceType.Slug {
 
-  public init(
-    id: ID,
-    slug: Slug,
-    name: String,
-    fields: Array<ResourceProperty>
-  ) {
-    self.id = id
-    self.slug = slug
-    self.name = name
-    self.properties = fields
-  }
+  public static let defaultSlug: Self = "password-and-description"
+}
 
-  public var isDefault: Bool {
-    slug == Self.defaultResourceSlug
+#if DEBUG
+
+// cannot conform to RandomlyGenerated
+extension ResourceType.ID {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    UUID.randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
   }
 }
+
+// cannot conform to RandomlyGenerated
+extension ResourceType.Slug {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    [
+      "login-credentials"
+    ]
+    .randomNonEmptyElementGenerator(
+      using: randomnessGenerator
+    )
+    .map(Self.init(rawValue:))
+  }
+}
+
+#endif

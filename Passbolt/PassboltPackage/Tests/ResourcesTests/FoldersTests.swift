@@ -34,104 +34,47 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class FoldersTests: TestCase {
 
+  private var updatesSequence: AnyAsyncSequence<Void>!
+
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
     self.features
       .usePlaceholder(for: NetworkClient.self)
     self.features
       .usePlaceholder(for: AccountDatabase.self)
+    self.features.usePlaceholder(for: AccountSessionData.self)
+    self.updatesSequence = AsyncVariable(initial: Void())
+      .asAnyAsyncSequence()
+    self.features.patch(
+      \AccountSessionData.updatesSequence,
+      with: always(
+        self.updatesSequence
+      )
+    )
   }
 
-  func test_refreshIfNeeded_fails_whenNetworkRequestFails() async throws {
-    await self.features
-      .patch(
-        \NetworkClient.foldersRequest,
-        with: .failingWith(MockIssue.error())
-      )
-
-    let feature: Folders = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-      XCTFail("Expected error throw")
-    }
-    catch {
-      // expected result
-    }
-  }
-
-  func test_refreshIfNeeded_fails_whenStoringInDatabaseFails() async throws {
-    await self.features
-      .patch(
-        \NetworkClient.foldersRequest,
-        with: .respondingWith(
-          .init(
-            header: .mock(),
-            body: .init()
-          )
-        )
-      )
-    await self.features
-      .patch(
-        \AccountDatabase.storeFolders,
-        with: .failingWith(MockIssue.error())
-      )
-
-    let feature: Folders = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-      XCTFail("Expected error throw")
-    }
-    catch {
-      // expected result
-    }
-  }
-
-  func test_refreshIfNeeded_succeeds_whenAllOperationsSucceed() async throws {
-    await self.features
-      .patch(
-        \NetworkClient.foldersRequest,
-        with: .respondingWith(
-          .init(
-            header: .mock(),
-            body: .init()
-          )
-        )
-      )
-    await self.features
-      .patch(
-        \AccountDatabase.storeFolders,
-        with: .returning(Void())
-      )
-
-    let feature: Folders = try await self.testInstance()
-
-    do {
-      try await feature.refreshIfNeeded()
-    }
-    catch {
-      XCTFail("Unexpected error throw")
-    }
+  override func featuresActorTearDown() async throws {
+    try await super.featuresActorTearDown()
+    self.updatesSequence = nil
   }
 
   func test_filteredFolderContent_producesContentForRequestedFolderIDAndFlatteningMode() async throws {
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolders,
+        \AccountDatabase.fetchResourceFolderListItemDSVs,
         with: .failingWith(MockIssue.error())
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewResources,
+        \AccountDatabase.fetchResourceListItemDSVs,
         with: .failingWith(MockIssue.error())
       )
-    let filter: FoldersFilter = .init(
+    let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -154,20 +97,20 @@ final class FoldersTests: TestCase {
   func test_filteredFolderContent_producesEmptyContent_whenDatabaseFetchingFail() async throws {
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolders,
+        \AccountDatabase.fetchResourceFolderListItemDSVs,
         with: .failingWith(MockIssue.error())
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewResources,
+        \AccountDatabase.fetchResourceListItemDSVs,
         with: .failingWith(MockIssue.error())
       )
-    let filter: FoldersFilter = .init(
+    let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -188,35 +131,26 @@ final class FoldersTests: TestCase {
   }
 
   func test_filteredFolderContent_producesContent_whenDatabaseFetchingSucceeds() async throws {
-    let folders: Array<ListViewFolder> = [
-      .init(
-        id: .init(rawValue: "folderID"),
-        name: "Folder",
-        permission: .owner,
-        shared: false,
-        parentFolderID: nil,
-        contentCount: 0
-      )
-    ]
+    let folders: Array<ResourceFolderListItemDSV> = .random(count: 1)
 
-    let resources: Array<ListViewResource> = .testResources
+    let resources: Array<ResourceListItemDSV> = .testResources
 
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolders,
+        \AccountDatabase.fetchResourceFolderListItemDSVs,
         with: .returning(folders)
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewResources,
+        \AccountDatabase.fetchResourceListItemDSVs,
         with: .returning(resources)
       )
-    let filter: FoldersFilter = .init(
+    let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -237,35 +171,26 @@ final class FoldersTests: TestCase {
   }
 
   func test_filteredFolderContent_producesContentWithRequestedFolderID_whenDatabaseFetchingSucceeds() async throws {
-    let folders: Array<ListViewFolder> = [
-      .init(
-        id: .init(rawValue: "folderID"),
-        name: "Folder",
-        permission: .owner,
-        shared: false,
-        parentFolderID: nil,
-        contentCount: 0
-      )
-    ]
+    let folders: Array<ResourceFolderListItemDSV> = .random(count: 1)
 
-    let resources: Array<ListViewResource> = .testResources
+    let resources: Array<ResourceListItemDSV> = .testResources
 
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolders,
+        \AccountDatabase.fetchResourceFolderListItemDSVs,
         with: .returning(folders)
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewResources,
+        \AccountDatabase.fetchResourceListItemDSVs,
         with: .returning(resources)
       )
-    let filter: FoldersFilter = .init(
+    let filter: ResourceFoldersFilter = .init(
       sorting: .nameAlphabetically,
       folderID: .init(rawValue: "FilterFolderID")
     )
 
-    let feature: Folders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -286,30 +211,21 @@ final class FoldersTests: TestCase {
   }
 
   func test_filteredFolderContent_producesNewContent_whenFiltersChange() async throws {
-    let folders: Array<ListViewFolder> = [
-      .init(
-        id: .init(rawValue: "folderID"),
-        name: "Folder",
-        permission: .owner,
-        shared: false,
-        parentFolderID: nil,
-        contentCount: 0
-      )
-    ]
+    let folders: Array<ResourceFolderListItemDSV> = .random(count: 1)
 
-    let resources: Array<ListViewResource> = .testResources
+    let resources: Array<ResourceListItemDSV> = .testResources
 
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewFolders,
+        \AccountDatabase.fetchResourceFolderListItemDSVs,
         with: .returning(folders)
       )
     await self.features
       .patch(
-        \AccountDatabase.fetchListViewResources,
+        \AccountDatabase.fetchResourceListItemDSVs,
         with: .returning(resources)
       )
-    let filters: Array<FoldersFilter> = [
+    let filters: Array<ResourceFoldersFilter> = [
       .init(
         sorting: .nameAlphabetically,
         folderID: .init(rawValue: "FilterFolderID")
@@ -320,7 +236,7 @@ final class FoldersTests: TestCase {
       ),
     ]
 
-    let feature: Folders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testInstance()
 
     var result: Array<FolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init(filters)).prefix(2) {

@@ -165,11 +165,7 @@ extension AccountTransfer: Feature {
       .map {
         networkClient
           .mediaDownload
-          .make(
-            using: .init(
-              urlString: $0.avatarImageURL
-            )
-          )
+          .make(using: $0.avatarImageURL)
           .eraseErrorType()
       }
       .switchToLatest()
@@ -266,7 +262,7 @@ extension AccountTransfer: Feature {
                 username: user.username,
                 firstName: user.profile.firstName,
                 lastName: user.profile.lastName,
-                avatarImageURL: user.profile.avatar.url.medium
+                avatarImageURL: user.profile.avatar.urlString
               )
             },
             receiveCompletion: { completion in

@@ -35,8 +35,8 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    await features.usePlaceholder(for: AccountSettings.self)
-    await features.usePlaceholder(for: NetworkClient.self)
+    features.usePlaceholder(for: AccountSettings.self)
+    features.usePlaceholder(for: NetworkClient.self)
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
@@ -66,7 +66,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       .currentAcountAvatarImagePublisher()
       .asAsyncValue()
 
-    XCTAssertEqual(result?.urlString, validAccountWithProfile.avatarImageURL)
+    XCTAssertEqual(result, validAccountWithProfile.avatarImageURL)
   }
 
   func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() async throws {

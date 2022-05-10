@@ -909,9 +909,7 @@ private let accountTransferUpdateResponse: AccountTransferUpdateResponse = .init
         firstName: "firstName",
         lastName: "lastName",
         avatar: .init(
-          url: .init(
-            medium: "mediumAvatarImagePath"
-          )
+          urlString: "https://passbolt.com/image.jpg"
         )
       )
     )

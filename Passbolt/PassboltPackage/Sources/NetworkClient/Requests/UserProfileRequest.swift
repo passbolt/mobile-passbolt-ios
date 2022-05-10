@@ -72,4 +72,4 @@ public struct UserProfileRequestVariable {
   }
 }
 
-public typealias UserProfileRequestResponse = CommonResponse<User>
+public typealias UserProfileRequestResponse = CommonResponse<UserDTO>

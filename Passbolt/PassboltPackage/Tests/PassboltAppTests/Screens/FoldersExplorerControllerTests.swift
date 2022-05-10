@@ -38,25 +38,21 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    await features.usePlaceholder(for: Resources.self)
-    await features.patch(
-      \Resources.refreshIfNeeded,
-      with: always(
-        Just(Void())
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
+    features.usePlaceholder(for: Resources.self)
+    features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: always(Void())
     )
-    await features.usePlaceholder(for: Folders.self)
-    await features.patch(
-      \Folders.filteredFolderContent,
+    features.usePlaceholder(for: ResourceFolders.self)
+    features.patch(
+      \ResourceFolders.filteredFolderContent,
       with: always(
         AnyAsyncSequence([])
       )
     )
-    await features.usePlaceholder(for: HomePresentation.self)
-    await features.usePlaceholder(for: AccountSettings.self)
-    await features
+    features.usePlaceholder(for: HomePresentation.self)
+    features.usePlaceholder(for: AccountSettings.self)
+    features
       .patch(
         \AccountSettings.currentAccountAvatarPublisher,
         with: always(
@@ -68,11 +64,8 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
     await features.patch(
-      \Resources.refreshIfNeeded,
-      with: always(
-        Fail(error: MockIssue.error())
-          .eraseToAnyPublisher()
-      )
+      \AccountSessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
     )
 
     let controller: FoldersExplorerController = try await testController(
@@ -112,7 +105,7 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
         with: .init(
           id: "folder",
           name: "folder",
-          permission: .owner,
+          permissionType: .owner,
           shared: false,
           parentFolderID: nil,
           contentCount: 0

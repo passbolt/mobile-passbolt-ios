@@ -126,7 +126,7 @@ extension DiagnosticsContext {
 extension DiagnosticsContext: CustomDebugStringConvertible {
 
   public var debugDescription: String {
-    "\(Self.self)\n\(self.infoStack.reduce(into: "", { $0.append("\($1.debugDescription)")}))"
+    "\(Self.self)\n\(self.infoStack.reduce(into: "", { $0.append("\($1.debugDescription)\n")}))\n"
   }
 }
 

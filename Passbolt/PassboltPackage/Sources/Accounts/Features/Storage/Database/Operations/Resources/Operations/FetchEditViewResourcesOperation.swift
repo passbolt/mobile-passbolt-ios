@@ -23,7 +23,7 @@
 
 import Environment
 
-public typealias FetchEditViewResourcesOperation = DatabaseOperation<Resource.ID, EditViewResource>
+public typealias FetchEditViewResourcesOperation = DatabaseOperation<Resource.ID, ResourceEditDetailsDSV>
 
 extension FetchEditViewResourcesOperation {
 
@@ -33,77 +33,62 @@ extension FetchEditViewResourcesOperation {
     withConnection(
       using: connection
     ) { conn, input in
-      let statement: SQLiteStatement = """
+      var statement: SQLiteStatement = """
         SELECT
-          *
+          resourceEditView.id AS id,
+          resourceEditView.name AS name,
+          resourceEditView.url AS url,
+          resourceEditView.username AS username,
+          resourceEditView.description AS description,
+          resourceEditView.typeID AS typeID,
+          resourceEditView.typeSlug AS typeSlug,
+          resourceEditView.typeName AS typeName,
+          resourceEditView.fields AS fields
         FROM
           resourceEditView
         WHERE
-          id = ?1
+          resourceEditView.id == ?1
         LIMIT
           1;
         """
+      statement.appendArgument(input)
+
       return
         try conn
-        .fetch(
-          statement,
-          with: [input.rawValue]
-        ) { rows -> EditViewResource in
-          let editViewResource: EditViewResource? =
-            try rows
-            .first
-            .map { row -> EditViewResource in
-              guard
-                let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
-                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
-                let name: String = row.name,
-                let resourceTypeID: ResourceType.ID = row.resourceTypeID.map(ResourceType.ID.init(rawValue:)),
-                let resourceTypeSlug: ResourceType.Slug = row.resourceTypeSlug.map(ResourceType.Slug.init(rawValue:)),
-                let resourceTypeName: String = row.resourceTypeName,
-                let rawFields: String = row.resourceFields
-              else {
-                throw
-                  DatabaseIssue
-                  .error(
-                    underlyingError:
-                      DatabaseResultInvalid
-                      .error("Retrived invalid data from the database")
-                  )
-              }
-
-              let url: String? = row.url
-              let username: String? = row.username
-              let description: String? = row.description
-
-              return EditViewResource(
-                id: id,
-                type: .init(
-                  id: resourceTypeID,
-                  slug: resourceTypeSlug,
-                  name: resourceTypeName,
-                  fields: ResourceProperty.arrayFrom(rawString: rawFields)
-                ),
-                parentFolderID: row.parentFolderID.map(Folder.ID.init(rawValue:)),
-                permission: permission,
-                name: name,
-                url: url,
-                username: username,
-                description: description
-              )
-            }
-
-          if let editViewResource: EditViewResource = editViewResource {
-            return editViewResource
-          }
+        .fetchFirst(using: statement) { dataRow -> ResourceEditDetailsDSV in
+          guard
+            let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+            let name: String = dataRow.name,
+            let resourceTypeID: ResourceType.ID = dataRow.typeID.flatMap(ResourceType.ID.init(rawValue:)),
+            let resourceTypeSlug: ResourceType.Slug = dataRow.typeSlug.flatMap(
+              ResourceType.Slug.init(rawValue:)
+            ),
+            let resourceTypeName: String = dataRow.typeName,
+            let rawFields: String = dataRow.fields
           else {
             throw
               DatabaseIssue
               .error(
                 underlyingError:
-                  DatabaseResultEmpty
-                  .error("Failed to retrive data from the database")
+                  DatabaseDataInvalid
+                  .error(for: ResourceEditDetailsDSV.self)
               )
           }
+
+          return ResourceEditDetailsDSV(
+            id: id,
+            type: .init(
+              id: resourceTypeID,
+              slug: resourceTypeSlug,
+              name: resourceTypeName,
+              fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields)
+            ),
+            parentFolderID: dataRow.parentFolderID.map(ResourceFolder.ID.init(rawValue:)),
+            name: name,
+            url: dataRow.url,
+            username: dataRow.username,
+            description: dataRow.description
+          )
         }
     }
   }

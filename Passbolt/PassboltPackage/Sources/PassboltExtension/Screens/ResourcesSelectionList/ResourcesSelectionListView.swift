@@ -32,12 +32,12 @@ internal final class ResourcesSelectionListView: CollectionView<
   internal var addTapPublisher: AnyPublisher<Void, Never> {
     addTapSubject.eraseToAnyPublisher()
   }
-  internal var itemTapPublisher: AnyPublisher<ResourcesSelectionListViewResourceItem, Never> {
+  internal var itemTapPublisher: AnyPublisher<ResourcesSelectionResourceListItemDSVItem, Never> {
     itemTapSubject.eraseToAnyPublisher()
   }
 
   private let addTapSubject: PassthroughSubject<Void, Never> = .init()
-  private var itemTapSubject: PassthroughSubject<ResourcesSelectionListViewResourceItem, Never> = .init()
+  private var itemTapSubject: PassthroughSubject<ResourcesSelectionResourceListItemDSVItem, Never> = .init()
 
   internal init() {
     super.init(

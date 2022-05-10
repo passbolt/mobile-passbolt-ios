@@ -30,66 +30,7 @@ internal enum SQLiteOpeningOperations {
 
   public static var all: Array<SQLiteStatement> {
     [
-      // - resourcesListView - //
-      """
-      CREATE TEMPORARY VIEW
-        resourcesListView
-      AS
-      SELECT
-        resources.id,
-        resources.name,
-        resources.permission,
-        resources.url,
-        resources.username,
-        resources.favorite,
-        resources.modified,
-        resources.parentFolderID
-      FROM
-        resources;
-      """,
-      // - resourceDetailsView - //
-      """
-      CREATE TEMPORARY VIEW
-        resourceDetailsView
-      AS
-      SELECT
-        resources.id AS id,
-        resources.name AS name,
-        resources.permission AS permission,
-        resources.url AS url,
-        resources.username AS username,
-        resources.description AS description,
-        (
-          SELECT
-            group_concat(
-              resourceFields.name
-              || ":"
-              || resourceFields.type
-              || ";required="
-              || resourceFields.required
-              || ";encrypted="
-              || resourceFields.encrypted
-              || ";maxLength="
-              || resourceFields.maxLength
-            )
-          FROM
-            resourceFields
-          JOIN
-            resourceTypesFields
-          ON
-            resourceFields.id == resourceTypesFields.resourceFieldID
-          JOIN
-            resourceTypes
-          ON
-            resourceTypes.id == resourceTypesFields.resourceTypeID
-          WHERE
-            resources.resourceTypeID == resourceTypes.id
-        )
-        AS resourceFields
-      FROM
-        resources;
-      """,
-      // - resourceTypesView - //
+      // - add resourceTypesView - //
       """
       CREATE TEMPORARY VIEW
         resourceTypesView
@@ -103,7 +44,7 @@ internal enum SQLiteOpeningOperations {
             group_concat(
               resourceFields.name
               || ":"
-              || resourceFields.type
+              || resourceFields.valueType
               || ";required="
               || resourceFields.required
               || ";encrypted="
@@ -124,7 +65,28 @@ internal enum SQLiteOpeningOperations {
       FROM
         resourceTypes;
       """,
-      // - resourceEditView - //
+      // - add resourceDetailsView - //
+      """
+      CREATE TEMPORARY VIEW
+        resourceDetailsView
+      AS
+      SELECT
+        resources.id AS id,
+        resources.name AS name,
+        resources.permissionType AS permissionType,
+        resources.url AS url,
+        resources.username AS username,
+        resources.description AS description,
+        resourceTypesView.fields AS fields
+      FROM
+        resources
+      JOIN
+        resourceTypesView
+      ON
+        resources.typeID == resourceTypesView.id;
+      """,
+
+      // - add resourceEditView - //
       """
       CREATE TEMPORARY VIEW
         resourceEditView
@@ -132,60 +94,20 @@ internal enum SQLiteOpeningOperations {
       SELECT
         resources.id AS id,
         resources.name AS name,
-        resources.permission AS permission,
+        resources.permissionType AS permissionType,
         resources.url AS url,
         resources.username AS username,
         resources.description AS description,
-        resourceTypes.id AS resourceTypeID,
-        resourceTypes.slug AS resourceTypeSlug,
-        resourceTypes.name AS resourceTypeName,
-        (
-          SELECT
-            group_concat(
-              resourceFields.name
-              || ":"
-              || resourceFields.type
-              || ";required="
-              || resourceFields.required
-              || ";encrypted="
-              || resourceFields.encrypted
-              || ";maxLength="
-              || resourceFields.maxLength
-            )
-          FROM
-            resourceFields
-          JOIN
-            resourceTypesFields
-          ON
-            resourceFields.id == resourceTypesFields.resourceFieldID
-          JOIN
-            resourceTypes
-          ON
-            resourceTypes.id == resourceTypesFields.resourceTypeID
-          WHERE
-            resources.resourceTypeID == resourceTypes.id
-        )
-        AS resourceFields
+        resources.typeID AS typeID,
+        resourceTypesView.slug AS typeSlug,
+        resourceTypesView.name AS typeName,
+        resourceTypesView.fields AS fields
       FROM
         resources
       JOIN
-        resourceTypes
+        resourceTypesView
       ON
-        resourceTypes.id == resources.resourceTypeID;
-      """,
-      // - foldersListView - //
-      """
-      CREATE TEMPORARY VIEW
-        foldersListView
-      AS
-      SELECT
-        id,
-        parentFolderID,
-        name,
-        permission,
-        shared
-      FROM
-        folders;
+        resources.typeID == resourceTypesView.id;
       """,
     ]
   }

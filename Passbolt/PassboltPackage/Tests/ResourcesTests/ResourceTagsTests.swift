@@ -29,9 +29,25 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceTagsTests: TestCase {
 
+  private var updatesSequence: AnyAsyncSequence<Void>!
+
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
     self.features.usePlaceholder(for: AccountDatabase.self)
+    self.features.usePlaceholder(for: AccountSessionData.self)
+    self.updatesSequence = AsyncVariable(initial: Void())
+      .asAnyAsyncSequence()
+    self.features.patch(
+      \AccountSessionData.updatesSequence,
+      with: always(
+        self.updatesSequence
+      )
+    )
+  }
+
+  override func featuresActorTearDown() async throws {
+    try await super.featuresActorTearDown()
+    self.updatesSequence = nil
   }
 
   func test_filteredTagsList_fetchesData_withGivenFilter() async throws {
@@ -64,14 +80,14 @@ final class ResourceTagsTests: TestCase {
 
     let feature: ResourceTags = try await self.testInstance()
 
-    let result: Array<ListViewResourceTag>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
+    let result: Array<ResourceTagListItemDSV>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
       .first()
 
     XCTAssertEqual(result, [])
   }
 
   func test_filteredTagsList_returnsDataFromDabase() async throws {
-    let expectedResult: Array<ListViewResourceTag> = [
+    let expectedResult: Array<ResourceTagListItemDSV> = [
       .init(
         id: "resourceID",
         slug: "slug",
@@ -89,27 +105,20 @@ final class ResourceTagsTests: TestCase {
 
     let feature: ResourceTags = try await self.testInstance()
 
-    let result: Array<ListViewResourceTag>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
+    let result: Array<ResourceTagListItemDSV>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
       .first()
 
     XCTAssertEqual(result, expectedResult)
   }
 
   func test_filteredTagsList_returnsUpdates_whenFilterChanges() async throws {
-    var expectedResult: Array<ListViewResourceTag> = []
+    var expectedResult: Array<ResourceTagListItemDSV> = []
     let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
 
-    let nextResult: () -> Array<ListViewResourceTag> = {
+    let nextResult: () -> Array<ResourceTagListItemDSV> = {
       defer {
         if expectedResult.isEmpty {
-          expectedResult.append(
-            .init(
-              id: "resourceID",
-              slug: "slug",
-              shared: false,
-              contentCount: 0
-            )
-          )
+          expectedResult.append(.random())
         }
         else { /* NOP */
         }
@@ -130,9 +139,9 @@ final class ResourceTagsTests: TestCase {
     // ignoring first, expecting update
     _ = await filteredTagsSequenceIterator.next()
 
-    try await filtersSequence.send("updated")
+    await filtersSequence.send("updated")
 
-    let result: Array<ListViewResourceTag>? = await filteredTagsSequenceIterator.next()
+    let result: Array<ResourceTagListItemDSV>? = await filteredTagsSequenceIterator.next()
 
     XCTAssertEqual(result, expectedResult)
   }

@@ -23,101 +23,25 @@
 
 import Commons
 
-public struct User: Decodable {
+public enum User {}
+
+extension User {
 
   public typealias ID = Tagged<String, Self>
-  public var id: ID
-  public var profile: Profile
-  public var gpgKey: GPGKey
-
-  public init(
-    id: ID,
-    profile: Profile,
-    gpgKey: GPGKey
-  ) {
-    self.id = id
-    self.profile = profile
-    self.gpgKey = gpgKey
-  }
-
-  public enum CodingKeys: String, CodingKey {
-
-    case id = "id"
-    case profile = "profile"
-    case gpgKey = "gpgkey"
-  }
 }
 
-extension User {
+#if DEBUG
 
-  public struct Profile: Decodable {
+// cannot conform to RandomlyGenerated
+extension User.ID {
 
-    public var firstName: String
-    public var lastName: String
-    public var avatar: Avatar
-
-    public init(
-      firstName: String,
-      lastName: String,
-      avatar: Avatar
-    ) {
-      self.firstName = firstName
-      self.lastName = lastName
-      self.avatar = avatar
-    }
-
-    public enum CodingKeys: String, CodingKey {
-
-      case firstName = "first_name"
-      case lastName = "last_name"
-      case avatar = "avatar"
-    }
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    UUID
+      .randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
   }
 }
-
-extension User.Profile {
-
-  public struct Avatar: Decodable {
-
-    public var url: Image
-
-    public init(
-      url: Image
-    ) {
-      self.url = url
-    }
-  }
-}
-
-extension User.Profile.Avatar {
-
-  public struct Image: Decodable {
-
-    public var medium: String
-
-    public init(
-      medium: String
-    ) {
-      self.medium = medium
-    }
-  }
-}
-
-extension User {
-
-  public struct GPGKey: Decodable {
-
-    public var armoredKey: ArmoredPGPPublicKey
-
-    public init(
-      armoredKey: ArmoredPGPPublicKey
-    ) {
-      self.armoredKey = armoredKey
-    }
-
-    public enum CodingKeys: String, CodingKey {
-
-      case armoredKey = "armored_key"
-    }
-  }
-}
+#endif

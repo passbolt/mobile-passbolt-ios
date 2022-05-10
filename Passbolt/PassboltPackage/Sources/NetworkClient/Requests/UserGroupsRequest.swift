@@ -38,7 +38,7 @@ extension UserGroupsRequest {
         .combined(
           .url(string: sessionVariable.domain.rawValue),
           .pathSuffix("/groups.json"),
-          .queryItem("filter[has-users] ", value: "\(requestVariable.userID.rawValue)"),
+          .queryItem("contain[user]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
@@ -56,40 +56,9 @@ extension UserGroupsRequest {
   }
 }
 
-public struct UserGroupsRequestVariable {
 
-  public var userID: User.ID
-
-  public init(
-    userID: User.ID
-  ) {
-    self.userID = userID
-  }
-}
+public typealias UserGroupsRequestVariable = Void
 
 public typealias UserGroupsRequestResponse = CommonResponse<UserGroupsRequestResponseBody>
 
-public typealias UserGroupsRequestResponseBody = Array<UserGroupsRequestResponseBodyItem>
-
-public struct UserGroupsRequestResponseBodyItem {
-
-  public var id: String
-  public var name: String
-
-  public init(
-    id: String,
-    name: String
-  ) {
-    self.id = id
-    self.name = name
-  }
-}
-
-extension UserGroupsRequestResponseBodyItem: Decodable {
-
-  private enum CodingKeys: String, CodingKey {
-
-    case id = "id"
-    case name = "name"
-  }
-}
+public typealias UserGroupsRequestResponseBody = Array<UserGroupDTO>

@@ -120,39 +120,6 @@ extension AccountTransferUpdateResponseBody {
   public struct User: Decodable {
 
     public var username: String
-    public var profile: Profile
-  }
-}
-
-extension AccountTransferUpdateResponseBody.User {
-
-  public struct Profile: Decodable {
-
-    public var firstName: String
-    public var lastName: String
-    public var avatar: Avatar
-
-    public enum CodingKeys: String, CodingKey {
-
-      case firstName = "first_name"
-      case lastName = "last_name"
-      case avatar = "avatar"
-    }
-  }
-}
-
-extension AccountTransferUpdateResponseBody.User.Profile {
-
-  public struct Avatar: Decodable {
-
-    public var url: Image
-  }
-}
-
-extension AccountTransferUpdateResponseBody.User.Profile.Avatar {
-
-  public struct Image: Decodable {
-
-    public var medium: String
+    public var profile: UserProfileDTO
   }
 }

@@ -60,6 +60,16 @@ public struct CriticalState<State> {
     return try await access(&self.memory.statePtr.pointee)
   }
 
+  @inlinable public func shieldedAccessAsync<Value>(
+    _ access: @escaping (inout State) async throws -> Value
+  ) async rethrows -> Value {
+    while !atomic_flag_test_and_set(self.memory.flagPtr) {
+      await Task.yield()
+    }
+    defer { atomic_flag_clear(self.memory.flagPtr) }
+    return try await access(&self.memory.statePtr.pointee)
+  }
+
   @inlinable public func getAsync<Value>(
     _ keyPath: KeyPath<State, Value>
   ) async -> Value {

@@ -23,7 +23,7 @@
 
 import Environment
 
-public typealias StoreResourcesOperation = DatabaseOperation<Array<Resource>, Void>
+public typealias StoreResourcesOperation = DatabaseOperation<Array<ResourceDSO>, Void>
 
 extension StoreResourcesOperation {
 
@@ -40,142 +40,153 @@ extension StoreResourcesOperation {
       // We are getting all possible results anyway until diffing becomes implemented.
       // Please remove later on when diffing becomes available or other method of
       // deleting records selecively becomes implemented.
-      //
-      //
+
       // Delete currently stored resources
       try conn.execute("DELETE FROM resources;")
-      // Delete currently stored tags
-      try conn.execute("DELETE FROM tags;")
-      // Delete currently stored group associations
-      try conn.execute("DELETE FROM resourcesUserGroups;")
-
-      // Insert or update all new tags
-      for tag in input.flatMap(\.tags) {
-        try conn
-          .execute(
-            upsertTagStatement,
-            with: tag.id.rawValue,
-            tag.slug,
-            tag.shared
-          )
-      }
+      // Delete currently stored resource tags
+      try conn.execute("DELETE FROM resourceTags;")
 
       // Insert or update all new resource
       for resource in input {
-        try conn
-          .execute(
-            upsertResourceStatement,
-            with: resource.id.rawValue,
+        try conn.execute(
+          .statement(
+            """
+            INSERT INTO
+              resources(
+                id,
+                name,
+                url,
+                username,
+                typeID,
+                description,
+                parentFolderID,
+                favorite,
+                permissionType,
+                modified
+              )
+            VALUES
+              (
+                ?1,
+                ?2,
+                ?3,
+                ?4,
+                ?5,
+                ?6,
+                (
+                  SELECT
+                    id
+                  FROM
+                    resourceFolders
+                  WHERE
+                    id == ?7
+                  LIMIT 1
+                ),
+                ?8,
+                ?9,
+                ?10
+              )
+            ON CONFLICT
+              (
+                id
+              )
+            DO UPDATE SET
+              name=?2,
+              url=?3,
+              username=?4,
+              typeID=?5,
+              description=?6,
+              parentFolderID=(
+                SELECT
+                  id
+                FROM
+                  resourceFolders
+                WHERE
+                  id == ?7
+                LIMIT 1
+              ),
+              favorite=?8,
+              permissionType=?9,
+              modified=?10
+            ;
+            """,
+            arguments: resource.id,
             resource.name,
-            resource.permission.rawValue,
             resource.url,
             resource.username,
-            resource.typeID.rawValue,
+            resource.typeID,
             resource.description,
-            resource.parentFolderID?.rawValue,
+            resource.parentFolderID,
             resource.favorite,
+            resource.permissionType.rawValue,
             resource.modified
           )
+        )
 
-        for tag in resource.tags {
+        for resourceTag in resource.tags {
           try conn
             .execute(
-              upsertResourceTagStatement,
-              with: resource.id.rawValue,
-              tag.id.rawValue
+              .statement(
+                """
+                INSERT INTO
+                  resourceTags(
+                    id,
+                    slug,
+                    shared
+                  )
+                VALUES
+                  (
+                    ?1,
+                    ?2,
+                    ?3
+                  )
+                ON CONFLICT
+                  (
+                    id
+                  )
+                DO UPDATE SET
+                  slug=?2,
+                  shared=?3
+                ;
+                """,
+                arguments: resourceTag.id,
+                resourceTag.slug,
+                resourceTag.shared
+              )
+            )
+
+          try conn
+            .execute(
+              .statement(
+                """
+                INSERT INTO
+                  resourcesTags(
+                    resourceID,
+                    resourceTagID
+                  )
+                SELECT
+                  resources.id,
+                  resourceTags.id
+                FROM
+                  resources,
+                  resourceTags
+                WHERE
+                  resources.id == ?1
+                AND
+                  resourceTags.id == ?2
+                ;
+                """,
+                arguments: resource.id,
+                resourceTag.id
+              )
             )
         }
 
-        for groupID in resource.groups {
-          try conn
-            .execute(
-              upsertResourcesUserGroupStatement,
-              with: resource.id.rawValue,
-              groupID.rawValue
-            )
+        for permission in resource.permissions {
+          try conn.execute(
+            permission.storeStatement
+          )
         }
       }
     }
   }
 }
-
-private let upsertResourceStatement: SQLiteStatement = """
-  INSERT OR REPLACE INTO
-    resources(
-      id,
-      name,
-      permission,
-      url,
-      username,
-      resourceTypeID,
-      description,
-      parentFolderID,
-      favorite,
-      modified
-    )
-  VALUES
-    (
-      ?1,
-      ?2,
-      ?3,
-      ?4,
-      ?5,
-      ?6,
-      ?7,
-      (SELECT id FROM folders WHERE id = ?8),
-      ?9,
-      ?10
-    );
-  """
-
-private let upsertTagStatement: SQLiteStatement = """
-  INSERT OR REPLACE INTO
-    tags(
-      id,
-      slug,
-      shared
-    )
-  VALUES
-    (
-      ?1,
-      ?2,
-      ?3
-    );
-  """
-
-private let upsertResourceTagStatement: SQLiteStatement =
-  """
-    INSERT OR REPLACE INTO
-      resourceTags(
-        resourceID,
-        tagID
-      )
-    SELECT
-      id,
-      ?2
-    FROM
-      resources
-    WHERE
-      resources.id IS ?1
-    ;
-  """
-
-private let upsertResourcesUserGroupStatement: SQLiteStatement =
-  """
-    INSERT OR REPLACE INTO
-      resourcesUserGroups(
-        resourceID,
-        userGroupID
-      )
-    SELECT
-      resources.id,
-      userGroups.id
-    FROM
-      resources,
-      userGroups
-    WHERE
-      resources.id IS ?1
-    AND
-      userGroups.id IS ?2
-    ;
-  """

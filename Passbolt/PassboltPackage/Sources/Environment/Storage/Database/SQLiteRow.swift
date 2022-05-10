@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CommonModels
 import SQLCipher
 
 import struct Foundation.Data
@@ -28,16 +29,16 @@ import struct Foundation.Data
 @dynamicMemberLookup
 public struct SQLiteRow {
 
-  public var columnNames: Set<String> { Set(values.keys) }
+  public var columnNames: Set<String> { Set(self.values.keys) }
 
-  private let values: Dictionary<String, SQLiteBindable?>
+  private let values: Dictionary<String, SQLiteValueConvertible?>
 
   internal init(
     _ handle: OpaquePointer?
   ) {
-    func bindable(
+    func value(
       at index: Int32
-    ) -> SQLiteBindable? {
+    ) -> SQLiteValueConvertible? {
       let columnType: Int32 = sqlite3_column_type(
         handle,
         index
@@ -108,13 +109,16 @@ public struct SQLiteRow {
                 columnIndex
               )
             ),
-            value: bindable(
+            value: value(
               at: columnIndex
             )
           )
         }
     )
   }
+}
+
+extension SQLiteRow {
 
   public subscript(
     dynamicMember column: String
@@ -188,7 +192,7 @@ extension SQLiteRow: CustomDebugStringConvertible {
 extension SQLiteRow {
 
   public init(
-    values: Dictionary<String, SQLiteBindable?>
+    values: Dictionary<String, SQLiteValueConvertible?>
   ) {
     self.values = values
   }

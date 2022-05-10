@@ -74,8 +74,8 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = { _ in
-      var detailsViewResourceWithReorderedFields: DetailsViewResource = detailsViewResource
-      detailsViewResourceWithReorderedFields.properties.reverse()
+      var detailsViewResourceWithReorderedFields: ResourceDetailsDSV = detailsViewResource
+      detailsViewResourceWithReorderedFields.fields.reverse()
       return Just(detailsViewResourceWithReorderedFields)
         .eraseErrorType()
         .eraseToAnyPublisher()
@@ -87,7 +87,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
 
-    let expectedOrderedFields: [ResourceField] = [
+    let expectedOrderedFields: [ResourceFieldName] = [
       .uri,
       .username,
       .password,
@@ -100,7 +100,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.resourceDetails.id.rawValue, context.rawValue)
-    XCTAssertEqual(result?.resourceDetails.properties.map(\.field), expectedOrderedFields)
+    XCTAssertEqual(result?.resourceDetails.fields.map(\.name), expectedOrderedFields)
   }
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() async throws {
@@ -298,7 +298,7 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   func test_copyFieldEncryptedDescription_succeeds() async throws {
     featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
     resources.resourceDetailsPublisher = always(
-      Just(encryptedDescriptionDetailsViewResource)
+      Just(encryptedDescriptionResourceDetailsDSV)
         .eraseErrorType()
         .eraseToAnyPublisher()
     )
@@ -428,91 +428,38 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
 
     XCTAssertEqual(result, context)
   }
-
-  func test_resourceDeletionPublisher_triggersRefreshIfNeeded_whenDeletion_succeeds() async throws {
-    var resourcesList: Array<ListViewResource> = [
-      ListViewResource(
-        id: "resource_1",
-        parentFolderID: .none,
-        name: "Resoure 1",
-        username: "test",
-        url: "passbolt.com"
-      )
-    ]
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
-    )
-    resources.deleteResource = { resourceID in
-      resourcesList.removeAll { $0.id == resourceID }
-      return Just(())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    }
-
-    var result: Void?
-
-    resources.refreshIfNeeded = {
-      result = Void()
-      return Just(())
-        .ignoreOutput()
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    }
-    await features.use(resources)
-    await features.use(featureConfig)
-    await features.use(pasteboard)
-
-    let context: Resource.ID = "1"
-    let controller: ResourceDetailsController = try await testController(context: context)
-
-    controller
-      .resourceDeletionPublisher(resourcesList.first!.id)
-      .sinkDrop()
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-
-    XCTAssertNotNil(result)
-    XCTAssertTrue(resourcesList.isEmpty)
-  }
 }
 
-private let detailsViewResource: DetailsViewResource = .init(
+private let detailsViewResource: ResourceDetailsDSV = .init(
   id: .init(rawValue: "1"),
-  permission: .owner,
+  permissionType: .owner,
   name: "Passphrase",
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: "Passbolt",
-  properties: [
-    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-  ]
+  fields: [
+    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
+    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .description, valueType: .string, required: true, encrypted: false, maxLength: nil),
+  ],
+  permissions: []
 )
 
-private let encryptedDescriptionDetailsViewResource: DetailsViewResource = .init(
+private let encryptedDescriptionResourceDetailsDSV: ResourceDetailsDSV = .init(
   id: .init(rawValue: "1"),
-  permission: .owner,
+  permissionType: .owner,
   name: "Passphrase",
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: nil,
-  properties: [
-    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-  ]
+  fields: [
+    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
+    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .description, valueType: .string, required: true, encrypted: true, maxLength: nil),
+  ],
+  permissions: []
 )
 
 private let resourceSecret: ResourceSecret = .from(

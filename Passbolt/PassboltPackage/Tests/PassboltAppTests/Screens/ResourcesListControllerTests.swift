@@ -42,15 +42,19 @@ final class ResourceListControllerTests: MainActorTestCase {
     resources = .placeholder
   }
 
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    features.usePlaceholder(for: AccountSessionData.self)
+  }
+
   override func mainActorTearDown() {
     resources = nil
   }
 
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() async throws {
-    resources.refreshIfNeeded = always(
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: always(Void())
     )
     await features.use(resources)
 
@@ -69,9 +73,9 @@ final class ResourceListControllerTests: MainActorTestCase {
   }
 
   func test_refreshResources_fails_whenResourcesRefreshFails() async throws {
-    resources.refreshIfNeeded = always(
-      Fail<Void, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
     )
     await features.use(resources)
 
@@ -96,15 +100,15 @@ final class ResourceListControllerTests: MainActorTestCase {
   }
 
   func test_resourcesListPublisher_publishesResourcesListFromResources() async throws {
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -124,7 +128,7 @@ final class ResourceListControllerTests: MainActorTestCase {
 
     let controller: ResourcesListController = try await testController(context: filtersSubject.eraseToAnyPublisher())
 
-    var result: Array<ResourcesListViewResourceItem>?
+    var result: Array<ResourcesResourceListItemDSVItem>?
 
     controller
       .resourcesListPublisher()
@@ -133,7 +137,7 @@ final class ResourceListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, resourcesList.map(ResourcesListViewResourceItem.init(from:)))
+    XCTAssertEqual(result, resourcesList.map(ResourcesResourceListItemDSVItem.init(from:)))
   }
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
@@ -162,15 +166,15 @@ final class ResourceListControllerTests: MainActorTestCase {
   }
 
   func test_resourceDetailsPresentationPublisher_publishesResourceID() async throws {
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -199,22 +203,22 @@ final class ResourceListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    controller.presentResourceDetails(resourcesList.first.map(ResourcesListViewResourceItem.init(from:))!)
+    controller.presentResourceDetails(resourcesList.first.map(ResourcesResourceListItemDSVItem.init(from:))!)
 
     XCTAssertNotNil(result)
     XCTAssertEqual(result.rawValue, resourcesList.first!.id.rawValue)
   }
 
   func test_resourceMenuPresentationPublisher_publishesResourceID() async throws {
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",
@@ -243,7 +247,7 @@ final class ResourceListControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    controller.presentResourceMenu(resourcesList.first.map(ResourcesListViewResourceItem.init(from:))!)
+    controller.presentResourceMenu(resourcesList.first.map(ResourcesResourceListItemDSVItem.init(from:))!)
 
     XCTAssertNotNil(result)
     XCTAssertEqual(result.rawValue, resourcesList.first!.id.rawValue)
@@ -252,15 +256,15 @@ final class ResourceListControllerTests: MainActorTestCase {
   func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()
     async throws
   {
-    let resourcesList: Array<ListViewResource> = [
-      ListViewResource(
+    let resourcesList: Array<ResourceListItemDSV> = [
+      ResourceListItemDSV(
         id: "resource_1",
         parentFolderID: .none,
         name: "Resoure 1",
         username: "test",
         url: "passbolt.com"
       ),
-      ListViewResource(
+      ResourceListItemDSV(
         id: "resource_2",
         parentFolderID: .none,
         name: "Resoure 2",

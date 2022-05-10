@@ -43,6 +43,7 @@ extension FoldersRequest {
           .url(string: sessionVariable.domain.rawValue),
           .pathSuffix("/folders.json"),
           .queryItem("contain[permission]", value: "1"),
+          .queryItem("contain[permissions]", value: "1"),
           .header("Authorization", value: "Bearer \(sessionVariable.accessToken)"),
           .whenSome(
             sessionVariable.mfaToken,
@@ -64,52 +65,4 @@ public typealias FoldersRequestVariable = Void
 
 public typealias FoldersRequestResponse = CommonResponse<FoldersRequestResponseBody>
 
-public typealias FoldersRequestResponseBody = Array<FoldersRequestResponseBodyItem>
-
-public struct FoldersRequestResponseBodyItem: Decodable {
-
-  public var id: String
-  public var name: String
-  public var permission: Permission
-  public var shared: Bool
-  public var parentFolderID: String?
-
-  public init(
-    from decoder: Decoder
-  ) throws {
-    let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-    self.id = try container.decode(String.self, forKey: .id)
-    self.name = try container.decode(String.self, forKey: .name)
-    self.parentFolderID = try container.decodeIfPresent(String.self, forKey: .parentFolderID)
-
-    let permissionContainer = try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
-    self.permission = try permissionContainer.decode(Permission.self, forKey: .type)
-    self.shared = try !container.decode(Bool.self, forKey: .personal)
-  }
-
-  private enum CodingKeys: String, CodingKey {
-
-    case id = "id"
-    case name = "name"
-    case parentFolderID = "folder_parent_id"
-    case permission = "permission"
-    case personal = "personal"
-  }
-
-  private enum PermissionCodingKeys: String, CodingKey {
-
-    case type = "type"
-  }
-
-  private enum FavoriteCodingKeys: CodingKey {}
-}
-
-extension FoldersRequestResponseBodyItem {
-
-  public enum Permission: Int, Decodable {
-
-    case read = 1
-    case write = 7
-    case owner = 15
-  }
-}
+public typealias FoldersRequestResponseBody = Array<ResourceFolderDTO>

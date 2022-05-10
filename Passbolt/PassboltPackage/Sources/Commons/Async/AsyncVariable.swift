@@ -70,8 +70,8 @@ extension AsyncVariable {
 
   public func send(
     _ newValue: Value
-  ) async throws {
-    try await self.state.accessAsync { state in
+  ) async {
+    await self.state.shieldedAccessAsync { state in
       state.value = newValue
       state.generation &+= 1
       while let awaiter = state.awaiters.popLast() {

@@ -86,7 +86,10 @@ internal final class SQLiteConnectionHandle {
     try connectionHandle.execute("PRAGMA key;")
     try connectionHandle.execute("PRAGMA foreign_keys = ON;")
     try connectionHandle.execute("PRAGMA journal_mode = WAL;")
+    try connectionHandle.execute("PRAGMA recursive_triggers = ON;")
+    try connectionHandle.execute("PRAGMA quick_check;")
     try connectionHandle.execute("PRAGMA SQLITE_DBCONFIG_DEFENSIVE = ON;")
+
     return connectionHandle
   }
 
@@ -104,8 +107,8 @@ internal final class SQLiteConnectionHandle {
 
   @usableFromInline
   @StorageAccessActor internal func execute(
-    _ statement: SQLiteStatement,
-    with parameters: Array<SQLiteBindable?> = .init()
+    _ statement: String,
+    with parameters: Array<SQLiteValue> = .init()
   ) throws {
     let statementHandle: OpaquePointer? =
       try prepareStatement(
@@ -142,8 +145,8 @@ internal final class SQLiteConnectionHandle {
 
   @usableFromInline
   @StorageAccessActor internal func fetch(
-    _ statement: SQLiteStatement,
-    with parameters: Array<SQLiteBindable?> = .init()
+    _ statement: String,
+    with parameters: Array<SQLiteValue> = .init()
   ) throws -> Array<SQLiteRow> {
     let statementHandle: OpaquePointer? =
       try prepareStatement(
@@ -189,14 +192,14 @@ internal final class SQLiteConnectionHandle {
 
   @inline(__always)
   @StorageAccessActor private func prepareStatement(
-    _ statement: SQLiteStatement,
-    with parameters: Array<SQLiteBindable?>
+    _ statement: String,
+    with parameters: Array<SQLiteValue>
   ) throws -> OpaquePointer? {
     var statementHandle: OpaquePointer?
 
     let statementPreparationResult: Int32 = sqlite3_prepare_v2(
       handle,
-      statement.rawString,
+      statement,
       -1,
       &statementHandle,
       nil
@@ -232,47 +235,24 @@ internal final class SQLiteConnectionHandle {
         )
     }
 
-    for (idx, argument) in parameters.enumerated() {
-      if let argument: SQLiteBindable = argument {
-        let bindingSucceeded: Bool =
-          argument
+    for (idx, parameter) in parameters.enumerated() {
+      guard
+        parameter
           .bind(
             statementHandle,
             at: Int32(idx + 1)
           )
-
-        guard bindingSucceeded
-        else {
-          throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseBindingInvalid
-                .error()
-                .recording(lastErrorMessage(), for: "errorMessage")
-                .recording(statement, for: "statement")
-                .recording(parameters, for: "parameters")
-            )
-        }
-      }
       else {
-        let bindingResult: Int32 = sqlite3_bind_null(
-          statementHandle,
-          Int32(idx + 1)
-        )
-        guard bindingResult == SQLITE_OK
-        else {
-          throw
-            DatabaseIssue
-            .error(
-              underlyingError:
-                DatabaseBindingInvalid
-                .error()
-                .recording(lastErrorMessage(), for: "errorMessage")
-                .recording(statement, for: "statement")
-                .recording(parameters, for: "parameters")
-            )
-        }
+        throw
+          DatabaseIssue
+          .error(
+            underlyingError:
+              DatabaseBindingInvalid
+              .error()
+              .recording(lastErrorMessage(), for: "errorMessage")
+              .recording(statement, for: "statement")
+              .recording(parameters, for: "parameters")
+          )
       }
     }
 

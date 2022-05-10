@@ -23,9 +23,22 @@
 
 import Environment
 
-public typealias FetchDetailsViewResourcesOperation = DatabaseOperation<Resource.ID, DetailsViewResource>
+public typealias FetchResourceDetailsDSVsOperation = DatabaseOperation<
+  FetchResourceDetailsDSVsOperationFilter, ResourceDetailsDSV
+>
 
-extension FetchDetailsViewResourcesOperation {
+public struct FetchResourceDetailsDSVsOperationFilter {
+
+  public var resourceID: Resource.ID
+
+  public init(
+    resourceID: Resource.ID
+  ) {
+    self.resourceID = resourceID
+  }
+}
+
+extension FetchResourceDetailsDSVsOperation {
 
   internal static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -33,69 +46,146 @@ extension FetchDetailsViewResourcesOperation {
     withConnection(
       using: connection
     ) { conn, input in
-      let statement: SQLiteStatement = """
-        SELECT
-          *
-        FROM
-          resourceDetailsView
-        WHERE
-          id = ?1
-        LIMIT
-          1;
-        """
-      return
-        try conn
-        .fetch(
-          statement,
-          with: [input.rawValue]
-        ) { rows -> DetailsViewResource in
-          let detailsViewResource: DetailsViewResource? =
-            try rows
-            .first
-            .map { row -> DetailsViewResource in
-              guard
-                let id: DetailsViewResource.ID = row.id.map(DetailsViewResource.ID.init(rawValue:)),
-                let permission: Permission = row.permission.flatMap(Permission.init(rawValue:)),
-                let name: String = row.name,
-                let rawFields: String = row.resourceFields
-              else {
-                throw
-                  DatabaseIssue
-                  .error(
-                    underlyingError:
-                      DatabaseResultInvalid
-                      .error("Retrived invalid data from the database")
-                  )
-              }
+      let selectResourcesUsersPermissionsStatement: SQLiteStatement =
+        .statement(
+          """
+          SELECT
+            usersResources.userID AS userID,
+            usersResources.resourceID AS resourceID,
+            usersResources.permissionType AS permissionType
+          FROM
+            usersResources
+          WHERE
+            usersResources.resourceID == ?;
+          """,
+          arguments: input.resourceID
+        )
 
-              let url: String? = row.url
-              let username: String? = row.username
-              let description: String? = row.description
-              let properties: Array<ResourceProperty> = ResourceProperty.arrayFrom(rawString: rawFields)
+      let selectResourcesUserGroupsPermissionsStatement: SQLiteStatement =
+        .statement(
+          """
+          SELECT
+            userGroupsResources.userGroupID AS userGroupID,
+            userGroupsResources.resourceID AS resourceID,
+            userGroupsResources.permissionType AS permissionType
+          FROM
+            userGroupsResources
+          WHERE
+            userGroupsResources.resourceID == ?;
+          """,
+          arguments: input.resourceID
+        )
 
-              return DetailsViewResource(
-                id: id,
-                permission: permission,
-                name: name,
-                url: url,
-                username: username,
-                description: description,
-                properties: properties
-              )
-            }
-          if let detailsViewResource: DetailsViewResource = detailsViewResource {
-            return detailsViewResource
-          }
+      let record: ResourceDetailsDSV? =
+        try conn.fetchFirst(
+          using: .statement(
+            """
+            SELECT
+              id,
+              name,
+              permissionType,
+              url,
+              username,
+              description,
+              fields
+            FROM
+              resourceDetailsView
+            WHERE
+              id == ?1
+            LIMIT
+              1;
+            """,
+            arguments: input.resourceID
+          )
+        ) { dataRow -> ResourceDetailsDSV in
+          guard
+            let id: Resource.ID = dataRow.id.flatMap(Resource.ID.init(rawValue:)),
+            let name: String = dataRow.name,
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let rawFields: String = dataRow.fields
           else {
             throw
               DatabaseIssue
               .error(
                 underlyingError:
-                  DatabaseResultEmpty
-                  .error("Failed to retrive data from the database")
+                  DatabaseDataInvalid
+                  .error(for: ResourceTypeDSV.self)
               )
           }
+
+          let usersPermissions: Array<PermissionDSV> = try conn.fetch(using: selectResourcesUsersPermissionsStatement) {
+            dataRow in
+            guard
+              let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
+              let resourceID: Resource.ID = dataRow.resourceID.flatMap(Resource.ID.init(rawValue:)),
+              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: PermissionTypeDSV.self)
+                )
+            }
+
+            return .userToResource(
+              userID: userID,
+              resourceID: resourceID,
+              type: permissionType
+            )
+          }
+
+          let userGroupsPermissions: Array<PermissionDSV> = try conn.fetch(
+            using: selectResourcesUserGroupsPermissionsStatement
+          ) { dataRow in
+            guard
+              let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
+              let resourceID: Resource.ID = dataRow.resourceID.flatMap(Resource.ID.init(rawValue:)),
+              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: PermissionDSV.self)
+                )
+            }
+
+            return .userGroupToResource(
+              userGroupID: userGroupID,
+              resourceID: resourceID,
+              type: permissionType
+            )
+          }
+
+          return ResourceDetailsDSV(
+            id: id,
+            permissionType: permissionType,
+            name: name,
+            url: dataRow.url,
+            username: dataRow.username,
+            description: dataRow.description,
+            fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields),
+            permissions: Set(
+              usersPermissions + userGroupsPermissions
+            )
+          )
         }
+
+      if let resourceDetails: ResourceDetailsDSV = record {
+        return resourceDetails
+      }
+      else {
+        throw
+          DatabaseIssue
+          .error(
+            underlyingError:
+              DatabaseDataInvalid
+              .error(for: ResourceDetailsDSV.self)
+          )
+      }
     }
   }
 }

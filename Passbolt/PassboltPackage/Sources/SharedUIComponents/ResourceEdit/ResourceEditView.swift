@@ -28,7 +28,7 @@ import UICommons
 
 public final class ResourceEditView: KeyboardAwareView {
 
-  internal typealias FieldWithView = (field: ResourceField, view: PlainView)
+  internal typealias FieldWithView = (fieldName: ResourceFieldNameDSV, view: PlainView)
 
   internal var generateTapPublisher: AnyPublisher<Void, Never> { generateButton.tapPublisher }
   internal var lockTapPublisher: AnyPublisher<Bool, Never> { lockTapSubject.eraseToAnyPublisher() }
@@ -40,7 +40,7 @@ public final class ResourceEditView: KeyboardAwareView {
   private let generateButton: ImageButton = .init()
   private let createButton: TextButton = .init()
 
-  private var fieldViews: Dictionary<ResourceField, PlainView> = .init()
+  private var fieldViews: Dictionary<ResourceFieldNameDSV, PlainView> = .init()
 
   internal required init(createsNewResource: Bool) {
     super.init()
@@ -104,18 +104,18 @@ public final class ResourceEditView: KeyboardAwareView {
     unreachable("use init(createsNewResource:)")
   }
 
-  internal func update(with properties: Array<ResourceProperty>) {
+  internal func update(with fields: Array<ResourceFieldDSV>) {
     fieldViews =
-      properties
-      .compactMap { resourceProperty -> (ResourceField, PlainView)? in
-        switch resourceProperty.field {
+      fields
+      .compactMap { resourceField -> (fieldName: ResourceFieldNameDSV, view: PlainView)? in
+        switch resourceField.name {
         case .name:
           return (
-            field: resourceProperty.field,
+            fieldName: resourceField.name,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(resourceProperty.required),
+                .isRequired(resourceField.required),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
@@ -141,11 +141,11 @@ public final class ResourceEditView: KeyboardAwareView {
 
         case .uri:
           return (
-            field: resourceProperty.field,
+            fieldName: resourceField.name,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(resourceProperty.required),
+                .isRequired(resourceField.required),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
@@ -169,11 +169,11 @@ public final class ResourceEditView: KeyboardAwareView {
 
         case .username:
           return (
-            field: resourceProperty.field,
+            fieldName: resourceField.name,
             view: Mutation<TextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(resourceProperty.required),
+                .isRequired(resourceField.required),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
@@ -197,11 +197,11 @@ public final class ResourceEditView: KeyboardAwareView {
 
         case .password:
           return (
-            field: resourceProperty.field,
+            fieldName: resourceField.name,
             view: Mutation<SecureTextInput>
               .combined(
                 .backgroundColor(dynamic: .background),
-                .isRequired(resourceProperty.required),
+                .isRequired(resourceField.required),
                 .custom { (input: TextInput) in
                   input.applyOn(
                     text: .combined(
@@ -225,10 +225,10 @@ public final class ResourceEditView: KeyboardAwareView {
 
         case .description:
           return (
-            field: resourceProperty.field,
+            fieldName: resourceField.name,
             view: Mutation<TextViewInput>
               .combined(
-                .isRequired(resourceProperty.required),
+                .isRequired(resourceField.required),
                 .attributedPlaceholder(
                   .displayable(
                     .localized(key: "resource.edit.description.field.placeholder"),
@@ -251,10 +251,10 @@ public final class ResourceEditView: KeyboardAwareView {
                       .combined(
                         .enabled(),
                         .action { [weak self] in
-                          self?.lockTapSubject.send(resourceProperty.encrypted)
+                          self?.lockTapSubject.send(resourceField.encrypted)
                         },
                         .image(
-                          named: resourceProperty.encrypted
+                          named: resourceField.encrypted
                             ? .lockedLock
                             : .unlockedLock,
                           from: .uiCommons
@@ -277,9 +277,9 @@ public final class ResourceEditView: KeyboardAwareView {
         }
       }
       .reduce(
-        into: Dictionary<ResourceField, PlainView>(),
+        into: Dictionary<ResourceFieldNameDSV, PlainView>(),
         { (partialResult, fieldWithView: FieldWithView) in
-          partialResult[fieldWithView.field] = fieldWithView.view
+          partialResult[fieldWithView.fieldName] = fieldWithView.view
         }
       )
 
@@ -352,15 +352,15 @@ public final class ResourceEditView: KeyboardAwareView {
 
   internal func update(
     validated: Validated<String>,
-    for field: ResourceField
+    for fieldName: ResourceFieldNameDSV
   ) {
-    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
+    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == fieldName })?.value
     else {
-      assertionFailure("Missing field for key: \(field)")
+      assertionFailure("Missing field for key: \(fieldName)")
       return
     }
 
-    switch field {
+    switch fieldName {
     case .name, .uri, .username, .password:
       guard let textInput: TextInput = fieldView as? TextInput
       else {
@@ -383,15 +383,15 @@ public final class ResourceEditView: KeyboardAwareView {
   }
 
   internal func fieldValuePublisher(
-    for field: ResourceField
+    for fieldName: ResourceFieldNameDSV
   ) -> AnyPublisher<String, Never> {
-    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == field })?.value
+    guard let fieldView: PlainView = fieldViews.first(where: { $0.key == fieldName })?.value
     else {
       return Empty()
         .eraseToAnyPublisher()
     }
 
-    switch field {
+    switch fieldName {
     case .name, .uri, .username, .password:
       guard let textInput: TextInput = fieldView as? TextInput
       else {

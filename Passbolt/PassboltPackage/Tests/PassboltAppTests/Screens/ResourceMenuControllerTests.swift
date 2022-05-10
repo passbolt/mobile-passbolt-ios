@@ -389,34 +389,36 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 }
 
-private let detailsViewResource: DetailsViewResource = .init(
+private let detailsViewResource: ResourceDetailsDSV = .init(
   id: .init(rawValue: "1"),
-  permission: .owner,
+  permissionType: .owner,
   name: "Passphrase",
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: "Passbolt",
-  properties: [
-    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-  ]
+  fields: [
+    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
+    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .description, valueType: .string, required: true, encrypted: false, maxLength: nil),
+  ],
+  permissions: []
 )
 
-private let detailsViewResourceWithoutDescription: DetailsViewResource = .init(
+private let detailsViewResourceWithoutDescription: ResourceDetailsDSV = .init(
   id: .init(rawValue: "1"),
-  permission: .owner,
+  permissionType: .owner,
   name: "Passphrase",
   url: "https://passbolt.com",
   username: "passbolt@passbolt.com",
   description: nil,
-  properties: [
-    .init(name: "username", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "uri", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-  ]
+  fields: [
+    .init(name: .username, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
+    .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
+    .init(name: .description, valueType: .string, required: true, encrypted: true, maxLength: nil),
+  ],
+  permissions: []
 )
 
 private let resourceSecret: ResourceSecret = .from(

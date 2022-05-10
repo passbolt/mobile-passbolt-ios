@@ -21,10 +21,10 @@
 // @since         v1.0
 //
 
+import Accounts
 import CommonModels
 import Features
 
-import struct Accounts.ListViewResource
 import struct Foundation.URL
 
 public struct AutofillExtensionContext {
@@ -106,7 +106,7 @@ extension AutofillExtensionContext.ServiceIdentifier {
 
 extension Array where Element == AutofillExtensionContext.ServiceIdentifier {
 
-  internal func matches(_ resource: ListViewResource) -> Bool {
+  internal func matches(_ resource: ResourceListItemDSV) -> Bool {
     contains {
       guard let resourceURL: String = resource.url
       else { return false }

@@ -24,14 +24,11 @@
 public struct SQLiteMigrationStep {
 
   public let statement: SQLiteStatement
-  public var parameters: Array<SQLiteBindable?>
 
   public init(
-    statement: SQLiteStatement,
-    parameters: Array<SQLiteBindable?> = .init()
+    statement: SQLiteStatement
   ) {
     self.statement = statement
-    self.parameters = parameters
   }
 }
 
@@ -41,8 +38,7 @@ extension SQLiteMigrationStep: ExpressibleByStringLiteral {
     stringLiteral value: StaticString
   ) {
     self.init(
-      statement: .init(stringLiteral: value),
-      parameters: .init()
+      statement: .statement(value)
     )
   }
 }

@@ -29,10 +29,10 @@ import UIComponents
 internal struct ResourcesListController {
 
   internal var refreshResources: @MainActor () -> AnyPublisher<Void, Error>
-  internal var resourcesListPublisher: @MainActor () -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never>
+  internal var resourcesListPublisher: @MainActor () -> AnyPublisher<Array<ResourcesResourceListItemDSVItem>, Never>
   internal var addResource: @MainActor () -> Void
-  internal var presentResourceDetails: @MainActor (ResourcesListViewResourceItem) -> Void
-  internal var presentResourceMenu: @MainActor (ResourcesListViewResourceItem) -> Void
+  internal var presentResourceDetails: @MainActor (ResourcesResourceListItemDSVItem) -> Void
+  internal var presentResourceMenu: @MainActor (ResourcesResourceListItemDSVItem) -> Void
   internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
   internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
@@ -52,7 +52,7 @@ extension ResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-
+    let sessionData: AccountSessionData = try await features.instance()
     let resources: Resources = try await features.instance()
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -62,17 +62,17 @@ extension ResourcesListController: UIController {
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
     func refreshResources() -> AnyPublisher<Void, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher {
-        resources.refreshIfNeeded()
+      Task {
+        try await sessionData
+          .refreshIfNeeded()
       }
-      .switchToLatest()
-      .eraseToAnyPublisher()
+      .asPublisher()
     }
 
-    func resourcesListPublisher() -> AnyPublisher<Array<ResourcesListViewResourceItem>, Never> {
+    func resourcesListPublisher() -> AnyPublisher<Array<ResourcesResourceListItemDSVItem>, Never> {
       resources
         .filteredResourcesListPublisher(context)
-        .map { $0.map(ResourcesListViewResourceItem.init(from:)) }
+        .map { $0.map(ResourcesResourceListItemDSVItem.init(from:)) }
         .eraseToAnyPublisher()
     }
 
@@ -80,11 +80,11 @@ extension ResourcesListController: UIController {
       resourceCreatePresentationSubject.send()
     }
 
-    func presentResourceDetails(_ resource: ResourcesListViewResourceItem) {
+    func presentResourceDetails(_ resource: ResourcesResourceListItemDSVItem) {
       resourceDetailsIDSubject.send(resource.id)
     }
 
-    func presentResourceMenu(_ resource: ResourcesListViewResourceItem) {
+    func presentResourceMenu(_ resource: ResourcesResourceListItemDSVItem) {
       resourceMenuIDSubject.send(resource.id)
     }
 

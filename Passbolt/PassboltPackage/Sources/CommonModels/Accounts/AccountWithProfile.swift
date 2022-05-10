@@ -31,7 +31,7 @@ public struct AccountWithProfile {
   public var username: String
   public var firstName: String
   public var lastName: String
-  public var avatarImageURL: String
+  public var avatarImageURL: URLString
   public let fingerprint: Fingerprint
   public var biometricsEnabled: Bool
 
@@ -43,7 +43,7 @@ public struct AccountWithProfile {
     username: String,
     firstName: String,
     lastName: String,
-    avatarImageURL: String,
+    avatarImageURL: URLString,
     fingerprint: Fingerprint,
     biometricsEnabled: Bool
   ) {

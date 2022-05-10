@@ -36,13 +36,13 @@ public struct ResourceEditForm {
   // note that editing resource will download and decrypt secrets to fill them in and allow editing
   public var editResource: @StorageAccessActor (Resource.ID) -> AnyPublisher<Void, Error>
   // set enclosing folder (parentFolderID)
-  public var setEnclosingFolder: (Folder.ID?) -> Void
+  public var setEnclosingFolder: (ResourceFolder.ID?) -> Void
   // initial version supports only one type of resource type, so there is no method to change it
-  public var resourceTypePublisher: () -> AnyPublisher<ResourceType, Error>
+  public var resourceTypePublisher: () -> AnyPublisher<ResourceTypeDSV, Error>
   // since currently the only field value is String we are not allowing other value types
-  public var setFieldValue: (ResourceFieldValue, ResourceField) -> AnyPublisher<Void, Error>
+  public var setFieldValue: (ResourceFieldValue, ResourceFieldName) -> AnyPublisher<Void, Error>
   // prepare publisher for given field, publisher will complete when field will be no longer available
-  public var fieldValuePublisher: (ResourceField) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
+  public var fieldValuePublisher: (ResourceFieldName) -> AnyPublisher<Validated<ResourceFieldValue>, Never>
   // send the form and create resource on server
   public var sendForm: @AccountSessionActor () -> AnyPublisher<Resource.ID, Error>
   public var featureUnload: @FeaturesActor () async throws -> Void
@@ -62,20 +62,20 @@ extension ResourceEditForm: Feature {
     let resources: Resources = try await features.instance()
 
     let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
-    let resourceParentFolderIDSubject: CurrentValueSubject<Folder.ID?, Never> = .init(nil)
-    let resourceTypeSubject: CurrentValueSubject<ResourceType?, Error> = .init(nil)
-    let resourceTypePublisher: AnyPublisher<ResourceType, Error> =
+    let resourceParentFolderIDSubject: CurrentValueSubject<ResourceFolder.ID?, Never> = .init(nil)
+    let resourceTypeSubject: CurrentValueSubject<ResourceTypeDSV?, Error> = .init(nil)
+    let resourceTypePublisher: AnyPublisher<ResourceTypeDSV, Error> =
       resourceTypeSubject.filterMapOptional().eraseToAnyPublisher()
-    let formValuesSubject: CurrentValueSubject<Dictionary<ResourceField, Validated<ResourceFieldValue>>, Never> =
+    let formValuesSubject: CurrentValueSubject<Dictionary<ResourceFieldName, Validated<ResourceFieldValue>>, Never> =
       .init(.init())
 
     // load initial resource type
     database
       .fetchResourcesTypesOperation()
       .eraseErrorType()
-      .map { resourceTypes -> AnyPublisher<ResourceType, Error> in
+      .map { resourceTypes -> AnyPublisher<ResourceTypeDSV, Error> in
         // in initial version we are supporting only one type of resource for being created
-        if let resourceType: ResourceType = resourceTypes.first(where: \.isDefault) {
+        if let resourceType: ResourceTypeDSV = resourceTypes.first(where: \.isDefault) {
           return Just(resourceType)
             .eraseErrorType()
             .eraseToAnyPublisher()
@@ -105,20 +105,20 @@ extension ResourceEditForm: Feature {
         receiveCompletion: { _ in /* NOP */ },
         receiveValue: { resourceType in
           // remove fields that are no longer in resource
-          let removedFields: Array<ResourceField> = formValuesSubject.value.keys.filter { key in
-            !resourceType.properties.contains(where: { $0.field == key })
+          let removedFields: Array<ResourceFieldNameDSV> = formValuesSubject.value.keys.filter { key in
+            !resourceType.fields.contains(where: { $0.name == key })
           }
           for removedField in removedFields {
             formValuesSubject.value.removeValue(forKey: removedField)
           }
 
           // add new fields (if any) and validate again existing ones
-          for property in resourceType.properties {
+          for field in resourceType.fields {
             let fieldValue: ResourceFieldValue =
-              formValuesSubject.value[property.field]?.value
-              ?? .init(defaultFor: property.type)
-            formValuesSubject.value[property.field] =
-              propertyValidator(for: property)
+              formValuesSubject.value[field.name]?.value
+              ?? .init(defaultFor: field.valueType)
+            formValuesSubject.value[field.name] =
+              propertyValidator(for: field)
               .validate(fieldValue)
           }
         }
@@ -148,59 +148,59 @@ extension ResourceEditForm: Feature {
             resourceTypeSubject.send(resource.type)
             resourceIDSubject.send(resource.id)
             resourceParentFolderIDSubject.send(resource.parentFolderID)
-            for property in resource.type.properties {
-              switch property.field {
+            for field in resource.type.fields {
+              switch field.name {
               case .name:
                 formValuesSubject.value[.name] =
                   propertyValidator(
-                    for: property
+                    for: field
                   )
                   .validate(
                     .init(
                       fromString: resource.name,
-                      forType: property.type
+                      forType: field.valueType
                     )
                   )
 
               case .uri:
                 formValuesSubject.value[.uri] =
                   propertyValidator(
-                    for: property
+                    for: field
                   )
                   .validate(
                     .init(
                       fromString: resource.url ?? "",
-                      forType: property.type
+                      forType: field.valueType
                     )
                   )
 
               case .username:
                 formValuesSubject.value[.username] =
                   propertyValidator(
-                    for: property
+                    for: field
                   )
                   .validate(
                     .init(
                       fromString: resource.username ?? "",
-                      forType: property.type
+                      forType: field.valueType
                     )
                   )
 
               case .password:
                 formValuesSubject.value[.password] =
                   propertyValidator(
-                    for: property
+                    for: field
                   )
                   .validate(
                     .init(
                       fromString: secret.password ?? "",
-                      forType: property.type
+                      forType: field.valueType
                     )
                   )
 
               case .description:
                 let stringValue: String
-                if property.encrypted {
+                if field.encrypted {
                   stringValue = secret.description ?? ""
                 }
                 else {
@@ -208,23 +208,23 @@ extension ResourceEditForm: Feature {
                 }
                 formValuesSubject.value[.description] =
                   propertyValidator(
-                    for: property
+                    for: field
                   )
                   .validate(
                     .init(
                       fromString: stringValue,
-                      forType: property.type
+                      forType: field.valueType
                     )
                   )
 
               case let .undefined(name: name):
                 formValuesSubject.value[.undefined(name: name)] =
                   propertyValidator(
-                    for: property
+                    for: field
                   )
                   .validate(
                     .init(
-                      defaultFor: property.type
+                      defaultFor: field.valueType
                     )
                   )
               }
@@ -235,14 +235,14 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
     }
 
-    nonisolated func setEnclosingFolder(_ folderID: Folder.ID?) {
+    nonisolated func setEnclosingFolder(_ folderID: ResourceFolder.ID?) {
       resourceParentFolderIDSubject.send(folderID)
     }
 
     nonisolated func propertyValidator(
-      for property: ResourceProperty
+      for property: ResourceFieldDSV
     ) -> Validator<ResourceFieldValue> {
-      switch property.type {
+      switch property.valueType {
       case .string:
         return zip(
           {
@@ -277,12 +277,12 @@ extension ResourceEditForm: Feature {
 
     nonisolated func setFieldValue(
       _ value: ResourceFieldValue,
-      field: ResourceField
+      fieldName: ResourceFieldName
     ) -> AnyPublisher<Void, Error> {
       resourceTypePublisher
         .map { resourceType -> AnyPublisher<Validated<ResourceFieldValue>, Error> in
-          if let property: ResourceProperty = resourceType.properties.first(where: { $0.field == field }) {
-            return Just(propertyValidator(for: property).validate(value))
+          if let field: ResourceFieldDSV = resourceType.fields.first(where: { $0.name == fieldName }) {
+            return Just(propertyValidator(for: field).validate(value))
               .eraseErrorType()
               .eraseToAnyPublisher()
           }
@@ -293,14 +293,14 @@ extension ResourceEditForm: Feature {
         }
         .switchToLatest()
         .handleEvents(receiveOutput: { validatedValue in
-          formValuesSubject.value[field] = validatedValue
+          formValuesSubject.value[fieldName] = validatedValue
         })
         .mapToVoid()
         .eraseToAnyPublisher()
     }
 
     nonisolated func fieldValuePublisher(
-      field: ResourceField
+      field: ResourceFieldName
     ) -> AnyPublisher<Validated<ResourceFieldValue>, Never> {
       formValuesSubject
         .map { formFields -> AnyPublisher<Validated<ResourceFieldValue>, Never> in
@@ -309,7 +309,7 @@ extension ResourceEditForm: Feature {
               .eraseToAnyPublisher()
           }
           else {
-            return Empty()
+            return Empty(completeImmediately: true)
               .eraseToAnyPublisher()
           }
         }
@@ -336,16 +336,16 @@ extension ResourceEditForm: Feature {
           (
             resourceID: Resource.ID?,
             resourceTypeID: ResourceType.ID,
-            fieldValues: Dictionary<ResourceField, ResourceFieldValue>,
+            fieldValues: Dictionary<ResourceFieldName, ResourceFieldValue>,
             encodedSecret: String
           ),
           Error
         > in
-        var fieldValues: Dictionary<ResourceField, ResourceFieldValue> = .init()
-        var secretFieldValues: Dictionary<ResourceField.RawValue, ResourceFieldValue> = .init()
+        var fieldValues: Dictionary<ResourceFieldName, ResourceFieldValue> = .init()
+        var secretFieldValues: Dictionary<ResourceFieldName.RawValue, ResourceFieldValue> = .init()
 
         for (key, validatedValue) in validatedFieldValues {
-          guard let property: ResourceProperty = resourceType.properties.first(where: { $0.field == key })
+          guard let field: ResourceFieldDSV = resourceType.fields.first(where: { $0.name == key })
           else {
             assertionFailure("Trying to use form value that is not associated with any resource fields")
             continue
@@ -363,7 +363,7 @@ extension ResourceEditForm: Feature {
             )
             .eraseToAnyPublisher()
           }
-          if property.encrypted {
+          if field.encrypted {
             secretFieldValues[key.rawValue] = validatedValue.value
           }
           else {
@@ -411,7 +411,7 @@ extension ResourceEditForm: Feature {
           return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
             .eraseToAnyPublisher()
         }
-        let parentFolderID: Folder.ID? = resourceParentFolderIDSubject.value
+        let parentFolderID: ResourceFolder.ID? = resourceParentFolderIDSubject.value
 
         if let resourceID: Resource.ID = resourceID {
           return
@@ -543,7 +543,7 @@ extension ResourceEditForm: Feature {
       editResource: editResource(_:),
       setEnclosingFolder: setEnclosingFolder(_:),
       resourceTypePublisher: { resourceTypePublisher },
-      setFieldValue: setFieldValue(_:field:),
+      setFieldValue: setFieldValue(_:fieldName:),
       fieldValuePublisher: fieldValuePublisher(field:),
       sendForm: sendForm,
       featureUnload: featureUnload

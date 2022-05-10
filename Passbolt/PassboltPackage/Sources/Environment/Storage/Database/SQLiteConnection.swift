@@ -30,13 +30,11 @@ public struct SQLiteConnection {
 
   public var execute:
     @StorageAccessActor (
-      _ statement: SQLiteStatement,
-      _ parameters: Array<SQLiteBindable?>
+      _ statement: SQLiteStatement
     ) throws -> Void
   public var fetch:
     @StorageAccessActor (
-      _ statement: SQLiteStatement,
-      _ parameters: Array<SQLiteBindable?>
+      _ statement: SQLiteStatement
     ) throws -> Array<SQLiteRow>
   public var beginTransaction: @StorageAccessActor () throws -> Void
   public var rollbackTransaction: @StorageAccessActor () throws -> Void
@@ -60,17 +58,21 @@ extension SQLiteConnection {
       )
 
     @StorageAccessActor func execute(
-      statement: SQLiteStatement,
-      with parameters: Array<SQLiteBindable?>
+      statement: SQLiteStatement
     ) throws {
-      try connectionHandle.execute(statement, with: parameters)
+      try connectionHandle.execute(
+        statement.rawString,
+        with: statement.arguments.arguments
+      )
     }
 
     @StorageAccessActor func fetch(
-      statement: SQLiteStatement,
-      with parameters: Array<SQLiteBindable?>
+      statement: SQLiteStatement
     ) throws -> Array<SQLiteRow> {
-      try connectionHandle.fetch(statement, with: parameters)
+      try connectionHandle.fetch(
+        statement.rawString,
+        with: statement.arguments.arguments
+      )
     }
 
     @StorageAccessActor func beginTransaction() throws {
@@ -86,8 +88,8 @@ extension SQLiteConnection {
     }
 
     let connection: SQLiteConnection = .init(
-      execute: execute(statement:with:),
-      fetch: fetch(statement:with:),
+      execute: execute(statement:),
+      fetch: fetch(statement:),
       beginTransaction: beginTransaction,
       rollbackTransaction: rollbackTransaction,
       endTransaction: endTransaction
@@ -106,65 +108,41 @@ extension SQLiteConnection {
     return connection
   }
 
-  @inlinable
-  @StorageAccessActor public func execute(
-    _ statement: SQLiteStatement,
-    with parameters: SQLiteBindable?...
-  ) throws {
-    try execute(
-      statement,
-      parameters
-    )
-  }
-
-  @inlinable
-  @StorageAccessActor public func execute(
-    _ statement: SQLiteStatement,
-    with parameters: Array<SQLiteBindable?>
-  ) throws {
-    try execute(
-      statement,
-      parameters
-    )
-  }
-
-  @inlinable
-  @StorageAccessActor public func fetch(
-    _ statement: SQLiteStatement,
-    with parameters: SQLiteBindable?...
-  ) throws -> Array<SQLiteRow> {
-    try fetch(
-      statement,
-      parameters
-    )
+  @inline(__always)
+  @StorageAccessActor public func fetch<Record>(
+    using statement: SQLiteStatement,
+    mapping: (SQLiteRow) throws -> Record
+  ) throws -> Array<Record>
+  where Record: DSV {
+    try fetch(statement).map(mapping)
   }
 
   @inline(__always)
-  @StorageAccessActor public func fetch<Value>(
-    _ statement: SQLiteStatement,
-    with parameters: SQLiteBindable?...,
-    mapping: (Array<SQLiteRow>) throws -> Value
-  ) throws -> Value {
-    try mapping(
-      fetch(
-        statement,
-        parameters
-      )
-    )
+  @StorageAccessActor public func fetchFirst<Record>(
+    using statement: SQLiteStatement,
+    mapping: (SQLiteRow) throws -> Record
+  ) throws -> Record
+  where Record: DSV {
+    let record: Record? = try fetch(statement).first.map(mapping)
+
+    if let record: Record = record {
+      return record
+    }
+    else {
+      throw
+        DatabaseIssue
+        .error(
+          underlyingError:
+            DatabaseResultEmpty.error()
+        )
+    }
   }
 
   @inline(__always)
-  @StorageAccessActor public func fetch<Value>(
-    _ statement: SQLiteStatement,
-    with parameters: Array<SQLiteBindable?>,
-    mapping: (Array<SQLiteRow>) throws -> Value
-  ) throws -> Value {
-    try mapping(
-      fetch(
-        statement,
-        parameters
-      )
-    )
+  @StorageAccessActor public func fetchFirst(
+    using statement: SQLiteStatement
+  ) throws -> SQLiteRow? {
+    try fetch(statement).first
   }
 
   @inlinable
@@ -189,11 +167,11 @@ extension SQLiteConnection {
     using connection: SQLiteConnection
   ) throws {
     let currentSchemaVersion: Int =
-      try connection
-      .fetch(
-        "PRAGMA user_version;",
-        mapping: { $0.first?.user_version as Int? }
-      )
+      try
+      (connection
+      .fetch("PRAGMA user_version;")
+      .first?
+      .user_version) as Int?
       ?? 0
 
     guard currentSchemaVersion < migrations.count
@@ -218,11 +196,7 @@ extension SQLiteConnection {
       try connection.withTransaction { conn in
         for step in migration.steps {
           do {
-            try conn
-              .execute(
-                step.statement,
-                with: step.parameters
-              )
+            try conn.execute(step.statement)
           }
           catch {
             #if DEBUG

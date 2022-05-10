@@ -24,9 +24,9 @@
 import CommonModels
 import Environment
 
-public typealias FetchListViewResourceTagOperation = DatabaseOperation<String, Array<ListViewResourceTag>>
+public typealias FetchResourceTagListItemDSVOperation = DatabaseOperation<String, Array<ResourceTagListItemDSV>>
 
-extension FetchListViewResourceTagOperation {
+extension FetchResourceTagListItemDSVOperation {
 
   internal static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -43,17 +43,15 @@ extension FetchListViewResourceTagOperation {
             SELECT
               count(*)
             FROM
-              resourceTags
+              resourcesTags
             WHERE
-              tagID IS id
+              resourceTagID IS id
           ) AS contentCount
         FROM
-          tags
+          resourceTags
         WHERE
           1 -- equivalent of true, used to simplify dynamic query building
         """
-
-      var params: Array<SQLiteBindable?> = .init()
 
       if !input.isEmpty {
         statement
@@ -63,7 +61,7 @@ extension FetchListViewResourceTagOperation {
               slug LIKE '%' || ? || '%'
             """
           )
-        params.append(input)
+        statement.appendArgument(input)
       }
       else {
         /* NOP */
@@ -73,34 +71,28 @@ extension FetchListViewResourceTagOperation {
 
       return
         try conn
-        .fetch(
-          statement,
-          with: params
-        ) { rows -> Array<ListViewResourceTag> in
-          try rows
-            .map { row -> ListViewResourceTag in
-              guard
-                let id: ListViewResourceTag.ID = row.id.map(ListViewResourceTag.ID.init(rawValue:)),
-                let slug: String = row.slug,
-                let shared: Bool = row.shared,
-                let contentCount: Int = row.contentCount
-              else {
-                throw
-                  DatabaseIssue
-                  .error(
-                    underlyingError:
-                      DatabaseResultInvalid
-                      .error("Retrived invalid data from the database")
-                  )
-              }
-
-              return ListViewResourceTag(
-                id: id,
-                slug: slug,
-                shared: shared,
-                contentCount: contentCount
+        .fetch(using: statement) { dataRow -> ResourceTagListItemDSV in
+          guard
+            let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
+            let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
+            let shared: Bool = dataRow.shared,
+            let contentCount: Int = dataRow.contentCount
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseDataInvalid
+                  .error(for: ResourceTagListItemDSV.self)
               )
-            }
+          }
+
+          return ResourceTagListItemDSV(
+            id: id,
+            slug: slug,
+            shared: shared,
+            contentCount: contentCount
+          )
         }
     }
   }

@@ -23,50 +23,25 @@
 
 import Commons
 
-import struct Foundation.Date
+public enum Resource {}
 
-public struct Resource {
+extension Resource {
 
   public typealias ID = Tagged<String, Self>
+}
 
-  public let id: ID
-  public var typeID: ResourceType.ID
-  public var parentFolderID: Folder.ID?
-  public var name: String
-  public var url: String?
-  public var username: String?
-  public var description: String?
-  public var permission: Permission
-  public var favorite: Bool
-  public var tags: Set<ResourceTag>
-  public var groups: Set<UserGroup.ID>
-  public var modified: Date
+#if DEBUG
 
-  public init(
-    id: ID,
-    typeID: ResourceType.ID,
-    parentFolderID: Folder.ID?,
-    name: String,
-    url: String?,
-    username: String?,
-    description: String?,
-    permission: Permission,
-    favorite: Bool,
-    tags: Set<ResourceTag>,
-    groups: Set<UserGroup.ID>,
-    modified: Date
-  ) {
-    self.id = id
-    self.typeID = typeID
-    self.parentFolderID = parentFolderID
-    self.name = name
-    self.url = url
-    self.username = username
-    self.description = description
-    self.permission = permission
-    self.favorite = favorite
-    self.tags = tags
-    self.groups = groups
-    self.modified = modified
+// cannot conform to RandomlyGenerated
+extension Resource.ID {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    UUID
+      .randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
   }
 }
+#endif

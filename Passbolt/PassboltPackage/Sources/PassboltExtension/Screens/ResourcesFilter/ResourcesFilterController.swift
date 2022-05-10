@@ -76,11 +76,10 @@ extension ResourcesFilterController: UIController {
         .currentAccountProfilePublisher()
         .map(\.avatarImageURL)
         .map { avatarImageURL in
-          networkClient.mediaDownload.make(
-            using: .init(urlString: avatarImageURL)
-          )
-          .map { data -> Data? in data }
-          .replaceError(with: nil)
+          networkClient.mediaDownload
+            .make(using: avatarImageURL)
+            .map { data -> Data? in data }
+            .replaceError(with: nil)
         }
         .switchToLatest()
         .eraseToAnyPublisher()

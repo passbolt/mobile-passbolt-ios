@@ -32,12 +32,10 @@ import struct Foundation.Date
 
 public struct Resources {
 
-  public var refreshIfNeeded: @AccountSessionActor () -> AnyPublisher<Void, Error>
-  public var updatesPublisher: () -> AnyPublisher<Void, Never>
   public var filteredResourcesListPublisher:
-    (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ListViewResource>, Never>
+    (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ResourceListItemDSV>, Never>
   public var loadResourceSecret: @AccountSessionActor (Resource.ID) -> AnyPublisher<ResourceSecret, Error>
-  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<DetailsViewResource, Error>
+  public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>
   public var deleteResource: @AccountSessionActor (Resource.ID) -> AnyPublisher<Void, Error>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
@@ -49,210 +47,37 @@ extension Resources: Feature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let time: Time = environment.time
-
     let diagnostics: Diagnostics = try await features.instance()
     let accountSession: AccountSession = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
     let networkClient: NetworkClient = try await features.instance()
-    let featureConfig: FeatureConfig = try await features.instance()
-    let folders: Folders = try await features.instance()
-    let resourceTags: ResourceTags = try await features.instance()
-    let userGroups: UserGroups = try await features.instance()
-
-    let foldersEnabled: Bool
-    switch await featureConfig.configuration(for: FeatureFlags.Folders.self) {
-    case .disabled:
-      foldersEnabled = false
-
-    case .enabled:
-      foldersEnabled = true
-    }
-
-    let tagsEnabled: Bool
-    switch await featureConfig.configuration(for: FeatureFlags.Tags.self) {
-    case .disabled:
-      tagsEnabled = false
-
-    case .enabled:
-      tagsEnabled = true
-    }
+    let sessionData: AccountSessionData = try await features.instance()
 
     let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
-
-    let refreshTask: ManagedTask<Void> = .init()
 
     // initial refresh after loading
     cancellables.executeOnAccountSessionActor {
       do {
-        try await refreshIfNeeded().asAsyncValue()
+        try await sessionData.refreshIfNeeded()
       }
       catch {
         diagnostics.log(error)
       }
     }
 
-    @AccountSessionActor func refreshIfNeeded() -> AnyPublisher<Void, Error> {
-      Task {
-        try await refreshTask.run {
-          do {
-            // implement diff request here instead when available
-            let _ /*lastUpdate*/: Date? = try await accountDatabase.fetchLastUpdate()
-            if foldersEnabled {
-              try await folders.refreshIfNeeded()
-            }
-            else { /* NOP */
-            }
-
-            try await userGroups.refreshIfNeeded()
-
-            let resourceTypes: Array<ResourceType> =
-              try await networkClient
-              .resourcesTypesRequest
-              .makeAsync()
-              .body
-              .map { (type: ResourcesTypesRequestResponseBodyItem) -> ResourceType in
-                let fields: Array<ResourceProperty> = type
-                  .definition
-                  .resourceProperties
-                  .compactMap { property -> ResourceProperty? in
-                    switch property {
-                    case let .string(name, isOptional, maxLength):
-                      return .init(
-                        name: name,
-                        typeString: "string",
-                        required: !isOptional,
-                        encrypted: false,
-                        maxLength: maxLength
-                      )
-                    }
-                  }
-
-                let secretFields: Array<ResourceProperty> = type
-                  .definition
-                  .secretProperties
-                  .compactMap { property -> ResourceProperty? in
-                    switch property {
-                    case let .string(name, isOptional, maxLength):
-                      return .init(
-                        name: name,
-                        typeString: "string",
-                        required: !isOptional,
-                        encrypted: true,
-                        maxLength: maxLength
-                      )
-                    }
-                  }
-
-                return ResourceType(
-                  id: .init(rawValue: type.id),
-                  slug: .init(rawValue: type.slug),
-                  name: type.name,
-                  fields: fields + secretFields
-                )
-              }
-
-            try await accountDatabase.storeResourcesTypes(resourceTypes)
-
-            let resources: Array<Resource> =
-              try await networkClient
-              .resourcesRequest
-              .makeAsync()
-              .body
-              .map { (resource: ResourcesRequestResponseBodyItem) -> Resource in
-                let permission: Permission = {
-                  switch resource.permission {
-                  case .read:
-                    return .read
-
-                  case .write:
-                    return .write
-
-                  case .owner:
-                    return .owner
-                  }
-                }()
-                return Resource(
-                  id: .init(rawValue: resource.id),
-                  typeID: .init(rawValue: resource.resourceTypeID),
-                  parentFolderID: resource
-                    .parentFolderID
-                    .map(Folder.ID.init(rawValue:)),
-                  name: resource.name,
-                  url: resource.url,
-                  username: resource.username,
-                  description: resource.description,
-                  permission: permission,
-                  favorite: resource.favorite,
-                  tags: Set(
-                    resource
-                      .tags
-                      .map {
-                        .init(
-                          id: .init(rawValue: $0.id),
-                          slug: $0.slug,
-                          shared: $0.shared
-                        )
-                      }
-                  ),
-                  groups: Set(
-                    resource
-                      .groups
-                      .map {
-                        UserGroup.ID(
-                          rawValue: $0.id
-                        )
-                      }
-                  ),
-                  modified: resource.modified
-                )
-              }
-
-            try await accountDatabase.storeResources(resources)
-
-            if foldersEnabled {
-              await folders.resourcesUpdated()
-            }
-            else { /* NOP */
-            }
-
-            if tagsEnabled {
-              await resourceTags.resourcesUpdated()
-            }
-            else { /* NOP */
-            }
-
-            try await accountDatabase.saveLastUpdate(time.dateNow())
-
-            resourcesUpdateSubject.send()
-          }
-          catch {
-            throw error
-          }
-        }
-      }
-      .asPublisher()
-      .eraseErrorType()
-      .collectErrorLog(using: diagnostics)
-      .eraseToAnyPublisher()
-    }
-
-    nonisolated func updatesPublisher() -> AnyPublisher<Void, Never> {
-      resourcesUpdateSubject.eraseToAnyPublisher()
-    }
 
     nonisolated func filteredResourcesListPublisher(
       _ filterPublisher: AnyPublisher<ResourcesFilter, Never>
-    ) -> AnyPublisher<Array<ListViewResource>, Never> {
+    ) -> AnyPublisher<Array<ResourceListItemDSV>, Never> {
       filterPublisher
         .removeDuplicates()
-        .map { filter -> AnyPublisher<Array<ListViewResource>, Never> in
+        .map { filter -> AnyPublisher<Array<ResourceListItemDSV>, Never> in
           // trigger refresh on data updates, publishes initially on subscription
           resourcesUpdateSubject
-            .map { () -> AnyPublisher<Array<ListViewResource>, Never> in
+            .map { () -> AnyPublisher<Array<ResourceListItemDSV>, Never> in
               accountDatabase
-                .fetchListViewResources(filter)
-                .replaceError(with: Array<ListViewResource>())
+                .fetchResourceListItemDSVs(filter)
+                .replaceError(with: Array<ResourceListItemDSV>())
                 .eraseToAnyPublisher()
             }
             .switchToLatest()
@@ -292,11 +117,11 @@ extension Resources: Feature {
 
     nonisolated func resourceDetailsPublisher(
       resourceID: Resource.ID
-    ) -> AnyPublisher<DetailsViewResource, Error> {
+    ) -> AnyPublisher<ResourceDetailsDSV, Error> {
       resourcesUpdateSubject
         .map {
           accountDatabase
-            .fetchDetailsViewResources(resourceID)
+            .fetchResourceDetailsDSVs(.init(resourceID: resourceID))
             .eraseErrorType()
         }
         .switchToLatest()
@@ -310,8 +135,7 @@ extension Resources: Feature {
         .deleteResourceRequest
         .make(using: .init(resourceID: resourceID.rawValue))
         .eraseErrorType()
-        .map { refreshIfNeeded() }
-        .switchToLatest()
+        .asyncMap { try await sessionData.refreshIfNeeded() }
         .eraseToAnyPublisher()
     }
 
@@ -321,8 +145,6 @@ extension Resources: Feature {
     }
 
     return Self(
-      refreshIfNeeded: refreshIfNeeded,
-      updatesPublisher: updatesPublisher,
       filteredResourcesListPublisher: filteredResourcesListPublisher,
       loadResourceSecret: loadResourceSecret,
       resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
@@ -338,8 +160,6 @@ extension Resources {
 
   public static var placeholder: Resources {
     Self(
-      refreshIfNeeded: unimplemented("You have to provide mocks for used methods"),
-      updatesPublisher: unimplemented("You have to provide mocks for used methods"),
       filteredResourcesListPublisher: unimplemented("You have to provide mocks for used methods"),
       loadResourceSecret: unimplemented("You have to provide mocks for used methods"),
       resourceDetailsPublisher: unimplemented("You have to provide mocks for used methods"),

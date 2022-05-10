@@ -94,7 +94,7 @@ extension AccountMenuController: UIController {
     func currentAcountAvatarImagePublisher() -> AnyPublisher<Data?, Never> {
       networkClient
         .mediaDownload
-        .make(using: .init(urlString: context.accountWithProfile.avatarImageURL))
+        .make(using: context.accountWithProfile.avatarImageURL)
         .mapToOptional()
         .replaceError(with: nil)
         .eraseToAnyPublisher()
@@ -129,11 +129,7 @@ extension AccountMenuController: UIController {
                 accountWithProfile: accountWithProfile,
                 avatarImagePublisher: networkClient
                   .mediaDownload
-                  .make(
-                    using: .init(
-                      urlString: accountWithProfile.avatarImageURL
-                    )
-                  )
+                  .make(using: accountWithProfile.avatarImageURL)
                   .mapToOptional()
                   .replaceError(with: nil)
                   .eraseToAnyPublisher()

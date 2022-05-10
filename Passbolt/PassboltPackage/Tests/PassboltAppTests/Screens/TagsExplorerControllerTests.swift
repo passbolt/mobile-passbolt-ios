@@ -40,12 +40,8 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     try await super.featuresActorSetUp()
     features.usePlaceholder(for: Resources.self)
     features.patch(
-      \Resources.refreshIfNeeded,
-      with: always(
-        Just(Void())
-          .eraseErrorType()
-          .eraseToAnyPublisher()
-      )
+      \AccountSessionData.refreshIfNeeded,
+      with: always(Void())
     )
     features.usePlaceholder(for: ResourceTags.self)
     features.patch(
@@ -68,11 +64,8 @@ final class TagsExplorerControllerTests: MainActorTestCase {
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
     await features.patch(
-      \Resources.refreshIfNeeded,
-      with: always(
-        Fail(error: MockIssue.error())
-          .eraseToAnyPublisher()
-      )
+      \AccountSessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
     )
 
     let controller: TagsExplorerController = try await testController(

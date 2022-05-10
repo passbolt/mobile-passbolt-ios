@@ -51,6 +51,11 @@ final class ResourceEditControllerTests: MainActorTestCase {
     resourceForm.featureUnload = always(Void())
   }
 
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    self.features.usePlaceholder(for: AccountSessionData.self)
+  }
+
   override func mainActorTearDown() {
     networkClient = nil
     resources = nil
@@ -73,27 +78,21 @@ final class ResourceEditControllerTests: MainActorTestCase {
         completion: { _ in /* NOP */ }
       )
     )
-    var result: Array<ResourceField> = .init()
+    var result: Array<ResourceFieldName> = .init()
 
     controller
       .resourcePropertiesPublisher()
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { fields in
-          result = fields.map(\.field)
+          result = fields.map(\.name)
         }
       )
       .store(in: cancellables)
 
     XCTAssertEqual(
       result,
-      [
-        .name,
-        .uri,
-        .username,
-        .password,
-        .description,
-      ]
+      defaultResourceType.fields.map(\.name)
     )
   }
 
@@ -244,11 +243,10 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
   func test_createResource_unloadsResourceEditForm_whenSendingFormSucceeds() async throws {
     var result: Void?
-    resources.refreshIfNeeded = {
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    }
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: always(Void())
+    )
     resourceForm.sendForm = always(
       Just("1")
         .eraseErrorType()
@@ -282,12 +280,12 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
   func test_createResource_triggersRefreshIfNeeded_whenSendingFormSucceeds() async throws {
     var result: Void?
-    resources.refreshIfNeeded = {
-      result = Void()
-      return Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    }
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: {
+        result = Void()
+      }
+    )
     resourceForm.sendForm = always(
       Just("1")
         .eraseErrorType()
@@ -318,11 +316,10 @@ final class ResourceEditControllerTests: MainActorTestCase {
   }
 
   func test_createResource_callsContextCompletionWithCreatedResourceID_whenSendingFormSucceeds() async throws {
-    resources.refreshIfNeeded = {
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    }
+    await features.patch(
+      \AccountSessionData.refreshIfNeeded,
+      with: always(Void())
+    )
     resourceForm.sendForm = always(
       Just("1")
         .eraseErrorType()
@@ -381,15 +378,4 @@ final class ResourceEditControllerTests: MainActorTestCase {
   }
 }
 
-private let defaultResourceType: ResourceType = .init(
-  id: "password-and-description",
-  slug: "password-and-description",
-  name: "password-and-description",
-  fields: [
-    .init(name: "name", typeString: "string", required: true, encrypted: false, maxLength: nil)!,
-    .init(name: "uri", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
-    .init(name: "username", typeString: "string", required: false, encrypted: false, maxLength: nil)!,
-    .init(name: "password", typeString: "string", required: true, encrypted: true, maxLength: nil)!,
-    .init(name: "description", typeString: "string", required: false, encrypted: true, maxLength: nil)!,
-  ]
-)
+private let defaultResourceType: ResourceTypeDTO = .random()
