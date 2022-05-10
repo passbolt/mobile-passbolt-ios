@@ -114,7 +114,7 @@ internal struct FoldersExplorerView: ComponentView {
             await self.controller.presentAccountMenu()
           },
           label: {
-            UserAvatarView(image: self.state.userAvatarImage)
+            UserAvatarView(imageData: self.state.userAvatarImage)
               .padding(
                 top: 0,
                 leading: 0,
@@ -275,6 +275,7 @@ internal struct FoldersExplorerView: ComponentView {
             },
             label: {
               Image(named: .more)
+                .resizable()
                 .aspectRatio(1, contentMode: .fit)
                 .padding(8)
                 .foregroundColor(Color.passboltIcon)
@@ -322,6 +323,7 @@ internal struct FoldersExplorerView: ComponentView {
             },
             label: {
               Image(named: .more)
+                .resizable()
                 .aspectRatio(1, contentMode: .fit)
                 .padding(8)
                 .foregroundColor(Color.passboltIcon)

@@ -21,35 +21,43 @@
 // @since         v1.0
 //
 
-import Accounts
-import CommonModels
+import SwiftUI
 
-extension ResourceDetailsController {
+@MainActor
+public struct AvatarView<ContentView>: View
+where ContentView: View {
 
-  internal struct ResourceDetails: Equatable {
+  private let contentView: ContentView
 
-    internal let id: Resource.ID
-    internal var permissionType: PermissionTypeDSV
-    internal var name: String
-    internal var url: String?
-    internal var username: String?
-    internal var description: String?
-    internal var fields: Array<ResourceFieldDSV>
+  public init(
+    contentView: ContentView
+  ) {
+    self.contentView = contentView
+  }
 
-    internal static func from(
-      detailsViewResource: ResourceDetailsDSV
-    ) -> ResourceDetails {
-      .init(
-        id: .init(rawValue: detailsViewResource.id.rawValue),
-        permissionType: detailsViewResource.permissionType,
-        name: detailsViewResource.name,
-        url: detailsViewResource.url,
-        username: detailsViewResource.username,
-        description: detailsViewResource.description,
-        fields: detailsViewResource
-          .fields
-          .sorted(by: { $0.name < $1.name })
+  public var body: some View {
+    self.contentView
+      .aspectRatio(1, contentMode: .fit)
+      .foregroundColor(.passboltPrimaryText)
+      .background(Color.passboltBackground)
+      .mask(Circle())
+      .clipped()
+      .overlay(
+        Circle()
+          .stroke(
+            Color.passboltDivider,
+            lineWidth: 1
+          )
       )
-    }
   }
 }
+
+#if DEBUG
+
+internal struct AvatarView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    AvatarView(contentView: Image(named: .person).resizable())
+  }
+}
+#endif

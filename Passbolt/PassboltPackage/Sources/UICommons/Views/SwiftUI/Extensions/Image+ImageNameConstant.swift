@@ -33,6 +33,5 @@ extension Image {
       imageNameConstant.rawValue,
       bundle: .uiCommons
     )
-    .resizable()
   }
 }

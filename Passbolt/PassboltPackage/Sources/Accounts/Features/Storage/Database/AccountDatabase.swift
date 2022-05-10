@@ -43,6 +43,8 @@ public struct AccountDatabase {
   public var storeUsers: StoreUsersOperation
   public var fetchResourceUserGroupList: FetchResourceListItemDSVsUserGroupOperation
 
+  internal var currentConnection: () async throws -> SQLiteConnection
+
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
@@ -131,6 +133,7 @@ extension AccountDatabase: Feature {
       storeUserGroups: StoreUserGroupsOperation.using(currentSQLiteConnection),
       storeUsers: StoreUsersOperation.using(currentSQLiteConnection),
       fetchResourceUserGroupList: FetchResourceListItemDSVsUserGroupOperation.using(currentSQLiteConnection),
+      currentConnection: currentSQLiteConnection,
       featureUnload: featureUnload
     )
   }
@@ -151,6 +154,7 @@ extension AccountDatabase: Feature {
       storeUserGroups: .placeholder,
       storeUsers: .placeholder,
       fetchResourceUserGroupList: .placeholder,
+      currentConnection: unimplemented("You have to provide mocks for used methods"),
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }

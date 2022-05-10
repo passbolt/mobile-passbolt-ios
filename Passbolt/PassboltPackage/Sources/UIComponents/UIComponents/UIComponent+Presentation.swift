@@ -613,6 +613,23 @@ extension UIComponent {
     }
   }
 
+  @MainActor public func addChild<Component>(
+    _ type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    viewSetup: @escaping (_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) -> Void,
+    animations: ((_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) async
+  where Component: ComponentView {
+    await self.addChild(
+      ComponentHostingViewController<Component>.self,
+      in: context,
+      viewSetup: viewSetup,
+      animations: animations,
+      completion: { _ in completion?() }
+    )
+  }
+
   @MainActor public func replaceChild<Replaced, Replacing>(
     _ replaced: Replaced.Type,
     with replacing: Replacing.Type,
@@ -723,5 +740,15 @@ extension UIComponent {
         }
       CATransaction.commit()
     }
+  }
+
+  @MainActor public func removeAllChildren<Component>(
+    _ type: Component.Type,
+    animations: ((_ parent: Self.ContentView, _ removed: ComponentHostingViewController<Component>.ContentView) -> Void)? = nil,
+    completion: (() -> Void)? = nil
+  ) async where Component: ComponentView {
+    await self.removeAllChildren(
+      ComponentHostingViewController<Component>.self
+    )
   }
 }

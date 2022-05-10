@@ -60,6 +60,7 @@ public struct ImageWithPadding: View {
 
   public var body: some View {
     Image(named: self.imageName)
+      .resizable()
       .aspectRatio(1, contentMode: .fit)
       .padding(self.padding)
   }

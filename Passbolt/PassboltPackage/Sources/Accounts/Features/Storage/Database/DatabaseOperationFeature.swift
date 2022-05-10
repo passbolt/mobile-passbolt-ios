@@ -21,46 +21,65 @@
 // @since         v1.0
 //
 
-import Combine
-import CommonModels
-import Environment
 import Features
 
-public struct DatabaseOperation<Input, Output> {
+public protocol DatabaseOperationFeature: Feature {
 
-  public var execute: @StorageAccessActor (Input) async throws -> Output
+  associatedtype Input
+  associatedtype Output
+
+  static func using(
+    _ connection: @escaping () async throws -> SQLiteConnection
+  ) -> Self
+
+  init(execute: @escaping @StorageAccessActor (Input) async throws -> Output)
+
+  var execute: @StorageAccessActor (Input) async throws -> Output { get }
 }
 
-extension DatabaseOperation {
+extension DatabaseOperationFeature {
 
-  public nonisolated func callAsFunction(
-    _ input: Input
-  ) -> AnyPublisher<Output, Error> {
-    return Task<Output, Error> {
-      try await execute(input)
-    }
-    .asPublisher()
+  public static func load(
+    in environment: AppEnvironment,
+    using features: FeatureFactory,
+    cancellables: Cancellables
+  ) async throws -> Self {
+    let database: AccountDatabase = try await features.instance()
+
+    return Self.using(
+      database.currentConnection
+    )
   }
+
+  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void { { /* NOP */ } }
+
+  #if DEBUG
+  nonisolated public static var placeholder: Self {
+    Self(
+      execute: unimplemented("You have to provide mocks for used methods")
+    )
+  }
+  #endif
+}
+
+extension DatabaseOperationFeature {
 
   @StorageAccessActor public func callAsFunction(
     _ input: Input
   ) async throws -> Output {
-    try await execute(input)
+    try await self.execute(input)
   }
 }
 
-extension DatabaseOperation where Input == Void {
-
-  public nonisolated func callAsFunction() -> AnyPublisher<Output, Error> {
-    self.callAsFunction(Void())
-  }
+extension DatabaseOperationFeature
+where Input == Void {
 
   @StorageAccessActor public func callAsFunction() async throws -> Output {
-    try await self.callAsFunction(Void())
+    try await self.execute(Void())
   }
 }
 
-extension DatabaseOperation {
+extension DatabaseOperationFeature {
 
   internal static func withConnection(
     using connection: @escaping () async throws -> SQLiteConnection,
@@ -84,50 +103,3 @@ extension DatabaseOperation {
     }
   }
 }
-
-#if DEBUG
-extension DatabaseOperation {
-
-  internal static var placeholder: Self {
-    Self(
-      execute: unimplemented("You have to provide mocks for used methods")
-    )
-  }
-
-  public static func returning(
-    _ result: @autoclosure @escaping () -> Result<Output, Error>,
-    storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
-  ) -> Self {
-    Self(
-      execute: { input in
-        inputReference?.pointee = input
-        return try result().get()
-      }
-    )
-  }
-
-  public static func returning(
-    _ output: @autoclosure @escaping () -> Output,
-    storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
-  ) -> Self {
-    Self(
-      execute: { input in
-        inputReference?.pointee = input
-        return output()
-      }
-    )
-  }
-
-  public static func failingWith(
-    _ error: @autoclosure @escaping () -> TheError,
-    storeInputIn inputReference: UnsafeMutablePointer<Input?>? = nil
-  ) -> Self {
-    Self(
-      execute: { input in
-        inputReference?.pointee = input
-        throw error()
-      }
-    )
-  }
-}
-#endif

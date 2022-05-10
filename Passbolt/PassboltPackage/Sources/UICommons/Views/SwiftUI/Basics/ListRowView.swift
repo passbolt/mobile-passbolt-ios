@@ -81,6 +81,7 @@ internal struct ListRowView_Previews: PreviewProvider {
       },
       leftAccessory: {
         Image(named: .plus)
+          .resizable()
           .aspectRatio(1, contentMode: .fit)
           .padding(8)
           .background(Color.passboltPrimaryBlue)
@@ -97,6 +98,7 @@ internal struct ListRowView_Previews: PreviewProvider {
           },
           label: {
             Image(named: .more)
+              .resizable()
               .aspectRatio(1, contentMode: .fit)
               .padding(8)
               .foregroundColor(Color.passboltIcon)

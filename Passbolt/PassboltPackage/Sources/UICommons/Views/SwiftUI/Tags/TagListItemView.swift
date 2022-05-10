@@ -71,6 +71,7 @@ public struct TagListItemView: View {
           Text("\(self.contentCount)")
             .font(.inter(ofSize: 14, weight: .regular))
           Image(named: .chevronRight)
+            .resizable()
             .aspectRatio(1, contentMode: .fit)
             .padding(
               top: 12,

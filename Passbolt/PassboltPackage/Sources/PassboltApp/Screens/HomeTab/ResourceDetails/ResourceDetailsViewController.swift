@@ -290,5 +290,28 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
         }
       }
       .store(in: cancellables)
+
+    self.controller
+      .permissionsPublisher()
+      .removeDuplicates()
+      .receive(on: RunLoop.main)
+      .sink { permissions in
+        if permissions.isEmpty {
+          MainActor.execute {
+            await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
+          }
+        }
+        else {
+          MainActor.execute {
+            await self.addChild(
+              ResourceDetailsSharedSectionView.self,
+              in: permissions
+            ) { parent, child in
+              parent.insertShareSection(view: child)
+            }
+          }
+        }
+      }
+      .store(in: cancellables)
   }
 }

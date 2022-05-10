@@ -26,33 +26,37 @@ import SwiftUI
 @MainActor
 public struct UserAvatarView: View {
 
-  private let image: Image
+  private let imageData: () async -> Data?
+  @State private var image: Image?
 
   public init(
-    image: Data?
+    imageData: @escaping () async -> Data?
   ) {
-    self.image =
-      image
-      .flatMap(UIImage.init(data:))
-      .map(Image.init(uiImage:))?
-      .resizable()
-      ?? Image(named: .person)
+    self.imageData = imageData
+  }
+
+  public init(
+    imageData: Data?
+  ) {
+    self.imageData = { imageData }
   }
 
   public var body: some View {
-    self.image
-      .aspectRatio(1, contentMode: .fit)
-      .foregroundColor(.passboltPrimaryText)
-      .background(Color.passboltBackground)
-      .mask(Circle())
-      .clipped()
-      .overlay(
-        Circle()
-          .stroke(
-            Color.passboltDivider,
-            lineWidth: 1
-          )
-      )
+    AvatarView<Image>(
+      contentView: (
+        self.image
+        ?? Image(named: .person)
+      ).resizable()
+    )
+    .onAppear {
+      if self.image == nil {
+        MainActor.execute {
+          self.image = await self.imageData().flatMap(Image.init(data:))
+          ?? Image(named: .person)
+        }
+      }
+      else { /* NOP */ }
+    }
   }
 }
 
@@ -61,7 +65,7 @@ public struct UserAvatarView: View {
 internal struct UserAvatarView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    UserAvatarView(image: nil)
+    UserAvatarView(imageData: nil)
   }
 }
 #endif

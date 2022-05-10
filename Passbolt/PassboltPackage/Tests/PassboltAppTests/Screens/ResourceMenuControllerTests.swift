@@ -67,7 +67,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
         showDeleteAlert: { _ in /* NOP */ }
       )
     )
-    var result: ResourceDetailsController.ResourceDetails?
+    var result: ResourceDetailsDSV?
 
     controller
       .resourceDetailsPublisher()

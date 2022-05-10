@@ -38,13 +38,14 @@ internal struct ResourceDetailsController {
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeletionPublisher: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
   internal var copyFieldValue: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<Void, Error>
+  internal var permissionsPublisher: @MainActor () -> AnyPublisher<Array<PermissionDSV>, Never>
 }
 
 extension ResourceDetailsController {
 
   internal struct ResourceDetailsWithConfig: Equatable {
 
-    internal var resourceDetails: ResourceDetailsController.ResourceDetails
+    internal var resourceDetails: ResourceDetailsDSV
     internal var revealPasswordEnabled: Bool
   }
 }
@@ -58,7 +59,7 @@ extension ResourceDetailsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-
+    let diagnostics: Diagnostics = try await features.instance()
     let resources: Resources = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
     let featureConfig: FeatureConfig = try await features.instance()
@@ -72,8 +73,9 @@ extension ResourceDetailsController: UIController {
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsWithConfig?, Error> = .init(nil)
 
     resources.resourceDetailsPublisher(context)
-      .asyncMap {
-        let resourceDetails: ResourceDetailsController.ResourceDetails = .from(detailsViewResource: $0)
+      .asyncMap { resourceDetails in
+        var resourceDetails: ResourceDetailsDSV = resourceDetails
+        resourceDetails.fields = resourceDetails.fields.sorted(by: { $0.name < $1.name })
         let previewPassword: FeatureFlags.PreviewPassword = await featureConfig.configuration()
         let previewPasswordEnabled: Bool = {
           switch previewPassword {
@@ -421,6 +423,16 @@ extension ResourceDetailsController: UIController {
       .eraseToAnyPublisher()
     }
 
+    @MainActor func permissionsPublisher() -> AnyPublisher<Array<PermissionDSV>, Never> {
+      currentDetailsSubject
+        .map { details -> Array<PermissionDSV> in
+          Array(details?.resourceDetails.permissions ?? [])
+        }
+        .collectErrorLog(using: diagnostics)
+        .replaceError(with: [])
+        .eraseToAnyPublisher()
+    }
+
     return Self(
       resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
       toggleDecrypt: toggleDecrypt(fieldName:),
@@ -431,7 +443,8 @@ extension ResourceDetailsController: UIController {
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
       resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,
       resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
-      copyFieldValue: copyField(_:)
+      copyFieldValue: copyField(_:),
+      permissionsPublisher: permissionsPublisher
     )
   }
 }

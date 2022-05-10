@@ -29,7 +29,7 @@ import UIComponents
 internal struct ResourceMenuController {
 
   internal var availableActionsPublisher: @MainActor () -> AnyPublisher<Array<Action>, Never>
-  internal var resourceDetailsPublisher: @MainActor () -> AnyPublisher<ResourceDetailsController.ResourceDetails, Error>
+  internal var resourceDetailsPublisher: @MainActor () -> AnyPublisher<ResourceDetailsDSV, Error>
   internal var performAction: @MainActor (Action) -> AnyPublisher<Void, Error>
 }
 
@@ -71,13 +71,12 @@ extension ResourceMenuController: UIController {
     let resources: Resources = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
 
-    let currentDetailsSubject: CurrentValueSubject<ResourceDetailsController.ResourceDetails?, Error> = .init(
+    let currentDetailsSubject: CurrentValueSubject<ResourceDetailsDSV?, Error> = .init(
       nil
     )
 
     resources
       .resourceDetailsPublisher(context.resourceID)
-      .map(ResourceDetailsController.ResourceDetails.from(detailsViewResource:))
       .sink(
         receiveCompletion: { completion in
           guard case let .failure(error) = completion
@@ -154,7 +153,7 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
-    func resourceDetailsPublisher() -> AnyPublisher<ResourceDetailsController.ResourceDetails, Error> {
+    func resourceDetailsPublisher() -> AnyPublisher<ResourceDetailsDSV, Error> {
       currentDetailsSubject
         .filterMapOptional()
         .removeDuplicates()

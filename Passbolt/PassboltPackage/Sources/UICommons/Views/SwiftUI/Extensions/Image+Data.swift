@@ -21,52 +21,19 @@
 // @since         v1.0
 //
 
-import Commons
 import SwiftUI
+import struct Foundation.Data
 
-@MainActor
-public struct ResourceListAddView: View {
+extension Image {
 
-  private let action: () async -> Void
-
-  public init(
-    action: @escaping () async -> Void
+  public init?(
+    data: Data
   ) {
-    self.action = action
-  }
-
-  public var body: some View {
-    ListRowView(
-      action: {
-        await self.action()
-      },
-      leftAccessory: {
-        Image(named: .create)
-          .resizable()
-          .frame(
-            width: 40,
-            height: 40,
-            alignment: .center
-          )
-      },
-      content: {
-        Text(displayable: .localized(key: .create))
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundColor(Color.passboltPrimaryText)
-      },
-      rightAccessory: EmptyView.init
-    )
-  }
-}
-
-#if DEBUG
-
-internal struct ResourceListAddView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    ResourceListAddView {
-      // action
+    if let image: UIImage = UIImage(data: data) {
+      self = Image(uiImage: image)
+    }
+    else {
+      return nil
     }
   }
 }
-#endif

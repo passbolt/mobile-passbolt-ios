@@ -21,52 +21,9 @@
 // @since         v1.0
 //
 
-import Commons
-import SwiftUI
-
-@MainActor
-public struct ResourceListAddView: View {
-
-  private let action: () async -> Void
-
-  public init(
-    action: @escaping () async -> Void
-  ) {
-    self.action = action
-  }
+public struct UserGroupAvatarView: View {
 
   public var body: some View {
-    ListRowView(
-      action: {
-        await self.action()
-      },
-      leftAccessory: {
-        Image(named: .create)
-          .resizable()
-          .frame(
-            width: 40,
-            height: 40,
-            alignment: .center
-          )
-      },
-      content: {
-        Text(displayable: .localized(key: .create))
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundColor(Color.passboltPrimaryText)
-      },
-      rightAccessory: EmptyView.init
-    )
+    AvatarView(contentView: Image(named: .userGroupIcon).resizable())
   }
 }
-
-#if DEBUG
-
-internal struct ResourceListAddView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    ResourceListAddView {
-      // action
-    }
-  }
-}
-#endif

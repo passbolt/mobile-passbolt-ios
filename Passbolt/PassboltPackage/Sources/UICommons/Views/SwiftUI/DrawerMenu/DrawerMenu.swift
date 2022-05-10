@@ -48,6 +48,7 @@ where TitleView: View, ContentView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .frame(height: 24)
         Image(named: .close)
+          .resizable()
           .frame(width: 24, height: 24)
           .onTapGesture {
             self.closeTap()
@@ -107,6 +108,7 @@ internal struct DrawerMenu_Previews: PreviewProvider {
             },
             leftIcon: {
               Image(named: .dice)
+                .resizable()
             },
             isSelected: false
           )
@@ -118,6 +120,7 @@ internal struct DrawerMenu_Previews: PreviewProvider {
             },
             leftIcon: {
               Image(named: .biometricsIcon)
+                .resizable()
             },
             isSelected: true
           )
@@ -129,6 +132,7 @@ internal struct DrawerMenu_Previews: PreviewProvider {
             },
             leftIcon: {
               Image(named: .lockedLock)
+                .resizable()
                 .padding(2)
             },
             isSelected: false
@@ -150,9 +154,11 @@ internal struct DrawerMenu_Previews: PreviewProvider {
             },
             leftIcon: {
               Image(named: .bug)
+                .resizable()
             },
             rightIcon: {
               Image(named: .link)
+                .resizable()
             },
             isSelected: false
           )

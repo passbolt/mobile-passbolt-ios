@@ -69,6 +69,7 @@ internal struct HomePresentationMenuView: ComponentView {
               },
               leftIcon: {
                 Image(named: mode.iconName)
+                  .resizable()
               },
               isSelected: mode == self.state.currentMode
             )

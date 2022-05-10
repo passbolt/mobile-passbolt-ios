@@ -23,4 +23,6 @@
 
 @_exported import Commons
 
+@_exported import struct Foundation.Data
+@_exported import struct Foundation.Date
 @_exported import struct Foundation.UUID

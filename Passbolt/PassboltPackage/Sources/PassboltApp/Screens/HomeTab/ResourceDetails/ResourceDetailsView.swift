@@ -94,7 +94,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     removeAllArrangedSubviews(withTag: Self.formItemTag)
     fieldUpdates.removeAll()
 
-    let resourceDetails: ResourceDetailsController.ResourceDetails = config.resourceDetails
+    let resourceDetails: ResourceDetailsDSV = config.resourceDetails
 
     iconView.update(from: resourceDetails.name)
     titleLabel.text = resourceDetails.name
@@ -299,6 +299,15 @@ internal final class ResourceDetailsView: ScrolledStackView {
         valueTextViewMutation.contramap(\ResourceDetailsItemView.valueTextView)
       )
     )
+  }
+
+  internal func insertShareSection(
+    view: UIView
+  ) {
+    mut(view) {
+      .heightAnchor(.equalTo, constant: 40)
+    }
+    self.append(view)
   }
 }
 

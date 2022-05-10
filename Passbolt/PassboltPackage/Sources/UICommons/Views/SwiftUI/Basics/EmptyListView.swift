@@ -47,6 +47,7 @@ public struct EmptyListView: View {
         color: .passboltPrimaryText
       )
       Image(named: .emptyState)
+        .resizable()
         .aspectRatio(contentMode: .fill)
         .padding(
           top: 24,

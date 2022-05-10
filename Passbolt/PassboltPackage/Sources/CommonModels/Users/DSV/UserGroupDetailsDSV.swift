@@ -21,52 +21,21 @@
 // @since         v1.0
 //
 
-import Commons
-import SwiftUI
+public struct UserGrupDetailsDSV {
 
-@MainActor
-public struct ResourceListAddView: View {
-
-  private let action: () async -> Void
+  public var id: User.ID
+  public var name: String
+  public var users: Array<UserDetailsDSV>
 
   public init(
-    action: @escaping () async -> Void
+    id: User.ID,
+    name: String,
+    users: Array<UserDetailsDSV>
   ) {
-    self.action = action
-  }
-
-  public var body: some View {
-    ListRowView(
-      action: {
-        await self.action()
-      },
-      leftAccessory: {
-        Image(named: .create)
-          .resizable()
-          .frame(
-            width: 40,
-            height: 40,
-            alignment: .center
-          )
-      },
-      content: {
-        Text(displayable: .localized(key: .create))
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundColor(Color.passboltPrimaryText)
-      },
-      rightAccessory: EmptyView.init
-    )
+    self.id = id
+    self.name = name
+    self.users = users
   }
 }
 
-#if DEBUG
-
-internal struct ResourceListAddView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    ResourceListAddView {
-      // action
-    }
-  }
-}
-#endif
+extension UserGrupDetailsDSV: DSV {}

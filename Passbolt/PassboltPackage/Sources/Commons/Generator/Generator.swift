@@ -175,7 +175,7 @@ extension Generator {
 
 extension Generator {
 
-  public func appening<Element>(
+  public func appending<Element>(
     _ element: Element
   ) -> Self
   where Value == Array<Element> {
@@ -186,7 +186,7 @@ extension Generator {
     }
   }
 
-  public func insering<Element>(
+  public func inserting<Element>(
     _ element: Element
   ) -> Self
   where Value == Set<Element> {

@@ -85,7 +85,7 @@ extension ResourceDetailsDSV: RandomlyGenerated {
         .randomGenerator(using: randomnessGenerator)
         .array(withCountIn: 1..<3, using: randomnessGenerator)
         // name field is required to be always present
-        .appening(ResourceFieldDTO(name: .name, valueType: .string, required: true, encrypted: false, maxLength: 0)),
+        .appending(ResourceFieldDTO(name: .name, valueType: .string, required: true, encrypted: false, maxLength: 0)),
       PermissionDSV
         .randomGenerator(using: randomnessGenerator)
         .array(withCountIn: 0..<3, using: randomnessGenerator)

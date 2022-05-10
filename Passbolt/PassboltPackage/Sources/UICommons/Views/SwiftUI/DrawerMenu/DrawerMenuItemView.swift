@@ -121,6 +121,7 @@ internal struct DrawerMenuItemView_Previews: PreviewProvider {
         },
         leftIcon: {
           Image(named: .dice)
+            .resizable()
         },
         isSelected: false
       )
@@ -132,6 +133,7 @@ internal struct DrawerMenuItemView_Previews: PreviewProvider {
         },
         leftIcon: {
           Image(named: .biometricsIcon)
+            .resizable()
         },
         isSelected: true
       )
@@ -143,6 +145,7 @@ internal struct DrawerMenuItemView_Previews: PreviewProvider {
         },
         leftIcon: {
           Image(named: .lockedLock)
+            .resizable()
             .padding(2)
         },
         isSelected: false
@@ -157,9 +160,11 @@ internal struct DrawerMenuItemView_Previews: PreviewProvider {
         },
         leftIcon: {
           Image(named: .bug)
+            .resizable()
         },
         rightIcon: {
           Image(named: .link)
+            .resizable()
         },
         isSelected: false
       )
