@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct UserGrupDetailsDSV {
+public struct UserGroupDetailsDSV {
 
   public var id: User.ID
   public var name: String
@@ -38,4 +38,4 @@ public struct UserGrupDetailsDSV {
   }
 }
 
-extension UserGrupDetailsDSV: DSV {}
+extension UserGroupDetailsDSV: DSV {}

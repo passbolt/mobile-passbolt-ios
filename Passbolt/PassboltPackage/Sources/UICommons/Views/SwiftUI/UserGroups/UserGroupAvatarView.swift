@@ -23,7 +23,11 @@
 
 public struct UserGroupAvatarView: View {
 
+  public init() {}
+
   public var body: some View {
-    AvatarView(contentView: Image(named: .userGroupIcon).resizable())
+    Image(named: .userGroupIcon)
+      .resizable()
+      .aspectRatio(1, contentMode: .fit)
   }
 }

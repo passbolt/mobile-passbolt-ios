@@ -51,7 +51,7 @@ extension DatabaseOperationFeature {
     )
   }
 
-  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void { { /* NOP */ } }
+  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void { { /* NOP */  } }
 
   #if DEBUG
   nonisolated public static var placeholder: Self {

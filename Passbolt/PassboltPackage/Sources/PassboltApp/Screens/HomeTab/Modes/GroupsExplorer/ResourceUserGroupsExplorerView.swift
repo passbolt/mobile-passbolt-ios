@@ -63,7 +63,7 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
 
       self.contentView
     }
-    .background(Color.passboltBackground)
+    .backgroundColor(.passboltBackground)
     .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 

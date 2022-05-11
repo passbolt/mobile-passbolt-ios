@@ -21,51 +21,60 @@
 // @since         v1.0
 //
 
+import CommonModels
 import SwiftUI
 
 @MainActor
-public struct UserAvatarView: View {
+public struct ResourcePermissionTypeCompactView: View {
 
-  private let imageData: () async -> Data?
-  @State private var image: Image?
-
-  public init(
-    imageData: @escaping () async -> Data?
-  ) {
-    self.imageData = imageData
-  }
+  private let permissionTypeLabel: DisplayableString
 
   public init(
-    imageData: Data?
+    permissionType: PermissionType
   ) {
-    self.imageData = { imageData }
+    switch permissionType {
+    case .read:
+      self.permissionTypeLabel = .localized(key: "resource.permission.type.read.label")
+
+    case .write:
+      self.permissionTypeLabel = .localized(key: "resource.permission.type.write.label")
+
+    case .owner:
+      self.permissionTypeLabel = .localized(key: "resource.permission.type.own.label")
+    }
   }
 
   public var body: some View {
-    AvatarView<Image>(
-      contentView: (self.image
-        ?? Image(named: .person)).resizable()
+    Text(
+      displayable: self.permissionTypeLabel
     )
-    .onAppear {
-      if self.image == nil {
-        MainActor.execute {
-          self.image =
-            await self.imageData().flatMap(Image.init(data:))
-            ?? Image(named: .person)
-        }
-      }
-      else { /* NOP */
-      }
-    }
+    .text(
+      font: .inter(
+        ofSize: 12,
+        weight: .regular
+      ),
+      color: .passboltPrimaryText
+    )
+    .padding(10)
+    .backgroundColor(.passboltSecondaryGray)
+    .cornerRadius(5)
   }
 }
 
 #if DEBUG
 
-internal struct UserAvatarView_Previews: PreviewProvider {
+internal struct ResourcePermissionTypeView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    UserAvatarView(imageData: nil)
+    ResourcePermissionTypeCompactView(
+      permissionType: .read
+    )
+    ResourcePermissionTypeCompactView(
+      permissionType: .write
+    )
+    ResourcePermissionTypeCompactView(
+      permissionType: .owner
+    )
   }
 }
 #endif

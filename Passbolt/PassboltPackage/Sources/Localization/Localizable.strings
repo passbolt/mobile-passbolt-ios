@@ -228,6 +228,11 @@
 "resource.menu.action.edited" = "This password was successfully edited.";
 "resource.menu.action.deleted" = "%@ has been deleted!";
 
+"resource.permission.type.read.label" = "can read";
+"resource.permission.type.write.label" = "can write";
+"resource.permission.type.own.label" = "is owner";
+"resource.permission.list.title" = "Shared with";
+
 "totp.title.label" = "Two Factor Authentication";
 "totp.message.label" = "Enter the verification code:";
 "totp.paste.otp.button.label" = "Paste code";

@@ -39,7 +39,7 @@ where ContentView: View {
     self.contentView
       .aspectRatio(1, contentMode: .fit)
       .foregroundColor(.passboltPrimaryText)
-      .background(Color.passboltBackground)
+      .backgroundColor(.passboltBackground)
       .mask(Circle())
       .clipped()
       .overlay(

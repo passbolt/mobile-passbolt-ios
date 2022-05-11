@@ -22,6 +22,7 @@
 //
 
 import SwiftUI
+
 import struct Foundation.Data
 
 extension Image {

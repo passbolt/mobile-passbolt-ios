@@ -293,9 +293,11 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
 
     self.controller
       .permissionsPublisher()
-      .removeDuplicates()
+      .removeDuplicates(
+        by: { $0.permissions == $1.permissions }
+      )
       .receive(on: RunLoop.main)
-      .sink { permissions in
+      .sink { (resourceID, permissions) in
         if permissions.isEmpty {
           MainActor.execute {
             await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
@@ -303,9 +305,13 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
         }
         else {
           MainActor.execute {
+            await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
             await self.addChild(
               ResourceDetailsSharedSectionView.self,
-              in: permissions
+              in: (
+                resourceID: resourceID,
+                permissions: permissions
+              )
             ) { parent, child in
               parent.insertShareSection(view: child)
             }

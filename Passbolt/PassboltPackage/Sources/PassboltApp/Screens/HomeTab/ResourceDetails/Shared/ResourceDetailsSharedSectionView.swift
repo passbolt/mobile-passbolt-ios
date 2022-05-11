@@ -53,11 +53,11 @@ internal struct ResourceDetailsSharedSectionView: ComponentView {
       HStack(spacing: 0) {
         AsyncButton(
           action: {
-            await self.controller.showSharingDetails()
+            await self.controller.showResourcePermissionList()
           },
           label: {
             OverlappingAvatarStackView(self.state.items)
-            .contentShape(Rectangle())
+              .contentShape(Rectangle())
           }
         )
 
@@ -72,9 +72,9 @@ internal struct ResourceDetailsSharedSectionView: ComponentView {
           )
       }
       .frame(height: 40)
-      }
-      .foregroundColor(Color.passboltPrimaryText)
-      .frame(maxWidth: .infinity)
+    }
+    .foregroundColor(Color.passboltPrimaryText)
+    .frame(maxWidth: .infinity)
   }
 }
 

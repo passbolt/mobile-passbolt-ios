@@ -21,10 +21,11 @@
 // @since         v1.0
 //
 
-import Features
 import Accounts
-import NetworkClient
 import CommonModels
+import Features
+import NetworkClient
+
 import struct Foundation.Data
 
 public struct Users {
@@ -42,7 +43,6 @@ extension Users: Feature {
     cancellables: Cancellables
   ) async throws -> Self {
     let userDetailsFetch: UserDetailsDatabaseFetch = try await features.instance()
-
     let networkClient: NetworkClient = try await features.instance()
 
     @StorageAccessActor func userDetails(

@@ -24,39 +24,37 @@
 import Commons
 import SwiftUI
 
-@MainActor
-public struct ListViewItemView<LeftAccessoryView, TitleView, RightAccessoryView>: View
-where LeftAccessoryView: View, TitleView: View, RightAccessoryView: View {
+public struct ListRowTitleWithSubtitleView: View {
 
-  private let leftAccessory: () -> LeftAccessoryView
-  private let title: () -> TitleView
-  private let rightAccessory: () -> RightAccessoryView
+  private let title: DisplayableString
+  private let subtitle: DisplayableString
 
   public init(
-    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
-    @ViewBuilder title: @escaping () -> TitleView,
-    @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
+    title: DisplayableString,
+    subtitle: DisplayableString
   ) {
-    self.leftAccessory = leftAccessory
     self.title = title
-    self.rightAccessory = rightAccessory
+    self.subtitle = subtitle
   }
 
   public var body: some View {
-    HStack(spacing: 0) {
-      self.leftAccessory()
-        .padding(
-          top: 10,
-          leading: 10,
-          bottom: 10
+    VStack(alignment: .leading, spacing: 4) {
+      Text(displayable: self.title)
+        .font(
+          .inter(
+            ofSize: 14,
+            weight: .semibold
+          )
         )
-        .frame(maxWidth: 48, maxHeight: 48)
-
-      self.title()
-        .frame(maxWidth: .infinity, maxHeight: 48)
-
-      self.rightAccessory()
+        .foregroundColor(.passboltPrimaryText)
+      Text(displayable: self.subtitle)
+        .font(
+          .inter(
+            ofSize: 12,
+            weight: .regular
+          )
+        )
+        .foregroundColor(.passboltSecondaryText)
     }
-
   }
 }

@@ -23,49 +23,11 @@
 
 import SwiftUI
 
-@MainActor
-public struct UserAvatarView: View {
+extension View {
 
-  private let imageData: () async -> Data?
-  @State private var image: Image?
-
-  public init(
-    imageData: @escaping () async -> Data?
-  ) {
-    self.imageData = imageData
-  }
-
-  public init(
-    imageData: Data?
-  ) {
-    self.imageData = { imageData }
-  }
-
-  public var body: some View {
-    AvatarView<Image>(
-      contentView: (self.image
-        ?? Image(named: .person)).resizable()
-    )
-    .onAppear {
-      if self.image == nil {
-        MainActor.execute {
-          self.image =
-            await self.imageData().flatMap(Image.init(data:))
-            ?? Image(named: .person)
-        }
-      }
-      else { /* NOP */
-      }
-    }
+  public func backgroundColor(
+    _ color: Color
+  ) -> some View {
+    self.background(color)
   }
 }
-
-#if DEBUG
-
-internal struct UserAvatarView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    UserAvatarView(imageData: nil)
-  }
-}
-#endif

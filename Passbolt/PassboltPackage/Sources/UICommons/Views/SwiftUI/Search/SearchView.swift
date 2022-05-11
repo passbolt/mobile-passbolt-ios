@@ -179,7 +179,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
     .font(.inter(ofSize: 14, weight: .regular))
     .foregroundColor(.passboltPrimaryText)
     .frame(height: 48)
-    .background(Color.passboltBackgroundAlternative)
+    .backgroundColor(.passboltBackgroundAlternative)
     .overlay(
       RoundedRectangle(cornerRadius: 8)
         .stroke(

@@ -56,7 +56,6 @@ extension UserGroupsRequest {
   }
 }
 
-
 public typealias UserGroupsRequestVariable = Void
 
 public typealias UserGroupsRequestResponse = CommonResponse<UserGroupsRequestResponseBody>

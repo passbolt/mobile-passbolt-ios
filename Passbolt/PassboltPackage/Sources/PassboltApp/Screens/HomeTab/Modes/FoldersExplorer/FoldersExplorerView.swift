@@ -67,7 +67,7 @@ internal struct FoldersExplorerView: ComponentView {
         self.searchContentView
       }
     }
-    .background(Color.passboltBackground)
+    .backgroundColor(.passboltBackground)
     .snackBarMessage(presenting: self.$state.snackBarMessage)
   }
 

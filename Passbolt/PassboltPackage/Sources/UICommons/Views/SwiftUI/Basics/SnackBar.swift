@@ -123,7 +123,7 @@ extension View {
           }
           .frame(maxWidth: .infinity)
           .foregroundColor(.passboltPrimaryAlertText)
-          .background(Color.passboltBackgroundAlert)
+          .backgroundColor(.passboltBackgroundAlert)
 
         case let .error(error):
           HStack(alignment: .center, spacing: 0) {
@@ -139,7 +139,7 @@ extension View {
           }
           .frame(maxWidth: .infinity)
           .foregroundColor(.passboltPrimaryAlertText)
-          .background(Color.passboltSecondaryRed)
+          .backgroundColor(.passboltSecondaryRed)
         }
       }
     )

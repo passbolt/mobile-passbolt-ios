@@ -616,8 +616,11 @@ extension UIComponent {
   @MainActor public func addChild<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    viewSetup: @escaping (_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) -> Void,
-    animations: ((_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) -> Void)? = nil,
+    viewSetup: @escaping (_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) ->
+      Void,
+    animations: (
+      (_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) -> Void
+    )? = nil,
     completion: (() -> Void)? = nil
   ) async
   where Component: ComponentView {
@@ -744,7 +747,9 @@ extension UIComponent {
 
   @MainActor public func removeAllChildren<Component>(
     _ type: Component.Type,
-    animations: ((_ parent: Self.ContentView, _ removed: ComponentHostingViewController<Component>.ContentView) -> Void)? = nil,
+    animations: (
+      (_ parent: Self.ContentView, _ removed: ComponentHostingViewController<Component>.ContentView) -> Void
+    )? = nil,
     completion: (() -> Void)? = nil
   ) async where Component: ComponentView {
     await self.removeAllChildren(

@@ -21,51 +21,27 @@
 // @since         v1.0
 //
 
+import Commons
 import SwiftUI
 
-@MainActor
-public struct UserAvatarView: View {
+public struct ListRowTitleView: View {
 
-  private let imageData: () async -> Data?
-  @State private var image: Image?
+  private let title: DisplayableString
 
   public init(
-    imageData: @escaping () async -> Data?
+    title: DisplayableString
   ) {
-    self.imageData = imageData
-  }
-
-  public init(
-    imageData: Data?
-  ) {
-    self.imageData = { imageData }
+    self.title = title
   }
 
   public var body: some View {
-    AvatarView<Image>(
-      contentView: (self.image
-        ?? Image(named: .person)).resizable()
-    )
-    .onAppear {
-      if self.image == nil {
-        MainActor.execute {
-          self.image =
-            await self.imageData().flatMap(Image.init(data:))
-            ?? Image(named: .person)
-        }
-      }
-      else { /* NOP */
-      }
-    }
+    Text(displayable: self.title)
+      .font(
+        .inter(
+          ofSize: 14,
+          weight: .semibold
+        )
+      )
+      .foregroundColor(.passboltPrimaryText)
   }
 }
-
-#if DEBUG
-
-internal struct UserAvatarView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    UserAvatarView(imageData: nil)
-  }
-}
-#endif

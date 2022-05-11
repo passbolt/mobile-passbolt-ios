@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import SwiftUI
 import Commons
+import SwiftUI
 
 public struct OverlappingAvatarStackView: View {
 
@@ -109,7 +109,7 @@ public struct OverlappingAvatarStackView: View {
               )
               .frame(width: itemSize, height: itemSize)
           )
-        } // else { /* NOP */ }
+        }  // else { /* NOP */ }
       }
     }
   }
@@ -198,68 +198,68 @@ internal struct OverlappingAvatarStackView_Previews: PreviewProvider {
   internal static var previews: some View {
     VStack {
       OverlappingAvatarStackView(
-        (0 ... 3)
+        (0...3)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 7)
+        (0...7)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 8)
+        (0...8)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 9)
+        (0...9)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 12)
+        (0...12)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 16)
+        (0...16)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 17)
+        (0...17)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 18)
+        (0...18)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 24)
+        (0...24)
           .map { _ in .random() }
       )
       .frame(height: 40)
 
       OverlappingAvatarStackView(
-        (0 ... 200)
+        (0...200)
           .map { _ in .random() }
       )
       .frame(height: 40)
     }
-    .background(Color.white)
+    .backgroundColor(.white)
     .padding(2)
-    .background(Color.green)
+    .backgroundColor(.green)
   }
 }
 #endif

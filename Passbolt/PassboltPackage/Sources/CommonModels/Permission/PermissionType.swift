@@ -30,6 +30,17 @@ public enum PermissionType: Int {
   case owner = 15
 }
 
+extension PermissionType: CaseIterable {
+
+  public static var allCases: Array<PermissionType> {
+    [
+      .read,
+      .write,
+      .owner,
+    ]
+  }
+}
+
 extension PermissionType {
 
   public var canEdit: Bool {
@@ -60,12 +71,9 @@ extension PermissionTypeDTO: RandomlyGenerated {
   public static func randomGenerator(
     using randomnessGenerator: RandomnessGenerator
   ) -> Generator<Self> {
-    [
-      PermissionTypeDTO.read,
-      .write,
-      .owner,
-    ]
-    .randomNonEmptyElementGenerator(using: randomnessGenerator)
+    PermissionTypeDTO
+      .allCases
+      .randomNonEmptyElementGenerator(using: randomnessGenerator)
   }
 }
 #endif

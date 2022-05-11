@@ -70,6 +70,45 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
   }
 }
 
+extension ListRowView
+where ContentView == ListRowTitleView {
+
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    title: DisplayableString,
+    @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
+  ) {
+    self.action = action
+    self.leftAccessory = leftAccessory
+    self.content = {
+      ListRowTitleView(title: title)
+    }
+    self.rightAccessory = rightAccessory
+  }
+}
+
+extension ListRowView
+where ContentView == ListRowTitleWithSubtitleView {
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    title: DisplayableString,
+    subtitle: DisplayableString,
+    @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
+  ) {
+    self.action = action
+    self.leftAccessory = leftAccessory
+    self.content = {
+      ListRowTitleWithSubtitleView(
+        title: title,
+        subtitle: subtitle
+      )
+    }
+    self.rightAccessory = rightAccessory
+  }
+}
+
 #if DEBUG
 
 internal struct ListRowView_Previews: PreviewProvider {
@@ -84,13 +123,11 @@ internal struct ListRowView_Previews: PreviewProvider {
           .resizable()
           .aspectRatio(1, contentMode: .fit)
           .padding(8)
-          .background(Color.passboltPrimaryBlue)
+          .backgroundColor(.passboltPrimaryBlue)
           .foregroundColor(Color.passboltPrimaryButtonText)
           .cornerRadius(8)
       },
-      content: {
-        Text("Content title")
-      },
+      title: "Content title",
       rightAccessory: {
         AsyncButton(
           action: {

@@ -65,7 +65,6 @@ extension Resources: Feature {
       }
     }
 
-
     nonisolated func filteredResourcesListPublisher(
       _ filterPublisher: AnyPublisher<ResourcesFilter, Never>
     ) -> AnyPublisher<Array<ResourceListItemDSV>, Never> {

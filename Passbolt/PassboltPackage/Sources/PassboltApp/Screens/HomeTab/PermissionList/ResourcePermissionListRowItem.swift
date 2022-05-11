@@ -21,51 +21,46 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import CommonModels
 
-@MainActor
-public struct UserAvatarView: View {
+import struct Foundation.Data
 
-  private let imageData: () async -> Data?
-  @State private var image: Image?
+internal enum ResourcePermissionListRowItem {
 
-  public init(
-    imageData: @escaping () async -> Data?
-  ) {
-    self.imageData = imageData
+  case user(
+    details: UserPermissionDetailsDSV,
+    imageData: () async -> Data?
+  )
+  case userGroup(
+    details: UserGroupPermissionDetailsDSV
+  )
+}
+
+extension ResourcePermissionListRowItem: Hashable {
+
+  internal static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    switch (lhs, rhs) {
+    case let (.user(lDetails, _), .user(rDetails, _)):
+      return lDetails == rDetails
+
+    case let (.userGroup(lDetails), .userGroup(rDetails)):
+      return lDetails == rDetails
+
+    case _:
+      return false
+    }
   }
 
-  public init(
-    imageData: Data?
-  ) {
-    self.imageData = { imageData }
-  }
+  internal func hash(into hasher: inout Hasher) {
+    switch self {
+    case let .user(details, _):
+      hasher.combine(details)
 
-  public var body: some View {
-    AvatarView<Image>(
-      contentView: (self.image
-        ?? Image(named: .person)).resizable()
-    )
-    .onAppear {
-      if self.image == nil {
-        MainActor.execute {
-          self.image =
-            await self.imageData().flatMap(Image.init(data:))
-            ?? Image(named: .person)
-        }
-      }
-      else { /* NOP */
-      }
+    case let .userGroup(details):
+      hasher.combine(details)
     }
   }
 }
-
-#if DEBUG
-
-internal struct UserAvatarView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    UserAvatarView(imageData: nil)
-  }
-}
-#endif

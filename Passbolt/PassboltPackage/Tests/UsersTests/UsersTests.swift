@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-
 import CommonModels
 import Features
 import NetworkClient
@@ -42,7 +41,7 @@ final class UsersTests: TestCase {
     await features
       .patch(
         \UserDetailsDatabaseFetch.execute,
-         with: alwaysThrow(MockIssue.error())
+        with: alwaysThrow(MockIssue.error())
       )
     let feature: Users = try await testInstance()
 
@@ -63,7 +62,7 @@ final class UsersTests: TestCase {
     await features
       .patch(
         \UserDetailsDatabaseFetch.execute,
-         with: always(expectedResult)
+        with: always(expectedResult)
       )
 
     let feature: Users = try await testInstance()

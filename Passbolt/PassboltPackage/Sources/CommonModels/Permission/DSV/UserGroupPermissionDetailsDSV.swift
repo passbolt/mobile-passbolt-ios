@@ -21,51 +21,47 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Commons
 
-@MainActor
-public struct UserAvatarView: View {
+public struct UserGroupPermissionDetailsDSV {
 
-  private let imageData: () async -> Data?
-  @State private var image: Image?
-
-  public init(
-    imageData: @escaping () async -> Data?
-  ) {
-    self.imageData = imageData
-  }
+  public var id: UserGroup.ID
+  public var name: String
+  public var permissionType: PermissionTypeDSV
+  public var members: Array<UserPermissionDetailsDSV>
 
   public init(
-    imageData: Data?
+    id: UserGroup.ID,
+    name: String,
+    permissionType: PermissionTypeDSV,
+    members: Array<UserPermissionDetailsDSV>
   ) {
-    self.imageData = { imageData }
-  }
-
-  public var body: some View {
-    AvatarView<Image>(
-      contentView: (self.image
-        ?? Image(named: .person)).resizable()
-    )
-    .onAppear {
-      if self.image == nil {
-        MainActor.execute {
-          self.image =
-            await self.imageData().flatMap(Image.init(data:))
-            ?? Image(named: .person)
-        }
-      }
-      else { /* NOP */
-      }
-    }
+    self.id = id
+    self.name = name
+    self.permissionType = permissionType
+    self.members = members
   }
 }
 
+extension UserGroupPermissionDetailsDSV: DSV {}
+
 #if DEBUG
 
-internal struct UserAvatarView_Previews: PreviewProvider {
+extension UserGroupPermissionDetailsDSV: RandomlyGenerated {
 
-  internal static var previews: some View {
-    UserAvatarView(imageData: nil)
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    zip(
+      with: UserGroupPermissionDetailsDSV.init(id:name:permissionType:members:),
+      UserGroup.ID.randomGenerator(using: randomnessGenerator),
+      Generator<String>.randomUserGroupName(using: randomnessGenerator),
+      PermissionTypeDSV
+        .randomGenerator(using: randomnessGenerator),
+      UserPermissionDetailsDSV
+        .randomGenerator(using: randomnessGenerator)
+        .array(withCountIn: 0..<10, using: randomnessGenerator)
+    )
   }
 }
 #endif

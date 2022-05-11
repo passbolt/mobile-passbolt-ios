@@ -21,21 +21,24 @@
 // @since         v1.0
 //
 
-import UIComponents
 import Accounts
-import Users
 import NetworkClient
+import UIComponents
+import Users
 
 internal struct ResourceDetailsSharedSectionController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var showSharingDetails: @MainActor () async -> Void
+  internal var showResourcePermissionList: @MainActor () async -> Void
 }
 
 extension ResourceDetailsSharedSectionController: ComponentController {
 
   internal typealias ControlledView = ResourceDetailsSharedSectionView
-  internal typealias NavigationContext = Array<PermissionDSV>
+  internal typealias NavigationContext = (
+    resourceID: Resource.ID,
+    permissions: Array<PermissionDSV>
+  )
 
   @MainActor static func instance(
     context: NavigationContext,
@@ -59,10 +62,10 @@ extension ResourceDetailsSharedSectionController: ComponentController {
         }
       }
     }
-    
+
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
-        items: context
+        items: context.permissions
           .compactMap { permission -> OverlappingAvatarStackView.Item? in
             switch permission {
             case let .userToResource(userID, _, _):
@@ -72,20 +75,23 @@ extension ResourceDetailsSharedSectionController: ComponentController {
               return .userGroup(userGroup)
 
             case .userToFolder, .userGroupToFolder:
-              return nil // should not happen, filtering it out
+              // should not happen, filtering out
+              return nil
             }
           }
       )
     )
 
-    @MainActor func showSharingDetails() async {
-      #warning("[MOB-380] FIXME: insert actual view")
-      await navigation.push(PlaceholderViewController.self)
+    @MainActor func showResourcePermissionList() async {
+      await navigation.push(
+        ResourcePermissionListView.self,
+        in: context.resourceID
+      )
     }
 
     return Self(
       viewState: viewState,
-      showSharingDetails: showSharingDetails
+      showResourcePermissionList: showResourcePermissionList
     )
   }
 }
