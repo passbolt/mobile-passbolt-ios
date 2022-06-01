@@ -293,28 +293,24 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
 
     self.controller
       .permissionsPublisher()
+      .filter { !$0.permissions.isEmpty }
+      // TODO: keep updating after implementing edit
+      .first()
       .removeDuplicates(
         by: { $0.permissions == $1.permissions }
       )
       .receive(on: RunLoop.main)
       .sink { (resourceID, permissions) in
-        if permissions.isEmpty {
-          MainActor.execute {
-            await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
-          }
-        }
-        else {
-          MainActor.execute {
-            await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
-            await self.addChild(
-              ResourceDetailsSharedSectionView.self,
-              in: (
-                resourceID: resourceID,
-                permissions: permissions
-              )
-            ) { parent, child in
-              parent.insertShareSection(view: child)
-            }
+        MainActor.execute {
+          await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
+          await self.addChild(
+            ResourceDetailsSharedSectionView.self,
+            in: (
+              resourceID: resourceID,
+              permissions: permissions
+            )
+          ) { parent, child in
+            parent.insertShareSection(view: child)
           }
         }
       }

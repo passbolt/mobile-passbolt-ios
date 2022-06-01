@@ -97,4 +97,7 @@ extension ImageNameConstant {
   public static var sharedTagIcon: Self { "SharedTagIcon" }
   public static var userGroupIcon: Self { "UserGroupIcon" }
   public static var create: Self { "Create" }
+  public static var permissionReadIcon: Self { "PermissionReadIcon" }
+  public static var permissionWriteIcon: Self { "PermissionWriteIcon" }
+  public static var permissionOwnIcon: Self { "PermissionOwnIcon" }
 }

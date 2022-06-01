@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-
 import Accounts
 import CommonModels
 import Features
@@ -41,11 +40,11 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
     await features.usePlaceholder(for: Users.self)
     await features.patch(
       \ResourceUserPermissionsDetailsFetch.execute,
-       with: always(.random(countIn: 1..<5))
+      with: always(.random(countIn: 1..<5))
     )
     await features.patch(
       \ResourceUserGroupPermissionsDetailsFetch.execute,
-       with: always(.random(countIn: 1..<5))
+      with: always(.random(countIn: 1..<5))
     )
 
     let controller: ResourcePermissionListController = try await testController(
@@ -65,11 +64,11 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
     await features.usePlaceholder(for: Users.self)
     await features.patch(
       \ResourceUserPermissionsDetailsFetch.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
     await features.patch(
       \ResourceUserGroupPermissionsDetailsFetch.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     let controller: ResourcePermissionListController = try await testController(

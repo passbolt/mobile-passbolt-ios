@@ -233,6 +233,10 @@
 "resource.permission.type.own.label" = "is owner";
 "resource.permission.list.title" = "Shared with";
 
+"resource.permission.details.title" = "Permission";
+
+"permission.details.type.section.title" = "Permission";
+
 "totp.title.label" = "Two Factor Authentication";
 "totp.message.label" = "Enter the verification code:";
 "totp.paste.otp.button.label" = "Paste code";

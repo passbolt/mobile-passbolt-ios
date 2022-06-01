@@ -304,10 +304,8 @@ internal final class ResourceDetailsView: ScrolledStackView {
   internal func insertShareSection(
     view: UIView
   ) {
-    mut(view) {
-      .heightAnchor(.equalTo, constant: 40)
-    }
     self.append(view)
+    self.appendFiller()
   }
 }
 

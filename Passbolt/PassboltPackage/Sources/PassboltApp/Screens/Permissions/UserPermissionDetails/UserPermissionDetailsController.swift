@@ -21,60 +21,52 @@
 // @since         v1.0
 //
 
-import CommonModels
-import SwiftUI
+import Accounts
+import UIComponents
+import Users
 
-@MainActor
-public struct ResourcePermissionTypeCompactView: View {
+internal struct UserPermissionDetailsController {
 
-  private let permissionTypeLabel: DisplayableString
+  internal var viewState: ObservableValue<ViewState>
+}
 
-  public init(
-    permissionType: PermissionType
-  ) {
-    switch permissionType {
-    case .read:
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.read.label")
+extension UserPermissionDetailsController: ComponentController {
 
-    case .write:
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.write.label")
+  internal typealias ControlledView = UserPermissionDetailsView
+  internal typealias NavigationContext = UserPermissionDetailsDSV
 
-    case .owner:
-      self.permissionTypeLabel = .localized(key: "resource.permission.type.own.label")
+  @MainActor static func instance(
+    context: NavigationContext,
+    navigation: ComponentNavigation<NavigationContext>,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
+    let users: Users = try await features.instance()
+
+    func userAvatarImageFetch(
+      _ userID: User.ID
+    ) -> () async -> Data? {
+      {
+        do {
+          return try await users.userAvatarImage(userID)
+        }
+        catch {
+          diagnostics.log(error)
+          return nil
+        }
+      }
     }
-  }
 
-  public var body: some View {
-    Text(
-      displayable: self.permissionTypeLabel
+    let viewState: ObservableValue<ViewState> = .init(
+      initial: .init(
+        permissionDetails: context,
+        avatarImageFetch: userAvatarImageFetch(context.id)
+      )
     )
-    .text(
-      font: .inter(
-        ofSize: 12,
-        weight: .regular
-      ),
-      color: .passboltPrimaryText
-    )
-    .padding(10)
-    .backgroundColor(.passboltSecondaryGray)
-    .cornerRadius(5)
-  }
-}
 
-#if DEBUG
-
-internal struct ResourcePermissionTypeCompactView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    ResourcePermissionTypeCompactView(
-      permissionType: .read
-    )
-    ResourcePermissionTypeCompactView(
-      permissionType: .write
-    )
-    ResourcePermissionTypeCompactView(
-      permissionType: .owner
+    return Self(
+      viewState: viewState
     )
   }
 }
-#endif

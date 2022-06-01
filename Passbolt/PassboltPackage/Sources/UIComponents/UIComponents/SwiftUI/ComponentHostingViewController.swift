@@ -83,7 +83,12 @@ where HostedView: ComponentView {
         .combined(
           .backgroundColor(.clear),
           .subview(of: self.view),
-          .edges(equalTo: self.view, usingSafeArea: false)
+          .edges(
+            equalTo: self.view,
+            usingSafeArea: false
+          ),
+          .widthAnchor(.equalTo, self.view.widthAnchor),
+          .heightAnchor(.equalTo, self.view.heightAnchor)
         )
       }
       hostingController.didMove(toParent: self)

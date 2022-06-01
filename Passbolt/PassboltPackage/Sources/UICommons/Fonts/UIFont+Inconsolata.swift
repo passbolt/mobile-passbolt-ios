@@ -39,6 +39,8 @@ extension UIFont {
     }
     registerFont(fileName: "Inconsolata Bold")
     registerFont(fileName: "Inconsolata SemiBold")
+    registerFont(fileName: "Inconsolata Regular")
+    registerFont(fileName: "Inconsolata Light")
   }()
 
   public static func inconsolata(

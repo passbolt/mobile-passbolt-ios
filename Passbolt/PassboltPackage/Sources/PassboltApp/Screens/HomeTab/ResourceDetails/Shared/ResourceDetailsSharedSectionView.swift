@@ -57,9 +57,9 @@ internal struct ResourceDetailsSharedSectionView: ComponentView {
           },
           label: {
             OverlappingAvatarStackView(self.state.items)
-              .contentShape(Rectangle())
           }
         )
+        .frame(maxWidth: .infinity)
 
         Image(named: .chevronRight)
           .resizable()
@@ -74,6 +74,7 @@ internal struct ResourceDetailsSharedSectionView: ComponentView {
       .frame(height: 40)
     }
     .foregroundColor(Color.passboltPrimaryText)
+    .contentShape(Rectangle())
     .frame(maxWidth: .infinity)
   }
 }

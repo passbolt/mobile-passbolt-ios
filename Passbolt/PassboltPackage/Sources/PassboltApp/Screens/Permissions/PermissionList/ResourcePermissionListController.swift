@@ -100,8 +100,10 @@ extension ResourcePermissionListController: ComponentController {
     @MainActor func showUserPermissionDetails(
       _ details: UserPermissionDetailsDSV
     ) async {
-      #warning("[MOB-380] FIXME: show actual view")
-      await navigation.push(PlaceholderViewController.self)
+      await navigation.push(
+        UserPermissionDetailsView.self,
+        in: details
+      )
     }
 
     @MainActor func showUserGroupPermissionDetails(

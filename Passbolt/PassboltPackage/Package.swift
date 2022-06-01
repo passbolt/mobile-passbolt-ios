@@ -411,6 +411,8 @@ let package = Package(
       resources: [
         .process("Fonts/Inconsolata Bold.ttf"),
         .process("Fonts/Inconsolata SemiBold.ttf"),
+        .process("Fonts/Inconsolata Regular.ttf"),
+        .process("Fonts/Inconsolata Light.ttf"),
         .process("Fonts/Inter Black.otf"),
         .process("Fonts/Inter Bold.otf"),
         .process("Fonts/Inter Extra Light.otf"),

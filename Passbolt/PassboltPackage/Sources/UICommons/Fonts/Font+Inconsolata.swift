@@ -44,6 +44,18 @@ extension Font {
         size: fontSize
       )
 
+    case .regular:
+      font = .custom(
+        "Inconsolata Regular",
+        size: fontSize
+      )
+
+    case .light:
+      font = .custom(
+        "Inconsolata Light",
+        size: fontSize
+      )
+
     case _:
       assertionFailure("Unsupported font weight: \(weight)")
       font = nil

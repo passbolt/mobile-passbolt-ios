@@ -25,8 +25,9 @@ import CommonModels
 import SwiftUI
 
 @MainActor
-public struct ResourcePermissionTypeCompactView: View {
+public struct ResourcePermissionTypeView: View {
 
+  private let permissionIcon: Image
   private let permissionTypeLabel: DisplayableString
 
   public init(
@@ -34,45 +35,56 @@ public struct ResourcePermissionTypeCompactView: View {
   ) {
     switch permissionType {
     case .read:
+      self.permissionIcon = .init(named: .permissionReadIcon)
       self.permissionTypeLabel = .localized(key: "resource.permission.type.read.label")
 
     case .write:
+      self.permissionIcon = .init(named: .permissionWriteIcon)
       self.permissionTypeLabel = .localized(key: "resource.permission.type.write.label")
 
     case .owner:
+      self.permissionIcon = .init(named: .permissionOwnIcon)
       self.permissionTypeLabel = .localized(key: "resource.permission.type.own.label")
     }
   }
 
   public var body: some View {
-    Text(
-      displayable: self.permissionTypeLabel
-    )
-    .text(
-      font: .inter(
-        ofSize: 12,
-        weight: .regular
-      ),
-      color: .passboltPrimaryText
-    )
-    .padding(10)
-    .backgroundColor(.passboltSecondaryGray)
-    .cornerRadius(5)
+    HStack(spacing: 0) {
+      self.permissionIcon
+        .resizable()
+        .aspectRatio(1, contentMode: .fit)
+        .frame(
+          width: 24,
+          height: 24
+        )
+        .foregroundColor(.passboltPrimaryText)
+      Text(
+        displayable: self.permissionTypeLabel
+      )
+      .text(
+        font: .inter(
+          ofSize: 14,
+          weight: .semibold
+        ),
+        color: .passboltPrimaryText
+      )
+      .padding(8)
+    }
   }
 }
 
 #if DEBUG
 
-internal struct ResourcePermissionTypeCompactView_Previews: PreviewProvider {
+internal struct ResourcePermissionTypeView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourcePermissionTypeCompactView(
+    ResourcePermissionTypeView(
       permissionType: .read
     )
-    ResourcePermissionTypeCompactView(
+    ResourcePermissionTypeView(
       permissionType: .write
     )
-    ResourcePermissionTypeCompactView(
+    ResourcePermissionTypeView(
       permissionType: .owner
     )
   }
