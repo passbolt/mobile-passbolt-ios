@@ -144,7 +144,6 @@ internal struct FoldersExplorerView: ComponentView {
           ResourceListAddView {
             self.controller.presentResourceCreationFrom(self.state.folderID)
           }
-          .backport.hiddenRowSeparators()
         }  // else { /* NOP */ }
 
         if self.state.directFolders.isEmpty,
@@ -153,7 +152,6 @@ internal struct FoldersExplorerView: ComponentView {
           self.state.nestedResources.isEmpty
         {
           EmptyListView()
-            .backport.hiddenRowSeparators()
         }
         else {
           self.directListContent
@@ -171,7 +169,6 @@ internal struct FoldersExplorerView: ComponentView {
           self.state.nestedResources.isEmpty
         {
           EmptyListView()
-            .backport.hiddenRowSeparators()
         }
         else {
           if !self.state.directFolders.isEmpty
@@ -208,7 +205,6 @@ internal struct FoldersExplorerView: ComponentView {
                   leading: 16,
                   trailing: 16
                 )
-                .backport.hiddenRowSeparators()
             }  // else { /* NOP */ }
           }  // else { /* NOP */ }
 
@@ -255,7 +251,6 @@ internal struct FoldersExplorerView: ComponentView {
           self.controller.presentFolderContent(folder)
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
     ForEach(
@@ -285,7 +280,6 @@ internal struct FoldersExplorerView: ComponentView {
           .contentShape(Rectangle())
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
   }
@@ -303,7 +297,6 @@ internal struct FoldersExplorerView: ComponentView {
           self.controller.presentFolderContent(folder)
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
     ForEach(
@@ -333,7 +326,6 @@ internal struct FoldersExplorerView: ComponentView {
           .contentShape(Rectangle())
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
   }

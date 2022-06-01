@@ -21,78 +21,69 @@
 // @since         v1.0
 //
 
-import Commons
-import SwiftUI
+import CommonModels
+import UICommons
 
-@MainActor
-public struct TagListItemView: View {
+internal struct UserGroupMembersListRowView: View {
 
-  private let name: String
-  private let shared: Bool
-  private let contentCount: Int
+  private let item: UserGroupMembersListRowItem
   private let action: () async -> Void
 
-  public init(
-    name: String,
-    shared: Bool,
-    contentCount: Int,
+  internal init(
+    _ item: UserGroupMembersListRowItem,
     action: @escaping () async -> Void
   ) {
-    self.name = name
-    self.shared = shared
-    self.contentCount = contentCount
+    self.item = item
     self.action = action
   }
 
-  public var body: some View {
+  internal var body: some View {
     ListRowView(
       action: {
         await self.action()
       },
       chevronVisible: true,
       leftAccessory: {
-        Image(
-          named: self.shared
-            ? .sharedTagIcon
-            : .tagIcon
-        )
-        .frame(
-          width: 40,
-          height: 40,
-          alignment: .center
-        )
+        UserAvatarView(imageData: self.item.avatarImageData)
       },
-      content: {
-        Text(self.name)
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundColor(Color.passboltPrimaryText)
-      },
-      rightAccessory: {
-        Text("\(self.contentCount)")
-          .text(
-            font: .inter(
-              ofSize: 14,
-              weight: .regular
-            ),
-            color: .passboltPrimaryText
-          )
-      }
+      title: "\(self.item.userDetails.firstName) \(self.item.userDetails.lastName)",
+      subtitle: "\(self.item.userDetails.username)"
     )
   }
 }
 
 #if DEBUG
 
-internal struct TagListItemView_Previews: PreviewProvider {
+internal struct UserGroupMembersListRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    TagListItemView(
-      name: "Tag",
-      shared: false,
-      contentCount: 0,
-      action: {
-        // action
-      }
+    UserGroupMembersListRowView(
+      .init(
+        userDetails: .init(
+          id: User.ID
+            .randomGenerator()
+            .next(),
+          username: Generator<String>
+            .randomEmail()
+            .next(),
+          firstName: Generator<String>
+            .randomFirstName()
+            .next(),
+          lastName: Generator<String>
+            .randomLastName()
+            .next(),
+          fingerprint: Fingerprint
+            .randomGenerator()
+            .next(),
+          avatarImageURL: URLString
+            .randomGenerator()
+            .next()
+        ),
+        avatarImageData: Generator<Data?>
+          .randomAvatarImage()
+          .next
+      ),
+      action: {}
     )
   }
 }

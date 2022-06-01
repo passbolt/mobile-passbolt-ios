@@ -29,17 +29,20 @@ public struct ListRowView<LeftAccessoryView, ContentView, RightAccessoryView>: V
 where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
   private let action: @Sendable () async -> Void
+  private let chevronVisible: Bool
   private let leftAccessory: () -> LeftAccessoryView
   private let content: () -> ContentView
   private let rightAccessory: () -> RightAccessoryView
 
   public init(
     action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     @ViewBuilder content: @escaping () -> ContentView,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
     self.action = action
+    self.chevronVisible = chevronVisible
     self.leftAccessory = leftAccessory
     self.content = content
     self.rightAccessory = rightAccessory
@@ -62,11 +65,74 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
       )
 
       self.rightAccessory()
+
+      if self.chevronVisible {
+        Image(named: .chevronRight)
+          .resizable()
+          .aspectRatio(1, contentMode: .fit)
+          .padding(
+            top: 12,
+            leading: 4,
+            bottom: 12,
+            trailing: 0
+          )
+      }  // else { /* NOP */ }
     }
     .foregroundColor(Color.passboltPrimaryText)
     .padding(top: 12, leading: 16, bottom: 12, trailing: 16)
     .frame(height: 64)
     .frame(maxWidth: .infinity)
+    .backport.hiddenRowSeparators()
+  }
+}
+
+extension ListRowView
+where LeftAccessoryView == EmptyView {
+
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder content: @escaping () -> ContentView,
+    @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
+  ) {
+    self.action = action
+    self.chevronVisible = chevronVisible
+    self.leftAccessory = EmptyView.init
+    self.content = content
+    self.rightAccessory = rightAccessory
+  }
+}
+
+extension ListRowView
+where RightAccessoryView == EmptyView {
+
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    @ViewBuilder content: @escaping () -> ContentView
+  ) {
+    self.action = action
+    self.chevronVisible = chevronVisible
+    self.leftAccessory = leftAccessory
+    self.content = content
+    self.rightAccessory = EmptyView.init
+  }
+}
+
+extension ListRowView
+where LeftAccessoryView == EmptyView, RightAccessoryView == EmptyView {
+
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder content: @escaping () -> ContentView
+  ) {
+    self.action = action
+    self.chevronVisible = chevronVisible
+    self.leftAccessory = EmptyView.init
+    self.content = content
+    self.rightAccessory = EmptyView.init
   }
 }
 
@@ -75,11 +141,13 @@ where ContentView == ListRowTitleView {
 
   public init(
     action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     title: DisplayableString,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
     self.action = action
+    self.chevronVisible = chevronVisible
     self.leftAccessory = leftAccessory
     self.content = {
       ListRowTitleView(title: title)
@@ -89,15 +157,36 @@ where ContentView == ListRowTitleView {
 }
 
 extension ListRowView
+where ContentView == ListRowTitleView, RightAccessoryView == EmptyView {
+
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    title: DisplayableString
+  ) {
+    self.action = action
+    self.chevronVisible = chevronVisible
+    self.leftAccessory = leftAccessory
+    self.content = {
+      ListRowTitleView(title: title)
+    }
+    self.rightAccessory = EmptyView.init
+  }
+}
+
+extension ListRowView
 where ContentView == ListRowTitleWithSubtitleView {
   public init(
     action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     title: DisplayableString,
     subtitle: DisplayableString,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
     self.action = action
+    self.chevronVisible = chevronVisible
     self.leftAccessory = leftAccessory
     self.content = {
       ListRowTitleWithSubtitleView(
@@ -106,6 +195,29 @@ where ContentView == ListRowTitleWithSubtitleView {
       )
     }
     self.rightAccessory = rightAccessory
+  }
+}
+
+extension ListRowView
+where ContentView == ListRowTitleWithSubtitleView, RightAccessoryView == EmptyView {
+
+  public init(
+    action: @Sendable @escaping () async -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    title: DisplayableString,
+    subtitle: DisplayableString
+  ) {
+    self.action = action
+    self.chevronVisible = chevronVisible
+    self.leftAccessory = leftAccessory
+    self.content = {
+      ListRowTitleWithSubtitleView(
+        title: title,
+        subtitle: subtitle
+      )
+    }
+    self.rightAccessory = EmptyView.init
   }
 }
 
@@ -118,6 +230,7 @@ internal struct ListRowView_Previews: PreviewProvider {
       action: {
         // main action
       },
+      chevronVisible: true,
       leftAccessory: {
         Image(named: .plus)
           .resizable()

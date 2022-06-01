@@ -137,7 +137,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
           ResourceListAddView {
             self.controller.presentResourceCreationFrom()
           }
-          .backport.hiddenRowSeparators()
         }  // else { /* NOP */ }
 
         if self.state.groupID != nil, !self.state.resources.isEmpty {
@@ -148,7 +147,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
         }
         else {
           EmptyListView()
-            .backport.hiddenRowSeparators()
         }
       }
     )
@@ -166,7 +164,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
           self.controller.presentGroupContent(listGroup)
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
   }
@@ -199,7 +196,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
           .contentShape(Rectangle())
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
   }

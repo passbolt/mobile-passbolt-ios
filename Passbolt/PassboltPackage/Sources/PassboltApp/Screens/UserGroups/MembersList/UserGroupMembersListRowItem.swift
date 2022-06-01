@@ -21,24 +21,35 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import CommonModels
+import struct Foundation.Data
 
-@MainActor
-public struct ListDividerView: View {
+internal struct UserGroupMembersListRowItem {
 
-  public init() {}
+  internal var userDetails: UserDetailsDSV
+  internal var avatarImageData: () async -> Data?
 
-  public var body: some View {
-    Color
-      .passboltDivider
-      .frame(height: 1)
-      .frame(maxWidth: .infinity)
-      .padding(
-        top: 8,
-        leading: 0,
-        bottom: 8,
-        trailing: 0
-      )
-      .backport.hiddenRowSeparators()
+  internal init(
+    userDetails: UserDetailsDSV,
+    avatarImageData: @escaping () async -> Data?
+  ) {
+    self.userDetails = userDetails
+    self.avatarImageData = avatarImageData
+  }
+}
+
+extension UserGroupMembersListRowItem: Hashable {
+
+  internal static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.userDetails == rhs.userDetails
+  }
+
+  internal func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.userDetails)
   }
 }

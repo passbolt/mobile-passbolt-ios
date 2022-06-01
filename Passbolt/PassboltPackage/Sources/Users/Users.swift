@@ -51,13 +51,23 @@ extension Users: Feature {
       try await userDetailsFetch(userID)
     }
 
+    // access only with StorageAccessActor
+    var avatarsCache: Dictionary<User.ID, Data> = .init()
+
     @StorageAccessActor func userAvatarImage(
       for userID: User.ID
     ) async throws -> Data? {
-      try await networkClient.mediaDownload
-        .makeAsync(
-          using: userDetailsFetch(userID).avatarImageURL
-        )
+      if let cachedAvatar: Data = avatarsCache[userID] {
+        return cachedAvatar
+      }
+      else {
+        let avatar: Data = try await networkClient.mediaDownload
+          .makeAsync(
+            using: userDetailsFetch(userID).avatarImageURL
+          )
+        avatarsCache[userID] = avatar
+        return avatar
+      }
     }
 
     @FeaturesActor func featureUnload() async throws {

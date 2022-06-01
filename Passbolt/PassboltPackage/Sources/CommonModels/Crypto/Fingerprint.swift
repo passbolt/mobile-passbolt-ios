@@ -25,3 +25,18 @@ import Commons
 
 public enum FingerprintTag {}
 public typealias Fingerprint = Tagged<String, FingerprintTag>
+
+#if DEBUG
+
+// cannot conform to RandomlyGenerated
+extension Fingerprint {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Generator<Self> {
+    Generator<String>
+      .randomKeyFingerprint(using: randomnessGenerator)
+      .map(Self.init(rawValue:))
+  }
+}
+#endif

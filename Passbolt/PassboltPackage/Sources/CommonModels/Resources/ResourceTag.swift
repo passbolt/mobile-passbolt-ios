@@ -37,7 +37,7 @@ extension ResourceTag {
 extension ResourceTag.ID {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
   ) -> Generator<Self> {
     UUID
       .randomGenerator(using: randomnessGenerator)
@@ -50,7 +50,7 @@ extension ResourceTag.ID {
 extension ResourceTag.Slug {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
   ) -> Generator<Self> {
     [
       "tagSlug"

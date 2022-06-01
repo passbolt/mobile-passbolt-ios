@@ -25,14 +25,14 @@ import SwiftUI
 import UICommons
 import UIComponents
 
-internal struct UserPermissionDetailsView: ComponentView {
+internal struct UserGroupMembersListView: ComponentView {
 
   @ObservedObject private var state: ObservableValue<ViewState>
   private let controller: Controller
 
   internal init(
     state: ObservableValue<ViewState>,
-    controller: UserPermissionDetailsController
+    controller: UserGroupMembersListController
   ) {
     self.state = state
     self.controller = controller
@@ -41,7 +41,6 @@ internal struct UserPermissionDetailsView: ComponentView {
   internal var body: some View {
     VStack(spacing: 0) {
       self.titleView
-
       self.contentView
     }
     .backgroundColor(.passboltBackground)
@@ -55,7 +54,7 @@ internal struct UserPermissionDetailsView: ComponentView {
         .ignoresSafeArea(.all, edges: .top)
       Text(
         displayable: .localized(
-          key: "resource.permission.details.title"
+          key: "group.members.list.title"
         )
       )
       .font(
@@ -79,104 +78,71 @@ internal struct UserPermissionDetailsView: ComponentView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      UserAvatarView(
-        imageData: self.state.avatarImageFetch
-      )
-      .frame(
-        width: 96,
-        height: 96,
-        alignment: .center
-      )
-      .padding(8)
-
-      Text(
-        "\(self.state.permissionDetails.firstName) \(self.state.permissionDetails.lastName)"
-      )
-      .text(
-        font: .inter(
-          ofSize: 20,
-          weight: .semibold
-        ),
-        color: .passboltPrimaryText
-      )
-      .padding(8)
-
-      Text(
-        "\(self.state.permissionDetails.username)"
-      )
-      .text(
-        font: .inter(
-          ofSize: 14,
-          weight: .regular
-        ),
-        color: .passboltSecondaryText
-      )
-      .padding(8)
-
-      FingerprintTextView(
-        fingerprint: self.state.permissionDetails.fingerprint
-      )
-      .padding(8)
-
-      VStack(
-        alignment: .leading,
-        spacing: 8
-      ) {
-        Text(
-          displayable: .localized(key: "permission.details.type.section.title")
+      UserGroupAvatarView()
+        .frame(
+          width: 96,
+          height: 96,
+          alignment: .center
         )
+        .padding(8)
+
+      Text(self.state.groupName)
         .text(
           font: .inter(
-            ofSize: 12,
+            ofSize: 20,
             weight: .semibold
           ),
           color: .passboltPrimaryText
         )
+        .padding(8)
 
-        ResourcePermissionTypeView(
-          permissionType: self.state.permissionDetails.permissionType
-        )
-        .frame(alignment: .leading)
-      }
-      .frame(
-        maxWidth: .infinity,
-        alignment: .leading
+      Backport.List(
+        listContent: {
+          ForEach(
+            self.state.items,
+            id: \UserGroupMembersListRowItem.self
+          ) { item in
+            UserGroupMembersListRowView(
+              item,
+              action: {
+                await self.controller.showUserDetails(item.userDetails)
+              }
+            )
+          }
+        }
       )
-      .padding(top: 16)
-
-      Spacer()
     }
     .padding(
-      leading: 16,
-      bottom: 16,
-      trailing: 16
+//      leading: 16,
+      bottom: 16//,
+//      trailing: 16
     )
   }
 }
 
-extension UserPermissionDetailsView {
+extension UserGroupMembersListView {
 
   internal struct ViewState: Hashable {
 
-    internal var permissionDetails: UserPermissionDetailsDSV
-    internal var avatarImageFetch: () async -> Data?
+    internal var groupName: String
+    internal var items: Array<UserGroupMembersListRowItem>
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }
 
-extension UserPermissionDetailsView.ViewState {
+extension UserGroupMembersListView.ViewState {
 
   internal static func == (
     _ lhs: Self,
     _ rhs: Self
   ) -> Bool {
-    lhs.permissionDetails == rhs.permissionDetails
-      && lhs.snackBarMessage == rhs.snackBarMessage
+    lhs.items == rhs.items
+    && lhs.snackBarMessage == rhs.snackBarMessage
   }
   internal func hash(
     into hasher: inout Hasher
   ) {
-    hasher.combine(self.permissionDetails)
+    hasher.combine(self.items)
     hasher.combine(self.snackBarMessage)
   }
 }

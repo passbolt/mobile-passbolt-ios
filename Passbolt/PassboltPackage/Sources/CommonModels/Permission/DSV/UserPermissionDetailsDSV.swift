@@ -54,6 +54,20 @@ public struct UserPermissionDetailsDSV {
 
 extension UserPermissionDetailsDSV: DSV {}
 
+extension UserPermissionDetailsDSV {
+
+  public var asUserDetails: UserDetailsDSV {
+    .init(
+      id: self.id,
+      username: self.username,
+      firstName: self.firstName,
+      lastName: self.lastName,
+      fingerprint: self.fingerprint,
+      avatarImageURL: self.avatarImageURL
+    )
+  }
+}
+
 #if DEBUG
 
 extension UserPermissionDetailsDSV: RandomlyGenerated {

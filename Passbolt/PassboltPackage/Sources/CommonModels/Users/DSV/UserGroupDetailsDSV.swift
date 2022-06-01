@@ -23,12 +23,12 @@
 
 public struct UserGroupDetailsDSV {
 
-  public var id: User.ID
+  public var id: UserGroup.ID
   public var name: String
   public var users: Array<UserDetailsDSV>
 
   public init(
-    id: User.ID,
+    id: UserGroup.ID,
     name: String,
     users: Array<UserDetailsDSV>
   ) {

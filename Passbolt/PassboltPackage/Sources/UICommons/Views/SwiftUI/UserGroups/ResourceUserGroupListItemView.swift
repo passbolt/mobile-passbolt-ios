@@ -46,6 +46,7 @@ public struct ResourceUserGroupListItemView: View {
       action: {
         await self.action()
       },
+      chevronVisible: true,
       leftAccessory: {
         Image(
           named: .userGroupIcon
@@ -62,20 +63,14 @@ public struct ResourceUserGroupListItemView: View {
           .foregroundColor(Color.passboltPrimaryText)
       },
       rightAccessory: {
-        HStack(spacing: 0) {
-          Text("\(self.contentCount)")
-            .font(.inter(ofSize: 14, weight: .regular))
-          Image(named: .chevronRight)
-            .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .padding(
-              top: 12,
-              leading: 4,
-              bottom: 12,
-              trailing: 0
-            )
-        }
-        .foregroundColor(.passboltPrimaryText)
+        Text("\(self.contentCount)")
+          .text(
+            font: .inter(
+              ofSize: 14,
+              weight: .regular
+            ),
+            color: .passboltPrimaryText
+          )
       }
     )
   }

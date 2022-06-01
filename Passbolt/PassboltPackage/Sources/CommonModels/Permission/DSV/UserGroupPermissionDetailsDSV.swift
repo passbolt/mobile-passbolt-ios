@@ -28,13 +28,13 @@ public struct UserGroupPermissionDetailsDSV {
   public var id: UserGroup.ID
   public var name: String
   public var permissionType: PermissionTypeDSV
-  public var members: Array<UserPermissionDetailsDSV>
+  public var members: Array<UserDetailsDSV>
 
   public init(
     id: UserGroup.ID,
     name: String,
     permissionType: PermissionTypeDSV,
-    members: Array<UserPermissionDetailsDSV>
+    members: Array<UserDetailsDSV>
   ) {
     self.id = id
     self.name = name
@@ -44,6 +44,17 @@ public struct UserGroupPermissionDetailsDSV {
 }
 
 extension UserGroupPermissionDetailsDSV: DSV {}
+
+extension UserGroupPermissionDetailsDSV {
+
+  public var asUserGroupDetails: UserGroupDetailsDSV {
+    .init(
+      id: self.id,
+      name: self.name,
+      users: self.members
+    )
+  }
+}
 
 #if DEBUG
 
@@ -58,7 +69,7 @@ extension UserGroupPermissionDetailsDSV: RandomlyGenerated {
       Generator<String>.randomUserGroupName(using: randomnessGenerator),
       PermissionTypeDSV
         .randomGenerator(using: randomnessGenerator),
-      UserPermissionDetailsDSV
+      UserDetailsDSV
         .randomGenerator(using: randomnessGenerator)
         .array(withCountIn: 0..<10, using: randomnessGenerator)
     )

@@ -136,7 +136,6 @@ internal struct TagsExplorerView: ComponentView {
           ResourceListAddView {
             self.controller.presentResourceCreationFrom()
           }
-          .backport.hiddenRowSeparators()
         }  // else { /* NOP */ }
 
         if self.state.resourceTagID != nil, !self.state.resources.isEmpty {
@@ -147,7 +146,6 @@ internal struct TagsExplorerView: ComponentView {
         }
         else {
           EmptyListView()
-            .backport.hiddenRowSeparators()
         }
       }
     )
@@ -173,7 +171,6 @@ internal struct TagsExplorerView: ComponentView {
             )
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
   }
@@ -206,7 +203,6 @@ internal struct TagsExplorerView: ComponentView {
           .contentShape(Rectangle())
         }
       )
-      .backport.hiddenRowSeparators()
     }
     .backport.hiddenSectionSeparators()
   }

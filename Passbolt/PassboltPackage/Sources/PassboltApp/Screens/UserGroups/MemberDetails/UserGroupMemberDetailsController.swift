@@ -21,24 +21,52 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Accounts
+import UIComponents
+import Users
 
-@MainActor
-public struct ListDividerView: View {
+internal struct UserGroupMemberDetailsController {
 
-  public init() {}
+  internal var viewState: ObservableValue<ViewState>
+}
 
-  public var body: some View {
-    Color
-      .passboltDivider
-      .frame(height: 1)
-      .frame(maxWidth: .infinity)
-      .padding(
-        top: 8,
-        leading: 0,
-        bottom: 8,
-        trailing: 0
+extension UserGroupMemberDetailsController: ComponentController {
+
+  internal typealias ControlledView = UserGroupMemberDetailsView
+  internal typealias NavigationContext = UserDetailsDSV
+
+  @MainActor static func instance(
+    context: NavigationContext,
+    navigation: ComponentNavigation<NavigationContext>,
+    with features: FeatureFactory,
+    cancellables: Cancellables
+  ) async throws -> Self {
+    let diagnostics: Diagnostics = try await features.instance()
+    let users: Users = try await features.instance()
+
+    func userAvatarImageFetch(
+      _ userID: User.ID
+    ) -> () async -> Data? {
+      {
+        do {
+          return try await users.userAvatarImage(userID)
+        }
+        catch {
+          diagnostics.log(error)
+          return nil
+        }
+      }
+    }
+
+    let viewState: ObservableValue<ViewState> = .init(
+      initial: .init(
+        userDetails: context,
+        avatarImageFetch: userAvatarImageFetch(context.id)
       )
-      .backport.hiddenRowSeparators()
+    )
+
+    return Self(
+      viewState: viewState
+    )
   }
 }

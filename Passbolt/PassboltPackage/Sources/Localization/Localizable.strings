@@ -236,6 +236,10 @@
 "resource.permission.details.title" = "Permission";
 
 "permission.details.type.section.title" = "Permission";
+"permission.details.group.members.section.title" = "Group members";
+
+"group.members.list.title" = "Group members";
+"group.members.member.details.title" = "Group member";
 
 "totp.title.label" = "Two Factor Authentication";
 "totp.message.label" = "Enter the verification code:";

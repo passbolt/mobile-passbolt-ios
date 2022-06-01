@@ -42,7 +42,7 @@ extension ResourceType.Slug {
 extension ResourceType.ID {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
   ) -> Generator<Self> {
     UUID.randomGenerator(using: randomnessGenerator)
       .map(\.uuidString)
@@ -54,7 +54,7 @@ extension ResourceType.ID {
 extension ResourceType.Slug {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
   ) -> Generator<Self> {
     [
       "login-credentials"

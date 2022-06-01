@@ -96,7 +96,6 @@ internal struct ResourcePermissionListView: ComponentView {
               }
             }
           )
-          .backport.hiddenRowSeparators()
         }
       }
     )

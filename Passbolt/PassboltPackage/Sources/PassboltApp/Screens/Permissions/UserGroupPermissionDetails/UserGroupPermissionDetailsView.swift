@@ -25,14 +25,14 @@ import SwiftUI
 import UICommons
 import UIComponents
 
-internal struct UserPermissionDetailsView: ComponentView {
+internal struct UserGroupPermissionDetailsView: ComponentView {
 
   @ObservedObject private var state: ObservableValue<ViewState>
   private let controller: Controller
 
   internal init(
     state: ObservableValue<ViewState>,
-    controller: UserPermissionDetailsController
+    controller: UserGroupPermissionDetailsController
   ) {
     self.state = state
     self.controller = controller
@@ -79,9 +79,7 @@ internal struct UserPermissionDetailsView: ComponentView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      UserAvatarView(
-        imageData: self.state.avatarImageFetch
-      )
+      UserGroupAvatarView()
       .frame(
         width: 96,
         height: 96,
@@ -89,9 +87,7 @@ internal struct UserPermissionDetailsView: ComponentView {
       )
       .padding(8)
 
-      Text(
-        "\(self.state.permissionDetails.firstName) \(self.state.permissionDetails.lastName)"
-      )
+      Text(self.state.permissionDetails.name)
       .text(
         font: .inter(
           ofSize: 20,
@@ -101,22 +97,50 @@ internal struct UserPermissionDetailsView: ComponentView {
       )
       .padding(8)
 
-      Text(
-        "\(self.state.permissionDetails.username)"
-      )
-      .text(
-        font: .inter(
-          ofSize: 14,
-          weight: .regular
-        ),
-        color: .passboltSecondaryText
-      )
-      .padding(8)
+      VStack(
+        alignment: .leading,
+        spacing: 8
+      ) {
+        Text(
+          displayable: .localized(key: "permission.details.group.members.section.title")
+        )
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
 
-      FingerprintTextView(
-        fingerprint: self.state.permissionDetails.fingerprint
+        HStack(spacing: 0) {
+          AsyncButton(
+            action: {
+              await self.controller.showGroupMembers()
+            },
+            label: {
+              OverlappingAvatarStackView(self.state.groupMembersPreviewItems)
+            }
+          )
+          .frame(maxWidth: .infinity)
+
+          Image(named: .chevronRight)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .padding(
+              top: 12,
+              leading: 4,
+              bottom: 12,
+              trailing: 0
+            )
+        }
+        .frame(height: 40, alignment: .leading)
+        .padding(top: 16)
+      }
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
       )
-      .padding(8)
+      .padding(top: 16)
 
       VStack(
         alignment: .leading,
@@ -154,29 +178,12 @@ internal struct UserPermissionDetailsView: ComponentView {
   }
 }
 
-extension UserPermissionDetailsView {
+extension UserGroupPermissionDetailsView {
 
   internal struct ViewState: Hashable {
 
-    internal var permissionDetails: UserPermissionDetailsDSV
-    internal var avatarImageFetch: () async -> Data?
+    internal var permissionDetails: UserGroupPermissionDetailsDSV
+    internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
     internal var snackBarMessage: SnackBarMessage? = .none
-  }
-}
-
-extension UserPermissionDetailsView.ViewState {
-
-  internal static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    lhs.permissionDetails == rhs.permissionDetails
-      && lhs.snackBarMessage == rhs.snackBarMessage
-  }
-  internal func hash(
-    into hasher: inout Hasher
-  ) {
-    hasher.combine(self.permissionDetails)
-    hasher.combine(self.snackBarMessage)
   }
 }

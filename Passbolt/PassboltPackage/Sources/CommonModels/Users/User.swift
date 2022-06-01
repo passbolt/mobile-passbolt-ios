@@ -36,7 +36,7 @@ extension User {
 extension User.ID {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
   ) -> Generator<Self> {
     UUID
       .randomGenerator(using: randomnessGenerator)

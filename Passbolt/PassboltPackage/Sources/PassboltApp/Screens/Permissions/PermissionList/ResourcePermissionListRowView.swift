@@ -44,26 +44,16 @@ internal struct ResourcePermissionListRowView: View {
         action: {
           await self.action()
         },
+        chevronVisible: true,
         leftAccessory: {
           UserAvatarView(imageData: imageData)
         },
         title: "\(details.firstName) \(details.lastName)",
         subtitle: "\(details.username)",
         rightAccessory: {
-          HStack(spacing: 0) {
-            ResourcePermissionTypeCompactView(
-              permissionType: details.permissionType
-            )
-            Image(named: .chevronRight)
-              .resizable()
-              .aspectRatio(1, contentMode: .fit)
-              .padding(
-                top: 12,
-                leading: 12,
-                bottom: 12,
-                trailing: 0
-              )
-          }
+          ResourcePermissionTypeCompactView(
+            permissionType: details.permissionType
+          )
         }
       )
 
@@ -72,25 +62,15 @@ internal struct ResourcePermissionListRowView: View {
         action: {
           await self.action()
         },
+        chevronVisible: true,
         leftAccessory: {
           UserGroupAvatarView()
         },
         title: "\(details.name)",
         rightAccessory: {
-          HStack(spacing: 0) {
-            ResourcePermissionTypeCompactView(
-              permissionType: details.permissionType
-            )
-            Image(named: .chevronRight)
-              .resizable()
-              .aspectRatio(1, contentMode: .fit)
-              .padding(
-                top: 12,
-                leading: 12,
-                bottom: 12,
-                trailing: 0
-              )
-          }
+          ResourcePermissionTypeCompactView(
+            permissionType: details.permissionType
+          )
         }
       )
     }

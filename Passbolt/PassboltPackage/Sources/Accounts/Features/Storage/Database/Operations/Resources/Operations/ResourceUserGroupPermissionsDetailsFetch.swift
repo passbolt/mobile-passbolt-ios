@@ -66,29 +66,23 @@ extension ResourceUserGroupPermissionsDetailsFetch: DatabaseOperationFeature {
       let membersSelectStatement: SQLiteStatement =
         .statement(
           """
-          SELECT
+          SELECT DISTINCT
             users.id AS id,
             users.username AS username,
             users.firstName AS firstName,
             users.lastName AS lastName,
             users.publicPGPKeyFingerprint AS fingerprint,
-            users.avatarImageURL AS avatarImageURL,
-            userGroupsResources.permissionType AS permissionType
+            users.avatarImageURL AS avatarImageURL
           FROM
-            userGroupsResources
+            users
           LEFT JOIN
             usersGroups
           ON
-            usersGroups.userGroupID == userGroupsResources.userGroupID
-          LEFT JOIN
-            users
-          ON
             users.id == usersGroups.userID
           WHERE
-            userGroupsResources.resourceID == ?1
+            usersGroups.userGroupID == ?1
           ;
-          """,
-          arguments: input
+          """
         )
 
       return
@@ -108,19 +102,19 @@ extension ResourceUserGroupPermissionsDetailsFetch: DatabaseOperationFeature {
               )
           }
 
-          let groupMembers: Array<UserPermissionDetailsDSV> =
+          var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement
+          groupMembersSelectStatement.appendArgument(id)
+
+          let groupMembers: Array<UserDetailsDSV> =
             try conn
-            .fetch(using: membersSelectStatement) { dataRow -> UserPermissionDetailsDSV in
+            .fetch(using: groupMembersSelectStatement) { dataRow -> UserDetailsDSV in
               guard
                 let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
                 let username: String = dataRow.username,
                 let firstName: String = dataRow.firstName,
                 let lastName: String = dataRow.lastName,
                 let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-                let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:)),
-                let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(
-                  PermissionTypeDSV.init(rawValue:)
-                )
+                let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:))
               else {
                 throw
                   DatabaseIssue
@@ -131,14 +125,13 @@ extension ResourceUserGroupPermissionsDetailsFetch: DatabaseOperationFeature {
                   )
               }
 
-              return UserPermissionDetailsDSV(
+              return UserDetailsDSV(
                 id: id,
                 username: username,
                 firstName: firstName,
                 lastName: lastName,
                 fingerprint: fingerprint,
-                avatarImageURL: avatarImageURL,
-                permissionType: permissionType
+                avatarImageURL: avatarImageURL
               )
             }
 
