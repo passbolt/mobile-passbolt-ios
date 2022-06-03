@@ -400,11 +400,11 @@ extension AccountSession: Feature {
 
         await accountsDataStore.storeLastUsedAccount(account.localID)
 
+        // FIXME: retain cycle with features
+        await features.setScope(account)
+
         if mfaProviders.isEmpty {
           diagnostics.diagnosticLog("...authorization succeeded!")
-
-          // FIXME: retain cycle with features
-          await features.setScope(account)
 
           internalSessionStateSubject.value = .authorized(
             account,
@@ -417,9 +417,6 @@ extension AccountSession: Feature {
         }
         else {
           diagnostics.diagnosticLog("...MFA authorization required!")
-
-          // FIXME: retain cycle with features
-          await features.setScope(account)
 
           internalSessionStateSubject.value = .authorizedMFARequired(
             account,

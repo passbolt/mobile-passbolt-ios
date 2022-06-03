@@ -53,7 +53,7 @@ extension Accounts: Feature {
     cancellables: Cancellables
   ) async throws -> Self {
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-
+    let pgp: PGP = environment.pgp
     let diagnostics: Diagnostics = try await features.instance()
     let session: AccountSession = try await features.instance()
     let dataStore: AccountsDataStore = try await features.instance()
@@ -77,55 +77,66 @@ extension Accounts: Feature {
       armoredKey: ArmoredPGPPrivateKey,
       passphrase: Passphrase
     ) async throws {
-      let accountAlreadyStored: Bool =
-        dataStore
-        .loadAccounts()
-        .contains(
-          where: { stored in
-            stored.userID.rawValue == userID
-              && stored.domain == domain
-          }
-        )
-      guard !accountAlreadyStored
-      else {
-        throw
-          AccountDuplicate
-          .error("Duplicate account used for account transfer")
-          .recording(domain, for: "domain")
-          .recording(userID, for: "userID")
-      }
-
-      let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
-      let account: Account = .init(
-        localID: accountID,
-        domain: domain,
-        userID: Account.UserID(rawValue: userID),
-        fingerprint: fingerprint
-      )
-      let accountProfile: AccountProfile = .init(
-        accountID: accountID,
-        label: "\(firstName) \(lastName)",  // initial label
-        username: username,
-        firstName: firstName,
-        lastName: lastName,
-        avatarImageURL: avatarImageURL,
-        biometricsEnabled: false  // it is always disabled initially
-      )
-
-      switch dataStore.storeAccount(account, accountProfile, armoredKey) {
+      // verify passphrase
+      switch pgp.verifyPassphrase(armoredKey, passphrase) {
       case .success:
-        break
+        break  // continue process
 
       case let .failure(error):
-        diagnostics.diagnosticLog("...failed to store account data...")
-        diagnostics.debugLog(
-          "Failed to save account: \(account.localID): \(error)"
+        diagnostics.diagnosticLog("...invalid passphrase!")
+        throw
+          error
+          .asTheError()
+          .pushing(.message("Invalid passphrase used for account transfer"))
+      }
+
+      let storedAccount: Account? =
+        dataStore
+        .loadAccounts()
+        .first(
+          where: { stored in
+            stored.userID.rawValue == userID
+            && stored.domain == domain
+          }
         )
-        throw error
+
+      let account: Account
+      if let storedAccount: Account = storedAccount {
+        account = storedAccount
+      }
+      else {
+        let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
+        account = .init(
+          localID: accountID,
+          domain: domain,
+          userID: Account.UserID(rawValue: userID),
+          fingerprint: fingerprint
+        )
+        let accountProfile: AccountProfile = .init(
+          accountID: accountID,
+          label: "\(firstName) \(lastName)",  // initial label
+          username: username,
+          firstName: firstName,
+          lastName: lastName,
+          avatarImageURL: avatarImageURL,
+          biometricsEnabled: false  // it is always disabled initially
+        )
+
+        switch dataStore.storeAccount(account, accountProfile, armoredKey) {
+        case .success:
+          break
+
+        case let .failure(error):
+          diagnostics.diagnosticLog("...failed to store account data...")
+          diagnostics.debugLog(
+            "Failed to save account: \(account.localID): \(error)"
+          )
+          throw error
+        }
       }
 
       _ =
-        try await session
+      try await session
         .authorize(
           account,
           .adHoc(passphrase, armoredKey)

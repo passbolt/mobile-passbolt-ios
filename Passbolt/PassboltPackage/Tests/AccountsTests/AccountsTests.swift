@@ -32,6 +32,18 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AccountsStoreTests: TestCase {
 
+  private var pgp: PGP!
+
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
+    pgp = .placeholder
+  }
+
+  override func featuresActorTearDown() async throws {
+    pgp = nil
+    try await super.featuresActorTearDown()
+  }
+
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() async throws {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
@@ -76,7 +88,9 @@ final class AccountsStoreTests: TestCase {
       false
     )
     await features.use(accountSession)
+    self.pgp.verifyPassphrase = always(.success)
     try await FeaturesActor.execute {
+      self.environment.pgp = self.pgp
       self.features.environment.uuidGenerator.uuid = always(.test)
     }
 
@@ -100,11 +114,19 @@ final class AccountsStoreTests: TestCase {
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
 
-  func test_storeTransferedAccount_failsWithDuplicateError_whenAccountAlreadyStored() async throws {
+  func test_storeTransferedAccount_continuesWithoutStoring_whenAccountAlreadyStored() async throws {
     var accountsDataStore: AccountsDataStore = .placeholder
     accountsDataStore.loadAccounts = always([validAccount])
     await features.use(accountsDataStore)
-    await features.use(AccountSession.placeholder)
+    var accountSession: AccountSession = .placeholder
+    accountSession.authorize = always(
+      false
+    )
+    await features.use(accountSession)
+    self.pgp.verifyPassphrase = always(.success)
+    try await FeaturesActor.execute {
+      self.environment.pgp = self.pgp
+    }
 
     let accounts: Accounts = try await testInstance()
 
@@ -127,7 +149,39 @@ final class AccountsStoreTests: TestCase {
       result = error
     }
 
-    XCTAssertError(result, matches: AccountDuplicate.self)
+    XCTAssertNil(result)
+  }
+
+  func test_storeTransferedAccount_fails_withInvalidPassphrase() async throws {
+    await features.usePlaceholder(for: AccountsDataStore.self)
+    await features.usePlaceholder(for: AccountSession.self)
+    self.pgp.verifyPassphrase = always(.failure(MockIssue.error()))
+    try await FeaturesActor.execute {
+      self.environment.pgp = self.pgp
+    }
+
+    let accounts: Accounts = try await testInstance()
+
+    var result: Error?
+    do {
+      try await accounts
+        .transferAccount(
+          validAccount.domain,
+          validAccount.userID.rawValue,
+          validAccountProfile.username,
+          validAccountProfile.firstName,
+          validAccountProfile.lastName,
+          validAccountProfile.avatarImageURL,
+          validAccount.fingerprint,
+          validPrivateKey,
+          validPassphrase
+        )
+    }
+    catch {
+      result = error
+    }
+
+    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_removeAccount_removesDataFromAccountsDataStore() async throws {
