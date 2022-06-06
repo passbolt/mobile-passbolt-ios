@@ -106,11 +106,9 @@ extension SplashScreenController: UIController {
                   .eraseToAnyPublisher()
 
                 case let .authorizedMFARequired(_, mfaProviders):
-                  return cancellables.executeOnMainActorWithPublisher {
-                    try await fetchConfiguration()
-                    return Destination.mfaAuthorization(mfaProviders)
-                  }
-                  .replaceError(with: .featureConfigFetchError)
+                  return Just(
+                    .mfaAuthorization(mfaProviders)
+                  )
                   .eraseToAnyPublisher()
 
                 case let .authorizationRequired(account):
