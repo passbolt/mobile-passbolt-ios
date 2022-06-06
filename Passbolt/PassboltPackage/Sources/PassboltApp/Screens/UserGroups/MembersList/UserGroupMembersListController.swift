@@ -65,11 +65,11 @@ extension UserGroupMembersListController: ComponentController {
         items: context
           .users
           .map { (user: UserDetailsDSV) -> UserGroupMembersListRowItem in
-              .init(
-                userDetails: user,
-                avatarImageData: userAvatarImageFetch(user.id)
-              )
-        }
+            .init(
+              userDetails: user,
+              avatarImageData: userAvatarImageFetch(user.id)
+            )
+          }
       )
     )
 

@@ -91,7 +91,6 @@ extension ResourceMenuController: UIController {
 
     func availableActionsPublisher() -> AnyPublisher<Array<Action>, Never> {
       currentDetailsSubject
-        .removeDuplicates()
         .compactMap { resourceDetails -> Array<Action>? in
           guard let resourceDetails = resourceDetails
           else { return nil }
@@ -156,7 +155,6 @@ extension ResourceMenuController: UIController {
     func resourceDetailsPublisher() -> AnyPublisher<ResourceDetailsDSV, Error> {
       currentDetailsSubject
         .filterMapOptional()
-        .removeDuplicates()
         .eraseToAnyPublisher()
     }
 

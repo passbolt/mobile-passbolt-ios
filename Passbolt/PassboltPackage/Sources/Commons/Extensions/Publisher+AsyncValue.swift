@@ -28,7 +28,6 @@ extension Publisher {
   public func asAsyncValue() async throws -> Output {
     let sequence: AnyAsyncThrowingSequence<Output> =
       self
-      .first()
       .asAsyncThrowingSequence()
 
     let output: Output? =

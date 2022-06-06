@@ -80,22 +80,22 @@ internal struct UserGroupPermissionDetailsView: ComponentView {
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
       UserGroupAvatarView()
-      .frame(
-        width: 96,
-        height: 96,
-        alignment: .center
-      )
-      .padding(8)
+        .frame(
+          width: 96,
+          height: 96,
+          alignment: .center
+        )
+        .padding(8)
 
       Text(self.state.permissionDetails.name)
-      .text(
-        font: .inter(
-          ofSize: 20,
-          weight: .semibold
-        ),
-        color: .passboltPrimaryText
-      )
-      .padding(8)
+        .text(
+          font: .inter(
+            ofSize: 20,
+            weight: .semibold
+          ),
+          color: .passboltPrimaryText
+        )
+        .padding(8)
 
       VStack(
         alignment: .leading,

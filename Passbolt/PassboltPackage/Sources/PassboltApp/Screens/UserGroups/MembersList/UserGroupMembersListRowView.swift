@@ -72,10 +72,12 @@ internal struct UserGroupMembersListRowView_Previews: PreviewProvider {
           lastName: Generator<String>
             .randomLastName()
             .next(),
-          fingerprint: Fingerprint
+          fingerprint:
+            Fingerprint
             .randomGenerator()
             .next(),
-          avatarImageURL: URLString
+          avatarImageURL:
+            URLString
             .randomGenerator()
             .next()
         ),

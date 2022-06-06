@@ -112,11 +112,7 @@ internal struct UserGroupMembersListView: ComponentView {
         }
       )
     }
-    .padding(
-//      leading: 16,
-      bottom: 16//,
-//      trailing: 16
-    )
+    .padding(bottom: 16)
   }
 }
 
@@ -137,7 +133,7 @@ extension UserGroupMembersListView.ViewState {
     _ rhs: Self
   ) -> Bool {
     lhs.items == rhs.items
-    && lhs.snackBarMessage == rhs.snackBarMessage
+      && lhs.snackBarMessage == rhs.snackBarMessage
   }
   internal func hash(
     into hasher: inout Hasher

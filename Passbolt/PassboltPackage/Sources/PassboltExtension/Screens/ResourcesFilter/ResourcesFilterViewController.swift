@@ -67,7 +67,6 @@ internal final class ResourcesFilterViewController: PlainViewController, UICompo
   private func setupFiltersView() {
     contentView
       .searchTextPublisher
-      .removeDuplicates()
       .debounce(for: 0.3, scheduler: RunLoop.main)
       .sink { [weak self] text in
         self?.controller.updateSearchText(text)

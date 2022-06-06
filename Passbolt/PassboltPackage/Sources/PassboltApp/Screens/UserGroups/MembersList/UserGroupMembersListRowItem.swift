@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+
 import struct Foundation.Data
 
 internal struct UserGroupMembersListRowItem {

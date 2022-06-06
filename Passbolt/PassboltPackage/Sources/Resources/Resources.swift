@@ -53,8 +53,6 @@ extension Resources: Feature {
     let networkClient: NetworkClient = try await features.instance()
     let sessionData: AccountSessionData = try await features.instance()
 
-    let resourcesUpdateSubject: CurrentValueSubject<Void, Never> = .init(Void())
-
     // initial refresh after loading
     cancellables.executeOnAccountSessionActor {
       do {
@@ -68,12 +66,12 @@ extension Resources: Feature {
     nonisolated func filteredResourcesListPublisher(
       _ filterPublisher: AnyPublisher<ResourcesFilter, Never>
     ) -> AnyPublisher<Array<ResourceListItemDSV>, Never> {
-      filterPublisher
-        .removeDuplicates()
-        .map { filter -> AnyPublisher<Array<ResourceListItemDSV>, Never> in
-          // trigger refresh on data updates, publishes initially on subscription
-          resourcesUpdateSubject
-            .map { () -> AnyPublisher<Array<ResourceListItemDSV>, Never> in
+      // trigger refresh on data updates, publishes initially on subscription
+      sessionData
+        .updatesSequence()
+        .map { () -> AnyPublisher<Array<ResourceListItemDSV>, Never> in
+          filterPublisher
+            .map { filter -> AnyPublisher<Array<ResourceListItemDSV>, Never> in
               accountDatabase
                 .fetchResourceListItemDSVs(filter)
                 .replaceError(with: Array<ResourceListItemDSV>())
@@ -82,6 +80,7 @@ extension Resources: Feature {
             .switchToLatest()
             .eraseToAnyPublisher()
         }
+        .asPublisher()
         .switchToLatest()
         .removeDuplicates()
         .eraseToAnyPublisher()
@@ -117,13 +116,16 @@ extension Resources: Feature {
     nonisolated func resourceDetailsPublisher(
       resourceID: Resource.ID
     ) -> AnyPublisher<ResourceDetailsDSV, Error> {
-      resourcesUpdateSubject
+      sessionData
+        .updatesSequence()
+        .asPublisher()
         .map {
           accountDatabase
             .fetchResourceDetailsDSVs(.init(resourceID: resourceID))
             .eraseErrorType()
         }
         .switchToLatest()
+        .removeDuplicates()
         .eraseToAnyPublisher()
     }
 
@@ -139,8 +141,7 @@ extension Resources: Feature {
     }
 
     @FeaturesActor func featureUnload() async throws {
-      // prevent from publishing values after unload
-      resourcesUpdateSubject.send(completion: .finished)
+      /* NOP */
     }
 
     return Self(

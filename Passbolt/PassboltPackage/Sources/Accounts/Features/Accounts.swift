@@ -96,7 +96,7 @@ extension Accounts: Feature {
         .first(
           where: { stored in
             stored.userID.rawValue == userID
-            && stored.domain == domain
+              && stored.domain == domain
           }
         )
 
@@ -136,7 +136,7 @@ extension Accounts: Feature {
       }
 
       _ =
-      try await session
+        try await session
         .authorize(
           account,
           .adHoc(passphrase, armoredKey)

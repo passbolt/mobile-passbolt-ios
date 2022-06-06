@@ -29,7 +29,6 @@ public class TextViewInput: PlainView {
 
   public var textPublisher: AnyPublisher<String, Never> {
     textSubject
-      .removeDuplicates()
       .eraseToAnyPublisher()
   }
   public var editingDidBeginPublisher: AnyPublisher<Void, Never> { editingDidBeginSubject.eraseToAnyPublisher() }

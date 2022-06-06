@@ -69,7 +69,7 @@ extension UserGroupPermissionDetailsController: ComponentController {
               user.id,
               avatarImage: userAvatarImageFetch(user.id)
             )
-        }
+          }
       )
     )
 

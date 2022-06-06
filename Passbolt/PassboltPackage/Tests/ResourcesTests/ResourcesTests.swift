@@ -38,9 +38,11 @@ final class ResourceTests: TestCase {
   var accountSession: AccountSession!
   var accountDatabase: AccountDatabase!
   var networkClient: NetworkClient!
+  var updatesSequence: AsyncVariable<Void>!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
+    updatesSequence = .init(initial: Void())
     accountSession = .placeholder
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -73,6 +75,13 @@ final class ResourceTests: TestCase {
     features.patch(
       \AccountSessionData.refreshIfNeeded,
       with: always(Void())
+    )
+    features.patch(
+      \AccountSessionData.updatesSequence,
+       with: always(
+        self.updatesSequence
+          .asAnyAsyncSequence()
+       )
     )
   }
 
@@ -157,7 +166,7 @@ final class ResourceTests: TestCase {
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
     var result: Array<ResourceListItemDSV>? =
-      try? await feature
+      try await feature
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
       .asAsyncValue()
 
@@ -166,42 +175,12 @@ final class ResourceTests: TestCase {
     filterSubject.send(.init(sorting: .nameAlphabetically))
 
     result =
-      try? await feature
+      try await feature
       .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
       .asAsyncValue()
 
     XCTAssertEqual(result, .testResourcesAlternative)
   }
-
-  //  func test_filteredResourcesListPublisher_publishesResourcesAfterUpdate() async throws {
-  //    await features.use(accountSession)
-  //    var resources: Array<ResourceListItemDSV> = .testResources
-  //    accountDatabase.fetchResourceListItemDSVs.execute = always(
-  //      resources
-  //    )
-  //    await features.use(accountDatabase)
-  //    await features.use(networkClient)
-  //
-  //    let feature: Resources = try await testInstance()
-  //
-  //    let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
-  //
-  //    var result: Array<ResourceListItemDSV>?
-  //    feature
-  //      .filteredResourcesListPublisher(filterSubject.eraseToAnyPublisher())
-  //      .sink { resources in
-  //        result = resources
-  //      }
-  //      .store(in: cancellables)
-  //
-  //    resources = .testResourcesAlternative
-  //
-  //    try await feature
-  //      .refreshIfNeeded()
-  //      .asAsyncValue()
-  //
-  //    XCTAssertEqual(result, .testResourcesAlternative)
-  //  }
 
   func test_filteredResourcesListPublisher_publishesEmptyList_onDatabaseError() async throws {
     await features.use(accountSession)

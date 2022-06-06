@@ -145,7 +145,7 @@ extension UserGroupMemberDetailsView.ViewState {
     _ rhs: Self
   ) -> Bool {
     lhs.userDetails == rhs.userDetails
-    && lhs.snackBarMessage == rhs.snackBarMessage
+      && lhs.snackBarMessage == rhs.snackBarMessage
   }
   internal func hash(
     into hasher: inout Hasher
