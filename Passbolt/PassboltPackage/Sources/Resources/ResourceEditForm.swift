@@ -58,7 +58,7 @@ extension ResourceEditForm: Feature {
     let accountSession: AccountSession = try await features.instance()
     let database: AccountDatabase = try await features.instance()
     let networkClient: NetworkClient = try await features.instance()
-    let userPGPMessages: UserPGPMessages = try await features.instance()
+    let usersPGPMessages: UsersPGPMessages = try await features.instance()
     let resources: Resources = try await features.instance()
 
     let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
@@ -405,133 +405,101 @@ extension ResourceEditForm: Feature {
         .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .map { (resourceID, resourceTypeID, fieldValues, encodedSecret) -> AnyPublisher<Resource.ID, Error> in
+      .asyncMap { (resourceID, resourceTypeID, fieldValues, encodedSecret) async throws -> Resource.ID in
         guard let name: String = fieldValues[.name]?.stringValue
         else {
-          return Fail(error: TheErrorLegacy.invalidOrMissingResourceType())
-            .eraseToAnyPublisher()
+          throw
+            TheErrorLegacy
+            .invalidOrMissingResourceType()
         }
         let parentFolderID: ResourceFolder.ID? = resourceParentFolderIDSubject.value
 
         if let resourceID: Resource.ID = resourceID {
-          return
-            accountSession
-            .statePublisher()
-            .first()
-            .map { sessionState -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, Error> in
-              switch sessionState {
-              case .authorized, .authorizedMFARequired:
-                return
-                  userPGPMessages
-                  .encryptMessageForResourceUsers(resourceID, encodedSecret)
-                  .eraseToAnyPublisher()
+          switch accountSession.currentState() {
+          case .authorized, .authorizedMFARequired:
+            let encryptedSecrets: Array<EncryptedMessage> =
+              try await usersPGPMessages
+              .encryptMessageForResourceUsers(resourceID, encodedSecret)
 
-              case let .authorizationRequired(account):
-                return Fail(
-                  error:
-                    SessionAuthorizationRequired
-                    .error(
-                      "Session authorization required for editing resource",
-                      account: account
-                    )
+            let response: UpdateResourceRequestResponse =
+              try await networkClient
+              .updateResourceRequest
+              .makeAsync(
+                using: .init(
+                  resourceID: resourceID,
+                  resourceTypeID: resourceTypeID,
+                  parentFolderID: parentFolderID,
+                  name: name,
+                  username: fieldValues[.username]?.stringValue,
+                  url: (fieldValues[.uri]?.stringValue).flatMap(URLString.init(rawValue:)),
+                  description: fieldValues[.description]?.stringValue,
+                  secrets: encryptedSecrets.map { (userID: $0.recipient, data: $0.message) }
                 )
-                .eraseToAnyPublisher()
+              )
 
-              case .none:
-                return Fail(
-                  error:
-                    SessionMissing
-                    .error("No session provided for editing resource")
-                )
-                .eraseToAnyPublisher()
-              }
-            }
-            .switchToLatest()
-            .map { encryptedSecrets -> AnyPublisher<Resource.ID, Error> in
-              networkClient
-                .updateResourceRequest
-                .make(
-                  using: .init(
-                    resourceID: resourceID.rawValue,
-                    resourceTypeID: resourceTypeID.rawValue,
-                    parentFolderID: parentFolderID?.rawValue,
-                    name: name,
-                    username: fieldValues[.username]?.stringValue,
-                    url: fieldValues[.uri]?.stringValue,
-                    description: fieldValues[.description]?.stringValue,
-                    secrets: encryptedSecrets.map { (userID: $0.rawValue, data: $1.rawValue) }
-                  )
-                )
-                .eraseErrorType()
-                .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
-                .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+            return response.body.resourceID
+
+          case let .authorizationRequired(account):
+            throw
+              SessionAuthorizationRequired
+              .error(
+                "Session authorization required for editing resource",
+                account: account
+              )
+
+          case .none:
+            throw
+              SessionMissing
+              .error("No session provided for editing resource")
+          }
         }
         else {
-          return
-            accountSession
-            .statePublisher()
-            .first()
-            .map {
-              sessionState -> AnyPublisher<
-                Array<(userID: User.ID, encryptedMessage: ArmoredPGPMessage)>, Error
-              > in
-              switch sessionState {
-              case let .authorized(account), let .authorizedMFARequired(account, _):
-                return
-                  userPGPMessages
-                  .encryptMessageForUser(.init(rawValue: account.userID.rawValue), encodedSecret)
-                  .map { encryptedMessage in [(.init(rawValue: account.userID.rawValue), encryptedMessage)] }
-                  .eraseToAnyPublisher()
+          switch accountSession.currentState() {
+          case let .authorized(account), let .authorizedMFARequired(account, _):
+            let encryptedSecret: EncryptedMessage? =
+              try await usersPGPMessages
+              .encryptMessageForUsers([account.userID], encodedSecret)
+              .first
 
-              case let .authorizationRequired(account):
-                return Fail(
-                  error:
-                    SessionAuthorizationRequired
-                    .error(
-                      "Session authorization required for creating resource",
-                      account: account
-                    )
-                )
-                .eraseToAnyPublisher()
-
-              case .none:
-                return Fail(
-                  error:
-                    SessionMissing
-                    .error("No session provided for creating resource")
-                )
-                .eraseToAnyPublisher()
-
-              }
+            guard let encryptedSecret: EncryptedMessage = encryptedSecret
+            else {
+              throw
+                UserSecretMissing
+                .error()
             }
-            .switchToLatest()
-            .map { encryptedSecrets -> AnyPublisher<Resource.ID, Error> in
-              return
-                networkClient
-                .createResourceRequest
-                .make(
-                  using: .init(
-                    resourceTypeID: resourceTypeID.rawValue,
-                    parentFolderID: parentFolderID?.rawValue,
-                    name: name,
-                    username: fieldValues[.username]?.stringValue,
-                    url: fieldValues[.uri]?.stringValue,
-                    description: fieldValues[.description]?.stringValue,
-                    secretData: encryptedSecrets.first?.encryptedMessage.rawValue ?? ""
-                  )
+
+            let response: CreateResourceRequestResponse =
+              try await networkClient
+              .createResourceRequest
+              .makeAsync(
+                using: .init(
+                  resourceTypeID: resourceTypeID,
+                  parentFolderID: parentFolderID,
+                  name: name,
+                  username: fieldValues[.username]?.stringValue,
+                  url: (fieldValues[.uri]?.stringValue).flatMap(URLString.init(rawValue:)),
+                  description: fieldValues[.description]?.stringValue,
+                  secretData: encryptedSecret.message
                 )
-                .eraseErrorType()
-                .map { response -> Resource.ID in .init(rawValue: response.body.resourceID) }
-                .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+              )
+
+            return response.body.resourceID
+
+          case let .authorizationRequired(account):
+            throw
+              SessionAuthorizationRequired
+              .error(
+                "Session authorization required for creating resource",
+                account: account
+              )
+
+          case .none:
+            throw
+              SessionMissing
+              .error("No session provided for creating resource")
+          }
         }
       }
-      .switchToLatest()
       .eraseToAnyPublisher()
     }
 

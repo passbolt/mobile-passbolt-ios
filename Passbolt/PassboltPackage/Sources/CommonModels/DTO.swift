@@ -21,5 +21,12 @@
 // @since         v1.0
 //
 
+import Commons
+
 // DataTransferObject - used for network communication
 public protocol DTO {}
+
+extension Int: DTO {}
+extension String: DTO {}
+extension Array: DTO where Element: DTO {}
+extension Tagged: DTO where RawValue: DTO {}

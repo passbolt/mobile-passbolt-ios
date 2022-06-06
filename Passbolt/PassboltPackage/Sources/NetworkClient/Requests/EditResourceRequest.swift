@@ -61,19 +61,19 @@ extension UpdateResourceRequest {
 
 public struct UpdateResourceRequestVariable: Encodable {
 
-  public var resourceID: String
-  public var resourceTypeID: String
-  public var parentFolderID: String?
+  public var resourceID: Resource.ID
+  public var resourceTypeID: ResourceType.ID
+  public var parentFolderID: ResourceFolder.ID?
   public var name: String
   public var username: String?
-  public var url: String?
+  public var url: URLString?
   public var description: String?
   public var secrets: Array<Secret>
 
   public struct Secret: Encodable {
 
-    public var userID: String
-    public var data: String
+    public var userID: User.ID
+    public var data: ArmoredPGPMessage
 
     public enum CodingKeys: String, CodingKey {
 
@@ -83,14 +83,14 @@ public struct UpdateResourceRequestVariable: Encodable {
   }
 
   public init(
-    resourceID: String,
-    resourceTypeID: String,
-    parentFolderID: String?,
+    resourceID: Resource.ID,
+    resourceTypeID: ResourceType.ID,
+    parentFolderID: ResourceFolder.ID?,
     name: String,
     username: String?,
-    url: String?,
+    url: URLString?,
     description: String?,
-    secrets: Array<(userID: String, data: String)>
+    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>
   ) {
     self.resourceID = resourceID
     self.resourceTypeID = resourceTypeID
@@ -118,10 +118,10 @@ public typealias UpdateResourceRequestResponse = CommonResponse<UpdateResourceRe
 
 public struct UpdateResourceRequestResponseBody: Decodable {
 
-  public var resourceID: String
+  public var resourceID: Resource.ID
 
   public init(
-    resourceID: String
+    resourceID: Resource.ID
   ) {
     self.resourceID = resourceID
   }

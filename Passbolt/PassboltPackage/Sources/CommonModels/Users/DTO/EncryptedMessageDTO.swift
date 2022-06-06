@@ -21,33 +21,43 @@
 // @since         v1.0
 //
 
-import Commons
+public typealias EncryptedMessageDTO = EncryptedMessage
 
-public enum User {}
+extension EncryptedMessageDTO: DTO {}
 
-extension User {
+extension EncryptedMessageDTO: Codable {
 
-  public typealias ID = Tagged<String, Self>
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension User.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    self.recipient = try container.decode(
+      User.ID.self,
+      forKey: .userID
+    )
+    self.message = try container.decode(
+      ArmoredPGPMessage.self,
+      forKey: .data
+    )
   }
 
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+  public func encode(
+    to encoder: Encoder
+  ) throws {
+    var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(
+      self.recipient,
+      forKey: .userID
+    )
+    try container.encode(
+      self.message,
+      forKey: .data
+    )
+  }
+
+  public enum CodingKeys: String, CodingKey {
+
+    case userID = "user_id"
+    case data = "data"
   }
 }
-#endif

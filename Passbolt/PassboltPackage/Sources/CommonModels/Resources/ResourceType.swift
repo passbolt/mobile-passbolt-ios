@@ -48,6 +48,12 @@ extension ResourceType.ID {
       .map(\.uuidString)
       .map(Self.init(rawValue:))
   }
+
+  public static func random(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Self {
+    Self.randomGenerator(using: randomnessGenerator).next()
+  }
 }
 
 // cannot conform to RandomlyGenerated
@@ -63,6 +69,12 @@ extension ResourceType.Slug {
       using: randomnessGenerator
     )
     .map(Self.init(rawValue:))
+  }
+
+  public static func random(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Self {
+    Self.randomGenerator(using: randomnessGenerator).next()
   }
 }
 

@@ -21,6 +21,13 @@
 // @since         v1.0
 //
 
+import Commons
+
 // DataStorageView - used for accessing database data views (load)
 // (read only data composition related to concrete use)
 public protocol DSV: Hashable {}
+
+extension Int: DSV {}
+extension String: DSV {}
+extension Array: DSV where Element: DSV {}
+extension Tagged: DSV where RawValue: DSV {}

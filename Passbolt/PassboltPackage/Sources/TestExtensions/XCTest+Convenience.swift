@@ -367,3 +367,66 @@ public func XCTAssertFailureUnderlyingError<Value, Failure, ExpectedRootError, E
     line: line
   )
 }
+
+// |==| |==|
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertValue<Value>(
+  equal expectedValue: Value,
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  _ expression: () async throws -> Value
+) async where Value: Equatable {
+  let value: Value?
+  do {
+    value = try await expression()
+    XCTAssertEqual(
+      value,
+      expectedValue,
+      file: file,
+      line: line
+    )
+  }
+  catch {
+    return XCTFail(
+      "Unexpected error thrown: \(error)",
+      file: file,
+      line: line
+    )
+  }
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertError<ExpectedError, Value>(
+  matches _: ExpectedError.Type,
+  verification: (ExpectedError) -> Bool = { _ in true },
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  _ expression: () async throws -> Value
+) async where ExpectedError: Error {
+  do {
+    let value: Value = try await expression()
+    return XCTFail(
+      "Expected error was not thrown, received: \(value)",
+      file: file,
+      line: line
+    )
+  }
+  catch {
+    if let expectedError: ExpectedError = error as? ExpectedError {
+      XCTAssertTrue(
+        verification(expectedError),
+        "\(error) is not passing verification",
+        file: file,
+        line: line
+      )
+    }
+    else {
+      XCTFail(
+        "\(type(of: error)) is not matching \(ExpectedError.self)",
+        file: file,
+        line: line
+      )
+    }
+  }
+}

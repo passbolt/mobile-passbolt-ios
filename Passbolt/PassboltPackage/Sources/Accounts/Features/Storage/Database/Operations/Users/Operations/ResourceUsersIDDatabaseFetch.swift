@@ -24,9 +24,9 @@
 import CommonModels
 import Environment
 
-public struct ResourceUserPermissionsDetailsFetch {
+public struct ResourceUsersIDDatabaseFetch {
 
-  public var execute: @StorageAccessActor (Resource.ID) async throws -> Array<UserPermissionDetailsDSV>
+  public var execute: @StorageAccessActor (Resource.ID) async throws -> Array<User.ID>
 
   public init(
     execute: @escaping @StorageAccessActor (Input) async throws -> Output
@@ -35,7 +35,7 @@ public struct ResourceUserPermissionsDetailsFetch {
   }
 }
 
-extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
+extension ResourceUsersIDDatabaseFetch: DatabaseOperationFeature {
 
   public static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -43,25 +43,32 @@ extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
     withConnection(
       using: connection
     ) { conn, input in
-      let statement: SQLiteStatement =
+      var statement: SQLiteStatement =
         .statement(
           """
-          SELECT
-            users.id AS id,
-            users.username AS username,
-            users.firstName AS firstName,
-            users.lastName AS lastName,
-            users.publicPGPKeyFingerprint AS fingerprint,
-            users.avatarImageURL AS avatarImageURL,
-            usersResources.permissionType AS permissionType
-          FROM
-            usersResources
-          INNER JOIN
-            users
-          ON
-            users.id == usersResources.userID
-          WHERE
-            usersResources.resourceID == ?1
+          SELECT DISTINCT
+            id
+          FROM (
+            SELECT
+              usersResources.userID AS id
+            FROM
+              usersResources
+            WHERE
+              usersResources.resourceID == ?1
+
+            UNION ALL
+
+            SELECT
+              usersGroups.userID AS id
+            FROM
+              userGroupsResources
+            INNER JOIN
+              usersGroups
+            ON
+              usersGroups.userGroupID == userGroupsResources.userGroupID
+            WHERE
+              userGroupsResources.resourceID == ?1
+          )
           ;
           """,
           arguments: input
@@ -69,15 +76,9 @@ extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
 
       return
         try conn
-        .fetch(using: statement) { dataRow -> UserPermissionDetailsDSV in
+        .fetch(using: statement) { dataRow -> User.ID in
           guard
-            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-            let username: String = dataRow.username,
-            let firstName: String = dataRow.firstName,
-            let lastName: String = dataRow.lastName,
-            let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-            let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
           else {
             throw
               DatabaseIssue
@@ -88,15 +89,7 @@ extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
               )
           }
 
-          return UserPermissionDetailsDSV(
-            id: id,
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            fingerprint: fingerprint,
-            avatarImageURL: avatarImageURL,
-            permissionType: permissionType
-          )
+          return id
         }
     }
   }

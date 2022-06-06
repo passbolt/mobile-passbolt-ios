@@ -58,7 +58,7 @@ extension UserGPGKeyDTO: RandomlyGenerated {
     zip(
       with: UserGPGKeyDTO.init(armoredKey:fingerprint:),
       Generator<String>
-        .randomArmoredGPGPublicKey(using: randomnessGenerator)
+        .randomArmoredPGPPublicKey(using: randomnessGenerator)
         .map(ArmoredPGPPublicKey.init(rawValue:)),
       Generator<String>
         .randomKeyFingerprint(using: randomnessGenerator)

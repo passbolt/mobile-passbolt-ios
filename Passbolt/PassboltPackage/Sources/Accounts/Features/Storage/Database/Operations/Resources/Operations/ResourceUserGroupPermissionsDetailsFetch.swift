@@ -52,7 +52,7 @@ extension ResourceUserGroupPermissionsDetailsFetch: DatabaseOperationFeature {
             userGroupsResources.permissionType AS permissionType
           FROM
             userGroupsResources
-          LEFT JOIN
+          INNER JOIN
             userGroups
           ON
             userGroups.id == userGroupsResources.userGroupID
@@ -75,7 +75,7 @@ extension ResourceUserGroupPermissionsDetailsFetch: DatabaseOperationFeature {
             users.avatarImageURL AS avatarImageURL
           FROM
             users
-          LEFT JOIN
+          INNER JOIN
             usersGroups
           ON
             users.id == usersGroups.userID

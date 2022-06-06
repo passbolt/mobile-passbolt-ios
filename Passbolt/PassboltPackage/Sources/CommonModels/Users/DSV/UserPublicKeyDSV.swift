@@ -23,31 +23,38 @@
 
 import Commons
 
-public enum User {}
+public struct UserPublicKeyDSV {
 
-extension User {
+  public var userID: User.ID
+  public var publicKey: ArmoredPGPPublicKey
 
-  public typealias ID = Tagged<String, Self>
+  public init(
+    userID: User.ID,
+    publicKey: ArmoredPGPPublicKey
+  ) {
+    self.userID = userID
+    self.publicKey = publicKey
+  }
 }
+
+extension UserPublicKeyDSV: DSV {}
 
 #if DEBUG
 
-// cannot conform to RandomlyGenerated
-extension User.ID {
+extension UserPublicKeyDSV: RandomlyGenerated {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+    using randomnessGenerator: RandomnessGenerator
   ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+    zip(
+      with: UserPublicKeyDSV
+        .init(userID:publicKey:),
+      User.ID
+        .randomGenerator(using: randomnessGenerator),
+      Generator<String>
+        .randomArmoredPGPPublicKey(using: randomnessGenerator)
+        .map(ArmoredPGPPublicKey.init(rawValue:))
+    )
   }
 }
 #endif

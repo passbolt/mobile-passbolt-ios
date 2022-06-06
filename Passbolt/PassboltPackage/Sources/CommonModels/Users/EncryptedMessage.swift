@@ -23,31 +23,36 @@
 
 import Commons
 
-public enum User {}
+public struct EncryptedMessage {
 
-extension User {
+  public var recipient: User.ID
+  public var message: ArmoredPGPMessage
 
-  public typealias ID = Tagged<String, Self>
+  public init(
+    recipient: User.ID,
+    message: ArmoredPGPMessage
+  ) {
+    self.recipient = recipient
+    self.message = message
+  }
 }
 
 #if DEBUG
 
-// cannot conform to RandomlyGenerated
-extension User.ID {
+extension EncryptedMessage: RandomlyGenerated {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+    using randomnessGenerator: RandomnessGenerator
   ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+    zip(
+      with: EncryptedMessage
+        .init(recipient:message:),
+      User.ID
+        .randomGenerator(using: randomnessGenerator),
+      Generator<String>
+        .randomArmoredPGPMessage(using: randomnessGenerator)
+        .map(ArmoredPGPMessage.init(rawValue:))
+    )
   }
 }
 #endif

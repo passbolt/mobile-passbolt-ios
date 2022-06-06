@@ -23,31 +23,25 @@
 
 import Commons
 
-public enum User {}
+public struct UserSecretMissing: TheError {
 
-extension User {
-
-  public typealias ID = Tagged<String, Self>
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension User.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  public static func error(
+    _ message: StaticString = "UserSecretMissing",
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.user.secret.missing")
+    )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }
-#endif

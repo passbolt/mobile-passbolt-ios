@@ -39,7 +39,7 @@ final class ResourceEditFormTests: TestCase {
   var database: AccountDatabase!
   var resources: Resources!
   var networkClient: NetworkClient!
-  var userPGPMessages: UserPGPMessages!
+  var usersPGPMessages: UsersPGPMessages!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
@@ -47,7 +47,7 @@ final class ResourceEditFormTests: TestCase {
     database = .placeholder
     resources = .placeholder
     networkClient = .placeholder
-    userPGPMessages = .placeholder
+    usersPGPMessages = .placeholder
   }
 
   override func featuresActorTearDown() async throws {
@@ -55,7 +55,7 @@ final class ResourceEditFormTests: TestCase {
     database = nil
     resources = nil
     networkClient = nil
-    userPGPMessages = nil
+    usersPGPMessages = nil
     try await super.featuresActorTearDown()
   }
 
@@ -67,7 +67,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -100,7 +100,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -133,7 +133,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -156,7 +156,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -187,7 +187,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -210,7 +210,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -244,7 +244,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -279,7 +279,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -311,7 +311,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -334,7 +334,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -363,7 +363,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -385,9 +385,8 @@ final class ResourceEditFormTests: TestCase {
   }
 
   func test_sendForm_fails_whenNoActiveUserSession() async throws {
-    accountSession.statePublisher = always(
-      Just(.none(lastUsed: nil))
-        .eraseToAnyPublisher()
+    accountSession.currentState = always(
+      .none(lastUsed: nil)
     )
     accountSession.requestAuthorizationPrompt = always(Void())
     await features.use(accountSession)
@@ -397,7 +396,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -423,9 +422,8 @@ final class ResourceEditFormTests: TestCase {
   }
 
   func test_sendForm_fails_whenEncryptMessageForUserFails() async throws {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
+    accountSession.currentState = always(
+      .authorized(validAccount)
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
@@ -434,11 +432,10 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    userPGPMessages.encryptMessageForUser = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    usersPGPMessages.encryptMessageForUsers = alwaysThrow(
+      MockIssue.error()
     )
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -464,9 +461,8 @@ final class ResourceEditFormTests: TestCase {
   }
 
   func test_sendForm_fails_whenCreateResourceRequestFails() async throws {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
+    accountSession.currentState = always(
+      .authorized(validAccount)
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
@@ -478,12 +474,15 @@ final class ResourceEditFormTests: TestCase {
       MockIssue.error()
     )
     await features.use(networkClient)
-    userPGPMessages.encryptMessageForUser = always(
-      Just("encrypted-message")
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    usersPGPMessages.encryptMessageForUsers = always(
+      [
+        .init(
+          recipient: "USER_ID",
+          message: "encrypted-message"
+        )
+      ]
     )
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -509,9 +508,8 @@ final class ResourceEditFormTests: TestCase {
   }
 
   func test_sendForm_succeeds_whenAllOperationsSucceed() async throws {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
+    accountSession.currentState = always(
+      .authorized(validAccount)
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
@@ -526,12 +524,15 @@ final class ResourceEditFormTests: TestCase {
       )
     )
     await features.use(networkClient)
-    userPGPMessages.encryptMessageForUser = always(
-      Just("encrypted-message")
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    usersPGPMessages.encryptMessageForUsers = always(
+      [
+        .init(
+          recipient: "USER_ID",
+          message: "encrypted-message"
+        )
+      ]
     )
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -561,7 +562,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(database)
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -596,7 +597,7 @@ final class ResourceEditFormTests: TestCase {
     )
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -636,7 +637,7 @@ final class ResourceEditFormTests: TestCase {
     )
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -671,7 +672,7 @@ final class ResourceEditFormTests: TestCase {
     )
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -711,7 +712,7 @@ final class ResourceEditFormTests: TestCase {
     )
     await features.use(resources)
     await features.use(networkClient)
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -735,9 +736,8 @@ final class ResourceEditFormTests: TestCase {
   }
 
   func test_sendForm_updatesResource_whenEditingResource() async throws {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
+    accountSession.currentState = always(
+      .authorized(validAccount)
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
@@ -759,7 +759,7 @@ final class ResourceEditFormTests: TestCase {
     await features.use(resources)
     var result: Resource.ID?
     networkClient.updateResourceRequest.execute = { variable in
-      result = .init(rawValue: variable.resourceID)
+      result = variable.resourceID
       return .init(
         header: .mock(),
         body: .init(
@@ -768,14 +768,15 @@ final class ResourceEditFormTests: TestCase {
       )
     }
     await features.use(networkClient)
-    userPGPMessages.encryptMessageForResourceUsers = always(
-      Just([
-        ("USER_ID", "encrypted message")
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+    usersPGPMessages.encryptMessageForResourceUsers = always(
+      [
+        .init(
+          recipient: "USER_ID",
+          message: "encrypted-message"
+        )
+      ]
     )
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 
@@ -800,9 +801,8 @@ final class ResourceEditFormTests: TestCase {
   }
 
   func test_sendForm_fails_whenUpdateResourceRequestFails() async throws {
-    accountSession.statePublisher = always(
-      Just(.authorized(validAccount))
-        .eraseToAnyPublisher()
+    accountSession.currentState = always(
+      .authorized(validAccount)
     )
     await features.use(accountSession)
     database.fetchResourcesTypesOperation.execute = always(
@@ -827,14 +827,15 @@ final class ResourceEditFormTests: TestCase {
       MockIssue.error()
     )
     await features.use(networkClient)
-    userPGPMessages.encryptMessageForResourceUsers = always(
-      Just([
-        ("USER_ID", "encrypted message")
-      ])
-      .eraseErrorType()
-      .eraseToAnyPublisher()
+    usersPGPMessages.encryptMessageForResourceUsers = always(
+      [
+        .init(
+          recipient: "USER_ID",
+          message: "encrypted-message"
+        )
+      ]
     )
-    await features.use(userPGPMessages)
+    await features.use(usersPGPMessages)
 
     let feature: ResourceEditForm = try await testInstance()
 

@@ -31,347 +31,271 @@ import TestExtensions
 @testable import Users
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class UserPGPMessagesTests: TestCase {
+final class UsersPGPMessagesTests: TestCase {
 
-  var accountSession: AccountSession!
-  var database: AccountDatabase!
-  var networkClient: NetworkClient!
-  var mockUserDTO: UserDTO!
+  var mockAccount: Account!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    accountSession = .placeholder
-    database = .placeholder
-    networkClient = .placeholder
-    mockUserDTO = .random()
+    self.mockAccount = .validAccount
+    self.features.usePlaceholder(
+      for: AccountSession.self
+    )
+    self.features.usePlaceholder(
+      for: UsersPublicKeysDatabaseFetch.self
+    )
+    self.features.usePlaceholder(
+      for: ResourceUsersIDDatabaseFetch.self
+    )
   }
 
   override func featuresActorTearDown() async throws {
-    accountSession = nil
-    database = nil
-    networkClient = nil
-    mockUserDTO = nil
+    self.mockAccount = .none
     try await super.featuresActorTearDown()
   }
 
-  func test_encryptMessageForUser_fails_whenUserProfileRequestFails() async throws {
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userProfileRequest.execute = alwaysThrow(
-      MockIssue.error()
-    )
-    await features.use(networkClient)
+  func test_encryptMessageForUser_fails_whenUserListIsEmpty() async throws {
+    let feature: UsersPGPMessages = try await self.testInstance()
 
-    let feature: UserPGPMessages = try await testInstance()
-
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .encryptMessageForUser("user-id", "message")
-        .asAsyncValue()
+    await XCTAssertError(
+      matches: UsersListEmpty.self
+    ) {
+      try await feature
+        .encryptMessageForUsers([], "message")
     }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_encryptMessageForUser_fails_whenPublicKeyVerificationFails() async throws {
-    try await FeaturesActor.execute {
-      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(MockIssue.error()))
-    }
-    accountSession.statePublisher = always(
-      Just(
-        .authorized(
-          .init(
-            localID: "local-id",
-            domain: "https://passbolt.com",
-            userID: self.mockUserDTO.id,
-            fingerprint: "fingerpring"
-          )
-        )
-      )
-      .eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userProfileRequest.execute = always(
-      UserProfileRequestResponse(
-        header: .mock(),
-        body: self.mockUserDTO
+  func test_encryptMessageForUser_fails_whenUserPublicKeysFetchFails() async throws {
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+      with: alwaysThrow(
+        MockIssue.error()
       )
     )
-    await features.use(networkClient)
 
-    let feature: UserPGPMessages = try await testInstance()
+    let feature: UsersPGPMessages = try await self.testInstance()
 
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .encryptMessageForUser(mockUserDTO.id, "message")
-        .asAsyncValue()
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature
+        .encryptMessageForUsers([.random()], "message")
     }
-    catch {
-      result = error
-    }
+  }
 
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .invalidUserPublicKey })
+  func test_encryptMessageForUser_fails_whenUserPublicKeysFetchDoesNotContainAllUsers() async throws {
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+       with: always(
+        []
+       )
+    )
+
+    let feature: UsersPGPMessages = try await self.testInstance()
+
+    await XCTAssertError(
+      matches: UserPublicKeyMissing.self
+    ) {
+      try await feature
+        .encryptMessageForUsers([.random()], "message")
+    }
   }
 
   func test_encryptMessageForUser_fails_whenEncryptAndSignMessageFails() async throws {
-    try await FeaturesActor.execute {
-      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
-    }
-    accountSession.statePublisher = always(
-      Just(
-        .authorized(
-          .init(
-            localID: "local-id",
-            domain: "https://passbolt.com",
-            userID: self.mockUserDTO.id,
-            fingerprint: "fingerpring"
-          )
-        )
-      )
-      .eraseToAnyPublisher()
-    )
-    accountSession.encryptAndSignMessage = always(
-      Fail(error: MockIssue.error()).eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userProfileRequest.execute = always(
-      .init(
-        header: .mock(),
-        body: self.mockUserDTO
+    await self.features.patch(
+      \AccountSession.currentState,
+      with: always(
+        .authorized(self.mockAccount)
       )
     )
-    await features.use(networkClient)
+    await self.features.patch(
+      \AccountSession.encryptAndSignMessage,
+      with: alwaysThrow(
+        MockIssue.error()
+      )
+    )
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+      with: always(
+        [.random()]
+      )
+    )
 
-    let feature: UserPGPMessages = try await testInstance()
+    let feature: UsersPGPMessages = try await self.testInstance()
 
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .encryptMessageForUser("user-id", "message")
-        .asAsyncValue()
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature
+        .encryptMessageForUsers([.random()], "message")
     }
-    catch {
-      result = error
-    }
-    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_encryptMessageForUser_succeeds_whenAllOperationsSucceed() async throws {
-    try await FeaturesActor.execute {
-      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
-    }
-    accountSession.statePublisher = always(
-      Just(
-        .authorized(
-          .init(
-            localID: "local-id",
-            domain: "https://passbolt.com",
-            userID: self.mockUserDTO.id,
-            fingerprint: "fingerpring"
-          )
+    await self.features.patch(
+      \AccountSession.currentState,
+      with: always(
+        .authorized(self.mockAccount)
+      )
+    )
+    await self.features.patch(
+      \AccountSession.encryptAndSignMessage,
+      with: always(
+        "encrypted-message"
+      )
+    )
+    let usersKeys: Array<UserPublicKeyDSV> = [.random()]
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+      with: always(
+        usersKeys
+      )
+    )
+
+    let feature: UsersPGPMessages = try await self.testInstance()
+
+    await XCTAssertValue(
+      equal: usersKeys.map {
+        .init(
+          recipient: $0.userID,
+          message: "encrypted-message"
         )
-      )
-      .eraseToAnyPublisher()
-    )
-    accountSession.encryptAndSignMessage = always(
-      Just("encrypted-armored-message")
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userProfileRequest.execute = always(
-      .init(
-        header: .mock(),
-        body: self.mockUserDTO
-      )
-    )
-    await features.use(networkClient)
-
-    let feature: UserPGPMessages = try await testInstance()
-
-    let result: ArmoredPGPMessage? =
-      try? await feature
-      .encryptMessageForUser(self.mockUserDTO.id, "message")
-      .asAsyncValue()
-
-    XCTAssertEqual(result?.rawValue, "encrypted-armored-message")
+      }
+    ) {
+      try await feature
+        .encryptMessageForUsers([.random()], "message")
+    }
   }
 
-  func test_encryptMessageForResourceUsers_fails_whenUserListRequestFails() async throws {
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userListRequest.execute = alwaysThrow(
-      MockIssue.error()
+  func test_encryptMessageForResourceUsers_fails_whenResourceUsersFetchFails() async throws {
+    await self.features.patch(
+      \AccountSession.currentState,
+       with: always(
+        .authorized(self.mockAccount)
+       )
     )
-    await features.use(networkClient)
+    await self.features.patch(
+      \ResourceUsersIDDatabaseFetch.execute,
+       with: alwaysThrow(
+        MockIssue.error()
+       )
+    )
 
-    let feature: UserPGPMessages = try await testInstance()
+    let feature: UsersPGPMessages = try await self.testInstance()
 
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .encryptMessageForResourceUsers("resource-id", "message")
-        .asAsyncValue()
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature
+        .encryptMessageForResourceUsers(.random(), "message")
     }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: MockIssue.self)
   }
 
-  func test_encryptMessageForResourceUsers_fails_whenPublicKeyVerificationFails() async throws {
-    try await FeaturesActor.execute {
-      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.failure(MockIssue.error()))
-    }
-    accountSession.statePublisher = always(
-      Just(
-        .authorized(
-          .init(
-            localID: "local-id",
-            domain: "https://passbolt.com",
-            userID: self.mockUserDTO.id,
-            fingerprint: "fingerpring"
-          )
-        )
-      )
-      .eraseToAnyPublisher()
-    )
-    accountSession.encryptAndSignMessage = always(
-      Fail(error: MockIssue.error()).eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userListRequest.execute = always(
-      .init(
-        header: .mock(),
-        body: [
-          self.mockUserDTO
-        ]
+  func test_encryptMessageForResourceUsers_fails_whenUserListFetchFails() async throws {
+    await self.features.patch(
+      \AccountSession.currentState,
+      with: always(
+        .authorized(self.mockAccount)
       )
     )
-    await features.use(networkClient)
+    await self.features.patch(
+      \ResourceUsersIDDatabaseFetch.execute,
+      with: always(
+        [.random()]
+      )
+    )
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+       with: alwaysThrow(
+        MockIssue.error()
+       )
+    )
 
-    let feature: UserPGPMessages = try await testInstance()
+    let feature: UsersPGPMessages = try await self.testInstance()
 
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .encryptMessageForResourceUsers("resource-id", "message")
-        .asAsyncValue()
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature
+        .encryptMessageForResourceUsers(.random(), "message")
     }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: TheErrorLegacy.self, verification: { $0.identifier == .invalidUserPublicKey })
   }
 
   func test_encryptMessageForResourceUsers_fails_whenEncryptAndSignMessageFails() async throws {
-    try await FeaturesActor.execute {
-      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
-    }
-    accountSession.statePublisher = always(
-      Just(
-        .authorized(
-          .init(
-            localID: "local-id",
-            domain: "https://passbolt.com",
-            userID: self.mockUserDTO.id,
-            fingerprint: "fingerpring"
-          )
-        )
-      )
-      .eraseToAnyPublisher()
-    )
-    accountSession.encryptAndSignMessage = always(
-      Fail(error: MockIssue.error()).eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-    await features.use(database)
-    networkClient.userListRequest.execute = always(
-      .init(
-        header: .mock(),
-        body: [self.mockUserDTO]
+    await self.features.patch(
+      \AccountSession.currentState,
+      with: always(
+        .authorized(self.mockAccount)
       )
     )
-    await features.use(networkClient)
+    await self.features.patch(
+      \AccountSession.encryptAndSignMessage,
+      with: alwaysThrow(
+        MockIssue.error()
+      )
+    )
+    await self.features.patch(
+      \ResourceUsersIDDatabaseFetch.execute,
+      with: always(
+        [.random()]
+      )
+    )
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+       with: always(
+        [.random()]
+       )
+    )
 
-    let feature: UserPGPMessages = try await testInstance()
+    let feature: UsersPGPMessages = try await self.testInstance()
 
-    var result: Error?
-    do {
-      _ =
-        try await feature
-        .encryptMessageForResourceUsers("resource-id", "message")
-        .asAsyncValue()
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature
+        .encryptMessageForResourceUsers(.random(), "message")
     }
-    catch {
-      result = error
-    }
-
-    XCTAssertError(result, matches: MockIssue.self)
   }
 
   func test_encryptMessageForResourceUsers_succeeds_whenAllOperationsSucceed() async throws {
-    try await FeaturesActor.execute {
-      self.features.environment.pgp.verifyPublicKeyFingerprint = always(.success(true))
-    }
-    accountSession.statePublisher = always(
-      Just(
-        .authorized(
-          .init(
-            localID: "local-id",
-            domain: "https://passbolt.com",
-            userID: self.mockUserDTO.id,
-            fingerprint: "fingerpring"
-          )
+    await self.features.patch(
+      \AccountSession.currentState,
+      with: always(
+        .authorized(self.mockAccount)
+      )
+    )
+    await self.features.patch(
+      \AccountSession.encryptAndSignMessage,
+      with: always(
+        "encrypted-message"
+      )
+    )
+    await self.features.patch(
+      \ResourceUsersIDDatabaseFetch.execute,
+      with: always(
+        [.random()]
+      )
+    )
+    let usersKeys: Array<UserPublicKeyDSV> = [.random()]
+    await self.features.patch(
+      \UsersPublicKeysDatabaseFetch.execute,
+       with: always(
+        usersKeys
+       )
+    )
+
+    let feature: UsersPGPMessages = try await self.testInstance()
+
+    await XCTAssertValue(
+      equal: usersKeys.map {
+        .init(
+          recipient: $0.userID,
+          message: "encrypted-message"
         )
-      )
-      .eraseToAnyPublisher()
-    )
-    accountSession.encryptAndSignMessage = always(
-      Just("encrypted-armored-message")
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-    await features.use(database)
-    let additionalMockUserDTO: UserDTO = .random()
-    networkClient.userListRequest.execute = always(
-      .init(
-        header: .mock(),
-        body: [
-          self.mockUserDTO,
-          additionalMockUserDTO,
-        ]
-      )
-    )
-    await features.use(networkClient)
-
-    let feature: UserPGPMessages = try await testInstance()
-
-    let result: Array<(User.ID, ArmoredPGPMessage)>? =
-      try? await feature
-      .encryptMessageForResourceUsers("resource-id", "message")
-      .asAsyncValue()
-
-    XCTAssertTrue(result?.contains(where: { $0 == self.mockUserDTO.id && $1 == "encrypted-armored-message" }) ?? false)
-    XCTAssertTrue(
-      result?.contains(where: { $0 == additionalMockUserDTO.id && $1 == "encrypted-armored-message" }) ?? false
-    )
+      }
+    ) {
+      try await feature
+        .encryptMessageForResourceUsers(.random(), "message")
+    }
   }
 }

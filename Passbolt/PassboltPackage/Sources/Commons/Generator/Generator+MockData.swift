@@ -63,7 +63,7 @@ extension Generator where Value == String {
     )
   }
 
-  public static func randomArmoredGPGPublicKey(
+  public static func randomArmoredPGPPublicKey(
     using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
   ) -> Self {
     [
@@ -173,6 +173,21 @@ extension Generator where Value == String {
       =82jm
       -----END PGP PUBLIC KEY BLOCK-----
       """,
+    ]
+    .randomNonEmptyElementGenerator(
+      using: randomnessGenerator
+    )
+  }
+
+  public static func randomArmoredPGPMessage(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Self {
+    [
+      """
+      -----BEGIN PGP MESSAGE-----
+
+      -----END PGP MESSAGE-----
+      """
     ]
     .randomNonEmptyElementGenerator(
       using: randomnessGenerator

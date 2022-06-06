@@ -78,10 +78,10 @@ final class ResourceTests: TestCase {
     )
     features.patch(
       \AccountSessionData.updatesSequence,
-       with: always(
+      with: always(
         self.updatesSequence
           .asAnyAsyncSequence()
-       )
+      )
     )
   }
 

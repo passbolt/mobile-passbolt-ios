@@ -61,27 +61,27 @@ extension CreateResourceRequest {
 
 public struct CreateResourceRequestVariable: Encodable {
 
-  public var resourceTypeID: String
-  public var parentFolderID: String?
+  public var resourceTypeID: ResourceType.ID
+  public var parentFolderID: ResourceFolder.ID?
   public var name: String
   public var username: String?
-  public var url: String?
+  public var url: URLString?
   public var description: String?
   public var secrets: Array<Secret>
 
   public struct Secret: Encodable {
 
-    public var data: String
+    public var data: ArmoredPGPMessage
   }
 
   public init(
-    resourceTypeID: String,
-    parentFolderID: String?,
+    resourceTypeID: ResourceType.ID,
+    parentFolderID: ResourceFolder.ID?,
     name: String,
     username: String?,
-    url: String?,
+    url: URLString?,
     description: String?,
-    secretData: String
+    secretData: ArmoredPGPMessage
   ) {
     self.resourceTypeID = resourceTypeID
     self.parentFolderID = parentFolderID
@@ -108,10 +108,10 @@ public typealias CreateResourceRequestResponse = CommonResponse<CreateResourceRe
 
 public struct CreateResourceRequestResponseBody: Decodable {
 
-  public var resourceID: String
+  public var resourceID: Resource.ID
 
   public init(
-    resourceID: String
+    resourceID: Resource.ID
   ) {
     self.resourceID = resourceID
   }

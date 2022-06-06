@@ -24,9 +24,9 @@
 import CommonModels
 import Environment
 
-public struct ResourceUserPermissionsDetailsFetch {
+public struct UsersPublicKeysDatabaseFetch {
 
-  public var execute: @StorageAccessActor (Resource.ID) async throws -> Array<UserPermissionDetailsDSV>
+  public var execute: @StorageAccessActor (Array<User.ID>) async throws -> Array<UserPublicKeyDSV>
 
   public init(
     execute: @escaping @StorageAccessActor (Input) async throws -> Output
@@ -35,7 +35,7 @@ public struct ResourceUserPermissionsDetailsFetch {
   }
 }
 
-extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
+extension UsersPublicKeysDatabaseFetch: DatabaseOperationFeature {
 
   public static func using(
     _ connection: @escaping () async throws -> SQLiteConnection
@@ -43,41 +43,59 @@ extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
     withConnection(
       using: connection
     ) { conn, input in
-      let statement: SQLiteStatement =
+      var statement: SQLiteStatement =
         .statement(
           """
           SELECT
-            users.id AS id,
-            users.username AS username,
-            users.firstName AS firstName,
-            users.lastName AS lastName,
-            users.publicPGPKeyFingerprint AS fingerprint,
-            users.avatarImageURL AS avatarImageURL,
-            usersResources.permissionType AS permissionType
+            id AS id,
+            armoredPublicPGPKey AS publicKey
           FROM
-            usersResources
-          INNER JOIN
             users
-          ON
-            users.id == usersResources.userID
-          WHERE
-            usersResources.resourceID == ?1
-          ;
-          """,
-          arguments: input
+          """
         )
+
+      // since we cannot use array in query directly
+      // we are preparing it manually as argument for each element
+      if input.count > 1 {
+        statement.append(
+          """
+          WHERE
+            users.id
+          IN (
+          """
+        )
+        for index in input.indices {
+          if index == input.startIndex {
+            statement.append("?")
+          }
+          else {
+            statement.append(", ?")
+          }
+          statement.appendArgument(input[index])
+        }
+        statement.append(")")
+      }
+      else if let userID: User.ID = input.first {
+        statement.append(
+          """
+          WHERE
+            users.id == ?
+          """
+        )
+        statement.appendArgument(userID)
+      }
+      else {
+        /* NOP */
+      }
+
+      statement.append(";")
 
       return
         try conn
-        .fetch(using: statement) { dataRow -> UserPermissionDetailsDSV in
+        .fetch(using: statement) { dataRow -> UserPublicKeyDSV in
           guard
             let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-            let username: String = dataRow.username,
-            let firstName: String = dataRow.firstName,
-            let lastName: String = dataRow.lastName,
-            let fingerprint: Fingerprint = dataRow.fingerprint.flatMap(Fingerprint.init(rawValue:)),
-            let avatarImageURL: URLString = dataRow.avatarImageURL.flatMap(URLString.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            let publicKey: ArmoredPGPPublicKey = dataRow.publicKey.flatMap(ArmoredPGPPublicKey.init(rawValue:))
           else {
             throw
               DatabaseIssue
@@ -88,14 +106,9 @@ extension ResourceUserPermissionsDetailsFetch: DatabaseOperationFeature {
               )
           }
 
-          return UserPermissionDetailsDSV(
-            id: id,
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            fingerprint: fingerprint,
-            avatarImageURL: avatarImageURL,
-            permissionType: permissionType
+          return UserPublicKeyDSV(
+            userID: id,
+            publicKey: publicKey
           )
         }
     }

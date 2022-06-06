@@ -1427,7 +1427,6 @@ final class AccountSessionTests: TestCase {
       _ =
         try await feature
         .encryptAndSignMessage("message", "public key")
-        .asAsyncValue()
     }
     catch {
       result = error
@@ -1469,7 +1468,6 @@ final class AccountSessionTests: TestCase {
       _ =
         try await feature
         .encryptAndSignMessage("message", "public key")
-        .asAsyncValue()
     }
     catch {
       result = error
@@ -1514,7 +1512,6 @@ final class AccountSessionTests: TestCase {
       _ =
         try await feature
         .encryptAndSignMessage("message", "public key")
-        .asAsyncValue()
     }
     catch {
       result = error
@@ -1557,7 +1554,6 @@ final class AccountSessionTests: TestCase {
     let result =
       try? await feature
       .encryptAndSignMessage("message", "public key")
-      .asAsyncValue()
 
     XCTAssertNotNil(result)
   }

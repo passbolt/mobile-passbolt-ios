@@ -21,5 +21,12 @@
 // @since         v1.0
 //
 
+import Commons
+
 // DataStorageObject - used for database store operations
 public protocol DSO {}
+
+extension Int: DSO {}
+extension String: DSO {}
+extension Array: DSO where Element: DSO {}
+extension Tagged: DSO where RawValue: DSO {}

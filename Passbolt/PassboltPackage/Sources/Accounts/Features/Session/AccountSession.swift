@@ -43,8 +43,7 @@ public struct AccountSession {
   // Decrypt message with current session context if any. Optionally verify signature if public key was provided.
   public var decryptMessage: @AccountSessionActor (String, ArmoredPGPPublicKey?) async throws -> String
   // Encrypt and sign message using provided public key with current session user signature.
-  public var encryptAndSignMessage:
-    @AccountSessionActor (String, ArmoredPGPPublicKey) -> AnyPublisher<ArmoredPGPMessage, Error>
+  public var encryptAndSignMessage: @AccountSessionActor (String, ArmoredPGPPublicKey) async throws -> ArmoredPGPMessage
   // Set current account passphrase storage with biometry. Succeeds only if passphrase is in cache.
   // Storage is cleared when called with false. warning: it does not request proper permissions.
   internal var storePassphraseWithBiometry: @AccountSessionActor (Bool) async throws -> Void
@@ -609,49 +608,46 @@ extension AccountSession: Feature {
     @AccountSessionActor func encryptAndSignMessage(
       _ message: String,
       publicKey: ArmoredPGPPublicKey
-    ) -> AnyPublisher<ArmoredPGPMessage, Error> {
-      sessionCancellables.executeOnAccountSessionActorWithPublisher { () async throws -> ArmoredPGPMessage in
-        switch currentSessionState() {
-        case let .authorized(account, passphrase, _), let .authorizedMFARequired(account, passphrase, _, _):
-          switch await accountsDataStore.loadAccountPrivateKey(account.localID) {
-          case let .success(armoredPrivateKey):
-            let encryptionResult: Result<String, Error> = pgp.encryptAndSign(
-              message,
-              passphrase,
-              armoredPrivateKey,
-              publicKey
-            )
+    ) async throws -> ArmoredPGPMessage {
+      switch currentSessionState() {
+      case let .authorized(account, passphrase, _), let .authorizedMFARequired(account, passphrase, _, _):
+        switch await accountsDataStore.loadAccountPrivateKey(account.localID) {
+        case let .success(armoredPrivateKey):
+          let encryptionResult: Result<String, Error> = pgp.encryptAndSign(
+            message,
+            passphrase,
+            armoredPrivateKey,
+            publicKey
+          )
 
-            switch encryptionResult {
-            case let .success(encrypted):
-              return .init(rawValue: encrypted)
-
-            case let .failure(error):
-              throw error
-            }
+          switch encryptionResult {
+          case let .success(encrypted):
+            return .init(rawValue: encrypted)
 
           case let .failure(error):
-            diagnostics.debugLog(
-              "Failed to retrieve private key for account: \(account.localID) - error: \(error)"
-            )
             throw error
           }
 
-        case let .authorizationRequired(account):
-          throw
-            SessionAuthorizationRequired
-            .error(
-              "Session authorization required for decrypting message",
-              account: account
-            )
-
-        case .none:
-          throw
-            SessionMissing
-            .error("No session provided for encrypting message")
+        case let .failure(error):
+          diagnostics.debugLog(
+            "Failed to retrieve private key for account: \(account.localID) - error: \(error)"
+          )
+          throw error
         }
+
+      case let .authorizationRequired(account):
+        throw
+          SessionAuthorizationRequired
+          .error(
+            "Session authorization required for decrypting message",
+            account: account
+          )
+
+      case .none:
+        throw
+          SessionMissing
+          .error("No session provided for encrypting message")
       }
-      .eraseToAnyPublisher()
     }
 
     @AccountSessionActor func storePassphraseWithBiometry(_ store: Bool) async throws {

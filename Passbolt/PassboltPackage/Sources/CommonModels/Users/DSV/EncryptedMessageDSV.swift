@@ -21,33 +21,22 @@
 // @since         v1.0
 //
 
-import Commons
+public typealias EncryptedMessageDSV = EncryptedMessage
 
-public enum User {}
+extension EncryptedMessageDSV: DSV {
 
-extension User {
-
-  public typealias ID = Tagged<String, Self>
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension User.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.recipient == rhs.recipient
+      && lhs.message == rhs.message
   }
 
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.recipient)
+    hasher.combine(self.message)
   }
 }
-#endif
