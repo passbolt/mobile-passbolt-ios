@@ -42,6 +42,8 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
   // Used to identify dynamic items in the stack
   private static let formItemTag: Int = 42
+  // Used to identify filler in the stack
+  private static let formFillerTag: Int = 43
 
   @available(*, unavailable)
   internal required init?(coder: NSCoder) {
@@ -92,6 +94,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
   internal func update(with config: ResourceDetailsController.ResourceDetailsWithConfig) {
     removeAllArrangedSubviews(withTag: Self.formItemTag)
+    removeAllArrangedSubviews(withTag: Self.formFillerTag)
     fieldUpdates.removeAll()
 
     let resourceDetails: ResourceDetailsDSV = config.resourceDetails
@@ -304,8 +307,9 @@ internal final class ResourceDetailsView: ScrolledStackView {
   internal func insertShareSection(
     view: UIView
   ) {
+    removeAllArrangedSubviews(withTag: Self.formFillerTag)
     self.append(view)
-    self.appendFiller()
+    self.appendFiller(tag: Self.formFillerTag)
   }
 }
 

@@ -84,6 +84,18 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
         }
       } receiveValue: { [weak self] resourceDetailsWithConfig in
         self?.contentView.update(with: resourceDetailsWithConfig)
+        MainActor.execute {
+          await self?.removeAllChildren(ResourceDetailsSharedSectionView.self)
+          await self?.addChild(
+            ResourceDetailsSharedSectionView.self,
+            in: (
+              resourceID: resourceDetailsWithConfig.resourceDetails.id,
+              permissions: resourceDetailsWithConfig.resourceDetails.permissions
+            )
+          ) { parent, child in
+            parent.insertShareSection(view: child)
+          }
+        }
       }
 
     controller
@@ -287,31 +299,6 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
                 .store(in: self?.cancellables)
             }
           )
-        }
-      }
-      .store(in: cancellables)
-
-    self.controller
-      .permissionsPublisher()
-      .filter { !$0.permissions.isEmpty }
-      // TODO: keep updating after implementing edit
-      .first()
-      .removeDuplicates(
-        by: { $0.permissions == $1.permissions }
-      )
-      .receive(on: RunLoop.main)
-      .sink { (resourceID, permissions) in
-        MainActor.execute {
-          await self.removeAllChildren(ResourceDetailsSharedSectionView.self)
-          await self.addChild(
-            ResourceDetailsSharedSectionView.self,
-            in: (
-              resourceID: resourceID,
-              permissions: permissions
-            )
-          ) { parent, child in
-            parent.insertShareSection(view: child)
-          }
         }
       }
       .store(in: cancellables)

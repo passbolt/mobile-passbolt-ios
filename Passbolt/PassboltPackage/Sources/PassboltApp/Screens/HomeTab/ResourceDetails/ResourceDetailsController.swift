@@ -38,8 +38,6 @@ internal struct ResourceDetailsController {
   internal var resourceDeleteAlertPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceDeletionPublisher: @MainActor (Resource.ID) -> AnyPublisher<Void, Error>
   internal var copyFieldValue: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<Void, Error>
-  internal var permissionsPublisher:
-    @MainActor () -> AnyPublisher<(resourceID: Resource.ID, permissions: Array<PermissionDSV>), Never>
 }
 
 extension ResourceDetailsController {
@@ -424,24 +422,6 @@ extension ResourceDetailsController: UIController {
       .eraseToAnyPublisher()
     }
 
-    @MainActor func permissionsPublisher() -> AnyPublisher<
-      (resourceID: Resource.ID, permissions: Array<PermissionDSV>), Never
-    > {
-      currentDetailsSubject
-        .map { details -> Array<PermissionDSV> in
-          Array(details?.resourceDetails.permissions ?? [])
-        }
-        .collectErrorLog(using: diagnostics)
-        .replaceError(with: [])
-        .map { permissions in
-          (
-            resourceID: context,
-            permissions: permissions
-          )
-        }
-        .eraseToAnyPublisher()
-    }
-
     return Self(
       resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
       toggleDecrypt: toggleDecrypt(fieldName:),
@@ -452,8 +432,7 @@ extension ResourceDetailsController: UIController {
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,
       resourceDeleteAlertPresentationPublisher: resourceDeleteAlertPresentationPublisher,
       resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
-      copyFieldValue: copyField(_:),
-      permissionsPublisher: permissionsPublisher
+      copyFieldValue: copyField(_:)
     )
   }
 }

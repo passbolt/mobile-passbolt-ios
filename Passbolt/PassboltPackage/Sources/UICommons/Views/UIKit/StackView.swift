@@ -72,8 +72,14 @@ open class StackView: UIStackView {
     addArrangedSubview(space)
   }
 
-  public func appendFiller(minSize: CGFloat = 0) {
+  public func appendFiller(
+    minSize: CGFloat = 0,
+    tag: Int? = .none
+  ) {
     let filler: PlainView = .init()
+    if let newTag: Int = tag {
+      filler.tag = newTag
+    } else { /* NOP */ }
     switch axis {
     case .horizontal:
       filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true
