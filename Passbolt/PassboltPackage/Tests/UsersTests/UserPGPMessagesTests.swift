@@ -86,9 +86,9 @@ final class UsersPGPMessagesTests: TestCase {
   func test_encryptMessageForUser_fails_whenUserPublicKeysFetchDoesNotContainAllUsers() async throws {
     await self.features.patch(
       \UsersPublicKeysDatabaseFetch.execute,
-       with: always(
+      with: always(
         []
-       )
+      )
     )
 
     let feature: UsersPGPMessages = try await self.testInstance()
@@ -170,15 +170,15 @@ final class UsersPGPMessagesTests: TestCase {
   func test_encryptMessageForResourceUsers_fails_whenResourceUsersFetchFails() async throws {
     await self.features.patch(
       \AccountSession.currentState,
-       with: always(
+      with: always(
         .authorized(self.mockAccount)
-       )
+      )
     )
     await self.features.patch(
       \ResourceUsersIDDatabaseFetch.execute,
-       with: alwaysThrow(
+      with: alwaysThrow(
         MockIssue.error()
-       )
+      )
     )
 
     let feature: UsersPGPMessages = try await self.testInstance()
@@ -206,9 +206,9 @@ final class UsersPGPMessagesTests: TestCase {
     )
     await self.features.patch(
       \UsersPublicKeysDatabaseFetch.execute,
-       with: alwaysThrow(
+      with: alwaysThrow(
         MockIssue.error()
-       )
+      )
     )
 
     let feature: UsersPGPMessages = try await self.testInstance()
@@ -242,9 +242,9 @@ final class UsersPGPMessagesTests: TestCase {
     )
     await self.features.patch(
       \UsersPublicKeysDatabaseFetch.execute,
-       with: always(
+      with: always(
         [.random()]
-       )
+      )
     )
 
     let feature: UsersPGPMessages = try await self.testInstance()
@@ -279,9 +279,9 @@ final class UsersPGPMessagesTests: TestCase {
     let usersKeys: Array<UserPublicKeyDSV> = [.random()]
     await self.features.patch(
       \UsersPublicKeysDatabaseFetch.execute,
-       with: always(
+      with: always(
         usersKeys
-       )
+      )
     )
 
     let feature: UsersPGPMessages = try await self.testInstance()

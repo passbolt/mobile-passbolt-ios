@@ -79,7 +79,9 @@ open class StackView: UIStackView {
     let filler: PlainView = .init()
     if let newTag: Int = tag {
       filler.tag = newTag
-    } else { /* NOP */ }
+    }
+    else { /* NOP */
+    }
     switch axis {
     case .horizontal:
       filler.widthAnchor.constraint(greaterThanOrEqualToConstant: minSize).isActive = true

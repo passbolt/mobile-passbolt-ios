@@ -32,7 +32,7 @@ extension PermissionDSV {
       let permissionID: Permission.ID = (dataRow.permissionID as String?).flatMap(Permission.ID.init(rawValue:))
     else {
       throw
-      DatabaseIssue
+        DatabaseIssue
         .error(
           underlyingError:
             DatabaseResultInvalid
