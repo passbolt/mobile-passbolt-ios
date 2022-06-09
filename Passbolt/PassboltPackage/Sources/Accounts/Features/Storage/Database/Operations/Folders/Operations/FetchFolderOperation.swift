@@ -56,7 +56,8 @@ extension FetchFolderOperation {
           SELECT
             usersResourceFolders.userID AS userID,
             usersResourceFolders.resourceFolderID AS folderID,
-            usersResourceFolders.permissionType AS permissionType
+            usersResourceFolders.permissionType AS permissionType,
+            usersResourceFolders.permissionID AS permissionID
           FROM
             usersResourceFolders
           WHERE
@@ -71,7 +72,8 @@ extension FetchFolderOperation {
           SELECT
             userGroupsResourceFolders.userGroupID AS userID,
             userGroupsResourceFolders.resourceFolderID AS folderID,
-            userGroupsResourceFolders.permissionType AS permissionType
+            userGroupsResourceFolders.permissionType AS permissionType,
+            userGroupsResourceFolders.permissionID AS permissionID
           FROM
             userGroupsResourceFolders
           WHERE
@@ -103,7 +105,8 @@ extension FetchFolderOperation {
             guard
               let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
               let folderID: ResourceFolder.ID = dataRow.folderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissioType.flatMap(PermissionTypeDSV.init(rawValue:))
+              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+              let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
               throw
                 DatabaseIssue
@@ -115,6 +118,7 @@ extension FetchFolderOperation {
             }
 
             return .userToFolder(
+              id: permissionID,
               userID: userID,
               folderID: folderID,
               type: permissionType
@@ -127,7 +131,8 @@ extension FetchFolderOperation {
             guard
               let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
               let folderID: ResourceFolder.ID = dataRow.folderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissioType.flatMap(PermissionTypeDSV.init(rawValue:))
+              let permissionType: PermissionTypeDSV = dataRow.permissioType.flatMap(PermissionTypeDSV.init(rawValue:)),
+              let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
               throw
                 DatabaseIssue
@@ -139,6 +144,7 @@ extension FetchFolderOperation {
             }
 
             return .userGroupToFolder(
+              id: permissionID,
               userGroupID: userGroupID,
               folderID: folderID,
               type: permissionType

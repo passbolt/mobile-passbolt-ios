@@ -27,19 +27,21 @@ extension PermissionDSO {
 
   internal var storeStatement: SQLiteStatement {
     switch self {
-    case let .userToResource(userID, resourceID, permissionType):
+    case let .userToResource(id, userID, resourceID, permissionType):
       return .statement(
         """
         INSERT INTO
           usersResources(
             resourceID,
             userID,
-            permissionType
+            permissionType,
+            permissionID
           )
         SELECT
           resources.id,
           users.id,
-          ?3
+          ?3,
+          ?4
         FROM
           resources,
           users
@@ -51,22 +53,25 @@ extension PermissionDSO {
         """,
         arguments: resourceID,
         userID,
-        permissionType.rawValue
+        permissionType.rawValue,
+        id.rawValue
       )
 
-    case let .userToFolder(userID, resourceFolderID, type):
+    case let .userToFolder(id, userID, resourceFolderID, type):
       return .statement(
         """
         INSERT INTO
           usersResourceFolders(
             resourceFolderID,
             userID,
-            permissionType
+            permissionType,
+            permissionID
           )
         SELECT
           resourceFolders.id,
           users.id,
-          ?3
+          ?3,
+          ?4
         FROM
           resourceFolders,
           users
@@ -78,22 +83,25 @@ extension PermissionDSO {
         """,
         arguments: resourceFolderID,
         userID,
-        type.rawValue
+        type.rawValue,
+        id.rawValue
       )
 
-    case let .userGroupToResource(userGroupID, resourceID, type):
+    case let .userGroupToResource(id, userGroupID, resourceID, type):
       return .statement(
         """
         INSERT INTO
           userGroupsResources(
             resourceID,
             userGroupID,
-            permissionType
+            permissionType,
+            permissionID
           )
         SELECT
           resources.id,
           userGroups.id,
-          ?3
+          ?3,
+          ?4
         FROM
           resources,
           userGroups
@@ -105,22 +113,25 @@ extension PermissionDSO {
         """,
         arguments: resourceID,
         userGroupID,
-        type.rawValue
+        type.rawValue,
+        id.rawValue
       )
 
-    case let .userGroupToFolder(userGroupID, resourceFolderID, type):
+    case let .userGroupToFolder(id, userGroupID, resourceFolderID, type):
       return .statement(
         """
         INSERT INTO
           userGroupsResourceFolders(
             resourceFolderID,
             userGroupID,
-            permissionType
+            permissionType,
+            permissionID
           )
         SELECT
           resourceFolders.id,
           userGroups.id,
-          ?3
+          ?3,
+          ?4
         FROM
           resourceFolders,
           userGroups
@@ -132,7 +143,8 @@ extension PermissionDSO {
         """,
         arguments: resourceFolderID,
         userGroupID,
-        type.rawValue
+        type.rawValue,
+        id.rawValue
       )
     }
   }

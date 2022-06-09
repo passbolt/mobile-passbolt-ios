@@ -29,6 +29,18 @@ extension PermissionDSV {
     from dataRow: SQLiteRow
   ) throws -> Self {
     guard
+      let permissionID: Permission.ID = (dataRow.permissionID as String?).flatMap(Permission.ID.init(rawValue:))
+    else {
+      throw
+      DatabaseIssue
+        .error(
+          underlyingError:
+            DatabaseResultInvalid
+            .error("Invalid Permission stored in the database")
+        )
+    }
+
+    guard
       let rawPermission: Int = dataRow.permissionType as Int?,
       let permissionType: PermissionTypeDSV = .init(rawValue: rawPermission)
     else {
@@ -44,6 +56,7 @@ extension PermissionDSV {
     if let userID: User.ID = dataRow.id.map(User.ID.init(rawValue:)) {
       if let resourceID: Resource.ID = dataRow.id.map(Resource.ID.init(rawValue:)) {
         return .userToResource(
+          id: permissionID,
           userID: userID,
           resourceID: resourceID,
           type: permissionType
@@ -51,6 +64,7 @@ extension PermissionDSV {
       }
       else if let folderID: ResourceFolder.ID = dataRow.id.map(ResourceFolder.ID.init(rawValue:)) {
         return .userToFolder(
+          id: permissionID,
           userID: userID,
           folderID: folderID,
           type: permissionType
@@ -69,6 +83,7 @@ extension PermissionDSV {
     else if let userGroupID: UserGroup.ID = dataRow.id.map(UserGroup.ID.init(rawValue:)) {
       if let resourceID: Resource.ID = dataRow.id.map(Resource.ID.init(rawValue:)) {
         return .userGroupToResource(
+          id: permissionID,
           userGroupID: userGroupID,
           resourceID: resourceID,
           type: permissionType
@@ -76,6 +91,7 @@ extension PermissionDSV {
       }
       else if let folderID: ResourceFolder.ID = dataRow.id.map(ResourceFolder.ID.init(rawValue:)) {
         return .userGroupToFolder(
+          id: permissionID,
           userGroupID: userGroupID,
           folderID: folderID,
           type: permissionType

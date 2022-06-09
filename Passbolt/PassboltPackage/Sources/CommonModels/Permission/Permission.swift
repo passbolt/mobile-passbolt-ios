@@ -21,24 +21,35 @@
 // @since         v1.0
 //
 
-import Environment
+import Commons
 
-extension SQLiteMigration: CaseIterable {
+public enum Permission {}
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11
-    ]
+extension Permission {
+
+  public typealias ID = Tagged<String, Self>
+}
+
+#if DEBUG
+
+// cannot conform to RandomlyGenerated
+extension Permission.ID {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Generator<Self> {
+    UUID
+      .randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
+  }
+
+  public static func random(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Self {
+    Self
+      .randomGenerator(using: randomnessGenerator)
+      .next()
   }
 }
+#endif

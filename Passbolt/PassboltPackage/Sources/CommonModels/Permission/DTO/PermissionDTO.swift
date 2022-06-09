@@ -25,21 +25,51 @@ import Commons
 
 public enum PermissionDTO {
 
-  case userToResource(userID: User.ID, resourceID: Resource.ID, type: PermissionTypeDTO)
-  case userToFolder(userID: User.ID, folderID: ResourceFolder.ID, type: PermissionTypeDTO)
+  case userToResource(
+    id: Permission.ID,
+    userID: User.ID,
+    resourceID: Resource.ID,
+    type: PermissionTypeDTO
+  )
+  case userToFolder(
+    id: Permission.ID,
+    userID: User.ID,
+    folderID: ResourceFolder.ID,
+    type: PermissionTypeDTO
+  )
 
-  case userGroupToResource(userGroupID: UserGroup.ID, resourceID: Resource.ID, type: PermissionTypeDTO)
-  case userGroupToFolder(userGroupID: UserGroup.ID, folderID: ResourceFolder.ID, type: PermissionTypeDTO)
+  case userGroupToResource(
+    id: Permission.ID,
+    userGroupID: UserGroup.ID,
+    resourceID: Resource.ID,
+    type: PermissionTypeDTO
+  )
+  case userGroupToFolder(
+    id: Permission.ID,
+    userGroupID: UserGroup.ID,
+    folderID: ResourceFolder.ID,
+    type: PermissionTypeDTO
+  )
 }
 
 extension PermissionDTO {
 
+  public var id: Permission.ID {
+    switch self {
+    case let .userToResource(id, _, _, _),
+      let .userToFolder(id, _, _, _),
+      let .userGroupToResource(id, _, _, _),
+      let .userGroupToFolder(id, _, _, _):
+      return id
+    }
+  }
+
   public var type: PermissionTypeDTO {
     switch self {
-    case let .userToResource(_, _, type),
-      let .userToFolder(_, _, type),
-      let .userGroupToResource(_, _, type),
-      let .userGroupToFolder(_, _, type):
+    case let .userToResource(_, _, _, type),
+      let .userToFolder(_, _, _, type),
+      let .userGroupToResource(_, _, _, type),
+      let .userGroupToFolder(_, _, _, type):
       return type
     }
   }
@@ -56,6 +86,7 @@ extension PermissionDTO: Decodable {
     switch try (container.decode(String.self, forKey: .subject), container.decode(String.self, forKey: .item)) {
     case ("User", "Resource"):
       self = .userToResource(
+        id: try container.decode(Permission.ID.self, forKey: .id),
         userID: try container.decode(User.ID.self, forKey: .subjectID),
         resourceID: try container.decode(Resource.ID.self, forKey: .itemID),
         type: try container.decode(PermissionTypeDTO.self, forKey: .type)
@@ -63,6 +94,7 @@ extension PermissionDTO: Decodable {
 
     case ("User", "Folder"):
       self = .userToFolder(
+        id: try container.decode(Permission.ID.self, forKey: .id),
         userID: try container.decode(User.ID.self, forKey: .subjectID),
         folderID: try container.decode(ResourceFolder.ID.self, forKey: .itemID),
         type: try container.decode(PermissionTypeDTO.self, forKey: .type)
@@ -70,6 +102,7 @@ extension PermissionDTO: Decodable {
 
     case ("Group", "Resource"):
       self = .userGroupToResource(
+        id: try container.decode(Permission.ID.self, forKey: .id),
         userGroupID: try container.decode(UserGroup.ID.self, forKey: .subjectID),
         resourceID: try container.decode(Resource.ID.self, forKey: .itemID),
         type: try container.decode(PermissionTypeDTO.self, forKey: .type)
@@ -77,6 +110,7 @@ extension PermissionDTO: Decodable {
 
     case ("Group", "Folder"):
       self = .userGroupToFolder(
+        id: try container.decode(Permission.ID.self, forKey: .id),
         userGroupID: try container.decode(UserGroup.ID.self, forKey: .subjectID),
         folderID: try container.decode(ResourceFolder.ID.self, forKey: .itemID),
         type: try container.decode(PermissionTypeDTO.self, forKey: .type)
@@ -103,28 +137,32 @@ extension PermissionDTO: Encodable {
     var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
     switch self {
-    case let .userToResource(userID, resourceID, type):
+    case let .userToResource(id, userID, resourceID, type):
+      try container.encode(id, forKey: .id)
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Resource", forKey: .item)
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(type, forKey: .type)
 
-    case let .userToFolder(userID, folderID, type):
+    case let .userToFolder(id, userID, folderID, type):
+      try container.encode(id, forKey: .id)
       try container.encode("User", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Folder", forKey: .item)
       try container.encode(folderID, forKey: .itemID)
       try container.encode(type, forKey: .type)
 
-    case let .userGroupToResource(userGroupID, resourceID, type):
+    case let .userGroupToResource(id, userGroupID, resourceID, type):
+      try container.encode(id, forKey: .id)
       try container.encode("Group", forKey: .subject)
       try container.encode(userGroupID, forKey: .subjectID)
       try container.encode("Resource", forKey: .item)
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(type, forKey: .type)
 
-    case let .userGroupToFolder(userID, folderID, type):
+    case let .userGroupToFolder(id, userID, folderID, type):
+      try container.encode(id, forKey: .id)
       try container.encode("Group", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)
       try container.encode("Folder", forKey: .item)
@@ -138,6 +176,7 @@ extension PermissionDTO {
 
   private enum CodingKeys: String, CodingKey {
 
+    case id = "id"
     case subject = "aro"
     case subjectID = "aro_foreign_key"
     case item = "aco"
@@ -158,7 +197,9 @@ extension PermissionDTO: RandomlyGenerated {
     Generator<PermissionDTO>
       .any(
         of: zip(
-          with: PermissionDTO.userToResource(userID:resourceID:type:),
+          with: PermissionDTO.userToResource(id:userID:resourceID:type:),
+          Permission.ID
+            .randomGenerator(using: randomnessGenerator),
           User.ID
             .randomGenerator(using: randomnessGenerator),
           Resource.ID
@@ -167,7 +208,9 @@ extension PermissionDTO: RandomlyGenerated {
             .randomGenerator(using: randomnessGenerator)
         ),
         zip(
-          with: PermissionDTO.userToFolder(userID:folderID:type:),
+          with: PermissionDTO.userToFolder(id:userID:folderID:type:),
+          Permission.ID
+            .randomGenerator(using: randomnessGenerator),
           User.ID
             .randomGenerator(using: randomnessGenerator),
           ResourceFolder.ID
@@ -176,7 +219,9 @@ extension PermissionDTO: RandomlyGenerated {
             .randomGenerator(using: randomnessGenerator)
         ),
         zip(
-          with: PermissionDTO.userGroupToResource(userGroupID:resourceID:type:),
+          with: PermissionDTO.userGroupToResource(id:userGroupID:resourceID:type:),
+          Permission.ID
+            .randomGenerator(using: randomnessGenerator),
           UserGroup.ID
             .randomGenerator(using: randomnessGenerator),
           Resource.ID
@@ -185,7 +230,9 @@ extension PermissionDTO: RandomlyGenerated {
             .randomGenerator(using: randomnessGenerator)
         ),
         zip(
-          with: PermissionDTO.userGroupToFolder(userGroupID:folderID:type:),
+          with: PermissionDTO.userGroupToFolder(id:userGroupID:folderID:type:),
+          Permission.ID
+            .randomGenerator(using: randomnessGenerator),
           UserGroup.ID
             .randomGenerator(using: randomnessGenerator),
           ResourceFolder.ID

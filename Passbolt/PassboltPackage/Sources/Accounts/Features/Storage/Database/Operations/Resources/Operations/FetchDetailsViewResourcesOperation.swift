@@ -52,7 +52,8 @@ extension FetchResourceDetailsDSVsOperation {
           SELECT
             usersResources.userID AS userID,
             usersResources.resourceID AS resourceID,
-            usersResources.permissionType AS permissionType
+            usersResources.permissionType AS permissionType,
+            usersResources.permissionID AS permissionID
           FROM
             usersResources
           WHERE
@@ -67,7 +68,8 @@ extension FetchResourceDetailsDSVsOperation {
           SELECT
             userGroupsResources.userGroupID AS userGroupID,
             userGroupsResources.resourceID AS resourceID,
-            userGroupsResources.permissionType AS permissionType
+            userGroupsResources.permissionType AS permissionType,
+            userGroupsResources.permissionID AS permissionID
           FROM
             userGroupsResources
           WHERE
@@ -118,7 +120,8 @@ extension FetchResourceDetailsDSVsOperation {
             guard
               let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
               let resourceID: Resource.ID = dataRow.resourceID.flatMap(Resource.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+              let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
               throw
                 DatabaseIssue
@@ -130,6 +133,7 @@ extension FetchResourceDetailsDSVsOperation {
             }
 
             return .userToResource(
+              id: permissionID,
               userID: userID,
               resourceID: resourceID,
               type: permissionType
@@ -142,7 +146,8 @@ extension FetchResourceDetailsDSVsOperation {
             guard
               let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
               let resourceID: Resource.ID = dataRow.resourceID.flatMap(Resource.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+              let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
               throw
                 DatabaseIssue
@@ -154,6 +159,7 @@ extension FetchResourceDetailsDSVsOperation {
             }
 
             return .userGroupToResource(
+              id: permissionID,
               userGroupID: userGroupID,
               resourceID: resourceID,
               type: permissionType

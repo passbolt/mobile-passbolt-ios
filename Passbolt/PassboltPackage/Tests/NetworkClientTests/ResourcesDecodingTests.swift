@@ -291,6 +291,7 @@ final class ResourcesDecodingTests: XCTestCase {
         "modified": "2022-02-15T13:28:15+00:00",
         "permissions": [
           {
+            "id": "04c81a81-0cf0-4463-a693-7ea49401f319",
             "aco": "Resource",
             "aco_foreign_key": "03c81a81-0cf0-4463-a693-7ea49401af92",
             "aro": "User",
@@ -327,6 +328,7 @@ final class ResourcesDecodingTests: XCTestCase {
       decodedData.permissions,
       [
         .userToResource(
+          id: "04c81a81-0cf0-4463-a693-7ea49401f319",
           userID: "c793731e-27a7-43be-badf-ea60760a64e4",
           resourceID: "03c81a81-0cf0-4463-a693-7ea49401af92",
           type: .read

@@ -23,22 +23,41 @@
 
 import Environment
 
-extension SQLiteMigration: CaseIterable {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-  public static var allCases: Array<SQLiteMigration> {
+  internal static var migration_11: Self {
     [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11
+      // - add id to permissions - //
+      """
+      ALTER TABLE
+        usersResources
+      ADD
+        permissionID STRING NOT NULL;
+      """,
+      """
+      ALTER TABLE
+        usersResourceFolders
+      ADD
+        permissionID STRING NOT NULL;
+      """,
+      """
+      ALTER TABLE
+        userGroupsResources
+      ADD
+        permissionID STRING NOT NULL;
+      """,
+      """
+      ALTER TABLE
+        userGroupsResourceFolders
+      ADD
+        permissionID STRING NOT NULL;
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 12; -- persistent, used to track schema version
+      """,
     ]
   }
 }
+
