@@ -37,7 +37,7 @@ extension ResourceDetailsSharedSectionController: ComponentController {
   internal typealias ControlledView = ResourceDetailsSharedSectionView
   internal typealias NavigationContext = (
     resourceID: Resource.ID,
-    permissions: Set<PermissionDSV>
+    permissions: OrderedSet<PermissionDSV>
   )
 
   @MainActor static func instance(

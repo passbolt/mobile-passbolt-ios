@@ -22,36 +22,58 @@
 //
 
 import CommonModels
+import Environment
 
-public struct ResourceFoldersFilter {
+public struct UserGroupMembersDatabaseFetch {
 
-  // ordering of results
-  public var sorting: ResourceFoldersSorting
-  // text search (AND) - empty ignores this parameter
-  public var text: String
-  // current folder contents search (AND) - search on folders root on no value
-  // current folder itself won't appear in results
-  public var folderID: ResourceFolder.ID?
-  // folder content flattening from current folderID
-  // false - filters only within current folderID direct descendants
-  // true - filters recursively within current folderID and all its subfolders
-  public var flattenContent: Bool
-  // included permissions search (AND) - empty ignores this parameter
-  public var permissions: OrderedSet<PermissionType>
+  public var execute: @StorageAccessActor (UserGroup.ID) async throws -> Array<User.ID>
 
   public init(
-    sorting: ResourceFoldersSorting,
-    text: String = .init(),
-    folderID: ResourceFolder.ID?,
-    flattenContent: Bool = false,
-    permissions: OrderedSet<PermissionType> = .init()
+    execute: @escaping @StorageAccessActor (Input) async throws -> Output
   ) {
-    self.sorting = sorting
-    self.text = text
-    self.folderID = folderID
-    self.flattenContent = flattenContent
-    self.permissions = permissions
+    self.execute = execute
   }
 }
 
-extension ResourceFoldersFilter: Equatable {}
+extension UserGroupMembersDatabaseFetch: DatabaseOperationFeature {
+
+  public static func using(
+    _ connection: @escaping () async throws -> SQLiteConnection
+  ) -> Self {
+    withConnection(
+      using: connection
+    ) { conn, input in
+      let statement: SQLiteStatement =
+        .statement(
+          """
+          SELECT
+            usersGroups.userID AS id
+          FROM
+            usersGroups
+          WHERE
+            usersGroups.userGroupID == ?1
+          ;
+          """,
+          arguments: input
+        )
+
+      return
+        try conn
+        .fetch(using: statement) { dataRow -> User.ID in
+          guard
+            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
+          else {
+            throw
+              DatabaseIssue
+              .error(
+                underlyingError:
+                  DatabaseDataInvalid
+                  .error(for: ResourceUserGroupListItemDSV.self)
+              )
+          }
+
+          return id
+        }
+    }
+  }
+}

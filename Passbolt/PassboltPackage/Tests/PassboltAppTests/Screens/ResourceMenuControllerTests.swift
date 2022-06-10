@@ -421,7 +421,7 @@ private let detailsViewResourceWithoutDescription: ResourceDetailsDSV = .init(
   permissions: []
 )
 
-private let resourceSecret: ResourceSecret = .from(
+private let resourceSecret: ResourceSecret = try! .from(
   decrypted: #"{"password" : "passbolt", "description": "encrypted description"}"#,
   using: .init()
-)!
+)

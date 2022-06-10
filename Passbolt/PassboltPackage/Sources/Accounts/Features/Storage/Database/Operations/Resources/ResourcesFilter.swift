@@ -38,7 +38,7 @@ public struct ResourcesFilter {
   // favorite only search (AND)
   public var favoriteOnly: Bool
   // included permissions search (AND) - empty ignores this parameter
-  public var permissions: Set<PermissionType>
+  public var permissions: OrderedSet<PermissionType>
   // included tags search (AND) - matches when any of tags matches,
   // empty ignores this parameter
   public var tags: Set<ResourceTag.ID>
@@ -56,7 +56,7 @@ public struct ResourcesFilter {
     url: String = .init(),
     username: String = .init(),
     favoriteOnly: Bool = false,
-    permissions: Set<PermissionType> = .init(),
+    permissions: OrderedSet<PermissionType> = .init(),
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),
     folders: ResourcesFolderFilter? = .none

@@ -50,6 +50,28 @@ public enum NewPermissionDTO {
 
 extension NewPermissionDTO {
 
+  public var userID: User.ID? {
+    switch self {
+    case let .userToResource(userID, _, _),
+      let .userToFolder(userID, _, _):
+      return userID
+    case .userGroupToResource,
+      .userGroupToFolder:
+      return .none
+    }
+  }
+
+  public var userGroupID: UserGroup.ID? {
+    switch self {
+    case let .userGroupToResource(userGroupID, _, _),
+      let .userGroupToFolder(userGroupID, _, _):
+      return userGroupID
+    case .userToResource,
+      .userToFolder:
+      return .none
+    }
+  }
+
   public var type: PermissionTypeDTO {
     switch self {
     case let .userToResource(_, _, type),

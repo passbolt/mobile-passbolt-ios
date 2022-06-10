@@ -37,7 +37,7 @@ public struct ResourceDTO {
   public var favorite: Bool
   public var permissionType: PermissionTypeDTO
   public var tags: Set<ResourceTagDTO>
-  public var permissions: Set<PermissionDTO>
+  public var permissions: OrderedSet<PermissionDTO>
   public var modified: Date
 
   public init(
@@ -51,7 +51,7 @@ public struct ResourceDTO {
     favorite: Bool,
     permissionType: PermissionTypeDTO,
     tags: Set<ResourceTagDTO>,
-    permissions: Set<PermissionDTO>,
+    permissions: OrderedSet<PermissionDTO>,
     modified: Date
   ) {
     self.id = id
@@ -150,7 +150,7 @@ extension ResourceDTO: Decodable {
     self.permissions =
       try container
       .decode(
-        Set<PermissionDTO>.self,
+        OrderedSet<PermissionDTO>.self,
         forKey: .permissions
       )
     self.modified =
@@ -236,7 +236,7 @@ extension ResourceDTO: RandomlyGenerated {
       PermissionDTO
         .randomGenerator(using: randomnessGenerator)
         .array(withCountIn: 0..<3, using: randomnessGenerator)
-        .map { Set($0) },
+        .map { OrderedSet($0) },
       Int
         .randomGenerator(min: 0, max: 1024, using: randomnessGenerator)
         .map { Date(timeIntervalSince1970: .init($0)) }

@@ -57,9 +57,9 @@ extension ResourceSecretRequest {
 
 public struct ResourceSecretRequestVariable {
 
-  public var resourceID: String
+  public var resourceID: Resource.ID
 
-  public init(resourceID: String) {
+  public init(resourceID: Resource.ID) {
     self.resourceID = resourceID
   }
 }
@@ -68,4 +68,10 @@ public typealias ResourceSecretRequestResponse = CommonResponse<ResourceSecretRe
 public struct ResourceSecretRequestResponseBody: Decodable {
 
   public var data: String
+
+  public init(
+    data: String
+  ) {
+    self.data = data
+  }
 }

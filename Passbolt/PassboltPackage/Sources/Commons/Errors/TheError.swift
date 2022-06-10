@@ -90,16 +90,18 @@ extension TheError {
   ///   Filled automatically based on compile time constants.
   ///   - line: Line in given source code file.
   ///   Filled automatically based on compile time constants.
+  @discardableResult
   public func asAssertionFailure(
     message: @autoclosure () -> String = .init(),
     file: StaticString = #fileID,
     line: UInt = #line
-  ) {
+  ) -> Self {
     assertionFailure(
       "\(message())\n\(self.debugDescription)",
       file: file,
       line: line
     )
+    return self
   }
 
   /// Push new info message into context.

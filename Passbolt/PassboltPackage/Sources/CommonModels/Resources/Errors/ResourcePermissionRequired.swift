@@ -38,7 +38,7 @@ public struct ResourcePermissionRequired: TheError {
           line: line
         )
       ),
-      displayableMessage: .localized(key: "error.resource.permissiion.required")
+      displayableMessage: .localized(key: "error.resource.permission.required")
     )
   }
 

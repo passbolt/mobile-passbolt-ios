@@ -430,3 +430,21 @@ public func XCTAssertError<ExpectedError, Value>(
     }
   }
 }
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
+public func XCTAssertNoError<Value>(
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  _ expression: () async throws -> Value
+) async {
+  do {
+    let value: Value = try await expression()
+  }
+  catch {
+    XCTFail(
+      "\(type(of: error)) thrown while no error was expected.",
+      file: file,
+      line: line
+    )
+  }
+}

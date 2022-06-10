@@ -417,7 +417,7 @@ extension ResourceEditForm: LegacyFeature {
         if let resourceID: Resource.ID = resourceID {
           switch accountSession.currentState() {
           case .authorized, .authorizedMFARequired:
-            let encryptedSecrets: Array<EncryptedMessage> =
+            let encryptedSecrets: OrderedSet<EncryptedMessage> =
               try await usersPGPMessages
               .encryptMessageForResourceUsers(resourceID, encodedSecret)
 

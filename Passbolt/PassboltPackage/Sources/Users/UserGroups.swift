@@ -30,6 +30,7 @@ public struct UserGroups {
 
   public var filteredResourceUserGroupList:
     (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>
+  public var groupMembers: (UserGroup.ID) async throws -> OrderedSet<User.ID>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
@@ -44,6 +45,7 @@ extension UserGroups: LegacyFeature {
     let accountSession: AccountSession = try await features.instance()
     let sessionData: AccountSessionData = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
+    let userGroupMembersDatabaseFetch: UserGroupMembersDatabaseFetch = try await features.instance()
 
     nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
@@ -71,12 +73,19 @@ extension UserGroups: LegacyFeature {
         .asAnyAsyncSequence()
     }
 
+    @StorageAccessActor func groupMembers(
+      _ userGroupID: UserGroup.ID
+    ) async throws -> OrderedSet<User.ID> {
+      try await OrderedSet(userGroupMembersDatabaseFetch(userGroupID))
+    }
+
     @FeaturesActor func featureUnload() async throws {
       // always succeed
     }
 
     return Self(
       filteredResourceUserGroupList: filteredResourceUserGroupList(filters:),
+      groupMembers: groupMembers(_:),
       featureUnload: featureUnload
     )
   }
@@ -89,6 +98,7 @@ extension UserGroups {
   public static var placeholder: Self {
     Self(
       filteredResourceUserGroupList: unimplemented("You have to provide mocks for used methods"),
+      groupMembers: unimplemented("You have to provide mocks for used methods"),
       featureUnload: unimplemented("You have to provide mocks for used methods")
     )
   }

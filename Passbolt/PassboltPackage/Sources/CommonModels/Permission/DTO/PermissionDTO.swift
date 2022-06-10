@@ -64,6 +64,28 @@ extension PermissionDTO {
     }
   }
 
+  public var userID: User.ID? {
+    switch self {
+    case let .userToResource(_, userID, _, _),
+      let .userToFolder(_, userID, _, _):
+      return userID
+    case .userGroupToResource,
+      .userGroupToFolder:
+      return .none
+    }
+  }
+
+  public var userGroupID: UserGroup.ID? {
+    switch self {
+    case let .userGroupToResource(_, userGroupID, _, _),
+      let .userGroupToFolder(_, userGroupID, _, _):
+      return userGroupID
+    case .userToResource,
+      .userToFolder:
+      return .none
+    }
+  }
+
   public var type: PermissionTypeDTO {
     switch self {
     case let .userToResource(_, _, _, type),

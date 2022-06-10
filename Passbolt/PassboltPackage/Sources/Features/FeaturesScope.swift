@@ -21,37 +21,20 @@
 // @since         v1.0
 //
 
-import CommonModels
+public struct FeaturesScope {
 
-public struct ResourceFoldersFilter {
+  private let identifier: AnyHashable
 
-  // ordering of results
-  public var sorting: ResourceFoldersSorting
-  // text search (AND) - empty ignores this parameter
-  public var text: String
-  // current folder contents search (AND) - search on folders root on no value
-  // current folder itself won't appear in results
-  public var folderID: ResourceFolder.ID?
-  // folder content flattening from current folderID
-  // false - filters only within current folderID direct descendants
-  // true - filters recursively within current folderID and all its subfolders
-  public var flattenContent: Bool
-  // included permissions search (AND) - empty ignores this parameter
-  public var permissions: OrderedSet<PermissionType>
-
-  public init(
-    sorting: ResourceFoldersSorting,
-    text: String = .init(),
-    folderID: ResourceFolder.ID?,
-    flattenContent: Bool = false,
-    permissions: OrderedSet<PermissionType> = .init()
-  ) {
-    self.sorting = sorting
-    self.text = text
-    self.folderID = folderID
-    self.flattenContent = flattenContent
-    self.permissions = permissions
+  public init<Identifier>(
+    identifier: Identifier
+  ) where Identifier: Hashable {
+    self.identifier = identifier
   }
 }
 
-extension ResourceFoldersFilter: Equatable {}
+extension FeaturesScope: Hashable {}
+
+extension FeaturesScope {
+
+  internal static let root: Self = .init(identifier: ObjectIdentifier(Self.self))
+}

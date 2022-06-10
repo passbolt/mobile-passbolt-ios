@@ -174,7 +174,7 @@ extension FetchResourceDetailsDSVsOperation {
             username: dataRow.username,
             description: dataRow.description,
             fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields),
-            permissions: Set(
+            permissions: OrderedSet(
               usersPermissions + userGroupsPermissions
             )
           )

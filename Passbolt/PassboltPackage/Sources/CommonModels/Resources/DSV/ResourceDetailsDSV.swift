@@ -32,7 +32,7 @@ public struct ResourceDetailsDSV {
   public var username: String?
   public var description: String?
   public var fields: Array<ResourceFieldDSV>
-  public var permissions: Set<PermissionDSV>
+  public var permissions: OrderedSet<PermissionDSV>
 
   public init(
     id: Resource.ID,
@@ -42,7 +42,7 @@ public struct ResourceDetailsDSV {
     username: String?,
     description: String?,
     fields: Array<ResourceFieldDSV>,
-    permissions: Set<PermissionDSV>
+    permissions: OrderedSet<PermissionDSV>
   ) {
     self.id = id
     self.permissionType = permissionType
@@ -89,7 +89,7 @@ extension ResourceDetailsDSV: RandomlyGenerated {
       PermissionDSV
         .randomGenerator(using: randomnessGenerator)
         .array(withCountIn: 0..<3, using: randomnessGenerator)
-        .map { Set($0) }
+        .map { OrderedSet($0) }
     )
   }
 }

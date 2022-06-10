@@ -90,4 +90,26 @@ open class TestCase: XCTestCase {
       cancellables: cancellables
     )
   }
+
+  public final func testInstance<Feature>(
+    _ featureType: Feature.Type = Feature.self,
+    context: Feature.Context
+  ) async throws -> Feature
+  where Feature: LoadableFeature {
+    try await features
+      .instance(
+        of: featureType,
+        context: context
+      )
+  }
+
+  public final func testInstance<Feature>(
+    _ featureType: Feature.Type = Feature.self
+  ) async throws -> Feature
+  where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
+    try await features
+      .instance(
+        of: featureType
+      )
+  }
 }

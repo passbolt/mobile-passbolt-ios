@@ -69,11 +69,11 @@ where ItemID: Hashable {
             )
             .padding(4)
 
-          let itemSelected: Bool =  self.selectedItems.contains(item.id)
+          let itemSelected: Bool = self.selectedItems.contains(item.id)
           Image(
             named: itemSelected
-            ? .circleSelected
-            : .circleUnselected
+              ? .circleSelected
+              : .circleUnselected
           )
           .aspectRatio(
             1,
@@ -81,8 +81,8 @@ where ItemID: Hashable {
           )
           .foregroundColor(
             itemSelected
-            ? .passboltPrimaryBlue
-            : .passboltDivider
+              ? .passboltPrimaryBlue
+              : .passboltDivider
           )
           .frame(width: 24)
           .padding(4)
@@ -124,9 +124,9 @@ where ItemID == AnyHashable {
       [
         ImageNameConstant.permissionReadIcon,
         .permissionReadIcon,
-        .permissionOwnIcon
-        ]
-        .randomNonEmptyElementGenerator(using: randomnessGenerator),
+        .permissionOwnIcon,
+      ]
+      .randomNonEmptyElementGenerator(using: randomnessGenerator),
       UUID
         .randomGenerator(using: randomnessGenerator)
         .map(\.uuidString)
@@ -140,8 +140,8 @@ internal struct SelectionListView_Previews: PreviewProvider {
   internal static var previews: some View {
     let allItems: Array<SelectionListView<AnyHashable>.Item> =
       .random(
-      countIn: 5 ..< 7
-    )
+        countIn: 5..<7
+      )
     SelectionListView(
       items: allItems,
       selectedItems: [allItems.randomElement()!.id],

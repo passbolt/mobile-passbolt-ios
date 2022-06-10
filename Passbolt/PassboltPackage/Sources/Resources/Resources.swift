@@ -91,7 +91,7 @@ extension Resources: LegacyFeature {
     ) -> AnyPublisher<ResourceSecret, Error> {
       networkClient
         .resourceSecretRequest
-        .make(using: .init(resourceID: resourceID.rawValue))
+        .make(using: .init(resourceID: resourceID))
         .eraseErrorType()
         .asyncMap { response throws -> ResourceSecret in
           let decryptedMessage: String =
@@ -101,14 +101,7 @@ extension Resources: LegacyFeature {
             // for signature verification.
             .decryptMessage(response.body.data, nil)
 
-          if let secret: ResourceSecret = .from(decrypted: decryptedMessage) {
-            return secret
-          }
-          else {
-            throw
-              TheErrorLegacy
-              .invalidResourceSecret()
-          }
+          return try .from(decrypted: decryptedMessage)
         }
         .eraseToAnyPublisher()
     }

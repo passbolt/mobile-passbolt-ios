@@ -28,7 +28,7 @@ public struct FeatureLoader {
   internal let identifier: FeatureTypeIdentifier
   internal let load: @FeaturesActor (FeatureFactory, Any, Cancellables) async throws -> AnyFeature
   internal let initialize: @FeaturesActor (FeatureFactory, AnyFeature, Any, Cancellables) async throws -> Void
-  internal let cacheUnload: (@FeaturesActor (AnyFeature, Cancellables) async throws -> Void)?
+  internal let cacheUnload: (@FeaturesActor (AnyFeature) async throws -> Void)?
 }
 
 extension FeatureLoader {
@@ -38,7 +38,7 @@ extension FeatureLoader {
     load: @escaping @FeaturesActor (FeatureFactory, Feature.Context, Cancellables) async throws -> Feature,
     initialize: @escaping @FeaturesActor (FeatureFactory, Feature, Feature.Context, Cancellables) async throws -> Void =
       { _, _, _, _ in },
-    cacheUnload: @escaping @FeaturesActor (Feature, Cancellables) async throws -> Void = { _, _ in }
+    cacheUnload: @escaping @FeaturesActor (Feature) async throws -> Void = { _ in }
   ) -> Self
   where Feature: LoadableFeature {
     @FeaturesActor func loadFeature(
@@ -77,14 +77,12 @@ extension FeatureLoader {
     }
 
     @FeaturesActor func cacheFeatureUnload(
-      _ feature: AnyFeature,
-      _ cancellables: Cancellables
+      _ feature: AnyFeature
     ) async throws {
       guard let feature: Feature = feature as? Feature
       else { unreachable("Type safety is guaranteed by framework") }
       try await cacheUnload(
-        feature,
-        cancellables
+        feature
       )
     }
 
@@ -92,7 +90,7 @@ extension FeatureLoader {
       identifier: featureType.typeIdentifier,
       load: loadFeature(_:_:_:),
       initialize: initializeFeature(_:_:_:_:),
-      cacheUnload: cacheFeatureUnload(_:_:)
+      cacheUnload: cacheFeatureUnload(_:)
     )
   }
 
@@ -100,7 +98,7 @@ extension FeatureLoader {
     _ featureType: Feature.Type,
     load: @escaping @FeaturesActor (FeatureFactory, Cancellables) async throws -> Feature,
     initialize: @escaping @FeaturesActor (FeatureFactory, Feature, Cancellables) async throws -> Void = { _, _, _ in },
-    cacheUnload: @escaping @FeaturesActor (Feature, Cancellables) async throws -> Void = { _, _ in }
+    cacheUnload: @escaping @FeaturesActor (Feature) async throws -> Void = { _ in }
   ) -> Self
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
     @FeaturesActor func loadFeature(
@@ -131,14 +129,12 @@ extension FeatureLoader {
     }
 
     @FeaturesActor func cacheFeatureUnload(
-      _ feature: AnyFeature,
-      _ cancellables: Cancellables
+      _ feature: AnyFeature
     ) async throws {
       guard let feature: Feature = feature as? Feature
       else { unreachable("Type safety is guaranteed by framework") }
       try await cacheUnload(
-        feature,
-        cancellables
+        feature
       )
     }
 
@@ -146,7 +142,7 @@ extension FeatureLoader {
       identifier: featureType.typeIdentifier,
       load: loadFeature(_:_:_:),
       initialize: initializeFeature(_:_:_:_:),
-      cacheUnload: cacheFeatureUnload(_:_:)
+      cacheUnload: cacheFeatureUnload(_:)
     )
   }
 

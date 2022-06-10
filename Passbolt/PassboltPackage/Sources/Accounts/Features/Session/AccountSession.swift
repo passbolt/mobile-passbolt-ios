@@ -268,7 +268,7 @@ extension AccountSession: LegacyFeature {
     // Close current session and change session state (sign out)
     let closeSession: @AccountSessionActor () async -> Void = { [weak features] in
       diagnostics.diagnosticLog("Closing current session...")
-      await features?.setScope(.none)  // cleanup features
+      await features?.clearScope()  // cleanup features
 
       switch internalSessionStateSubject.value {
       case .authorized, .authorizationRequired, .authorizedMFARequired:
@@ -400,7 +400,7 @@ extension AccountSession: LegacyFeature {
         await accountsDataStore.storeLastUsedAccount(account.localID)
 
         // FIXME: retain cycle with features
-        await features.setScope(account)
+        await features.ensureScope(identifier: account)
 
         if mfaProviders.isEmpty {
           diagnostics.diagnosticLog("...authorization succeeded!")

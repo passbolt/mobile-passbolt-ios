@@ -23,39 +23,22 @@
 
 import Combine
 
-public final class AsyncVariable<Value> {
+public final actor AsyncVariable<Value> {
 
   private typealias Awaiter = CheckedContinuation<(value: Value?, generation: UInt64), Never>
 
-  private struct State {
-
-    fileprivate var value: Value
-    fileprivate var generation: UInt64 = 1
-    fileprivate var awaiters: Array<Awaiter> = .init()
-  }
-
-  public var value: Value {
-    get async {
-      await self.state.getAsync(\.value)
-    }
-  }
-
-  private let state: CriticalState<State>
+  public private(set) var value: Value
+  private var generation: UInt64 = 1
+  private var awaiters: Array<Awaiter> = .init()
 
   public init(
     initial: Value
   ) {
-    self.state =
-      .init(
-        .init(
-          value: initial
-        )
-      )
+    self.value = initial
   }
 
   deinit {
-    let awaiters: Array<Awaiter> = self.state.get(\.awaiters)
-    for awaiter in awaiters {
+    for awaiter: Awaiter in self.awaiters {
       awaiter.resume(
         returning: (
           .none,
@@ -70,27 +53,35 @@ extension AsyncVariable {
 
   public func send(
     _ newValue: Value
-  ) async {
-    await self.state.shieldedAccessAsync { state in
-      state.value = newValue
-      state.generation &+= 1
-      while let awaiter = state.awaiters.popLast() {
-        awaiter.resume(
-          returning: (
-            state.value,
-            state.generation
-          )
+  ) {
+    self.value = newValue
+    self.generation &+= 1
+    while let awaiter = self.awaiters.popLast() {
+      awaiter.resume(
+        returning: (
+          self.value,
+          self.generation
         )
-      }
+      )
     }
   }
 
   public func withValue<Returned>(
     _ access: @escaping (inout Value) throws -> Returned
-  ) async throws -> Returned {
-    try await self.state.accessAsync { state in
-      try access(&state.value)
+  ) throws -> Returned {
+    var modifiedState: Value = self.value
+    let returned: Returned = try access(&modifiedState)
+    self.value = modifiedState
+    self.generation &+= 1
+    while let awaiter: Awaiter = self.awaiters.popLast() {
+      awaiter.resume(
+        returning: (
+          self.value,
+          self.generation
+        )
+      )
     }
+    return returned
   }
 }
 
@@ -99,8 +90,17 @@ extension AsyncVariable: AsyncSequence {
   public typealias AsyncIterator = AnyAsyncIterator<Value>
   public typealias Element = Value
 
-  public func makeAsyncIterator() -> AnyAsyncIterator<Value> {
-    var generation: UInt64 = self.state.get(\.generation) &- 1
+  public nonisolated func makeAsyncIterator() -> AnyAsyncIterator<Value> {
+    // initial generation is 1,
+    // 0 should always return current value initially
+    // only exception is Int64 overflow which will cause
+    // single value to be not emmited initially
+    // but it should not happen in a typical use anyway
+    // ---
+    // there is a risk of concurrent access to the generation
+    // variable when the same instance of iterator is reused
+    // across multiple threads, but it should be avoided anyway
+    var generation: UInt64 = 0
     return AnyAsyncIterator<Value> { [weak self] in
       guard
         let next: (value: Value?, generation: UInt64) =
@@ -117,19 +117,17 @@ extension AsyncVariable {
   private func next(
     after generation: UInt64
   ) async -> (value: Value?, generation: UInt64) {
-    return await withCheckedContinuation { (continuation: Awaiter) in
-      self.state.access { state in
-        if state.generation > generation {
-          continuation.resume(
-            returning: (
-              state.value,
-              state.generation
-            )
+    await withCheckedContinuation { (continuation: Awaiter) in
+      if self.generation > generation {
+        continuation.resume(
+          returning: (
+            self.value,
+            self.generation
           )
-        }
-        else {
-          state.awaiters.append(continuation)
-        }
+        )
+      }
+      else {
+        self.awaiters.append(continuation)
       }
     }
   }

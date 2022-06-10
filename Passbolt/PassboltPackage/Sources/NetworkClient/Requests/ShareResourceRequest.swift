@@ -71,16 +71,16 @@ public struct ShareResourceRequestVariable {
 
 public struct ShareResourceRequestBody {
 
-  public var newPermissions: Set<NewPermissionDTO>
-  public var updatedPermissions: Set<PermissionDTO>
-  public var deletedPermissions: Set<PermissionDTO>
-  public var newSecrets: Array<EncryptedMessage>
+  public var newPermissions: OrderedSet<NewPermissionDTO>
+  public var updatedPermissions: OrderedSet<PermissionDTO>
+  public var deletedPermissions: OrderedSet<PermissionDTO>
+  public var newSecrets: OrderedSet<EncryptedMessage>
 
   public init(
-    newPermissions: Set<NewPermissionDTO>,
-    updatedPermissions: Set<PermissionDTO>,
-    deletedPermissions: Set<PermissionDTO>,
-    newSecrets: Array<EncryptedMessage>
+    newPermissions: OrderedSet<NewPermissionDTO>,
+    updatedPermissions: OrderedSet<PermissionDTO>,
+    deletedPermissions: OrderedSet<PermissionDTO>,
+    newSecrets: OrderedSet<EncryptedMessage>
   ) {
     self.newPermissions = newPermissions
     self.updatedPermissions = updatedPermissions

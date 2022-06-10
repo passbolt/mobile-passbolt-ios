@@ -21,37 +21,27 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Commons
 
-public struct ResourceFoldersFilter {
+public struct ResourceSecretInvalid: TheError {
 
-  // ordering of results
-  public var sorting: ResourceFoldersSorting
-  // text search (AND) - empty ignores this parameter
-  public var text: String
-  // current folder contents search (AND) - search on folders root on no value
-  // current folder itself won't appear in results
-  public var folderID: ResourceFolder.ID?
-  // folder content flattening from current folderID
-  // false - filters only within current folderID direct descendants
-  // true - filters recursively within current folderID and all its subfolders
-  public var flattenContent: Bool
-  // included permissions search (AND) - empty ignores this parameter
-  public var permissions: OrderedSet<PermissionType>
-
-  public init(
-    sorting: ResourceFoldersSorting,
-    text: String = .init(),
-    folderID: ResourceFolder.ID?,
-    flattenContent: Bool = false,
-    permissions: OrderedSet<PermissionType> = .init()
-  ) {
-    self.sorting = sorting
-    self.text = text
-    self.folderID = folderID
-    self.flattenContent = flattenContent
-    self.permissions = permissions
+  public static func error(
+    _ message: StaticString = "ResourceSecretInvalid",
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.resource.secret.invalid")
+    )
   }
-}
 
-extension ResourceFoldersFilter: Equatable {}
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
+}

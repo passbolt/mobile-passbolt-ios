@@ -104,7 +104,11 @@ let package = Package(
       name: "Aegithalos",
       url: "https://github.com/miquido/aegithalos.git",
       .upToNextMajor(from: "2.3.1")
-    )
+    ),
+    .package(
+      url: "https://github.com/apple/swift-collections.git",
+      .upToNextMajor(from: "1.0.0")
+    ),
   ],
   targets: [
     .target(
@@ -153,7 +157,8 @@ let package = Package(
     .target(
       name: "Commons",
       dependencies: [
-        "Localization"
+        "Localization",
+        .product(name: "Collections", package: "swift-collections"),
       ]
     ),
     .testTarget(

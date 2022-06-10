@@ -155,12 +155,14 @@ final class UsersPGPMessagesTests: TestCase {
     let feature: UsersPGPMessages = try await self.testInstance()
 
     await XCTAssertValue(
-      equal: usersKeys.map {
-        .init(
-          recipient: $0.userID,
-          message: "encrypted-message"
-        )
-      }
+      equal: OrderedSet(
+        usersKeys.map {
+          .init(
+            recipient: $0.userID,
+            message: "encrypted-message"
+          )
+        }
+      )
     ) {
       try await feature
         .encryptMessageForUsers([.random()], "message")
@@ -287,12 +289,14 @@ final class UsersPGPMessagesTests: TestCase {
     let feature: UsersPGPMessages = try await self.testInstance()
 
     await XCTAssertValue(
-      equal: usersKeys.map {
-        .init(
-          recipient: $0.userID,
-          message: "encrypted-message"
-        )
-      }
+      equal: OrderedSet(
+        usersKeys.map {
+          .init(
+            recipient: $0.userID,
+            message: "encrypted-message"
+          )
+        }
+      )
     ) {
       try await feature
         .encryptMessageForResourceUsers(.random(), "message")

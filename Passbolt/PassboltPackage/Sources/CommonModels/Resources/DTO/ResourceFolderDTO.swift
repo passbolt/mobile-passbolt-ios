@@ -30,7 +30,7 @@ public struct ResourceFolderDTO {
   public var permissionType: PermissionTypeDTO
   public var shared: Bool
   public var parentFolderID: ResourceFolder.ID?
-  public var permissions: Set<PermissionDTO>
+  public var permissions: OrderedSet<PermissionDTO>
 
   public init(
     id: ResourceFolder.ID,
@@ -38,7 +38,7 @@ public struct ResourceFolderDTO {
     permissionType: PermissionTypeDTO,
     shared: Bool,
     parentFolderID: ResourceFolder.ID?,
-    permissions: Set<PermissionDTO>
+    permissions: OrderedSet<PermissionDTO>
   ) {
     self.id = id
     self.name = name
@@ -63,7 +63,7 @@ extension ResourceFolderDTO: Decodable {
       .decode(PermissionTypeDTO.self, forKey: .type)
     self.shared = try !container.decode(Bool.self, forKey: .personal)
     self.parentFolderID = try container.decode(ResourceFolder.ID?.self, forKey: .parentFolderID)
-    self.permissions = try container.decode(Set<PermissionDTO>.self, forKey: .permissions)
+    self.permissions = try container.decode(OrderedSet<PermissionDTO>.self, forKey: .permissions)
   }
 
   private enum CodingKeys: String, CodingKey {
@@ -107,7 +107,7 @@ extension ResourceFolderDTO: RandomlyGenerated {
       PermissionDTO
         .randomGenerator(using: randomnessGenerator)
         .array(withCount: 0)
-        .map { Set($0) }
+        .map { OrderedSet($0) }
     )
   }
 }

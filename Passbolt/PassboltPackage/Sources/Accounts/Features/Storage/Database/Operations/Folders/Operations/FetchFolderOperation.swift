@@ -157,7 +157,7 @@ extension FetchFolderOperation {
             permissionType: permissionType,
             shared: shared,
             parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-            permissions: Set(usersPermissions + userGroupsPermissions)
+            permissions: OrderedSet(usersPermissions + userGroupsPermissions)
           )
         }
     }

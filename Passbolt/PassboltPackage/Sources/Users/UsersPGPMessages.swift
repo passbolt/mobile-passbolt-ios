@@ -33,9 +33,9 @@ public struct UsersPGPMessages {
   // by fetching users public keys from a local database.
   public var encryptMessageForUsers:
     @StorageAccessActor (
-      _ recipients: Array<User.ID>,
+      _ recipients: OrderedSet<User.ID>,
       _ message: String
-    ) async throws -> Array<EncryptedMessage>
+    ) async throws -> OrderedSet<EncryptedMessage>
 
   // Encrypt a message for each user with permission
   // to the requested resource by fetching users public keys
@@ -44,7 +44,7 @@ public struct UsersPGPMessages {
     @StorageAccessActor (
       _ resourceID: Resource.ID,
       _ message: String
-    ) async throws -> Array<EncryptedMessage>
+    ) async throws -> OrderedSet<EncryptedMessage>
 }
 
 extension UsersPGPMessages: LegacyFeature {
@@ -59,13 +59,13 @@ extension UsersPGPMessages: LegacyFeature {
     let resourceUsersIDDatabaseFetch: ResourceUsersIDDatabaseFetch = try await features.instance()
 
     @StorageAccessActor func encryptMessageForUsers(
-      _ users: Array<User.ID>,
+      _ users: OrderedSet<User.ID>,
       message: String
-    ) async throws -> Array<EncryptedMessage> {
+    ) async throws -> OrderedSet<EncryptedMessage> {
       guard !users.isEmpty
       else { throw UsersListEmpty.error() }
 
-      let usersKeys: Array<UserPublicKeyDSV> = try await usersPublicKeysDatabaseFetch(users)
+      let usersKeys: OrderedSet<UserPublicKeyDSV> = try await .init(usersPublicKeysDatabaseFetch(Array(users)))
 
       guard users.count == usersKeys.count
       else {
@@ -78,7 +78,7 @@ extension UsersPGPMessages: LegacyFeature {
 
       return try await withThrowingTaskGroup(
         of: EncryptedMessage.self,
-        returning: Array<EncryptedMessage>.self
+        returning: OrderedSet<EncryptedMessage>.self
       ) { (group: inout ThrowingTaskGroup<EncryptedMessage, Error>) in
         for userKey: UserPublicKeyDSV in usersKeys {
           group.addTask {
@@ -91,7 +91,7 @@ extension UsersPGPMessages: LegacyFeature {
           }
         }
 
-        var encryptedMessages: Array<EncryptedMessage> = .init()
+        var encryptedMessages: OrderedSet<EncryptedMessage> = .init()
         encryptedMessages.reserveCapacity(usersKeys.count)
 
         for try await encryptedMessage: EncryptedMessage in group {
@@ -105,9 +105,9 @@ extension UsersPGPMessages: LegacyFeature {
     @StorageAccessActor func encryptMessageForResourceUsers(
       _ resourceID: Resource.ID,
       message: String
-    ) async throws -> Array<EncryptedMessage> {
-      let resourceUsers: Array<User.ID> =
-        try await resourceUsersIDDatabaseFetch(resourceID)
+    ) async throws -> OrderedSet<EncryptedMessage> {
+      let resourceUsers: OrderedSet<User.ID> =
+        try await .init(resourceUsersIDDatabaseFetch(resourceID))
       return try await encryptMessageForUsers(
         resourceUsers,
         message: message

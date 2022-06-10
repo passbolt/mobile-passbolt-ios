@@ -77,6 +77,7 @@ final class AnyAsyncThrowingSequenceTests: XCTestCase {
     let sequence: AnyAsyncThrowingSequence<Int> = .init(subject)
 
     Task.detached {
+      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
       subject.send(completion: .failure(CancellationError()))
     }
 

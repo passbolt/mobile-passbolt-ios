@@ -629,6 +629,7 @@ final class ResourceEditFormTests: TestCase {
     resources.loadResourceSecret = always(
       Just(
         .init(
+          rawValue: "{\"password\":\"secret\"}",
           values: ["password": "secret"]
         )
       )
@@ -664,6 +665,7 @@ final class ResourceEditFormTests: TestCase {
     resources.loadResourceSecret = always(
       Just(
         .init(
+          rawValue: "{\"password\":\"secret\"}",
           values: ["password": "secret"]
         )
       )
@@ -704,6 +706,7 @@ final class ResourceEditFormTests: TestCase {
     resources.loadResourceSecret = always(
       Just(
         .init(
+          rawValue: "{\"password\":\"secret\"}",
           values: ["password": "secret"]
         )
       )
@@ -750,6 +753,7 @@ final class ResourceEditFormTests: TestCase {
     resources.loadResourceSecret = always(
       Just(
         .init(
+          rawValue: "{\"password\":\"secret\"}",
           values: ["password": "secret"]
         )
       )
@@ -816,6 +820,7 @@ final class ResourceEditFormTests: TestCase {
     resources.loadResourceSecret = always(
       Just(
         .init(
+          rawValue: "{\"password\":\"secret\"}",
           values: ["password": "secret"]
         )
       )

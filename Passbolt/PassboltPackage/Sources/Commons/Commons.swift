@@ -21,5 +21,6 @@
 // @since         v1.0
 //
 
+@_exported import Collections
 @_exported import Combine
 @_exported import Localization

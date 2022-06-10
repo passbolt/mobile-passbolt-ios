@@ -21,17 +21,23 @@
 // @since         v1.0
 //
 
+import CommonModels
+import Commons
+
 import struct Foundation.Data
 import class Foundation.JSONDecoder
 
 @dynamicMemberLookup
 public struct ResourceSecret {
 
+  public let rawValue: String
   private var values: Dictionary<String, String>
 
   internal init(
+    rawValue: String,
     values: Dictionary<String, String>
   ) {
+    self.rawValue = rawValue
     self.values = values
   }
 
@@ -47,7 +53,7 @@ extension ResourceSecret {
   internal static func from(
     decrypted message: String,
     using decoder: JSONDecoder = .init()
-  ) -> Self? {
+  ) throws -> Self {
     // We are using Data in order to use JSONDecoder
     // It shouldn't ever fail but just in case that
     // secret cannot be represented in utf8
@@ -55,17 +61,24 @@ extension ResourceSecret {
     if let data: Data = message.data(using: .utf8) {
       do {
         return Self(
+          rawValue: message,
           values: try decoder.decode(Dictionary<String, String>.self, from: data)
         )
       }
       catch {
         return Self(
+          rawValue: message,
           values: ["password": message]
         )
       }
     }
     else {
-      return nil
+      throw
+        ResourceSecretInvalid
+        .error()
+        .asAssertionFailure()
     }
   }
 }
+
+extension ResourceSecret: Equatable {}

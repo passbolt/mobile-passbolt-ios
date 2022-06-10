@@ -55,6 +55,7 @@ final class UserGroupsTests: TestCase {
         .authorized(.validAccount)
       )
     )
+    self.features.usePlaceholder(for: UserGroupMembersDatabaseFetch.self)
   }
 
   func test_filteredUserGroups_producesEmptyList_whenDatabaseFetchingFail() async throws {
@@ -145,5 +146,36 @@ final class UserGroupsTests: TestCase {
       result,
       expectedResult
     )
+  }
+
+  func test_groupMembers_fails_whenDatabaseFetchFails() async throws {
+    await features.patch(
+      \UserGroupMembersDatabaseFetch.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let feature: UserGroups = try await self.testInstance()
+
+    await XCTAssertError(
+      matches: MockIssue.self
+    ) {
+      try await feature.groupMembers(.random())
+    }
+  }
+
+  func test_groupMembers_returnsList_whenDatabaseFetchSucceeds() async throws {
+    let expectedResult: OrderedSet<User.ID> = [.random()]
+
+    await features.patch(
+      \UserGroupMembersDatabaseFetch.execute,
+      with: always(Array(expectedResult))
+    )
+
+    let feature: UserGroups = try await self.testInstance()
+
+    await XCTAssertValue(
+      equal: expectedResult
+    ) {
+      try await feature.groupMembers(.random())
+    }
   }
 }
