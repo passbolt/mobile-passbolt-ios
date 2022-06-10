@@ -41,7 +41,7 @@ public struct RandomStringGenerator {
     ) -> Entropy
 }
 
-extension RandomStringGenerator: Feature {
+extension RandomStringGenerator: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

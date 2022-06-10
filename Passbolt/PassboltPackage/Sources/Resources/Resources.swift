@@ -40,7 +40,7 @@ public struct Resources {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension Resources: Feature {
+extension Resources: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

@@ -38,7 +38,7 @@ public struct FeatureConfig {
   public var fetchIfNeeded: @AccountSessionActor () async throws -> Void
 }
 
-extension FeatureConfig: Feature {
+extension FeatureConfig: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

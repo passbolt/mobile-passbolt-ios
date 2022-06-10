@@ -21,38 +21,45 @@
 // @since         v1.0
 //
 
+import Combine
+import CommonModels
 import Environment
 
-public struct Pasteboard {
+@available(*, deprecated, message: "Replaced by LoadableFeature")
+public protocol LegacyFeature: AnyFeature {
 
-  public var get: () -> String?
-  public var put: (String?) -> Void
-}
-
-extension Pasteboard: LegacyFeature {
-
-  public static func load(
+  @FeaturesActor static func load(
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
-  ) -> Pasteboard {
-    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
+  ) async throws -> Self
 
-    return Self(
-      get: systemPasteboard.get,
-      put: systemPasteboard.put
-    )
+  nonisolated var featureUnload: @FeaturesActor () async throws -> Void { get }
+
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  nonisolated static var placeholder: Self { get }
+  #endif
+}
+
+extension LegacyFeature {
+
+  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void {
+    {
+      throw
+        Unimplemented
+        .error("Unloading not supported")
+        .recording(Self.self, for: "feature")
+    }
   }
 }
 
-#if DEBUG
-extension Pasteboard {
+extension AnyFeature {
 
-  public static var placeholder: Pasteboard {
-    Self(
-      get: unimplemented("You have to provide mocks for used methods"),
-      put: unimplemented("You have to provide mocks for used methods")
+  internal static var identifier: FeatureIdentifier {
+    .init(
+      featureTypeIdentifier: self.typeIdentifier,
+      featureContextIdentifier: .none
     )
   }
 }
-#endif

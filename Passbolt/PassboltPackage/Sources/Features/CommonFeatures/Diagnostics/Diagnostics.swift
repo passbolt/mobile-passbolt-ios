@@ -59,7 +59,7 @@ extension Diagnostics {
   }
 }
 
-extension Diagnostics: Feature {
+extension Diagnostics: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

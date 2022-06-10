@@ -31,7 +31,7 @@ internal struct HomePresentation {
   internal var availableHomePresentationModes: @MainActor () -> Array<HomePresentationMode>
 }
 
-extension HomePresentation: Feature {
+extension HomePresentation: LegacyFeature {
 
   internal static func load(
     in environment: AppEnvironment,

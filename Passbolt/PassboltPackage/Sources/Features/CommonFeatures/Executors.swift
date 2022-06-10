@@ -28,7 +28,7 @@ public struct Executors {
   public var newBackgroundExecutor: () -> AsyncExecutor
 }
 
-extension Executors: Feature {
+extension Executors: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

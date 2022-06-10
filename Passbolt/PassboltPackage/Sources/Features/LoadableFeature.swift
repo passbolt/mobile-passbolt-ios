@@ -21,38 +21,14 @@
 // @since         v1.0
 //
 
-import Environment
+import Commons
 
-public struct Pasteboard {
+public protocol LoadableFeature: AnyFeature {
 
-  public var get: () -> String?
-  public var put: (String?) -> Void
+  associatedtype Context: LoadableFeatureContext
+
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  nonisolated static var placeholder: Self { get }
+  #endif
 }
-
-extension Pasteboard: LegacyFeature {
-
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Pasteboard {
-    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
-
-    return Self(
-      get: systemPasteboard.get,
-      put: systemPasteboard.put
-    )
-  }
-}
-
-#if DEBUG
-extension Pasteboard {
-
-  public static var placeholder: Pasteboard {
-    Self(
-      get: unimplemented("You have to provide mocks for used methods"),
-      put: unimplemented("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif

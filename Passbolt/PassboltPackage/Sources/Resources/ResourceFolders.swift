@@ -50,7 +50,7 @@ public struct FolderDetails {
 
 extension FolderContent: Hashable {}
 
-extension ResourceFolders: Feature {
+extension ResourceFolders: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

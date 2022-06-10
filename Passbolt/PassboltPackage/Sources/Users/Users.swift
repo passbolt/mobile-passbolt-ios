@@ -35,7 +35,7 @@ public struct Users {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension Users: Feature {
+extension Users: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

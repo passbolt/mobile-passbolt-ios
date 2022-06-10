@@ -30,7 +30,7 @@ public struct Biometry {
   public var biometricsStatePublisher: () -> AnyPublisher<Biometrics.State, Never>
 }
 
-extension Biometry: Feature {
+extension Biometry: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

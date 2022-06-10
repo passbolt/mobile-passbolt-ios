@@ -54,7 +54,7 @@ extension AccountTransfer {
   }
 }
 
-extension AccountTransfer: Feature {
+extension AccountTransfer: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

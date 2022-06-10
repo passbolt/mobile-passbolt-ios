@@ -21,38 +21,14 @@
 // @since         v1.0
 //
 
-import Environment
+public protocol LoadableContextlessFeature: LoadableFeature
+where Context == ContextlessFeatureContext {}
 
-public struct Pasteboard {
+public struct ContextlessFeatureContext: LoadableFeatureContext {
 
-  public var get: () -> String?
-  public var put: (String?) -> Void
-}
+  internal static let instance: Self = .init()
 
-extension Pasteboard: LegacyFeature {
-
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Pasteboard {
-    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
-
-    return Self(
-      get: systemPasteboard.get,
-      put: systemPasteboard.put
-    )
+  public var identifier: AnyHashable {
+    ObjectIdentifier(Self.self)
   }
 }
-
-#if DEBUG
-extension Pasteboard {
-
-  public static var placeholder: Pasteboard {
-    Self(
-      get: unimplemented("You have to provide mocks for used methods"),
-      put: unimplemented("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif

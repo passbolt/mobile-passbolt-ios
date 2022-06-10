@@ -56,7 +56,7 @@ extension AccountDatabase {
   )
 }
 
-extension AccountDatabase: Feature {
+extension AccountDatabase: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

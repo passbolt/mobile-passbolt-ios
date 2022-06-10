@@ -55,7 +55,7 @@ internal struct AccountsDataStore {
   internal var loadServerFingerprint: @StorageAccessActor (Account.LocalID) -> Result<Fingerprint?, Error>
 }
 
-extension AccountsDataStore: Feature {
+extension AccountsDataStore: LegacyFeature {
 
   internal static func load(
     in environment: AppEnvironment,

@@ -81,7 +81,7 @@ open class TestCase: XCTestCase {
     self.cancellables = nil
   }
 
-  public final func testInstance<F: Feature>(
+  public final func testInstance<F: LegacyFeature>(
     _ type: F.Type = F.self
   ) async throws -> F {
     try await F.load(

@@ -33,7 +33,7 @@ public struct UserGroups {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension UserGroups: Feature {
+extension UserGroups: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

@@ -23,7 +23,7 @@
 
 import Features
 
-public protocol DatabaseOperationFeature: Feature {
+public protocol DatabaseOperationFeature: LegacyFeature {
 
   associatedtype Input
   associatedtype Output

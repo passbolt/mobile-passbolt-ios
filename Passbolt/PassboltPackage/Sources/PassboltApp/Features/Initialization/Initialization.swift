@@ -31,7 +31,7 @@ public struct Initialization {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension Initialization: Feature {
+extension Initialization: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

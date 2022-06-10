@@ -67,7 +67,7 @@ extension NetworkSession {
   fileprivate typealias SessionStateWithMFAProviders = (state: NetworkSessionState, mfaProviders: Array<MFAProvider>)
 }
 
-extension NetworkSession: Feature {
+extension NetworkSession: LegacyFeature {
 
   internal static func load(
     in environment: AppEnvironment,

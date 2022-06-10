@@ -67,7 +67,7 @@ extension AutofillExtensionContext {
   }
 }
 
-extension AutofillExtensionContext: Feature {
+extension AutofillExtensionContext: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

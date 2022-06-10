@@ -135,7 +135,7 @@ extension AccountSession {
   }
 }
 
-extension AccountSession: Feature {
+extension AccountSession: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

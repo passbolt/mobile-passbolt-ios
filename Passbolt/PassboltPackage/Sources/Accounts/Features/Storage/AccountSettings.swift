@@ -45,7 +45,7 @@ public struct AccountSettings {
   public var currentAccountAvatarPublisher: () -> AnyPublisher<Data?, Never>
 }
 
-extension AccountSettings: Feature {
+extension AccountSettings: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

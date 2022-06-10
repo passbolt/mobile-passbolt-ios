@@ -29,7 +29,7 @@ public struct MFA {
   public var authorizeUsingTOTP: @AccountSessionActor (String, Bool) -> AnyPublisher<Void, Error>
 }
 
-extension MFA: Feature {
+extension MFA: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

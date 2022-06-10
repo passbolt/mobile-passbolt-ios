@@ -32,7 +32,7 @@ public struct LinkOpener {
   public var openSystemSettings: () -> AnyPublisher<Bool, Never>
 }
 
-extension LinkOpener: Feature {
+extension LinkOpener: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

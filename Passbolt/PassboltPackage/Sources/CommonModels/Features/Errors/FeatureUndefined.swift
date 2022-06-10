@@ -21,38 +21,30 @@
 // @since         v1.0
 //
 
-import Environment
+import Localization
 
-public struct Pasteboard {
+public struct FeatureUndefined: TheError {
 
-  public var get: () -> String?
-  public var put: (String?) -> Void
-}
-
-extension Pasteboard: LegacyFeature {
-
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Pasteboard {
-    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
-
-    return Self(
-      get: systemPasteboard.get,
-      put: systemPasteboard.put
-    )
-  }
-}
-
-#if DEBUG
-extension Pasteboard {
-
-  public static var placeholder: Pasteboard {
+  public static func error(
+    _ message: StaticString = "FeatureUndefined",
+    featureName: String,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
     Self(
-      get: unimplemented("You have to provide mocks for used methods"),
-      put: unimplemented("You have to provide mocks for used methods")
+      context: .context(
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
+      featureName: featureName,
+      displayableMessage: .localized(key: "error.feature.unavailable")
     )
   }
+
+  public var context: DiagnosticsContext
+  public var featureName: String
+  public var displayableMessage: DisplayableString
 }
-#endif

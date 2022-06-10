@@ -47,7 +47,7 @@ public struct UsersPGPMessages {
     ) async throws -> Array<EncryptedMessage>
 }
 
-extension UsersPGPMessages: Feature {
+extension UsersPGPMessages: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

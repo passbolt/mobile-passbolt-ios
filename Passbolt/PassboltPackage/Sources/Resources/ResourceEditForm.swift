@@ -48,7 +48,7 @@ public struct ResourceEditForm {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension ResourceEditForm: Feature {
+extension ResourceEditForm: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

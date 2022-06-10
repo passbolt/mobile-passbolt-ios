@@ -68,7 +68,7 @@ extension NetworkClient {
   )
 }
 
-extension NetworkClient: Feature {
+extension NetworkClient: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

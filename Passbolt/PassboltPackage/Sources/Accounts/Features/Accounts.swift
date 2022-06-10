@@ -45,7 +45,7 @@ public struct Accounts {
   public var removeAccount: @StorageAccessActor (Account) -> Result<Void, Error>
 }
 
-extension Accounts: Feature {
+extension Accounts: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

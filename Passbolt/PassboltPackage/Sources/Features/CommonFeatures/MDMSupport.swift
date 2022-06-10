@@ -48,7 +48,7 @@ extension MDMSupport {
 }
 #endif
 
-extension MDMSupport: Feature {
+extension MDMSupport: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

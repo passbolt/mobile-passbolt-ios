@@ -31,7 +31,7 @@ public struct FingerprintStorage {
   public var storeServerFingerprint: @StorageAccessActor (Account.LocalID, Fingerprint) -> Result<Void, Error>
 }
 
-extension FingerprintStorage: Feature {
+extension FingerprintStorage: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

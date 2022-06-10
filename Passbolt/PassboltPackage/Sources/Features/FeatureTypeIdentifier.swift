@@ -21,38 +21,4 @@
 // @since         v1.0
 //
 
-import Environment
-
-public struct Pasteboard {
-
-  public var get: () -> String?
-  public var put: (String?) -> Void
-}
-
-extension Pasteboard: LegacyFeature {
-
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Pasteboard {
-    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
-
-    return Self(
-      get: systemPasteboard.get,
-      put: systemPasteboard.put
-    )
-  }
-}
-
-#if DEBUG
-extension Pasteboard {
-
-  public static var placeholder: Pasteboard {
-    Self(
-      get: unimplemented("You have to provide mocks for used methods"),
-      put: unimplemented("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif
+internal typealias FeatureTypeIdentifier = AnyHashable

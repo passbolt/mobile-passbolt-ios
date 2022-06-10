@@ -33,7 +33,7 @@ public struct UpdateCheck {
   public var updateAvailable: @MainActor () async throws -> Bool
 }
 
-extension UpdateCheck: Feature {
+extension UpdateCheck: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

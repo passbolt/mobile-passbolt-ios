@@ -21,42 +21,10 @@
 // @since         v1.0
 //
 
-import Combine
-import CommonModels
-import Environment
+internal struct FeatureIdentifier {
 
-public protocol AnyFeature {
-
-  nonisolated var featureUnload: @FeaturesActor () async throws -> Void { get }
+  internal let featureTypeIdentifier: FeatureTypeIdentifier
+  internal let featureContextIdentifier: AnyHashable?
 }
 
-public protocol Feature: AnyFeature {
-
-  @FeaturesActor static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self
-
-  #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  nonisolated static var placeholder: Self { get }
-  #endif
-}
-
-extension Feature {
-
-  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void {
-    {
-      throw
-        Unimplemented
-        .error("Unloading not supported")
-        .recording(Self.self, for: "feature")
-    }
-  }
-}
-
-extension Feature {
-
-  internal nonisolated static var featureIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
-}
+extension FeatureIdentifier: Hashable {}

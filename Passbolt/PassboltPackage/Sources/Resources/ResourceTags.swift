@@ -32,7 +32,7 @@ public struct ResourceTags {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension ResourceTags: Feature {
+extension ResourceTags: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

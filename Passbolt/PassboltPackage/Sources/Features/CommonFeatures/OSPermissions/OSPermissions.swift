@@ -34,7 +34,7 @@ public struct OSPermissions {
   public var ensureBiometricsPermission: () -> AnyPublisher<Void, Error>
 }
 
-extension OSPermissions: Feature {
+extension OSPermissions: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

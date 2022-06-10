@@ -33,7 +33,7 @@ public struct AccountSessionData {
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
-extension AccountSessionData: Feature {
+extension AccountSessionData: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

@@ -29,7 +29,7 @@ public struct AutoFill {
   public var extensionEnabledStatePublisher: () -> AnyPublisher<Bool, Never>
 }
 
-extension AutoFill: Feature {
+extension AutoFill: LegacyFeature {
 
   public static func load(
     in environment: AppEnvironment,

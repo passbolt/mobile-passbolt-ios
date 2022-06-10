@@ -21,38 +21,20 @@
 // @since         v1.0
 //
 
-import Environment
+import Commons
 
-public struct Pasteboard {
+public protocol LoadableFeatureContext {
 
-  public var get: () -> String?
-  public var put: (String?) -> Void
+  var identifier: AnyHashable { get }
 }
 
-extension Pasteboard: LegacyFeature {
+extension LoadableFeatureContext
+where Self: Hashable {
 
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Pasteboard {
-    let systemPasteboard: SystemPasteboard = environment.systemPasteboard
-
-    return Self(
-      get: systemPasteboard.get,
-      put: systemPasteboard.put
-    )
+  public var identifier: AnyHashable {
+    self as AnyHashable
   }
 }
 
-#if DEBUG
-extension Pasteboard {
-
-  public static var placeholder: Pasteboard {
-    Self(
-      get: unimplemented("You have to provide mocks for used methods"),
-      put: unimplemented("You have to provide mocks for used methods")
-    )
-  }
-}
-#endif
+extension Tagged: LoadableFeatureContext
+where RawValue: Hashable {}
