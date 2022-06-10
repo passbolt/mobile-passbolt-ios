@@ -70,6 +70,8 @@ extension ImageNameConstant {
   public static var tag: Self { "Tag" }
   public static var userGroup: Self { "UserGroup" }
   public static var chevronRight: Self { "ChevronRight" }
+  public static var circleSelected: Self { "CircleSelected" }
+  public static var circleUnselected: Self { "CircleUnselected" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }
