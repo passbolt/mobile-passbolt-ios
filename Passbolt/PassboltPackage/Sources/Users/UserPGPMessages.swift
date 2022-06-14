@@ -101,6 +101,8 @@ extension UserPGPMessages: Feature {
         .make(using: .init(userID: userID.rawValue))
         .map(\.body)
         .eraseErrorType()
+        // filter out users without gpg keys
+        .compactMap(\.asFilteredDSO)
         .map { user -> AnyPublisher<ArmoredPGPMessage, Error> in
           verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
             .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, Error> in
@@ -126,6 +128,8 @@ extension UserPGPMessages: Feature {
         .map { users -> AnyPublisher<Array<(User.ID, ArmoredPGPMessage)>, Error> in
           Publishers.MergeMany(
             users
+              // filter out users without gpg keys
+              .compactMap(\.asFilteredDSO)
               .map { user -> AnyPublisher<(User.ID, ArmoredPGPMessage), Error> in
                 verifiedPublicKey(user.id, publicKey: user.gpgKey.armoredKey)
                   .map { armoredPublicKey -> AnyPublisher<ArmoredPGPMessage, Error> in

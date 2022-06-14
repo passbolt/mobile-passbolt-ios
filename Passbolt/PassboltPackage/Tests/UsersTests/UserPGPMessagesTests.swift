@@ -44,6 +44,9 @@ final class UserPGPMessagesTests: TestCase {
     database = .placeholder
     networkClient = .placeholder
     mockUserDTO = .random()
+    // ensure a valid user all the time
+    mockUserDTO.active = true
+    mockUserDTO.deleted = false
   }
 
   override func featuresActorTearDown() async throws {
@@ -350,7 +353,10 @@ final class UserPGPMessagesTests: TestCase {
     )
     await features.use(accountSession)
     await features.use(database)
-    let additionalMockUserDTO: UserDTO = .random()
+    var additionalMockUserDTO: UserDTO = .random()
+    // ensure a valid user all the time
+    additionalMockUserDTO.active = true
+    additionalMockUserDTO.deleted = false
     networkClient.userListRequest.execute = always(
       .init(
         header: .mock(),

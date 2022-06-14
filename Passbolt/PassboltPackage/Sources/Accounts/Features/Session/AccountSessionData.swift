@@ -67,6 +67,7 @@ extension AccountSessionData: Feature {
               .userListRequest
               .makeAsync(using: .init(resourceIDFilter: .none))
               .body
+              .compactMap(\.asFilteredDSO)
           )
 
         diagnostics.diagnosticLog("...users data refresh finished!")

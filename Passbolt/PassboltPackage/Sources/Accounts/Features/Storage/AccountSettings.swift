@@ -153,10 +153,15 @@ extension AccountSettings: Feature {
         .make(using: .init(userID: account.userID.rawValue))
         .eraseErrorType()
         .map { response -> AnyPublisher<Void, Error> in
-          updateProfile(for: account.localID) { profile in
-            profile.firstName = response.body.profile.firstName
-            profile.lastName = response.body.profile.lastName
-            profile.avatarImageURL = response.body.profile.avatar.urlString
+          updateProfile(for: account.localID) { currentProfile in
+            // current account should always have a profile
+            // but it is possible to get inactive/deleted
+            // user which can have no profile
+            guard let profile: UserProfileDTO = response.body.profile
+            else { return }
+            currentProfile.firstName = profile.firstName
+            currentProfile.lastName = profile.lastName
+            currentProfile.avatarImageURL = profile.avatar.urlString
           }
         }
         .switchToLatest()

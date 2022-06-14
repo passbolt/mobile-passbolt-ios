@@ -26,17 +26,23 @@ import Commons
 public struct UserDTO {
 
   public var id: User.ID
+  public var active: Bool
+  public var deleted: Bool
   public var username: String
-  public var profile: UserProfileDTO
-  public var gpgKey: UserGPGKeyDTO
+  public var profile: UserProfileDTO?
+  public var gpgKey: UserGPGKeyDTO?
 
   public init(
     id: User.ID,
+    active: Bool,
+    deleted: Bool,
     username: String,
-    profile: UserProfileDTO,
-    gpgKey: UserGPGKeyDTO
+    profile: UserProfileDTO?,
+    gpgKey: UserGPGKeyDTO?
   ) {
     self.id = id
+    self.active = active
+    self.deleted = deleted
     self.username = username
     self.profile = profile
     self.gpgKey = gpgKey
@@ -45,11 +51,31 @@ public struct UserDTO {
 
 extension UserDTO: DTO {}
 
+extension UserDTO {
+
+  public var asFilteredDSO: UserDSO? {
+    guard
+      let gpgKey: UserGPGKeyDTO = self.gpgKey,
+      let profile: UserProfileDTO = self.profile,
+      self.active && !self.deleted
+    else { return nil }
+
+    return .init(
+      id: self.id,
+      username: self.username,
+      profile: profile,
+      gpgKey: gpgKey
+    )
+  }
+}
+
 extension UserDTO: Decodable {
 
   private enum CodingKeys: String, CodingKey {
 
     case id = "id"
+    case active = "active"
+    case deleted = "deleted"
     case username = "username"
     case profile = "profile"
     case gpgKey = "gpgkey"
@@ -64,11 +90,19 @@ extension UserDTO: RandomlyGenerated {
     using randomnessGenerator: RandomnessGenerator
   ) -> Generator<Self> {
     zip(
-      with: UserDTO.init(id:username:profile:gpgKey:),
-      User.ID.randomGenerator(using: randomnessGenerator),
-      Generator<String>.randomEmail(using: randomnessGenerator),
-      UserProfileDTO.randomGenerator(using: randomnessGenerator),
-      UserGPGKeyDTO.randomGenerator(using: randomnessGenerator)
+      with: UserDTO.init(id:active:deleted:username:profile:gpgKey:),
+      User.ID
+        .randomGenerator(using: randomnessGenerator),
+      Bool
+        .randomGenerator(using: randomnessGenerator),
+      Bool
+        .randomGenerator(using: randomnessGenerator),
+      Generator<String>
+        .randomEmail(using: randomnessGenerator),
+      UserProfileDTO
+        .randomGenerator(using: randomnessGenerator),
+      UserGPGKeyDTO
+        .randomGenerator(using: randomnessGenerator)
     )
   }
 }
