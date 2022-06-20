@@ -98,7 +98,7 @@ final class AccountSessionDataTests: TestCase {
         storeVariableIn: &fetchVariable
       )
     )
-    var storeVariable: Array<UserDTO>?
+    var storeVariable: Array<UserDSO>?
     await features.patch(
       \AccountDatabase.storeUsers,
       with: .returning(

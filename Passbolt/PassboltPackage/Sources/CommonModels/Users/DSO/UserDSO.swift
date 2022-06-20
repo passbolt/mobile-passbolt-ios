@@ -21,6 +21,44 @@
 // @since         v1.0
 //
 
-public typealias UserDSO = UserDTO
+import Commons
+
+public struct UserDSO {
+
+  public var id: User.ID
+  public var username: String
+  public var profile: UserProfileDTO
+  public var gpgKey: UserGPGKeyDTO
+
+  public init(
+    id: User.ID,
+    username: String,
+    profile: UserProfileDTO,
+    gpgKey: UserGPGKeyDTO
+  ) {
+    self.id = id
+    self.username = username
+    self.profile = profile
+    self.gpgKey = gpgKey
+  }
+}
 
 extension UserDSO: DSO {}
+
+#if DEBUG
+
+extension UserDSO: RandomlyGenerated {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator
+  ) -> Generator<Self> {
+    zip(
+      with: UserDSO.init(id:username:profile:gpgKey:),
+      User.ID.randomGenerator(using: randomnessGenerator),
+      Generator<String>.randomEmail(using: randomnessGenerator),
+      UserProfileDTO.randomGenerator(using: randomnessGenerator),
+      UserGPGKeyDTO.randomGenerator(using: randomnessGenerator)
+    )
+  }
+}
+#endif
