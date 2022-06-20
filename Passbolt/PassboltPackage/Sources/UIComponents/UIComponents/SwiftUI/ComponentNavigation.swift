@@ -74,40 +74,34 @@ extension ComponentNavigation {
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.sourceComponent?.present(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.present(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @_disfavoredOverload
   @MainActor public func present<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await self.sourceComponent?.present(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -115,40 +109,34 @@ extension ComponentNavigation {
   @MainActor public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.present(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.sourceComponent?.presentSheet(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.presentSheet(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -156,14 +144,12 @@ extension ComponentNavigation {
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
     in context: SheetViewController<Component>.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.presentSheet(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -171,78 +157,95 @@ extension ComponentNavigation {
   @MainActor public func presentSheetMenu<Component>(
     _ type: Component.Type,
     in context: SheetMenuViewController<Component>.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.presentSheetMenu(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.dismiss(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @_disfavoredOverload
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.dismiss(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.sourceComponent?.push(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.push(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
+  }
+
+  @MainActor public func replace<Component, ReplacedComponent>(
+    _: ReplacedComponent.Type,
+    pushing type: Component.Type,
+    animated: Bool = true
+  ) async
+  where Component: ComponentView, Component.Controller.NavigationContext == Void, ReplacedComponent: ComponentView {
+    await self.sourceComponent?
+      .replace(
+        ReplacedComponent.self,
+        pushing: Component.self,
+        animated: animated
+      )
+  }
+
+  @MainActor public func replace<Component, ReplacedComponent>(
+    _: ReplacedComponent.Type,
+    pushing type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true
+  ) async where Component: ComponentView, ReplacedComponent: ComponentView {
+    await self.sourceComponent?
+      .replace(
+        ReplacedComponent.self,
+        pushing: Component.self,
+        in: context,
+        animated: animated
+      )
   }
 
   @_disfavoredOverload
   @MainActor public func push<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await self.sourceComponent?.push(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -250,99 +253,83 @@ extension ComponentNavigation {
   @MainActor public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.push(
       type,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func pop<Component>(
     if type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.pop(
       if: type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @_disfavoredOverload
   @MainActor public func pop<Component>(
     if type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.pop(
       if: type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func pop<Component>(
     to type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.pop(
       to: type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @_disfavoredOverload
   @MainActor public func pop<Component>(
     to type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.pop(
       to: type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func popAll<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.sourceComponent?.popAll(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @_disfavoredOverload
   @MainActor public func popAll<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await self.sourceComponent?.popAll(
       type,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func popToRoot(
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async {
     await self.sourceComponent?.popToRoot(
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -350,14 +337,12 @@ extension ComponentNavigation {
   @MainActor public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Replaced: UIComponent, Replacement: UIComponent, Replacement.Controller.Context == Void {
     await self.sourceComponent?.replaceLast(
       replaced,
       with: replacement,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -366,15 +351,13 @@ extension ComponentNavigation {
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
     in context: Replacement.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Replaced: UIComponent, Replacement: UIComponent {
     await self.sourceComponent?.replaceLast(
       replaced,
       with: replacement,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 }

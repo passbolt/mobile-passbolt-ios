@@ -34,15 +34,10 @@ final class UsersTests: TestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
+    features.usePassboltUsers()
   }
 
-  func test_userDetails_fails_whenDatabaseFetchFails() async throws {
-    await features.usePlaceholder(for: NetworkClient.self)
-    await features
-      .patch(
-        \UserDetailsDatabaseFetch.execute,
-        with: alwaysThrow(MockIssue.error())
-      )
+  func test_userDetails_fails_whenUserDetailsFeatureLoadingFails() async throws {
     let feature: Users = try await testInstance()
 
     var result: Error?
@@ -53,15 +48,15 @@ final class UsersTests: TestCase {
       result = error
     }
 
-    XCTAssertError(result, matches: MockIssue.self)
+    XCTAssertError(result, matches: FeatureUndefined.self)
   }
 
-  func test_userDetails_returnsDetails_fromDatabase() async throws {
-    await features.usePlaceholder(for: NetworkClient.self)
+  func test_userDetails_returnsDetails_fromDetailsFeature() async throws {
     let expectedResult: UserDetailsDSV = .random()
     await features
       .patch(
-        \UserDetailsDatabaseFetch.execute,
+        \UserDetails.details,
+        context: "userID",
         with: always(expectedResult)
       )
 

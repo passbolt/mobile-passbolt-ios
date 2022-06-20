@@ -45,6 +45,7 @@ final class ResourceShareFormTests: TestCase {
     features.usePlaceholder(for: UserGroups.self)
     features.usePlaceholder(for: UsersPGPMessages.self)
     features.usePlaceholder(for: NetworkClient.self)
+    features.usePlaceholder(for: AccountSessionData.self)
     features.usePlaceholder(for: ResourceDetails.self, context: self.resource.id)
     features.patch(
       \ResourceDetails.details,
@@ -328,7 +329,7 @@ final class ResourceShareFormTests: TestCase {
       )
     await features
       .patch(
-        \ResourceDetails.decryptSecret,
+        \ResourceDetails.secret,
         context: resource.id,
         with: alwaysThrow(
           MockIssue.error()
@@ -367,7 +368,7 @@ final class ResourceShareFormTests: TestCase {
       )
     await features
       .patch(
-        \ResourceDetails.decryptSecret,
+        \ResourceDetails.secret,
         context: resource.id,
         with: always(
           .init(
@@ -416,7 +417,7 @@ final class ResourceShareFormTests: TestCase {
       )
     await features
       .patch(
-        \ResourceDetails.decryptSecret,
+        \ResourceDetails.secret,
         context: resource.id,
         with: always(
           .init(
@@ -472,11 +473,16 @@ final class ResourceShareFormTests: TestCase {
         \NetworkClient.shareResourceRequest,
         with: .respondingWith(.success)
       )
+    await features
+      .patch(
+        \AccountSessionData.refreshIfNeeded,
+        with: always(Void())
+      )
 
     var result: Void?
     await features
       .patch(
-        \ResourceDetails.decryptSecret,
+        \ResourceDetails.secret,
         context: resource.id,
         with: {
           result = Void()
@@ -509,7 +515,7 @@ final class ResourceShareFormTests: TestCase {
       )
     await features
       .patch(
-        \ResourceDetails.decryptSecret,
+        \ResourceDetails.secret,
         context: resource.id,
         with: always(
           .init(
@@ -529,6 +535,11 @@ final class ResourceShareFormTests: TestCase {
       .patch(
         \NetworkClient.shareResourceRequest,
         with: .respondingWith(.success)
+      )
+    await features
+      .patch(
+        \AccountSessionData.refreshIfNeeded,
+        with: always(Void())
       )
 
     let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
@@ -551,6 +562,11 @@ final class ResourceShareFormTests: TestCase {
       .patch(
         \NetworkClient.shareResourceRequest,
         with: .respondingWith(.success)
+      )
+    await features
+      .patch(
+        \AccountSessionData.refreshIfNeeded,
+        with: always(Void())
       )
 
     let feature: ResourceShareForm = try await self.testInstance(context: resource.id)

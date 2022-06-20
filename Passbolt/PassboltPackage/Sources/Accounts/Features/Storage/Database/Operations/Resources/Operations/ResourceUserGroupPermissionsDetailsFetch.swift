@@ -139,7 +139,7 @@ extension ResourceUserGroupPermissionsDetailsFetch: DatabaseOperationFeature {
             id: id,
             name: name,
             permissionType: permissionType,
-            members: groupMembers
+            members: OrderedSet(groupMembers)
           )
         }
     }

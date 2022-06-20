@@ -49,10 +49,13 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
 
     let controller: ResourcePermissionListController = try await testController(
       context: .ignored(
-        with: .randomGenerator(
-          using: .sharedDebugRandomSource
+        with: (
+          resourceID: Resource.ID.randomGenerator(
+            using: .sharedDebugRandomSource
+          )
+          .next(),
+          currentUserPermission: PermissionType.random()
         )
-        .next()
       )
     )
 
@@ -73,10 +76,13 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
 
     let controller: ResourcePermissionListController = try await testController(
       context: .ignored(
-        with: .randomGenerator(
-          using: .sharedDebugRandomSource
+        with: (
+          resourceID: Resource.ID.randomGenerator(
+            using: .sharedDebugRandomSource
+          )
+          .next(),
+          currentUserPermission: PermissionType.random()
         )
-        .next()
       )
     )
 

@@ -66,12 +66,22 @@ where HostedView: ComponentView {
       .backgroundColor(.passboltBackground)
     }
     self.cancellables.executeOnMainActor {
-      let controller: HostedView.Controller = await self.components
-        .controller(
-          HostedView.Controller.self,
-          context: self.controller.componentNavigation(using: self),
-          cancellables: self.cancellables
-        )
+      let controller: HostedView.Controller
+      do {
+        controller = try await self.components
+          .controller(
+            HostedView.Controller.self,
+            context: self.controller.componentNavigation(using: self),
+            cancellables: self.cancellables
+          )
+      }
+      catch {
+        error
+          .asTheError()
+          .asAssertionFailure()
+        return await self.pop(if: Self.self)
+      }
+
       let hostingController: UIHostingController<HostedView> = .init(
         rootView: HostedView(
           state: controller.viewState,

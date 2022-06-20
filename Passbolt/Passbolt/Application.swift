@@ -70,7 +70,6 @@ internal struct Application {
       )
     }
     #endif
-    
     self.ui = UI(features: features)
     self.features = features
   }

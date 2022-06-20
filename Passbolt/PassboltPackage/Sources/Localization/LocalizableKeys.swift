@@ -26,6 +26,8 @@ extension LocalizedString.Key {
   // MARK: Generic
   public static let done: Self = "generic.done"
   public static let yes: Self = "generic.yes"
+  public static let apply: Self = "generic.apply"
+  public static let confirm: Self = "generic.confirm"
   public static let cancel: Self = "generic.cancel"
   public static let remove: Self = "generic.remove"
   public static let loading: Self = "generic.loading"

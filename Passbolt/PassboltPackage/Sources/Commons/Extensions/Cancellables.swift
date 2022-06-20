@@ -23,41 +23,42 @@
 
 import Combine
 
-public final class Cancellables {
+public final actor Cancellables {
 
-  private typealias Cancelation = () -> Void
+  private typealias Cancellation = () -> Void
+  private typealias Cleanup = () -> Void
 
-  private let state: CriticalState<Array<Cancelation>>
+  private var cancellations: Array<Cancellation>
+  private var cleanups: Array<Cleanup>
 
   public init() {
-    self.state = .init(.init())
+    self.cancellations = .init()
+    self.cleanups = .init()
   }
 
   deinit {
-    let cancellations: Array<Cancelation> = self.state.access { $0 }
-    for cancel in cancellations {
-      cancel()
+    for cancellation: Cancellation in self.cancellations {
+      cancellation()
+    }
+    for cleanup: Cleanup in self.cleanups {
+      cleanup()
     }
   }
 
-  @discardableResult
-  public func take(
-    _ other: Cancellables
-  ) -> Self {
-    let otherCancellations: Array<Cancelation> = other.state.access { cancellations in
-      defer { cancellations = .init() }
-      return cancellations
-    }
-    self.state.access { cancellations in
-      cancellations.append(contentsOf: otherCancellations)
-    }
-    return self
+  public func addCleanup(
+    _ cleanup: @escaping () async throws -> Void
+  ) {
+    self.cleanups.append({
+      Task.detached(priority: .utility) {
+        try await cleanup()
+      }
+    })
   }
 
-  public func store(_ cancellable: AnyCancellable) {
-    self.state.access { cancellations in
-      cancellations.append(cancellable.cancel)
-    }
+  public func store(
+    _ cancellable: AnyCancellable
+  ) {
+    self.cancellations.append(cancellable.cancel)
   }
 
   public func task<Success>(
@@ -69,43 +70,65 @@ public final class Cancellables {
   public func store<Success, Failure: Error>(
     _ task: Task<Success, Failure>
   ) {
-    self.state.access { cancellations in
-      cancellations.append(task.cancel)
-    }
+    self.cancellations.append(task.cancel)
   }
 
   public func cancelAll() {
-    let cancellations: Array<Cancelation> = self.state.access { cancellations in
-      defer { cancellations = .init() }
-      return cancellations
-    }
-    for cancel in cancellations {
-      cancel()
-    }
-  }
-
-  private func privateClean() {
-    self.state.access { cancellations in
-      cancellations = .init()
+    for cancellation: Cancellation in self.cancellations {
+      cancellation()
     }
   }
 }
 
 extension AnyCancellable {
 
-  public func store(in cancellables: Cancellables?) {
-    cancellables?.store(self)
+  public func store(
+    in cancellables: Cancellables?
+  ) {
+    Task.detached(priority: .utility) {
+      await cancellables?.store(self)
+    }
   }
 }
 
 extension Task {
 
-  public func store(in cancellables: Cancellables?) {
-    cancellables?.store(self)
+  public func store(
+    in cancellables: Cancellables?
+  ) {
+    Task<Void, Never>.detached(priority: .utility) {
+      await cancellables?.store(self)
+    }
   }
 }
 
 extension Cancellables {
+
+  @discardableResult
+  public nonisolated func executeAsync(
+    priority: TaskPriority? = .none,
+    _ operation: @Sendable @escaping () async throws -> Void
+  ) -> Task<Void, Error> {
+    let task: Task<Void, Error> = .init(
+      priority: priority,
+      operation: operation
+    )
+    task.store(in: self)
+    return task
+  }
+
+  @discardableResult
+  public nonisolated func executeAsyncDetached(
+    priority: TaskPriority? = .none,
+    _ operation: @Sendable @escaping () async throws -> Void
+  ) -> Task<Void, Error> {
+    let task: Task<Void, Error> = .detached(
+      priority: priority,
+      operation: operation
+    )
+    task.store(in: self)
+    return task
+  }
 
   @discardableResult
   public nonisolated func executeOnMainActor(
@@ -114,7 +137,7 @@ extension Cancellables {
     let task = Task { @MainActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return task
   }
 
@@ -124,7 +147,7 @@ extension Cancellables {
     let task = Task { @MainActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -139,7 +162,7 @@ extension Cancellables {
       try await operation()
         .eraseErrorType()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -157,7 +180,7 @@ extension Cancellables {
     let task = Task { @AccountSessionActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return task
   }
 
@@ -167,7 +190,7 @@ extension Cancellables {
     let task = Task { @AccountSessionActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -182,7 +205,7 @@ extension Cancellables {
       try await operation()
         .eraseErrorType()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -200,7 +223,7 @@ extension Cancellables {
     let task = Task { @StorageAccessActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return task
   }
 
@@ -210,7 +233,7 @@ extension Cancellables {
     let task = Task { @StorageAccessActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -225,7 +248,7 @@ extension Cancellables {
       try await operation()
         .eraseErrorType()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -243,7 +266,7 @@ extension Cancellables {
     let task = Task { @FeaturesActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return task
   }
 
@@ -253,7 +276,7 @@ extension Cancellables {
     let task = Task { @FeaturesActor in
       try await operation()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()
@@ -268,7 +291,7 @@ extension Cancellables {
       try await operation()
         .eraseErrorType()
     }
-    self.store(task)
+    task.store(in: self)
     return
       task
       .asPublisher()

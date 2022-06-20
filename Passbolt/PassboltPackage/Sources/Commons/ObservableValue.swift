@@ -108,6 +108,13 @@ extension ObservableValue {
     self.value = value
   }
 
+  public func set<Property>(
+    _ keyPath: WritableKeyPath<Value, Property>,
+    to property: Property
+  ) {
+    self.value[keyPath: keyPath] = property
+  }
+
   public nonisolated func asAnyAsyncSequence() -> AnyAsyncSequence<Value> {
     .init(self.valuePublisher)
   }

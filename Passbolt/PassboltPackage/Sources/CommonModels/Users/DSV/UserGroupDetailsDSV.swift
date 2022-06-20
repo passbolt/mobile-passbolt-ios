@@ -21,20 +21,22 @@
 // @since         v1.0
 //
 
+import Commons
+
 public struct UserGroupDetailsDSV {
 
   public var id: UserGroup.ID
   public var name: String
-  public var users: Array<UserDetailsDSV>
+  public var members: OrderedSet<UserDetailsDSV>
 
   public init(
     id: UserGroup.ID,
     name: String,
-    users: Array<UserDetailsDSV>
+    members: OrderedSet<UserDetailsDSV>
   ) {
     self.id = id
     self.name = name
-    self.users = users
+    self.members = members
   }
 }
 

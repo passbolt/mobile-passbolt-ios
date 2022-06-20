@@ -65,6 +65,9 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
       )
 
       self.rightAccessory()
+        .padding(
+          leading: 4
+        )
 
       if self.chevronVisible {
         Image(named: .chevronRight)

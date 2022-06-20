@@ -46,6 +46,8 @@ extension Initialization: LegacyFeature {
       defer { diagnostics.diagnosticLog("...app initialization completed!") }
       // initialize application extension features here
       analytics()
+      // register features implementations
+      await features.usePassboltFeatures()
       // load features that require root scope
       try await features.loadIfNeeded(Diagnostics.self)
       try await features.loadIfNeeded(Executors.self)

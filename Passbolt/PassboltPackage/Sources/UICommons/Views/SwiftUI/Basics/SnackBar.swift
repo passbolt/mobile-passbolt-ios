@@ -30,6 +30,19 @@ public enum SnackBarMessage {
   case error(DisplayableString)
 }
 
+extension SnackBarMessage {
+
+  public static func error(
+    _ error: Error
+  ) -> Self {
+    .error(
+      error
+        .asTheError()
+        .displayableMessage
+    )
+  }
+}
+
 @MainActor
 private struct SnackBar<SnackBarModel, SnackBarView>: ViewModifier
 where SnackBarView: View {
@@ -81,10 +94,9 @@ where SnackBarView: View {
   }
 }
 
-@MainActor
 extension View {
 
-  public func snackBar<Model, SnackBarView>(
+  @MainActor public func snackBar<Model, SnackBarView>(
     presenting: Binding<Model?>,
     autoDismissDelaySeconds: UInt64 = 3,
     @ViewBuilder snackBar: @escaping (Model) -> SnackBarView
@@ -100,7 +112,7 @@ extension View {
     )
   }
 
-  public func snackBarMessage(
+  @MainActor public func snackBarMessage(
     presenting: Binding<SnackBarMessage?>,
     autoDismissDelaySeconds: UInt64 = 3
   ) -> some View {

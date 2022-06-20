@@ -28,33 +28,38 @@ extension AnyUIComponent {
 
   @MainActor public func replaceWindowRoot<Component>(
     with type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await replaceWindowRoot(
       with: type,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func replaceWindowRoot<Component>(
     with type: Component.Type,
     in context: Component.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     guard let window: UIWindow = self.view.window
     else { return assertionFailure("Cannot replace window root without window") }
 
     let currentView: UIView? = window.rootViewController?.view
-    window.rootViewController =
-      await self.components
-      .instance(
-        of: Component.self,
-        in: context
-      )
+    do {
+      window.rootViewController =
+        try await self.components
+        .instance(
+          of: Component.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
 
     return await withCheckedContinuation { continuation in
       UIView.transition(
@@ -65,7 +70,6 @@ extension AnyUIComponent {
           currentView?.alpha = 0
         },
         completion: { _ in
-          completion?()
           continuation.resume()
         }
       )
@@ -74,53 +78,56 @@ extension AnyUIComponent {
 
   @MainActor public func replaceNavigationRoot<Component>(
     with type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await replaceNavigationRoot(
       with: type,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func replaceNavigationRoot<Component>(
     with type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.replaceNavigationRoot(
       with: type,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func replaceNavigationRoot<Component>(
     with type: Component.Type,
     in context: Component.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     guard
       let navigationController = self as? UINavigationController
         ?? self.navigationController
         ?? self.presentingViewController?.navigationController
-    else { unreachable("It is programmer error to replace navigatyion without navigation controller") }
+    else { return assertionFailure("It is programmer error to replace navigation without navigation controller") }
 
-    let component: Component =
-      await self.components
-      .instance(
-        of: Component.self,
-        in: context
-      )
+    let component: Component
+    do {
+      component =
+        try await self.components
+        .instance(
+          of: Component.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
 
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       navigationController
@@ -135,80 +142,79 @@ extension AnyUIComponent {
   @MainActor public func replaceNavigationRoot<Component>(
     with type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.replaceNavigationRoot(
       with: ComponentHostingViewController<Component>.self,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.present(
       ComponentHostingViewController<Component>.self,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await self.present(
       type,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.present(
       ComponentHostingViewController<Component>.self,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func present<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     var presentedLeaf: UIViewController = self
     while let next: UIViewController = presentedLeaf.presentedViewController {
       presentedLeaf = next
     }
 
-    let component: Component =
-      await self.components
-      .instance(
-        of: Component.self,
-        in: context
-      )
+    let component: Component
+    do {
+      component =
+        try await self.components
+        .instance(
+          of: Component.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
 
     return await withCheckedContinuation { continuation in
       presentedLeaf.present(
         component,
         animated: animated,
         completion: {
-          completion?()
           continuation.resume()
         }
       )
@@ -217,75 +223,64 @@ extension AnyUIComponent {
 
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.presentSheet(
       ComponentHostingViewController<Component>.self,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.presentSheet(
       ComponentHostingViewController<Component>.self,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func presentSheet<Component>(
     _ type: Component.Type,
     in context: SheetViewController<Component>.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await present(
       SheetViewController<Component>.self,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func presentSheetMenu<Component>(
     _ type: Component.Type,
     in context: SheetMenuViewController<Component>.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     await present(
       SheetMenuViewController<Component>.self,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.dismiss(
       ComponentHostingViewController<Component>.self,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func dismiss<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     var current: UIViewController = self
     repeat {
@@ -296,7 +291,6 @@ extension AnyUIComponent {
             .dismiss(
               animated: animated,
               completion: {
-                completion?()
                 continuation.resume()
               }
             )
@@ -314,64 +308,66 @@ extension AnyUIComponent {
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView, Component.Controller.NavigationContext == Void {
     await self.push(
       ComponentHostingViewController<Component>.self,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await push(
       type,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.NavigationContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.push(
       ComponentHostingViewController<Component>.self,
       in: context,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func push<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     guard
       let navigationController = self as? UINavigationController
         ?? self.navigationController
         ?? self.presentingViewController?.navigationController
-    else { unreachable("It is programmer error to push without navigation controller") }
-    let component: Component =
-      await self.components
-      .instance(
-        of: Component.self,
-        in: context
-      )
+    else { return assertionFailure("It is programmer error to push without navigation controller") }
+    let component: Component
+    do {
+      component =
+        try await self.components
+        .instance(
+          of: Component.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
+
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       navigationController
@@ -383,32 +379,90 @@ extension AnyUIComponent {
     }
   }
 
+  @MainActor public func replace<Component, ReplacedComponent>(
+    _: ReplacedComponent.Type,
+    pushing type: Component.Type,
+    animated: Bool = true
+  ) async
+  where Component: ComponentView, Component.Controller.NavigationContext == Void, ReplacedComponent: ComponentView {
+    await self.replace(
+      ReplacedComponent.self,
+      pushing: Component.self,
+      in: Void(),
+      animated: animated
+    )
+  }
+
+  @MainActor public func replace<Component, ReplacedComponent>(
+    _: ReplacedComponent.Type,
+    pushing type: Component.Type,
+    in context: Component.Controller.NavigationContext,
+    animated: Bool = true
+  ) async where Component: ComponentView, ReplacedComponent: ComponentView {
+    guard
+      let navigationController = self as? UINavigationController
+        ?? self.navigationController
+        ?? self.presentingViewController?.navigationController
+    else { return assertionFailure("It is programmer error to push without navigation controller") }
+
+    var updatedViewControllers: Array<UIViewController> = navigationController.viewControllers
+    guard updatedViewControllers.popLast() is ComponentHostingViewController<ReplacedComponent>
+    else { return }  // ignore
+
+    let component: ComponentHostingViewController<Component>
+    do {
+      component =
+        try await self.components
+        .instance(
+          of: ComponentHostingViewController<Component>.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
+
+    updatedViewControllers.append(component)
+
+    return await withCheckedContinuation { continuation in
+      CATransaction.begin()
+      CATransaction.setCompletionBlock {
+        continuation.resume()
+      }
+      navigationController
+        .setViewControllers(
+          updatedViewControllers,
+          animated: animated
+        )
+      CATransaction.commit()
+    }
+  }
+
   @MainActor public func pop<Component>(
     if type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.pop(
       if: ComponentHostingViewController<Component>.self,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func pop<Component>(
     if type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     guard let navigationController = self.navigationController
-    else { unreachable("It is programmer error to pop without navigation controller") }
+    else { return assertionFailure("It is programmer error to pop without navigation controller") }
     guard navigationController.viewControllers.last is Component
     else { return }  // ignore
 
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       navigationController.popViewController(animated: animated)
@@ -419,35 +473,38 @@ extension AnyUIComponent {
   @discardableResult
   @MainActor public func pop<Component>(
     to type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async -> Bool
   where Component: ComponentView {
     await self.pop(
       to: ComponentHostingViewController<Component>.self,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @discardableResult
   @MainActor public func pop<Component>(
     to type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async -> Bool
   where Component: UIComponent {
     guard let navigationController = self.navigationController
-    else { unreachable("It is programmer error to pop without navigation controller") }
+    else {
+      assertionFailure("It is programmer error to pop without navigation controller")
+      return false
+    }
     guard let targetViewController = navigationController.viewControllers.last(where: { $0 is Component })
     else { return false }  // ignore
     await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
-      navigationController.popToViewController(targetViewController, animated: animated)
+      navigationController
+        .popToViewController(
+          targetViewController,
+          animated: animated
+        )
       CATransaction.commit()
     }
     return true
@@ -455,27 +512,23 @@ extension AnyUIComponent {
 
   @MainActor public func popAll<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: ComponentView {
     await self.popAll(
       ComponentHostingViewController<Component>.self,
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
   @MainActor public func popAll<Component>(
     _ type: Component.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Component: UIComponent {
     guard let navigationController = self.navigationController
-    else { unreachable("It is programmer error to pop without navigation controller") }
+    else { return assertionFailure("It is programmer error to pop without navigation controller") }
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       navigationController
@@ -488,15 +541,13 @@ extension AnyUIComponent {
   }
 
   @MainActor public func popToRoot(
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async {
     guard let navigationController = self.navigationController
-    else { unreachable("It is programmer error to pop without navigation controller") }
+    else { return assertionFailure("It is programmer error to pop without navigation controller") }
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       navigationController.popToRootViewController(animated: animated)
@@ -507,15 +558,13 @@ extension AnyUIComponent {
   @MainActor public func replaceLast<Replaced, Replacement>(
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Replaced: UIComponent, Replacement: UIComponent, Replacement.Controller.Context == Void {
     await replaceLast(
       replaced,
       with: replacement,
       in: Void(),
-      animated: animated,
-      completion: completion
+      animated: animated
     )
   }
 
@@ -523,22 +572,31 @@ extension AnyUIComponent {
     _ replaced: Replaced.Type,
     with replacement: Replacement.Type,
     in context: Replacement.Controller.Context,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
+    animated: Bool = true
   ) async where Replaced: UIComponent, Replacement: UIComponent {
     guard let navigationController = self.navigationController
-    else { unreachable("It is programmer error to replace without navigation controller") }
+    else { return assertionFailure("It is programmer error to replace without navigation controller") }
     guard let targetIndex = navigationController.viewControllers.lastIndex(where: { $0 is Replaced })
     else { return }  // ignore
-    let component: Replacement = await self.components
-      .instance(
-        of: Replacement.self,
-        in: context
-      )
+    let component: Replacement
+    do {
+      component =
+        try await self.components
+        .instance(
+          of: Replacement.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
+
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       var updatedViewControllers: Array<UIViewController> = navigationController.viewControllers
@@ -559,15 +617,13 @@ extension UIComponent {
   @MainActor public func addChild<Component>(
     _ type: Component.Type,
     viewSetup: @escaping (_ parent: Self.ContentView, _ child: Component.ContentView) -> Void,
-    animations: ((_ parent: Self.ContentView, _ child: Component.ContentView) -> Void)? = nil,
-    completion: ((Component) -> Void)? = nil
+    animations: ((_ parent: Self.ContentView, _ child: Component.ContentView) -> Void)? = nil
   ) async where Component: UIComponent, Component.Controller.Context == Void {
     await addChild(
       type,
       in: Void(),
       viewSetup: viewSetup,
-      animations: animations,
-      completion: completion
+      animations: animations
     )
   }
 
@@ -575,16 +631,23 @@ extension UIComponent {
     _ type: Component.Type,
     in context: Component.Controller.Context,
     viewSetup: @escaping (_ parent: Self.ContentView, _ child: Component.ContentView) -> Void,
-    animations: ((_ parent: Self.ContentView, _ child: Component.ContentView) -> Void)? = nil,
-    completion: ((Component) -> Void)? = nil
-  ) async
+    animations: ((_ parent: Self.ContentView, _ child: Component.ContentView) -> Void)? = nil
+  ) async -> Component
   where Component: UIComponent {
-    let childComponent: Component =
-      await self.components
-      .instance(
-        of: Component.self,
-        in: context
-      )
+    let childComponent: Component
+    do {
+      childComponent =
+        try await self.components
+        .instance(
+          of: Component.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
 
     self.addChild(childComponent)
     childComponent.loadViewIfNeeded()
@@ -601,15 +664,14 @@ extension UIComponent {
           },
           completion: { _ in
             childComponent.didMove(toParent: self)
-            completion?(childComponent)
-            continuation.resume()
+            continuation.resume(returning: childComponent)
           }
         )
       }
     }
     else {
       childComponent.didMove(toParent: self)
-      completion?(childComponent)
+      return childComponent
     }
   }
 
@@ -620,16 +682,14 @@ extension UIComponent {
       Void,
     animations: (
       (_ parent: Self.ContentView, _ child: ComponentHostingViewController<Component>.ContentView) -> Void
-    )? = nil,
-    completion: (() -> Void)? = nil
+    )? = nil
   ) async
   where Component: ComponentView {
     await self.addChild(
       ComponentHostingViewController<Component>.self,
       in: context,
       viewSetup: viewSetup,
-      animations: animations,
-      completion: { _ in completion?() }
+      animations: animations
     )
   }
 
@@ -639,16 +699,14 @@ extension UIComponent {
     viewSetup: @escaping (_ parent: Self.ContentView, _ replacing: Replacing.ContentView) -> Void,
     animations: (
       (_ parent: Self.ContentView, _ replacing: Replacing.ContentView, _ replaced: Replaced.ContentView) -> Void
-    )? = nil,
-    completion: (() -> Void)? = nil
+    )? = nil
   ) async where Replaced: UIComponent, Replacing: UIComponent, Replacing.Controller.Context == Void {
     await replaceChild(
       replaced,
       with: replacing,
       in: Void(),
       viewSetup: viewSetup,
-      animations: animations,
-      completion: completion
+      animations: animations
     )
   }
 
@@ -659,8 +717,7 @@ extension UIComponent {
     viewSetup: @escaping (_ parent: Self.ContentView, _ replacing: Replacing.ContentView) -> Void,
     animations: (
       (_ parent: Self.ContentView, _ replacing: Replacing.ContentView, _ replaced: Replaced.ContentView) -> Void
-    )? = nil,
-    completion: (() -> Void)? = nil
+    )? = nil
   ) async where Replaced: UIComponent, Replacing: UIComponent {
     let matchingComponents: Array<Replaced> = self.children.compactMap { $0 as? Replaced }
     assert(matchingComponents.count == 1, "Cannot replace non existing or ambiguous child")
@@ -669,12 +726,21 @@ extension UIComponent {
 
     replacedComponent.willMove(toParent: nil)
 
-    let replacingComponent: Replacing =
-      await self.components
-      .instance(
-        of: Replacing.self,
-        in: context
-      )
+    let replacingComponent: Replacing
+    do {
+      replacingComponent =
+        try await self.components
+        .instance(
+          of: Replacing.self,
+          in: context
+        )
+    }
+    catch {
+      error
+        .asTheError()
+        .asAssertionFailure()
+      return
+    }
 
     self.addChild(replacingComponent)
     replacingComponent.loadViewIfNeeded()
@@ -693,7 +759,6 @@ extension UIComponent {
             replacedComponent.view.removeFromSuperview()
             replacedComponent.removeFromParent()
             replacingComponent.didMove(toParent: self)
-            completion?()
             continuation.resume()
           }
         )
@@ -703,19 +768,16 @@ extension UIComponent {
       replacedComponent.view.removeFromSuperview()
       replacedComponent.removeFromParent()
       replacingComponent.didMove(toParent: self)
-      completion?()
     }
   }
 
   @MainActor public func removeAllChildren<Component>(
     _ type: Component.Type,
-    animations: ((_ parent: Self.ContentView, _ removed: Component.ContentView) -> Void)? = nil,
-    completion: (() -> Void)? = nil
+    animations: ((_ parent: Self.ContentView, _ removed: Component.ContentView) -> Void)? = nil
   ) async where Component: UIComponent {
     return await withCheckedContinuation { continuation in
       CATransaction.begin()
       CATransaction.setCompletionBlock {
-        completion?()
         continuation.resume()
       }
       self.children
@@ -749,8 +811,7 @@ extension UIComponent {
     _ type: Component.Type,
     animations: (
       (_ parent: Self.ContentView, _ removed: ComponentHostingViewController<Component>.ContentView) -> Void
-    )? = nil,
-    completion: (() -> Void)? = nil
+    )? = nil
   ) async where Component: ComponentView {
     await self.removeAllChildren(
       ComponentHostingViewController<Component>.self

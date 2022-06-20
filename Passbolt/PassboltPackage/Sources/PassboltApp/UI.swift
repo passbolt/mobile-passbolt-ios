@@ -47,8 +47,8 @@ extension UI {
   ) {
     switch scene {
     case let windowScene as UIWindowScene:
-      let cancellables: Cancellables = .init()
       MainActor.execute {
+        let cancellables: Cancellables = .init()
         let window: Window = await self.prepareWindow(
           for: windowScene,
           in: session,

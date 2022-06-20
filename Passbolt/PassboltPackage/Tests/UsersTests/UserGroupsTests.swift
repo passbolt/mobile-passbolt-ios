@@ -148,34 +148,55 @@ final class UserGroupsTests: TestCase {
     )
   }
 
-  func test_groupMembers_fails_whenDatabaseFetchFails() async throws {
-    await features.patch(
-      \UserGroupMembersDatabaseFetch.execute,
-      with: alwaysThrow(MockIssue.error())
-    )
+  func test_groupMembers_fails_whenLoadingDetailsFails() async throws {
+    let feature: UserGroups = try await self.testInstance()
+
+    await XCTAssertError(
+      matches: FeatureUndefined.self
+    ) {
+      try await feature.groupMembers("groupID")
+    }
+  }
+
+  func test_groupMembers_fails_whenDetailsAccessFails() async throws {
+    await features
+      .patch(
+        \UserGroupDetails.details,
+        context: "groupID",
+        with: alwaysThrow(
+          MockIssue.error()
+        )
+      )
     let feature: UserGroups = try await self.testInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.groupMembers(.random())
+      try await feature.groupMembers("groupID")
     }
   }
 
-  func test_groupMembers_returnsList_whenDatabaseFetchSucceeds() async throws {
-    let expectedResult: OrderedSet<User.ID> = [.random()]
-
-    await features.patch(
-      \UserGroupMembersDatabaseFetch.execute,
-      with: always(Array(expectedResult))
-    )
+  func test_groupMembers_returnsList_whenDetailsAccessSucceeds() async throws {
+    let expectedResult: OrderedSet<UserDetailsDSV> = [.random()]
+    await features
+      .patch(
+        \UserGroupDetails.details,
+        context: "groupID",
+        with: always(
+          .init(
+            id: "groupID",
+            name: "group",
+            members: expectedResult
+          )
+        )
+      )
 
     let feature: UserGroups = try await self.testInstance()
 
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.groupMembers(.random())
+      try await feature.groupMembers("groupID")
     }
   }
 }

@@ -37,6 +37,7 @@ extension ResourceDetailsSharedSectionController: ComponentController {
   internal typealias ControlledView = ResourceDetailsSharedSectionView
   internal typealias NavigationContext = (
     resourceID: Resource.ID,
+    currentUserPermission: PermissionType,
     permissions: OrderedSet<PermissionDSV>
   )
 
@@ -85,7 +86,10 @@ extension ResourceDetailsSharedSectionController: ComponentController {
     @MainActor func showResourcePermissionList() async {
       await navigation.push(
         ResourcePermissionListView.self,
-        in: context.resourceID
+        in: (
+          resourceID: context.resourceID,
+          currentUserPermission: context.currentUserPermission
+        )
       )
     }
 

@@ -156,7 +156,7 @@ final class ResourceDetailsTests: TestCase {
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.decryptSecret()
+      try await feature.secret()
     }
   }
 
@@ -175,7 +175,7 @@ final class ResourceDetailsTests: TestCase {
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await feature.decryptSecret()
+      try await feature.secret()
     }
   }
 
@@ -195,7 +195,7 @@ final class ResourceDetailsTests: TestCase {
       equal: 3
     ) {
       await feature
-        .updatesSequence()
+        .detailsSequence()
         .prefix(3)
         .reduce(
           into: []
@@ -234,7 +234,7 @@ final class ResourceDetailsTests: TestCase {
     await XCTAssertValue(
       equal: expectedResult
     ) {
-      try await feature.decryptSecret()
+      try await feature.secret()
     }
   }
 }

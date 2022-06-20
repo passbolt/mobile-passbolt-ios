@@ -21,12 +21,22 @@
 // @since         v1.0
 //
 
+import Localization
 import SwiftUI
 
 @MainActor
 public struct EmptyListView: View {
 
-  public init() {}
+  private let message: DisplayableString
+
+  public init(
+    message: DisplayableString =
+      .localized(
+        key: "generic.empty.list"
+      )
+  ) {
+    self.message = message
+  }
 
   public var body: some View {
     VStack(
@@ -35,9 +45,7 @@ public struct EmptyListView: View {
     ) {
       Spacer()
       Text(
-        displayable: .localized(
-          key: "generic.empty.list"
-        )
+        displayable: self.message
       )
       .text(
         font: .inter(
@@ -47,8 +55,7 @@ public struct EmptyListView: View {
         color: .passboltPrimaryText
       )
       Image(named: .emptyState)
-        .resizable()
-        .aspectRatio(contentMode: .fill)
+        .aspectRatio(1, contentMode: .fit)
         .padding(
           top: 24,
           leading: 64,

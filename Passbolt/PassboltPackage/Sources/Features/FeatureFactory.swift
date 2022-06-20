@@ -151,7 +151,8 @@ public final class FeatureFactory {
 
   @FeaturesActor public func pushScope<Identifier>(
     identifier: Identifier
-  ) where Identifier: Hashable {
+  ) -> () async -> Void
+  where Identifier: Hashable {
     self.pushScope(
       .init(
         identifier: identifier
@@ -161,16 +162,17 @@ public final class FeatureFactory {
 
   @FeaturesActor public func pushScope(
     _ scope: FeaturesScope
-  ) {
+  ) -> () async -> Void {
     #if DEBUG
-    guard Self.allowScopes else { return }
+    guard Self.allowScopes else { return {} }
     #endif
     self.scopeStack.append(scope)
     self.scopePendingFeaturesStack.append(.init())
     self.scopeFeaturesCacheStack.append(.init())
+    return self.popScope
   }
 
-  @FeaturesActor public func popScope() async {
+  @FeaturesActor private func popScope() async {
     #if DEBUG
     guard Self.allowScopes else { return }
     #endif

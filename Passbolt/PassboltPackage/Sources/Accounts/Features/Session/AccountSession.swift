@@ -278,7 +278,7 @@ extension AccountSession: LegacyFeature {
         break  // do nothing
       }
 
-      sessionCancellables.cancelAll()
+      await sessionCancellables.cancelAll()
       await authorizationTask.cancel()  // cancel ongoing authorization if any
 
       // we provide none for last used to avoid skipping
@@ -449,7 +449,7 @@ extension AccountSession: LegacyFeature {
       }
 
       if switchingAccount {
-        sessionCancellables.cancelAll()
+        await sessionCancellables.cancelAll()
         return try await authorizationTask.run(replacingCurrent: true) {
           do {
             return try await createSession()

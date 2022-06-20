@@ -77,7 +77,7 @@ internal final class Window {
 
               guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
               else { return }
-              await self.replaceRoot(
+              try await self.replaceRoot(
                 with: self.components
                   .instance(
                     of: SplashScreenViewController.self
@@ -104,7 +104,7 @@ internal final class Window {
                 /* NOP - reuse previous cache if any if previous screen was mfa prompt */
               }
 
-              await self.replaceRoot(
+              try await self.replaceRoot(
                 with: self.components
                   .instance(
                     of: AuthorizationNavigationViewController.self,
@@ -122,7 +122,7 @@ internal final class Window {
               if let authorizationNavigation = self.window.rootViewController as? AuthorizationNavigationViewController
               {
                 if providers.isEmpty {
-                  await self.replaceRoot(
+                  try await self.replaceRoot(
                     with: self.components
                       .instance(
                         of: PlainNavigationViewController<UnsupportedMFAViewController>.self
@@ -147,7 +147,7 @@ internal final class Window {
                 self.screenStateCache = rootComponent
 
                 if providers.isEmpty {
-                  await self.replaceRoot(
+                  try await self.replaceRoot(
                     with: self.components
                       .instance(
                         of: PlainNavigationViewController<UnsupportedMFAViewController>.self
@@ -155,7 +155,7 @@ internal final class Window {
                   )
                 }
                 else {
-                  await self.replaceRoot(
+                  try await self.replaceRoot(
                     with: self.components
                       .instance(
                         of: PlainNavigationViewController<MFARootViewController>.self,

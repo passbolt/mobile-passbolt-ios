@@ -24,10 +24,12 @@
 extension AsyncSequence {
 
   public func forLatest(
-    execute operation: @escaping (Element) async -> Void
+    execute operation: @Sendable @escaping (Element) async -> Void
   ) async throws {
     try await withThrowingTaskGroup(of: Void.self) { (taskGroup: inout ThrowingTaskGroup<Void, Error>) in
       var iterator: Self.AsyncIterator = self.makeAsyncIterator()
+
+      try Task.checkCancellation()
 
       guard let firstElement: Element = try await iterator.next()
       else { return }  // just end
@@ -45,7 +47,7 @@ extension AsyncSequence {
 
       while let nextValue = try await iterator.next() {
         try Task.checkCancellation()
-        try await variable.send(nextValue)
+        await variable.send(nextValue)
       }
 
       try await taskGroup.waitForAll()

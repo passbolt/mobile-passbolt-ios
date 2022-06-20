@@ -170,13 +170,9 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
             switch completion {
             case .finished:
               await self?.push(
-                CodeScanningSuccessViewController.self,
-                completion: { [weak self] in
-                  self?.cancellables.executeOnMainActor { [weak self] in
-                    await self?.popAll(Self.self, animated: false)
-                  }
-                }
+                CodeScanningSuccessViewController.self
               )
+              await self?.popAll(Self.self, animated: false)
 
             case let .failure(error) where (error is Cancelled || error.asLegacy.identifier == .canceled):
               switch self?.navigationController {
@@ -200,13 +196,9 @@ internal final class CodeScanningViewController: PlainViewController, UIComponen
 
             case let .failure(error) where error.asLegacy.legacyBridge is AccountDuplicate:
               await self?.push(
-                CodeScanningDuplicateViewController.self,
-                completion: { [weak self] in
-                  self?.cancellables.executeOnMainActor { [weak self] in
-                    await self?.popAll(Self.self, animated: false)
-                  }
-                }
+                CodeScanningDuplicateViewController.self
               )
+              await self?.popAll(Self.self, animated: false)
 
             case let .failure(error):
               await self?.push(

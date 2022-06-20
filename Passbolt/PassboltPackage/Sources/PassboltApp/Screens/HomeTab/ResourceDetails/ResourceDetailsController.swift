@@ -58,6 +58,9 @@ extension ResourceDetailsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    await cancellables.addCleanup(
+      features.pushScope(.resourceDetails)
+    )
     let diagnostics: Diagnostics = try await features.instance()
     let resources: Resources = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
@@ -434,5 +437,12 @@ extension ResourceDetailsController: UIController {
       resourceDeletionPublisher: resourceDeletionPublisher(resourceID:),
       copyFieldValue: copyField(_:)
     )
+  }
+}
+
+extension FeaturesScope {
+
+  internal static var resourceDetails: Self {
+    .init(identifier: #function)
   }
 }

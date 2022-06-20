@@ -30,9 +30,9 @@ import NetworkClient
 
 public struct ResourceDetails {
 
-  public var updatesSequence: () -> AnyAsyncSequence<Void>
   public var details: () async throws -> ResourceDetailsDSV
-  public var decryptSecret: @AccountSessionActor () async throws -> ResourceSecret
+  public var secret: () async throws -> ResourceSecret
+  public var detailsSequence: () -> AnyAsyncSequence<ResourceDetailsDSV>
 }
 
 extension ResourceDetails: LoadableFeature {
@@ -55,44 +55,43 @@ extension ResourceDetails {
     let networkClient: NetworkClient = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
 
-    let detailsCache: AsyncVariable<ResourceDetailsDSV> = .init(
-      initial:
-        try await accountDatabase
+    @StorageAccessActor @Sendable func fetchResourceDetails() async throws -> ResourceDetailsDSV {
+      try await accountDatabase
         .fetchResourceDetailsDSVs(
           .init(
             resourceID: resourceID
           )
         )
+    }
+
+    let currentDetails: AsyncVariable<ResourceDetailsDSV> = .init(
+      initial:
+        try await fetchResourceDetails()
     )
 
-    cancellables.executeOnStorageAccessActor {
-      for await _ in sessionData.updatesSequence().dropFirst() {
-        do {
-          let updatedDetails: ResourceDetailsDSV =
-            try await accountDatabase
-            .fetchResourceDetailsDSVs(
-              .init(
-                resourceID: resourceID
-              )
-            )
-          try await detailsCache.withValue { (details: inout ResourceDetailsDSV) in
-            details = updatedDetails
+    cancellables.executeAsync {
+      try await sessionData
+        .updatesSequence()
+        .dropFirst()
+        .forEach {
+          do {
+            let updatedDetails: ResourceDetailsDSV =
+              try await fetchResourceDetails()
+            try await currentDetails.withValue { (details: inout ResourceDetailsDSV) in
+              details = updatedDetails
+            }
+          }
+          catch {
+            diagnostics.log(error)
           }
         }
-        catch {
-          diagnostics.log(error)
-        }
-      }
-    }
-    nonisolated func updatesSequence() -> AnyAsyncSequence<Void> {
-      sessionData.updatesSequence()
     }
 
     @StorageAccessActor func details() async throws -> ResourceDetailsDSV {
-      await detailsCache.value
+      await currentDetails.value
     }
 
-    @AccountSessionActor func decryptSecret() async throws -> ResourceSecret {
+    @AccountSessionActor func secret() async throws -> ResourceSecret {
       let encryptedSecret: String =
         try await networkClient
         .resourceSecretRequest
@@ -112,10 +111,14 @@ extension ResourceDetails {
       return try .from(decrypted: decryptedSecret)
     }
 
+    nonisolated func detailsSequence() -> AnyAsyncSequence<ResourceDetailsDSV> {
+      currentDetails.asAnyAsyncSequence()
+    }
+
     return ResourceDetails(
-      updatesSequence: updatesSequence,
       details: details,
-      decryptSecret: decryptSecret
+      secret: secret,
+      detailsSequence: detailsSequence
     )
   }
 }
@@ -138,9 +141,9 @@ extension ResourceDetails {
 
   public static var placeholder: Self {
     Self(
-      updatesSequence: unimplemented(),
       details: unimplemented(),
-      decryptSecret: unimplemented()
+      secret: unimplemented(),
+      detailsSequence: unimplemented()
     )
   }
 }

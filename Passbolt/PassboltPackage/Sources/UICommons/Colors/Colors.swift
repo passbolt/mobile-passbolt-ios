@@ -116,6 +116,10 @@ extension UIColor {
   public static var passboltBackgroundAlert: Self {
     .init(named: "backgroundAlert", in: .uiCommons, compatibleWith: .current)!
   }
+
+  public static var passboltBackgroundLoader: Self {
+    .init(named: "backgroundLoader", in: .uiCommons, compatibleWith: .current)!
+  }
 }
 
 extension Color {
@@ -209,5 +213,9 @@ extension Color {
 
   public static var passboltBackgroundAlert: Self {
     .init(UIColor.passboltBackgroundAlert)
+  }
+
+  public static var passboltBackgroundLoader: Self {
+    .init(UIColor.passboltBackgroundLoader)
   }
 }

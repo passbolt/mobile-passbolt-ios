@@ -98,17 +98,13 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self?.cancellables.executeOnMainActor { [weak self] in
           guard let self = self else { return }
           await self.dismiss(
-            AccountMenuViewController.self,
-            completion: { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.controller.navigation
-                  .push(
-                    AccountDetailsViewController.self,
-                    in: accountWithProfile
-                  )
-              }
-            }
+            AccountMenuViewController.self
           )
+          await self.controller.navigation
+            .push(
+              AccountDetailsViewController.self,
+              in: accountWithProfile
+            )
         }
       }
       .store(in: cancellables)
@@ -127,17 +123,13 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self?.cancellables.executeOnMainActor { [weak self] in
           guard let self = self else { return }
           await self.dismiss(
-            AccountMenuViewController.self,
-            completion: { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.controller.navigation
-                  .push(
-                    AuthorizationViewController.self,
-                    in: account
-                  )
-              }
-            }
+            AccountMenuViewController.self
           )
+          await self.controller.navigation
+            .push(
+              AuthorizationViewController.self,
+              in: account
+            )
         }
       }
       .store(in: cancellables)
@@ -156,17 +148,13 @@ internal final class AccountMenuViewController: PlainViewController, UIComponent
         self?.cancellables.executeOnMainActor { [weak self] in
           guard let self = self else { return }
           await self.dismiss(
-            AccountMenuViewController.self,
-            completion: { [weak self] in
-              self?.cancellables.executeOnMainActor { [weak self] in
-                await self?.controller.navigation
-                  .push(
-                    AccountSelectionViewController.self,
-                    in: .init(value: true)
-                  )
-              }
-            }
+            AccountMenuViewController.self
           )
+          await self.controller.navigation
+            .push(
+              AccountSelectionViewController.self,
+              in: .init(value: true)
+            )
         }
       }
       .store(in: cancellables)

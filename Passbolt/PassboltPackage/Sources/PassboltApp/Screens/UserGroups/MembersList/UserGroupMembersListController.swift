@@ -63,7 +63,7 @@ extension UserGroupMembersListController: ComponentController {
       initial: .init(
         groupName: context.name,
         items: context
-          .users
+          .members
           .map { (user: UserDetailsDSV) -> UserGroupMembersListRowItem in
             .init(
               userDetails: user,

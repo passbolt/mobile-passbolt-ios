@@ -47,13 +47,27 @@ extension UI {
 
   public func prepareCredentialList() {
     MainActor.execute {
-      await self.setRootContent(self.components.instance(of: ExtensionViewController.self))
+      do {
+        try await self.setRootContent(self.components.instance(of: ExtensionViewController.self))
+      }
+      catch {
+        error
+          .asTheError()
+          .asFatalError()
+      }
     }
   }
 
   public func prepareInterfaceForExtensionConfiguration() {
     MainActor.execute {
-      await self.setRootContent(self.components.instance(of: ExtensionSetupViewController.self))
+      do {
+        try await self.setRootContent(self.components.instance(of: ExtensionSetupViewController.self))
+      }
+      catch {
+        error
+          .asTheError()
+          .asFatalError()
+      }
     }
   }
 

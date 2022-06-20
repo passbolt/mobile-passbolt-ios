@@ -152,7 +152,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
     .refreshable {
       await self.controller.refreshIfNeeded()
     }
-
   }
 
   @ViewBuilder private var resourcesUserGroupsListContent: some View {

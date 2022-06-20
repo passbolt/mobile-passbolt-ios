@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Features
 import NetworkClient
 import Users
@@ -36,24 +37,6 @@ public struct ResourceShareForm {
   public var deleteUserGroupPermission: (UserGroup.ID) async throws -> Void
   public var sendForm: @AccountSessionActor () async throws -> Void
   public var cancelForm: @FeaturesActor () async -> Void
-
-  public init(
-    permissionsSequence: @escaping () -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>>,
-    setUserPermission: @escaping (User.ID, PermissionType) async throws -> Void,
-    deleteUserPermission: @escaping (User.ID) async throws -> Void,
-    setUserGroupPermission: @escaping (UserGroup.ID, PermissionType) async throws -> Void,
-    deleteUserGroupPermission: @escaping (UserGroup.ID) async throws -> Void,
-    sendForm: @escaping @AccountSessionActor () async throws -> Void,
-    cancelForm: @escaping @FeaturesActor () async -> Void
-  ) {
-    self.permissionsSequence = permissionsSequence
-    self.setUserPermission = setUserPermission
-    self.deleteUserPermission = deleteUserPermission
-    self.setUserGroupPermission = setUserGroupPermission
-    self.deleteUserGroupPermission = deleteUserGroupPermission
-    self.sendForm = sendForm
-    self.cancelForm = cancelForm
-  }
 }
 
 extension ResourceShareForm: LoadableFeature {
@@ -65,21 +48,23 @@ extension ResourceShareForm: LoadableFeature {
 
 extension ResourceShareForm {
 
+  fileprivate struct FormState: Hashable {
+
+    fileprivate var newPermissions: OrderedSet<NewPermissionDTO>
+    fileprivate var updatedPermissions: OrderedSet<PermissionDTO>
+    fileprivate var deletedPermissions: OrderedSet<PermissionDTO>
+  }
+
   fileprivate static func load(
     features: FeatureFactory,
     context resourceID: Context,
     cancellables: Cancellables
   ) async throws -> Self {
     let networkClient: NetworkClient = try await features.instance()
+    let sessionData: AccountSessionData = try await features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
     let usersPGPMessages: UsersPGPMessages = try await features.instance()
     let userGroups: UserGroups = try await features.instance()
-
-    struct FormState {
-      var newPermissions: OrderedSet<NewPermissionDTO>
-      var updatedPermissions: OrderedSet<PermissionDTO>
-      var deletedPermissions: OrderedSet<PermissionDTO>
-    }
 
     let formState: AsyncVariable<FormState> = .init(
       initial: .init(
@@ -93,7 +78,7 @@ extension ResourceShareForm {
 
     nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> {
       formState
-        // .removeDuplicates() TODO: duplicates ??
+        // .removeDuplicates() waiting for Swift 5.7
         .map { (formState: FormState) -> OrderedSet<ResourceShareFormPermission> in
           let existingPermissionsList: Array<ResourceShareFormPermission> =
             currentPermissions
@@ -165,9 +150,6 @@ extension ResourceShareForm {
                   }
                 }
             )
-        }
-        .map {
-          $0
         }
         .asAnyAsyncSequence()
     }
@@ -399,12 +381,14 @@ extension ResourceShareForm {
 
       let uniqueNewUsers: OrderedSet<User.ID> =
         try await withThrowingTaskGroup(
-          of: OrderedSet<User.ID>.self,
+          of: Array<User.ID>.self,
           returning: OrderedSet<User.ID>.self
         ) { group in
           for userGroup in newUserGroups {
             group.addTask {
-              try await userGroups.groupMembers(userGroup)
+              try await userGroups
+                .groupMembers(userGroup)
+                .map(\.id)
             }
           }
 
@@ -419,7 +403,7 @@ extension ResourceShareForm {
       guard !uniqueNewUsers.isEmpty
       else { return .init() }
 
-      let secret: ResourceSecret = try await resourceDetails.decryptSecret()
+      let secret: ResourceSecret = try await resourceDetails.secret()
 
       return
         try await OrderedSet(
@@ -465,6 +449,8 @@ extension ResourceShareForm {
             )
           )
         )
+
+      try await sessionData.refreshIfNeeded()
 
       await close()
     }

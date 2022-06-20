@@ -45,7 +45,8 @@ extension ShareResourceRequest {
               .header("Cookie", value: "passbolt_mfa=\(mfaToken)")
             }
           ),
-          .method(.put)
+          .method(.put),
+          .jsonBody(from: requestVariable.body)
         )
       },
       responseDecoder: .statusCodes(200..<300),
@@ -100,7 +101,7 @@ extension ShareResourceRequestBody: Encodable {
   private enum PermissionCodingKeys: String, CodingKey {
 
     case new = "is_new"
-    case deleted = "deleted"
+    case deleted = "delete"
     case id = "id"
     case subject = "aro"
     case subjectID = "aro_foreign_key"
@@ -390,7 +391,7 @@ extension ShareResourceRequestBody: Encodable {
       }
     }
 
-    for deletedPermission in self.updatedPermissions {
+    for deletedPermission in self.deletedPermissions {
       var permissionContainer: KeyedEncodingContainer<PermissionCodingKeys> =
         permissionsContainer
         .nestedContainer(

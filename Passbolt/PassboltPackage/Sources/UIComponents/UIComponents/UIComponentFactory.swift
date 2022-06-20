@@ -39,12 +39,11 @@ extension UIComponentFactory {
   @MainActor public func instance<Component>(
     of component: Component.Type = Component.self,
     in context: Component.Controller.Context
-  ) async -> Component
+  ) async throws -> Component
   where Component: UIComponent {
     let cancellables: Cancellables = .init()
-    let component: Component
-    do {
-      component = try await .instance(
+    let component: Component =
+      try await .instance(
         using: .instance(
           in: context,
           with: features,
@@ -52,36 +51,23 @@ extension UIComponentFactory {
         ),
         with: self
       )
-    }
-    catch {
-      error
-        .asTheError()
-        .asFatalError()
-    }
     component.cancellables = cancellables
     return component
   }
 
   @MainActor public func instance<Component>(
     of component: Component.Type = Component.self
-  ) async -> Component
+  ) async throws -> Component
   where Component: UIComponent, Component.Controller.Context == Void {
     let cancellables: Cancellables = .init()
-    let component: Component
-    do {
-      component = try await .instance(
+    let component: Component =
+      try await .instance(
         using: .instance(
           with: features,
           cancellables: cancellables
         ),
         with: self
       )
-    }
-    catch {
-      error
-        .asTheError()
-        .asFatalError()
-    }
     component.cancellables = cancellables
     return component
   }
@@ -93,20 +79,13 @@ extension UIComponentFactory {
     _: Controller.Type = Controller.self,
     context: Controller.Context,
     cancellables: Cancellables
-  ) async -> Controller
+  ) async throws -> Controller
   where Controller: UIController {
-    do {
-      return try await .instance(
-        in: context,
-        with: features,
-        cancellables: cancellables
-      )
-    }
-    catch {
-      error
-        .asTheError()
-        .asFatalError()
-    }
+    return try await .instance(
+      in: context,
+      with: features,
+      cancellables: cancellables
+    )
   }
 }
 
@@ -135,27 +114,12 @@ extension UIComponent {
       }
     }
     set {
-      let stored: Cancellables? =
-        objc_getAssociatedObject(
-          self,
-          &cancellablesAssociationKey
-        ) as? Cancellables
-      if let stored: Cancellables = stored {
-        objc_setAssociatedObject(
-          self,
-          &cancellablesAssociationKey,
-          stored.take(newValue),
-          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-        )
-      }
-      else {
-        objc_setAssociatedObject(
-          self,
-          &cancellablesAssociationKey,
-          newValue,
-          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-        )
-      }
+      objc_setAssociatedObject(
+        self,
+        &cancellablesAssociationKey,
+        newValue,
+        .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+      )
     }
   }
 }

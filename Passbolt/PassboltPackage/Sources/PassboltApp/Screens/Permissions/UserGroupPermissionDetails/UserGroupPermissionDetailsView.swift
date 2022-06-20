@@ -39,42 +39,14 @@ internal struct UserGroupPermissionDetailsView: ComponentView {
   }
 
   internal var body: some View {
-    VStack(spacing: 0) {
-      self.titleView
-
+    ScreenView(
+      title: .localized(
+        key: "resource.permission.details.title"
+      ),
+      snackBarMessage: self.$state.snackBarMessage
+    ) {
       self.contentView
     }
-    .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
-  }
-
-  @ViewBuilder private var titleView: some View {
-    ZStack(alignment: .top) {
-      Rectangle()
-        .fill(Color.passboltBackground)
-        .ignoresSafeArea(.all, edges: .top)
-      Text(
-        displayable: .localized(
-          key: "resource.permission.details.title"
-        )
-      )
-      .font(
-        .inter(
-          ofSize: 16,
-          weight: .semibold
-        )
-      )
-      .foregroundColor(.passboltPrimaryText)
-      .frame(height: 40)
-      .padding(
-        leading: 32,
-        trailing: 32
-      )
-      // hide under navigation bar
-      .padding(top: -42)
-    }
-    .fixedSize(horizontal: false, vertical: true)
-    .zIndex(1)
   }
 
   @ViewBuilder private var contentView: some View {

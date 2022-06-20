@@ -108,10 +108,17 @@ extension MainTabsViewController {
 
   fileprivate func initializeTabs() {
     self.cancellables.executeOnMainActor {
-      self.viewControllers = [
-        await self.components.instance(of: HomeTabNavigationViewController.self),
-        await self.components.instance(of: SettingsTabViewController.self),
-      ]
+      do {
+        self.viewControllers = [
+          try await self.components.instance(of: HomeTabNavigationViewController.self),
+          try await self.components.instance(of: SettingsTabViewController.self),
+        ]
+      }
+      catch {
+        error
+          .asTheError()
+          .asFatalError()
+      }
     }
   }
 

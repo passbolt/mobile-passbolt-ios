@@ -90,6 +90,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
             ResourceDetailsSharedSectionView.self,
             in: (
               resourceID: resourceDetailsWithConfig.resourceDetails.id,
+              currentUserPermission: resourceDetailsWithConfig.resourceDetails.permissionType,
               permissions: resourceDetailsWithConfig.resourceDetails.permissions
             )
           ) { parent, child in

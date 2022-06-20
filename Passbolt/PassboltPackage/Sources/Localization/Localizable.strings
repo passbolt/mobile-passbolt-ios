@@ -25,6 +25,8 @@
 
 "generic.done" = "Done";
 "generic.yes" = "Yes";
+"generic.apply" = "Apply";
+"generic.confirm" = "Confirm";
 "generic.cancel" = "Cancel";
 "generic.remove" = "Remove";
 "generic.loading" = "Loading...";
@@ -232,11 +234,18 @@
 "resource.permission.type.write.label" = "can write";
 "resource.permission.type.own.label" = "is owner";
 "resource.permission.list.title" = "Shared with";
+"resource.permission.list.edit.button.title" = "Edit permissions";
+"resource.permission.edit.list.title" = "Share password";
+"resource.permission.edit.list.empty.message" = "Please make sure there is at least one owner.";
+"resource.permission.delete.user.permission.confirmation.message" = "The password will no longer be shared with this user.";
+"resource.permission.delete.user.group.permission.confirmation.message" = "The password will no longer be shared with this group.";
 
 "resource.permission.details.title" = "Permission";
 
 "permission.details.type.section.title" = "Permission";
 "permission.details.group.members.section.title" = "Group members";
+
+"resource.permission.edit.button.delete.title" = "Delete permssion";
 
 "group.members.list.title" = "Group members";
 "group.members.member.details.title" = "Group member";

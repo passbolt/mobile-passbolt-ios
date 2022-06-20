@@ -67,9 +67,10 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
 
           self?.cancellables.executeOnMainActor { [weak self] in
             guard let self = self else { return }
+            do {
             switch destination {
             case let .authorization(account):
-              await self.replaceContent(
+              try await self.replaceContent(
                 with: self.components
                   .instance(
                     of: AuthorizationNavigationViewController.self,
@@ -78,7 +79,7 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
               )
 
             case let .accountSelection(.some(lastUsedAccount)):
-              await self.replaceContent(
+              try await self.replaceContent(
                 with: self.components
                   .instance(
                     of: AuthorizationNavigationViewController.self,
@@ -87,7 +88,7 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
               )
 
             case .accountSelection(.none):
-              await self.replaceContent(
+              try await self.replaceContent(
                 with: self.components
                   .instance(
                     of: AuthorizationNavigationViewController.self,
@@ -96,7 +97,7 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
               )
 
             case .home:
-              await self.replaceContent(
+              try await self.replaceContent(
                 with: self.components
                   .instance(
                     of: ResourcesNavigationViewController.self
@@ -104,12 +105,18 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
               )
 
             case .mfaRequired:
-              await self.replaceContent(
+              try await self.replaceContent(
                 with: self.components
                   .instance(
                     of: PlainNavigationViewController<MFARequiredViewController>.self
                   )
               )
+            }
+            }
+            catch {
+              error
+                .asTheError()
+                .asFatalError()
             }
           }
         }

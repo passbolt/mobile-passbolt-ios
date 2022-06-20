@@ -108,7 +108,7 @@ extension FoldersExplorerController: ComponentController {
       try await folders
         .filteredFolderContent(filterSequence)
         .forLatest { content in
-          viewState.withValue { state in
+          await viewState.withValue { state in
             state.directFolders = content
               .subfolders
               .filter { $0.parentFolderID == context?.id }
@@ -190,11 +190,9 @@ extension FoldersExplorerController: ComponentController {
             cancellables.executeOnMainActor {
               await navigation
                 .dismiss(
-                  SheetMenuViewController<ResourceMenuViewController>.self,
-                  completion: {
-                    presentResourceEditingForm(for: .existing(resourceID))
-                  }
+                  SheetMenuViewController<ResourceMenuViewController>.self
                 )
+              presentResourceEditingForm(for: .existing(resourceID))
             }
           },
           showDeleteAlert: { (resourceID: Resource.ID) in

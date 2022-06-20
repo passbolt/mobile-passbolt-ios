@@ -21,53 +21,65 @@
 // @since         v1.0
 //
 
-import Accounts
 import CommonModels
 import Features
-import NetworkClient
 
 import struct Foundation.Data
 
+// MARK: - Interface
+
 public struct Users {
 
-  public var userDetails: @StorageAccessActor (User.ID) async throws -> UserDetailsDSV
-  public var userAvatarImage: @StorageAccessActor (User.ID) async throws -> Data?
-  public var featureUnload: @FeaturesActor () async throws -> Void
+  public var userDetails: (User.ID) async throws -> UserDetailsDSV
+  public var userPermissionToResource: (User.ID, Resource.ID) async throws -> PermissionType?
+  public var userAvatarImage: (User.ID) async throws -> Data?
+  public var featureUnload: () async throws -> Void
 }
 
-extension Users: LegacyFeature {
+extension Users: LoadableContextlessFeature {}
 
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
+// MARK: - Implementation
+
+extension Users {
+
+  fileprivate static func load(
+    features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let userDetailsFetch: UserDetailsDatabaseFetch = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
+    unowned let features: FeatureFactory = features
 
     @StorageAccessActor func userDetails(
       for userID: User.ID
     ) async throws -> UserDetailsDSV {
-      try await userDetailsFetch(userID)
+      try await features
+        .instance(
+          of: UserDetails.self,
+          context: userID
+        )
+        .details()
     }
 
-    // access only with StorageAccessActor
-    var avatarsCache: Dictionary<User.ID, Data> = .init()
+    @StorageAccessActor func userPermissionToResource(
+      userID: User.ID,
+      resourceID: Resource.ID
+    ) async throws -> PermissionType? {
+      try await features
+        .instance(
+          of: UserDetails.self,
+          context: userID
+        )
+        .permissionToResource(resourceID)
+    }
 
     @StorageAccessActor func userAvatarImage(
       for userID: User.ID
     ) async throws -> Data? {
-      if let cachedAvatar: Data = avatarsCache[userID] {
-        return cachedAvatar
-      }
-      else {
-        let avatar: Data = try await networkClient.mediaDownload
-          .makeAsync(
-            using: userDetailsFetch(userID).avatarImageURL
-          )
-        avatarsCache[userID] = avatar
-        return avatar
-      }
+      try await features
+        .instance(
+          of: UserDetails.self,
+          context: userID
+        )
+        .avatarImage()
     }
 
     @FeaturesActor func featureUnload() async throws {
@@ -76,8 +88,20 @@ extension Users: LegacyFeature {
 
     return Self(
       userDetails: userDetails(for:),
+      userPermissionToResource: userPermissionToResource(userID:resourceID:),
       userAvatarImage: userAvatarImage(for:),
       featureUnload: featureUnload
+    )
+  }
+}
+extension FeatureFactory {
+
+  @FeaturesActor public func usePassboltUsers() {
+    self.use(
+      .lazyLoaded(
+        Users.self,
+        load: Users.load(features:cancellables:)
+      )
     )
   }
 }
@@ -87,9 +111,10 @@ extension Users {
 
   public nonisolated static var placeholder: Self {
     Self(
-      userDetails: unimplemented("You have to provide mocks for used methods"),
-      userAvatarImage: unimplemented("You have to provide mocks for used methods"),
-      featureUnload: unimplemented("You have to provide mocks for used methods")
+      userDetails: unimplemented(),
+      userPermissionToResource: unimplemented(),
+      userAvatarImage: unimplemented(),
+      featureUnload: unimplemented()
     )
   }
 }

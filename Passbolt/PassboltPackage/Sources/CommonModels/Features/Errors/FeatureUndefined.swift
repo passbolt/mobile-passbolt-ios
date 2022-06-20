@@ -38,13 +38,12 @@ public struct FeatureUndefined: TheError {
           file: file,
           line: line
         )
-      ),
-      featureName: featureName,
+      )
+      .recording(featureName, for: "feature"),
       displayableMessage: .localized(key: "error.feature.unavailable")
     )
   }
 
   public var context: DiagnosticsContext
-  public var featureName: String
   public var displayableMessage: DisplayableString
 }

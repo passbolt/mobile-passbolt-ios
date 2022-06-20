@@ -23,6 +23,7 @@
 
 import Accounts
 import NetworkClient
+import Resources
 import UIComponents
 import Users
 
@@ -31,12 +32,16 @@ internal struct ResourcePermissionListController {
   internal var viewState: ObservableValue<ViewState>
   internal var showUserPermissionDetails: @MainActor (UserPermissionDetailsDSV) async -> Void
   internal var showUserGroupPermissionDetails: @MainActor (UserGroupPermissionDetailsDSV) async -> Void
+  internal var editPermissions: () async -> Void
 }
 
 extension ResourcePermissionListController: ComponentController {
 
   internal typealias ControlledView = ResourcePermissionListView
-  internal typealias NavigationContext = Resource.ID
+  internal typealias NavigationContext = (
+    resourceID: Resource.ID,
+    currentUserPermission: PermissionType
+  )
 
   @MainActor static func instance(
     context: NavigationContext,
@@ -68,13 +73,13 @@ extension ResourcePermissionListController: ComponentController {
 
     do {
       let resourceUserGroupPermissionsDetails: Array<ResourcePermissionListRowItem> =
-        try await resourceUserGroupPermissionsDetailsFetch(context)
+        try await resourceUserGroupPermissionsDetailsFetch(context.resourceID)
         .map { details in
           .userGroup(details: details)
         }
 
       let resourceUserPermissionsDetails: Array<ResourcePermissionListRowItem> =
-        try await resourceUserPermissionsDetailsFetch(context)
+        try await resourceUserPermissionsDetailsFetch(context.resourceID)
         .map { details in
           .user(
             details: details,
@@ -84,7 +89,8 @@ extension ResourcePermissionListController: ComponentController {
 
       viewState = .init(
         initial: .init(
-          permissionListItems: resourceUserGroupPermissionsDetails + resourceUserPermissionsDetails
+          permissionListItems: resourceUserGroupPermissionsDetails + resourceUserPermissionsDetails,
+          editable: context.currentUserPermission == .owner
         )
       )
     }
@@ -92,7 +98,8 @@ extension ResourcePermissionListController: ComponentController {
       viewState = .init(
         initial: .init(
           permissionListItems: [],
-          snackBarMessage: .error(error.displayableMessage)
+          editable: false,
+          snackBarMessage: .error(error)
         )
       )
     }
@@ -115,10 +122,19 @@ extension ResourcePermissionListController: ComponentController {
       )
     }
 
+    @MainActor func editPermissions() async {
+      await navigation.replace(
+        ResourcePermissionListView.self,
+        pushing: ResourcePermissionEditListView.self,
+        in: context.resourceID
+      )
+    }
+
     return Self(
       viewState: viewState,
       showUserPermissionDetails: showUserPermissionDetails(_:),
-      showUserGroupPermissionDetails: showUserGroupPermissionDetails(_:)
+      showUserGroupPermissionDetails: showUserGroupPermissionDetails(_:),
+      editPermissions: editPermissions
     )
   }
 }

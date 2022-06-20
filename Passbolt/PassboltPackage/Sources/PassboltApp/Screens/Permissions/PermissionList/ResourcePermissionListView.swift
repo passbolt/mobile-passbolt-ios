@@ -39,68 +39,55 @@ internal struct ResourcePermissionListView: ComponentView {
   }
 
   internal var body: some View {
-    VStack(spacing: 0) {
-      ZStack(alignment: .top) {
-        Rectangle()
-          .fill(Color.passboltBackground)
-          .ignoresSafeArea(.all, edges: .top)
-        self.titleView
-          // hide under navigation bar
-          .padding(top: -42)
-      }
-      .fixedSize(horizontal: false, vertical: true)
-      .zIndex(1)
-
+    ScreenView(
+      title: .localized(
+        key: "resource.permission.list.title"
+      ),
+      snackBarMessage: self.$state.snackBarMessage
+    ) {
       self.contentView
     }
-    .backgroundColor(.passboltBackground)
-    .snackBarMessage(presenting: self.$state.snackBarMessage)
-  }
-
-  @ViewBuilder private var titleView: some View {
-    Text(
-      displayable: .localized(
-        key: "resource.permission.list.title"
-      )
-    )
-    .font(
-      .inter(
-        ofSize: 16,
-        weight: .semibold
-      )
-    )
-    .foregroundColor(.passboltPrimaryText)
-    .frame(height: 40)
-    .padding(
-      leading: 32,
-      trailing: 32
-    )
   }
 
   @ViewBuilder private var contentView: some View {
-    List(
-      content: {
-        ForEach(
-          self.state.permissionListItems,
-          id: \ResourcePermissionListRowItem.self
-        ) { item in
-          ResourcePermissionListRowView(
-            item,
-            action: {
-              switch item {
-              case let .user(details, _):
-                await self.controller.showUserPermissionDetails(details)
+    VStack(spacing: 0) {
+      List(
+        content: {
+          ForEach(
+            self.state.permissionListItems,
+            id: \ResourcePermissionListRowItem.self
+          ) { item in
+            ResourcePermissionListRowView(
+              item,
+              action: {
+                switch item {
+                case let .user(details, _):
+                  await self.controller.showUserPermissionDetails(details)
 
-              case let .userGroup(details):
-                await self.controller.showUserGroupPermissionDetails(details)
+                case let .userGroup(details):
+                  await self.controller.showUserGroupPermissionDetails(details)
+                }
               }
-            }
-          )
+            )
+          }
         }
-      }
-    )
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
+      )
+      .listStyle(.plain)
+      .environment(\.defaultMinListRowHeight, 20)
+
+      if self.state.editable {
+        PrimaryButton(
+          title: .localized(
+            key: "resource.permission.list.edit.button.title"
+          ),
+          action: {
+            await self.controller
+              .editPermissions()
+          }
+        )
+        .padding(16)
+      }  // else NOP
+    }
   }
 }
 
@@ -109,6 +96,7 @@ extension ResourcePermissionListView {
   internal struct ViewState: Hashable {
 
     internal var permissionListItems: Array<ResourcePermissionListRowItem>
+    internal var editable: Bool
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

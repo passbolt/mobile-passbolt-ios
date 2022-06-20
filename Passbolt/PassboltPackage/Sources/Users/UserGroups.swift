@@ -30,7 +30,7 @@ public struct UserGroups {
 
   public var filteredResourceUserGroupList:
     (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>
-  public var groupMembers: (UserGroup.ID) async throws -> OrderedSet<User.ID>
+  public var groupMembers: (UserGroup.ID) async throws -> OrderedSet<UserDetailsDSV>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
@@ -41,11 +41,11 @@ extension UserGroups: LegacyFeature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    unowned let features: FeatureFactory = features
     let diagnostics: Diagnostics = try await features.instance()
     let accountSession: AccountSession = try await features.instance()
     let sessionData: AccountSessionData = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
-    let userGroupMembersDatabaseFetch: UserGroupMembersDatabaseFetch = try await features.instance()
 
     nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
@@ -75,8 +75,14 @@ extension UserGroups: LegacyFeature {
 
     @StorageAccessActor func groupMembers(
       _ userGroupID: UserGroup.ID
-    ) async throws -> OrderedSet<User.ID> {
-      try await OrderedSet(userGroupMembersDatabaseFetch(userGroupID))
+    ) async throws -> OrderedSet<UserDetailsDSV> {
+      try await features
+        .instance(
+          of: UserGroupDetails.self,
+          context: userGroupID
+        )
+        .details()
+        .members
     }
 
     @FeaturesActor func featureUnload() async throws {

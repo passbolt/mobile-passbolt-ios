@@ -88,7 +88,7 @@ extension TagsExplorerController: ComponentController {
           .filteredResourcesListPublisher(filterSequence.asPublisher())
           .asAnyAsyncSequence()
           .forLatest { resourcesList in
-            viewState.withValue { state in
+            await viewState.withValue { state in
               state.resources = resourcesList
             }
           }
@@ -114,7 +114,7 @@ extension TagsExplorerController: ComponentController {
         try await resourceTags
           .filteredTagsList(filterSequence)
           .forLatest { tagsList in
-            viewState.withValue { state in
+            await viewState.withValue { state in
               state.tags = tagsList
             }
           }
@@ -192,11 +192,9 @@ extension TagsExplorerController: ComponentController {
             cancellables.executeOnMainActor {
               await navigation
                 .dismiss(
-                  SheetMenuViewController<ResourceMenuViewController>.self,
-                  completion: {
-                    presentResourceEditingForm(for: .existing(resourceID))
-                  }
+                  SheetMenuViewController<ResourceMenuViewController>.self
                 )
+              presentResourceEditingForm(for: .existing(resourceID))
             }
           },
           showDeleteAlert: { (resourceID: Resource.ID) in
