@@ -120,38 +120,33 @@ extension Diagnostics: LegacyFeature {
         """
       },
       collectedLogs: {
-        if #available(iOS 15.0, *) {
-          do {
-            let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
-            let dateFormatter: DateFormatter = .init()
-            dateFormatter.timeZone = .init(secondsFromGMT: 0)
-            dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
-            return
-              try logStore
-              .getEntries(
-                at:
-                  logStore
-                  .position(
-                    date:
-                      time
-                      .dateNow()
-                      .addingTimeInterval(-60 * 60 /* last hour */)
-                  ),
-                matching: NSPredicate(
-                  format: "category == %@",
-                  argumentArray: ["diagnostic"]
-                )
+        do {
+          let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
+          let dateFormatter: DateFormatter = .init()
+          dateFormatter.timeZone = .init(secondsFromGMT: 0)
+          dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
+          return
+            try logStore
+            .getEntries(
+              at:
+                logStore
+                .position(
+                  date:
+                    time
+                    .dateNow()
+                    .addingTimeInterval(-60 * 60 /* last hour */)
+                ),
+              matching: NSPredicate(
+                format: "category == %@",
+                argumentArray: ["diagnostic"]
               )
-              .map { logEntry in
-                "[\(dateFormatter.string(from: logEntry.date))] \(logEntry.composedMessage)"
-              }
-          }
-          catch {
-            return ["Logs are not available"]
-          }
+            )
+            .map { logEntry in
+              "[\(dateFormatter.string(from: logEntry.date))] \(logEntry.composedMessage)"
+            }
         }
-        else {
-          return ["Logs are available from iOS 15+"]
+        catch {
+          return ["Logs are not available"]
         }
       },
       measurePerformance: { name in

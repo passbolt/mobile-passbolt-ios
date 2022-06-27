@@ -31,57 +31,13 @@ public struct AnyAsyncSequence<Element> {
     _ upstream: Upstream,
     bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy = .unbounded
   ) where Upstream.Output == Element, Upstream.Failure == Never {
-    if #available(iOS 15.0, *) {
-      self.makeIterator = {
-        var iterator: AsyncPublisher<Upstream>.Iterator = upstream.values.makeAsyncIterator()
-        return AnyAsyncIterator<Element>(
-          nextElement: {
-            await iterator.next()
-          }
-        )
-      }
-    }
-    else {
-      let stream: AsyncStream<Element> =
-        .init(
-          bufferingPolicy: bufferingPolicy
-        ) { continuation in
-          var cancellable: AnyCancellable?
-          let termination = { cancellable?.cancel() }
-          continuation.onTermination = { @Sendable _ in
-            termination()
-          }
-
-          cancellable =
-            upstream
-            .handleEvents(
-              receiveOutput: { output in
-                continuation.yield(output)
-              },
-              receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                  continuation.finish()
-
-                case .failure:
-                  unreachable("Failure is Never")
-                }
-              },
-              receiveCancel: {
-                continuation.finish()  // just finishing on cancel
-              }
-            )
-            .sinkDrop()
+    self.makeIterator = {
+      var iterator: AsyncPublisher<Upstream>.Iterator = upstream.values.makeAsyncIterator()
+      return AnyAsyncIterator<Element>(
+        nextElement: {
+          await iterator.next()
         }
-
-      self.makeIterator = {
-        var iterator: AsyncStream<Element>.AsyncIterator = stream.makeAsyncIterator()
-        return AnyAsyncIterator<Element>(
-          nextElement: {
-            await iterator.next()
-          }
-        )
-      }
+      )
     }
   }
 

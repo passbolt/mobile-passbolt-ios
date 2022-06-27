@@ -96,8 +96,8 @@ internal struct UserGroupMembersListView: ComponentView {
         )
         .padding(8)
 
-      Backport.List(
-        listContent: {
+      List(
+        content: {
           ForEach(
             self.state.items,
             id: \UserGroupMembersListRowItem.self
@@ -111,6 +111,8 @@ internal struct UserGroupMembersListView: ComponentView {
           }
         }
       )
+      .listStyle(.plain)
+      .environment(\.defaultMinListRowHeight, 20)
     }
     .padding(bottom: 16)
   }

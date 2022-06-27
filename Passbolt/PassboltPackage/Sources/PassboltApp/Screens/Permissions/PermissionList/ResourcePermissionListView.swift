@@ -78,8 +78,8 @@ internal struct ResourcePermissionListView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    Backport.List(
-      listContent: {
+    List(
+      content: {
         ForEach(
           self.state.permissionListItems,
           id: \ResourcePermissionListRowItem.self
@@ -99,6 +99,8 @@ internal struct ResourcePermissionListView: ComponentView {
         }
       }
     )
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 20)
   }
 }
 

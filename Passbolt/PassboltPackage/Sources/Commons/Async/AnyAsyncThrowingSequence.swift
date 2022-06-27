@@ -30,57 +30,13 @@ public struct AnyAsyncThrowingSequence<Element> {
   public init<Upstream: Publisher>(
     _ upstream: Upstream
   ) where Upstream.Output == Element {
-    if #available(iOS 15.0, *) {
-      self.makeIterator = {
-        var iterator: AsyncThrowingPublisher<Upstream>.Iterator = upstream.values.makeAsyncIterator()
-        return AnyAsyncThrowingIterator<Element>(
-          nextElement: {
-            try await iterator.next()
-          }
-        )
-      }
-    }
-    else {
-      let stream: AsyncThrowingStream<Element, Error> =
-        .init(
-          bufferingPolicy: .unbounded  // trying to mimic combine
-        ) { continuation in
-          var cancellable: AnyCancellable?
-          let termination = { cancellable?.cancel() }
-          continuation.onTermination = { @Sendable _ in
-            termination()
-          }
-
-          cancellable =
-            upstream
-            .handleEvents(
-              receiveOutput: { output in
-                continuation.yield(output)
-              },
-              receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                  continuation.finish(throwing: nil)
-
-                case let .failure(error):
-                  continuation.finish(throwing: error)
-                }
-              },
-              receiveCancel: {
-                continuation.finish(throwing: CancellationError())
-              }
-            )
-            .sinkDrop()
+    self.makeIterator = {
+      var iterator: AsyncThrowingPublisher<Upstream>.Iterator = upstream.values.makeAsyncIterator()
+      return AnyAsyncThrowingIterator<Element>(
+        nextElement: {
+          try await iterator.next()
         }
-
-      self.makeIterator = {
-        var iterator: AsyncThrowingStream<Element, Error>.AsyncIterator = stream.makeAsyncIterator()
-        return AnyAsyncThrowingIterator<Element>(
-          nextElement: {
-            try await iterator.next()
-          }
-        )
-      }
+      )
     }
   }
 

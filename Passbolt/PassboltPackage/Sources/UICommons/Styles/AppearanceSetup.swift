@@ -52,9 +52,5 @@ import AegithalosCocoa
   UINavigationBar.appearance().standardAppearance = appearance
   UINavigationBar.appearance().compactAppearance = appearance
   UINavigationBar.appearance().scrollEdgeAppearance = appearance
-  if #available(iOS 15.0, *) {
-    UINavigationBar.appearance().compactScrollEdgeAppearance = appearance
-  }
-  else { /* NOP */
-  }
+  UINavigationBar.appearance().compactScrollEdgeAppearance = appearance
 }

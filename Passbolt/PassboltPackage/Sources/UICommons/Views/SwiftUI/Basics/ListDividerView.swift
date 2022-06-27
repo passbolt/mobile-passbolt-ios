@@ -39,6 +39,8 @@ public struct ListDividerView: View {
         bottom: 8,
         trailing: 0
       )
-      .backport.hiddenRowSeparators()
+      .listRowSeparator(.hidden)
+      .listRowInsets(EdgeInsets())
+      .buttonStyle(.plain)
   }
 }

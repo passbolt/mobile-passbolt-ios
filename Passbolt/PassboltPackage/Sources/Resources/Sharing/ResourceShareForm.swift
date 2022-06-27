@@ -180,7 +180,8 @@ extension ResourceShareForm {
         permission.userID == userID
       }
 
-      return try await formState
+      return
+        try await formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions

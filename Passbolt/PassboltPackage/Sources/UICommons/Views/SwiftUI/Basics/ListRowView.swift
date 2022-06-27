@@ -82,7 +82,9 @@ where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
     .padding(top: 12, leading: 16, bottom: 12, trailing: 16)
     .frame(height: 64)
     .frame(maxWidth: .infinity)
-    .backport.hiddenRowSeparators()
+    .listRowSeparator(.hidden)
+    .listRowInsets(EdgeInsets())
+    .buttonStyle(.plain)
   }
 }
 

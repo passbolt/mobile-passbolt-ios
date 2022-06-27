@@ -135,11 +135,8 @@ internal struct FoldersExplorerView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    Backport.RefreshableList(
-      refresh: {
-        await self.controller.refreshIfNeeded()
-      },
-      listContent: {
+    List(
+      content: {
         if self.state.canCreateResources {
           ResourceListAddView {
             self.controller.presentResourceCreationFrom(self.state.folderID)
@@ -158,11 +155,16 @@ internal struct FoldersExplorerView: ComponentView {
         }
       }
     )
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 20)
+    .refreshable {
+      await self.controller.refreshIfNeeded()
+    }
   }
 
   @ViewBuilder private var searchContentView: some View {
-    Backport.List(
-      listContent: {
+    List(
+      content: {
         if self.state.directFolders.isEmpty,
           self.state.directResources.isEmpty,
           self.state.nestedFolders.isEmpty,
@@ -192,7 +194,9 @@ internal struct FoldersExplorerView: ComponentView {
               leading: 16,
               trailing: 16
             )
-            .backport.hiddenRowSeparators()
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets())
+            .buttonStyle(.plain)
             .frame(height: 24)
 
             self.directListContent
@@ -228,7 +232,9 @@ internal struct FoldersExplorerView: ComponentView {
               leading: 16,
               trailing: 16
             )
-            .backport.hiddenRowSeparators()
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets())
+            .buttonStyle(.plain)
             .frame(height: 24)
 
             self.nestedListContent
@@ -236,98 +242,108 @@ internal struct FoldersExplorerView: ComponentView {
         }
       }
     )
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 20)
   }
 
   @ViewBuilder private var directListContent: some View {
-    ForEach(
-      self.state.directFolders,
-      id: \ResourceFolderListItemDSV.id
-    ) { folder in
-      FolderListItemView(
-        name: folder.name,
-        shared: folder.shared,
-        contentCount: folder.contentCount,
-        action: {
-          self.controller.presentFolderContent(folder)
-        }
-      )
+    Section {
+      ForEach(
+        self.state.directFolders,
+        id: \ResourceFolderListItemDSV.id
+      ) { folder in
+        FolderListItemView(
+          name: folder.name,
+          shared: folder.shared,
+          contentCount: folder.contentCount,
+          action: {
+            self.controller.presentFolderContent(folder)
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
-    ForEach(
-      self.state.directResources,
-      id: \ResourceListItemDSV.id
-    ) { resource in
-      ResourceListItemView(
-        name: resource.name,
-        username: resource.username,
-        action: {
-          self.controller.presentResourceDetails(resource.id)
-        },
-        accessory: {
-          AsyncButton(
-            action: {
-              await self.controller.presentResourceMenu(resource.id)
-            },
-            label: {
-              Image(named: .more)
-                .resizable()
-                .aspectRatio(1, contentMode: .fit)
-                .padding(8)
-                .foregroundColor(Color.passboltIcon)
-                .cornerRadius(8)
-            }
-          )
-          .contentShape(Rectangle())
-        }
-      )
+    .listSectionSeparator(.hidden)
+    Section {
+      ForEach(
+        self.state.directResources,
+        id: \ResourceListItemDSV.id
+      ) { resource in
+        ResourceListItemView(
+          name: resource.name,
+          username: resource.username,
+          action: {
+            self.controller.presentResourceDetails(resource.id)
+          },
+          accessory: {
+            AsyncButton(
+              action: {
+                await self.controller.presentResourceMenu(resource.id)
+              },
+              label: {
+                Image(named: .more)
+                  .resizable()
+                  .aspectRatio(1, contentMode: .fit)
+                  .padding(8)
+                  .foregroundColor(Color.passboltIcon)
+                  .cornerRadius(8)
+              }
+            )
+            .contentShape(Rectangle())
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
+    .listSectionSeparator(.hidden)
   }
 
   @ViewBuilder private var nestedListContent: some View {
-    ForEach(
-      self.state.nestedFolders,
-      id: \ResourceFolderListItemDSV.id
-    ) { folder in
-      FolderListItemView(
-        name: folder.name,
-        shared: folder.shared,
-        contentCount: folder.contentCount,
-        action: {
-          self.controller.presentFolderContent(folder)
-        }
-      )
+    Section {
+      ForEach(
+        self.state.nestedFolders,
+        id: \ResourceFolderListItemDSV.id
+      ) { folder in
+        FolderListItemView(
+          name: folder.name,
+          shared: folder.shared,
+          contentCount: folder.contentCount,
+          action: {
+            self.controller.presentFolderContent(folder)
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
-    ForEach(
-      self.state.nestedResources,
-      id: \ResourceListItemDSV.id
-    ) { resource in
-      ResourceListItemView(
-        name: resource.name,
-        username: resource.username,
-        action: {
-          self.controller.presentResourceDetails(resource.id)
-        },
-        accessory: {
-          AsyncButton(
-            action: {
-              await self.controller.presentResourceMenu(resource.id)
-            },
-            label: {
-              Image(named: .more)
-                .resizable()
-                .aspectRatio(1, contentMode: .fit)
-                .padding(8)
-                .foregroundColor(Color.passboltIcon)
-                .cornerRadius(8)
-            }
-          )
-          .contentShape(Rectangle())
-        }
-      )
+    .listSectionSeparator(.hidden)
+    Section {
+      ForEach(
+        self.state.nestedResources,
+        id: \ResourceListItemDSV.id
+      ) { resource in
+        ResourceListItemView(
+          name: resource.name,
+          username: resource.username,
+          action: {
+            self.controller.presentResourceDetails(resource.id)
+          },
+          accessory: {
+            AsyncButton(
+              action: {
+                await self.controller.presentResourceMenu(resource.id)
+              },
+              label: {
+                Image(named: .more)
+                  .resizable()
+                  .aspectRatio(1, contentMode: .fit)
+                  .padding(8)
+                  .foregroundColor(Color.passboltIcon)
+                  .cornerRadius(8)
+              }
+            )
+            .contentShape(Rectangle())
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
+    .listSectionSeparator(.hidden)
   }
 }
 

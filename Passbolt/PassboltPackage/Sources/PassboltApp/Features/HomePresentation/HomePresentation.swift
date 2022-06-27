@@ -70,12 +70,7 @@ extension HomePresentation: LegacyFeature {
         break  // skip
 
       case .enabled:
-        if #available(iOS 15, *) {
-          availableModes.append(.foldersExplorer)
-        }
-        else {
-          break  // temporarily disable on iOS 14
-        }
+        availableModes.append(.foldersExplorer)
       }
 
       switch tagsConfig {
@@ -83,20 +78,10 @@ extension HomePresentation: LegacyFeature {
         break  // skip
 
       case .enabled:
-        if #available(iOS 15, *) {
-          availableModes.append(.tagsExplorer)
-        }
-        else {
-          break  // temporarily disable on iOS 14
-        }
+        availableModes.append(.tagsExplorer)
       }
 
-      if #available(iOS 15, *) {
-        availableModes.append(.resourceUserGroupsExplorer)
-      }
-      else {
-        // NOP - temporarily disable on iOS 14
-      }
+      availableModes.append(.resourceUserGroupsExplorer)
 
       return availableModes
     }

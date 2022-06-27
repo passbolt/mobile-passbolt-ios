@@ -62,6 +62,8 @@ public struct EmptyListView: View {
       bottom: 16,
       trailing: 16
     )
-    .backport.hiddenRowSeparators()
+    .listRowSeparator(.hidden)
+    .listRowInsets(EdgeInsets())
+    .buttonStyle(.plain)
   }
 }

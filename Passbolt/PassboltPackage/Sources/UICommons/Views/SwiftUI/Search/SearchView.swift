@@ -29,7 +29,7 @@ public struct SearchView<LeftAccessoryView, RightAccessoryView>: View
 where LeftAccessoryView: View, RightAccessoryView: View {
 
   @ObservedObject private var text: ObservableValue<String>
-  @State private var isEditing: Bool = false
+  @FocusState private var editing: Bool
   private let prompt: DisplayableString?
   private let leftAccessory: () -> LeftAccessoryView
   private let rightAccessory: () -> RightAccessoryView
@@ -48,7 +48,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
 
   public var body: some View {
     HStack(spacing: 0) {
-      if self.isEditing {
+      if self.editing {
         defaultSearchImage()
           .padding(
             top: 8,
@@ -71,12 +71,13 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           "",  // Empty, we don't use this label at all
           text: self.$text.value,
           onEditingChanged: { changed in
-            self.isEditing = changed
+            self.editing = changed
           },
           onCommit: {
-            self.isEditing = false
+            self.editing = false
           }
         )
+        .focused(self.$editing)
         .contentShape(Rectangle())
         .padding(
           top: 8,
@@ -84,7 +85,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
         )
         .frame(maxWidth: .infinity, maxHeight: 48)
         .overlay(
-          (!self.isEditing && self.text.value.isEmpty)
+          (!self.editing && self.text.value.isEmpty)
             ? AnyView(
               Text(displayable: prompt)
                 .foregroundColor(.passboltSecondaryText)
@@ -100,10 +101,10 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           "",  // Empty, we don't use this label at all
           text: self.$text.value,
           onEditingChanged: { changed in
-            self.isEditing = changed
+            self.editing = changed
           },
           onCommit: {
-            self.isEditing = false
+            self.editing = false
           }
         )
         .contentShape(Rectangle())
@@ -114,37 +115,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
         .frame(maxWidth: .infinity, maxHeight: 48)
       }
 
-      //      ZStack {
-      //        SwiftUI.TextField(
-      //          "",  // Empty, we don't use this label at all
-      //          text: self.$text.value,
-      //          onEditingChanged: { changed in
-      //            self.isEditing = changed
-      //          },
-      //          onCommit: {
-      //            self.isEditing = false
-      //          }
-      //        )
-      //        .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
-      //
-      //        if let prompt: DisplayableString = self.prompt,
-      //          !self.isEditing,
-      //          self.text.value.isEmpty
-      //        {
-      //          Text(displayable: prompt)
-      //            .foregroundColor(.passboltSecondaryText)
-      //            .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
-      //            .allowsHitTesting(false)
-      //        }  // else { /* NOP */ }
-      //      }
-      //      .padding(
-      //        top: 8,
-      //        bottom: 8
-      //      )
-      //      .frame(maxWidth: .infinity, maxHeight: 48)
-      //      .contentShape(Rectangle())
-
-      if !self.isEditing, self.text.value.isEmpty {
+      if !self.editing, self.text.value.isEmpty {
         rightAccessory()
           .padding(
             top: 8,
@@ -156,10 +127,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
         Button(
           action: {
             if self.text.value.isEmpty {
-              // end editing
-              // will be removed when switching
-              // to iOS 15 as minumal target
-              UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+              self.editing = false
             }
             else {
               self.text.value = ""
@@ -183,7 +151,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
     .overlay(
       RoundedRectangle(cornerRadius: 8)
         .stroke(
-          self.isEditing
+          self.editing
             ? Color.passboltPrimaryBlue
             : Color.passboltDivider,
           lineWidth: 1

@@ -128,11 +128,8 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    Backport.RefreshableList(
-      refresh: {
-        await self.controller.refreshIfNeeded()
-      },
-      listContent: {
+    List(
+      content: {
         if self.state.canCreateResources {
           ResourceListAddView {
             self.controller.presentResourceCreationFrom()
@@ -150,54 +147,64 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
         }
       }
     )
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 20)
+    .refreshable {
+      await self.controller.refreshIfNeeded()
+    }
+
   }
 
   @ViewBuilder private var resourcesUserGroupsListContent: some View {
-    ForEach(
-      self.state.groups,
-      id: \ResourceUserGroupListItemDSV.id
-    ) { listGroup in
-      ResourceUserGroupListItemView(
-        name: listGroup.name,
-        contentCount: listGroup.contentCount,
-        action: {
-          self.controller.presentGroupContent(listGroup)
-        }
-      )
+    Section {
+      ForEach(
+        self.state.groups,
+        id: \ResourceUserGroupListItemDSV.id
+      ) { listGroup in
+        ResourceUserGroupListItemView(
+          name: listGroup.name,
+          contentCount: listGroup.contentCount,
+          action: {
+            self.controller.presentGroupContent(listGroup)
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
+    .listSectionSeparator(.hidden)
   }
 
   @ViewBuilder private var resourcesListContent: some View {
-    ForEach(
-      self.state.resources,
-      id: \ResourceListItemDSV.id
-    ) { resource in
-      ResourceListItemView(
-        name: resource.name,
-        username: resource.username,
-        action: {
-          self.controller.presentResourceDetails(resource.id)
-        },
-        accessory: {
-          AsyncButton(
-            action: {
-              await self.controller.presentResourceMenu(resource.id)
-            },
-            label: {
-              Image(named: .more)
-                .resizable()
-                .aspectRatio(1, contentMode: .fit)
-                .padding(8)
-                .foregroundColor(Color.passboltIcon)
-                .cornerRadius(8)
-            }
-          )
-          .contentShape(Rectangle())
-        }
-      )
+    Section {
+      ForEach(
+        self.state.resources,
+        id: \ResourceListItemDSV.id
+      ) { resource in
+        ResourceListItemView(
+          name: resource.name,
+          username: resource.username,
+          action: {
+            self.controller.presentResourceDetails(resource.id)
+          },
+          accessory: {
+            AsyncButton(
+              action: {
+                await self.controller.presentResourceMenu(resource.id)
+              },
+              label: {
+                Image(named: .more)
+                  .resizable()
+                  .aspectRatio(1, contentMode: .fit)
+                  .padding(8)
+                  .foregroundColor(Color.passboltIcon)
+                  .cornerRadius(8)
+              }
+            )
+            .contentShape(Rectangle())
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
+    .listSectionSeparator(.hidden)
   }
 }
 

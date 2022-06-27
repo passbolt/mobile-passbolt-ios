@@ -127,11 +127,8 @@ internal struct TagsExplorerView: ComponentView {
   }
 
   @ViewBuilder private var contentView: some View {
-    Backport.RefreshableList(
-      refresh: {
-        await self.controller.refreshIfNeeded()
-      },
-      listContent: {
+    List(
+      content: {
         if self.state.canCreateResources {
           ResourceListAddView {
             self.controller.presentResourceCreationFrom()
@@ -149,62 +146,71 @@ internal struct TagsExplorerView: ComponentView {
         }
       }
     )
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 20)
+    .refreshable {
+      await self.controller.refreshIfNeeded()
+    }
   }
 
   @ViewBuilder private var tagsListContent: some View {
-    ForEach(
-      self.state.tags,
-      id: \ResourceTagListItemDSV.id
-    ) { listTag in
-      TagListItemView(
-        name: listTag.slug.rawValue,
-        shared: listTag.shared,
-        contentCount: listTag.contentCount,
-        action: {
-          self.controller
-            .presentTagContent(
-              .init(
-                id: listTag.id,
-                slug: listTag.slug,
-                shared: listTag.shared
+    Section {
+      ForEach(
+        self.state.tags,
+        id: \ResourceTagListItemDSV.id
+      ) { listTag in
+        TagListItemView(
+          name: listTag.slug.rawValue,
+          shared: listTag.shared,
+          contentCount: listTag.contentCount,
+          action: {
+            self.controller
+              .presentTagContent(
+                .init(
+                  id: listTag.id,
+                  slug: listTag.slug,
+                  shared: listTag.shared
+                )
               )
-            )
-        }
-      )
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
+    .listSectionSeparator(.hidden)
   }
 
   @ViewBuilder private var resourcesListContent: some View {
-    ForEach(
-      self.state.resources,
-      id: \ResourceListItemDSV.id
-    ) { resource in
-      ResourceListItemView(
-        name: resource.name,
-        username: resource.username,
-        action: {
-          self.controller.presentResourceDetails(resource.id)
-        },
-        accessory: {
-          AsyncButton(
-            action: {
-              await self.controller.presentResourceMenu(resource.id)
-            },
-            label: {
-              Image(named: .more)
-                .resizable()
-                .aspectRatio(1, contentMode: .fit)
-                .padding(8)
-                .foregroundColor(Color.passboltIcon)
-                .cornerRadius(8)
-            }
-          )
-          .contentShape(Rectangle())
-        }
-      )
+    Section {
+      ForEach(
+        self.state.resources,
+        id: \ResourceListItemDSV.id
+      ) { resource in
+        ResourceListItemView(
+          name: resource.name,
+          username: resource.username,
+          action: {
+            self.controller.presentResourceDetails(resource.id)
+          },
+          accessory: {
+            AsyncButton(
+              action: {
+                await self.controller.presentResourceMenu(resource.id)
+              },
+              label: {
+                Image(named: .more)
+                  .resizable()
+                  .aspectRatio(1, contentMode: .fit)
+                  .padding(8)
+                  .foregroundColor(Color.passboltIcon)
+                  .cornerRadius(8)
+              }
+            )
+            .contentShape(Rectangle())
+          }
+        )
+      }
     }
-    .backport.hiddenSectionSeparators()
+    .listSectionSeparator(.hidden)
   }
 }
 
