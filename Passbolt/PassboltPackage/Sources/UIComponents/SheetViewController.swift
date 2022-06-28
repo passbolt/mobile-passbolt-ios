@@ -50,7 +50,7 @@ public final class SheetContentView: PlainView {
 
     mut(container) {
       .combined(
-        .backgroundColor(dynamic: .sheetBackground),
+        .backgroundColor(.passboltBackground),
         .shadow(color: .black, opacity: 0),
         .cornerRadius(
           8,
@@ -67,7 +67,7 @@ public final class SheetContentView: PlainView {
     }
 
     mut(self) {
-      .backgroundColor(dynamic: .overlayBackground)
+      .backgroundColor(.passboltSheetBackground)
     }
   }
 
@@ -110,11 +110,13 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
 
   public static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -125,13 +127,16 @@ public final class SheetViewController<Content: UIComponent>: PlainViewControlle
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
-    modalPresentationStyle = .overFullScreen
-    modalTransitionStyle = .crossDissolve
+    super.init(
+      cancellables: cancellables
+    )
+    self.modalPresentationStyle = .overFullScreen
+    self.modalTransitionStyle = .crossDissolve
   }
 
   public func setupView() {

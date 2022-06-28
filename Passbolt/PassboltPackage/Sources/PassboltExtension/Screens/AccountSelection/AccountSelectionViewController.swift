@@ -32,11 +32,13 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
 
   internal static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -49,11 +51,14 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setupView() {

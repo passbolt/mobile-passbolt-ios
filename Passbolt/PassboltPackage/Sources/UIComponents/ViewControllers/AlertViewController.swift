@@ -31,7 +31,8 @@ import UIKit
 
   public static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     let instance: Self = Self(
       title: nil,
@@ -40,6 +41,7 @@ import UIKit
     )
     instance.controller = controller
     instance._components = components
+    instance._cancellables = cancellables
     (instance as? AnyUIComponent)?.setup()
     return instance
   }
@@ -50,6 +52,12 @@ import UIKit
   private var _components: UIComponentFactory!
   // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals
   public private(set) var controller: Controller! = nil
+  // swift-format-ignore: NoLeadingUnderscores, NeverUseImplicitlyUnwrappedOptionals
+  private var _cancellables: Cancellables!
+  public var cancellables: Cancellables {
+    get { self._cancellables }
+    set { self._cancellables = newValue }
+  }
 
   public var contentView: UIView {
     unreachable(#function)

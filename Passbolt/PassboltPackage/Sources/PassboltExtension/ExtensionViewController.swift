@@ -31,11 +31,13 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
 
   static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -45,13 +47,16 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
 
   private let controller: Controller
 
-  internal init(
+  public init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setupView() {
@@ -68,50 +73,50 @@ internal final class ExtensionViewController: PlainViewController, UIComponent {
           self?.cancellables.executeOnMainActor { [weak self] in
             guard let self = self else { return }
             do {
-            switch destination {
-            case let .authorization(account):
-              try await self.replaceContent(
-                with: self.components
-                  .instance(
-                    of: AuthorizationNavigationViewController.self,
-                    in: (account: account, mode: .signIn)
-                  )
-              )
+              switch destination {
+              case let .authorization(account):
+                try await self.replaceContent(
+                  with: self.components
+                    .instance(
+                      of: AuthorizationNavigationViewController.self,
+                      in: (account: account, mode: .signIn)
+                    )
+                )
 
-            case let .accountSelection(.some(lastUsedAccount)):
-              try await self.replaceContent(
-                with: self.components
-                  .instance(
-                    of: AuthorizationNavigationViewController.self,
-                    in: (account: lastUsedAccount, mode: .switchAccount)
-                  )
-              )
+              case let .accountSelection(.some(lastUsedAccount)):
+                try await self.replaceContent(
+                  with: self.components
+                    .instance(
+                      of: AuthorizationNavigationViewController.self,
+                      in: (account: lastUsedAccount, mode: .switchAccount)
+                    )
+                )
 
-            case .accountSelection(.none):
-              try await self.replaceContent(
-                with: self.components
-                  .instance(
-                    of: AuthorizationNavigationViewController.self,
-                    in: (account: nil, mode: .signIn)
-                  )
-              )
+              case .accountSelection(.none):
+                try await self.replaceContent(
+                  with: self.components
+                    .instance(
+                      of: AuthorizationNavigationViewController.self,
+                      in: (account: nil, mode: .signIn)
+                    )
+                )
 
-            case .home:
-              try await self.replaceContent(
-                with: self.components
-                  .instance(
-                    of: ResourcesNavigationViewController.self
-                  )
-              )
+              case .home:
+                try await self.replaceContent(
+                  with: self.components
+                    .instance(
+                      of: ResourcesNavigationViewController.self
+                    )
+                )
 
-            case .mfaRequired:
-              try await self.replaceContent(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<MFARequiredViewController>.self
-                  )
-              )
-            }
+              case .mfaRequired:
+                try await self.replaceContent(
+                  with: self.components
+                    .instance(
+                      of: PlainNavigationViewController<MFARequiredViewController>.self
+                    )
+                )
+              }
             }
             catch {
               error

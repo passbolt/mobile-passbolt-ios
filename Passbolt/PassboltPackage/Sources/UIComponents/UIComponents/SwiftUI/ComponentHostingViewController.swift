@@ -31,23 +31,28 @@ where HostedView: ComponentView {
 
   @MainActor public static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
   public var components: UIComponentFactory
+  public var cancellables: Cancellables
   private let controller: Controller
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.components = components
     self.controller = controller
+    self.cancellables = cancellables
     super.init(nibName: nil, bundle: nil)
   }
 

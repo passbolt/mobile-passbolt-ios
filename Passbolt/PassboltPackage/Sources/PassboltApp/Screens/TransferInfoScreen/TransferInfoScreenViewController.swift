@@ -30,12 +30,14 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
   internal typealias Controller = TransferInfoScreenController
 
   internal static func instance(
-    using controller: TransferInfoScreenController,
-    with components: UIComponentFactory
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -46,11 +48,14 @@ internal final class TransferInfoScreenViewController: PlainViewController, UICo
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setupView() {

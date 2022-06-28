@@ -26,10 +26,15 @@ import UIKit
 
 @MainActor open class PlainViewController: UIViewController {
 
-  @MainActor public init() {
+  public var cancellables: Cancellables
+
+  @MainActor public init(
+    cancellables: Cancellables
+  ) {
+    self.cancellables = cancellables
     super.init(nibName: nil, bundle: nil)
-    navigationItem.backButtonTitle = ""
-    isModalInPresentation = true
+    self.navigationItem.backButtonTitle = ""
+    self.isModalInPresentation = true
     (self as? AnyUIComponent)?.setup()
   }
 

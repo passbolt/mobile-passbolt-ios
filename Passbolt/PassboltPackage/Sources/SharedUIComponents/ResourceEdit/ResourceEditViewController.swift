@@ -31,11 +31,25 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
 
   public static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
+    )
+  }
+
+  public init(
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init(
+      cancellables: cancellables
     )
   }
 
@@ -45,15 +59,6 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
 
   private var fieldCancellables: Cancellables = .init()
   private let showErrorSubject: PassthroughSubject<Void, Never> = .init()
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory
-  ) {
-    self.controller = controller
-    self.components = components
-    super.init()
-  }
 
   public func setupView() {
     mut(navigationItem) {

@@ -170,11 +170,13 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
 
   public static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -186,13 +188,16 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
-    modalPresentationStyle = .overFullScreen
-    modalTransitionStyle = .crossDissolve
+    super.init(
+      cancellables: cancellables
+    )
+    self.modalPresentationStyle = .overFullScreen
+    self.modalTransitionStyle = .crossDissolve
   }
 
   public func setupView() {

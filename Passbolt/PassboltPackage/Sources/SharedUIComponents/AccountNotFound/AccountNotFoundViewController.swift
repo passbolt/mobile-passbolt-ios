@@ -29,11 +29,25 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
 
   internal static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
+    )
+  }
+
+  internal init(
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
+  ) {
+    self.controller = controller
+    self.components = components
+    super.init(
+      cancellables: cancellables
     )
   }
 
@@ -41,15 +55,6 @@ internal final class AccountNotFoundViewController: PlainViewController, UICompo
   internal let components: UIComponentFactory
 
   private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory
-  ) {
-    self.controller = controller
-    self.components = components
-    super.init()
-  }
 
   internal func setupView() {
     mut(navigationItem) {

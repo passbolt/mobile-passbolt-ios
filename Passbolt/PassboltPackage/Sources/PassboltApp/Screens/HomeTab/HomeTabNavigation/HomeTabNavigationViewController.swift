@@ -31,11 +31,13 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
 
   internal static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -44,11 +46,14 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setup() {
@@ -121,6 +126,6 @@ internal final class HomeTabNavigationViewController: NavigationViewController, 
           }
         }
       }
-      .store(in: cancellables)
+      .store(in: self.cancellables)
   }
 }

@@ -30,12 +30,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
   internal typealias Controller = WelcomeScreenController
 
   internal static func instance(
-    using controller: WelcomeScreenController,
-    with components: UIComponentFactory
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -46,11 +48,14 @@ internal final class WelcomeScreenViewController: PlainViewController, UICompone
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setupView() {

@@ -70,11 +70,13 @@ public final class PlaceholderViewController: PlainViewController, UIComponent {
 
   public static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -84,11 +86,14 @@ public final class PlaceholderViewController: PlainViewController, UIComponent {
 
   public init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   public func setupView() {}

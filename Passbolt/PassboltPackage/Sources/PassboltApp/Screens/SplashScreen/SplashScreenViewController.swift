@@ -30,11 +30,13 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
 
   internal static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -44,11 +46,14 @@ internal final class SplashScreenViewController: PlainViewController, UIComponen
 
   internal init(
     using controller: SplashScreenController,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setupView() {

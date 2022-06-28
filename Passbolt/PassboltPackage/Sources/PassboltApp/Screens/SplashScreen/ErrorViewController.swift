@@ -29,12 +29,14 @@ final class ErrorViewController: PlainViewController, UIComponent {
   internal typealias Controller = ErrorController
 
   internal static func instance(
-    using controller: ErrorController,
-    with components: UIComponentFactory
+    using controller: Controller,
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self {
     Self(
       using: controller,
-      with: components
+      with: components,
+      cancellables: cancellables
     )
   }
 
@@ -45,11 +47,14 @@ final class ErrorViewController: PlainViewController, UIComponent {
 
   internal init(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) {
     self.controller = controller
     self.components = components
-    super.init()
+    super.init(
+      cancellables: cancellables
+    )
   }
 
   internal func setupView() {

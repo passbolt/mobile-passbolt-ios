@@ -49,9 +49,9 @@ extension UIComponentFactory {
           with: features,
           cancellables: cancellables
         ),
-        with: self
+        with: self,
+        cancellables: cancellables
       )
-    component.cancellables = cancellables
     return component
   }
 
@@ -66,9 +66,9 @@ extension UIComponentFactory {
           with: features,
           cancellables: cancellables
         ),
-        with: self
+        with: self,
+        cancellables: cancellables
       )
-    component.cancellables = cancellables
     return component
   }
 }
@@ -88,40 +88,3 @@ extension UIComponentFactory {
     )
   }
 }
-
-extension UIComponent {
-
-  public fileprivate(set) var cancellables: Cancellables {
-    get {
-      let stored: Cancellables? =
-        objc_getAssociatedObject(
-          self,
-          &cancellablesAssociationKey
-        ) as? Cancellables
-
-      if let stored: Cancellables = stored {
-        return stored
-      }
-      else {
-        let newValue: Cancellables = .init()
-        objc_setAssociatedObject(
-          self,
-          &cancellablesAssociationKey,
-          newValue,
-          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-        )
-        return newValue
-      }
-    }
-    set {
-      objc_setAssociatedObject(
-        self,
-        &cancellablesAssociationKey,
-        newValue,
-        .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-      )
-    }
-  }
-}
-
-private var cancellablesAssociationKey: Int = 0

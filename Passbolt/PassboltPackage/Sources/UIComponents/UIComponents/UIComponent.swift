@@ -41,10 +41,12 @@ import UIKit
 
   @MainActor static func instance(
     using controller: Controller,
-    with components: UIComponentFactory
+    with components: UIComponentFactory,
+    cancellables: Cancellables
   ) -> Self
 
   @MainActor var contentView: ContentView { get }
+  @MainActor var cancellables: Cancellables { get set }
 }
 
 extension UIComponent {

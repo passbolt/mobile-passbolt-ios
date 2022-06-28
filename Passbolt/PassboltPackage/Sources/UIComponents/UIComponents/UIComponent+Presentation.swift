@@ -627,6 +627,7 @@ extension UIComponent {
     )
   }
 
+  @discardableResult
   @MainActor public func addChild<Component>(
     _ type: Component.Type,
     in context: Component.Controller.Context,

@@ -26,10 +26,15 @@ import UIKit
 
 @MainActor open class NavigationViewController: UINavigationController {
 
-  @MainActor public init() {
+  public var cancellables: Cancellables
+
+  @MainActor public init(
+    cancellables: Cancellables
+  ) {
+    self.cancellables = cancellables
     super.init(nibName: nil, bundle: nil)
-    isModalInPresentation = true
-    delegate = self
+    self.isModalInPresentation = true
+    self.delegate = self
     (self as? AnyUIComponent)?.setup()
   }
 
