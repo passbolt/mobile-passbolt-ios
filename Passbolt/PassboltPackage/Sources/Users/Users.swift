@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import CommonModels
 import Features
 
@@ -30,6 +31,7 @@ import struct Foundation.Data
 
 public struct Users {
 
+  public var filteredUsers: (UsersFilter) async throws -> Array<UserDetailsDSV>
   public var userDetails: (User.ID) async throws -> UserDetailsDSV
   public var userPermissionToResource: (User.ID, Resource.ID) async throws -> PermissionType?
   public var userAvatarImage: (User.ID) async throws -> Data?
@@ -47,6 +49,13 @@ extension Users {
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
+    let usersListDatabaseFetch: UsersListDatabaseFetch = try await features.instance()
+
+    @StorageAccessActor func filteredUsers(
+      _ filter: UsersFilter
+    ) async throws -> Array<UserDetailsDSV> {
+      try await usersListDatabaseFetch(filter)
+    }
 
     @StorageAccessActor func userDetails(
       for userID: User.ID
@@ -87,6 +96,7 @@ extension Users {
     }
 
     return Self(
+      filteredUsers: filteredUsers(_:),
       userDetails: userDetails(for:),
       userPermissionToResource: userPermissionToResource(userID:resourceID:),
       userAvatarImage: userAvatarImage(for:),
@@ -111,6 +121,7 @@ extension Users {
 
   public nonisolated static var placeholder: Self {
     Self(
+      filteredUsers: unimplemented(),
       userDetails: unimplemented(),
       userPermissionToResource: unimplemented(),
       userAvatarImage: unimplemented(),

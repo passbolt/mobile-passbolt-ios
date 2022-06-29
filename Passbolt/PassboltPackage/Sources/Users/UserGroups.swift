@@ -30,6 +30,8 @@ public struct UserGroups {
 
   public var filteredResourceUserGroupList:
     (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>
+  public var filteredUserGroups:
+    (UserGroupsFilter) async throws -> Array<UserGroupDetailsDSV>
   public var groupMembers: (UserGroup.ID) async throws -> OrderedSet<UserDetailsDSV>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
@@ -46,6 +48,7 @@ extension UserGroups: LegacyFeature {
     let accountSession: AccountSession = try await features.instance()
     let sessionData: AccountSessionData = try await features.instance()
     let accountDatabase: AccountDatabase = try await features.instance()
+    let userGroupsListDatabaseFetch: UserGroupsListDatabaseFetch = try await features.instance()
 
     nonisolated func filteredResourceUserGroupList(
       filters: AnyAsyncSequence<String>
@@ -73,6 +76,12 @@ extension UserGroups: LegacyFeature {
         .asAnyAsyncSequence()
     }
 
+    @StorageAccessActor func filteredUserGroups(
+      _ filter: UserGroupsFilter
+    ) async throws -> Array<UserGroupDetailsDSV> {
+      try await userGroupsListDatabaseFetch(filter)
+    }
+
     @StorageAccessActor func groupMembers(
       _ userGroupID: UserGroup.ID
     ) async throws -> OrderedSet<UserDetailsDSV> {
@@ -91,6 +100,7 @@ extension UserGroups: LegacyFeature {
 
     return Self(
       filteredResourceUserGroupList: filteredResourceUserGroupList(filters:),
+      filteredUserGroups: filteredUserGroups(_:),
       groupMembers: groupMembers(_:),
       featureUnload: featureUnload
     )
@@ -103,9 +113,10 @@ extension UserGroups {
 
   public static var placeholder: Self {
     Self(
-      filteredResourceUserGroupList: unimplemented("You have to provide mocks for used methods"),
-      groupMembers: unimplemented("You have to provide mocks for used methods"),
-      featureUnload: unimplemented("You have to provide mocks for used methods")
+      filteredResourceUserGroupList: unimplemented(),
+      filteredUserGroups: unimplemented(),
+      groupMembers: unimplemented(),
+      featureUnload: unimplemented()
     )
   }
 }

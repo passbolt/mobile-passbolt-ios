@@ -35,6 +35,7 @@ final class UsersTests: TestCase {
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
     features.usePassboltUsers()
+    features.usePlaceholder(for: UsersListDatabaseFetch.self)
   }
 
   func test_userDetails_fails_whenUserDetailsFeatureLoadingFails() async throws {

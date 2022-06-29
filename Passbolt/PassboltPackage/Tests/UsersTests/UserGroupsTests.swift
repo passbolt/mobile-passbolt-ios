@@ -56,6 +56,7 @@ final class UserGroupsTests: TestCase {
       )
     )
     self.features.usePlaceholder(for: UserGroupMembersDatabaseFetch.self)
+    features.usePlaceholder(for: UserGroupsListDatabaseFetch.self)
   }
 
   func test_filteredUserGroups_producesEmptyList_whenDatabaseFetchingFail() async throws {
