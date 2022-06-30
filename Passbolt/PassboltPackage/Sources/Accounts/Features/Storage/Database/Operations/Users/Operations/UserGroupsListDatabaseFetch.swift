@@ -61,21 +61,13 @@ extension UserGroupsListDatabaseFetch: DatabaseOperationFeature {
           .append(
             """
             AND
-            (
-               users.username LIKE '%' || ? || '%'
-            OR users.firstName LIKE '%' || ? || '%'
-            OR users.lastName LIKE '%' || ? || '%'
-            )
-
+              userGroups.name LIKE '%' || ? || '%'
             """
           )
-        // adding multiple times since we can't count args when using dynamic query
-        // and argument has to be used multiple times
-        groupSelectStatement.appendArgument(input.text)
-        groupSelectStatement.appendArgument(input.text)
         groupSelectStatement.appendArgument(input.text)
       }
-      else { /* NOP */  }
+      else { /* NOP */
+      }
 
       let membersSelectStatement: SQLiteStatement =
         .statement(

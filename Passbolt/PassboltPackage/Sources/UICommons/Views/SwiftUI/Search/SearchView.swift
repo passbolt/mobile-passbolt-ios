@@ -28,7 +28,7 @@ import SwiftUI
 public struct SearchView<LeftAccessoryView, RightAccessoryView>: View
 where LeftAccessoryView: View, RightAccessoryView: View {
 
-  @ObservedObject private var text: ObservableValue<String>
+  @Binding private var text: String
   @FocusState private var editing: Bool
   private let prompt: DisplayableString?
   private let leftAccessory: () -> LeftAccessoryView
@@ -36,11 +36,11 @@ where LeftAccessoryView: View, RightAccessoryView: View {
 
   public init(
     prompt: DisplayableString? = nil,
-    text: ObservableValue<String>,
+    text: Binding<String>,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
-    self.text = text
+    self._text = text
     self.prompt = prompt
     self.leftAccessory = leftAccessory
     self.rightAccessory = rightAccessory
@@ -66,56 +66,24 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           .frame(maxWidth: 48, maxHeight: 48)
       }
 
-      if let prompt: DisplayableString = self.prompt {
-        SwiftUI.TextField(
-          "",  // Empty, we don't use this label at all
-          text: self.$text.value,
-          onEditingChanged: { changed in
-            self.editing = changed
-          },
-          onCommit: {
-            self.editing = false
+      SwiftUI.TextField(
+        "",  // Empty, we don't use this label at all
+        text: self.$text,
+        prompt: self.prompt
+          .map {
+            Text(displayable: $0)
+              .foregroundColor(.passboltSecondaryText)
           }
-        )
-        .focused(self.$editing)
-        .contentShape(Rectangle())
-        .padding(
-          top: 8,
-          bottom: 8
-        )
-        .frame(maxWidth: .infinity, maxHeight: 48)
-        .overlay(
-          (!self.editing && self.text.value.isEmpty)
-            ? AnyView(
-              Text(displayable: prompt)
-                .foregroundColor(.passboltSecondaryText)
-                .frame(maxWidth: .infinity, maxHeight: 20, alignment: .leading)
-                .allowsHitTesting(false)
-            )
-            : AnyView(EmptyView())
+      )
+      .focused(self.$editing)
+      .contentShape(Rectangle())
+      .padding(
+        top: 8,
+        bottom: 8
+      )
+      .frame(maxWidth: .infinity, maxHeight: 48)
 
-        )
-      }
-      else {
-        SwiftUI.TextField(
-          "",  // Empty, we don't use this label at all
-          text: self.$text.value,
-          onEditingChanged: { changed in
-            self.editing = changed
-          },
-          onCommit: {
-            self.editing = false
-          }
-        )
-        .contentShape(Rectangle())
-        .padding(
-          top: 8,
-          bottom: 8
-        )
-        .frame(maxWidth: .infinity, maxHeight: 48)
-      }
-
-      if !self.editing, self.text.value.isEmpty {
+      if !self.editing, self.text.isEmpty {
         rightAccessory()
           .padding(
             top: 8,
@@ -126,11 +94,11 @@ where LeftAccessoryView: View, RightAccessoryView: View {
       else {
         Button(
           action: {
-            if self.text.value.isEmpty {
+            if self.text.isEmpty {
               self.editing = false
             }
             else {
-              self.text.value = ""
+              self.text = ""
             }
           },
           label: {
@@ -158,6 +126,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
         )
         .allowsHitTesting(false)
     )
+    .padding(1)  // border size
   }
 }
 
@@ -165,7 +134,7 @@ extension SearchView where LeftAccessoryView == ImageWithPadding {
 
   public init(
     prompt: DisplayableString? = nil,
-    text: ObservableValue<String>,
+    text: Binding<String>,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
     self.init(
@@ -181,7 +150,7 @@ extension SearchView where RightAccessoryView == EmptyView {
 
   public init(
     prompt: DisplayableString? = nil,
-    text: ObservableValue<String>,
+    text: Binding<String>,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView
   ) {
     self.init(
@@ -197,7 +166,7 @@ extension SearchView where LeftAccessoryView == ImageWithPadding, RightAccessory
 
   public init(
     prompt: DisplayableString? = nil,
-    text: ObservableValue<String>
+    text: Binding<String>
   ) {
     self.init(
       prompt: prompt,
@@ -221,9 +190,11 @@ private func defaultSearchImage() -> ImageWithPadding {
 internal struct SearchView_Previews: PreviewProvider {
 
   internal static var previews: some View {
+    var text: String = ""
     SearchView(
       text: .init(
-        initial: ""
+        get: { text },
+        set: { text = $0 }
       ),
       rightAccessory: {
         UserAvatarView(

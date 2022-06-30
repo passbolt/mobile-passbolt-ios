@@ -50,5 +50,6 @@ public struct AsyncButton<LabelView>: View where LabelView: View {
       },
       label: self.label
     )
+    .contentShape(Rectangle())
   }
 }

@@ -31,10 +31,10 @@ import Users
 public struct ResourceShareForm {
 
   public var permissionsSequence: () -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>>
-  public var setUserPermission: (User.ID, PermissionType) async throws -> Void
-  public var deleteUserPermission: (User.ID) async throws -> Void
-  public var setUserGroupPermission: (UserGroup.ID, PermissionType) async throws -> Void
-  public var deleteUserGroupPermission: (UserGroup.ID) async throws -> Void
+  public var setUserPermission: (User.ID, PermissionType) async -> Void
+  public var deleteUserPermission: (User.ID) async -> Void
+  public var setUserGroupPermission: (UserGroup.ID, PermissionType) async -> Void
+  public var deleteUserGroupPermission: (UserGroup.ID) async -> Void
   public var sendForm: @AccountSessionActor () async throws -> Void
   public var cancelForm: @FeaturesActor () async -> Void
 }
@@ -157,13 +157,13 @@ extension ResourceShareForm {
     func setUserPermission(
       _ userID: User.ID,
       permissionType: PermissionType
-    ) async throws {
+    ) async {
       let curentPermission: PermissionDTO? = currentPermissions.first { (permission: PermissionDTO) in
         permission.userID == userID
       }
 
       return
-        try await formState
+        await formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -211,8 +211,8 @@ extension ResourceShareForm {
 
     func deleteUserPermission(
       _ userID: User.ID
-    ) async throws {
-      try await formState
+    ) async {
+      await formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -239,8 +239,8 @@ extension ResourceShareForm {
     func setUserGroupPermission(
       _ userGroupID: UserGroup.ID,
       permissionType: PermissionType
-    ) async throws {
-      try await formState
+    ) async {
+      await formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions
@@ -292,8 +292,8 @@ extension ResourceShareForm {
 
     func deleteUserGroupPermission(
       _ userGroupID: UserGroup.ID
-    ) async throws {
-      try await formState
+    ) async {
+      await formState
         .withValue { (state: inout FormState) in
           state
             .newPermissions

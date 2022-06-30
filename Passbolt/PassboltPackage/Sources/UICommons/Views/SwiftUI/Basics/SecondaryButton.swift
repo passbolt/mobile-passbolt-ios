@@ -60,7 +60,6 @@ public struct SecondaryButton: View {
         }
       }
     )
-    .contentShape(Rectangle())
     .padding(8)
     .frame(height: 56)
     .foregroundColor(.passboltPrimaryText)

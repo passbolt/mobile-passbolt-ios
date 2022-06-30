@@ -89,7 +89,7 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
   @ViewBuilder private var searchView: some View {
     SearchView(
       prompt: .localized(key: "resources.search.placeholder"),
-      text: self.state.scope(\.searchText),
+      text: self.$state.searchText,
       leftAccessory: {
         AsyncButton(
           action: {
@@ -99,7 +99,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
             ImageWithPadding(4, named: .filter)
           }
         )
-        .contentShape(Rectangle())
       },
       rightAccessory: {
         AsyncButton(
@@ -116,7 +115,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
               )
           }
         )
-        .contentShape(Rectangle())
       }
     )
     .padding(
@@ -198,7 +196,6 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
                   .cornerRadius(8)
               }
             )
-            .contentShape(Rectangle())
           }
         )
       }

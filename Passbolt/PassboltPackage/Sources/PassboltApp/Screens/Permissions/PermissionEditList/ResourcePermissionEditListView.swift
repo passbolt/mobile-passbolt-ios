@@ -53,16 +53,21 @@ internal struct ResourcePermissionEditListView: ComponentView {
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
       if self.state.permissionListItems.isEmpty {
+        self.addPermissionButton
+
         EmptyListView(
           message: .localized(
             key: "resource.permission.edit.list.empty.message"
           )
         )
-        .padding()
       }
       else {
         List(
           content: {
+            self.addPermissionButton
+              .listRowSeparator(.hidden)
+              .listRowInsets(EdgeInsets())
+              .buttonStyle(.plain)
             ForEach(
               self.state.permissionListItems,
               id: \ResourcePermissionListRowItem.self
@@ -98,6 +103,37 @@ internal struct ResourcePermissionEditListView: ComponentView {
       .disabled(self.state.permissionListItems.isEmpty)
       .padding(16)
     }
+  }
+
+  private var addPermissionButton: some View {
+    ListRowView(
+      action: {
+        await self.controller.addPermission()
+      },
+      leftAccessory: {
+        Image(named: .create)
+          .resizable()
+          .frame(
+            width: 40,
+            height: 40,
+            alignment: .center
+          )
+      },
+      content: {
+        Text(
+          displayable: .localized(
+            key: "resource.permission.edit.list.add.button.title"
+          )
+        )
+        .font(
+          .inter(
+            ofSize: 14,
+            weight: .semibold
+          )
+        )
+        .foregroundColor(.passboltPrimaryBlue)
+      }
+    )
   }
 }
 

@@ -30,8 +30,7 @@ public struct UserGroups {
 
   public var filteredResourceUserGroupList:
     (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>
-  public var filteredUserGroups:
-    (UserGroupsFilter) async throws -> Array<UserGroupDetailsDSV>
+  public var filteredUserGroups: (UserGroupsFilter) async throws -> Array<UserGroupDetailsDSV>
   public var groupMembers: (UserGroup.ID) async throws -> OrderedSet<UserDetailsDSV>
   public var featureUnload: @FeaturesActor () async throws -> Void
 }

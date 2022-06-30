@@ -74,7 +74,6 @@ internal struct ResourceDetailsSharedSectionView: ComponentView {
       .frame(height: 40)
     }
     .foregroundColor(Color.passboltPrimaryText)
-    .contentShape(Rectangle())
     .frame(maxWidth: .infinity)
   }
 }

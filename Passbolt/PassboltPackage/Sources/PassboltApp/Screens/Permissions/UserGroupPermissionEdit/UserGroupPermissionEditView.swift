@@ -43,7 +43,6 @@ internal struct UserGroupPermissionEditView: ComponentView {
       title: .localized(
         key: "resource.permission.details.title"
       ),
-      loading: self.state.loading,
       snackBarMessage: self.$state.snackBarMessage
     ) {
       self.contentView
@@ -211,7 +210,6 @@ extension UserGroupPermissionEditView {
     internal var name: DisplayableString
     internal var permissionType: PermissionType
     internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
-    internal var loading: Bool = false
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
     internal var snackBarMessage: SnackBarMessage? = .none
   }

@@ -21,60 +21,62 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-import Commons
 import SwiftUI
 
 @MainActor
-public struct PrimaryButton: View {
+public struct UserListRowView<RightAccessoryView>: View
+where RightAccessoryView: View {
 
-  private let icon: Image?
-  private let title: DisplayableString
-  private let action: @Sendable () async -> Void
+  private let model: UserListRowViewModel
+  private let action: @MainActor @Sendable () -> Void
+  private let chevronVisible: Bool
+  private let rightAccesory: () -> RightAccessoryView
 
   public init(
-    title: DisplayableString,
-    iconName: ImageNameConstant? = .none,
-    action: @Sendable @escaping () async -> Void
+    model: UserListRowViewModel,
+    action: @escaping @MainActor @Sendable () -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder rightAccesory: @escaping () -> RightAccessoryView
   ) {
-    self.icon = iconName.map(Image.init(named:))
-    self.title = title
+    self.model = model
     self.action = action
+    self.chevronVisible = chevronVisible
+    self.rightAccesory = rightAccesory
   }
 
   public var body: some View {
-    AsyncButton(
+    ListRowView(
       action: self.action,
-      label: {
-        if let icon: Image = self.icon {
-          HStack(spacing: 8) {
-            icon
-              .resizable()
-              .frame(width: 20, height: 20)
-            self.titleView
-          }
-          .frame(maxWidth: .infinity)
-        }
-        else {
-          self.titleView
-            .frame(maxWidth: .infinity)
-        }
-      }
-    )
-    .padding(8)
-    .frame(height: 56)
-    .foregroundColor(.passboltPrimaryButtonText)
-    .backgroundColor(.passboltPrimaryBlue)
-    .cornerRadius(4)
-  }
-
-  private var titleView: some View {
-    Text(displayable: title)
-      .font(
-        .inter(
-          ofSize: 14,
-          weight: .medium
+      chevronVisible: self.chevronVisible,
+      leftAccessory: {
+        UserAvatarView(
+          imageData: self.model.avatarImageFetch
         )
-      )
+      },
+      title: self.model.fullName,
+      subtitle: self.model.username,
+      rightAccessory: self.rightAccesory
+    )
   }
 }
+
+#if DEBUG
+
+internal struct UserListRowView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    UserListRowView(
+      model: .init(
+        id: .random(),
+        fullName: "John Doe",
+        username: "johndoe@email.com",
+        avatarImageFetch: { nil }
+      ),
+      action: {},
+      rightAccesory: {
+        SelectionIndicator(selected: true)
+      }
+    )
+  }
+}
+#endif

@@ -29,7 +29,7 @@ public struct UserGroupsFilter {
   public var text: String
 
   public init(
-    userID: User.ID?,
+    userID: User.ID? = .none,
     text: String
   ) {
     self.userID = userID

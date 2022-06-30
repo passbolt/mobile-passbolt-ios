@@ -21,52 +21,57 @@
 // @since         v1.0
 //
 
-import CommonModels
+import SwiftUI
 
-public enum ResourceShareFormPermission {
+@MainActor
+public struct UserGroupListRowView<RightAccessoryView>: View
+where RightAccessoryView: View {
 
-  case user(
-    User.ID,
-    type: PermissionType
-  )
+  private let model: UserGroupListRowViewModel
+  private let action: @MainActor @Sendable () -> Void
+  private let chevronVisible: Bool
+  private let rightAccesory: () -> RightAccessoryView
 
-  case userGroup(
-    UserGroup.ID,
-    type: PermissionType
-  )
-}
-
-extension ResourceShareFormPermission: Hashable {}
-
-extension ResourceShareFormPermission {
-
-  public var userID: User.ID? {
-    switch self {
-    case let .user(id, _):
-      return id
-
-    case .userGroup:
-      return .none
-    }
+  public init(
+    model: UserGroupListRowViewModel,
+    action: @escaping @MainActor @Sendable () -> Void,
+    chevronVisible: Bool = false,
+    @ViewBuilder rightAccesory: @escaping () -> RightAccessoryView
+  ) {
+    self.model = model
+    self.action = action
+    self.chevronVisible = chevronVisible
+    self.rightAccesory = rightAccesory
   }
 
-  public var userGroupID: UserGroup.ID? {
-    switch self {
-    case let .userGroup(id, _):
-      return id
-
-    case .user:
-      return .none
-    }
-  }
-
-  public var type: PermissionType {
-    switch self {
-    case let .user(_, type):
-      return type
-
-    case let .userGroup(_, type):
-      return type
-    }
+  public var body: some View {
+    ListRowView(
+      action: self.action,
+      chevronVisible: self.chevronVisible,
+      leftAccessory: {
+        UserGroupAvatarView()
+      },
+      title: self.model.name,
+      rightAccessory: self.rightAccesory
+    )
   }
 }
+
+#if DEBUG
+
+internal struct UserGroupListRowView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    UserGroupListRowView(
+      model: .init(
+        id: .random(),
+        name: "Admins"
+      ),
+      action: {},
+      rightAccesory: {
+        SelectionIndicator(selected: false)
+      }
+    )
+  }
+}
+#endif

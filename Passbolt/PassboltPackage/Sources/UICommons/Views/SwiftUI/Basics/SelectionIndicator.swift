@@ -21,52 +21,26 @@
 // @since         v1.0
 //
 
-import CommonModels
+import SwiftUI
 
-public enum ResourceShareFormPermission {
+public struct SelectionIndicator: View {
 
-  case user(
-    User.ID,
-    type: PermissionType
-  )
+  private let selected: Bool
 
-  case userGroup(
-    UserGroup.ID,
-    type: PermissionType
-  )
-}
-
-extension ResourceShareFormPermission: Hashable {}
-
-extension ResourceShareFormPermission {
-
-  public var userID: User.ID? {
-    switch self {
-    case let .user(id, _):
-      return id
-
-    case .userGroup:
-      return .none
-    }
+  public init(
+    selected: Bool
+  ) {
+    self.selected = selected
   }
 
-  public var userGroupID: UserGroup.ID? {
-    switch self {
-    case let .userGroup(id, _):
-      return id
-
-    case .user:
-      return .none
+  public var body: some View {
+    if self.selected {
+      Image(named: .circleSelected)
+        .foregroundColor(.passboltPrimaryBlue)
     }
-  }
-
-  public var type: PermissionType {
-    switch self {
-    case let .user(_, type):
-      return type
-
-    case let .userGroup(_, type):
-      return type
+    else {
+      Image(named: .circleUnselected)
+        .foregroundColor(.passboltDivider)
     }
   }
 }

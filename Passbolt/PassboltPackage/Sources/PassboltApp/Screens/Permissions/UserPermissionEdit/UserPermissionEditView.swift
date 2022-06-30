@@ -43,7 +43,6 @@ internal struct UserPermissionEditView: ComponentView {
       title: .localized(
         key: "resource.permission.details.title"
       ),
-      loading: self.state.loading,
       snackBarMessage: self.$state.snackBarMessage
     ) {
       self.contentView
@@ -185,7 +184,6 @@ extension UserPermissionEditView {
     internal var fingerprint: Fingerprint
     internal var permissionType: PermissionType
     internal var avatarImageFetch: () async -> Data?
-    internal var loading: Bool = false
     internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
     internal var snackBarMessage: SnackBarMessage? = .none
   }
@@ -201,7 +199,6 @@ extension UserPermissionEditView.ViewState: Hashable {
       && lhs.username == rhs.username
       && lhs.fingerprint == rhs.fingerprint
       && lhs.permissionType == rhs.permissionType
-      && lhs.loading == rhs.loading
       && lhs.deleteConfirmationAlert == rhs.deleteConfirmationAlert
       && lhs.snackBarMessage == rhs.snackBarMessage
   }
@@ -213,7 +210,6 @@ extension UserPermissionEditView.ViewState: Hashable {
     hasher.combine(self.username)
     hasher.combine(self.fingerprint)
     hasher.combine(self.permissionType)
-    hasher.combine(self.loading)
     hasher.combine(self.deleteConfirmationAlert)
     hasher.combine(self.snackBarMessage)
   }

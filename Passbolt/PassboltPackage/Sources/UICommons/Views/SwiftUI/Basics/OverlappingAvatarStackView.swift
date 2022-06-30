@@ -142,7 +142,9 @@ extension OverlappingAvatarStackView.Item: Hashable {
     }
   }
 
-  public func hash(into hasher: inout Hasher) {
+  public func hash(
+    into hasher: inout Hasher
+  ) {
     switch self {
     case let .user(id, _):
       hasher.combine(id)

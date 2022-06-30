@@ -79,8 +79,9 @@ extension UsersListDatabaseFetch: DatabaseOperationFeature {
         statement.appendArgument(input.text)
         statement.appendArgument(input.text)
       }
-      else { /* NOP */  }
-      
+      else { /* NOP */
+      }
+
       statement.append(";")
 
       return

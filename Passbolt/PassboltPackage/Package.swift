@@ -101,7 +101,6 @@ let package = Package(
   ],
   dependencies: [
     .package(
-      name: "Aegithalos",
       url: "https://github.com/miquido/aegithalos.git",
       .upToNextMajor(from: "2.3.1")
     ),

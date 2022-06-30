@@ -123,7 +123,7 @@ final class ResourceDetailsTests: TestCase {
     await self.updatesSequence.send(Void())
 
     // wait for detached tasks
-    try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: NSEC_PER_SEC)
 
     await XCTAssertValue(
       equal: expectedResult

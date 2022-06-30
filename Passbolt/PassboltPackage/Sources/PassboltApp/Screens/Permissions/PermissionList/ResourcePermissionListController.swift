@@ -102,6 +102,7 @@ extension ResourcePermissionListController: ComponentController {
           snackBarMessage: .error(error)
         )
       )
+      await navigation.pop(if: ControlledView.self)
     }
 
     @MainActor func showUserPermissionDetails(

@@ -73,22 +73,12 @@ extension UserPermissionEditController: ComponentController {
     }
 
     nonisolated func saveChanges() async {
-      do {
-        await viewState.set(\.loading, to: true)
-        try await resourceShareForm
-          .setUserPermission(
-            context.permissionDetails.id,
-            viewState.permissionType
-          )
-        await navigation.pop(if: UserPermissionEditView.self)
-      }
-      catch {
-        diagnostics.log(error)
-        await viewState.withValue { (state: inout ViewState) in
-          state.loading = false
-          state.snackBarMessage = .error(error)
-        }
-      }
+      await resourceShareForm
+        .setUserPermission(
+          context.permissionDetails.id,
+          viewState.permissionType
+        )
+      await navigation.pop(if: UserPermissionEditView.self)
     }
 
     nonisolated func deletePermission() async {
@@ -116,21 +106,11 @@ extension UserPermissionEditController: ComponentController {
     }
 
     @Sendable nonisolated func confirmedDeletePermission() async {
-      do {
-        await viewState.set(\.loading, to: true)
-        try await resourceShareForm
-          .deleteUserPermission(
-            context.permissionDetails.id
-          )
-        await navigation.pop(if: UserPermissionEditView.self)
-      }
-      catch {
-        diagnostics.log(error)
-        await viewState.withValue { (state: inout ViewState) in
-          state.loading = false
-          state.snackBarMessage = .error(error)
-        }
-      }
+      await resourceShareForm
+        .deleteUserPermission(
+          context.permissionDetails.id
+        )
+      await navigation.pop(if: UserPermissionEditView.self)
     }
 
     return Self(

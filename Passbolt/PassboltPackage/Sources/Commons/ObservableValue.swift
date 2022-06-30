@@ -83,23 +83,6 @@ where Value: Hashable {
 
 extension ObservableValue {
 
-  public func scope<Property>(
-    _ keyPath: WritableKeyPath<Value, Property>
-  ) -> ObservableValue<Property> {
-    .init(
-      valueGetter: {
-        self.value[keyPath: keyPath]
-      },
-      valueSetter: { newValue in
-        self.value[keyPath: keyPath] = newValue
-      },
-      valuePublisher: self.valuePublisher
-        .map(keyPath)
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    )
-  }
-
   public func withValue(
     _ access: @MainActor (inout Value) -> Void
   ) {

@@ -68,7 +68,7 @@ extension AsyncVariable {
 
   public func withValue<Returned>(
     _ access: @escaping (inout Value) throws -> Returned
-  ) throws -> Returned {
+  ) rethrows -> Returned {
     var modifiedState: Value = self.value
     let returned: Returned = try access(&modifiedState)
     self.value = modifiedState

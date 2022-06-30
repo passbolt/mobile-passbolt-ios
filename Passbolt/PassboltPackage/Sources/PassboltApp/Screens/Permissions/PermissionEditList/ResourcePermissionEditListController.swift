@@ -30,6 +30,7 @@ import Users
 internal struct ResourcePermissionEditListController {
 
   internal var viewState: ObservableValue<ViewState>
+  internal var addPermission: @MainActor () async -> Void
   internal var showUserPermissionEdit: @MainActor (UserPermissionDetailsDSV) async -> Void
   internal var showUserGroupPermissionEdit: @MainActor (UserGroupPermissionDetailsDSV) async -> Void
   internal var saveChanges: @MainActor () async -> Void
@@ -46,10 +47,10 @@ extension ResourcePermissionEditListController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    unowned let features: FeatureFactory = features
     await cancellables.addCleanup(
       features.pushScope(.resourceShare)
     )
-    unowned let features: FeatureFactory = features
     let diagnostics: Diagnostics = try await features.instance()
     let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
 
@@ -120,10 +121,40 @@ extension ResourcePermissionEditListController: ComponentController {
                 )
             }
           }
-          await viewState.withValue { (state: inout ViewState) in
-            state.permissionListItems = listItems
-          }
+          await viewState
+            .set(
+              \.permissionListItems,
+              to: listItems
+            )
         }
+    }
+
+    @MainActor func addPermission() async {
+      guard
+        let permissions: OrderedSet<ResourceShareFormPermission> =
+          await resourceShareForm
+          .permissionsSequence().first()
+      else {
+        return
+          viewState
+          .set(
+            \.snackBarMessage,
+            to: .error(
+              InternalInconsistency
+                .error()
+                .asAssertionFailure()
+            )
+          )
+      }
+
+      await navigation
+        .push(
+          PermissionUsersAndGroupsSearchView.self,
+          in: (
+            context,
+            permissions
+          )
+        )
     }
 
     @MainActor func showUserPermissionEdit(
@@ -169,6 +200,7 @@ extension ResourcePermissionEditListController: ComponentController {
 
     return Self(
       viewState: viewState,
+      addPermission: addPermission,
       showUserPermissionEdit: showUserPermissionEdit(_:),
       showUserGroupPermissionEdit: showUserGroupPermissionEdit(_:),
       saveChanges: saveChanges

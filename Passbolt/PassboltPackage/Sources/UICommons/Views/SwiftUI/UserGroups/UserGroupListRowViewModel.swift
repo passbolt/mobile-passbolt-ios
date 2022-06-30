@@ -23,50 +23,35 @@
 
 import CommonModels
 
-public enum ResourceShareFormPermission {
+public struct UserGroupListRowViewModel {
 
-  case user(
-    User.ID,
-    type: PermissionType
-  )
+  public let id: UserGroup.ID
+  public var name: DisplayableString
 
-  case userGroup(
-    UserGroup.ID,
-    type: PermissionType
-  )
-}
-
-extension ResourceShareFormPermission: Hashable {}
-
-extension ResourceShareFormPermission {
-
-  public var userID: User.ID? {
-    switch self {
-    case let .user(id, _):
-      return id
-
-    case .userGroup:
-      return .none
-    }
-  }
-
-  public var userGroupID: UserGroup.ID? {
-    switch self {
-    case let .userGroup(id, _):
-      return id
-
-    case .user:
-      return .none
-    }
-  }
-
-  public var type: PermissionType {
-    switch self {
-    case let .user(_, type):
-      return type
-
-    case let .userGroup(_, type):
-      return type
-    }
+  public init(
+    id: UserGroup.ID,
+    name: DisplayableString
+  ) {
+    self.id = id
+    self.name = name
   }
 }
+
+extension UserGroupListRowViewModel: Hashable {
+
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.id == rhs.id
+      && lhs.name == rhs.name
+  }
+
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.id)
+  }
+}
+
+extension UserGroupListRowViewModel: Identifiable {}

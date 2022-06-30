@@ -96,7 +96,7 @@ internal struct FoldersExplorerView: ComponentView {
   @ViewBuilder private var searchView: some View {
     SearchView(
       prompt: .localized(key: "resources.search.placeholder"),
-      text: self.state.scope(\.searchText),
+      text: self.$state.searchText,
       leftAccessory: {
         AsyncButton(
           action: {
@@ -106,7 +106,6 @@ internal struct FoldersExplorerView: ComponentView {
             ImageWithPadding(4, named: .filter)
           }
         )
-        .contentShape(Rectangle())
       },
       rightAccessory: {
         AsyncButton(
@@ -123,7 +122,6 @@ internal struct FoldersExplorerView: ComponentView {
               )
           }
         )
-        .contentShape(Rectangle())
       }
     )
     .padding(
@@ -288,7 +286,6 @@ internal struct FoldersExplorerView: ComponentView {
                   .cornerRadius(8)
               }
             )
-            .contentShape(Rectangle())
           }
         )
       }
@@ -338,7 +335,6 @@ internal struct FoldersExplorerView: ComponentView {
                   .cornerRadius(8)
               }
             )
-            .contentShape(Rectangle())
           }
         )
       }

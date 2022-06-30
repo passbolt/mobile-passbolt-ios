@@ -21,53 +21,72 @@
 // @since         v1.0
 //
 
-import Localization
 import SwiftUI
 
-public struct NavigationBar<TitleView>: View
-where TitleView: View {
+extension View {
 
-  private let titleView: () -> TitleView
-
-  public init(
-    @ViewBuilder titleView: @escaping () -> TitleView
-  ) {
-    self.titleView = titleView
-  }
-
-  public init(
-    title: DisplayableString
-  ) where TitleView == Text {
-    self.init {
-      Text(
-        displayable: title
-      )
-      .font(
-        .inter(
-          ofSize: 16,
-          weight: .semibold
-        )
-      )
-      .foregroundColor(.passboltPrimaryText)
-    }
-  }
-
-  public var body: some View {
+  public func shadowTopEdgeOverlay() -> some View {
     ZStack(alignment: .top) {
-      Rectangle()
-        .fill(Color.passboltBackground)
-        .ignoresSafeArea(.all, edges: .top)
-
-      self.titleView()
-        .frame(minHeight: 40)
-        .padding(
-          top: -42,  // hide under navigation bar
-          leading: 32,
-          trailing: 32
-        )
+      self
+      LinearGradient(
+        colors: [
+          Color.black.opacity(0.05),
+          Color.white.opacity(0),
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+      )
+      .frame(
+        height: 12,
+        alignment: .top
+      )
     }
-    .fixedSize(horizontal: false, vertical: true)
-    // ensure being on top
-    .zIndex(.greatestFiniteMagnitude)
+  }
+
+  public func shadowBottomEdgeOverlay() -> some View {
+    ZStack(alignment: .bottom) {
+      self
+      LinearGradient(
+        colors: [
+          Color.black.opacity(0.05),
+          Color.white.opacity(0),
+        ],
+        startPoint: .bottom,
+        endPoint: .top
+      )
+      .frame(
+        height: 12,
+        alignment: .bottom
+      )
+    }
+  }
+
+  public func shadowTopAndBottomEdgeOverlay() -> some View {
+    ZStack(alignment: .top) {
+      self
+      VStack(spacing: 0) {
+        LinearGradient(
+          colors: [
+            Color.black.opacity(0.05),
+            Color.white.opacity(0),
+          ],
+          startPoint: .top,
+          endPoint: .bottom
+        )
+        .frame(height: 12)
+
+        Spacer()
+
+        LinearGradient(
+          colors: [
+            Color.black.opacity(0.05),
+            Color.white.opacity(0),
+          ],
+          startPoint: .bottom,
+          endPoint: .top
+        )
+        .frame(height: 12)
+      }
+    }
   }
 }

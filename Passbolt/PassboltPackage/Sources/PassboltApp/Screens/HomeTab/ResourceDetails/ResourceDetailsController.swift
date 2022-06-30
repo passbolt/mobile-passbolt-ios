@@ -58,6 +58,7 @@ extension ResourceDetailsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    unowned let features: FeatureFactory = features
     await cancellables.addCleanup(
       features.pushScope(.resourceDetails)
     )

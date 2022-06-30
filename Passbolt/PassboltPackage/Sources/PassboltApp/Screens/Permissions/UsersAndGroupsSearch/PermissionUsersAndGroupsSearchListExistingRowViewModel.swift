@@ -21,52 +21,24 @@
 // @since         v1.0
 //
 
-import CommonModels
+import UICommons
 
-public enum ResourceShareFormPermission {
+internal enum PermissionUsersAndGroupsSearchListExistingRowViewModel {
 
-  case user(
-    User.ID,
-    type: PermissionType
-  )
-
-  case userGroup(
-    UserGroup.ID,
-    type: PermissionType
-  )
+  case user(UserListRowViewModel, permission: PermissionType)
+  case userGroup(UserGroupListRowViewModel, permission: PermissionType)
 }
 
-extension ResourceShareFormPermission: Hashable {}
+extension PermissionUsersAndGroupsSearchListExistingRowViewModel: Hashable {}
 
-extension ResourceShareFormPermission {
+extension PermissionUsersAndGroupsSearchListExistingRowViewModel: Identifiable {
 
-  public var userID: User.ID? {
+  public var id: AnyHashable {
     switch self {
-    case let .user(id, _):
-      return id
-
-    case .userGroup:
-      return .none
-    }
-  }
-
-  public var userGroupID: UserGroup.ID? {
-    switch self {
-    case let .userGroup(id, _):
-      return id
-
-    case .user:
-      return .none
-    }
-  }
-
-  public var type: PermissionType {
-    switch self {
-    case let .user(_, type):
-      return type
-
-    case let .userGroup(_, type):
-      return type
+    case let .user(model, _):
+      return "user-\(model.id)"
+    case let .userGroup(model, _):
+      return "userGroup-\(model.id)"
     }
   }
 }

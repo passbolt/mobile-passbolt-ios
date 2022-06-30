@@ -23,50 +23,42 @@
 
 import CommonModels
 
-public enum ResourceShareFormPermission {
+public struct UserListRowViewModel {
 
-  case user(
-    User.ID,
-    type: PermissionType
-  )
+  public let id: User.ID
+  public var fullName: DisplayableString
+  public var username: DisplayableString
+  public var avatarImageFetch: () async -> Data?
 
-  case userGroup(
-    UserGroup.ID,
-    type: PermissionType
-  )
-}
-
-extension ResourceShareFormPermission: Hashable {}
-
-extension ResourceShareFormPermission {
-
-  public var userID: User.ID? {
-    switch self {
-    case let .user(id, _):
-      return id
-
-    case .userGroup:
-      return .none
-    }
-  }
-
-  public var userGroupID: UserGroup.ID? {
-    switch self {
-    case let .userGroup(id, _):
-      return id
-
-    case .user:
-      return .none
-    }
-  }
-
-  public var type: PermissionType {
-    switch self {
-    case let .user(_, type):
-      return type
-
-    case let .userGroup(_, type):
-      return type
-    }
+  public init(
+    id: User.ID,
+    fullName: DisplayableString,
+    username: DisplayableString,
+    avatarImageFetch: @escaping @Sendable () async -> Data?
+  ) {
+    self.id = id
+    self.fullName = fullName
+    self.username = username
+    self.avatarImageFetch = avatarImageFetch
   }
 }
+
+extension UserListRowViewModel: Hashable {
+
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.id == rhs.id
+      && lhs.fullName == rhs.fullName
+      && lhs.username == rhs.username
+  }
+
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.id)
+  }
+}
+
+extension UserListRowViewModel: Identifiable {}
