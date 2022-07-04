@@ -132,12 +132,27 @@ extension FetchResourceListItemDSVsOperation {
                resources.name LIKE '%' || ? || '%'
             OR resources.url LIKE '%' || ? || '%'
             OR resources.username LIKE '%' || ? || '%'
+            OR (
+              SELECT
+                1
+              FROM
+                resourcesTags
+              INNER JOIN
+                resourceTags
+              ON
+                resourcesTags.resourceTagID == resourceTags.id
+              WHERE
+                resourcesTags.resourceID == resources.id
+              AND
+                resourceTags.slug LIKE '%' || ? || '%'
+              LIMIT 1
+              )
             )
-
             """
           )
         // adding multiple times since we can't count args when using dynamic query
         // and argument has to be used multiple times
+        statement.appendArgument(input.text)
         statement.appendArgument(input.text)
         statement.appendArgument(input.text)
         statement.appendArgument(input.text)
@@ -215,7 +230,6 @@ extension FetchResourceListItemDSVsOperation {
             AND
               resourcesTags.resourceTagID
             IN (
-          )
           """
         )
         for index in input.tags.indices {

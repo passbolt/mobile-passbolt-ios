@@ -213,7 +213,7 @@
 "authorization.prompt.refresh.session.reason" = "Please authenticate to refresh session";
 "authorization.prompt.biometrics.set.reason" = "Please authenticate to enable biometrics.";
 
-"resources.search.placeholder" = "Search by name, username or url";
+"resources.search.placeholder" = "Search by name, username, url or tag...";
 
 "resource.menu.item.open.url" = "Launch website";
 "resource.menu.item.copy.url" = "Copy URL";
