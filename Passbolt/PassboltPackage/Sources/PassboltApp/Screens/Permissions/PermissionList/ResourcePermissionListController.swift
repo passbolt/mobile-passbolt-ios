@@ -38,10 +38,7 @@ internal struct ResourcePermissionListController {
 extension ResourcePermissionListController: ComponentController {
 
   internal typealias ControlledView = ResourcePermissionListView
-  internal typealias NavigationContext = (
-    resourceID: Resource.ID,
-    currentUserPermission: PermissionType
-  )
+  internal typealias NavigationContext = Resource.ID
 
   @MainActor static func instance(
     context: NavigationContext,
@@ -51,6 +48,7 @@ extension ResourcePermissionListController: ComponentController {
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
     let users: Users = try await features.instance()
+    let resourceDetails: ResourceDetails = try await features.instance(context: context)
     let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetch = try await features.instance()
     let resourceUserGroupPermissionsDetailsFetch: ResourceUserGroupPermissionsDetailsFetch =
       try await features.instance()
@@ -73,13 +71,13 @@ extension ResourcePermissionListController: ComponentController {
 
     do {
       let resourceUserGroupPermissionsDetails: Array<ResourcePermissionListRowItem> =
-        try await resourceUserGroupPermissionsDetailsFetch(context.resourceID)
+        try await resourceUserGroupPermissionsDetailsFetch(context)
         .map { details in
           .userGroup(details: details)
         }
 
       let resourceUserPermissionsDetails: Array<ResourcePermissionListRowItem> =
-        try await resourceUserPermissionsDetailsFetch(context.resourceID)
+        try await resourceUserPermissionsDetailsFetch(context)
         .map { details in
           .user(
             details: details,
@@ -90,7 +88,7 @@ extension ResourcePermissionListController: ComponentController {
       viewState = .init(
         initial: .init(
           permissionListItems: resourceUserGroupPermissionsDetails + resourceUserPermissionsDetails,
-          editable: context.currentUserPermission == .owner
+          editable: try await resourceDetails.details().permissionType == .owner
         )
       )
     }
@@ -127,7 +125,7 @@ extension ResourcePermissionListController: ComponentController {
       await navigation.replace(
         ResourcePermissionListView.self,
         pushing: ResourcePermissionEditListView.self,
-        in: context.resourceID
+        in: context
       )
     }
 

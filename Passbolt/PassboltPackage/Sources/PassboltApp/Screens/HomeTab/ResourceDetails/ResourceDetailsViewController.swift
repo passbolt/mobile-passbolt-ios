@@ -93,11 +93,7 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
           await self?.removeAllChildren(ResourceDetailsSharedSectionView.self)
           await self?.addChild(
             ResourceDetailsSharedSectionView.self,
-            in: (
-              resourceID: resourceDetailsWithConfig.resourceDetails.id,
-              currentUserPermission: resourceDetailsWithConfig.resourceDetails.permissionType,
-              permissions: resourceDetailsWithConfig.resourceDetails.permissions
-            )
+            in: resourceDetailsWithConfig.resourceDetails.id
           ) { parent, child in
             parent.insertShareSection(view: child)
           }

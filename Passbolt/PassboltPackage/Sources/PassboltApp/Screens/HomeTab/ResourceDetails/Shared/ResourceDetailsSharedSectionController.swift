@@ -23,6 +23,7 @@
 
 import Accounts
 import NetworkClient
+import Resources
 import UIComponents
 import Users
 
@@ -35,11 +36,7 @@ internal struct ResourceDetailsSharedSectionController {
 extension ResourceDetailsSharedSectionController: ComponentController {
 
   internal typealias ControlledView = ResourceDetailsSharedSectionView
-  internal typealias NavigationContext = (
-    resourceID: Resource.ID,
-    currentUserPermission: PermissionType,
-    permissions: OrderedSet<PermissionDSV>
-  )
+  internal typealias NavigationContext = Resource.ID
 
   @MainActor static func instance(
     context: NavigationContext,
@@ -48,6 +45,7 @@ extension ResourceDetailsSharedSectionController: ComponentController {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
+    let resourceDetails: ResourceDetails = try await features.instance(context: context)
     let users: Users = try await features.instance()
 
     func userAvatarImageFetch(
@@ -66,7 +64,10 @@ extension ResourceDetailsSharedSectionController: ComponentController {
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
-        items: context.permissions
+        items:
+          try await resourceDetails
+          .details()
+          .permissions
           .compactMap { permission -> OverlappingAvatarStackView.Item? in
             switch permission {
             case let .userToResource(_, userID, _, _):
@@ -86,10 +87,7 @@ extension ResourceDetailsSharedSectionController: ComponentController {
     @MainActor func showResourcePermissionList() async {
       await navigation.push(
         ResourcePermissionListView.self,
-        in: (
-          resourceID: context.resourceID,
-          currentUserPermission: context.currentUserPermission
-        )
+        in: context
       )
     }
 

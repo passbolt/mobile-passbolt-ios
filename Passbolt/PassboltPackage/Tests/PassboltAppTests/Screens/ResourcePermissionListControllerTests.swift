@@ -36,8 +36,25 @@ import XCTest
 @MainActor
 final class ResourcePermissionListControllerTests: MainActorTestCase {
 
+  var resourceID: Resource.ID!
+
+  override func mainActorSetUp() {
+    super.mainActorSetUp()
+    resourceID = Resource.ID.random()
+  }
+
+  override func mainActorTearDown() {
+    resourceID = .none
+    super.mainActorTearDown()
+  }
+
   func test_loading_succeedsWithPermissionList_whenDatabaseFetchSucceeds() async throws {
     await features.usePlaceholder(for: Users.self)
+    await features.patch(
+      \ResourceDetails.details,
+      context: resourceID,
+      with: always(.random())
+    )
     await features.patch(
       \ResourceUserPermissionsDetailsFetch.execute,
       with: always(.random(countIn: 1..<5))
@@ -49,13 +66,7 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
 
     let controller: ResourcePermissionListController = try await testController(
       context: .ignored(
-        with: (
-          resourceID: Resource.ID.randomGenerator(
-            using: .sharedDebugRandomSource
-          )
-          .next(),
-          currentUserPermission: PermissionType.random()
-        )
+        with: resourceID
       )
     )
 
@@ -66,6 +77,11 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
   func test_loading_succeedsWithErrorMessage_whenDatabaseFetchFails() async throws {
     await features.usePlaceholder(for: Users.self)
     await features.patch(
+      \ResourceDetails.details,
+      context: resourceID,
+      with: always(.random())
+    )
+    await features.patch(
       \ResourceUserPermissionsDetailsFetch.execute,
       with: alwaysThrow(MockIssue.error())
     )
@@ -76,13 +92,7 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
 
     let controller: ResourcePermissionListController = try await testController(
       context: .ignored(
-        with: (
-          resourceID: Resource.ID.randomGenerator(
-            using: .sharedDebugRandomSource
-          )
-          .next(),
-          currentUserPermission: PermissionType.random()
-        )
+        with: resourceID
       )
     )
 
