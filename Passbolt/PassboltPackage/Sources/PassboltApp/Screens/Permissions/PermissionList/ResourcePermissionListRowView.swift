@@ -27,11 +27,11 @@ import UICommons
 internal struct ResourcePermissionListRowView: View {
 
   private let item: ResourcePermissionListRowItem
-  private let action: () async -> Void
+  private let action: @MainActor () -> Void
 
   internal init(
     _ item: ResourcePermissionListRowItem,
-    action: @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.item = item
     self.action = action
@@ -41,15 +41,13 @@ internal struct ResourcePermissionListRowView: View {
     switch self.item {
     case let .user(details, imageData):
       ListRowView(
-        action: {
-          await self.action()
-        },
         chevronVisible: true,
+        title: "\(details.firstName) \(details.lastName)",
+        subtitle: "\(details.username)",
         leftAccessory: {
           UserAvatarView(imageData: imageData)
         },
-        title: "\(details.firstName) \(details.lastName)",
-        subtitle: "\(details.username)",
+        contentAction: self.action,
         rightAccessory: {
           ResourcePermissionTypeCompactView(
             permissionType: details.permissionType
@@ -59,14 +57,12 @@ internal struct ResourcePermissionListRowView: View {
 
     case let .userGroup(details):
       ListRowView(
-        action: {
-          await self.action()
-        },
         chevronVisible: true,
+        title: "\(details.name)",
         leftAccessory: {
           UserGroupAvatarView()
         },
-        title: "\(details.name)",
+        contentAction: self.action,
         rightAccessory: {
           ResourcePermissionTypeCompactView(
             permissionType: details.permissionType

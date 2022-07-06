@@ -31,6 +31,7 @@ import Users
 public struct ResourceShareForm {
 
   public var permissionsSequence: () -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>>
+  public var currentPermissions: () async -> OrderedSet<ResourceShareFormPermission>
   public var setUserPermission: (User.ID, PermissionType) async -> Void
   public var deleteUserPermission: (User.ID) async -> Void
   public var setUserGroupPermission: (UserGroup.ID, PermissionType) async -> Void
@@ -74,14 +75,14 @@ extension ResourceShareForm {
       )
     )
 
-    let currentPermissions: OrderedSet<PermissionDTO> = try await resourceDetails.details().permissions
+    let existingPermissions: OrderedSet<PermissionDTO> = try await resourceDetails.details().permissions
 
     nonisolated func permissionsSequence() -> AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> {
       formState
         // .removeDuplicates() waiting for Swift 5.7
         .map { (formState: FormState) -> OrderedSet<ResourceShareFormPermission> in
           let existingPermissionsList: Array<ResourceShareFormPermission> =
-            currentPermissions
+            existingPermissions
             .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
               guard
                 !formState.deletedPermissions.contains(where: { $0.id == permission.id }),
@@ -137,12 +138,12 @@ extension ResourceShareForm {
                   switch (lPermission, rPermission) {
                   case let (.user(lUserID, _), .user(rUserID, _)):
                     return lUserID != rUserID
-                      && (currentPermissions.contains(where: { $0.userID == lUserID })
-                        && !currentPermissions.contains(where: { $0.userID == rUserID }))
+                      && (existingPermissions.contains(where: { $0.userID == lUserID })
+                        && !existingPermissions.contains(where: { $0.userID == rUserID }))
                   case let (.userGroup(lUserGroupID, _), .userGroup(rUserGroupID, _)):
                     return lUserGroupID != rUserGroupID
-                      && (currentPermissions.contains(where: { $0.userGroupID == lUserGroupID })
-                        && !currentPermissions.contains(where: { $0.userGroupID == rUserGroupID }))
+                      && (existingPermissions.contains(where: { $0.userGroupID == lUserGroupID })
+                        && !existingPermissions.contains(where: { $0.userGroupID == rUserGroupID }))
                   case (.userGroup, .user):
                     return true
                   case (.user, .userGroup):
@@ -154,11 +155,86 @@ extension ResourceShareForm {
         .asAnyAsyncSequence()
     }
 
+    func currentPermissions() async -> OrderedSet<ResourceShareFormPermission> {
+      let formState: FormState = await formState.value
+
+      let existingPermissionsList: Array<ResourceShareFormPermission> =
+        existingPermissions
+        .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
+          guard
+            !formState.deletedPermissions.contains(where: { $0.id == permission.id }),
+            !formState.updatedPermissions.contains(where: { $0.id == permission.id })
+          else { return .none }
+          switch permission {
+          case let .userToResource(_, userID, _, type):
+            return .user(userID, type: type)
+          case let .userGroupToResource(_, userGroupID, _, type):
+            return .userGroup(userGroupID, type: type)
+          case .userToFolder, .userGroupToFolder:
+            return .none
+          }
+        }
+
+      let updatedPermissionsList: OrderedSet<ResourceShareFormPermission> = .init(
+        formState
+          .updatedPermissions
+          .compactMap { (permission: PermissionDSV) -> ResourceShareFormPermission? in
+            switch permission {
+            case let .userToResource(_, userID, _, type):
+              return .user(userID, type: type)
+            case let .userGroupToResource(_, userGroupID, _, type):
+              return .userGroup(userGroupID, type: type)
+            case .userToFolder, .userGroupToFolder:
+              return .none
+            }
+          }
+      )
+
+      let newPermissionsList: OrderedSet<ResourceShareFormPermission> = .init(
+        formState
+          .newPermissions
+          .compactMap { (permission: NewPermissionDTO) -> ResourceShareFormPermission? in
+            switch permission {
+            case let .userToResource(userID, _, type):
+              return .user(userID, type: type)
+            case let .userGroupToResource(userGroupID, _, type):
+              return .userGroup(userGroupID, type: type)
+            case .userToFolder, .userGroupToFolder:
+              return .none
+            }
+          }
+      )
+
+      return
+        OrderedSet(
+          (existingPermissionsList
+            + updatedPermissionsList
+            + newPermissionsList)
+            .sorted {
+              (lPermission: ResourceShareFormPermission, rPermission: ResourceShareFormPermission) -> Bool in
+              switch (lPermission, rPermission) {
+              case let (.user(lUserID, _), .user(rUserID, _)):
+                return lUserID != rUserID
+                  && (existingPermissions.contains(where: { $0.userID == lUserID })
+                    && !existingPermissions.contains(where: { $0.userID == rUserID }))
+              case let (.userGroup(lUserGroupID, _), .userGroup(rUserGroupID, _)):
+                return lUserGroupID != rUserGroupID
+                  && (existingPermissions.contains(where: { $0.userGroupID == lUserGroupID })
+                    && !existingPermissions.contains(where: { $0.userGroupID == rUserGroupID }))
+              case (.userGroup, .user):
+                return true
+              case (.user, .userGroup):
+                return false
+              }
+            }
+        )
+    }
+
     func setUserPermission(
       _ userID: User.ID,
       permissionType: PermissionType
     ) async {
-      let curentPermission: PermissionDTO? = currentPermissions.first { (permission: PermissionDTO) in
+      let curentPermission: PermissionDTO? = existingPermissions.first { (permission: PermissionDTO) in
         permission.userID == userID
       }
 
@@ -228,7 +304,7 @@ extension ResourceShareForm {
             .deletedPermissions
             .append(
               contentsOf:
-                currentPermissions
+                existingPermissions
                 .filter { (permission: PermissionDTO) in
                   permission.userID == userID
                 }
@@ -258,7 +334,7 @@ extension ResourceShareForm {
               permission.userGroupID == userGroupID
             }
 
-          let curentPermission: PermissionDTO? = currentPermissions.first { (permission: PermissionDTO) in
+          let curentPermission: PermissionDTO? = existingPermissions.first { (permission: PermissionDTO) in
             permission.userGroupID == userGroupID
           }
 
@@ -309,7 +385,7 @@ extension ResourceShareForm {
             .deletedPermissions
             .append(
               contentsOf:
-                currentPermissions
+                existingPermissions
                 .filter { (permission: PermissionDTO) in
                   permission.userGroupID == userGroupID
                 }
@@ -345,7 +421,7 @@ extension ResourceShareForm {
       else { return }
 
       let currentPermissionsHasOwner: Bool =
-        currentPermissions
+        existingPermissions
         .contains(
           where: { (permission: PermissionDTO) in
             permission.type.isOwner
@@ -461,6 +537,7 @@ extension ResourceShareForm {
 
     return ResourceShareForm(
       permissionsSequence: permissionsSequence,
+      currentPermissions: currentPermissions,
       setUserPermission: setUserPermission(_:permissionType:),
       deleteUserPermission: deleteUserPermission(_:),
       setUserGroupPermission: setUserGroupPermission(_:permissionType:),
@@ -490,6 +567,7 @@ extension ResourceShareForm {
   public static var placeholder: Self {
     Self(
       permissionsSequence: unimplemented(),
+      currentPermissions: unimplemented(),
       setUserPermission: unimplemented(),
       deleteUserPermission: unimplemented(),
       setUserGroupPermission: unimplemented(),

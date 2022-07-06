@@ -98,7 +98,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
               case let .user(userRow):
                 UserListRowView(
                   model: userRow,
-                  action: {
+                  contentAction: {
                     self.controller.toggleUserSelection(userRow.id)
                   },
                   rightAccesory: {
@@ -117,7 +117,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
               case let .userGroup(userGroupRow):
                 UserGroupListRowView(
                   model: userGroupRow,
-                  action: {
+                  contentAction: {
                     self.controller.toggleUserGroupSelection(userGroupRow.id)
                   },
                   rightAccesory: {
@@ -166,7 +166,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                 case let .user(userRow, permission):
                   UserListRowView(
                     model: userRow,
-                    action: {
+                    contentAction: {
                       self.controller.toggleUserSelection(userRow.id)
                     },
                     rightAccesory: {
@@ -178,7 +178,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                 case let .userGroup(userGroupRow, permission):
                   UserGroupListRowView(
                     model: userGroupRow,
-                    action: {
+                    contentAction: {
                       self.controller.toggleUserGroupSelection(userGroupRow.id)
                     },
                     rightAccesory: {
@@ -205,7 +205,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
         key: .apply
       ),
       action: {
-        await self.controller
+        self.controller
           .saveSelection()
       }
     )

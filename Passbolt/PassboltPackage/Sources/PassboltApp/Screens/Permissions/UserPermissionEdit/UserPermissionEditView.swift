@@ -151,7 +151,7 @@ internal struct UserPermissionEditView: ComponentView {
           key: .apply
         ),
         action: {
-          await self.controller
+          self.controller
             .saveChanges()
         }
       )
@@ -162,7 +162,7 @@ internal struct UserPermissionEditView: ComponentView {
         ),
         iconName: .trash,
         action: {
-          await self.controller
+          self.controller
             .deletePermission()
         }
       )

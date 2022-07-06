@@ -27,34 +27,38 @@ import SwiftUI
 public struct UserListRowView<RightAccessoryView>: View
 where RightAccessoryView: View {
 
-  private let model: UserListRowViewModel
-  private let action: @MainActor @Sendable () -> Void
   private let chevronVisible: Bool
+  private let model: UserListRowViewModel
+  private let contentAction: @MainActor () -> Void
+  private let rightAction: (@MainActor () -> Void)?
   private let rightAccesory: () -> RightAccessoryView
 
   public init(
-    model: UserListRowViewModel,
-    action: @escaping @MainActor @Sendable () -> Void,
     chevronVisible: Bool = false,
+    model: UserListRowViewModel,
+    contentAction: @escaping @MainActor () -> Void,
+    rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccesory: @escaping () -> RightAccessoryView
   ) {
-    self.model = model
-    self.action = action
     self.chevronVisible = chevronVisible
+    self.model = model
+    self.contentAction = contentAction
+    self.rightAction = rightAction
     self.rightAccesory = rightAccesory
   }
 
   public var body: some View {
     ListRowView(
-      action: self.action,
       chevronVisible: self.chevronVisible,
+      title: self.model.fullName,
+      subtitle: self.model.username,
       leftAccessory: {
         UserAvatarView(
           imageData: self.model.avatarImageFetch
         )
       },
-      title: self.model.fullName,
-      subtitle: self.model.username,
+      contentAction: self.contentAction,
+      rightAction: self.rightAction,
       rightAccessory: self.rightAccesory
     )
   }
@@ -72,7 +76,7 @@ internal struct UserListRowView_Previews: PreviewProvider {
         username: "johndoe@email.com",
         avatarImageFetch: { nil }
       ),
-      action: {},
+      contentAction: {},
       rightAccesory: {
         SelectionIndicator(selected: true)
       }

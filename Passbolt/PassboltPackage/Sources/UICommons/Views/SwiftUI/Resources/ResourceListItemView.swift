@@ -29,26 +29,26 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
 
   private let name: String
   private let username: String?
-  private let action: () async -> Void
-  private let accessory: () -> AccessoryView
+  private let contentAction: @MainActor () -> Void
+  private let rightAction: (@MainActor () -> Void)?
+  private let rightAccessory: () -> AccessoryView
 
   public init(
     name: String,
     username: String?,
-    action: @escaping () async -> Void,
-    @ViewBuilder accessory: @escaping () -> AccessoryView
+    contentAction: @escaping @MainActor () -> Void,
+    rightAction: (@MainActor () -> Void)? = .none,
+    @ViewBuilder rightAccessory: @escaping () -> AccessoryView
   ) {
     self.name = name
     self.username = (username?.isEmpty ?? true) ? nil : username
-    self.action = action
-    self.accessory = accessory
+    self.contentAction = contentAction
+    self.rightAction = rightAction
+    self.rightAccessory = rightAccessory
   }
 
   public var body: some View {
     ListRowView(
-      action: {
-        await self.action()
-      },
       leftAccessory: {
         LetterIconView(text: self.name)
           .frame(
@@ -57,6 +57,7 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
             alignment: .center
           )
       },
+      contentAction: self.contentAction,
       content: {
         VStack(alignment: .leading, spacing: 4) {
           Text(name)
@@ -77,7 +78,8 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
           .foregroundColor(Color.passboltSecondaryText)
         }
       },
-      rightAccessory: self.accessory
+      rightAction: self.rightAction,
+      rightAccessory: self.rightAccessory
     )
   }
 }
@@ -90,10 +92,10 @@ internal struct ResourceListItemView_Previews: PreviewProvider {
     ResourceListItemView(
       name: "Resource",
       username: "username",
-      action: {
+      contentAction: {
         // action
       },
-      accessory: EmptyView.init
+      rightAccessory: EmptyView.init
     )
   }
 }

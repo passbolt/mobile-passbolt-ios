@@ -27,11 +27,11 @@ import UICommons
 internal struct UserGroupMembersListRowView: View {
 
   private let item: UserGroupMembersListRowItem
-  private let action: () async -> Void
+  private let action: @MainActor () -> Void
 
   internal init(
     _ item: UserGroupMembersListRowItem,
-    action: @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.item = item
     self.action = action
@@ -39,15 +39,13 @@ internal struct UserGroupMembersListRowView: View {
 
   internal var body: some View {
     ListRowView(
-      action: {
-        await self.action()
-      },
       chevronVisible: true,
+      title: "\(self.item.userDetails.firstName) \(self.item.userDetails.lastName)",
+      subtitle: "\(self.item.userDetails.username)",
       leftAccessory: {
         UserAvatarView(imageData: self.item.avatarImageData)
       },
-      title: "\(self.item.userDetails.firstName) \(self.item.userDetails.lastName)",
-      subtitle: "\(self.item.userDetails.username)"
+      contentAction: self.action
     )
   }
 }

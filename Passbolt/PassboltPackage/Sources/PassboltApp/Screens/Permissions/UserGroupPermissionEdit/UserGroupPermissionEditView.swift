@@ -179,7 +179,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
           key: .apply
         ),
         action: {
-          await self.controller
+          self.controller
             .saveChanges()
         }
       )
@@ -190,7 +190,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
         ),
         iconName: .trash,
         action: {
-          await self.controller
+          self.controller
             .deletePermission()
         }
       )

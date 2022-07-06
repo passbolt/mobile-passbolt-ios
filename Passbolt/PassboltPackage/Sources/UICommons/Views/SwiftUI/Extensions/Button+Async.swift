@@ -24,6 +24,7 @@
 import Commons
 import SwiftUI
 
+@available(*, deprecated, message: "Please switch to `PrimaryButton`/`SecondaryButton` or regular `Button`")
 @MainActor
 public struct AsyncButton<LabelView>: View where LabelView: View {
 
@@ -48,8 +49,14 @@ public struct AsyncButton<LabelView>: View where LabelView: View {
           await self.action.run()
         }
       },
-      label: self.label
+      label: {
+        self
+          .label()
+          .contentShape(
+            .interaction,
+            Rectangle()
+          )
+      }
     )
-    .contentShape(Rectangle())
   }
 }

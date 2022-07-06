@@ -77,10 +77,10 @@ internal struct ResourcePermissionEditListView: ComponentView {
                 action: {
                   switch item {
                   case let .user(details, _):
-                    await self.controller.showUserPermissionEdit(details)
+                    self.controller.showUserPermissionEdit(details)
 
                   case let .userGroup(details):
-                    await self.controller.showUserGroupPermissionEdit(details)
+                    self.controller.showUserGroupPermissionEdit(details)
                   }
                 }
               )
@@ -95,10 +95,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
         title: .localized(
           key: .apply
         ),
-        action: {
-          await self.controller
-            .saveChanges()
-        }
+        action: self.controller.saveChanges
       )
       .disabled(self.state.permissionListItems.isEmpty)
       .padding(16)
@@ -107,9 +104,6 @@ internal struct ResourcePermissionEditListView: ComponentView {
 
   private var addPermissionButton: some View {
     ListRowView(
-      action: {
-        await self.controller.addPermission()
-      },
       leftAccessory: {
         Image(named: .create)
           .resizable()
@@ -119,6 +113,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
             alignment: .center
           )
       },
+      contentAction: self.controller.addPermission,
       content: {
         Text(
           displayable: .localized(
@@ -132,6 +127,10 @@ internal struct ResourcePermissionEditListView: ComponentView {
           )
         )
         .foregroundColor(.passboltPrimaryBlue)
+        .padding(
+          leading: 8,
+          trailing: 8
+        )
       }
     )
   }

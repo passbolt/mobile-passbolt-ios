@@ -35,9 +35,9 @@ internal struct TagsExplorerController {
   internal var presentTagContent: @MainActor (ResourceTagDSV) -> Void
   internal var presentResourceCreationFrom: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
-  internal var presentResourceMenu: @MainActor (Resource.ID) async -> Void
-  internal var presentHomePresentationMenu: @MainActor () async -> Void
-  internal var presentAccountMenu: @MainActor () async -> Void
+  internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
+  internal var presentHomePresentationMenu: @MainActor () -> Void
+  internal var presentAccountMenu: @MainActor () -> Void
 }
 
 extension TagsExplorerController: ComponentController {
@@ -194,80 +194,86 @@ extension TagsExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentResourceMenu(_ resourceID: Resource.ID) async {
-      await navigation.presentSheetMenu(
-        ResourceMenuViewController.self,
-        in: (
-          resourceID: resourceID,
-          showShare: { (resourceID: Resource.ID) in
-            cancellables.executeOnMainActor {
-              await navigation
-                .dismiss(
-                  SheetMenuViewController<ResourceMenuViewController>.self
-                )
-              presentResourceShareForm(for: resourceID)
-            }
-          },
-          showEdit: { (resourceID: Resource.ID) in
-            cancellables.executeOnMainActor {
-              await navigation
-                .dismiss(
-                  SheetMenuViewController<ResourceMenuViewController>.self
-                )
-              presentResourceEditingForm(for: .existing(resourceID))
-            }
-          },
-          showDeleteAlert: { (resourceID: Resource.ID) in
-            cancellables.executeOnMainActor {
-              await navigation
-                .dismiss(
-                  SheetMenuViewController<ResourceMenuViewController>.self
-                )
-              await navigation.present(
-                ResourceDeleteAlert.self,
-                in: {
-                  Task {
-                    do {
-                      try await resources
-                        .deleteResource(resourceID)
-                        .asAsyncValue()
-                    }
-                    catch {
-                      viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+    @MainActor func presentResourceMenu(_ resourceID: Resource.ID) {
+      cancellables.executeOnMainActor {
+        await navigation.presentSheetMenu(
+          ResourceMenuViewController.self,
+          in: (
+            resourceID: resourceID,
+            showShare: { (resourceID: Resource.ID) in
+              cancellables.executeOnMainActor {
+                await navigation
+                  .dismiss(
+                    SheetMenuViewController<ResourceMenuViewController>.self
+                  )
+                presentResourceShareForm(for: resourceID)
+              }
+            },
+            showEdit: { (resourceID: Resource.ID) in
+              cancellables.executeOnMainActor {
+                await navigation
+                  .dismiss(
+                    SheetMenuViewController<ResourceMenuViewController>.self
+                  )
+                presentResourceEditingForm(for: .existing(resourceID))
+              }
+            },
+            showDeleteAlert: { (resourceID: Resource.ID) in
+              cancellables.executeOnMainActor {
+                await navigation
+                  .dismiss(
+                    SheetMenuViewController<ResourceMenuViewController>.self
+                  )
+                await navigation.present(
+                  ResourceDeleteAlert.self,
+                  in: {
+                    Task {
+                      do {
+                        try await resources
+                          .deleteResource(resourceID)
+                          .asAsyncValue()
+                      }
+                      catch {
+                        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+                      }
                     }
                   }
-                }
-              )
+                )
+              }
             }
-          }
-        )
-      )
-    }
-
-    @MainActor func presentHomePresentationMenu() async {
-      await navigation.presentSheet(
-        HomePresentationMenuView.self,
-        in: .foldersExplorer
-      )
-    }
-
-    @MainActor func presentAccountMenu() async {
-      do {
-        let accountWithProfile: AccountWithProfile =
-          try await accountSettings
-          .currentAccountProfilePublisher()
-          .asAsyncValue()
-
-        await navigation.presentSheet(
-          AccountMenuViewController.self,
-          in: (
-            accountWithProfile: accountWithProfile,
-            navigation: navigation.asContextlessNavigation()
           )
         )
       }
-      catch {
-        viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+    }
+
+    @MainActor func presentHomePresentationMenu() {
+      cancellables.executeOnMainActor {
+        await navigation.presentSheet(
+          HomePresentationMenuView.self,
+          in: .foldersExplorer
+        )
+      }
+    }
+
+    @MainActor func presentAccountMenu() {
+      cancellables.executeOnMainActor {
+        do {
+          let accountWithProfile: AccountWithProfile =
+            try await accountSettings
+            .currentAccountProfilePublisher()
+            .asAsyncValue()
+
+          await navigation.presentSheet(
+            AccountMenuViewController.self,
+            in: (
+              accountWithProfile: accountWithProfile,
+              navigation: navigation.asContextlessNavigation()
+            )
+          )
+        }
+        catch {
+          viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
+        }
       }
     }
 

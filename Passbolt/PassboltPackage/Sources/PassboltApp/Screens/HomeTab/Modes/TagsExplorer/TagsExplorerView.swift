@@ -186,23 +186,19 @@ internal struct TagsExplorerView: ComponentView {
         ResourceListItemView(
           name: resource.name,
           username: resource.username,
-          action: {
+          contentAction: {
             self.controller.presentResourceDetails(resource.id)
           },
-          accessory: {
-            AsyncButton(
-              action: {
-                await self.controller.presentResourceMenu(resource.id)
-              },
-              label: {
-                Image(named: .more)
-                  .resizable()
-                  .aspectRatio(1, contentMode: .fit)
-                  .padding(8)
-                  .foregroundColor(Color.passboltIcon)
-                  .cornerRadius(8)
-              }
-            )
+          rightAction: {
+            self.controller.presentResourceMenu(resource.id)
+          },
+          rightAccessory: {
+            Image(named: .more)
+              .resizable()
+              .aspectRatio(1, contentMode: .fit)
+              .foregroundColor(Color.passboltIcon)
+              .padding(8)
+              .frame(width: 44)
           }
         )
       }

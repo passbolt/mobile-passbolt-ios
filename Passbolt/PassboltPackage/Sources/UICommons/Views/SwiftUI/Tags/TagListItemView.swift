@@ -30,13 +30,13 @@ public struct TagListItemView: View {
   private let name: String
   private let shared: Bool
   private let contentCount: Int
-  private let action: () async -> Void
+  private let action: @MainActor () -> Void
 
   public init(
     name: String,
     shared: Bool,
     contentCount: Int,
-    action: @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.name = name
     self.shared = shared
@@ -46,9 +46,6 @@ public struct TagListItemView: View {
 
   public var body: some View {
     ListRowView(
-      action: {
-        await self.action()
-      },
       chevronVisible: true,
       leftAccessory: {
         Image(
@@ -62,6 +59,7 @@ public struct TagListItemView: View {
           alignment: .center
         )
       },
+      contentAction: self.action,
       content: {
         Text(self.name)
           .font(.inter(ofSize: 14, weight: .semibold))

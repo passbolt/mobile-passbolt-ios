@@ -28,7 +28,7 @@ import Users
 internal struct UserGroupMembersListController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var showUserDetails: @MainActor (UserDetailsDSV) async -> Void
+  internal var showUserDetails: @MainActor (UserDetailsDSV) -> Void
 }
 
 extension UserGroupMembersListController: ComponentController {
@@ -75,12 +75,14 @@ extension UserGroupMembersListController: ComponentController {
 
     @MainActor func showUserDetails(
       _ details: UserDetailsDSV
-    ) async {
-      await navigation
-        .push(
-          UserGroupMemberDetailsView.self,
-          in: details
-        )
+    ) {
+      cancellables.executeOnMainActor {
+        await navigation
+          .push(
+            UserGroupMemberDetailsView.self,
+            in: details
+          )
+      }
     }
 
     return Self(

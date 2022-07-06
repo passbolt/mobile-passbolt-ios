@@ -27,19 +27,16 @@ import SwiftUI
 @MainActor
 public struct ResourceListAddView: View {
 
-  private let action: () async -> Void
+  private let action: @MainActor () -> Void
 
   public init(
-    action: @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.action = action
   }
 
   public var body: some View {
     ListRowView(
-      action: {
-        await self.action()
-      },
       leftAccessory: {
         Image(named: .create)
           .resizable()
@@ -49,6 +46,7 @@ public struct ResourceListAddView: View {
             alignment: .center
           )
       },
+      contentAction: self.action,
       content: {
         Text(displayable: .localized(key: .create))
           .font(.inter(ofSize: 14, weight: .semibold))

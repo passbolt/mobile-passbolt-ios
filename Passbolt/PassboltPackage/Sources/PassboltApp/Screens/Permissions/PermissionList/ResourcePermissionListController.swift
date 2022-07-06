@@ -30,9 +30,9 @@ import Users
 internal struct ResourcePermissionListController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var showUserPermissionDetails: @MainActor (UserPermissionDetailsDSV) async -> Void
-  internal var showUserGroupPermissionDetails: @MainActor (UserGroupPermissionDetailsDSV) async -> Void
-  internal var editPermissions: () async -> Void
+  internal var showUserPermissionDetails: @MainActor (UserPermissionDetailsDSV) -> Void
+  internal var showUserGroupPermissionDetails: @MainActor (UserGroupPermissionDetailsDSV) -> Void
+  internal var editPermissions: @MainActor () -> Void
 }
 
 extension ResourcePermissionListController: ComponentController {
@@ -103,30 +103,36 @@ extension ResourcePermissionListController: ComponentController {
       await navigation.pop(if: ControlledView.self)
     }
 
-    @MainActor func showUserPermissionDetails(
+    nonisolated func showUserPermissionDetails(
       _ details: UserPermissionDetailsDSV
-    ) async {
-      await navigation.push(
-        UserPermissionDetailsView.self,
-        in: details
-      )
+    ) {
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          UserPermissionDetailsView.self,
+          in: details
+        )
+      }
     }
 
-    @MainActor func showUserGroupPermissionDetails(
+    nonisolated func showUserGroupPermissionDetails(
       _ details: UserGroupPermissionDetailsDSV
-    ) async {
-      await navigation.push(
-        UserGroupPermissionDetailsView.self,
-        in: details
-      )
+    ) {
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          UserGroupPermissionDetailsView.self,
+          in: details
+        )
+      }
     }
 
-    @MainActor func editPermissions() async {
-      await navigation.replace(
-        ResourcePermissionListView.self,
-        pushing: ResourcePermissionEditListView.self,
-        in: context
-      )
+    nonisolated func editPermissions() {
+      cancellables.executeOnMainActor {
+        await navigation.replace(
+          ResourcePermissionListView.self,
+          pushing: ResourcePermissionEditListView.self,
+          in: context
+        )
+      }
     }
 
     return Self(

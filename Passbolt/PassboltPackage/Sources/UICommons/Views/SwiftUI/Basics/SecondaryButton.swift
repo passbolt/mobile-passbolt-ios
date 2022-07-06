@@ -30,12 +30,12 @@ public struct SecondaryButton: View {
 
   private let icon: Image?
   private let title: DisplayableString
-  private let action: @Sendable () async -> Void
+  private let action: @MainActor () -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
-    action: @Sendable @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
@@ -43,8 +43,12 @@ public struct SecondaryButton: View {
   }
 
   public var body: some View {
-    AsyncButton(
-      action: self.action,
+    Button(
+      action: {  // this should be always MainActor
+        MainActor.execute(priority: .userInitiated) {
+          self.action()
+        }
+      },
       label: {
         if let icon: Image = self.icon {
           HStack(spacing: 0) {
@@ -54,16 +58,17 @@ public struct SecondaryButton: View {
               .padding(8)
             self.titleView
           }
+          .padding(8)
         }
         else {
           self.titleView
+            .padding(8)
         }
       }
     )
-    .padding(8)
-    .frame(height: 56)
     .foregroundColor(.passboltPrimaryText)
     .backgroundColor(.clear)
+    .frame(height: 56)
   }
 
   private var titleView: some View {
@@ -76,3 +81,19 @@ public struct SecondaryButton: View {
       )
   }
 }
+
+#if DEBUG
+
+internal struct SecondaryButton_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    SecondaryButton(
+      title: "Secondary button",
+      action: {
+        print("tap")
+      }
+    )
+    .padding()
+  }
+}
+#endif

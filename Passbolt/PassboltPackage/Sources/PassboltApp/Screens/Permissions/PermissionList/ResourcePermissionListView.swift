@@ -62,10 +62,10 @@ internal struct ResourcePermissionListView: ComponentView {
               action: {
                 switch item {
                 case let .user(details, _):
-                  await self.controller.showUserPermissionDetails(details)
+                  self.controller.showUserPermissionDetails(details)
 
                 case let .userGroup(details):
-                  await self.controller.showUserGroupPermissionDetails(details)
+                  self.controller.showUserGroupPermissionDetails(details)
                 }
               }
             )
@@ -81,7 +81,7 @@ internal struct ResourcePermissionListView: ComponentView {
             key: "resource.permission.list.edit.button.title"
           ),
           action: {
-            await self.controller
+            self.controller
               .editPermissions()
           }
         )

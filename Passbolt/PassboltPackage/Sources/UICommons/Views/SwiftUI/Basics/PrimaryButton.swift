@@ -30,12 +30,12 @@ public struct PrimaryButton: View {
 
   private let icon: Image?
   private let title: DisplayableString
-  private let action: @Sendable () async -> Void
+  private let action: @MainActor () -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
-    action: @Sendable @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
@@ -43,8 +43,12 @@ public struct PrimaryButton: View {
   }
 
   public var body: some View {
-    AsyncButton(
-      action: self.action,
+    Button(
+      action: {  // this should be always MainActor
+        MainActor.execute(priority: .userInitiated) {
+          self.action()
+        }
+      },
       label: {
         if let icon: Image = self.icon {
           HStack(spacing: 8) {
@@ -53,18 +57,25 @@ public struct PrimaryButton: View {
               .frame(width: 20, height: 20)
             self.titleView
           }
-          .frame(maxWidth: .infinity)
+          .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity
+          )
+          .padding(8)
         }
         else {
           self.titleView
-            .frame(maxWidth: .infinity)
+            .frame(
+              maxWidth: .infinity,
+              maxHeight: .infinity
+            )
+            .padding(8)
         }
       }
     )
-    .padding(8)
-    .frame(height: 56)
     .foregroundColor(.passboltPrimaryButtonText)
     .backgroundColor(.passboltPrimaryBlue)
+    .frame(height: 56)
     .cornerRadius(4)
   }
 
@@ -78,3 +89,19 @@ public struct PrimaryButton: View {
       )
   }
 }
+
+#if DEBUG
+
+internal struct PrimaryButton_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    PrimaryButton(
+      title: "Primary button",
+      action: {
+        print("tap")
+      }
+    )
+    .padding()
+  }
+}
+#endif

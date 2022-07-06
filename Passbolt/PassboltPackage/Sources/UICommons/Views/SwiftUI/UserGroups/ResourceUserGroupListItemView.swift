@@ -29,12 +29,12 @@ public struct ResourceUserGroupListItemView: View {
 
   private let name: String
   private let contentCount: Int
-  private let action: () async -> Void
+  private let action: @MainActor () -> Void
 
   public init(
     name: String,
     contentCount: Int,
-    action: @escaping () async -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.name = name
     self.contentCount = contentCount
@@ -43,9 +43,6 @@ public struct ResourceUserGroupListItemView: View {
 
   public var body: some View {
     ListRowView(
-      action: {
-        await self.action()
-      },
       chevronVisible: true,
       leftAccessory: {
         Image(
@@ -57,6 +54,7 @@ public struct ResourceUserGroupListItemView: View {
           alignment: .center
         )
       },
+      contentAction: self.action,
       content: {
         Text(self.name)
           .font(.inter(ofSize: 14, weight: .semibold))

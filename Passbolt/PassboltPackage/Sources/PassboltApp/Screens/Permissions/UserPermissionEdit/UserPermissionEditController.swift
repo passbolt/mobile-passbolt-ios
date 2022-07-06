@@ -29,9 +29,9 @@ import Users
 internal struct UserPermissionEditController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var setPermissionType: (PermissionType) async -> Void
-  internal var saveChanges: () async -> Void
-  internal var deletePermission: () async -> Void
+  internal var setPermissionType: @MainActor (PermissionType) -> Void
+  internal var saveChanges: @MainActor () -> Void
+  internal var deletePermission: @MainActor () -> Void
 }
 
 extension UserPermissionEditController: ComponentController {
@@ -66,23 +66,26 @@ extension UserPermissionEditController: ComponentController {
       )
     )
 
-    nonisolated func setPermissionType(_ type: PermissionType) async {
-      await viewState.withValue { (state: inout ViewState) in
-        state.permissionType = type
+    @MainActor func setPermissionType(
+      _ type: PermissionType
+    ) {
+      viewState
+        .set(\.permissionType, to: type)
+    }
+
+    @MainActor func saveChanges() {
+      cancellables.executeOnMainActor {
+        await resourceShareForm
+          .setUserPermission(
+            context.permissionDetails.id,
+            viewState.permissionType
+          )
+        await navigation.pop(if: UserPermissionEditView.self)
       }
     }
 
-    nonisolated func saveChanges() async {
-      await resourceShareForm
-        .setUserPermission(
-          context.permissionDetails.id,
-          viewState.permissionType
-        )
-      await navigation.pop(if: UserPermissionEditView.self)
-    }
-
-    nonisolated func deletePermission() async {
-      await viewState
+    @MainActor func deletePermission() {
+      viewState
         .set(
           \.deleteConfirmationAlert,
           to: .init(
@@ -94,7 +97,7 @@ extension UserPermissionEditController: ComponentController {
             ),
             destructive: true,
             confirmAction: {
-              Task { @MainActor in
+              Task {
                 await confirmedDeletePermission()
               }
             },

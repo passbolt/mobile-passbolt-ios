@@ -56,5 +56,9 @@ public struct ListRowTitleWithSubtitleView: View {
         )
         .foregroundColor(.passboltSecondaryText)
     }
+    .padding(
+      leading: 8,
+      trailing: 4
+    )
   }
 }

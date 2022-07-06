@@ -31,16 +31,13 @@ internal struct PermissionUsersAndGroupsSearchController {
   internal var viewState: ObservableValue<ViewState>
   internal var toggleUserSelection: @MainActor (User.ID) -> Void
   internal var toggleUserGroupSelection: @MainActor (UserGroup.ID) -> Void
-  internal var saveSelection: @MainActor () async -> Void
+  internal var saveSelection: @MainActor () -> Void
 }
 
 extension PermissionUsersAndGroupsSearchController: ComponentController {
 
   internal typealias ControlledView = PermissionUsersAndGroupsSearchView
-  internal typealias NavigationContext = (
-    resourceID: Resource.ID,
-    permissions: OrderedSet<ResourceShareFormPermission>
-  )
+  internal typealias NavigationContext = Resource.ID
 
   @MainActor static func instance(
     context: NavigationContext,
@@ -49,15 +46,18 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
-    let resourceShareForm: ResourceShareForm = try await features.instance(context: context.resourceID)
+    let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
     let users: Users = try await features.instance()
     let userGroups: UserGroups = try await features.instance()
+    let existingPermissions: OrderedSet<ResourceShareFormPermission> =
+      await resourceShareForm
+      .currentPermissions()
 
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
         searchText: "",
-        selectedItems: context
-          .permissions
+        selectedItems:
+          existingPermissions
           .map { permission in
             switch permission {
             case let .user(userID, _):
@@ -116,7 +116,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           let selectableUsersAndGroups: Array<ControlledView.SelectionRowViewModel> =
             matchingUserGroups
             .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.SelectionRowViewModel? in
-              let permissionExists: Bool = context.permissions.contains {
+              let permissionExists: Bool = existingPermissions.contains {
                 (permission: ResourceShareFormPermission) -> Bool in
                 permission.userGroupID == userGroupDetails.id
               }
@@ -133,7 +133,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             }
             + matchingUsers
             .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.SelectionRowViewModel? in
-              let permissionExists: Bool = context.permissions.contains {
+              let permissionExists: Bool = existingPermissions.contains {
                 (permission: ResourceShareFormPermission) -> Bool in
                 permission.userID == userDetails.id
               }
@@ -155,7 +155,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             matchingUserGroups
             .compactMap { (userGroupDetails: UserGroupDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
               let matchingPermission: ResourceShareFormPermission? =
-                context.permissions.first { (permission: ResourceShareFormPermission) -> Bool in
+                existingPermissions.first { (permission: ResourceShareFormPermission) -> Bool in
                   permission.userGroupID == userGroupDetails.id
                 }
 
@@ -173,7 +173,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
             + matchingUsers
             .compactMap { (userDetails: UserDetailsDSV) -> ControlledView.ExistingPermissionRowViewModel? in
               let matchingPermission: ResourceShareFormPermission? =
-                context.permissions.first { (permission: ResourceShareFormPermission) -> Bool in
+                existingPermissions.first { (permission: ResourceShareFormPermission) -> Bool in
                   permission.userID == userDetails.id
                 }
 
@@ -251,31 +251,33 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }
     }
 
-    @MainActor func saveSelection() async {
-      let newSelections =
-        viewState
-        .selectedItems
-        .dropFirst(context.permissions.count)
+    @MainActor func saveSelection() {
+      cancellables.executeOnMainActor {
+        let newSelections =
+          viewState
+          .selectedItems
+          .dropFirst(existingPermissions.count)
 
-      for row in newSelections {
-        switch row {
-        case let .user(userID, _):
-          await resourceShareForm
-            .setUserPermission(
-              userID,
-              .read
-            )
-        case let .userGroup(userGroupID):
-          await resourceShareForm
-            .setUserGroupPermission(
-              userGroupID,
-              .read
-            )
+        for row in newSelections {
+          switch row {
+          case let .user(userID, _):
+            await resourceShareForm
+              .setUserPermission(
+                userID,
+                .read
+              )
+          case let .userGroup(userGroupID):
+            await resourceShareForm
+              .setUserGroupPermission(
+                userGroupID,
+                .read
+              )
+          }
+
         }
 
+        await navigation.pop(if: ControlledView.self)
       }
-
-      await navigation.pop(if: ControlledView.self)
     }
 
     return .init(

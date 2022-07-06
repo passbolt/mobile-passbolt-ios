@@ -30,10 +30,10 @@ import Users
 internal struct ResourcePermissionEditListController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var addPermission: @MainActor () async -> Void
-  internal var showUserPermissionEdit: @MainActor (UserPermissionDetailsDSV) async -> Void
-  internal var showUserGroupPermissionEdit: @MainActor (UserGroupPermissionDetailsDSV) async -> Void
-  internal var saveChanges: @MainActor () async -> Void
+  internal var addPermission: @MainActor () -> Void
+  internal var showUserPermissionEdit: @MainActor (UserPermissionDetailsDSV) -> Void
+  internal var showUserGroupPermissionEdit: @MainActor (UserGroupPermissionDetailsDSV) -> Void
+  internal var saveChanges: @MainActor () -> Void
 }
 
 extension ResourcePermissionEditListController: ComponentController {
@@ -129,71 +129,59 @@ extension ResourcePermissionEditListController: ComponentController {
         }
     }
 
-    @MainActor func addPermission() async {
-      guard
-        let permissions: OrderedSet<ResourceShareFormPermission> =
-          await resourceShareForm
-          .permissionsSequence().first()
-      else {
-        return
-          viewState
-          .set(
-            \.snackBarMessage,
-            to: .error(
-              InternalInconsistency
-                .error()
-                .asAssertionFailure()
-            )
-          )
-      }
-
-      await navigation
-        .push(
-          PermissionUsersAndGroupsSearchView.self,
-          in: (
-            context,
-            permissions
-          )
-        )
-    }
-
-    @MainActor func showUserPermissionEdit(
-      _ details: UserPermissionDetailsDSV
-    ) async {
-      await navigation.push(
-        UserPermissionEditView.self,
-        in: (
-          resourceID: context,
-          permissionDetails: details
-        )
-      )
-    }
-
-    @MainActor func showUserGroupPermissionEdit(
-      _ details: UserGroupPermissionDetailsDSV
-    ) async {
-      await navigation.push(
-        UserGroupPermissionEditView.self,
-        in: (
-          resourceID: context,
-          permissionDetails: details
-        )
-      )
-    }
-
-    @MainActor func saveChanges() async {
-      do {
-        viewState.set(\.loading, to: true)
-        try await resourceShareForm.sendForm()
+    nonisolated func addPermission() {
+      cancellables.executeOnMainActor {
         await navigation
-          .pop(if: ResourcePermissionEditListView.self)
-        viewState.set(\.loading, to: false)
+          .push(
+            PermissionUsersAndGroupsSearchView.self,
+            in: context
+          )
       }
-      catch {
-        diagnostics.log(error)
-        viewState.withValue { (state: inout ViewState) in
-          state.loading = false
-          state.snackBarMessage = .error(error)
+    }
+
+    nonisolated func showUserPermissionEdit(
+      _ details: UserPermissionDetailsDSV
+    ) {
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          UserPermissionEditView.self,
+          in: (
+            resourceID: context,
+            permissionDetails: details
+          )
+        )
+      }
+    }
+
+    nonisolated func showUserGroupPermissionEdit(
+      _ details: UserGroupPermissionDetailsDSV
+    ) {
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          UserGroupPermissionEditView.self,
+          in: (
+            resourceID: context,
+            permissionDetails: details
+          )
+        )
+      }
+    }
+
+    @MainActor func saveChanges() {
+      viewState.set(\.loading, to: true)
+      cancellables.executeOnMainActor {
+        do {
+          try await resourceShareForm.sendForm()
+          await navigation
+            .pop(if: ResourcePermissionEditListView.self)
+          viewState.set(\.loading, to: false)
+        }
+        catch {
+          diagnostics.log(error)
+          viewState.withValue { (state: inout ViewState) in
+            state.loading = false
+            state.snackBarMessage = .error(error)
+          }
         }
       }
     }

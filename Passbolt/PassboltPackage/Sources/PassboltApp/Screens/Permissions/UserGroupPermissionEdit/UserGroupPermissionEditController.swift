@@ -29,10 +29,10 @@ import Users
 internal struct UserGroupPermissionEditController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var showGroupMembers: () async -> Void
-  internal var setPermissionType: (PermissionType) async -> Void
-  internal var saveChanges: () async -> Void
-  internal var deletePermission: () async -> Void
+  internal var showGroupMembers: () -> Void
+  internal var setPermissionType: (PermissionType) -> Void
+  internal var saveChanges: () -> Void
+  internal var deletePermission: () -> Void
 }
 
 extension UserGroupPermissionEditController: ComponentController {
@@ -83,51 +83,61 @@ extension UserGroupPermissionEditController: ComponentController {
       )
     )
 
-    nonisolated func showGroupMembers() async {
-      await navigation
-        .push(
-          UserGroupMembersListView.self,
-          in: context.permissionDetails.asUserGroupDetails
-        )
-    }
-
-    nonisolated func setPermissionType(_ type: PermissionType) async {
-      await viewState.withValue { (state: inout ViewState) in
-        state.permissionType = type
+    nonisolated func showGroupMembers() {
+      cancellables.executeOnMainActor {
+        await navigation
+          .push(
+            UserGroupMembersListView.self,
+            in: context.permissionDetails.asUserGroupDetails
+          )
       }
     }
 
-    nonisolated func saveChanges() async {
-      await resourceShareForm
-        .setUserGroupPermission(
-          context.permissionDetails.id,
-          viewState.permissionType
-        )
-      await navigation.pop(if: UserPermissionEditView.self)
+    nonisolated func setPermissionType(
+      _ type: PermissionType
+    ) {
+      cancellables.executeOnMainActor {
+        viewState.withValue { (state: inout ViewState) in
+          state.permissionType = type
+        }
+      }
     }
 
-    nonisolated func deletePermission() async {
-      await viewState
-        .set(
-          \.deleteConfirmationAlert,
-          to: .init(
-            title: .localized(
-              key: .areYouSure
-            ),
-            message: .localized(
-              key: "resource.permission.delete.user.group.permission.confirmation.message"
-            ),
-            destructive: true,
-            confirmAction: {
-              Task { @MainActor in
-                await confirmedDeletePermission()
-              }
-            },
-            confirmLabel: .localized(
-              key: .confirm
+    nonisolated func saveChanges() {
+      cancellables.executeOnMainActor {
+        await resourceShareForm
+          .setUserGroupPermission(
+            context.permissionDetails.id,
+            viewState.permissionType
+          )
+        await navigation.pop(if: UserPermissionEditView.self)
+      }
+    }
+
+    nonisolated func deletePermission() {
+      cancellables.executeOnMainActor {
+        viewState
+          .set(
+            \.deleteConfirmationAlert,
+            to: .init(
+              title: .localized(
+                key: .areYouSure
+              ),
+              message: .localized(
+                key: "resource.permission.delete.user.group.permission.confirmation.message"
+              ),
+              destructive: true,
+              confirmAction: {
+                Task {
+                  await confirmedDeletePermission()
+                }
+              },
+              confirmLabel: .localized(
+                key: .confirm
+              )
             )
           )
-        )
+      }
     }
 
     @Sendable nonisolated func confirmedDeletePermission() async {

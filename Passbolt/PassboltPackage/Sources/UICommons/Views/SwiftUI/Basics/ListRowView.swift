@@ -28,61 +28,240 @@ import SwiftUI
 public struct ListRowView<LeftAccessoryView, ContentView, RightAccessoryView>: View
 where LeftAccessoryView: View, ContentView: View, RightAccessoryView: View {
 
-  private let action: @Sendable () async -> Void
   private let chevronVisible: Bool
+  private let leftAction: (@MainActor () -> Void)?
   private let leftAccessory: () -> LeftAccessoryView
+  private let contentAction: @MainActor () -> Void
   private let content: () -> ContentView
+  private let rightAction: (@MainActor () -> Void)?
   private let rightAccessory: () -> RightAccessoryView
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
+    leftAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    contentAction: @escaping @MainActor () -> Void,
     @ViewBuilder content: @escaping () -> ContentView,
+    rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
-    self.action = action
     self.chevronVisible = chevronVisible
+    self.leftAction = leftAction
     self.leftAccessory = leftAccessory
+    self.contentAction = contentAction
     self.content = content
+    self.rightAction = rightAction
     self.rightAccessory = rightAccessory
   }
 
   public var body: some View {
     HStack(spacing: 0) {
-      AsyncButton(
-        action: self.action,
-        label: {
-          HStack(spacing: 0) {
+      if let leftAction: @MainActor () -> Void = self.leftAction {
+        Button(
+          action: {
+            MainActor.execute(priority: .userInitiated) {
+              leftAction()
+            }
+          },
+          label: {
             self.leftAccessory()
-              .frame(maxWidth: 52, maxHeight: 52, alignment: .leading)
-            self.content()
-              .frame(maxWidth: .infinity, maxHeight: 52, alignment: .leading)
+              .frame(
+                maxHeight: 52,
+                alignment: .leading
+              )
+              .contentShape(
+                .interaction,
+                Rectangle()
+              )
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .contentShape(Rectangle())
-        }
-      )
-
-      self.rightAccessory()
-        .padding(
-          leading: 4
         )
+
+        if let rightAction: @MainActor () -> Void = self.rightAction {
+          Button(
+            action: {
+              MainActor.execute(priority: .userInitiated) {
+                self.contentAction()
+              }
+            },
+            label: {
+              self.content()
+                .frame(
+                  maxWidth: .infinity,
+                  maxHeight: 52,
+                  alignment: .leading
+                )
+                .frame(maxWidth: .infinity)
+                .contentShape(
+                  .interaction,
+                  Rectangle()
+                )
+            }
+          )
+
+          Button(
+            action: {
+              MainActor.execute(priority: .userInitiated) {
+                rightAction()
+              }
+            },
+            label: {
+              self.rightAccessory()
+                .frame(
+                  maxHeight: 52,
+                  alignment: .trailing
+                )
+            }
+          )
+          .contentShape(
+            .interaction,
+            Rectangle()
+          )
+        }
+        else {
+          Button(
+            action: {
+              MainActor.execute(priority: .userInitiated) {
+                self.contentAction()
+              }
+            },
+            label: {
+              HStack(spacing: 0) {
+                self.content()
+                  .frame(
+                    maxWidth: .infinity,
+                    maxHeight: 52,
+                    alignment: .leading
+                  )
+
+                self.rightAccessory()
+                  .frame(
+                    maxHeight: 52,
+                    alignment: .trailing
+                  )
+              }
+              .frame(maxWidth: .infinity)
+              .contentShape(
+                .interaction,
+                Rectangle()
+              )
+            }
+          )
+        }
+      }
+      else if let rightAction: @MainActor () -> Void = self.rightAction {
+        Button(
+          action: {
+            MainActor.execute(priority: .userInitiated) {
+              self.contentAction()
+            }
+          },
+          label: {
+            HStack(spacing: 0) {
+              self.leftAccessory()
+                .frame(
+                  maxHeight: 52,
+                  alignment: .leading
+                )
+
+              self.content()
+                .frame(
+                  maxWidth: .infinity,
+                  maxHeight: 52,
+                  alignment: .leading
+                )
+                .padding(
+                  leading: 8,
+                  trailing: 8
+                )
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(
+              .interaction,
+              Rectangle()
+            )
+          }
+        )
+
+        Button(
+          action: {
+            MainActor.execute(priority: .userInitiated) {
+              rightAction()
+            }
+          },
+          label: {
+            self.rightAccessory()
+              .frame(
+                maxHeight: 52,
+                alignment: .trailing
+              )
+          }
+        )
+        .contentShape(
+          .interaction,
+          Rectangle()
+        )
+      }
+      else {
+        Button(
+          action: {
+            MainActor.execute(priority: .userInitiated) {
+              self.contentAction()
+            }
+          },
+          label: {
+            HStack(spacing: 0) {
+              self.leftAccessory()
+                .frame(
+                  maxHeight: 52,
+                  alignment: .leading
+                )
+
+              self.content()
+                .frame(
+                  maxWidth: .infinity,
+                  maxHeight: 52,
+                  alignment: .leading
+                )
+                .padding(
+                  leading: 8,
+                  trailing: 8
+                )
+
+              self.rightAccessory()
+                .frame(
+                  maxHeight: 52,
+                  alignment: .trailing
+                )
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(
+              .interaction,
+              Rectangle()
+            )
+          }
+        )
+      }
 
       if self.chevronVisible {
         Image(named: .chevronRight)
-          .resizable()
-          .aspectRatio(1, contentMode: .fit)
+          .frame(
+            maxHeight: 52,
+            alignment: .trailing
+          )
           .padding(
             top: 12,
-            leading: 4,
             bottom: 12,
             trailing: 0
           )
       }  // else { /* NOP */ }
     }
-    .foregroundColor(Color.passboltPrimaryText)
-    .padding(top: 12, leading: 16, bottom: 12, trailing: 16)
+    .foregroundColor(.passboltPrimaryText)
+    .padding(
+      top: 12,
+      leading: 16,
+      bottom: 12,
+      trailing: 16
+    )
     .frame(height: 64)
     .frame(maxWidth: .infinity)
     .listRowSeparator(.hidden)
@@ -95,16 +274,21 @@ extension ListRowView
 where LeftAccessoryView == EmptyView {
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
+    contentAction: @escaping @MainActor () -> Void,
     @ViewBuilder content: @escaping () -> ContentView,
+    rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = EmptyView.init
-    self.content = content
-    self.rightAccessory = rightAccessory
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: .none,
+      leftAccessory: EmptyView.init,
+      contentAction: contentAction,
+      content: content,
+      rightAction: rightAction,
+      rightAccessory: rightAccessory
+    )
   }
 }
 
@@ -112,16 +296,21 @@ extension ListRowView
 where RightAccessoryView == EmptyView {
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
+    leftAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    contentAction: @escaping @MainActor () -> Void,
     @ViewBuilder content: @escaping () -> ContentView
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = leftAccessory
-    self.content = content
-    self.rightAccessory = EmptyView.init
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: leftAction,
+      leftAccessory: leftAccessory,
+      contentAction: contentAction,
+      content: content,
+      rightAction: .none,
+      rightAccessory: EmptyView.init
+    )
   }
 }
 
@@ -129,15 +318,19 @@ extension ListRowView
 where LeftAccessoryView == EmptyView, RightAccessoryView == EmptyView {
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
+    contentAction: @escaping @MainActor () -> Void,
     @ViewBuilder content: @escaping () -> ContentView
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = EmptyView.init
-    self.content = content
-    self.rightAccessory = EmptyView.init
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: .none,
+      leftAccessory: EmptyView.init,
+      contentAction: contentAction,
+      content: content,
+      rightAction: .none,
+      rightAccessory: EmptyView.init
+    )
   }
 }
 
@@ -145,19 +338,25 @@ extension ListRowView
 where ContentView == ListRowTitleView {
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
-    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     title: DisplayableString,
+    leftAction: (@MainActor () -> Void)? = .none,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    contentAction: @escaping @MainActor () -> Void,
+    rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = leftAccessory
-    self.content = {
-      ListRowTitleView(title: title)
-    }
-    self.rightAccessory = rightAccessory
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: leftAction,
+      leftAccessory: leftAccessory,
+      contentAction: contentAction,
+      content: {
+        ListRowTitleView(title: title)
+      },
+      rightAction: rightAction,
+      rightAccessory: rightAccessory
+    )
   }
 }
 
@@ -165,41 +364,52 @@ extension ListRowView
 where ContentView == ListRowTitleView, RightAccessoryView == EmptyView {
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
+    title: DisplayableString,
+    leftAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
-    title: DisplayableString
+    contentAction: @escaping @MainActor () -> Void
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = leftAccessory
-    self.content = {
-      ListRowTitleView(title: title)
-    }
-    self.rightAccessory = EmptyView.init
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: leftAction,
+      leftAccessory: leftAccessory,
+      contentAction: contentAction,
+      content: {
+        ListRowTitleView(title: title)
+      },
+      rightAction: .none,
+      rightAccessory: EmptyView.init
+    )
   }
 }
 
 extension ListRowView
 where ContentView == ListRowTitleWithSubtitleView {
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
-    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     title: DisplayableString,
     subtitle: DisplayableString,
+    leftAction: (@MainActor () -> Void)? = .none,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    contentAction: @escaping @MainActor () -> Void,
+    rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccessory: @escaping () -> RightAccessoryView
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = leftAccessory
-    self.content = {
-      ListRowTitleWithSubtitleView(
-        title: title,
-        subtitle: subtitle
-      )
-    }
-    self.rightAccessory = rightAccessory
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: leftAction,
+      leftAccessory: leftAccessory,
+      contentAction: contentAction,
+      content: {
+        ListRowTitleWithSubtitleView(
+          title: title,
+          subtitle: subtitle
+        )
+      },
+      rightAction: rightAction,
+      rightAccessory: rightAccessory
+    )
   }
 }
 
@@ -207,22 +417,27 @@ extension ListRowView
 where ContentView == ListRowTitleWithSubtitleView, RightAccessoryView == EmptyView {
 
   public init(
-    action: @Sendable @escaping () async -> Void,
     chevronVisible: Bool = false,
-    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
     title: DisplayableString,
-    subtitle: DisplayableString
+    subtitle: DisplayableString,
+    leftAction: (@MainActor () -> Void)? = .none,
+    @ViewBuilder leftAccessory: @escaping () -> LeftAccessoryView,
+    contentAction: @escaping @MainActor () -> Void
   ) {
-    self.action = action
-    self.chevronVisible = chevronVisible
-    self.leftAccessory = leftAccessory
-    self.content = {
-      ListRowTitleWithSubtitleView(
-        title: title,
-        subtitle: subtitle
-      )
-    }
-    self.rightAccessory = EmptyView.init
+    self.init(
+      chevronVisible: chevronVisible,
+      leftAction: leftAction,
+      leftAccessory: leftAccessory,
+      contentAction: contentAction,
+      content: {
+        ListRowTitleWithSubtitleView(
+          title: title,
+          subtitle: subtitle
+        )
+      },
+      rightAction: .none,
+      rightAccessory: EmptyView.init
+    )
   }
 }
 
@@ -232,10 +447,8 @@ internal struct ListRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     ListRowView(
-      action: {
-        // main action
-      },
       chevronVisible: true,
+      title: "Content title",
       leftAccessory: {
         Image(named: .plus)
           .resizable()
@@ -245,22 +458,19 @@ internal struct ListRowView_Previews: PreviewProvider {
           .foregroundColor(Color.passboltPrimaryButtonText)
           .cornerRadius(8)
       },
-      title: "Content title",
+      contentAction: {
+        // tap
+      },
+      rightAction: {
+        // tap
+      },
       rightAccessory: {
-        AsyncButton(
-          action: {
-            // accessory action
-          },
-          label: {
-            Image(named: .more)
-              .resizable()
-              .aspectRatio(1, contentMode: .fit)
-              .padding(8)
-              .foregroundColor(Color.passboltIcon)
-              .cornerRadius(8)
-          }
-        )
-        .cornerRadius(8)
+        Image(named: .more)
+          .resizable()
+          .aspectRatio(1, contentMode: .fit)
+          .foregroundColor(Color.passboltIcon)
+          .padding(8)
+          .frame(width: 44)
       }
     )
   }

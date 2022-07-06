@@ -105,7 +105,7 @@ internal struct UserGroupMembersListView: ComponentView {
             UserGroupMembersListRowView(
               item,
               action: {
-                await self.controller.showUserDetails(item.userDetails)
+                self.controller.showUserDetails(item.userDetails)
               }
             )
           }

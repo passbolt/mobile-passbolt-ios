@@ -27,31 +27,35 @@ import SwiftUI
 public struct UserGroupListRowView<RightAccessoryView>: View
 where RightAccessoryView: View {
 
-  private let model: UserGroupListRowViewModel
-  private let action: @MainActor @Sendable () -> Void
   private let chevronVisible: Bool
+  private let model: UserGroupListRowViewModel
+  private let contentAction: @MainActor () -> Void
+  private let rightAction: (@MainActor () -> Void)?
   private let rightAccesory: () -> RightAccessoryView
 
   public init(
-    model: UserGroupListRowViewModel,
-    action: @escaping @MainActor @Sendable () -> Void,
     chevronVisible: Bool = false,
+    model: UserGroupListRowViewModel,
+    contentAction: @escaping @MainActor () -> Void,
+    rightAction: (@MainActor () -> Void)? = .none,
     @ViewBuilder rightAccesory: @escaping () -> RightAccessoryView
   ) {
-    self.model = model
-    self.action = action
     self.chevronVisible = chevronVisible
+    self.model = model
+    self.contentAction = contentAction
+    self.rightAction = rightAction
     self.rightAccesory = rightAccesory
   }
 
   public var body: some View {
     ListRowView(
-      action: self.action,
       chevronVisible: self.chevronVisible,
+      title: self.model.name,
       leftAccessory: {
         UserGroupAvatarView()
       },
-      title: self.model.name,
+      contentAction: self.contentAction,
+      rightAction: self.rightAction,
       rightAccessory: self.rightAccesory
     )
   }
@@ -67,7 +71,7 @@ internal struct UserGroupListRowView_Previews: PreviewProvider {
         id: .random(),
         name: "Admins"
       ),
-      action: {},
+      contentAction: {},
       rightAccesory: {
         SelectionIndicator(selected: false)
       }

@@ -43,5 +43,9 @@ public struct ListRowTitleView: View {
         )
       )
       .foregroundColor(.passboltPrimaryText)
+      .padding(
+        leading: 8,
+        trailing: 4
+      )
   }
 }

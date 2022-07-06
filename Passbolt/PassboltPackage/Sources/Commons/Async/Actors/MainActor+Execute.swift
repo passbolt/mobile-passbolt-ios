@@ -35,9 +35,10 @@ extension MainActor {
   }
 
   public static func execute(
+    priority: TaskPriority? = .none,
     _ operation: @MainActor @escaping () async throws -> Void
   ) {
-    Task { @MainActor in
+    Task(priority: priority) { @MainActor in
       try await operation()
     }
   }
