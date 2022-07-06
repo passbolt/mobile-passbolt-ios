@@ -142,6 +142,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
             ResourceMenuViewController.self,
             in: (
               resourceID: resourceID,
+              showShare: self.controller.presentResourceShare,
               showEdit: self.controller.presentResourceEdit,
               showDeleteAlert: self.controller.presentDeleteResourceAlert
             )
@@ -169,6 +170,20 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
                 }
               }
             )
+          )
+        }
+      }
+      .store(in: cancellables)
+
+    controller
+      .resourceSharePresentationPublisher()
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          guard let self = self else { return }
+          await self.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+          await self.push(
+            ResourcePermissionEditListView.self,
+            in: resourceID
           )
         }
       }

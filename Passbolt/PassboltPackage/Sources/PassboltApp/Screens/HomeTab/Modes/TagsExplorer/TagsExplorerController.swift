@@ -154,6 +154,17 @@ extension TagsExplorerController: ComponentController {
       presentResourceEditingForm(for: .new(in: .none))
     }
 
+    @MainActor func presentResourceShareForm(
+      for resourceID: Resource.ID
+    ) {
+      cancellables.executeOnMainActor {
+        await navigation.push(
+          ResourcePermissionEditListView.self,
+          in: resourceID
+        )
+      }
+    }
+
     @MainActor func presentResourceEditingForm(
       for context: ResourceEditController.EditingContext
     ) {
@@ -188,6 +199,15 @@ extension TagsExplorerController: ComponentController {
         ResourceMenuViewController.self,
         in: (
           resourceID: resourceID,
+          showShare: { (resourceID: Resource.ID) in
+            cancellables.executeOnMainActor {
+              await navigation
+                .dismiss(
+                  SheetMenuViewController<ResourceMenuViewController>.self
+                )
+              presentResourceShareForm(for: resourceID)
+            }
+          },
           showEdit: { (resourceID: Resource.ID) in
             cancellables.executeOnMainActor {
               await navigation

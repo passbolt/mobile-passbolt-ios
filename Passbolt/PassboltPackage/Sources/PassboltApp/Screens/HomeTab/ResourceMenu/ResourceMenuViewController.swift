@@ -94,7 +94,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
           .handleEvents(receiveOutput: { [weak self] in
             self?.cancellables.executeOnMainActor { [weak self] in
               switch action {
-              case .edit, .delete:
+              case .share, .edit, .delete:
                 break  // Actions handled elsewhere
 
               case .openURL:

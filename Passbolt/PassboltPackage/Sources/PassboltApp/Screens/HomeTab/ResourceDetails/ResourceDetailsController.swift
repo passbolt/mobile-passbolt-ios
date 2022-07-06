@@ -31,7 +31,9 @@ internal struct ResourceDetailsController {
   internal var resourceDetailsWithConfigPublisher: @MainActor () -> AnyPublisher<ResourceDetailsWithConfig, Error>
   internal var toggleDecrypt: @MainActor (ResourceFieldNameDSV) -> AnyPublisher<String?, Error>
   internal var presentResourceMenu: @MainActor () -> Void
+  internal var presentResourceShare: @MainActor (Resource.ID) -> Void
   internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
+  internal var resourceSharePresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
   internal var resourceMenuPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
@@ -70,6 +72,7 @@ extension ResourceDetailsController: UIController {
     var revealedFields: Set<ResourceFieldNameDSV> = .init()
 
     let resourceMenuPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
+    let resourceSharePresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
@@ -402,6 +405,16 @@ extension ResourceDetailsController: UIController {
       }
     }
 
+    func presentResourceShare(
+      resourceID: Resource.ID
+    ) {
+      resourceSharePresentationSubject.send(resourceID)
+    }
+
+    func resourceSharePresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
+      resourceSharePresentationSubject.eraseToAnyPublisher()
+    }
+
     func presentResourceEdit(resourceID: Resource.ID) {
       resourceEditPresentationSubject.send(resourceID)
     }
@@ -430,7 +443,9 @@ extension ResourceDetailsController: UIController {
       resourceDetailsWithConfigPublisher: resourceDetailsWithConfigPublisher,
       toggleDecrypt: toggleDecrypt(fieldName:),
       presentResourceMenu: presentResourceMenu,
+      presentResourceShare: presentResourceShare(resourceID:),
       presentResourceEdit: presentResourceEdit(resourceID:),
+      resourceSharePresentationPublisher: resourceSharePresentationPublisher,
       resourceEditPresentationPublisher: resourceEditPresentationPublisher,
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceMenuPresentationPublisher: resourceMenuPresentationPublisher,

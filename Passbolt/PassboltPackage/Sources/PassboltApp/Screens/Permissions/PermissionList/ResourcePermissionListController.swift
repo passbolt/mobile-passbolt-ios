@@ -88,7 +88,7 @@ extension ResourcePermissionListController: ComponentController {
       viewState = .init(
         initial: .init(
           permissionListItems: resourceUserGroupPermissionsDetails + resourceUserPermissionsDetails,
-          editable: try await resourceDetails.details().permissionType == .owner
+          editable: try await resourceDetails.details().permissionType.canShare
         )
       )
     }

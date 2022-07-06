@@ -52,6 +52,15 @@ extension PermissionType {
     }
   }
 
+  public var canShare: Bool {
+    switch self {
+    case .read, .write:
+      return false
+    case .owner:
+      return true
+    }
+  }
+
   public var isOwner: Bool {
     switch self {
     case .read, .write:

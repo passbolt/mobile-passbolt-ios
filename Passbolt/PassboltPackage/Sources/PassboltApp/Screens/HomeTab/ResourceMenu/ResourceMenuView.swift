@@ -111,6 +111,15 @@ internal final class ResourceMenuView: PlainView {
           .text(displayable: .localized(key: "resource.menu.item.copy.description"))
         }
 
+      case .share:
+        mut(item.imageView) {
+          .image(named: .share, from: .uiCommons)
+        }
+
+        mut(item.titleLabel) {
+          .text(displayable: .localized(key: "resource.menu.item.share"))
+        }
+
       case .edit:
         mut(item.imageView) {
           .image(named: .edit, from: .uiCommons)

@@ -63,6 +63,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -97,6 +98,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -135,6 +137,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -168,6 +171,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -200,6 +204,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -231,6 +236,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -270,6 +276,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -303,6 +310,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -340,6 +348,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { _ in /* NOP */ }
       )
@@ -375,6 +384,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     let controller: ResourceMenuController = try await testController(
       context: (
         resourceID: detailsViewResource.id,
+        showShare: { _ in /* NOP */ },
         showEdit: { _ in /* NOP */ },
         showDeleteAlert: { resourceID in result = resourceID }
       )

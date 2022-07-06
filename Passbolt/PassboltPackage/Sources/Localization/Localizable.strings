@@ -220,6 +220,7 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.share" = "Share password";
 "resource.menu.item.edit" = "Edit password";
 "resource.menu.item.delete.password" = "Delete password";
 "resource.menu.item.password" = "Password";
@@ -232,7 +233,7 @@
 "resource.menu.action.deleted" = "%@ has been deleted!";
 
 "resource.permission.type.read.label" = "can read";
-"resource.permission.type.write.label" = "can write";
+"resource.permission.type.write.label" = "can update";
 "resource.permission.type.own.label" = "is owner";
 "resource.permission.list.title" = "Shared with";
 "resource.permission.list.edit.button.title" = "Edit permissions";

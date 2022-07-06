@@ -108,6 +108,9 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
             ResourceMenuViewController.self,
             in: (
               resourceID: resourceID,
+              showShare: { [weak self] (resourceID: Resource.ID) in
+                self?.controller.presentResourceShare(resourceID)
+              },
               showEdit: { [weak self] resourceID in
                 self?.controller.presentResourceEdit(resourceID)
               },
@@ -221,6 +224,20 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       }
       .switchToLatest()
       .sinkDrop()
+      .store(in: cancellables)
+
+    controller
+      .resourceSharePresentationPublisher()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] resourceID in
+        self?.cancellables.executeOnMainActor { [weak self] in
+          await self?.dismiss(SheetMenuViewController<ResourceMenuViewController>.self)
+          await self?.push(
+            ResourcePermissionEditListView.self,
+            in: resourceID
+          )
+        }
+      }
       .store(in: cancellables)
 
     controller

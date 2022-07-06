@@ -33,7 +33,9 @@ internal struct ResourcesListController {
   internal var addResource: @MainActor () -> Void
   internal var presentResourceDetails: @MainActor (ResourcesResourceListItemDSVItem) -> Void
   internal var presentResourceMenu: @MainActor (ResourcesResourceListItemDSVItem) -> Void
+  internal var presentResourceShare: @MainActor (Resource.ID) -> Void
   internal var presentResourceEdit: @MainActor (Resource.ID) -> Void
+  internal var resourceSharePresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var resourceEditPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
   internal var presentDeleteResourceAlert: @MainActor (Resource.ID) -> Void
   internal var resourceDetailsPresentationPublisher: @MainActor () -> AnyPublisher<Resource.ID, Never>
@@ -58,6 +60,7 @@ extension ResourcesListController: UIController {
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceMenuIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
+    let resourceSharePresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceEditPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
     let resourceDeleteAlertPresentationSubject: PassthroughSubject<Resource.ID, Never> = .init()
 
@@ -104,8 +107,16 @@ extension ResourcesListController: UIController {
       resourceCreatePresentationSubject.eraseToAnyPublisher()
     }
 
+    func presentResourceShare(resourceID: Resource.ID) {
+      resourceSharePresentationSubject.send(resourceID)
+    }
+
     func presentResourceEdit(resourceID: Resource.ID) {
       resourceEditPresentationSubject.send(resourceID)
+    }
+
+    func resourceSharePresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
+      resourceSharePresentationSubject.eraseToAnyPublisher()
     }
 
     func resourceEditPresentationPublisher() -> AnyPublisher<Resource.ID, Never> {
@@ -132,7 +143,9 @@ extension ResourcesListController: UIController {
       addResource: addResource,
       presentResourceDetails: presentResourceDetails,
       presentResourceMenu: presentResourceMenu,
+      presentResourceShare: presentResourceShare(resourceID:),
       presentResourceEdit: presentResourceEdit(resourceID:),
+      resourceSharePresentationPublisher: resourceSharePresentationPublisher,
       resourceEditPresentationPublisher: resourceEditPresentationPublisher,
       presentDeleteResourceAlert: presentDeleteResourceAlert(resourceID:),
       resourceDetailsPresentationPublisher: resourceDetailsPresentationPublisher,

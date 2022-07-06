@@ -325,7 +325,7 @@ extension ResourceShareForm {
         .newPermissions
         .contains(
           where: { (permission: NewPermissionDTO) in
-            permission.type == .owner
+            permission.type.isOwner
           }
         )
 
@@ -337,7 +337,7 @@ extension ResourceShareForm {
         .updatedPermissions
         .contains(
           where: { (permission: PermissionDTO) in
-            permission.type == .owner
+            permission.type.isOwner
           }
         )
 
@@ -348,7 +348,7 @@ extension ResourceShareForm {
         currentPermissions
         .contains(
           where: { (permission: PermissionDTO) in
-            permission.type == .owner
+            permission.type.isOwner
               && !formState
                 .deletedPermissions
                 .contains(

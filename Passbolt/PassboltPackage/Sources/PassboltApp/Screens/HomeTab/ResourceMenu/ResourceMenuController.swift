@@ -41,6 +41,7 @@ extension ResourceMenuController {
     case copyUsername
     case copyPassword
     case copyDescription
+    case share
     case edit
     case delete
   }
@@ -58,6 +59,7 @@ extension ResourceMenuController: UIController {
 
   internal typealias Context = (
     resourceID: Resource.ID,
+    showShare: @MainActor (Resource.ID) -> Void,
     showEdit: @MainActor (Resource.ID) -> Void,
     showDeleteAlert: @MainActor (Resource.ID) -> Void
   )
@@ -138,6 +140,9 @@ extension ResourceMenuController: UIController {
                     return false
                   }
                 })
+
+              case .share:
+                return resourceDetails.permissionType.canShare
 
               case .edit:
                 return resourceDetails.permissionType.canEdit
@@ -481,6 +486,32 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
+    func shareAction() -> AnyPublisher<Void, Error> {
+      currentDetailsSubject
+        .first()
+        .map { resourceDetails -> AnyPublisher<Void, Error> in
+          guard let resourceDetails = resourceDetails
+          else {
+            return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
+              .eraseToAnyPublisher()
+          }
+
+          guard resourceDetails.permissionType.canShare
+          else {
+            return Fail<Void, Error>(
+              error: ResourcePermissionRequired.error()
+            )
+            .eraseToAnyPublisher()
+          }
+
+          return Just(context.showShare(resourceDetails.id))
+            .eraseErrorType()
+            .eraseToAnyPublisher()
+        }
+        .switchToLatest()
+        .eraseToAnyPublisher()
+    }
+
     func editAction() -> AnyPublisher<Void, Error> {
       currentDetailsSubject
         .first()
@@ -545,6 +576,8 @@ extension ResourceMenuController: UIController {
         return copyUsernameAction()
       case .copyDescription:
         return copyDescriptionAction()
+      case .share:
+        return shareAction()
       case .edit:
         return editAction()
       case .delete:
