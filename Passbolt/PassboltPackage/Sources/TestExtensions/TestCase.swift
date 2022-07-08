@@ -29,7 +29,7 @@ import XCTest
 /// For testing UIComponents or other items
 /// that require MainActor isolation please
 /// use MainActorTestCase instead.
-open class TestCase: XCTestCase {
+open class TestCase: AsyncTestCase {
 
   public var features: FeatureFactory!
   public var cancellables: Cancellables!

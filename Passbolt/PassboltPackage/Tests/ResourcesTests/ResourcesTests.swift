@@ -38,11 +38,11 @@ final class ResourceTests: TestCase {
   var accountSession: AccountSession!
   var accountDatabase: AccountDatabase!
   var networkClient: NetworkClient!
-  var updatesSequence: AsyncVariable<Void>!
+  var updatesSequence: UpdatesSequence!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    updatesSequence = .init(initial: Void())
+    updatesSequence = .init()
     accountSession = .placeholder
     accountSession.statePublisher = always(
       Just(.authorized(validAccount))
@@ -80,7 +80,6 @@ final class ResourceTests: TestCase {
       \AccountSessionData.updatesSequence,
       with: always(
         self.updatesSequence
-          .asAnyAsyncSequence()
       )
     )
   }

@@ -30,7 +30,6 @@ import Features
 public struct UserGroupDetails {
 
   public var details: () async throws -> UserGroupDetailsDSV
-  public var detailsSequence: () -> AnyAsyncSequence<UserGroupDetailsDSV>
 }
 
 extension UserGroupDetails: LoadableFeature {
@@ -47,46 +46,26 @@ extension UserGroupDetails {
     context userGroupID: Context,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
     let sessionData: AccountSessionData = try await features.instance()
     let userGroupDetailsDatabaseFetch: UserGroupDetailsDatabaseFetch = try await features.instance()
 
-    @StorageAccessActor @Sendable func fetchUserGroupDetails() async throws -> UserGroupDetailsDSV {
+    @Sendable nonisolated func fetchUserGroupDetails() async throws -> UserGroupDetailsDSV {
       try await userGroupDetailsDatabaseFetch(userGroupID)
     }
 
-    let currentDetails: AsyncVariable<UserGroupDetailsDSV> = .init(
-      initial: try await fetchUserGroupDetails()
+    let currentDetails: UpdatableValue<UserGroupDetailsDSV> = .init(
+      updatesSequence:
+        sessionData
+        .updatesSequence(),
+      update: fetchUserGroupDetails
     )
 
-    cancellables.executeAsync {
-      try await sessionData
-        .updatesSequence()
-        .dropFirst()
-        .forEach {
-          do {
-            try await currentDetails
-              .send(
-                fetchUserGroupDetails()
-              )
-          }
-          catch {
-            diagnostics.log(error)
-          }
-        }
-    }
-
     @StorageAccessActor func details() async throws -> UserGroupDetailsDSV {
-      await currentDetails.value
-    }
-
-    nonisolated func detailsSequence() -> AnyAsyncSequence<UserGroupDetailsDSV> {
-      currentDetails.asAnyAsyncSequence()
+      try await currentDetails.value
     }
 
     return .init(
-      details: details,
-      detailsSequence: detailsSequence
+      details: details
     )
   }
 }
@@ -109,8 +88,7 @@ extension UserGroupDetails {
 
   public static var placeholder: Self {
     Self(
-      details: unimplemented(),
-      detailsSequence: unimplemented()
+      details: unimplemented()
     )
   }
 }

@@ -34,7 +34,7 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class FoldersTests: TestCase {
 
-  private var updatesSequence: AnyAsyncSequence<Void>!
+  private var updatesSequence: UpdatesSequence!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
@@ -43,8 +43,7 @@ final class FoldersTests: TestCase {
     self.features
       .usePlaceholder(for: AccountDatabase.self)
     self.features.usePlaceholder(for: AccountSessionData.self)
-    self.updatesSequence = AsyncVariable(initial: Void())
-      .asAnyAsyncSequence()
+    self.updatesSequence = .init()
     self.features.patch(
       \AccountSessionData.updatesSequence,
       with: always(

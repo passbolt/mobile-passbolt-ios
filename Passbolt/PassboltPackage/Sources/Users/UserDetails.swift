@@ -35,7 +35,6 @@ public struct UserDetails {
   public var details: () async throws -> UserDetailsDSV
   public var permissionToResource: (Resource.ID) async throws -> PermissionType?
   public var avatarImage: () async -> Data?
-  public var detailsSequence: () -> AnyAsyncSequence<UserDetailsDSV>
 }
 
 extension UserDetails: LoadableFeature {
@@ -58,35 +57,21 @@ extension UserDetails {
     let userDetailsDatabaseFetch: UserDetailsDatabaseFetch = try await features.instance()
     let userResourcePermissionDatabaseFetch: UserResourcePermissionDatabaseFetch = try await features.instance()
 
-    @StorageAccessActor @Sendable func fetchUserDetails() async throws -> UserDetailsDSV {
+    @Sendable nonisolated func fetchUserDetails() async throws -> UserDetailsDSV {
       try await userDetailsDatabaseFetch(userID)
     }
 
-    let currentDetails: AsyncVariable<UserDetailsDSV> = .init(
-      initial:
-        try await fetchUserDetails()
+    let currentDetails: UpdatableValue<UserDetailsDSV> = .init(
+      updatesSequence:
+        sessionData
+        .updatesSequence(),
+      update: fetchUserDetails
     )
+
     let avatarImageCache: AsyncCache<Data> = .init()
 
-    cancellables.executeAsync {
-      try await sessionData
-        .updatesSequence()
-        .dropFirst()
-        .forEach {
-          do {
-            try await currentDetails
-              .send(
-                fetchUserDetails()
-              )
-          }
-          catch {
-            diagnostics.log(error)
-          }
-        }
-    }
-
     @StorageAccessActor func details() async throws -> UserDetailsDSV {
-      await currentDetails.value
+      try await currentDetails.value
     }
 
     @AccountSessionActor func permissionToResource(
@@ -121,15 +106,10 @@ extension UserDetails {
       }
     }
 
-    nonisolated func detailsSequence() -> AnyAsyncSequence<UserDetailsDSV> {
-      currentDetails.asAnyAsyncSequence()
-    }
-
     return UserDetails(
       details: details,
       permissionToResource: permissionToResource(_:),
-      avatarImage: avatarImage,
-      detailsSequence: detailsSequence
+      avatarImage: avatarImage
     )
   }
 }
@@ -154,8 +134,7 @@ extension UserDetails {
     Self(
       details: unimplemented(),
       permissionToResource: unimplemented(),
-      avatarImage: unimplemented(),
-      detailsSequence: unimplemented()
+      avatarImage: unimplemented()
     )
   }
 }

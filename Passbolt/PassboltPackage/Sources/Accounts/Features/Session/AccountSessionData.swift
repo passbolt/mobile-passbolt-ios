@@ -29,7 +29,7 @@ import struct Foundation.Date
 public struct AccountSessionData {
 
   public var refreshIfNeeded: () async throws -> Void
-  public var updatesSequence: () -> AnyAsyncSequence<Void>
+  public var updatesSequence: () -> UpdatesSequence
   public var featureUnload: @FeaturesActor () async throws -> Void
 }
 
@@ -54,7 +54,7 @@ extension AccountSessionData: LegacyFeature {
       foldersEnabled = true
     }
 
-    let updates: AsyncVariable = .init(initial: Void())
+    let updates: UpdatesSequence = .init()
 
     let refreshTask: ManagedTask<Void> = .init()
 
@@ -154,7 +154,7 @@ extension AccountSessionData: LegacyFeature {
     nonisolated func refreshIfNeeded() async throws {
       try await refreshTask.run {
         // TODO: when diffing endpoint becomes available
-        // there should be some additional logic here
+        // there should be some additional logic
         // to selectively update database data
 
         try await refreshUsers()
@@ -162,12 +162,12 @@ extension AccountSessionData: LegacyFeature {
         try await refreshFolders()
         try await refreshResources()
 
-        await updates.send(Void())
+        updates.sendUpdate()
       }
     }
 
-    nonisolated func updatesSequence() -> AnyAsyncSequence<Void> {
-      updates.asAnyAsyncSequence()
+    nonisolated func updatesSequence() -> UpdatesSequence {
+      updates
     }
 
     @FeaturesActor func featureUnload() async throws {

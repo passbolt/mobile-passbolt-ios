@@ -29,14 +29,13 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceTagsTests: TestCase {
 
-  private var updatesSequence: AnyAsyncSequence<Void>!
+  private var updatesSequence: UpdatesSequence!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
     self.features.usePlaceholder(for: AccountDatabase.self)
     self.features.usePlaceholder(for: AccountSessionData.self)
-    self.updatesSequence = AsyncVariable(initial: Void())
-      .asAnyAsyncSequence()
+    self.updatesSequence = .init()
     self.features.patch(
       \AccountSessionData.updatesSequence,
       with: always(

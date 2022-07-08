@@ -33,7 +33,7 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceDetailsTests: TestCase {
 
-  private var updatesSequence: AsyncVariable<Void>!
+  private var updatesSequence: UpdatesSequence!
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
@@ -45,12 +45,11 @@ final class ResourceDetailsTests: TestCase {
     features.usePlaceholder(for: NetworkClient.self)
     features.usePlaceholder(for: AccountDatabase.self)
 
-    self.updatesSequence = .init(initial: Void())
+    self.updatesSequence = .init()
     features.patch(
       \AccountSessionData.updatesSequence,
       with: always(
         self.updatesSequence
-          .asAnyAsyncSequence()
       )
     )
     features.patch(
@@ -64,20 +63,6 @@ final class ResourceDetailsTests: TestCase {
   override func featuresActorTearDown() async throws {
     try await super.featuresActorTearDown()
     self.updatesSequence = nil
-  }
-
-  func test_loading_fails_whenFetchingDetailsFails() async {
-    await features.patch(
-      \AccountDatabase.fetchResourceDetailsDSVs,
-      with: .failingWith(
-        MockIssue.error()
-      )
-    )
-    await XCTAssertError(
-      matches: MockIssue.self
-    ) {
-      try await self.testInstance(ResourceDetails.self, context: .random())
-    }
   }
 
   func test_details_providesCachedDetails() async throws {
@@ -120,10 +105,9 @@ final class ResourceDetailsTests: TestCase {
       context: .random()
     )
 
-    await self.updatesSequence.send(Void())
+    _ = try await feature.details()
 
-    // wait for detached tasks
-    try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+    self.updatesSequence.sendUpdate()
 
     await XCTAssertValue(
       equal: expectedResult
@@ -176,33 +160,6 @@ final class ResourceDetailsTests: TestCase {
       matches: MockIssue.self
     ) {
       try await feature.secret()
-    }
-  }
-
-  func test_updates_forwardsUpdatesSequenceElements() async throws {
-
-    let feature: ResourceDetails = try await self.testInstance(
-      context: .random()
-    )
-
-    Task.detached(priority: .background) {
-      try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-      await self.updatesSequence.send(Void())
-      await self.updatesSequence.send(Void())
-    }
-
-    await XCTAssertValue(
-      equal: 3
-    ) {
-      await feature
-        .detailsSequence()
-        .prefix(3)
-        .reduce(
-          into: []
-        ) { result, next in
-          result.append(next)
-        }
-        .count
     }
   }
 

@@ -32,7 +32,6 @@ public struct ResourceDetails {
 
   public var details: () async throws -> ResourceDetailsDSV
   public var secret: () async throws -> ResourceSecret
-  public var detailsSequence: () -> AnyAsyncSequence<ResourceDetailsDSV>
 }
 
 extension ResourceDetails: LoadableFeature {
@@ -49,7 +48,6 @@ extension ResourceDetails {
     context resourceID: Context,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
     let accountSession: AccountSession = try await features.instance()
     let sessionData: AccountSessionData = try await features.instance()
     let networkClient: NetworkClient = try await features.instance()
@@ -64,31 +62,15 @@ extension ResourceDetails {
         )
     }
 
-    let currentDetails: AsyncVariable<ResourceDetailsDSV> = .init(
-      initial:
-        try await fetchResourceDetails()
+    let currentDetails: UpdatableValue<ResourceDetailsDSV> = .init(
+      updatesSequence:
+        sessionData
+        .updatesSequence(),
+      update: fetchResourceDetails
     )
 
-    cancellables.executeAsync {
-      try await sessionData
-        .updatesSequence()
-        .dropFirst()
-        .forEach {
-          do {
-            let updatedDetails: ResourceDetailsDSV =
-              try await fetchResourceDetails()
-            try await currentDetails.withValue { (details: inout ResourceDetailsDSV) in
-              details = updatedDetails
-            }
-          }
-          catch {
-            diagnostics.log(error)
-          }
-        }
-    }
-
     @StorageAccessActor func details() async throws -> ResourceDetailsDSV {
-      await currentDetails.value
+      try await currentDetails.value
     }
 
     @AccountSessionActor func secret() async throws -> ResourceSecret {
@@ -111,14 +93,9 @@ extension ResourceDetails {
       return try .from(decrypted: decryptedSecret)
     }
 
-    nonisolated func detailsSequence() -> AnyAsyncSequence<ResourceDetailsDSV> {
-      currentDetails.asAnyAsyncSequence()
-    }
-
     return ResourceDetails(
       details: details,
-      secret: secret,
-      detailsSequence: detailsSequence
+      secret: secret
     )
   }
 }
@@ -142,8 +119,7 @@ extension ResourceDetails {
   public static var placeholder: Self {
     Self(
       details: unimplemented(),
-      secret: unimplemented(),
-      detailsSequence: unimplemented()
+      secret: unimplemented()
     )
   }
 }

@@ -21,34 +21,16 @@
 // @since         v1.0
 //
 
-import os
+// THIS IS NOT THREAD SAFE
+// used for satisfying compiler requirements
+// in unit tests where data races are not possible
+public final class UncheckedSendable<Variable>: @unchecked Sendable {
 
-public final class OSUnfairLock {
+  public var variable: Variable
 
-  @usableFromInline internal let pointer: UnsafeMutablePointer<os_unfair_lock_s> = .allocate(capacity: 1)
-
-  public init() {
-    self.pointer.initialize(to: os_unfair_lock_s())
-  }
-
-  deinit {
-    self.pointer.deinitialize(count: 1)
-    self.pointer.deallocate()
-  }
-
-  @inlinable public func lock() {
-    os_unfair_lock_lock(self.pointer)
-  }
-
-  @inlinable public func unlock() {
-    os_unfair_lock_unlock(self.pointer)
-  }
-
-  @inlinable public func withLock<Value>(
-    _ operation: () throws -> Value
-  ) rethrows -> Value {
-    os_unfair_lock_lock(self.pointer)
-    defer { os_unfair_lock_unlock(self.pointer) }
-    return try operation()
+  public init(
+    _ variable: Variable
+  ) {
+    self.variable = variable
   }
 }

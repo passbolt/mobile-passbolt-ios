@@ -44,8 +44,7 @@ final class UserGroupsTests: TestCase {
     self.features.patch(
       \AccountSessionData.updatesSequence,
       with: always(
-        AsyncVariable(initial: Void())
-          .asAnyAsyncSequence()
+        UpdatesSequence()
       )
     )
     self.features.usePlaceholder(for: AccountSession.self)
