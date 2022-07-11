@@ -110,7 +110,7 @@ extension UserGroupPermissionEditController: ComponentController {
             context.permissionDetails.id,
             viewState.permissionType
           )
-        await navigation.pop(if: UserPermissionEditView.self)
+        await navigation.pop(if: UserGroupPermissionEditView.self)
       }
     }
 
