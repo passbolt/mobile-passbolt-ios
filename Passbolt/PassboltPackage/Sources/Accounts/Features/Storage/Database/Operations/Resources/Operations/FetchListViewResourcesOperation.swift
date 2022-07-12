@@ -78,7 +78,7 @@ extension FetchResourceListItemDSVsOperation {
                 resources.url AS url
               FROM
                 resources
-              INNER JOIN
+              LEFT JOIN
                 flattenedResourceFolders
               ON
                 resources.parentFolderID IS ?
