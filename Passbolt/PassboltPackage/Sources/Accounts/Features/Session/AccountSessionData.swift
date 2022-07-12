@@ -67,6 +67,7 @@ extension AccountSessionData: LegacyFeature {
               .userListRequest
               .makeAsync(using: .init(resourceIDFilter: .none))
               .body
+              .filter(\.isValid)
               .compactMap(\.asFilteredDSO)
           )
 
@@ -88,6 +89,7 @@ extension AccountSessionData: LegacyFeature {
               .userGroupsRequest
               .makeAsync()
               .body
+              .filter(\.isValid)
           )
 
         diagnostics.diagnosticLog("...user groups data refresh finished!")
@@ -112,6 +114,7 @@ extension AccountSessionData: LegacyFeature {
               .foldersRequest
               .makeAsync()
               .body
+              .filter(\.isValid)
           )
 
         diagnostics.diagnosticLog("...folders data refresh finished!")
@@ -140,6 +143,7 @@ extension AccountSessionData: LegacyFeature {
               .resourcesRequest
               .makeAsync()
               .body
+              .filter(\.isValid)
           )
 
         diagnostics.diagnosticLog("...resources data refresh finished!")

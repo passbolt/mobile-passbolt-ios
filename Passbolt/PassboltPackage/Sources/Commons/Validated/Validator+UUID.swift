@@ -21,48 +21,51 @@
 // @since         v1.0
 //
 
-import Commons
+extension Validator where Value == String {
 
-public enum UserGroup {}
-
-extension UserGroup {
-
-  public typealias ID = Tagged<String, Self>
-}
-
-
-extension UserGroup.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension UserGroup.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  public static func uuid(
+    displayable: DisplayableString = .raw("Invalid UUID"),
+    file: StaticString = #fileID,
+    line: UInt = #line
   ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+    Self { value in
+      if value.matches(regex: uuidRegex) {
+        return .valid(value)
+      }
+      else {
+        return .invalid(
+          value,
+          errors: .notValidUUID(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
+          )
+        )
+      }
+    }
   }
 }
-#endif
+
+extension InvalidValue {
+
+  public static func notValidUUID<Value>(
+    message: StaticString = "InvalidValue-NotMatchingUUID",
+    validationRule: StaticString = "validUUID",
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      message,
+      validationRule: validationRule,
+      value: value,
+      displayable: displayable,
+      file: file,
+      line: line
+    )
+  }
+}
+
+private let uuidRegex: Regex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"

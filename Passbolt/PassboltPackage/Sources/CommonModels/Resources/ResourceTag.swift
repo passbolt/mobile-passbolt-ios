@@ -31,6 +31,20 @@ extension ResourceTag {
   public typealias Slug = Tagged<String, ID>
 }
 
+extension ResourceTag.ID {
+
+  internal static let validator: Validator<Self> = Validator<String>
+    .uuid()
+    .contraMap(\.rawValue)
+
+  public var isValid: Bool {
+    Self
+      .validator
+      .validate(self)
+      .isValid
+  }
+}
+
 #if DEBUG
 
 // cannot conform to RandomlyGenerated

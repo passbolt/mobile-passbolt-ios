@@ -30,6 +30,20 @@ extension User {
   public typealias ID = Tagged<String, Self>
 }
 
+extension User.ID {
+
+  internal static let validator: Validator<Self> = Validator<String>
+    .uuid()
+    .contraMap(\.rawValue)
+
+  public var isValid: Bool {
+    Self
+      .validator
+      .validate(self)
+      .isValid
+  }
+}
+
 #if DEBUG
 
 // cannot conform to RandomlyGenerated

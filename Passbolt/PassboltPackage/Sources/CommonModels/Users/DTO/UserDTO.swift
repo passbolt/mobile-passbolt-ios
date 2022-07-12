@@ -53,6 +53,20 @@ extension UserDTO: DTO {}
 
 extension UserDTO {
 
+  internal static let validator: Validator<Self> = User.ID
+    .validator
+    .contraMap(\.id)
+
+  public var isValid: Bool {
+    Self
+      .validator
+      .validate(self)
+      .isValid
+  }
+}
+
+extension UserDTO {
+
   public var asFilteredDSO: UserDSO? {
     guard
       let gpgKey: UserGPGKeyDTO = self.gpgKey,

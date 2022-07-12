@@ -51,6 +51,20 @@ public struct ResourceFolderDTO {
 
 extension ResourceFolderDTO: DTO {}
 
+extension ResourceFolderDTO {
+
+  internal static let validator: Validator<Self> = ResourceFolder.ID
+    .validator
+    .contraMap(\.id)
+
+  public var isValid: Bool {
+    Self
+      .validator
+      .validate(self)
+      .isValid
+  }
+}
+
 extension ResourceFolderDTO: Decodable {
 
   public init(
