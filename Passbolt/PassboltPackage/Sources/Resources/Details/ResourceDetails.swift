@@ -43,7 +43,7 @@ extension ResourceDetails: LoadableFeature {
 
 extension ResourceDetails {
 
-  fileprivate static func load(
+  @FeaturesActor fileprivate static func load(
     features: FeatureFactory,
     context resourceID: Context,
     cancellables: Cancellables

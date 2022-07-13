@@ -45,6 +45,8 @@ public final class FeatureFactory {
   private var scopeFeaturesCacheStack: Array<Dictionary<FeatureIdentifier, FeatureCacheItem>> = .init()
   private var scopePendingFeaturesStack: Array<Dictionary<FeatureIdentifier, Task<FeatureCacheItem, Error>>> = .init()
 
+  private var staticFeatures: Dictionary<FeatureIdentifier, AnyFeature> = .init()
+
   nonisolated public init(
     environment: AppEnvironment
   ) {
@@ -233,6 +235,17 @@ extension FeatureFactory {
     }
   }
 
+  @FeaturesActor public func use<Feature>(
+    _ staticFeature: Feature
+  ) where Feature: StaticFeature {
+    let identifier: FeatureIdentifier = .init(
+      featureTypeIdentifier: Feature.typeIdentifier,
+      featureContextIdentifier: .none
+    )
+    assert(self.staticFeatures[identifier] == nil)
+    self.staticFeatures[identifier] = staticFeature
+  }
+
   @FeaturesActor public func instance<Feature>(
     of featureType: Feature.Type = Feature.self
   ) async throws -> Feature
@@ -386,6 +399,24 @@ extension FeatureFactory {
       throw
         FeatureUndefined
         .error(featureName: "\(Feature.self)")
+    }
+  }
+
+  @FeaturesActor public func instance<Feature>(
+    of featureType: Feature.Type = Feature.self
+  ) -> Feature
+  where Feature: StaticFeature {
+    let identifier: FeatureIdentifier = .init(
+      featureTypeIdentifier: Feature.typeIdentifier,
+      featureContextIdentifier: .none
+    )
+    if let feature: Feature = self.staticFeatures[identifier] as? Feature {
+      return feature
+    }
+    else {
+      FeatureUndefined
+        .error(featureName: "\(Feature.self)")
+        .asFatalError()
     }
   }
 
@@ -718,6 +749,17 @@ extension FeatureFactory {
     )
   }
 
+  @FeaturesActor public func usePlaceholder<Feature>(
+    for featureType: Feature.Type
+  ) where Feature: StaticFeature {
+    let featureIdentifier: FeatureIdentifier =
+      .init(
+        featureTypeIdentifier: Feature.typeIdentifier,
+        featureContextIdentifier: .none
+      )
+    self.staticFeatures[featureIdentifier] = Feature.placeholder
+  }
+
   @FeaturesActor public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     context: Feature.Context,
@@ -760,6 +802,26 @@ extension FeatureFactory {
       context: .instance,
       with: updated
     )
+  }
+
+  @FeaturesActor public func patch<Feature, Property>(
+    _ keyPath: WritableKeyPath<Feature, Property>,
+    with updated: Property
+  ) where Feature: StaticFeature {
+    let featureIdentifier: FeatureIdentifier =
+      .init(
+        featureTypeIdentifier: Feature.typeIdentifier,
+        featureContextIdentifier: .none
+      )
+    if var feature: Feature = self.staticFeatures[featureIdentifier] as? Feature {
+      feature[keyPath: keyPath] = updated
+      self.staticFeatures[featureIdentifier] = feature
+    }
+    else {
+      var feature: Feature = .placeholder
+      feature[keyPath: keyPath] = updated
+      self.staticFeatures[featureIdentifier] = feature
+    }
   }
 
   @FeaturesActor public func usePlaceholder<F>(

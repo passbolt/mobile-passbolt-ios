@@ -21,18 +21,17 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import Resources
-import Users
+public enum HomePresentationMode: String {
 
-extension FeatureFactory {
-
-  @FeaturesActor public func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltAccountsModule()
-    self.usePassboltUsersModule()
-    self.usePassboltResourcesModule()
-  }
+  case plainResourcesList
+  case favoriteResourcesList
+  case modifiedResourcesList
+  case sharedResourcesList
+  case ownedResourcesList
+  case foldersExplorer
+  case tagsExplorer
+  case resourceUserGroupsExplorer
 }
+
+extension HomePresentationMode: Hashable {}
+extension HomePresentationMode: Codable {}

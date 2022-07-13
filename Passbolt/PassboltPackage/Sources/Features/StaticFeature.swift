@@ -21,18 +21,12 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import Resources
-import Users
+import Commons
 
-extension FeatureFactory {
+public protocol StaticFeature: AnyFeature {
 
-  @FeaturesActor public func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltAccountsModule()
-    self.usePassboltUsersModule()
-    self.usePassboltResourcesModule()
-  }
+  #if DEBUG
+  // placeholder implementation for mocking and testing, unavailable in release
+  nonisolated static var placeholder: Self { get }
+  #endif
 }

@@ -21,18 +21,9 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import Resources
-import Users
-
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltAccountsModule()
-    self.usePassboltUsersModule()
-    self.usePassboltResourcesModule()
+  @FeaturesActor public func usePassboltCommonStaticFeatures() {
+    self.usePassboltSharedStoredProperties()
   }
 }

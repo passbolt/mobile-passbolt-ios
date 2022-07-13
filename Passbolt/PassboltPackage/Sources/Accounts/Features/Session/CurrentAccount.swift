@@ -21,18 +21,64 @@
 // @since         v1.0
 //
 
-import Accounts
 import Features
-import Resources
-import Users
+
+// MARK: - Interface
+
+public struct CurrentAccount {
+
+  public var account: () async throws -> Account
+}
+
+extension CurrentAccount: LoadableContextlessFeature {}
+
+// MARK: - Implementation
+
+extension CurrentAccount {
+
+  @FeaturesActor fileprivate static func load(
+    features: FeatureFactory,
+    cancellables: Cancellables
+  ) async throws -> Self {
+    unowned let features: FeatureFactory = features
+    let session: AccountSession = try await features.instance()
+
+    nonisolated func account() async throws -> Account {
+      if let account: Account = await session.currentState().currentAccount {
+        return account
+      }
+      else {
+        throw
+          SessionMissing
+          .error("No current account available")
+      }
+    }
+
+    return Self(
+      account: account
+    )
+  }
+}
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltAccountsModule()
-    self.usePassboltUsersModule()
-    self.usePassboltResourcesModule()
+  @FeaturesActor public func usePassboltCurrentAccount() {
+    self.use(
+      .lazyLoaded(
+        CurrentAccount.self,
+        load: CurrentAccount.load(features:cancellables:)
+      )
+    )
   }
 }
+
+#if DEBUG
+extension CurrentAccount {
+
+  public nonisolated static var placeholder: Self {
+    Self(
+      account: unimplemented()
+    )
+  }
+}
+#endif

@@ -46,7 +46,7 @@ extension UserDetails: LoadableFeature {
 
 extension UserDetails {
 
-  fileprivate static func load(
+  @FeaturesActor fileprivate static func load(
     features: FeatureFactory,
     context userID: Context,
     cancellables: Cancellables

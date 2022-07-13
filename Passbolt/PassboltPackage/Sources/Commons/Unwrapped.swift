@@ -21,18 +21,15 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import Resources
-import Users
+@Sendable public func unwrapped<A>(
+  default: A
+) -> @Sendable (A?) -> A {
+  { $0 ?? `default` }
+}
 
-extension FeatureFactory {
-
-  @FeaturesActor public func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltAccountsModule()
-    self.usePassboltUsersModule()
-    self.usePassboltResourcesModule()
-  }
+@Sendable public func unwrappedMap<A, B>(
+  default: B,
+  mapping: @escaping @Sendable (A) -> B?
+) -> @Sendable (A?) -> B {
+  { $0.flatMap(mapping) ?? `default` }
 }

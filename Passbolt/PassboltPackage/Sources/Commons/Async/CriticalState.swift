@@ -49,35 +49,13 @@ public struct CriticalState<State> {
     return self.memory.statePtr.pointee[keyPath: keyPath]
   }
 
-  @inlinable public func accessAsync<Value>(
-    _ access: @escaping (inout State) async throws -> Value
-  ) async throws -> Value {
-    while !atomic_flag_test_and_set(self.memory.flagPtr) {
-      await Task.yield()
-      try Task.checkCancellation()
-    }
+  @inlinable public func set<Value>(
+    _ keyPath: WritableKeyPath<State, Value>,
+    _ newValue: Value
+  ) {
+    while !atomic_flag_test_and_set(self.memory.flagPtr) {}
     defer { atomic_flag_clear(self.memory.flagPtr) }
-    return try await access(&self.memory.statePtr.pointee)
-  }
-
-  @inlinable public func shieldedAccessAsync<Value>(
-    _ access: @escaping (inout State) async throws -> Value
-  ) async rethrows -> Value {
-    while !atomic_flag_test_and_set(self.memory.flagPtr) {
-      await Task.yield()
-    }
-    defer { atomic_flag_clear(self.memory.flagPtr) }
-    return try await access(&self.memory.statePtr.pointee)
-  }
-
-  @inlinable public func getAsync<Value>(
-    _ keyPath: KeyPath<State, Value>
-  ) async -> Value {
-    while !atomic_flag_test_and_set(self.memory.flagPtr) {
-      await Task.yield()
-    }
-    defer { atomic_flag_clear(self.memory.flagPtr) }
-    return self.memory.statePtr.pointee[keyPath: keyPath]
+    return self.memory.statePtr.pointee[keyPath: keyPath] = newValue
   }
 }
 

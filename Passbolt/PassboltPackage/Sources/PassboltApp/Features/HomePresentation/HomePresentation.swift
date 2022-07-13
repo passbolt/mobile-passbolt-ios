@@ -28,7 +28,7 @@ internal struct HomePresentation {
 
   internal var currentPresentationModePublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
   internal var setPresentationMode: @MainActor (HomePresentationMode) -> Void
-  internal var availableHomePresentationModes: @MainActor () -> Array<HomePresentationMode>
+  internal var availableHomePresentationModes: @MainActor () -> OrderedSet<HomePresentationMode>
 }
 
 extension HomePresentation: LegacyFeature {
@@ -39,25 +39,19 @@ extension HomePresentation: LegacyFeature {
     cancellables: Cancellables
   ) async throws -> Self {
     let featureConfig: FeatureConfig = try await features.instance()
+    let currentAccount: CurrentAccount = try await features.instance()
+    let accountPreferences: AccountPreferences = try await features.instance(context: currentAccount.account().localID)
+
+    var useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
+      .useLastUsedHomePresentationAsDefault
+    var defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let foldersConfig: FeatureFlags.Folders = await featureConfig.configuration(for: FeatureFlags.Folders.self)
     let tagsConfig: FeatureFlags.Tags = await featureConfig.configuration(for: FeatureFlags.Tags.self)
 
-    let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> = .init(.plainResourcesList)
-
-    @MainActor func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
-      currentPresentationModeSubject
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    }
-
-    @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
-      currentPresentationModeSubject.send(mode)
-    }
-
-    @MainActor func availableHomePresentationModes() -> Array<HomePresentationMode> {
+    let availablePresentationModes: OrderedSet<HomePresentationMode> = {
       // order is preserved on display
-      var availableModes: Array<HomePresentationMode> = [
+      var availableModes: OrderedSet<HomePresentationMode> = [
         .plainResourcesList,
         .favoriteResourcesList,
         .modifiedResourcesList,
@@ -84,6 +78,42 @@ extension HomePresentation: LegacyFeature {
       availableModes.append(.resourceUserGroupsExplorer)
 
       return availableModes
+    }()
+
+    let initialPresentationMode: HomePresentationMode = {
+      let defaultMode: HomePresentationMode = accountPreferences
+        .defaultHomePresentation
+        .value
+      if availablePresentationModes.contains(defaultMode) {
+        return defaultMode
+      }
+      else {
+        return .plainResourcesList
+      }
+    }()
+
+    let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> =
+      .init(
+        initialPresentationMode
+      )
+
+    @MainActor func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
+      currentPresentationModeSubject
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
+
+    @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
+      currentPresentationModeSubject.send(mode)
+      if useLastUsedHomePresentationAsDefault.value {
+        defaultHomePresentation.value = mode
+      }
+      else { /* NOP */
+      }
+    }
+
+    @MainActor func availableHomePresentationModes() -> OrderedSet<HomePresentationMode> {
+      return availablePresentationModes
     }
 
     return Self(

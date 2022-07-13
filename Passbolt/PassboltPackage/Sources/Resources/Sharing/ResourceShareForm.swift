@@ -56,7 +56,7 @@ extension ResourceShareForm {
     fileprivate var deletedPermissions: OrderedSet<PermissionDTO>
   }
 
-  fileprivate static func load(
+  @FeaturesActor fileprivate static func load(
     features: FeatureFactory,
     context resourceID: Context,
     cancellables: Cancellables
@@ -155,7 +155,7 @@ extension ResourceShareForm {
         .asAnyAsyncSequence()
     }
 
-    func currentPermissions() async -> OrderedSet<ResourceShareFormPermission> {
+    nonisolated func currentPermissions() async -> OrderedSet<ResourceShareFormPermission> {
       let formState: FormState = await formState.value
 
       let existingPermissionsList: Array<ResourceShareFormPermission> =
@@ -230,7 +230,7 @@ extension ResourceShareForm {
         )
     }
 
-    func setUserPermission(
+    nonisolated func setUserPermission(
       _ userID: User.ID,
       permissionType: PermissionType
     ) async {
@@ -285,7 +285,7 @@ extension ResourceShareForm {
         }
     }
 
-    func deleteUserPermission(
+    nonisolated func deleteUserPermission(
       _ userID: User.ID
     ) async {
       await formState
@@ -312,7 +312,7 @@ extension ResourceShareForm {
         }
     }
 
-    func setUserGroupPermission(
+    nonisolated func setUserGroupPermission(
       _ userGroupID: UserGroup.ID,
       permissionType: PermissionType
     ) async {
@@ -366,7 +366,7 @@ extension ResourceShareForm {
         }
     }
 
-    func deleteUserGroupPermission(
+    nonisolated func deleteUserGroupPermission(
       _ userGroupID: UserGroup.ID
     ) async {
       await formState
@@ -393,7 +393,7 @@ extension ResourceShareForm {
         }
     }
 
-    func validate(
+    nonisolated func validate(
       formState: FormState
     ) throws {
       let newPermissionsHasOwner: Bool =
@@ -443,7 +443,7 @@ extension ResourceShareForm {
         .error()
     }
 
-    func encryptSecret(
+    nonisolated func encryptSecret(
       for newPermissions: OrderedSet<NewPermissionDTO>
     ) async throws -> OrderedSet<EncryptedMessage> {
       let newUsers: OrderedSet<User.ID> = .init(

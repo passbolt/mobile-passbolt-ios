@@ -21,18 +21,8 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import Resources
-import Users
+import Commons
 
-extension FeatureFactory {
+public enum StoredPropertyKeyTag {}
 
-  @FeaturesActor public func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltAccountsModule()
-    self.usePassboltUsersModule()
-    self.usePassboltResourcesModule()
-  }
-}
+public typealias StoredPropertyKey = Tagged<String, StoredPropertyKeyTag>

@@ -85,6 +85,6 @@ extension HomePresentationMenuView {
   internal struct State: Hashable {
 
     internal var currentMode: HomePresentationMode
-    internal var availableModes: Array<HomePresentationMode>
+    internal var availableModes: OrderedSet<HomePresentationMode>
   }
 }

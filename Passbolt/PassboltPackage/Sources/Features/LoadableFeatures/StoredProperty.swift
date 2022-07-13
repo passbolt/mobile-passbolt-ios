@@ -21,62 +21,82 @@
 // @since         v1.0
 //
 
-import Accounts
-import CommonModels
-import Features
+import Commons
 
 // MARK: - Interface
 
-public struct UserGroupDetails {
+@dynamicMemberLookup
+public struct StoredProperty<Value> {
 
-  public var details: () async throws -> UserGroupDetailsDSV
+  public var binding: ValueBinding<Value?>
 }
 
-extension UserGroupDetails: LoadableFeature {
+extension StoredProperty: LoadableFeature {
 
-  public typealias Context = UserGroup.ID
+  public typealias Context = StoredPropertyKey
+}
+
+extension StoredProperty {
+
+  public var value: Value? {
+    get { self.binding.get() }
+    set { self.binding.set(newValue) }
+  }
+
+  public subscript<Property>(
+    dynamicMember keyPath: KeyPath<Value, Property>
+  ) -> Property? {
+    if let value: Value = self.binding.get() {
+      return value[keyPath: keyPath]
+    }
+    else {
+      return .none
+    }
+  }
 }
 
 // MARK: - Implementation
 
-extension UserGroupDetails {
+extension StoredProperty {
 
   @FeaturesActor fileprivate static func load(
     features: FeatureFactory,
-    context userGroupID: Context,
+    context key: StoredPropertyKey,
     cancellables: Cancellables
   ) async throws -> Self {
-    let sessionData: AccountSessionData = try await features.instance()
-    let userGroupDetailsDatabaseFetch: UserGroupDetailsDatabaseFetch = try await features.instance()
+    unowned let features: FeatureFactory = features
+    let storedProperties: StoredProperties = features.instance()
 
-    @Sendable nonisolated func fetchUserGroupDetails() async throws -> UserGroupDetailsDSV {
-      try await userGroupDetailsDatabaseFetch(userGroupID)
+    @Sendable nonisolated func fetch() -> Value? {
+      storedProperties
+        .fetch(key) as? Value
     }
 
-    let currentDetails: UpdatableValue<UserGroupDetailsDSV> = .init(
-      updatesSequence:
-        sessionData
-        .updatesSequence(),
-      update: fetchUserGroupDetails
-    )
-
-    @StorageAccessActor func details() async throws -> UserGroupDetailsDSV {
-      try await currentDetails.value
+    @Sendable nonisolated func store(
+      _ property: Value?
+    ) {
+      storedProperties
+        .store(key, property)
     }
 
-    return .init(
-      details: details
+    return Self(
+      binding: .init(
+        get: fetch,
+        set: store(_:)
+      )
     )
   }
 }
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltUserGroupDetails() {
+  @FeaturesActor public func usePassboltStoredProperty<Property>(
+    _: Property.Type
+  ) {
     self.use(
       .lazyLoaded(
-        UserGroupDetails.self,
-        load: UserGroupDetails.load(features:context:cancellables:)
+        StoredProperty<Property>.self,
+        load: StoredProperty<Property>.load(features:context:cancellables:)
       )
     )
   }
@@ -84,11 +104,11 @@ extension FeatureFactory {
 
 #if DEBUG
 
-extension UserGroupDetails {
+extension StoredProperty {
 
-  public static var placeholder: Self {
+  public nonisolated static var placeholder: Self {
     Self(
-      details: unimplemented()
+      binding: .placeholder
     )
   }
 }

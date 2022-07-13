@@ -32,7 +32,16 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class HomePresentationTests: TestCase {
 
-  func test_currentPresentationModePublisher_publishesPlainResourcesList_initially() async throws {
+  func test_currentPresentationModePublisher_publishesDefault_initially() async throws {
+    await features.patch(
+      \CurrentAccount.account,
+      with: always(Account.validAccount)
+    )
+    await features.patch(
+      \AccountPreferences.defaultHomePresentation,
+      context: Account.validAccount.localID,
+      with: .constant(HomePresentationMode.ownedResourcesList)
+    )
     await features.patch(
       \FeatureConfig.config,
       with: always(FeatureFlags.Folders.disabled)
@@ -47,6 +56,6 @@ final class HomePresentationTests: TestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .plainResourcesList)
+    XCTAssertEqual(result, .ownedResourcesList)
   }
 }

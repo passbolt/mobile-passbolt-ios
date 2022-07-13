@@ -46,7 +46,7 @@ public struct Unimplemented: TheError {
   public var displayableMessage: DisplayableString
 }
 
-public func unimplemented(
+@Sendable public func unimplemented(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -60,7 +60,7 @@ public func unimplemented(
     .asFatalError()
 }
 
-public func unimplemented<R>(
+@Sendable public func unimplemented<R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -76,7 +76,7 @@ public func unimplemented<R>(
   }
 }
 
-public func unimplemented<A1, R>(
+@Sendable public func unimplemented<A1, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -92,7 +92,7 @@ public func unimplemented<A1, R>(
   }
 }
 
-public func unimplemented<A1, A2, R>(
+@Sendable public func unimplemented<A1, A2, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -108,7 +108,7 @@ public func unimplemented<A1, A2, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, R>(
+@Sendable public func unimplemented<A1, A2, A3, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -124,7 +124,7 @@ public func unimplemented<A1, A2, A3, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, A4, R>(
+@Sendable public func unimplemented<A1, A2, A3, A4, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -140,7 +140,7 @@ public func unimplemented<A1, A2, A3, A4, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, A4, A5, R>(
+@Sendable public func unimplemented<A1, A2, A3, A4, A5, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -156,7 +156,7 @@ public func unimplemented<A1, A2, A3, A4, A5, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, A4, A5, A6, R>(
+@Sendable public func unimplemented<A1, A2, A3, A4, A5, A6, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -172,7 +172,7 @@ public func unimplemented<A1, A2, A3, A4, A5, A6, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, A4, A5, A6, A7, R>(
+@Sendable public func unimplemented<A1, A2, A3, A4, A5, A6, A7, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -188,7 +188,7 @@ public func unimplemented<A1, A2, A3, A4, A5, A6, A7, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, A4, A5, A6, A7, A8, R>(
+@Sendable public func unimplemented<A1, A2, A3, A4, A5, A6, A7, A8, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
@@ -204,7 +204,7 @@ public func unimplemented<A1, A2, A3, A4, A5, A6, A7, A8, R>(
   }
 }
 
-public func unimplemented<A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
+@Sendable public func unimplemented<A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line

@@ -21,19 +21,8 @@
 // @since         v1.0
 //
 
+import CommonModels
 import UICommons
-
-internal enum HomePresentationMode: Hashable {
-
-  case plainResourcesList
-  case favoriteResourcesList
-  case modifiedResourcesList
-  case sharedResourcesList
-  case ownedResourcesList
-  case foldersExplorer
-  case tagsExplorer
-  case resourceUserGroupsExplorer
-}
 
 extension HomePresentationMode {
 

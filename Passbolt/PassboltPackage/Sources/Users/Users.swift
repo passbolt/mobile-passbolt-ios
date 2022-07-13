@@ -44,7 +44,7 @@ extension Users: LoadableContextlessFeature {}
 
 extension Users {
 
-  fileprivate static func load(
+  @FeaturesActor fileprivate static func load(
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
