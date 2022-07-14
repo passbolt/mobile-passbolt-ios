@@ -21,47 +21,12 @@
 // @since         v1.0
 //
 
-import Commons
+import Features
 
-public enum UserGroup {}
+extension FeatureFactory {
 
-extension UserGroup {
-
-  public typealias ID = Tagged<String, Self>
-}
-
-extension UserGroup.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
+  public func useLiveDisplay() {
+    self.useLiveLegacyNavigationBridge()
+    self.useLiveDisplayNavigation()
   }
 }
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension UserGroup.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
-  }
-}
-#endif

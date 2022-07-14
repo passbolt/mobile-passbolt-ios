@@ -21,47 +21,33 @@
 // @since         v1.0
 //
 
-import Commons
+import Features
 
-public enum UserGroup {}
+public protocol DisplayController: Hashable, LoadableFeature {
 
-extension UserGroup {
+  associatedtype ViewState: Hashable
 
-  public typealias ID = Tagged<String, Self>
+  var displayViewState: DisplayViewState<ViewState> { get }
 }
 
-extension UserGroup.ID {
+public protocol ContextlessDisplayController: DisplayController where Context == ContextlessFeatureContext {
 
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
 }
 
-#if DEBUG
+extension DisplayController /* Hashable */ {
 
-// cannot conform to RandomlyGenerated
-extension UserGroup.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    // relaying on object reference equality
+    lhs.displayViewState === rhs.displayViewState
   }
 
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    // relaying on object reference equality
+    hasher.combine(self.displayViewState)
   }
 }
-#endif

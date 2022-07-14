@@ -21,47 +21,31 @@
 // @since         v1.0
 //
 
-import Commons
+import UIComponents  // LegacyBridge only
 
-public enum UserGroup {}
+// MARK: DisplayNodeView
 
-extension UserGroup {
+extension AnyUIComponent {
 
-  public typealias ID = Tagged<String, Self>
-}
-
-extension UserGroup.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension UserGroup.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
+  @MainActor public func push<DisplayComponent>(
+    _ type: DisplayComponent.Type,
+    controller: DisplayComponent.Controller,
+    animated: Bool = true
+  ) async where DisplayComponent: DisplayView {
+    await self.push(
+      DisplayViewBridge<DisplayComponent>.self,
+      in: controller,
+      animated: animated
+    )
   }
 
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+  @MainActor public func pop<DisplayComponent>(
+    if type: DisplayComponent.Type,
+    animated: Bool = true
+  ) async where DisplayComponent: DisplayView {
+    await self.pop(
+      if: DisplayViewBridge<DisplayComponent>.self,
+      animated: animated
+    )
   }
 }
-#endif

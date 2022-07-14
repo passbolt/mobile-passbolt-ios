@@ -28,6 +28,10 @@ let package = Package(
       targets: ["Crypto"]
     ),
     .library(
+      name: "Display",
+      targets: ["Display"]
+    ),
+    .library(
       name: "Features",
       targets: ["Features"]
     ),
@@ -185,6 +189,14 @@ let package = Package(
       ]
     ),
     .target(
+      name: "Display",
+      dependencies: [
+        "Commons",
+        "Features",
+        "UIComponents",
+      ]
+    ),
+    .target(
       name: "Features",
       dependencies: [
         "Commons",
@@ -286,6 +298,7 @@ let package = Package(
         "Environment",
         "SharedUIComponents",
         "NFC",
+        "Display",
       ]
     ),
     .testTarget(
@@ -307,6 +320,7 @@ let package = Package(
         "Resources",
         "Environment",
         "SharedUIComponents",
+        "Display",
       ]
     ),
     .testTarget(
@@ -343,6 +357,7 @@ let package = Package(
         "CommonModels",
         "Resources",
         "UIComponents",
+        "Display",
       ]
     ),
     .testTarget(

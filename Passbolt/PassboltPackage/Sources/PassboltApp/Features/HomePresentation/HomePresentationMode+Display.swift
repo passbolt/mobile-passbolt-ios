@@ -82,3 +82,8 @@ extension HomePresentationMode {
     }
   }
 }
+
+extension HomePresentationMode: Identifiable {
+
+  public var id: Self { self }
+}

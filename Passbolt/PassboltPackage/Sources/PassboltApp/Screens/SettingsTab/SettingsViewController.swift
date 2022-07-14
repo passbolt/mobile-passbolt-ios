@@ -272,5 +272,12 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
           .store(in: self.cancellables)
       }
       .store(in: cancellables)
+
+    contentView
+      .defaultHomeModeTapPublisher
+      .sink { [weak self] in
+        self?.controller.openDefaultHomeModeSettings()
+      }
+      .store(in: cancellables)
   }
 }

@@ -23,6 +23,7 @@
 
 import Localization
 import SwiftUI
+import AegithalosCocoa
 
 public struct ScreenView<TitleView, ContentView>: View
 where TitleView: View, ContentView: View {
@@ -61,6 +62,34 @@ where TitleView: View, ContentView: View {
         )
       )
       .foregroundColor(.passboltPrimaryText)
+    }
+    self.contentView = contentView
+    self.loading = loading
+    self.snackBarMessage = snackBarMessage
+  }
+
+  public init(
+    titleIcon: ImageNameConstant,
+    title: DisplayableString,
+    loading: Bool = false,
+    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
+    @ViewBuilder contentView: @escaping () -> ContentView
+  ) where TitleView == HStack<TupleView<(Image, Text)>> {
+    self.titleView = {
+      HStack<TupleView<(Image, Text)>>(spacing: 12) {
+        Image(named: titleIcon)
+
+        Text(
+          displayable: title
+        )
+        .font(
+          .inter(
+            ofSize: 16,
+            weight: .semibold
+          )
+        )
+        .foregroundColor(.passboltPrimaryText)
+      }
     }
     self.contentView = contentView
     self.loading = loading

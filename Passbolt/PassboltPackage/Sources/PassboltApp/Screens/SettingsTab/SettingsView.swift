@@ -26,6 +26,7 @@ import UICommons
 internal final class SettingsView: ScrolledStackView {
 
   internal var autofillTapPublisher: AnyPublisher<Void, Never> { autoFillItem.tapPublisher }
+  internal var defaultHomeModeTapPublisher: AnyPublisher<Void, Never> { defaultHomeModeItem.tapPublisher }
   internal var manageAccountsTapPublisher: AnyPublisher<Void, Never> { manageAccountsItem.tapPublisher }
   internal var termsTapPublisher: AnyPublisher<Void, Never> { termsItem.tapPublisher }
   internal var privacyPolicyTapPublisher: AnyPublisher<Void, Never> { privacyPolicyItem.tapPublisher }
@@ -37,6 +38,7 @@ internal final class SettingsView: ScrolledStackView {
   private let biometricsSwitch: UISwitch = .init()
   private let biometricsToggle: PlainButton = .init()
   private let autoFillItem: SettingsItemView = .init()
+  private let defaultHomeModeItem: SettingsItemView = .init()
   private let manageAccountsItem: SettingsItemView = .init()
   private let termsItem: SettingsItemView = .init()
   private let privacyPolicyItem: SettingsItemView = .init()
@@ -87,6 +89,17 @@ internal final class SettingsView: ScrolledStackView {
         .custom { (subject: SettingsItemView) in
           subject.applyOn(icon: .image(named: .key, from: .uiCommons))
           subject.applyOn(label: .text(displayable: .localized(key: "account.settings.autofill")))
+          subject.addDisclosureIndicator()
+        }
+      )
+    }
+
+    mut(defaultHomeModeItem) {
+      .combined(
+        .backgroundColor(dynamic: .background),
+        .custom { (subject: SettingsItemView) in
+          subject.applyOn(icon: .image(named: .filter, from: .uiCommons))
+          subject.applyOn(label: .text(displayable: .localized(key: "account.settings.default.home.mode")))
           subject.addDisclosureIndicator()
         }
       )
@@ -154,6 +167,7 @@ internal final class SettingsView: ScrolledStackView {
         .contentInset(.init(top: 16, left: 0, bottom: 0, right: 0)),
         .append(biometricsItem),
         .append(autoFillItem),
+        .append(defaultHomeModeItem),
         .append(manageAccountsItem),
         .when(
           !termsHidden,

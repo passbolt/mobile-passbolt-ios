@@ -21,47 +21,31 @@
 // @since         v1.0
 //
 
-import Commons
+import SwiftUI
 
-public enum UserGroup {}
+public struct WithDisplayViewState<State, ContentView>: View
+where State: Hashable, ContentView: View {
 
-extension UserGroup {
+  @ObservedObject private var viewState: DisplayViewState<State>
+  private let content: (State) -> ContentView
 
-  public typealias ID = Tagged<String, Self>
-}
-
-extension UserGroup.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension UserGroup.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
+  internal init(
+    _ viewState: DisplayViewState<State>,
+    @ViewBuilder content: @escaping (State) -> ContentView
+  ) {
+    self.viewState = viewState
+    self.content = content
   }
 
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
+  public init<Controller>(
+    _ controller: Controller,
+    @ViewBuilder content: @escaping (State) -> ContentView
+  ) where Controller: DisplayController, Controller.ViewState == State {
+    self.viewState = controller.displayViewState
+    self.content = content
+  }
+
+  public var body: some View {
+    self.content(self.viewState.wrappedValue)
   }
 }
-#endif

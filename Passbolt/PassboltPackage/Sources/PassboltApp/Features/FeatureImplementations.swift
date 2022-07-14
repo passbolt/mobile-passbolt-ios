@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import Features
 import Resources
 import Users
@@ -29,10 +30,14 @@ import Users
 extension FeatureFactory {
 
   @FeaturesActor public func usePassboltFeatures() {
+    self.useLiveDisplay()
+
     self.usePassboltCommonStaticFeatures()
     self.usePassboltCommonLoadableFeatures()
     self.usePassboltAccountsModule()
     self.usePassboltUsersModule()
     self.usePassboltResourcesModule()
+
+    self.useLiveScreenControllers()
   }
 }

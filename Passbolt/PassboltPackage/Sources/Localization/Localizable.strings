@@ -200,6 +200,9 @@
 "account.settings.biometrics.touch.id" = "TouchID";
 "account.settings.biometrics.unavailable" = "Biometrics unavailable";
 "account.settings.autofill" = "Autofill";
+"account.settings.default.home.mode" = "Default filter";
+"account.settings.default.home.mode.title" = "Default filter";
+"account.settings.default.home.mode.option.last.used" = "Latest used (default)";
 "account.settings.manage.accounts" = "Manage accounts";
 "account.settings.terms" = "Terms & Conditions";
 "account.settings.privacy.policy" = "Privacy policy";

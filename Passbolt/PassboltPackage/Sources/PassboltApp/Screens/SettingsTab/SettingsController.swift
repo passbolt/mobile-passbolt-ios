@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import UIComponents
 
 internal struct SettingsController {
@@ -39,6 +40,7 @@ internal struct SettingsController {
   internal var termsEnabled: @MainActor () -> Bool
   internal var privacyPolicyEnabled: @MainActor () -> Bool
   internal var presentSignOutAlert: @MainActor () -> Void
+  internal var openDefaultHomeModeSettings: () -> Void
 }
 
 extension SettingsController {
@@ -64,6 +66,7 @@ extension SettingsController: UIController {
     let biometry: Biometry = try await features.instance()
     let featureFlags: FeatureConfig = try await features.instance()
     let linkOpener: LinkOpener = try await features.instance()
+    let displayNavigation: DisplayNavigation = try await features.instance()
 
     let legal: FeatureFlags.Legal = await featureFlags.configuration()
     var termsURL: URL?
@@ -181,6 +184,17 @@ extension SettingsController: UIController {
       privacyPolicyURL != nil
     }
 
+    nonisolated func openDefaultHomeModeSettings() {
+      Task {
+        let defaultHomeModeSettingsController: DefaultPresentationModeSettingsController = try await features.instance()
+        await displayNavigation
+          .push(
+            DefaultPresentationModeSettingsView.self,
+            controller: defaultHomeModeSettingsController
+          )
+      }
+    }
+
     return Self(
       biometricsPublisher: biometricsStatePublisher,
       biometricsDisableAlertPresentationPublisher: presentBiometricsAlertSubject.eraseToAnyPublisher,
@@ -194,7 +208,8 @@ extension SettingsController: UIController {
       autoFillEnabledPublisher: autoFillEnabledPublisher,
       termsEnabled: termsEnabled,
       privacyPolicyEnabled: privacyPolicyEnabled,
-      presentSignOutAlert: presentSignOutAlert
+      presentSignOutAlert: presentSignOutAlert,
+      openDefaultHomeModeSettings: openDefaultHomeModeSettings
     )
   }
 }

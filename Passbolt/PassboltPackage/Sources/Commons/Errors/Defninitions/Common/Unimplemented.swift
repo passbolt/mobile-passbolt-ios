@@ -64,7 +64,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> () -> R {
+) -> @Sendable () -> R {
   {
     Unimplemented
       .error(
@@ -80,7 +80,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1) -> R {
+) -> @Sendable (A1) -> R {
   { _ in
     Unimplemented
       .error(
@@ -96,7 +96,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2) -> R {
+) -> @Sendable (A1, A2) -> R {
   { _, _ in
     Unimplemented
       .error(
@@ -112,7 +112,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3) -> R {
+) -> @Sendable (A1, A2, A3) -> R {
   { _, _, _ in
     Unimplemented
       .error(
@@ -128,7 +128,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3, A4) -> R {
+) -> @Sendable (A1, A2, A3, A4) -> R {
   { _, _, _, _ in
     Unimplemented
       .error(
@@ -144,7 +144,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3, A4, A5) -> R {
+) -> @Sendable (A1, A2, A3, A4, A5) -> R {
   { _, _, _, _, _ in
     Unimplemented
       .error(
@@ -160,7 +160,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3, A4, A5, A6) -> R {
+) -> @Sendable (A1, A2, A3, A4, A5, A6) -> R {
   { _, _, _, _, _, _ in
     Unimplemented
       .error(
@@ -176,7 +176,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3, A4, A5, A6, A7) -> R {
+) -> @Sendable (A1, A2, A3, A4, A5, A6, A7) -> R {
   { _, _, _, _, _, _, _ in
     Unimplemented
       .error(
@@ -192,7 +192,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> R {
+) -> @Sendable (A1, A2, A3, A4, A5, A6, A7, A8) -> R {
   { _, _, _, _, _, _, _, _ in
     Unimplemented
       .error(
@@ -208,7 +208,7 @@ public struct Unimplemented: TheError {
   _ message: String = "Unimplemented",
   file: StaticString = #fileID,
   line: UInt = #line
-) -> (A1, A2, A3, A4, A5, A6, A7, A8, A9) -> R {
+) -> @Sendable (A1, A2, A3, A4, A5, A6, A7, A8, A9) -> R {
   { _, _, _, _, _, _, _, _, _ in
     Unimplemented
       .error(

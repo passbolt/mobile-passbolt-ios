@@ -21,47 +21,11 @@
 // @since         v1.0
 //
 
-import Commons
+import SwiftUI
 
-public enum UserGroup {}
+public protocol DisplayView: View {
 
-extension UserGroup {
+  associatedtype Controller: DisplayController
 
-  public typealias ID = Tagged<String, Self>
+  init(controller: Controller)
 }
-
-extension UserGroup.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension UserGroup.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
-  }
-}
-#endif

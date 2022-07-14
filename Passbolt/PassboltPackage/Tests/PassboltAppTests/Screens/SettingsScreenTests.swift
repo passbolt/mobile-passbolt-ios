@@ -22,6 +22,7 @@
 //
 
 import Combine
+import Display
 import Features
 import NetworkClient
 import TestExtensions
@@ -43,7 +44,8 @@ final class SettingsScreenTests: MainActorTestCase {
 
   override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    await features.use(AccountSession.placeholder)
+    features.usePlaceholder(for: AccountSession.self)
+    features.usePlaceholder(for: DisplayNavigation.self)
   }
 
   override func mainActorSetUp() {

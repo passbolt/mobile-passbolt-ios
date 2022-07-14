@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Display
 import Features
 import Resources
 import Users
@@ -28,6 +29,7 @@ import Users
 extension FeatureFactory {
 
   @FeaturesActor public func usePassboltFeatures() {
+    self.useLiveDisplay()
     self.usePassboltUsers()
     self.usePassboltUserDetails()
     self.usePassboltUserGroupDetails()
