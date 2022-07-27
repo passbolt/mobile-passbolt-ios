@@ -41,6 +41,16 @@ public final class LogsViewerView: CollectionView<SingleSection, LogsViewerLogIt
         subject.dynamicBackgroundColor = .background
       }
     }
+    mut(PlainView()) {
+      .combined(
+        .backgroundColor(.passboltBackground),
+        .subview(of: self),
+        .topAnchor(.equalTo, self.topAnchor),
+        .leadingAnchor(.equalTo, self.leadingAnchor),
+        .trailingAnchor(.equalTo, self.trailingAnchor),
+        .bottomAnchor(.equalTo, self.safeAreaLayoutGuide.topAnchor)
+      )
+    }
   }
 
   public override func setupCell(

@@ -63,7 +63,7 @@ internal final class MFARootView: KeyboardAwareView {
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
-        .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
+        .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor),
         .append(container),
         .append(button)
       )

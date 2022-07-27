@@ -52,7 +52,7 @@ public final class ResourceEditView: KeyboardAwareView {
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, safeAreaLayoutGuide.topAnchor),
-        .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
+        .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor),
         .isLayoutMarginsRelativeArrangement(true),
         .contentInset(.init(top: 0, left: 16, bottom: 16, right: 16)),
         .backgroundColor(dynamic: .background)

@@ -113,7 +113,7 @@ internal final class AccountDetailsView: KeyboardAwareView {
         .topAnchor(.equalTo, topAnchor),
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
-        .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor, constant: -8),
+        .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor, constant: -8),
         .append(avatarContainer),
         .appendSpace(of: 16),
         .append(labelTextInput),
@@ -171,6 +171,17 @@ internal final class AccountDetailsView: KeyboardAwareView {
         ),
         .appendFiller(minSize: 12),
         .append(saveChangesButton)
+      )
+    }
+
+    mut(PlainView()) {
+      .combined(
+        .backgroundColor(.passboltBackground),
+        .subview(of: accountDetailsScrolledStack),
+        .topAnchor(.equalTo, accountDetailsScrolledStack.topAnchor),
+        .leadingAnchor(.equalTo, accountDetailsScrolledStack.leadingAnchor),
+        .trailingAnchor(.equalTo, accountDetailsScrolledStack.trailingAnchor),
+        .bottomAnchor(.equalTo, accountDetailsScrolledStack.safeAreaLayoutGuide.topAnchor)
       )
     }
   }

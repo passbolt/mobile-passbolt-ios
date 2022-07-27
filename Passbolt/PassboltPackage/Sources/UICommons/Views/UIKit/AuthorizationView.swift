@@ -105,7 +105,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     setupBottomButtons()
 
-    Mutation<ScrolledStackView>
+    let contentScrolledStack: ScrolledStackView = Mutation<ScrolledStackView>
       .combined(
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
@@ -114,7 +114,7 @@ public final class AuthorizationView: KeyboardAwareView {
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .topAnchor(.equalTo, topAnchor),
-        .bottomAnchor(.equalTo, keyboardSafeAreaLayoutGuide.bottomAnchor),
+        .bottomAnchor(.equalTo, keyboardLayoutGuide.topAnchor),
         .appendSpace(of: 72),
         .append(avatarContainer),
         .appendSpace(of: 20),
@@ -132,6 +132,17 @@ public final class AuthorizationView: KeyboardAwareView {
         .append(forgotButton)
       )
       .instantiate()
+
+    mut(PlainView()) {
+      .combined(
+        .backgroundColor(.passboltBackground),
+        .subview(of: contentScrolledStack),
+        .topAnchor(.equalTo, contentScrolledStack.topAnchor),
+        .leadingAnchor(.equalTo, contentScrolledStack.leadingAnchor),
+        .trailingAnchor(.equalTo, contentScrolledStack.trailingAnchor),
+        .bottomAnchor(.equalTo, contentScrolledStack.safeAreaLayoutGuide.topAnchor)
+      )
+    }
   }
 
   public func applyOn(image mutation: Mutation<ImageView>) {

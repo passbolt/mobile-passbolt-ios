@@ -26,30 +26,6 @@ import UIKit
 
 open class KeyboardAwareView: PlainView {
 
-  open class var backgroundTapEditingEndHandlerEnabled: Bool { true }
-
-  public private(set) lazy var keyboardSafeAreaLayoutGuide: UILayoutGuide = {
-    let guide: UILayoutGuide = .init()
-    addLayoutGuide(guide)
-    keyboardSafeAreaLayoutGuideTopAnchor = guide.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor)
-    keyboardSafeAreaLayoutGuideTopAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideLeadingAnchor = guide.leadingAnchor.constraint(
-      equalTo: safeAreaLayoutGuide.leadingAnchor
-    )
-    keyboardSafeAreaLayoutGuideLeadingAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideTrailingAnchor = guide.trailingAnchor.constraint(
-      equalTo: safeAreaLayoutGuide.trailingAnchor
-    )
-    keyboardSafeAreaLayoutGuideTrailingAnchor.isActive = true
-    keyboardSafeAreaLayoutGuideBottomAnchor = guide.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor)
-    keyboardSafeAreaLayoutGuideBottomAnchor.isActive = true
-    return guide
-  }()
-
-  private lazy var keyboardSafeAreaLayoutGuideTopAnchor: NSLayoutConstraint = .init()
-  private lazy var keyboardSafeAreaLayoutGuideLeadingAnchor: NSLayoutConstraint = .init()
-  private lazy var keyboardSafeAreaLayoutGuideTrailingAnchor: NSLayoutConstraint = .init()
-  private lazy var keyboardSafeAreaLayoutGuideBottomAnchor: NSLayoutConstraint = .init()
   private lazy var backgroundTapGestureDelegate: BackgroundTapGestureDelegate = {
     let backgroundTapGesture: UITapGestureRecognizer = .init(
       target: self,
@@ -63,104 +39,11 @@ open class KeyboardAwareView: PlainView {
 
   public required init() {
     super.init()
-    setupKeyboardHandlers()
-    guard Self.backgroundTapEditingEndHandlerEnabled else { return }
     setupBackgroundTapEditingEndHandler()
-  }
-
-  deinit {
-    NotificationCenter.default.removeObserver(self)
   }
 
   private func setupBackgroundTapEditingEndHandler() {
     _ = backgroundTapGestureDelegate  // load variable
-  }
-
-  private func setupKeyboardHandlers() {
-    NotificationCenter.default.addObserver(
-      self,
-      selector: #selector(keyboardShow(notification:)),
-      name: UIResponder.keyboardWillShowNotification,
-      object: nil
-    )
-    NotificationCenter.default.addObserver(
-      self,
-      selector: #selector(keyboardHide(notification:)),
-      name: UIResponder.keyboardWillHideNotification,
-      object: nil
-    )
-  }
-
-  @objc private func keyboardShow(notification: NSNotification) {
-    dispatchPrecondition(condition: .onQueue(.main))
-    guard let notificationInfo = notification.userInfo else { return }
-    let keyboardInitialFrame: CGRect =
-      notificationInfo[UIResponder.keyboardFrameBeginUserInfoKey]
-      .flatMap { ($0 as? NSValue)?.cgRectValue }
-      ?? .zero
-    let keyboardFinalFrame: CGRect =
-      notificationInfo[UIResponder.keyboardFrameEndUserInfoKey]
-      .flatMap { ($0 as? NSValue)?.cgRectValue }
-      ?? .zero
-    guard keyboardFinalFrame != keyboardInitialFrame else { return }
-    let animationDuration: TimeInterval =
-      notificationInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-      ?? 0.25
-    let animationOptions: UIView.AnimationOptions = .init(
-      rawValue: notificationInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
-        ?? UInt(UIView.AnimationCurve.easeInOut.rawValue)
-    )
-    let overlappingKeyboardHeight: CGFloat
-    if let window: UIWindow = window {
-      overlappingKeyboardHeight = max(
-        bounds.height - window.convert(keyboardFinalFrame, to: self).minY - safeAreaInsets.bottom,
-        0
-      )
-    }
-    else {  // we might skip computations on no window - to verify
-      overlappingKeyboardHeight = max(keyboardFinalFrame.height - safeAreaInsets.bottom, 0)
-    }
-    keyboardSafeAreaLayoutGuideBottomAnchor.constant = -overlappingKeyboardHeight
-    setNeedsLayout()
-    UIView.animate(
-      withDuration: animationDuration,
-      delay: 0,
-      options: animationOptions,
-      animations: {
-        self.layoutIfNeeded()
-      }
-    )
-  }
-
-  @objc private func keyboardHide(notification: NSNotification) {
-    dispatchPrecondition(condition: .onQueue(.main))
-    guard let notificationInfo = notification.userInfo else { return }
-    let keyboardInitialFrame: CGRect =
-      notificationInfo[UIResponder.keyboardFrameBeginUserInfoKey]
-      .flatMap { ($0 as? NSValue)?.cgRectValue }
-      ?? .zero
-    let keyboardFinalFrame: CGRect =
-      notificationInfo[UIResponder.keyboardFrameEndUserInfoKey]
-      .flatMap { ($0 as? NSValue)?.cgRectValue }
-      ?? .zero
-    guard keyboardFinalFrame != keyboardInitialFrame else { return }
-    let animationDuration: TimeInterval =
-      notificationInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-      ?? 0.25
-    let animationOptions: UIView.AnimationOptions = .init(
-      rawValue: notificationInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
-        ?? UInt(UIView.AnimationCurve.easeInOut.rawValue)
-    )
-    keyboardSafeAreaLayoutGuideBottomAnchor.constant = 0
-    setNeedsLayout()
-    UIView.animate(
-      withDuration: animationDuration,
-      delay: 0,
-      options: animationOptions,
-      animations: {
-        self.layoutIfNeeded()
-      }
-    )
   }
 
   @objc private func backgroundTapEditingEndHandler() {
