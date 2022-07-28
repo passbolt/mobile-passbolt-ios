@@ -67,6 +67,12 @@ extension AccountSettings: LegacyFeature {
       .removeDuplicates()
       .map { (account: Account?) -> AnyPublisher<AccountWithProfile?, Never> in
         if let account: Account = account {
+          cancellables.executeOnStorageAccessActor {
+            fetchAccountProfile(account)
+              .sinkDrop()
+              .store(in: cancellables)
+          }
+
           return Publishers.Merge(
             Just(account.localID),
             accountsDataStore
