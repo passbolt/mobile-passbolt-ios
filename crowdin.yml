@@ -1,0 +1,3 @@
+files:
+  - source: Passbolt/PassboltPackage/Sources/Localization/Localizable.strings
+    translation: /Passbolt/Passbolt/%two_letters_code%.lproj/Localizable.strings
