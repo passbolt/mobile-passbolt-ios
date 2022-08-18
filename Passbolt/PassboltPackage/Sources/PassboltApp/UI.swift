@@ -47,22 +47,20 @@ extension UI {
   ) {
     switch scene {
     case let windowScene as UIWindowScene:
-      MainActor.execute {
-        let cancellables: Cancellables = .init()
-        let window: Window = await self.prepareWindow(
-          for: windowScene,
-          in: session,
-          with: options,
-          cancellables: cancellables
-        )
-        if self.windows.isEmpty {
-          window.isActive = true
-        }
-        else {
-          /* */
-        }
-        self.windows[windowScene.session.persistentIdentifier] = window
+      let cancellables: Cancellables = .init()
+      let window: Window = self.prepareWindow(
+        for: windowScene,
+        in: session,
+        with: options,
+        cancellables: cancellables
+      )
+      if self.windows.isEmpty {
+        window.isActive = true
       }
+      else {
+        /* */
+      }
+      self.windows[windowScene.session.persistentIdentifier] = window
 
     case _:
       unreachable("Unsupported scene type")
@@ -90,23 +88,25 @@ extension UI {
     in session: UISceneSession,
     with options: UIScene.ConnectionOptions,
     cancellables: Cancellables
-  ) async -> Window {
-    do {
-      return try await Window(
-        in: scene,
-        using: WindowController.instance(
-          with: features,
-          cancellables: cancellables
-        ),
-        within: components,
-        rootViewController: SplashScreenViewControllerPlaceholder(),
-        cancellables: cancellables
-      )
-    }
-    catch {
-      error
-        .asTheError()
-        .asFatalError()
-    }
+  ) -> Window {
+    Window(
+      in: scene,
+      using: {
+        do {
+          return try await WindowController.instance(
+            with: self.features,
+            cancellables: cancellables
+          )
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError()
+        }
+      },
+      within: components,
+      rootViewController: SplashScreenViewControllerPlaceholder(),
+      cancellables: cancellables
+    )
   }
 }

@@ -135,8 +135,8 @@ extension SplashScreenController: UIController {
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
       destinationSubject
-      .filterMapOptional()
-      .eraseToAnyPublisher()
+        .filterMapOptional()
+        .eraseToAnyPublisher()
     }
 
     func shouldDisplayUpdateAlert() async -> Bool {

@@ -72,7 +72,7 @@ extension WindowController: UIController {
 
     session
       .updatesSequence
-      .dropFirst() // we have predefined initial state
+      .dropFirst()  // we have predefined initial state
       .compactMap { () -> ScreenStateDisposition? in
         async let currentAccount: Account? = session.currentAccount()
         async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
