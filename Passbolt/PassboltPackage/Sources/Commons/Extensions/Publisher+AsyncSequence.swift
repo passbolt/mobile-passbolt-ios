@@ -40,29 +40,37 @@ extension Publisher where Failure == Never {
 extension AsyncSequence {
 
   public func asPublisher() -> AnyPublisher<Element, Never> {
-    let subject: CurrentValueSubject<Element?, Never> = .init(nil)
-    let iterator: AnyAsyncIterator = self.makeAsyncIterator().asAnyAsyncIterator()
-    let recurringTask: RecurringTask = .init {
-      while let element = await iterator.next() {
-        subject.send(element)
-      }
-      subject.send(completion: .finished)
-    }
+    let subject: PassthroughSubject<Element, Never> = .init()
+    let iterationTask: CriticalState<Task<Void, Never>?> = .init(.none)
+
     return
       subject
       .handleEvents(
-        receiveSubscription: { _ in
-          Task.detached {
-            await recurringTask.run(replacingCurrent: false)
+        receiveSubscription: { [weak subject] _ in
+          iterationTask.access { task in
+            guard task == .none else { return }
+            task = .detached { [weak subject] in
+              do {
+                for try await element in self {
+                  subject?.send(element)
+                }
+              }
+              catch {
+                // NOP
+              }
+              subject?.send(completion: .finished)
+            }
           }
         },
-        receiveCancel: {
-          Task.detached {
-            await recurringTask.cancel()
+        receiveCancel: { [weak subject] in
+          withExtendedLifetime(subject) {
+          iterationTask
+            .get(\.self)?
+            .cancel()
           }
         }
       )
-      .filterMapOptional()
+      .share()
       .eraseToAnyPublisher()
   }
 }
@@ -70,34 +78,35 @@ extension AsyncSequence {
 extension AsyncSequence {
 
   public func asThrowingPublisher() -> AnyPublisher<Element, Error> {
-    let subject: CurrentValueSubject<Element?, Error> = .init(nil)
-    let iterator: AnyAsyncThrowingIterator = self.makeAsyncIterator().asAnyAsyncThrowingIterator()
-    let recurringTask: RecurringTask = .init {
-      do {
-        while let element = try await iterator.next() {
-          subject.send(element)
-        }
-        subject.send(completion: .finished)
-      }
-      catch {
-        subject.send(completion: .failure(error))
-      }
-    }
+    let subject: PassthroughSubject<Element, Error> = .init()
+    let iterationTask: CriticalState<Task<Void, Error>?> = .init(.none)
+
     return
       subject
       .handleEvents(
-        receiveSubscription: { _ in
-          Task.detached {
-            await recurringTask.run(replacingCurrent: false)
+        receiveSubscription: { [weak subject] _ in
+          iterationTask.access { task in
+            guard task == .none else { return }
+            task = .detached { [weak subject] in
+              do {
+                for try await element in self {
+                  subject?.send(element)
+                }
+                subject?.send(completion: .finished)
+              }
+              catch {
+                subject?.send(completion: .failure(error))
+              }
+            }
           }
         },
         receiveCancel: {
-          Task.detached {
-            await recurringTask.cancel()
-          }
+          iterationTask
+            .get(\.self)?
+            .cancel()
         }
       )
-      .filterMapOptional()
+      .share()
       .eraseToAnyPublisher()
   }
 }

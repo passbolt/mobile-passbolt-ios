@@ -68,10 +68,9 @@ extension TransferSignInExitConfirmationController: UIController {
     let accountTransfer: AccountTransfer = try await features.instance()
 
     func exit() {
-      cancellables.executeOnStorageAccessActor {
-        accountTransfer.cancelTransfer()
-      }
+      accountTransfer.cancelTransfer()
     }
+
     return Self(
       exit: exit
     )

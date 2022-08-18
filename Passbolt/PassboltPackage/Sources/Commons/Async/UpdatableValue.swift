@@ -26,15 +26,19 @@ public final actor UpdatableValue<Value> {
   private var lastValue: Value? = .none
   private var pendingUpdate: Task<Value, Error>?
   private let update: @Sendable () async throws -> Value
-  @Weak private nonisolated var updatesSequence: UpdatesSequence?
-  private var updatesGeneration: UpdatesSequence.Generation = 0
+  private nonisolated let updatesSequence: UpdatesSequence
+  private var updatesGeneration: UpdatesSequence.Generation
 
   public init(
+    initial: Value? = .none,
     updatesSequence: UpdatesSequence,
     update: @escaping @Sendable () async throws -> Value
   ) {
+    self.lastValue = initial
+    // skip initial update if initial value was provided
+    self.updatesGeneration = initial == nil ? 0 : 1
     self.update = update
-    self._updatesSequence = .init(wrappedValue: updatesSequence)
+    self.updatesSequence = updatesSequence
   }
 }
 
@@ -43,11 +47,8 @@ extension UpdatableValue {
   public var value: Value {
     get async throws {
       do {
-        guard let updatesSequence: UpdatesSequence = self.updatesSequence
-        // If UpdatesSequence was deallocated treat it as cancelation
-        else { throw CancellationError() }
         // check for an update
-        self.updatesGeneration = try updatesSequence.checkUpdate(after: self.updatesGeneration)
+        self.updatesGeneration = try self.updatesSequence.checkUpdate(after: self.updatesGeneration)
       }
       // NoUpdate is thrown immediately if
       // there was no new update
@@ -101,17 +102,9 @@ extension UpdatableValue: AsyncSequence {
   public typealias AsyncIterator = AnyAsyncIterator<Value>
 
   public nonisolated func makeAsyncIterator() -> AsyncIterator {
-    if let updatesSequence: UpdatesSequence = self.updatesSequence {
-      return
-        updatesSequence
-        .map { try await self.value }
-        .makeAsyncIterator()
-        .asAnyAsyncIterator()
-    }
-    else {
-      return AsyncIterator {
-        return .none
-      }
-    }
+    self.updatesSequence
+      .map { try await self.value }
+      .makeAsyncIterator()
+      .asAnyAsyncIterator()
   }
 }

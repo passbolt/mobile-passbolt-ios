@@ -85,5 +85,5 @@ extension Biometry: LegacyFeature {
 
 extension Biometry {
 
-  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
+  public var featureUnload: @MainActor () async throws -> Void { {} }
 }

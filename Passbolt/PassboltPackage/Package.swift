@@ -7,42 +7,34 @@ let package = Package(
   defaultLocalization: "en",
   platforms: [.iOS(.v15)],
   products: [
-    .library(
-      name: "Accounts",
-      targets: ["Accounts"]
-    ),
+    // MARK: - Legacy
     .library(
       name: "AccountSetup",
       targets: ["AccountSetup"]
-    ),
-    .library(
-      name: "CommonModels",
-      targets: ["CommonModels"]
-    ),
-    .library(
-      name: "Commons",
-      targets: ["Commons"]
     ),
     .library(
       name: "Crypto",
       targets: ["Crypto"]
     ),
     .library(
-      name: "Display",
-      targets: ["Display"]
-    ),
-    .library(
-      name: "Features",
-      targets: ["Features"]
-    ),
-    .library(
-      name: "NetworkClient",
-      targets: ["NetworkClient"]
-    ),
-    .library(
       name: "NFC",
       targets: ["NFC"]
     ),
+    .library(
+      name: "SharedUIComponents",
+      targets: ["SharedUIComponents"]
+    ),
+    .library(
+      name: "UIComponents",
+      targets: ["UIComponents"]
+    ),
+    .library(
+      name: "Environment",
+      targets: [
+        "Environment"
+      ]
+    ),
+    // MARK: - Entrypoints
     .library(
       name: "PassboltApp",
       targets: ["PassboltApp"]
@@ -51,59 +43,82 @@ let package = Package(
       name: "PassboltExtension",
       targets: ["PassboltExtension"]
     ),
+    // MARK: - Base
     .library(
-      name: "Resources",
-      targets: ["Resources"]
+      name: "Commons",
+      targets: ["Commons"]
     ),
     .library(
-      name: "SharedUIComponents",
-      targets: [
-        "SharedUIComponents"
-      ]
+      name: "CommonModels",
+      targets: ["CommonModels"]
     ),
     .library(
-      name: "SQLCipher",
-      type: .static,
-      targets: [
-        "SQLCipher"
-      ]
+      name: "Localization",
+      targets: ["Localization"]
     ),
     .library(
-      name: "TestExtensions",
-      targets: ["TestExtensions"]
+      name: "Features",
+      targets: ["Features"]
+    ),
+    .library(
+      name: "Display",
+      targets: ["Display"]
     ),
     .library(
       name: "UICommons",
       targets: ["UICommons"]
     ),
     .library(
-      name: "UIComponents",
-      targets: ["UIComponents"]
+      name: "OSFeatures",
+      targets: ["OSFeatures"]
     ),
-    .library(
-      name: "Users",
-      targets: ["Users"]
-    ),
-    .library(
-      name: "Environment",
-      targets: [
-        "Environment"
-      ]
-    ),
-    .library(
-      name: "Localization",
-      targets: [
-        "Localization"
-      ]
-    ),
+    // MARK: - Vendor
     .library(
       name: "Gopenpgp",
-      targets: [
-        "Gopenpgp"
-      ]
+      targets: ["Gopenpgp"]
+    ),
+    .library(
+      name: "SQLCipher",
+      type: .static,
+      targets: ["SQLCipher"]
+    ),
+    // MARK: - Modules
+    .library(
+      name: "PassboltAccounts",
+      targets: ["PassboltAccounts"]
+    ),
+    .library(
+      name: "PassboltSession",
+      targets: ["PassboltSession"]
+    ),
+    .library(
+      name: "PassboltSessionData",
+      targets: ["PassboltSessionData"]
+    ),
+    .library(
+      name: "PassboltNetworkOperations",
+      targets: ["PassboltNetworkOperations"]
+    ),
+    .library(
+      name: "PassboltDatabaseOperations",
+      targets: ["PassboltDatabaseOperations"]
+    ),
+    .library(
+      name: "PassboltUsers",
+      targets: ["PassboltUsers"]
+    ),
+    .library(
+      name: "PassboltResources",
+      targets: ["PassboltResources"]
+    ),
+    // MARK: - Tests
+    .library(
+      name: "TestExtensions",
+      targets: ["TestExtensions"]
     ),
   ],
   dependencies: [
+    // MARK: - External
     .package(
       url: "https://github.com/miquido/aegithalos.git",
       .upToNextMajor(from: "2.3.1")
@@ -114,24 +129,7 @@ let package = Package(
     ),
   ],
   targets: [
-    .target(
-      name: "Accounts",
-      dependencies: [
-        "CommonModels",
-        "Commons",
-        "Crypto",
-        "Features",
-        "NetworkClient",
-      ]
-    ),
-    .testTarget(
-      name: "AccountsTests",
-      dependencies: [
-        "Accounts",
-        "CommonModels",
-        "TestExtensions",
-      ]
-    ),
+    // MARK: - Legacy
     .target(
       name: "AccountSetup",
       dependencies: [
@@ -140,34 +138,15 @@ let package = Package(
         "CommonModels",
         "Crypto",
         "Features",
-        "NetworkClient",
+        "NetworkOperations",
+        "DatabaseOperations",
+        "Session",
       ]
     ),
     .testTarget(
       name: "AccountSetupTests",
       dependencies: [
         "AccountSetup",
-        "CommonModels",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "CommonModels",
-      dependencies: [
-        "Commons"
-      ]
-    ),
-    .target(
-      name: "Commons",
-      dependencies: [
-        "Localization",
-        .product(name: "Collections", package: "swift-collections"),
-      ]
-    ),
-    .testTarget(
-      name: "CommonsTests",
-      dependencies: [
-        "Commons",
         "TestExtensions",
       ]
     ),
@@ -182,49 +161,7 @@ let package = Package(
     .testTarget(
       name: "CryptoTests",
       dependencies: [
-        "Commons",
-        "CommonModels",
         "Crypto",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "Display",
-      dependencies: [
-        "Commons",
-        "Features",
-        "UIComponents",
-      ]
-    ),
-    .target(
-      name: "Features",
-      dependencies: [
-        "Commons",
-        "CommonModels",
-        "Environment",
-      ]
-    ),
-    .testTarget(
-      name: "FeaturesTests",
-      dependencies: [
-        "Features",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "NetworkClient",
-      dependencies: [
-        "Commons",
-        "CommonModels",
-        "Crypto",
-        "Features",
-        "Environment",
-      ]
-    ),
-    .testTarget(
-      name: "NetworkClientTests",
-      dependencies: [
-        "NetworkClient",
         "TestExtensions",
       ]
     ),
@@ -260,97 +197,6 @@ let package = Package(
       ]
     ),
     .target(
-      name: "Localization",
-      dependencies: [],
-      resources: [
-        .process("Localizable.strings")
-      ]
-    ),
-    .target(
-      name: "Users",
-      dependencies: [
-        "Accounts",
-        "CommonModels",
-        "Commons",
-        "Crypto",
-        "Features",
-        "NetworkClient",
-      ]
-    ),
-    .testTarget(
-      name: "UsersTests",
-      dependencies: [
-        "Users",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "PassboltApp",
-      dependencies: [
-        "Accounts",
-        "AccountSetup",
-        "Commons",
-        "CommonModels",
-        "UICommons",
-        "UIComponents",
-        "Features",
-        "Resources",
-        "Environment",
-        "SharedUIComponents",
-        "NFC",
-        "Display",
-      ]
-    ),
-    .testTarget(
-      name: "PassboltAppTests",
-      dependencies: [
-        "PassboltApp",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "PassboltExtension",
-      dependencies: [
-        "Accounts",
-        "Commons",
-        "CommonModels",
-        "UICommons",
-        "UIComponents",
-        "Features",
-        "Resources",
-        "Environment",
-        "SharedUIComponents",
-        "Display",
-      ]
-    ),
-    .testTarget(
-      name: "PassboltExtensionTests",
-      dependencies: [
-        "PassboltExtension",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "Resources",
-      dependencies: [
-        "Accounts",
-        "CommonModels",
-        "Commons",
-        "Crypto",
-        "Features",
-        "NetworkClient",
-        "Environment",
-        "Users",
-      ]
-    ),
-    .testTarget(
-      name: "ResourcesTests",
-      dependencies: [
-        "Resources",
-        "TestExtensions",
-      ]
-    ),
-    .target(
       name: "SharedUIComponents",
       dependencies: [
         "Accounts",
@@ -366,6 +212,182 @@ let package = Package(
         "SharedUIComponents",
         "TestExtensions",
       ]
+    ),
+    .target(
+      name: "UIComponents",
+      dependencies: [
+        .product(name: "AegithalosCocoa", package: "Aegithalos"),
+        "Commons",
+        "CommonModels",
+        "Features",
+        "UICommons",
+      ]
+    ),
+    .testTarget(
+      name: "UIComponentsTests",
+      dependencies: [
+        "UIComponents"
+      ]
+    ),
+    // MARK: - Entrypoints
+    .target(
+      name: "PassboltApp",
+      dependencies: [
+        // Legacy
+        "AccountSetup",
+        "UIComponents",
+        "Environment",
+        "SharedUIComponents",
+        "NFC",
+        "Crypto",
+        // Base
+        "Commons",
+        "CommonModels",
+        "Localization",
+        "Features",
+        "Display",
+        "UICommons",
+        "OSFeatures",
+        // Modules
+        "PassboltAccounts",
+        "PassboltSession",
+        "PassboltSessionData",
+        "PassboltNetworkOperations",
+        "PassboltDatabaseOperations",
+        "PassboltUsers",
+        "PassboltResources",
+      ]
+    ),
+    .target(
+      name: "PassboltExtension",
+      dependencies: [
+        // Legacy
+        "UIComponents",
+        "Environment",
+        "SharedUIComponents",
+        "Crypto",
+        // Base
+        "Commons",
+        "CommonModels",
+        "Localization",
+        "Features",
+        "Display",
+        "UICommons",
+        "OSFeatures",
+        // Modules
+        "PassboltAccounts",
+        "PassboltSession",
+        "PassboltSessionData",
+        "PassboltNetworkOperations",
+        "PassboltDatabaseOperations",
+        "PassboltUsers",
+        "PassboltResources",
+      ]
+    ),
+    // MARK: - Base
+    .target(
+      name: "Commons",
+      dependencies: [
+        // Base
+        "Localization",
+        // External
+        .product(
+          name: "Collections",
+          package: "swift-collections"
+        ),
+      ]
+    ),
+    .target(
+      name: "CommonModels",
+      dependencies: [
+        // Base
+        "Commons"
+      ]
+    ),
+    .target(
+      name: "Localization",
+      dependencies: [],
+      resources: [
+        .process("Localizable.strings")
+      ]
+    ),
+    .target(
+      name: "Features",
+      dependencies: [
+        // Legacy
+        "Environment",
+        // Base
+        "Commons",
+        "CommonModels",
+      ]
+    ),
+    .target(
+      name: "Display",
+      dependencies: [
+        // Legacy
+        "UIComponents",
+        // Base
+        "Commons",
+        "Features",
+      ]
+    ),
+    .target(
+      name: "UICommons",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        // External
+        .product(
+          name: "AegithalosCocoa",
+          package: "Aegithalos"
+        ),
+      ],
+      resources: [
+        .process("Fonts/Inconsolata Bold.ttf"),
+        .process("Fonts/Inconsolata SemiBold.ttf"),
+        .process("Fonts/Inconsolata Regular.ttf"),
+        .process("Fonts/Inconsolata Light.ttf"),
+        .process("Fonts/Inter Black.otf"),
+        .process("Fonts/Inter Bold.otf"),
+        .process("Fonts/Inter Extra Light.otf"),
+        .process("Fonts/Inter Light.otf"),
+        .process("Fonts/Inter Medium.otf"),
+        .process("Fonts/Inter Regular.otf"),
+        .process("Fonts/Inter Semi Bold.otf"),
+        .process("Fonts/Inter Thin.otf"),
+        .process("Fonts/Inter Italic.otf"),
+        .process("Fonts/Inter Light Italic.otf"),
+      ]
+    ),
+    .target(
+      name: "Database",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        // Vendor
+        "SQLCipher",
+      ]
+    ),
+    .target(
+      name: "Network",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        // External
+        .product(
+          name: "Aegithalos",
+          package: "Aegithalos"
+        ),
+      ]
+    ),
+    // MARK: - Vendor
+    .binaryTarget(
+      name: "Gopenpgp",
+      path: "./Vendor/Gopenpgp.xcframework"
     ),
     .target(
       // SQLCipher is added as preconfigured source file
@@ -410,59 +432,281 @@ let package = Package(
       ]
     ),
     .target(
-      name: "TestExtensions",
+      name: "OSFeatures",
       dependencies: [
+        // Base
+        "Commons",
+        "Features",
+      ]
+    ),
+    // MARK: - Modules
+    .target(
+      name: "Accounts",
+      dependencies: [
+        // Base
         "Commons",
         "CommonModels",
         "Features",
-        "UIComponents",
-        "NetworkClient",
+      ]
+    ),
+    .target(
+      name: "PassboltAccounts",
+      dependencies: [
+        // Legacy
+        "Crypto",
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        // Modules
+        "Accounts",
+        "Session",
+        "NetworkOperations",
+      ]
+    ),
+    .target(
+      name: "Session",
+      dependencies: [
+        // Legacy
+        "Crypto",
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "Database",
+        "Network",
+        // Modules
         "Accounts",
       ]
     ),
     .target(
-      name: "UICommons",
+      name: "PassboltSession",
       dependencies: [
-        "Commons",
-        "CommonModels",
-        .product(name: "AegithalosCocoa", package: "Aegithalos"),
-      ],
-      resources: [
-        .process("Fonts/Inconsolata Bold.ttf"),
-        .process("Fonts/Inconsolata SemiBold.ttf"),
-        .process("Fonts/Inconsolata Regular.ttf"),
-        .process("Fonts/Inconsolata Light.ttf"),
-        .process("Fonts/Inter Black.otf"),
-        .process("Fonts/Inter Bold.otf"),
-        .process("Fonts/Inter Extra Light.otf"),
-        .process("Fonts/Inter Light.otf"),
-        .process("Fonts/Inter Medium.otf"),
-        .process("Fonts/Inter Regular.otf"),
-        .process("Fonts/Inter Semi Bold.otf"),
-        .process("Fonts/Inter Thin.otf"),
-        .process("Fonts/Inter Italic.otf"),
-        .process("Fonts/Inter Light Italic.otf"),
-      ]
-    ),
-    .target(
-      name: "UIComponents",
-      dependencies: [
-        .product(name: "AegithalosCocoa", package: "Aegithalos"),
+        // Legacy
+        "Crypto",
+        // Base
         "Commons",
         "CommonModels",
         "Features",
-        "UICommons",
+        "Database",
+        "Network",
+        // Modules
+        "OSFeatures",
+        "Accounts",
+        "Session",
+        "DatabaseOperations",
+        "NetworkOperations",
+      ]
+    ),
+    .target(
+      name: "NetworkOperations",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Network",
+        // Modules
+        "Accounts",
+        "Session",
+      ]
+    ),
+    .target(
+      name: "PassboltNetworkOperations",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Network",
+        // Modules
+        "Accounts",
+        "Session",
+        "NetworkOperations",
+      ]
+    ),
+    .target(
+      name: "DatabaseOperations",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "Database",
+        // Modules
+        "Accounts",
+      ]
+    ),
+    .target(
+      name: "PassboltDatabaseOperations",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "Database",
+        "OSFeatures",
+        // Modules
+        "Accounts",
+        "Session",
+        "DatabaseOperations",
+      ]
+    ),
+    .target(
+      name: "SessionData",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+      ]
+    ),
+    .target(
+      name: "PassboltSessionData",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "Database",
+        "Network",
+        // Modules
+        "Accounts",
+        "Session",
+        "DatabaseOperations",
+        "NetworkOperations",
+        "Users",
+        "Resources",
+        "SessionData",
+      ]
+    ),
+    .target(
+      name: "Users",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+      ]
+    ),
+    .target(
+      name: "PassboltUsers",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        // Modules
+        "Accounts",
+        "Session",
+        "SessionData",
+        "DatabaseOperations",
+        "NetworkOperations",
+        "Users",
+      ]
+    ),
+    .target(
+      name: "Resources",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+      ]
+    ),
+    .target(
+      name: "PassboltResources",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        // Modules
+        "Accounts",
+        "Session",
+        "SessionData",
+        "DatabaseOperations",
+        "NetworkOperations",
+        "Users",
+        "Resources",
+      ]
+    ),
+    // MARK: - Tests
+    .target(
+      name: "TestExtensions",
+      dependencies: [
+        // Legacy
+        "UIComponents",
+        // Base
+        "Commons",
+        "CommonModels",
+        "Features",
+        "Database",
+        "Network",
+        "OSFeatures",
+        // Modules
+        "Accounts",
+        "Session",
+        "SessionData",
+        "Resources",
+        "Users",
+        "DatabaseOperations",
+        "NetworkOperations",
       ]
     ),
     .testTarget(
-      name: "UIComponentsTests",
+      name: "PassboltAppTests",
       dependencies: [
-        "UIComponents"
+        "PassboltApp",
+        "TestExtensions",
       ]
     ),
-    .binaryTarget(
-      name: "Gopenpgp",
-      path: "./Vendor/Gopenpgp.xcframework"
+    .testTarget(
+      name: "PassboltExtensionTests",
+      dependencies: [
+        "PassboltExtension",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "CommonsTests",
+      dependencies: [
+        "Commons",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "FeaturesTests",
+      dependencies: [
+        "Features",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltAccountsTests",
+      dependencies: [
+        "PassboltAccounts",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltSessionTests",
+      dependencies: [
+        "PassboltSession",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltUsersTests",
+      dependencies: [
+        "PassboltUsers",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "PassboltResourcesTests",
+      dependencies: [
+        "PassboltResources",
+        "TestExtensions",
+      ]
     ),
   ]
 )

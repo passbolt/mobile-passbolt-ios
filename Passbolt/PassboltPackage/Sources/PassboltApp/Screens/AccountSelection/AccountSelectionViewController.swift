@@ -90,7 +90,10 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
           self?.cancellables.executeOnMainActor { [weak self] in
             // After removing last account, window controller takes care of navigation to proper screen when removing current account.
             if items.isEmpty, self?.view.window != nil {
-              await self?.replaceWindowRoot(with: SplashScreenViewController.self)
+              await self?.replaceWindowRoot(
+                with: SplashScreenViewController.self,
+                in: .none
+              )
             }
             else {
               self?.contentView.update(items: items)

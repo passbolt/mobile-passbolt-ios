@@ -31,7 +31,7 @@ internal struct AccountTransferConfiguration {
 
   internal var transferID: String
   internal var pagesCount: Int
-  internal var userID: String
+  internal var userID: User.ID
   internal var authenticationToken: String
   internal var domain: URLString
   internal var hash: String

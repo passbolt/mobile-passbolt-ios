@@ -24,7 +24,7 @@
 internal struct FeatureIdentifier {
 
   internal let featureTypeIdentifier: FeatureTypeIdentifier
-  internal let featureContextIdentifier: AnyHashable?
+  internal let featureContextIdentifier: AnyHashable
 }
 
 extension FeatureIdentifier: Hashable {}

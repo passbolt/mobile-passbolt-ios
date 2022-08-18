@@ -22,6 +22,8 @@
 //
 
 import Accounts
+import Commons
+import Session
 import UIComponents
 
 internal struct TOTPController {
@@ -54,7 +56,7 @@ extension TOTPController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let mfa: MFA = try await features.instance()
+    let session: Session = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
 
     let statusChangeSubject: PassthroughSubject<StatusChange, Never> = .init()
@@ -70,26 +72,25 @@ extension TOTPController: UIController {
       .compactMap { (otp, rememberDevice) -> AnyPublisher<Void, Never>? in
         if otp.count == Self.otpLength {
           statusChangeSubject.send(.processing)
-          return cancellables.executeOnAccountSessionActorWithPublisher {
-            mfa
-              .authorizeUsingTOTP(otp, rememberDevice)
-              .handleEvents(
-                receiveCompletion: { completion in
-                  switch completion {
-                  case .finished:
-                    statusChangeSubject.send(.idle)
-
-                  case let .failure(error):
-                    statusChangeSubject.send(.error(error))
-                  }
-                },
-                receiveCancel: {
-                  statusChangeSubject.send(.idle)
-                }
-              )
-              .eraseToAnyPublisher()
+          return cancellables.executeAsyncWithPublisher {
+            do {
+              try await session
+                .authorizeMFA(
+                  .totp(
+                    session.currentAccount(),
+                    otp,
+                    rememberDevice: rememberDevice
+                  )
+                )
+              statusChangeSubject.send(.idle)
+            }
+            catch is CancellationError, is Cancelled {
+              statusChangeSubject.send(.idle)
+            }
+            catch {
+              statusChangeSubject.send(.error(error))
+            }
           }
-          .switchToLatest()
           .replaceError(with: Void())
           .eraseToAnyPublisher()
         }

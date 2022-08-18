@@ -26,11 +26,29 @@
 // in unit tests where data races are not possible
 public final class UncheckedSendable<Variable>: @unchecked Sendable {
 
-  public var variable: Variable
+  public var variable: Variable {
+    get { get() }
+    set { set(newValue) }
+  }
 
-  public init(
+  private let get: () -> Variable
+  private let set: (Variable) -> Void
+
+  public convenience init(
     _ variable: Variable
   ) {
-    self.variable = variable
+    var variable: Variable = variable
+    self.init(
+      get: { variable },
+      set: { (newValue: Variable) in variable = newValue }
+    )
+  }
+
+  public init(
+    get: @escaping () -> Variable,
+    set: @escaping (Variable) -> Void
+  ) {
+    self.get = get
+    self.set = set
   }
 }

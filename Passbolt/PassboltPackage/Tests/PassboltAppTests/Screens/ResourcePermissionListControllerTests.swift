@@ -39,29 +39,27 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
   var resourceID: Resource.ID!
 
   override func mainActorSetUp() {
-    super.mainActorSetUp()
     resourceID = Resource.ID.random()
+    features.usePlaceholder(for: Users.self)
   }
 
   override func mainActorTearDown() {
     resourceID = .none
-    super.mainActorTearDown()
   }
 
   func test_loading_succeedsWithPermissionList_whenDatabaseFetchSucceeds() async throws {
-    await features.usePlaceholder(for: Users.self)
-    await features.patch(
+    features.patch(
       \ResourceDetails.details,
       context: resourceID,
       with: always(.random())
     )
-    await features.patch(
-      \ResourceUserPermissionsDetailsFetch.execute,
-      with: always(.random(countIn: 1..<5))
+    features.patch(
+      \ResourceUserPermissionsDetailsFetchDatabaseOperation.execute,
+      with: always(.random(countIn: 1..<6))
     )
-    await features.patch(
-      \ResourceUserGroupPermissionsDetailsFetch.execute,
-      with: always(.random(countIn: 1..<5))
+    features.patch(
+      \ResourceUserGroupPermissionsDetailsFetchDatabaseOperation.execute,
+      with: always(.random(countIn: 1..<6))
     )
 
     let controller: ResourcePermissionListController = try await testController(
@@ -75,18 +73,17 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
   }
 
   func test_loading_succeedsWithErrorMessage_whenDatabaseFetchFails() async throws {
-    await features.usePlaceholder(for: Users.self)
-    await features.patch(
+    features.patch(
       \ResourceDetails.details,
       context: resourceID,
       with: always(.random())
     )
-    await features.patch(
-      \ResourceUserPermissionsDetailsFetch.execute,
+    features.patch(
+      \ResourceUserPermissionsDetailsFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
-    await features.patch(
-      \ResourceUserGroupPermissionsDetailsFetch.execute,
+    features.patch(
+      \ResourceUserGroupPermissionsDetailsFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
     )
 

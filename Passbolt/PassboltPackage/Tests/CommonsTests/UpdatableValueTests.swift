@@ -156,17 +156,18 @@ final class UpdatableValueTests: AsyncTestCase {
     }
   }
 
-  func test_value_doesNotRequestUpdates_whenUpdatesSequenceDeinits() {
-    asyncTestExecuted(count: 0) { executed in
+  func test_value_requestInitialUpdate_whenUpdatesSequenceFinishes() {
+    asyncTestExecuted(count: 1) { executed in
+      var updatesSource: UpdatesSequenceSource! = .init()
       let updatableValue: UpdatableValue<Int> = .init(
-        updatesSequence: self.updatesSequence,
+        updatesSequence: updatesSource.updatesSequence,
         update: {
           executed()
           return 42
         }
       )
 
-      self.updatesSequence = .none
+      updatesSource = .none
 
       _ = try? await updatableValue.value
     }

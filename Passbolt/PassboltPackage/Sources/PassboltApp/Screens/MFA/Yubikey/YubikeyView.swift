@@ -23,7 +23,7 @@
 
 import UICommons
 
-internal final class YubikeyView: PlainView {
+internal final class YubiKeyView: PlainView {
 
   internal var toggleRememberDevicePublisher: AnyPublisher<Void, Never> { labeledSwitch.togglePublisher }
   internal var scanTapPublisher: AnyPublisher<Void, Never> { scanButton.tapPublisher }
@@ -45,7 +45,7 @@ internal final class YubikeyView: PlainView {
         .leadingAnchor(.equalTo, leadingAnchor),
         .trailingAnchor(.equalTo, trailingAnchor),
         .contentMode(.scaleAspectFit),
-        .image(named: .yubikeyLogo, from: .uiCommons)
+        .image(named: .yubiKeyLogo, from: .uiCommons)
       )
     }
 
@@ -57,7 +57,7 @@ internal final class YubikeyView: PlainView {
         .topAnchor(.equalTo, imageView.bottomAnchor, constant: 24),
         .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
-        .text(displayable: .localized(key: "mfa.yubikey.title")),
+        .text(displayable: .localized(key: "mfa.yubiKey.title")),
         .textAlignment(.center)
       )
     }
@@ -70,7 +70,7 @@ internal final class YubikeyView: PlainView {
         .topAnchor(.equalTo, titleLabel.bottomAnchor, constant: 16),
         .font(.inter(ofSize: 14)),
         .textColor(dynamic: .primaryText),
-        .text(displayable: .localized(key: "mfa.yubikey.description")),
+        .text(displayable: .localized(key: "mfa.yubiKey.description")),
         .numberOfLines(0),
         .lineBreakMode(.byWordWrapping),
         .textAlignment(.center)
@@ -105,7 +105,7 @@ internal final class YubikeyView: PlainView {
         .topAnchor(.equalTo, labeledSwitch.bottomAnchor, constant: 38),
         .bottomAnchor(.equalTo, bottomAnchor, constant: -8),
         .primaryStyle(),
-        .text(displayable: .localized(key: "mfa.yubikey.scan"))
+        .text(displayable: .localized(key: "mfa.yubiKey.scan"))
       )
     }
   }

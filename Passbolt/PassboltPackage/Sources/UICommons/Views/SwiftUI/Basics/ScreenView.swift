@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
+import AegithalosCocoa
 import Localization
 import SwiftUI
-import AegithalosCocoa
 
 public struct ScreenView<TitleView, ContentView>: View
 where TitleView: View, ContentView: View {

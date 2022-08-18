@@ -23,7 +23,7 @@
 
 import AccountSetup
 import Accounts
-import NetworkClient
+import Session
 import SharedUIComponents
 import UIComponents
 
@@ -58,14 +58,12 @@ extension AccountSelectionController: UIController {
     cancellables: Cancellables
   ) async throws -> AccountSelectionController {
     let accounts: Accounts = try await features.instance()
-    let accountSession: AccountSession = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
-    let diagnostics: Diagnostics = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
+    let session: Session = try await features.instance()
 
     var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
-    for account in await accounts.storedAccounts() {
-      try await initialAccountsWithProfiles.append(accountSettings.accountWithProfile(account))
+    for account in accounts.storedAccounts() {
+      let accountDetails: AccountDetails = try await features.instance(context: account)
+      try initialAccountsWithProfiles.append(accountDetails.profile())
     }
     let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
       initialAccountsWithProfiles
@@ -76,57 +74,42 @@ extension AccountSelectionController: UIController {
     let addAccountPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
-      Publishers.CombineLatest3(
-        storedAccountsWithProfilesSubject,
-        listModeSubject,
-        accountSession.statePublisher()
-      )
-      .map { accountsWithProfiles, mode, sessionState -> Array<AccountSelectionListItem> in
-        var items: Array<AccountSelectionListItem> =
-          accountsWithProfiles
-          .map { accountWithProfile in
-            let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
-              networkClient.mediaDownload
-                .make(using: accountWithProfile.avatarImageURL)
-                .map { data -> Data? in data }
-                .collectErrorLog(using: diagnostics)
-                .replaceError(with: nil)
-                .eraseToAnyPublisher()
-            }
-            .eraseToAnyPublisher()
+      listModeSubject
+        .map { mode in
+          accounts
+            .updates
+            .map { () -> Array<AccountSelectionListItem> in
+              let currentAccount: Account? = try? await session.currentAccount()
+              var listItems: Array<AccountSelectionListItem> = .init()
+              for storedAccount in accounts.storedAccounts() {
+                let accountDetails: AccountDetails = try await features.instance(context: storedAccount)
+                let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
-            func isCurrentAccount() -> Bool {
-              switch sessionState {
-              case let .authorized(account) where account.localID == accountWithProfile.localID,
-                let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
-                return true
-              case _:
-                return false
+                let item: AccountSelectionCellItem = AccountSelectionCellItem(
+                  account: accountWithProfile.account,
+                  title: accountWithProfile.label,
+                  subtitle: accountWithProfile.username,
+                  isCurrentAccount: storedAccount == currentAccount,
+                  imagePublisher:
+                    Just(Void())
+                    .asyncMap {
+                      try? await accountDetails.avatarImage()
+                    }
+                    .eraseToAnyPublisher(),
+                  listModePublisher: listModeSubject.eraseToAnyPublisher()
+                )
+
+                listItems.append(.account(item))
               }
+              if mode == .selection && !listItems.isEmpty {
+                listItems.append(.addAccount(.default))
+              }  // else NOP
+              return listItems
             }
-
-            let item: AccountSelectionCellItem = AccountSelectionCellItem(
-              account: accountWithProfile.account,
-              title: accountWithProfile.label,
-              subtitle: accountWithProfile.username,
-              isCurrentAccount: isCurrentAccount(),
-              imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
-              listModePublisher: listModeSubject.eraseToAnyPublisher()
-            )
-
-            return .account(item)
-          }
-
-        if mode == .selection && !items.isEmpty {
-          items.append(.addAccount(.default))
+            .asPublisher()
         }
-        else {
-          /* */
-        }
-
-        return items
-      }
-      .eraseToAnyPublisher()
+        .switchToLatest()
+        .eraseToAnyPublisher()
     }
 
     func listModePublisher() -> AnyPublisher<AccountSelectionListMode, Never> {
@@ -142,20 +125,13 @@ extension AccountSelectionController: UIController {
     }
 
     func removeAccount(_ account: Account) -> AnyPublisher<Void, Error> {
-      cancellables.executeOnStorageAccessActorWithPublisher {
-        let result: Result<Void, Error> = accounts.removeAccount(account)
-        var accountsWithProfiles: Array<AccountWithProfile> = .init()
-        for account in accounts.storedAccounts() {
-          try accountsWithProfiles.append(accountSettings.accountWithProfile(account))
-        }
-        storedAccountsWithProfilesSubject.send(accountsWithProfiles)
-
-        return try result.get()
+      cancellables.executeAsyncWithPublisher {
+        try accounts.removeAccount(account)
       }
     }
 
     func addAccount() {
-      cancellables.executeOnFeaturesActor {
+      cancellables.executeOnMainActor {
         addAccountPresentationSubject.send(features.isLoaded(AccountTransfer.self))
       }
     }

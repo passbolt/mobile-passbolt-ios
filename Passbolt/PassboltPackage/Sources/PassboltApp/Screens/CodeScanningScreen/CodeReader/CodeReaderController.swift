@@ -40,11 +40,7 @@ extension CodeReaderController: UIController {
     let accountTransfer: AccountTransfer = try await features.instance()
 
     func processPayload(_ payload: String) -> AnyPublisher<Never, Error> {
-      cancellables.executeOnStorageAccessActorWithPublisher {
-        accountTransfer.processPayload(payload)
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
+      accountTransfer.processPayload(payload)
     }
 
     return Self(

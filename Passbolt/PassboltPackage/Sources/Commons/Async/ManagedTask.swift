@@ -44,7 +44,14 @@ public final actor ManagedTask<Success> {
         // it will continue to running new task
       }
       else {
-        return try await runningTask.value
+        return try await withTaskCancellationHandler(
+          operation: {
+            try await runningTask.value
+          },
+          onCancel: {
+            runningTask.cancel()
+          }
+        )
       }
     }
     else { /* continue */
@@ -57,7 +64,14 @@ public final actor ManagedTask<Success> {
 
     self.currentTask = newTask
     do {
-      let result: Success = try await newTask.value
+      let result: Success = try await withTaskCancellationHandler(
+        operation: {
+          try await newTask.value
+        },
+        onCancel: {
+          newTask.cancel()
+        }
+      )
       self.currentTask = .none
       return result
     }

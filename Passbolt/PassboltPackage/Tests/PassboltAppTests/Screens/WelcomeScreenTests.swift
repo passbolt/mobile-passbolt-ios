@@ -34,7 +34,7 @@ final class WelcomeScreenTests: MainActorTestCase {
 
   func test_noAccountAlertAppears_whenTapped_Succeeds() async throws {
     let controller: WelcomeScreenController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.noAccountAlertPresentationPublisher()
       .receive(on: ImmediateScheduler.shared)
@@ -50,7 +50,7 @@ final class WelcomeScreenTests: MainActorTestCase {
 
   func test_noAccountAlertDisappears_whenDissmissed_Succeeds() async throws {
     let controller: WelcomeScreenController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.noAccountAlertPresentationPublisher()
       .receive(on: ImmediateScheduler.shared)

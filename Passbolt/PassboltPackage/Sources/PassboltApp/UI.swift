@@ -99,9 +99,7 @@ extension UI {
           cancellables: cancellables
         ),
         within: components,
-        rootViewController:
-          await components
-          .instance(of: SplashScreenViewController.self),
+        rootViewController: SplashScreenViewControllerPlaceholder(),
         cancellables: cancellables
       )
     }

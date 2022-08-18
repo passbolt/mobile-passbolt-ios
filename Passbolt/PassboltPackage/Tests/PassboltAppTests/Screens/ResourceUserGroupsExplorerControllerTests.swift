@@ -24,8 +24,8 @@
 import Accounts
 import Combine
 import Features
-import NetworkClient
 import Resources
+import SessionData
 import TestExtensions
 import UIComponents
 import Users
@@ -37,14 +37,19 @@ import XCTest
 @MainActor
 final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    features.usePlaceholder(for: Resources.self)
+  var updates: UpdatesSequenceSource!
+
+  override func mainActorSetUp() {
+    updates = .init()
     features.patch(
-      \AccountSessionData.refreshIfNeeded,
+      \SessionData.updatesSequence,
+      with: updates.updatesSequence
+    )
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    features.usePlaceholder(for: UserGroups.self)
+    features.usePlaceholder(for: Resources.self)
     features.patch(
       \UserGroups.filteredResourceUserGroupList,
       with: always(
@@ -52,20 +57,29 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
       )
     )
     features.usePlaceholder(for: HomePresentation.self)
-    features.usePlaceholder(for: AccountSettings.self)
-    features
-      .patch(
-        \AccountSettings.currentAccountAvatarPublisher,
-        with: always(
-          Just(nil)
-            .eraseToAnyPublisher()
-        )
-      )
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    features.patch(
+      \AccountDetails.profile,
+      context: Account.valid,
+      with: always(AccountWithProfile.valid)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: Account.valid,
+      with: always(.init())
+    )
+  }
+
+  override func mainActorTearDown() {
+    updates = .init()
   }
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
-    await features.patch(
-      \AccountSessionData.refreshIfNeeded,
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -101,9 +115,12 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
   }
 
   func test_initally_viewStateTitle_isTagSlug_forNonRootFolder() async throws {
-    await features.patch(
+    features.patch(
       \Resources.filteredResourcesListPublisher,
-      with: always(Just([]).eraseToAnyPublisher())
+      with: always(
+        Just([])
+          .eraseToAnyPublisher()
+      )
     )
 
     let controller: ResourceUserGroupsExplorerController = try await testController(

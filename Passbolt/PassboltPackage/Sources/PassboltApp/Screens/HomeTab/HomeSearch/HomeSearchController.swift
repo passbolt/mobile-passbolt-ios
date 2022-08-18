@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import NetworkClient
 import Resources
+import Session
 import UIComponents
 
 import struct Foundation.Data
@@ -48,8 +48,9 @@ extension HomeSearchController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let accountSettings: AccountSettings = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
+    let session: Session = try await features.instance()
+    let currentAccount: Account = try await session.currentAccount()
+    let accountDetails: AccountDetails = try await features.instance(context: currentAccount)
     let homePresentation: HomePresentation = try await features.instance()
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
@@ -73,16 +74,10 @@ extension HomeSearchController: UIController {
     }
 
     func avatarImagePublisher() -> AnyPublisher<Data?, Never> {
-      accountSettings
-        .currentAccountProfilePublisher()
-        .map(\.avatarImageURL)
-        .map { avatarImageURL in
-          networkClient.mediaDownload
-            .make(using: avatarImageURL)
-            .map { data -> Data? in data }
-            .replaceError(with: nil)
+      Just(Void())
+        .asyncMap {
+          try? await accountDetails.avatarImage()
         }
-        .switchToLatest()
         .eraseToAnyPublisher()
     }
 
@@ -108,13 +103,10 @@ extension HomeSearchController: UIController {
     }
 
     func accountMenuPresentationPublisher() -> AnyPublisher<AccountWithProfile, Never> {
-      accountSettings
-        .currentAccountProfilePublisher()
-        .map { accountWithProfile in
-          accountMenuPresentationSubject
-            .map { accountWithProfile }
+      accountMenuPresentationSubject
+        .compactMap {
+          try? accountDetails.profile()
         }
-        .switchToLatest()
         .eraseToAnyPublisher()
     }
 

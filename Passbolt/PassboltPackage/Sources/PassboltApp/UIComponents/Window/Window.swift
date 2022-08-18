@@ -58,13 +58,22 @@ internal final class Window {
             guard let self = self else { return }
             switch disposition {
             // Use last state for same session after authorization.
-            case .useCachedScreenState:
+            case let .useCachedScreenState(account):
               if let cachedScreen: AnyUIComponent = self.screenStateCache {
                 self.screenStateCache = nil
                 self.replaceRoot(with: cachedScreen)
               }
               else {
-                fallthrough  // fallback to initial screen state if there is none cached
+                // fallback to initial screen state if there is none cached
+                guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
+                else { return }
+                try await self.replaceRoot(
+                  with: self.components
+                    .instance(
+                      of: SplashScreenViewController.self,
+                      in: account
+                    )
+                )
               }
 
             // Go to initial screen state (through Splash)
@@ -72,7 +81,7 @@ internal final class Window {
             // - welcome (no accounts)
             // - home (for authorized)
             // - account selection (for unauthorized)
-            case .useInitialScreenState:
+            case let .useInitialScreenState(account):
               self.screenStateCache = nil
 
               guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
@@ -80,7 +89,8 @@ internal final class Window {
               try await self.replaceRoot(
                 with: self.components
                   .instance(
-                    of: SplashScreenViewController.self
+                    of: SplashScreenViewController.self,
+                    in: account
                   )
               )
 

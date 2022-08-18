@@ -29,6 +29,7 @@ public struct Keychain: EnvironmentElement {
 
   public var load: (KeychainQuery) -> Result<Array<Data>, Error>
   public var loadMeta: (KeychainQuery) -> Result<Array<KeychainItemMetadata>, Error>
+  public var checkIfExists: (KeychainQuery) -> Bool
   public var save: (Data, KeychainQuery) -> Result<Void, Error>
   public var delete: (KeychainQuery) -> Result<Void, Error>
 }
@@ -84,6 +85,22 @@ extension Keychain {
       }
     }
 
+    func checkIfExists(
+      matching query: KeychainQuery
+    ) -> Bool {
+      let context: LAContext? =
+        query.requiresBiometrics
+        ? biometricsContext()
+        : nil
+      defer { context?.invalidate() }
+
+      return checkKeychainItemExists(
+        for: query.key.rawValue,
+        tag: query.tag?.rawValue,
+        in: context
+      )
+    }
+
     func save(
       _ data: Data,
       for query: KeychainQuery
@@ -114,6 +131,7 @@ extension Keychain {
     return Self(
       load: load(matching:),
       loadMeta: loadMeta(matching:),
+      checkIfExists: checkIfExists(matching:),
       save: save(_:for:),
       delete: delete(matching:)
     )
@@ -186,6 +204,12 @@ extension Keychain {
     matching query: KeychainQuery
   ) -> Result<Array<KeychainItemMetadata>, Error> {
     loadMeta(query)
+  }
+
+  public func checkIfExists(
+    matching query: KeychainQuery
+  ) -> Bool {
+    checkIfExists(query)
   }
 
   public func save<Value>(
@@ -407,6 +431,30 @@ private func loadKeychainMeta(
 }
 
 @inline(__always)
+private func checkKeychainItemExists(
+  for key: String,
+  tag: String?,
+  in context: LAContext? = nil
+) -> Bool {
+  let status: OSStatus = SecItemCopyMatching(
+    checkKeychainItemExistsQuery(
+      using: key,
+      tag: tag,
+      context: context
+    ),
+    .none
+  )
+  switch status {
+  // if not allowed to access there has to be an item
+  case errSecSuccess, errSecInteractionNotAllowed:
+    return true
+
+  case _:
+    return false
+  }
+}
+
+@inline(__always)
 private func saveKeychain(
   data: Data,
   for key: String,
@@ -621,6 +669,39 @@ private func loadKeychainMetaQuery(
 }
 
 @inline(__always)
+private func checkKeychainItemExistsQuery(
+  using key: String,
+  tag: String?,
+  context: LAContext?
+) -> CFDictionary {
+  assert(!key.isEmpty, "Cannot use empty identifier for keychain")
+  context?.interactionNotAllowed = true
+  var query: Dictionary<CFString, Any> = [
+    kSecClass: kSecClassGenericPassword,
+    kSecMatchLimit: kSecMatchLimitOne,
+    kSecReturnAttributes: kCFBooleanFalse as Any,
+    kSecReturnData: kCFBooleanFalse as Any,
+    kSecAttrService: key,
+    kSecUseAuthenticationUI: kSecUseAuthenticationUIFail as Any,
+    kSecUseAuthenticationContext: context as Any,
+  ]
+  if !keychainShareGroupIdentifier.isEmpty {
+    query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
+  }
+  else {
+    /* NOP */
+  }
+  if let tag: String = tag, !tag.isEmpty {
+    query[kSecAttrAccount] = tag
+  }
+  else {
+    /* NOP */
+  }
+
+  return query as CFDictionary
+}
+
+@inline(__always)
 private func saveKeychainKeyQuery(
   for data: Data,
   using key: String,
@@ -772,6 +853,7 @@ extension Keychain {
     Self(
       load: unimplemented("You have to provide mocks for used methods"),
       loadMeta: unimplemented("You have to provide mocks for used methods"),
+      checkIfExists: unimplemented("You have to provide mocks for used methods"),
       save: unimplemented("You have to provide mocks for used methods"),
       delete: unimplemented("You have to provide mocks for used methods")
     )

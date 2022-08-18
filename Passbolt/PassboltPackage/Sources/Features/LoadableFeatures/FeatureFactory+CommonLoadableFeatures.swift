@@ -23,7 +23,7 @@
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltCommonLoadableFeatures() {
+  @MainActor public func usePassboltCommonLoadableFeatures() {
     self.usePassboltStoredProperty(Bool.self)
     self.usePassboltStoredProperty(Int.self)
     self.usePassboltStoredProperty(String.self)

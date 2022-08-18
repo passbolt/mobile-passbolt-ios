@@ -22,7 +22,8 @@
 
 import Accounts
 import CommonModels
-import NetworkClient
+import Session
+import SessionData
 import UIComponents
 
 internal struct SplashScreenController {
@@ -40,14 +41,14 @@ extension SplashScreenController {
     case accountSelection(Account?, message: DisplayableString?)
     case diagnostics
     case home
-    case mfaAuthorization(Array<MFAProvider>)
+    case mfaAuthorization(Array<SessionMFAProvider>)
     case featureConfigFetchError
   }
 }
 
 extension SplashScreenController: UIController {
 
-  internal typealias Context = Void
+  internal typealias Context = Account?
 
   internal static func instance(
     in context: Context,
@@ -55,80 +56,85 @@ extension SplashScreenController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let accounts: Accounts = try await features.instance()
-    let accountSession: AccountSession = try await features.instance()
-    let featureFlags: FeatureConfig = try await features.instance()
+    let session: Session = try await features.instance()
+    let sessionConfiguration: SessionConfiguration = try await features.instance()
     let updateCheck: UpdateCheck = try await features.instance()
 
     let destinationSubject: CurrentValueSubject<Destination?, Never> = .init(nil)
 
-    func fetchConfiguration() async throws {
-      try await featureFlags.fetchIfNeeded()
+    cancellables.executeAsync { () -> Void in
+      do {
+        try accounts.verifyDataIntegrity()
+      }
+      catch {
+        return
+          destinationSubject
+          .send(.diagnostics)
+      }
+
+      do {
+        try await fetchConfiguration()
+      }
+      catch {
+        return destinationSubject.send(.featureConfigFetchError)
+      }
+
+      let storedAccounts: Array<Account> = accounts.storedAccounts()
+
+      if storedAccounts.isEmpty {
+        return
+          destinationSubject
+          .send(.accountSetup)
+      }
+      else if let currentAccount: Account =
+        try? await session.currentAccount(),
+        currentAccount == context || context == .none
+      {
+        switch await session.pendingAuthorization() {
+        case .none:
+          return
+            destinationSubject
+            .send(.home)
+
+        case let .mfa(_, mfaProviders):
+          return
+            destinationSubject
+            .send(.mfaAuthorization(mfaProviders))
+
+        case let .passphrase(account):
+          return
+            destinationSubject
+            .send(
+              .accountSelection(
+                account,
+                message: .localized("authorization.prompt.refresh.session.reason")
+              )
+            )
+        }
+      }
+      else {
+        return
+          destinationSubject
+          .send(
+            .accountSelection(
+              context,
+              message: nil
+            )
+          )
+      }
     }
 
-    func retryFetchConfiguration() async throws {
+    @Sendable nonisolated func fetchConfiguration() async throws {
+      try await sessionConfiguration.fetchIfNeeded()
+    }
+
+    @Sendable nonisolated func retryFetchConfiguration() async throws {
       try await fetchConfiguration()
       destinationSubject.send(.home)
     }
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
-      return destinationSubject.handleEvents(receiveSubscription: { _ in
-        cancellables.executeOnStorageAccessActor { () -> Void in
-          guard case .success = accounts.verifyStorageDataIntegrity()
-          else {
-            return destinationSubject.send(.diagnostics)
-          }
-          let storedAccounts: Array<Account> = accounts.storedAccounts()
-          if storedAccounts.isEmpty {
-            return destinationSubject.send(.accountSetup)
-          }
-          else {
-            return
-              accountSession
-              .statePublisher()
-              .first()
-              .map { state -> AnyPublisher<Destination, Never> in
-                switch state {
-                case let .none(lastUsedAccount):
-                  return Just(
-                    .accountSelection(
-                      lastUsedAccount,
-                      message: nil
-                    )
-                  )
-                  .eraseToAnyPublisher()
-
-                case .authorized:
-                  return cancellables.executeOnMainActorWithPublisher {
-                    try await fetchConfiguration()
-                    return Destination.home
-                  }
-                  .replaceError(with: .featureConfigFetchError)
-                  .eraseToAnyPublisher()
-
-                case let .authorizedMFARequired(_, mfaProviders):
-                  return Just(
-                    .mfaAuthorization(mfaProviders)
-                  )
-                  .eraseToAnyPublisher()
-
-                case let .authorizationRequired(account):
-                  return Just(
-                    .accountSelection(
-                      account,
-                      message: .localized("authorization.prompt.refresh.session.reason")
-                    )
-                  )
-                  .eraseToAnyPublisher()
-                }
-              }
-              .switchToLatest()
-              .sink { destination in
-                destinationSubject.send(destination)
-              }
-              .store(in: cancellables)
-          }
-        }
-      })
+      destinationSubject
       .filterMapOptional()
       .eraseToAnyPublisher()
     }

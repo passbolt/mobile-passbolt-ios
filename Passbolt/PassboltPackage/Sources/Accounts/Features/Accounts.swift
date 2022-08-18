@@ -21,19 +21,31 @@
 // @since         v1.0
 //
 
-@_exported import CommonModels
 import Crypto
-@_exported import Features
+import Features
 
+// MARK: - Interface
+
+/// Access locally stored accounts.
 public struct Accounts {
 
-  public var verifyStorageDataIntegrity: @StorageAccessActor () -> Result<Void, Error>
-  public var storedAccounts: @StorageAccessActor () -> Array<Account>
-  // Saves account data if authorization succeeds and creates session.
+  /// Updates in stored accounts.
+  /// Includes adding and removing accounts.
+  public var updates: UpdatesSequence
+  /// Accounts data integrity check.
+  /// Cleans up any leftover data
+  /// and removes inproperly stored accounts.
+  public var verifyDataIntegrity: @Sendable () throws -> Void
+  /// List of currently stored accounts.
+  public var storedAccounts: @Sendable () -> Array<Account>
+  /// Last used account if any and still stored.
+  public var lastUsedAccount: @Sendable () -> Account?
+  /// Saves account data locally if authorization
+  /// succeeds and creates session.
   public var transferAccount:
-    @StorageAccessActor (
+    @Sendable (
       _ domain: URLString,
-      _ userID: String,
+      _ userID: User.ID,
       _ username: String,
       _ firstName: String,
       _ lastName: String,
@@ -41,158 +53,50 @@ public struct Accounts {
       _ fingerprint: Fingerprint,
       _ armoredKey: ArmoredPGPPrivateKey,
       _ passphrase: Passphrase
-    ) async throws -> Void
-  public var removeAccount: @StorageAccessActor (Account) -> Result<Void, Error>
+    ) async throws -> Account
+  /// Delete locally stored data for given account.
+  /// Closes the session for that account if needed.
+  public var removeAccount: @Sendable (Account) throws -> Void
+
+  public init(
+    updates: UpdatesSequence,
+    verifyDataIntegrity: @escaping @Sendable () throws -> Void,
+    storedAccounts: @escaping @Sendable () -> Array<Account>,
+    lastUsedAccount: @escaping @Sendable () -> Account?,
+    transferAccount:
+      @escaping @Sendable (
+        _ domain: URLString,
+        _ userID: User.ID,
+        _ username: String,
+        _ firstName: String,
+        _ lastName: String,
+        _ avatarImageURL: URLString,
+        _ fingerprint: Fingerprint,
+        _ armoredKey: ArmoredPGPPrivateKey,
+        _ passphrase: Passphrase
+      ) async throws -> Account,
+    removeAccount: @escaping @Sendable (Account) throws -> Void
+  ) {
+    self.updates = updates
+    self.verifyDataIntegrity = verifyDataIntegrity
+    self.storedAccounts = storedAccounts
+    self.lastUsedAccount = lastUsedAccount
+    self.transferAccount = transferAccount
+    self.removeAccount = removeAccount
+  }
 }
 
-extension Accounts: LegacyFeature {
-
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self {
-    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-    let pgp: PGP = environment.pgp
-    let diagnostics: Diagnostics = try await features.instance()
-    let session: AccountSession = try await features.instance()
-    let dataStore: AccountsDataStore = try await features.instance()
-
-    @StorageAccessActor func verifyAccountsDataIntegrity() -> Result<Void, Error> {
-      dataStore.verifyDataIntegrity()
-    }
-
-    @StorageAccessActor func storedAccounts() -> Array<Account> {
-      dataStore.loadAccounts()
-    }
-
-    @StorageAccessActor func transferAccount(
-      domain: URLString,
-      userID: String,
-      username: String,
-      firstName: String,
-      lastName: String,
-      avatarImageURL: URLString,
-      fingerprint: Fingerprint,
-      armoredKey: ArmoredPGPPrivateKey,
-      passphrase: Passphrase
-    ) async throws {
-      // verify passphrase
-      switch pgp.verifyPassphrase(armoredKey, passphrase) {
-      case .success:
-        break  // continue process
-
-      case let .failure(error):
-        diagnostics.diagnosticLog("...invalid passphrase!")
-        throw
-          error
-          .asTheError()
-          .pushing(.message("Invalid passphrase used for account transfer"))
-      }
-
-      let storedAccount: Account? =
-        dataStore
-        .loadAccounts()
-        .first(
-          where: { stored in
-            stored.userID.rawValue == userID
-              && stored.domain == domain
-          }
-        )
-
-      let account: Account
-      if let storedAccount: Account = storedAccount {
-        account = storedAccount
-      }
-      else {
-        let accountID: Account.LocalID = .init(rawValue: uuidGenerator().uuidString)
-        account = .init(
-          localID: accountID,
-          domain: domain,
-          userID: Account.UserID(rawValue: userID),
-          fingerprint: fingerprint
-        )
-        let accountProfile: AccountProfile = .init(
-          accountID: accountID,
-          label: "\(firstName) \(lastName)",  // initial label
-          username: username,
-          firstName: firstName,
-          lastName: lastName,
-          avatarImageURL: avatarImageURL,
-          biometricsEnabled: false  // it is always disabled initially
-        )
-
-        switch dataStore.storeAccount(account, accountProfile, armoredKey) {
-        case .success:
-          break
-
-        case let .failure(error):
-          diagnostics.diagnosticLog("...failed to store account data...")
-          diagnostics.debugLog(
-            "Failed to save account: \(account.localID): \(error)"
-          )
-          throw error
-        }
-      }
-
-      _ =
-        try await session
-        .authorize(
-          account,
-          .adHoc(passphrase, armoredKey)
-        )
-    }
-
-    @StorageAccessActor func remove(
-      account: Account
-    ) -> Result<Void, Error> {
-      diagnostics.diagnosticLog("Removing local account data...")
-      dataStore.deleteAccount(account.localID)
-      session
-        .statePublisher()
-        .first()
-        .sink { sessionState in
-          switch sessionState {
-          case let .authorized(currentAccount) where currentAccount.localID == account.localID,
-            let .authorizedMFARequired(currentAccount, _) where currentAccount.localID == account.localID,
-            let .authorizationRequired(currentAccount) where currentAccount.localID == account.localID:
-            cancellables.executeOnAccountSessionActor(session.close)
-
-          case .authorized, .authorizedMFARequired, .authorizationRequired, .none:
-            break
-          }
-        }
-        .store(in: cancellables)
-      diagnostics.diagnosticLog("...removing local account data succeeded!")
-      return .success
-    }
-
-    return Self(
-      verifyStorageDataIntegrity: verifyAccountsDataIntegrity,
-      storedAccounts: storedAccounts,
-      transferAccount: transferAccount(
-        domain:
-        userID:
-        username:
-        firstName:
-        lastName:
-        avatarImageURL:
-        fingerprint:
-        armoredKey:
-        passphrase:
-      ),
-      removeAccount: remove(account:)
-    )
-  }
+extension Accounts: LoadableContextlessFeature {
 
   #if DEBUG
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
+  nonisolated public static var placeholder: Self {
     Self(
-      verifyStorageDataIntegrity: unimplemented("You have to provide mocks for used methods"),
-      storedAccounts: unimplemented("You have to provide mocks for used methods"),
-      transferAccount: unimplemented("You have to provide mocks for used methods"),
-      removeAccount: unimplemented("You have to provide mocks for used methods")
+      updates: .placeholder,
+      verifyDataIntegrity: unimplemented(),
+      storedAccounts: unimplemented(),
+      lastUsedAccount: unimplemented(),
+      transferAccount: unimplemented(),
+      removeAccount: unimplemented()
     )
   }
   #endif

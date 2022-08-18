@@ -197,3 +197,92 @@ where RawValue: Equatable {
     lhs == rhs.rawValue
   }
 }
+
+extension Tagged: Comparable
+where RawValue: Comparable {
+
+  public static func < (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.rawValue < rhs.rawValue
+  }
+}
+
+extension Tagged: AdditiveArithmetic
+where RawValue: AdditiveArithmetic {
+
+  public static var zero: Self {
+    .init(rawValue: .zero)
+  }
+
+  public static func + (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Self {
+    .init(
+      rawValue: lhs.rawValue + rhs.rawValue
+    )
+  }
+
+  public static func += (
+    _ lhs: inout Self,
+    _ rhs: Self
+  ) {
+    lhs.rawValue += rhs.rawValue
+  }
+
+  public static func - (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Self {
+    .init(
+      rawValue: lhs.rawValue - rhs.rawValue
+    )
+  }
+
+  public static func -= (
+    _ lhs: inout Self,
+    _ rhs: Self
+  ) {
+    lhs.rawValue -= rhs.rawValue
+  }
+}
+
+extension Tagged: Numeric
+where RawValue: Numeric {
+
+  public init?<Source>(
+    exactly source: Source
+  ) where Source: BinaryInteger {
+    if let rawValue = RawValue(exactly: source) {
+      self.init(rawValue: rawValue)
+    }
+    else {
+      return nil
+    }
+  }
+
+  public var magnitude: RawValue.Magnitude {
+    self.rawValue.magnitude
+  }
+
+  public static func * (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Self {
+    .init(
+      rawValue: lhs.rawValue * rhs.rawValue
+    )
+  }
+
+  public static func *= (
+    _ lhs: inout Self,
+    _ rhs: Self
+  ) {
+    lhs.rawValue *= rhs.rawValue
+  }
+}
+
+extension Tagged: SignedNumeric
+where RawValue: SignedNumeric {}

@@ -23,16 +23,28 @@
 
 import Display
 import Features
-import Resources
-import Users
+import PassboltAccounts
+import PassboltDatabaseOperations
+import PassboltNetworkOperations
+import PassboltResources
+import PassboltSession
+import PassboltSessionData
+import PassboltUsers
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltFeatures() {
+  @MainActor public func usePassboltFeatures() {
+    self.useOSFeatures()
     self.useLiveDisplay()
-    self.usePassboltUsers()
-    self.usePassboltUserDetails()
-    self.usePassboltUserGroupDetails()
-    self.usePassboltResourceDetails()
+    self.usePassboltCommonStaticFeatures()
+    self.usePassboltCommonLoadableFeatures()
+    self.usePassboltNetworkModule()
+    self.usePassboltAccountsModule()
+    self.usePassboltDatabaseOperationsModule()
+    self.usePassboltNetworkOperationsModule()
+    self.usePassboltResourcesModule()
+    self.usePassboltSessionModule()
+    self.usePassboltSessionDataModule()
+    self.usePassboltUsersModule()
   }
 }

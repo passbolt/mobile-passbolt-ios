@@ -23,6 +23,8 @@
 
 import Accounts
 import Display
+import Session
+import SessionData
 import UIComponents
 
 internal struct SettingsController {
@@ -61,14 +63,16 @@ extension SettingsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> SettingsController {
-    let accountSettings: AccountSettings = try await features.instance()
+    let session: Session = try await features.instance()
+    let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
+    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
     let autoFill: AutoFill = try await features.instance()
     let biometry: Biometry = try await features.instance()
-    let featureFlags: FeatureConfig = try await features.instance()
+    let sessionConfiguration: SessionConfiguration = try await features.instance()
     let linkOpener: LinkOpener = try await features.instance()
     let displayNavigation: DisplayNavigation = try await features.instance()
 
-    let legal: FeatureFlags.Legal = await featureFlags.configuration()
+    let legal: FeatureFlags.Legal = await sessionConfiguration.configuration()
     var termsURL: URL?
     var privacyPolicyURL: URL?
 
@@ -91,45 +95,42 @@ extension SettingsController: UIController {
 
     func biometricsStatePublisher() -> AnyPublisher<BiometricsState, Never> {
       Publishers.CombineLatest(
-        biometry.biometricsStatePublisher(),
-        accountSettings.currentAccountProfilePublisher()
+        biometry
+          .biometricsStatePublisher(),
+        accountPreferences
+          .updates
+          .map {
+            accountPreferences.isPassphraseStored()
+          }
+          .asPublisher()
       )
-      .map { biometryState, accountProfile -> BiometricsState in
-        switch biometryState {
+      .map { biometricsState, passphraseStored in
+        switch biometricsState {
         case .unavailable, .unconfigured:
           return .none
 
         case .configuredTouchID:
-          return .touchID(enabled: accountProfile.biometricsEnabled)
+          return .touchID(enabled: passphraseStored)
 
         case .configuredFaceID:
-          return .faceID(enabled: accountProfile.biometricsEnabled)
+          return .faceID(enabled: passphraseStored)
         }
       }
       .eraseToAnyPublisher()
     }
 
     func toggleBiometrics() -> AnyPublisher<Never, Error> {
-      accountSettings
-        .biometricsEnabledPublisher()
-        .first()
-        .map { enabled -> AnyPublisher<Never, Error> in
-          if enabled {
+      Just(Void())
+        .eraseErrorType()
+        .asyncMap {
+          if accountPreferences.isPassphraseStored() {
             presentBiometricsAlertSubject.send()
-            return Empty().eraseToAnyPublisher()
           }
           else {
-            return cancellables.executeOnStorageAccessActorWithPublisher {
-              accountSettings
-                .setBiometricsEnabled(true)
-                .ignoreOutput()
-                .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+            try await accountPreferences.storePassphrase(true)
           }
         }
-        .switchToLatest()
+        .ignoreOutput()
         .eraseToAnyPublisher()
     }
 
@@ -158,13 +159,10 @@ extension SettingsController: UIController {
     }
 
     func disableBiometrics() -> AnyPublisher<Never, Error> {
-      cancellables.executeOnStorageAccessActorWithPublisher {
-        accountSettings
-          .setBiometricsEnabled(false)
-          .ignoreOutput()
-          .eraseToAnyPublisher()
+      cancellables.executeAsyncWithPublisher {
+        try await accountPreferences.storePassphrase(false)
       }
-      .switchToLatest()
+      .ignoreOutput()
       .eraseToAnyPublisher()
     }
 

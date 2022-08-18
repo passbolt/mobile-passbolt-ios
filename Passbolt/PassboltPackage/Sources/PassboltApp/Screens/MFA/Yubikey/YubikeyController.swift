@@ -22,16 +22,17 @@
 //
 
 import Accounts
+import Session
 import UIComponents
 
-internal struct YubikeyController {
+internal struct YubiKeyController {
 
   internal var toggleRememberDevice: @MainActor () -> Void
   internal var rememberDevicePublisher: @MainActor () -> AnyPublisher<Bool, Never>
   internal var authorizeUsingOTP: @MainActor () -> AnyPublisher<Void, Error>
 }
 
-extension YubikeyController: UIController {
+extension YubiKeyController: UIController {
 
   internal typealias Context = Void
 
@@ -39,8 +40,8 @@ extension YubikeyController: UIController {
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
-  ) async throws -> YubikeyController {
-    let mfa: MFA = try await features.instance()
+  ) async throws -> YubiKeyController {
+    let session: Session = try await features.instance()
     let rememberDeviceSubject: CurrentValueSubject<Bool, Never> = .init(true)
 
     func toggleRememberDevice() {
@@ -52,11 +53,15 @@ extension YubikeyController: UIController {
     }
 
     func authorizeUsingOTP() -> AnyPublisher<Void, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher {
-        mfa.authorizeUsingYubikey(rememberDeviceSubject.value)
-          .eraseToAnyPublisher()
+      cancellables.executeAsyncWithPublisher {
+        try await session
+          .authorizeMFA(
+            .yubiKey(
+              session.currentAccount(),
+              rememberDevice: rememberDeviceSubject.value
+            )
+          )
       }
-      .switchToLatest()
       .eraseToAnyPublisher()
     }
 

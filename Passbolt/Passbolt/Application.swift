@@ -39,7 +39,6 @@ internal struct Application {
       Time.live,
       UUIDGenerator.live,
       Logger.live,
-      Networking.foundation(),
       Preferences.sharedUserDefaults(),
       Keychain.live(),
       Biometrics.live,
@@ -49,27 +48,18 @@ internal struct Application {
       PGP.gopenPGP(),
       SignatureVerfication.rssha256(),
       MDMConfig.live,
-      Database.sqlite(),
       Files.live,
       AutoFillExtension.live(),
       SystemPasteboard.uiPasteboard(),
-      Yubikey.live(),
+      YubiKey.live(),
       Randomness.system(),
       AsyncExecutors.libDispatch(),
       AppMeta.live
     )
   ) {
     let features: FeatureFactory = .init(environment: environment)
-#if DEBUG
-    Task { @FeaturesActor in
-      try await features.environment.use(
-        features
-          .environment
-          .networking
-          .withLogs(using: features.instance())
-      )
-    }
-    #endif
+    // register features implementations
+    features.usePassboltFeatures()
     self.ui = UI(features: features)
     self.features = features
   }
@@ -78,7 +68,7 @@ internal struct Application {
 extension Application {
   
   internal func initialize() -> Bool {
-    Task { @FeaturesActor in
+    Task { @MainActor in
       do {
       try await features.instance(of: Initialization.self).initialize()
       }

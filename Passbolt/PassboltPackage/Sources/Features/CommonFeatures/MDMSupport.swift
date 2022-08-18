@@ -36,14 +36,14 @@ extension MDMSupport {
 
   public struct TransferedAccount: Decodable {
 
-    public let userID: String
+    public let userID: User.ID
     public let domain: URLString
     public let username: String
     public let firstName: String
     public let lastName: String
     public let avatarImageURL: URLString
-    public let fingerprint: String
-    public let armoredKey: String
+    public let fingerprint: Fingerprint
+    public let armoredKey: ArmoredPGPPrivateKey
   }
 }
 #endif
@@ -91,14 +91,14 @@ extension MDMSupport: LegacyFeature {
         + flattenedArmoredKey.replacingOccurrences(of: "\\n", with: "\r\n")
         + "-----END PGP PRIVATE KEY BLOCK-----"
       return TransferedAccount(
-        userID: userID,
+        userID: .init(rawValue: userID),
         domain: .init(rawValue: domain),
         username: username,
         firstName: firstName,
         lastName: lastName,
         avatarImageURL: avatarImageURL,
-        fingerprint: fingerprint,
-        armoredKey: armoredKey
+        fingerprint: .init(rawValue: fingerprint),
+        armoredKey: .init(rawValue: armoredKey)
       )
     }
 

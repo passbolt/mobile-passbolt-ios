@@ -24,6 +24,7 @@
 import Combine
 import CommonModels
 import Features
+import SessionData
 import TestExtensions
 import UIComponents
 import XCTest
@@ -36,30 +37,43 @@ import XCTest
 @MainActor
 final class ResourceDetailsControllerTests: MainActorTestCase {
 
-  var featureConfig: FeatureConfig!
-  var resources: Resources!
-  var pasteboard: Pasteboard!
+  var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    featureConfig = .placeholder
-    resources = .placeholder
-    pasteboard = .placeholder
+    features.usePlaceholder(for: Pasteboard.self)
+    features.usePlaceholder(for: SessionConfiguration.self)
+    updates = .init()
+    features.patch(
+      \SessionData.updatesSequence,
+      with: updates.updatesSequence
+    )
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
   }
 
   override func mainActorTearDown() {
-    resources = nil
+    updates = nil
   }
 
   func test_loadResourceDetails_succeeds_whenAvailable() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -72,17 +86,20 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_loadResourceDetails_succeeds_withSortedFields_whenAvailable() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = { _ in
-      var detailsViewResourceWithReorderedFields: ResourceDetailsDSV = detailsViewResource
-      detailsViewResourceWithReorderedFields.fields.reverse()
-      return Just(detailsViewResourceWithReorderedFields)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    }
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
+    )
+    var detailsViewResourceWithReorderedFields: ResourceDetailsDSV = detailsViewResource
+    detailsViewResourceWithReorderedFields.fields.reverse()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResourceWithReorderedFields)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -104,12 +121,17 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_loadResourceDetails_fails_whenErrorOnFetch() async throws {
-    resources.resourceDetailsPublisher = always(
-      Fail(error: MockIssue.error()).eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Fail(error: MockIssue.error())
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -127,15 +149,26 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_toggleDecrypt_publishes_whenResourceFetch_succeeds() async throws {
-    resources.resourceDetailsPublisher = always(
-      Empty().eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    resources.loadResourceSecret = always(
-      Just(resourceSecret).eraseErrorType().eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -150,15 +183,25 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_toggleDecrypt_publishesError_whenResourceFetch_fails() async throws {
-    resources.resourceDetailsPublisher = always(
-      Empty().eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    resources.loadResourceSecret = always(
-      Fail(error: MockIssue.error()).eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Fail(error: MockIssue.error())
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -177,15 +220,26 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_toggleDecrypt_publishesNil_whenTryingToDecryptAlreadyDecrypted() async throws {
-    resources.resourceDetailsPublisher = always(
-      Empty().eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    resources.loadResourceSecret = always(
-      Just(resourceSecret).eraseErrorType().eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -206,15 +260,26 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_resourceMenuPresentationPublisher_publishesResourceID_whenPresentResourceMenuCalled() async throws {
-    resources.resourceDetailsPublisher = always(
-      Empty().eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    resources.loadResourceSecret = always(
-      Empty().eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -232,28 +297,39 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_copyFieldUsername_succeeds() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
     var pasteboardContent: String? = nil
-
-    pasteboard.put = { string in
-      pasteboardContent = string
-    }
-
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        pasteboardContent = $0
+      }
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .copyFieldValue(.username)
@@ -264,28 +340,39 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_copyFieldDescription_succeeds() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
     var pasteboardContent: String? = nil
-
-    pasteboard.put = { string in
-      pasteboardContent = string
-    }
-
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        pasteboardContent = $0
+      }
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .copyFieldValue(.description)
@@ -296,33 +383,39 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_copyFieldEncryptedDescription_succeeds() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(encryptedDescriptionResourceDetailsDSV)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    resources.loadResourceSecret = always(
-      Just(resourceSecret)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(encryptedDescriptionResourceDetails)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
-
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
     var pasteboardContent: String? = nil
-
-    pasteboard.put = { string in
-      pasteboardContent = string
-    }
-
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        pasteboardContent = $0
+      }
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .copyFieldValue(.description)
@@ -333,28 +426,39 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_copyFieldURI_succeeds() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
     var pasteboardContent: String? = nil
-
-    pasteboard.put = { string in
-      pasteboardContent = string
-    }
-
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        pasteboardContent = $0
+      }
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .copyFieldValue(.uri)
@@ -365,33 +469,39 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   }
 
   func test_copyFieldPassword_succeeds() async throws {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    resources.loadResourceSecret = always(
-      Just(resourceSecret)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
-
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
     var pasteboardContent: String? = nil
-
-    pasteboard.put = { string in
-      pasteboardContent = string
-    }
-
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        pasteboardContent = $0
+      }
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .copyFieldValue(.password)
@@ -404,15 +514,26 @@ final class ResourceDetailsControllerTests: MainActorTestCase {
   func test_resourceDeleteAlertPresentationPublisher_publishesResourceID_whenPresentDeleteResourceAlertCalled()
     async throws
   {
-    featureConfig.config = { _ in FeatureFlags.PreviewPassword.enabled }
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(FeatureFlags.PreviewPassword.enabled)
     )
-    await features.use(featureConfig)
-    await features.use(resources)
-    await features.use(pasteboard)
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
 
     let context: Resource.ID = "1"
     let controller: ResourceDetailsController = try await testController(context: context)
@@ -446,7 +567,7 @@ private let detailsViewResource: ResourceDetailsDSV = .init(
   permissions: []
 )
 
-private let encryptedDescriptionResourceDetailsDSV: ResourceDetailsDSV = .init(
+private let encryptedDescriptionResourceDetails: ResourceDetailsDSV = .init(
   id: .init(rawValue: "1"),
   permissionType: .owner,
   name: "Passphrase",

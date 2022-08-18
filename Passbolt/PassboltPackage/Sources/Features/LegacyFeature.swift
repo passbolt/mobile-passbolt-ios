@@ -28,13 +28,13 @@ import Environment
 @available(*, deprecated, message: "Replaced by LoadableFeature")
 public protocol LegacyFeature: AnyFeature {
 
-  @FeaturesActor static func load(
+  @MainActor static func load(
     in environment: AppEnvironment,
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self
 
-  nonisolated var featureUnload: @FeaturesActor () async throws -> Void { get }
+  nonisolated var featureUnload: @MainActor () async throws -> Void { get }
 
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release
@@ -44,7 +44,7 @@ public protocol LegacyFeature: AnyFeature {
 
 extension LegacyFeature {
 
-  public nonisolated var featureUnload: @FeaturesActor () async throws -> Void {
+  public nonisolated var featureUnload: @MainActor () async throws -> Void {
     {
       throw
         Unimplemented
@@ -59,7 +59,7 @@ extension AnyFeature {
   internal static var identifier: FeatureIdentifier {
     .init(
       featureTypeIdentifier: self.typeIdentifier,
-      featureContextIdentifier: .none
+      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
     )
   }
 }

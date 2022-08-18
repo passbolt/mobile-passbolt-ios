@@ -25,7 +25,7 @@ import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier
 import Crypto
 import Features
-import NetworkClient
+
 import PassboltExtension
 import UIComponents
 
@@ -42,19 +42,17 @@ internal struct ApplicationExtension {
       Time.live,
       UUIDGenerator.live,
       Logger.live,
-      Networking.foundation(),
       Preferences.sharedUserDefaults(),
       Keychain.live(),
       Biometrics.live,
       PGP.gopenPGP(),
       SignatureVerfication.rssha256(),
       MDMConfig.live,
-      Database.sqlite(),
       Files.live,
       AppLifeCycle.autoFillExtension(),
       Camera.live(),
       ExternalURLOpener.live(),
-      Yubikey.unavailable(),
+      YubiKey.unavailable(),
       Randomness.system(),
       AsyncExecutors.libDispatch(),
       AppMeta.live
@@ -63,17 +61,9 @@ internal struct ApplicationExtension {
     let requestedServicesSubject: CurrentValueSubject<Array<AutofillExtensionContext.ServiceIdentifier>, Never>
     = .init(Array())
     let features: FeatureFactory = .init(environment: environment)
-    #if DEBUG
-    Task { @FeaturesActor in
-      try await features.environment.use(
-        features
-          .environment
-          .networking
-          .withLogs(using: features.instance())
-      )
-    }
-    #endif
-    Task { @FeaturesActor in
+    // register features implementations
+    features.usePassboltFeatures()
+    Task { @MainActor in
     features.use(
       AutofillExtensionContext(
         completeWithCredential: { credential in
@@ -120,7 +110,7 @@ internal struct ApplicationExtension {
 extension ApplicationExtension {
   
   internal func initialize() {
-    Task { @FeaturesActor in
+    Task { @MainActor in
       do {
         try await features.instance(of: Initialization.self).initialize()
       }

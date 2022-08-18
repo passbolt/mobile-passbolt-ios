@@ -22,7 +22,6 @@
 //
 
 import Features
-import NetworkClient
 import SharedUIComponents
 import TestExtensions
 import UIComponents
@@ -35,54 +34,53 @@ import XCTest
 @MainActor
 final class AccountSelectionControllerTests: MainActorTestCase {
 
-  var accounts: Accounts!
-  var accountSession: AccountSession!
-  var accountSettings: AccountSettings!
-  var networkClient: NetworkClient!
+  var accountsUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    accounts = .placeholder
-    networkClient = .placeholder
-    accountSettings = .placeholder
-    accountSession = .placeholder
+    accountsUpdates = .init()
+    features.patch(
+      \Accounts.updates,
+      with: accountsUpdates.updatesSequence
+    )
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([firstAccount.account, secondAccount.account])
+    )
+    features.patch(
+      \AccountDetails.profile,
+      context: firstAccount.account,
+      with: always(firstAccount)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: firstAccount.account,
+      with: always(.init())
+    )
+    features.patch(
+      \AccountDetails.profile,
+      context: secondAccount.account,
+      with: always(secondAccount)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: secondAccount.account,
+      with: always(.init())
+    )
+    features.patch(
+      \Session.currentAccount,
+      with: always(firstAccount.account)
+    )
   }
 
   override func mainActorTearDown() {
-    accounts = nil
-    accountSession = nil
-    accountSettings = nil
-    networkClient = nil
+    accountsUpdates = .none
   }
 
   func test_accountsPublisher_publishesItemsWithImage() async throws {
-    accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    await features.use(accounts)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accountSettings.accountWithProfile = { account in
-      if account.localID == firstAccount.localID {
-        return firstAccount
-      }
-      else if account.localID == secondAccount.localID {
-        return secondAccount
-      }
-      else {
-        fatalError()
-      }
-    }
-    await features.use(accountSettings)
-
-    networkClient.mediaDownload = .respondingWith(Data())
-    await features.use(networkClient)
-
     let controller: AccountSelectionController = try await testController(context: .signIn)
-    var result: Array<AccountSelectionListItem> = []
 
-    controller.accountsPublisher()
-      .sink { items in
-        result = items
-      }
-      .store(in: cancellables)
+    let result: Array<AccountSelectionListItem> =
+      try await controller.accountsPublisher().first().asAsyncValue()
 
     let accountItems: Array<AccountSelectionCellItem> = result.compactMap {
       guard case let .account(cellItem) = $0 else {
@@ -105,35 +103,20 @@ final class AccountSelectionControllerTests: MainActorTestCase {
   }
 
   func test_accountsPublisher_publishesItemsWithoutImage() async throws {
-    accounts.storedAccounts = always([firstAccount.account, secondAccount.account])
-    await features.use(accounts)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accountSettings.accountWithProfile = { account in
-      if account.localID == firstAccount.localID {
-        return firstAccount
-      }
-      else if account.localID == secondAccount.localID {
-        return secondAccount
-      }
-      else {
-        fatalError()
-      }
-    }
-    await features.use(accountSettings)
-
-    networkClient.mediaDownload = .failingWith(MockIssue.error())
-    await features.use(networkClient)
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: firstAccount.account,
+      with: alwaysThrow(MockIssue.error())
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: secondAccount.account,
+      with: alwaysThrow(MockIssue.error())
+    )
 
     let controller: AccountSelectionController = try await testController(context: .signIn)
-    var result: Array<AccountSelectionListItem> = []
-    var imageData: Data?
-
-    controller.accountsPublisher()
-      .sink { items in
-        result = items
-      }
-      .store(in: cancellables)
+    let result: Array<AccountSelectionListItem> =
+      try await controller.accountsPublisher().first().asAsyncValue()
 
     let accountItems: Array<AccountSelectionCellItem> = result.compactMap {
       guard case let .account(cellItem) = $0 else {
@@ -142,12 +125,11 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       return cellItem
     }
 
-    accountItems.first!
-      .imagePublisher!
-      .sink { data in
-        imageData = data
-      }
-      .store(in: cancellables)
+    let imageData: Data? =
+      try? await accountItems
+      .first?
+      .imagePublisher?
+      .asAsyncValue()
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
@@ -157,21 +139,14 @@ final class AccountSelectionControllerTests: MainActorTestCase {
   }
 
   func test_accountsPublisher_publishesEmptyList_whenAccountsAreEmpty() async throws {
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    await features.use(networkClient)
-    await features.use(accountSettings)
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let controller: AccountSelectionController = try await testController(context: .signIn)
-    var result: Array<AccountSelectionListItem> = []
-
-    controller.accountsPublisher()
-      .sink { items in
-        result = items
-      }
-      .store(in: cancellables)
+    let result: Array<AccountSelectionListItem> =
+      try await controller.accountsPublisher().first().asAsyncValue()
 
     XCTAssertTrue(result.isEmpty)
   }
@@ -186,8 +161,7 @@ private let firstAccount: AccountWithProfile = .init(
   firstName: "Adam",
   lastName: "Smith",
   avatarImageURL: "",
-  fingerprint: "FINGERPRINT",
-  biometricsEnabled: false
+  fingerprint: "FINGERPRINT"
 )
 
 private let secondAccount: AccountWithProfile = .init(
@@ -199,13 +173,5 @@ private let secondAccount: AccountWithProfile = .init(
   firstName: "John",
   lastName: "Smith",
   avatarImageURL: "",
-  fingerprint: "FINGERPRINT2",
-  biometricsEnabled: false
-)
-
-private let account: Account = .init(
-  localID: firstAccount.localID,
-  domain: firstAccount.domain,
-  userID: firstAccount.userID,
-  fingerprint: firstAccount.fingerprint
+  fingerprint: "FINGERPRINT2"
 )

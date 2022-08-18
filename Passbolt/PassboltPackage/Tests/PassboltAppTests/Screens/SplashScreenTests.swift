@@ -23,7 +23,7 @@
 
 import CommonModels
 import Features
-import NetworkClient
+import SessionData
 import TestExtensions
 import UIComponents
 import XCTest
@@ -35,43 +35,52 @@ import XCTest
 @MainActor
 final class SplashScreenTests: MainActorTestCase {
 
-  var accountDataStore: AccountsDataStore!
-  var networkClient: NetworkClient!
-  var accounts: Accounts!
-  var accountSession: AccountSession!
-  var featureConfig: FeatureConfig!
+  var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    accountDataStore = .placeholder
-    networkClient = .placeholder
-    accounts = .placeholder
-    accountSession = .placeholder
-    featureConfig = .placeholder
+    updates = .init()
+    features.patch(
+      \Session.updatesSequence,
+      with: updates.updatesSequence
+    )
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    features.patch(
+      \Session.pendingAuthorization,
+      with: always(.none)
+    )
+    features.usePlaceholder(for: UpdateCheck.self)
+    features.patch(
+      \SessionConfiguration.configuration,
+      with: always(.none)
+    )
+    features.patch(
+      \SessionConfiguration.fetchIfNeeded,
+      with: always(Void())
+    )
+    features.patch(
+      \Accounts.verifyDataIntegrity,
+      with: always(Void())
+    )
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([Account.valid])
+    )
   }
 
   override func mainActorTearDown() {
-    accountDataStore = nil
-    networkClient = nil
-    accounts = nil
-    accountSession = nil
-    featureConfig = nil
+    updates = .none
   }
 
   func test_navigateToDiagnostics_whenDataIntegrityCheckFails() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(nil)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.failure(MockIssue.error()))
-    await features.use(accounts)
-    featureConfig.fetchIfNeeded = always(
-      Void()
+    features.patch(
+      \Accounts.verifyDataIntegrity,
+      with: alwaysThrow(MockIssue.error())
     )
-    await features.use(featureConfig)
 
-    let controller: SplashScreenController = try await testController()
+    let controller: SplashScreenController = try await testController(context: .none)
     var result: SplashScreenController.Destination?
 
     controller.navigationDestinationPublisher()
@@ -81,27 +90,18 @@ final class SplashScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .diagnostics)
   }
 
   func test_navigateToAccountSetup_whenNoStoredAccounts() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(nil)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
-    featureConfig.fetchIfNeeded = always(
-      Void()
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
     )
-    await features.use(featureConfig)
 
-    let controller: SplashScreenController = try await testController()
+    let controller: SplashScreenController = try await testController(context: .none)
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -111,27 +111,22 @@ final class SplashScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .accountSetup)
   }
 
-  func test_navigateToAccountSelection_whenStoredAccountsPresent_withLastUsedAccount_andNotAuthorized() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(account)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.none(lastUsed: account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([account])
-    await features.use(accounts)
-    featureConfig.fetchIfNeeded = always(
-      Void()
+  func test_navigateToAccountSelection_whenStoredAccountsPresent_withAccount_andNotAuthorized() async throws {
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([Account.valid])
     )
-    await features.use(featureConfig)
+    features.patch(
+      \Session.currentAccount,
+      with: alwaysThrow(SessionMissing.error())
+    )
 
-    let controller: SplashScreenController = try await testController()
+    let controller: SplashScreenController = try await testController(context: Account.valid)
 
     var result: SplashScreenController.Destination?
 
@@ -142,29 +137,24 @@ final class SplashScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result, .accountSelection(account, message: nil))
+    XCTAssertEqual(result, .accountSelection(Account.valid, message: nil))
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() async throws
   {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(account)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([account])
-    await features.use(accounts)
-    featureConfig.fetchIfNeeded = always(
-      Void()
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([Account.valid])
     )
-    await features.use(featureConfig)
+    features.patch(
+      \Session.currentAccount,
+      with: alwaysThrow(SessionMissing.error())
+    )
 
-    let controller: SplashScreenController = try await testController()
-    var result: SplashScreenController.Destination!
+    let controller: SplashScreenController = try await testController(context: .none)
+    var result: SplashScreenController.Destination?
 
     controller.navigationDestinationPublisher()
       .sink { destination in
@@ -173,27 +163,22 @@ final class SplashScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .accountSelection(nil, message: nil))
   }
 
   func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(account)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([account])
-    await features.use(accounts)
-    featureConfig.fetchIfNeeded = always(
-      Void()
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
     )
-    await features.use(featureConfig)
+    features.patch(
+      \SessionConfiguration.fetchIfNeeded,
+      with: always(Void())
+    )
 
-    let controller: SplashScreenController = try await testController()
+    let controller: SplashScreenController = try await testController(context: .none)
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -203,28 +188,23 @@ final class SplashScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .home)
   }
 
   func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(account)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([account])
-    await features.use(accounts)
-    featureConfig.fetchIfNeeded = alwaysThrow(
-      MockIssue.error()
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
     )
-    await features.use(featureConfig)
+    features.patch(
+      \SessionConfiguration.fetchIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
 
-    let controller: SplashScreenController = try await testController()
-    var result: SplashScreenController.Destination!
+    let controller: SplashScreenController = try await testController(context: .none)
+    var result: SplashScreenController.Destination?
 
     controller.navigationDestinationPublisher()
       .sink { destination in
@@ -233,35 +213,30 @@ final class SplashScreenTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }
 
   func test_navigationDestinationPublisher_publishesHome_whenRetryFetchConfigurationSucceeds() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(account)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([account])
-    await features.use(accounts)
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    let uncheckedSendableIndex: UncheckedSendable<Int> = .init(0)
+    features.patch(
+      \SessionConfiguration.fetchIfNeeded,
+      with: {
+        guard uncheckedSendableIndex.variable > 0 else {
+          uncheckedSendableIndex.variable += 1
+          throw MockIssue.error()
+        }
 
-    var index: Int = 0
-    featureConfig.fetchIfNeeded = {
-      guard index > 0 else {
-        index += 1
-        throw MockIssue.error()
+        return Void()
       }
+    )
 
-      return Void()
-    }
-
-    await features.use(featureConfig)
-
-    let controller: SplashScreenController = try await testController()
+    let controller: SplashScreenController = try await testController(context: .none)
     var destination: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -273,29 +248,22 @@ final class SplashScreenTests: MainActorTestCase {
     try? await controller.retryFetchConfiguration()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(destination, .home)
   }
 
   func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() async throws {
-    await features.usePlaceholder(for: UpdateCheck.self)
-    accountDataStore.loadLastUsedAccount = always(account)
-    await features.use(accountDataStore)
-    await features.use(networkClient)
-    accountSession.statePublisher = always(Just(.authorized(account)).eraseToAnyPublisher())
-    await features.use(accountSession)
-    accounts.verifyStorageDataIntegrity = always(.success(()))
-    accounts.storedAccounts = always([account])
-    await features.use(accounts)
-
-    featureConfig.fetchIfNeeded = alwaysThrow(
-      MockIssue.error()
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    features.patch(
+      \SessionConfiguration.fetchIfNeeded,
+      with: alwaysThrow(MockIssue.error())
     )
 
-    await features.use(featureConfig)
-
-    let controller: SplashScreenController = try await testController()
+    let controller: SplashScreenController = try await testController(context: .none)
     var result: SplashScreenController.Destination!
 
     controller.navigationDestinationPublisher()
@@ -307,28 +275,8 @@ final class SplashScreenTests: MainActorTestCase {
     try? await controller.retryFetchConfiguration()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .featureConfigFetchError)
   }
 }
-
-private let accountWithProfile: AccountWithProfile = .init(
-  localID: "localID",
-  userID: "userID",
-  domain: "passbolt.com",
-  label: "passbolt",
-  username: "username",
-  firstName: "Adam",
-  lastName: "Smith",
-  avatarImageURL: "",
-  fingerprint: "FINGERPRINT",
-  biometricsEnabled: false
-)
-
-private let account: Account = .init(
-  localID: accountWithProfile.localID,
-  domain: accountWithProfile.domain,
-  userID: accountWithProfile.userID,
-  fingerprint: accountWithProfile.fingerprint
-)

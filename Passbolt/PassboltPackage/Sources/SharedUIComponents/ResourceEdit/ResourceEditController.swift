@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import Resources
+import SessionData
 import UIComponents
 
 public struct ResourceEditController {
@@ -61,7 +62,7 @@ extension ResourceEditController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
-    let sessionData: AccountSessionData = try await features.instance()
+    let sessionData: SessionData = try await features.instance()
     let resourceForm: ResourceEditForm = try await features.instance()
     let randomGenerator: RandomStringGenerator = try await features.instance()
 
@@ -76,7 +77,7 @@ extension ResourceEditController: UIController {
         .editResource(resourceID)
         .sink(
           receiveCompletion: { completion in
-            cancellables.executeOnFeaturesActor {
+            cancellables.executeOnMainActor {
               try await features.unload(ResourceEditForm.self)
             }
             guard case let .failure(error) = completion else { return }
@@ -97,7 +98,7 @@ extension ResourceEditController: UIController {
       .map(\.fields)
       .sink(
         receiveCompletion: { completion in
-          cancellables.executeOnFeaturesActor {
+          cancellables.executeOnMainActor {
             try await features.unload(ResourceEditForm.self)
           }
           resourcePropertiesSubject.send(completion: completion)
@@ -159,7 +160,7 @@ extension ResourceEditController: UIController {
     }
 
     func sendForm() -> AnyPublisher<Void, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher {
+      cancellables.executeAsyncWithPublisher {
         resourceForm
           .sendForm()
           .asyncMap { resourceID -> Resource.ID in
@@ -210,7 +211,7 @@ extension ResourceEditController: UIController {
     }
 
     func cleanup() {
-      cancellables.executeOnFeaturesActor {
+      cancellables.executeOnMainActor {
         try await features.unload(ResourceEditForm.self)
       }
     }

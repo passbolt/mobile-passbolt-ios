@@ -25,10 +25,10 @@ import NFC
 import UICommons
 import UIComponents
 
-internal final class YubikeyViewController: PlainViewController, UIComponent {
+internal final class YubiKeyViewController: PlainViewController, UIComponent {
 
-  internal typealias ContentView = YubikeyView
-  internal typealias Controller = YubikeyController
+  internal typealias ContentView = YubiKeyView
+  internal typealias Controller = YubiKeyController
 
   internal static func instance(
     using controller: Controller,

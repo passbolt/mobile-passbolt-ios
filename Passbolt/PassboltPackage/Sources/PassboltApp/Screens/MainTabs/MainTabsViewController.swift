@@ -112,19 +112,7 @@ extension MainTabsViewController: UITabBarControllerDelegate {
 extension MainTabsViewController {
 
   fileprivate func initializeTabs() {
-    self.cancellables.executeOnMainActor {
-      do {
-        self.viewControllers = [
-          try await self.components.instance(of: HomeTabNavigationViewController.self),
-          try await self.components.instance(of: SettingsTabViewController.self),
-        ]
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError()
-      }
-    }
+    self.viewControllers = controller.tabComponents()
   }
 
   fileprivate func setupSubscriptions() {

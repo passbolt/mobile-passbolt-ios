@@ -29,20 +29,18 @@ import XCTest
 /// For testing UIComponents or other items
 /// that require MainActor isolation please
 /// use MainActorTestCase instead.
+@MainActor
 open class TestCase: AsyncTestCase {
 
   public var features: FeatureFactory!
   public var cancellables: Cancellables!
-  @FeaturesActor public var environment: AppEnvironment {
+  public var environment: AppEnvironment {
     get { features.environment }
     set { features.environment = newValue }
   }
 
   final override public class func setUp() {
     super.setUp()
-    FeaturesActor.execute {
-      FeatureFactory.autoLoadFeatures = false
-    }
   }
 
   public final override func setUp() {
@@ -57,8 +55,12 @@ open class TestCase: AsyncTestCase {
     try await featuresActorSetUp()
   }
 
-  @FeaturesActor open func featuresActorSetUp() async throws {
-    self.features = .init(environment: testEnvironment())
+  open func featuresActorSetUp() async throws {
+    self.features = .init(
+      environment: testEnvironment(),
+      autoLoadFeatures: false,
+      allowScopes: false
+    )
     self.features.use(Diagnostics.disabled)
     self.features.environment.asyncExecutors = .immediate
     self.cancellables = .init()
@@ -76,7 +78,7 @@ open class TestCase: AsyncTestCase {
     (super.tearDown as () -> Void)()
   }
 
-  @FeaturesActor open func featuresActorTearDown() async throws {
+  open func featuresActorTearDown() async throws {
     self.features = nil
     self.cancellables = nil
   }

@@ -32,7 +32,7 @@ import class Foundation.JSONDecoder
 
 internal struct AccountTransferAccount {
 
-  internal var userID: String
+  internal var userID: User.ID
   internal var fingerprint: Fingerprint
   internal var armoredKey: ArmoredPGPPrivateKey
 }

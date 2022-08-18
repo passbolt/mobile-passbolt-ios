@@ -25,17 +25,17 @@ import CommonModels
 
 extension Account {
 
-  public static let validAccount: Self = .init(
+  public static let valid: Self = .init(
     localID: .init(rawValue: UUID.test.uuidString),
     domain: "https://passbolt.dev",
-    userID: "USER_ID",
+    userID: .init(rawValue: UUID.test.uuidString),
     fingerprint: "FINGERPRINT"
   )
 
-  public static let validAccountAlternative: Self = .init(
+  public static let validAlternative: Self = .init(
     localID: .init(rawValue: UUID.testAlt.uuidString),
     domain: "https://alt.passbolt.dev",
-    userID: "USER_ID_ALT",
+    userID: .init(rawValue: UUID.testAlt.uuidString),
     fingerprint: "FINGERPRINT_ALT"
   )
 }

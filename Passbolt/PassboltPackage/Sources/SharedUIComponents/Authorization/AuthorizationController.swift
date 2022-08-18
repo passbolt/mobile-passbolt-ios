@@ -24,7 +24,8 @@
 import Accounts
 import CommonModels
 import Crypto
-import NetworkClient
+import Network
+import Session
 import UIComponents
 
 public struct AuthorizationController {
@@ -62,11 +63,11 @@ extension AuthorizationController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let accountSettings: AccountSettings = try await features.instance()
-    let accountSession: AccountSession = try await features.instance()
+    let accountDetails: AccountDetails = try await features.instance(context: context)
+    let accountPreferences: AccountPreferences = try await features.instance(context: context)
+    let session: Session = try await features.instance()
     let biometry: Biometry = try await features.instance()
     let diagnostics: Diagnostics = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -78,39 +79,30 @@ extension AuthorizationController: UIController {
     )
 
     let account: Account = context
-    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = try await .init(
-      accountSettings.accountWithProfile(account)
+    let accountWithProfileSubject: CurrentValueSubject<AccountWithProfile, Never> = try .init(
+      accountDetails.profile()
     )
 
-    accountSettings
-      .updatedAccountIDsPublisher()
-      .filter { $0 == account.localID }
-      .sink { _ in
-        _ = cancellables.executeOnStorageAccessActorWithPublisher {
-          try accountWithProfileSubject
-            .send(
-              accountSettings
-                .accountWithProfile(account)
-            )
-        }
+    cancellables.executeAsync {
+      for await _ in accountDetails.updates {
+        try accountWithProfileSubject
+          .send(
+            accountDetails.profile()
+          )
       }
-      .store(in: cancellables)
+    }
 
     func accountWithProfilePublisher() -> AnyPublisher<AccountWithProfile, Never> {
       accountWithProfileSubject.eraseToAnyPublisher()
     }
 
     func accountAvatarPublisher() -> AnyPublisher<Data?, Never> {
-      accountWithProfileSubject
-        .map { accountWithProfile in
-          networkClient.mediaDownload.make(using: accountWithProfile.avatarImageURL)
-            .eraseErrorType()
-            .collectErrorLog(using: diagnostics)
-            .map { data -> Data? in data }
-            .replaceError(with: nil)
+      accountDetails
+        .updates
+        .map {
+          try await accountDetails.avatarImage()
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+        .asPublisher()
     }
 
     func updatePassphrase(_ passphrase: String) {
@@ -127,10 +119,15 @@ extension AuthorizationController: UIController {
       Publishers.CombineLatest(
         biometry
           .biometricsStatePublisher(),
-        accountWithProfileSubject
+        accountPreferences
+          .updates
+          .map {
+            accountPreferences.isPassphraseStored()
+          }
+          .asPublisher()
       )
-      .map { biometricsState, accountWithProfile in
-        switch (biometricsState, accountWithProfile.biometricsEnabled) {
+      .map { biometricsState, passphraseStored in
+        switch (biometricsState, passphraseStored) {
         case (.unavailable, _), (.unconfigured, _), (.configuredTouchID, false), (.configuredFaceID, false):
           return .unavailable
 
@@ -149,10 +146,30 @@ extension AuthorizationController: UIController {
         .first()
         .eraseErrorType()
         .asyncMap { passphrase in
-          try await accountSession.authorize(
-            account,
-            .passphrase(.init(rawValue: passphrase))
-          )
+          do {
+            try await session.authorize(
+              .passphrase(
+                account,
+                .init(rawValue: passphrase)
+              )
+            )
+            do {
+              diagnostics.diagnosticLog("Updating account profile data...")
+              try await accountDetails.updateProfile()
+              diagnostics.diagnosticLog("...account profile data updated!")
+            }
+            catch {
+              diagnostics.log(error)
+              diagnostics.diagnosticLog("...account profile data update failed!")
+            }
+            return false
+          }
+          catch is SessionMFAAuthorizationRequired {
+            return true
+          }
+          catch {
+            throw error
+          }
         }
         .collectErrorLog(using: diagnostics)
         .handleErrors(
@@ -174,12 +191,29 @@ extension AuthorizationController: UIController {
     }
 
     func performBiometricSignIn() -> AnyPublisher<Bool, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher { () async throws -> Bool in
-        try await accountSession
-          .authorize(
-            account,
-            .biometrics
-          )
+      cancellables.executeAsyncWithPublisher { () async throws -> Bool in
+        do {
+          try await session
+            .authorize(
+              .biometrics(account)
+            )
+          do {
+            diagnostics.diagnosticLog("Updating account profile data...")
+            try await accountDetails.updateProfile()
+            diagnostics.diagnosticLog("...account profile data updated!")
+          }
+          catch {
+            diagnostics.log(error)
+            diagnostics.diagnosticLog("...account profile data update failed!")
+          }
+          return false
+        }
+        catch is SessionMFAAuthorizationRequired {
+          return true
+        }
+        catch {
+          throw error
+        }
       }
       .collectErrorLog(using: diagnostics)
       .handleErrors(

@@ -32,21 +32,12 @@ import UIComponents
 @MainActor
 final class AccountNotFoundScreenTests: MainActorTestCase {
 
-  var accountSettings: AccountSettings!
-
-  override func mainActorSetUp() {
-    accountSettings = .placeholder
-    accountSettings.accountWithProfile = always(
-      .validAccountWithProfile
-    )
-  }
-
-  override func mainActorTearDown() {
-    accountSettings = nil
-  }
-
   func test_backNavigationPresentationPublisher_doesNotPublish_initially() async throws {
-    await features.use(accountSettings)
+    features.patch(
+      \AccountDetails.profile,
+      context: accountWithProfile.account,
+      with: always(accountWithProfile)
+    )
 
     let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
@@ -62,7 +53,11 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   }
 
   func test_backNavigationPresentationPublisher_publishes_whenNavigatingBack() async throws {
-    await features.use(accountSettings)
+    features.patch(
+      \AccountDetails.profile,
+      context: accountWithProfile.account,
+      with: always(accountWithProfile)
+    )
 
     let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
@@ -80,8 +75,11 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   }
 
   func test_accountWithProfile_loadsAccountWithProfile_fromAccountSettings() async throws {
-    accountSettings.accountWithProfile = always(accountWithProfile)
-    await features.use(accountSettings)
+    features.patch(
+      \AccountDetails.profile,
+      context: accountWithProfile.account,
+      with: always(accountWithProfile)
+    )
 
     let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
 
@@ -90,23 +88,6 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
       .accountWithProfile()
 
     XCTAssertEqual(result, accountWithProfile)
-  }
-
-  func test_accountWithProfile_loadsProfileForAccountFromContext() async throws {
-    var result: Account?
-    accountSettings.accountWithProfile = { account in
-      result = account
-      return accountWithProfile
-    }
-    await features.use(accountSettings)
-
-    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
-
-    _ =
-      controller
-      .accountWithProfile()
-
-    XCTAssertEqual(result, accountWithProfile.account)
   }
 }
 
@@ -119,6 +100,5 @@ private let accountWithProfile: AccountWithProfile = .init(
   firstName: "Adam",
   lastName: "Smith",
   avatarImageURL: "",
-  fingerprint: "FINGERPRINT",
-  biometricsEnabled: false
+  fingerprint: "FINGERPRINT"
 )

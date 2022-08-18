@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import NetworkClient
 import Resources
+import Session
 import UIComponents
 
 import struct Foundation.Data
@@ -46,9 +46,8 @@ extension ResourcesFilterController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let accountSession: AccountSession = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
+    let session: Session = try await features.instance()
+    let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
 
     let searchTextSubject: CurrentValueSubject<String, Never> = .init("")
 
@@ -72,22 +71,17 @@ extension ResourcesFilterController: UIController {
     }
 
     func avatarImagePublisher() -> AnyPublisher<Data?, Never> {
-      accountSettings
-        .currentAccountProfilePublisher()
-        .map(\.avatarImageURL)
-        .map { avatarImageURL in
-          networkClient.mediaDownload
-            .make(using: avatarImageURL)
-            .map { data -> Data? in data }
-            .replaceError(with: nil)
+      accountDetails
+        .updates
+        .map {
+          try? await accountDetails.avatarImage()
         }
-        .switchToLatest()
-        .eraseToAnyPublisher()
+        .asPublisher()
     }
 
     func switchAccount() {
-      cancellables.executeOnAccountSessionActor {
-        await accountSession.close()
+      cancellables.executeAsync {
+        await session.close(.none)
       }
     }
 

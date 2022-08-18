@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Session
 import UIComponents
 
 internal struct ExtensionController {
@@ -51,66 +52,50 @@ extension ExtensionController: UIController {
   ) async throws -> ExtensionController {
 
     let accounts: Accounts = try await features.instance()
-    let accountSession: AccountSession = try await features.instance()
+    let session: Session = try await features.instance()
 
-    let navigationDestionationSubject: CurrentValueSubject<Destination?, Never> = .init(.none)
+    let storedAccounts: Array<Account> = accounts.storedAccounts()
+    let initialAccount: Account?
+    if let lastUsedAccount: Account = accounts.lastUsedAccount() {
+      initialAccount = lastUsedAccount
+    }
+    else if storedAccounts.count == 1, let singleAccount: Account = storedAccounts.first {
+      initialAccount = singleAccount
+    }
+    else {
+      initialAccount = .none
+    }
 
-    accountSession
-      .statePublisher()
-      .sink { state in
-        switch state {
-        case let .authorized(account):
-          navigationDestionationSubject.send(.home(account))
+    let currentDestination: UpdatableValue<Destination> = .init(
+      initial: .accountSelection(lastUsedAccount: initialAccount),
+      updatesSequence: session.updatesSequence,
+      update: {
+        let currentAccount: Account? =
+          try? await session
+          .currentAccount()
+        let pendingAuthorization: SessionAuthorizationRequest? =
+          await session
+          .pendingAuthorization()
 
-        case .authorizationRequired:
-          navigationDestionationSubject.send(.none)  // ignored
+        switch (currentAccount, pendingAuthorization) {
+        case let (.some(account), .none):
+          return .home(account)
 
-        case .authorizedMFARequired:
-          navigationDestionationSubject.send(.none)  // ignored, handled by prompt
+        case let (.some(account), .passphrase):
+          return .authorization(account)
 
-        case let .none(lastUsedAccount):
-          if let lastUsedAccount = lastUsedAccount {
-            navigationDestionationSubject.send(.accountSelection(lastUsedAccount: lastUsedAccount))
-          }
-          else {
-            cancellables.executeOnStorageAccessActor {
-              let storedAccounts: Array<Account> = accounts.storedAccounts()
-              if storedAccounts.count == 1 {
-                navigationDestionationSubject.send(.accountSelection(lastUsedAccount: storedAccounts.first))
-              }
-              else {
-                navigationDestionationSubject.send(.accountSelection(lastUsedAccount: nil))
-              }
-            }
-          }
+        case (.some, .mfa):
+          return .mfaRequired
+
+        case (.none, _):
+          return .accountSelection(lastUsedAccount: .none)
         }
       }
-      .store(in: cancellables)
-
-    accountSession
-      .authorizationPromptPresentationPublisher()
-      .sink { request in
-        // We are not using authorization prompt in extension,
-        // Instead when authorization would be required we treat it as logout.
-        // Typical use of extension is to select password (and search for it if there is none)
-        // while session (and passphrase cache) lasts for 5 minutes.
-        switch request {
-        case .passphraseRequest:
-          cancellables.executeOnAccountSessionActor {
-            await accountSession.close()
-          }
-
-        case .mfaRequest:
-          navigationDestionationSubject.send(.mfaRequired)
-        }
-
-      }
-      .store(in: cancellables)
+    )
 
     func destinationPublisher() -> AnyPublisher<Destination, Never> {
-      navigationDestionationSubject
-        .filterMapOptional()
-        .eraseToAnyPublisher()
+      currentDestination
+        .asPublisher()
     }
 
     return Self(

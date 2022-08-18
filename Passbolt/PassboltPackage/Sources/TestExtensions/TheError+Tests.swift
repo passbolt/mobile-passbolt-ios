@@ -38,7 +38,7 @@ public struct MockIssue: TheError {
           line: line
         )
       ),
-      displayableMessage: .localized(key: "test")
+      displayableMessage: .testMessage()
     )
   }
 

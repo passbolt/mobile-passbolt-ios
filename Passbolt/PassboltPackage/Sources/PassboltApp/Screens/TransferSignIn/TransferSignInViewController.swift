@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Network
+import Session
 import SharedUIComponents
 import UICommons
 import UIComponents
@@ -309,7 +311,10 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 await self?.popToRoot()
 
               case .some, .none:
-                await self?.replaceWindowRoot(with: SplashScreenViewController.self)
+                await self?.replaceWindowRoot(
+                  with: SplashScreenViewController.self,
+                  in: .none
+                )
               }
 
             case let .failure(error):

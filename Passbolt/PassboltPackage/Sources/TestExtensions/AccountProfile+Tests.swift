@@ -23,15 +23,29 @@
 
 import CommonModels
 
-extension AccountProfile {
+extension AccountWithProfile {
 
-  public static let validAccountProfile: Self = .init(
-    accountID: .init(rawValue: UUID.test.uuidString),
+  public static let valid: Self = .init(
+    localID: .init(rawValue: UUID.test.uuidString),
+    userID: .init(rawValue: UUID.test.uuidString),
+    domain: "https://passbolt.dev",
     label: "firstName lastName",
     username: "username",
     firstName: "firstName",
     lastName: "lastName",
     avatarImageURL: "avatarImagePath",
-    biometricsEnabled: false
+    fingerprint: "FINGERPRINT"
+  )
+
+  public static let validAlternative: Self = .init(
+    localID: .init(rawValue: UUID.testAlt.uuidString),
+    userID: .init(rawValue: UUID.testAlt.uuidString),
+    domain: "https://alt.passbolt.dev",
+    label: "firstNameAlt lastNameAlt",
+    username: "usernameAlt",
+    firstName: "firstNameAlt",
+    lastName: "lastNameAlt",
+    avatarImageURL: "avatarImagePathAlt",
+    fingerprint: "FINGERPRINT_ALT"
   )
 }

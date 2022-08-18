@@ -26,8 +26,7 @@ import TestExtensions
 import XCTest
 
 @testable import AccountSetup
-@testable import Accounts
-@testable import NetworkClient
+@testable import NetworkOperations
 
 final class AccountTransferTests: TestCase {
 
@@ -38,14 +37,16 @@ final class AccountTransferTests: TestCase {
     mdmSupport.transferedAccount = always(nil)
     await features.use(mdmSupport)
     #endif
+    features.usePlaceholder(for: MediaDownloadNetworkOperation.self)
+    features.usePlaceholder(for: AccountTransferUpdateNetworkOperation.self)
+    features.usePlaceholder(for: Accounts.self)
   }
 
   func test_scanningProgressPublisher_publishesConfigurationValue_initially() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -69,13 +70,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_scanningProgressPublisher_publishesProgressValue_afterProcessingFirstPart() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -101,13 +103,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_scanningProgressPublisher_publishesFinishedValue_afterProcessingAllParts() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -139,13 +142,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_scanningProgressPublisher_completes_afterCancelation() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -162,22 +166,23 @@ final class AccountTransferTests: TestCase {
       )
       .store(in: cancellables)
 
-    await accountTransfer.cancelTransfer()
+    accountTransfer.cancelTransfer()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertError(result?.asLegacy.legacyBridge, matches: Cancelled.self)
   }
 
   func test_scanningProgressPublisher_completesWithError_afterProcessingInvalidPart() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -204,13 +209,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidContent() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -235,13 +241,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withValidContentAndNetworkResponseFailure() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .failingWith(MockIssue.error())
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -260,13 +267,15 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_succeeds_withValidContent() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
+
     var result: Void?
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -283,47 +292,57 @@ final class AccountTransferTests: TestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
 
   func test_processPayload_sendsNextPageRequest_withValidContent() async throws {
-    var networkClient: NetworkClient = .placeholder
-    var result: AccountTransferUpdateRequestVariable?
-    networkClient.accountTransferUpdate = .respondingWith(
-      accountTransferUpdateResponse,
-      storeVariableIn: &result
+    var result: AccountTransferUpdateNetworkOperationVariable?
+    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
+      get: { result },
+      set: { result = $0 }
     )
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: { input in
+        uncheckedSendableResult.variable = input
+        return accountTransferUpdateResponse
+      }
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 1)
     XCTAssertEqual(result?.status, .inProgress)
   }
 
   func test_processPayload_sendsErrorStatus_withInvalidContentAndValidConfiguration() async throws {
-    var networkClient: NetworkClient = .placeholder
-    var result: AccountTransferUpdateRequestVariable?
-    networkClient.accountTransferUpdate = .respondingWith(
-      accountTransferUpdateResponse,
-      storeVariableIn: &result
+    var result: AccountTransferUpdateNetworkOperationVariable?
+    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
+      get: { result },
+      set: { result = $0 }
     )
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: { input in
+        uncheckedSendableResult.variable = input
+        return accountTransferUpdateResponse
+      }
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -332,18 +351,17 @@ final class AccountTransferTests: TestCase {
     try? await processPart(qrCodePartInvalidPageBytes, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 0)
     XCTAssertEqual(result?.status, .error)
   }
 
   func test_processPayload_fails_withInvalidVersionByte() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
@@ -368,11 +386,10 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidPageBytes() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
@@ -397,11 +414,10 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidPageNumber() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
@@ -426,11 +442,10 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidConfigurationPart() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
@@ -455,11 +470,10 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidJSONInConfigurationPart() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
@@ -484,13 +498,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidConfigurationDomain() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
@@ -515,13 +530,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidConfigurationHash() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -550,13 +566,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidMiddlePart() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -585,13 +602,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidJSONInMiddlePart() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -620,13 +638,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withNoHashInConfig() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -655,13 +674,14 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withInvalidContentHash() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -683,7 +703,7 @@ final class AccountTransferTests: TestCase {
     }
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertError(
       result,
@@ -693,17 +713,22 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_cancelTransfer_sendsCancelationRequest_withConfigurationAvailable() async throws {
-    var networkClient: NetworkClient = .placeholder
-    var result: AccountTransferUpdateRequestVariable?
-    networkClient.accountTransferUpdate = .respondingWith(
-      accountTransferUpdateResponse,
-      storeVariableIn: &result
+    var result: AccountTransferUpdateNetworkOperationVariable?
+    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
+      get: { result },
+      set: { result = $0 }
     )
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: { input in
+        uncheckedSendableResult.variable = input
+        return accountTransferUpdateResponse
+      }
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -712,18 +737,17 @@ final class AccountTransferTests: TestCase {
     await accountTransfer.cancelTransfer()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 0)
     XCTAssertEqual(result?.status, .cancel)
   }
 
   func test_cancelTransfer_unloadsFeature() async throws {
-    await features.use(NetworkClient.placeholder)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
     await features.use(accountTransfer)
@@ -733,20 +757,21 @@ final class AccountTransferTests: TestCase {
     await accountTransfer.cancelTransfer()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     isLoaded = await features.isLoaded(AccountTransfer.self)
     XCTAssertFalse(isLoaded)
   }
 
   func test_processPayload_fails_withUnexpectedPage() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
 
     let accountTransfer: AccountTransfer = try await testInstance()
 
@@ -772,13 +797,15 @@ final class AccountTransferTests: TestCase {
   }
 
   func test_processPayload_fails_withRepeatedPage() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
+
     let accountTransfer: AccountTransfer = try await testInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
@@ -796,19 +823,20 @@ final class AccountTransferTests: TestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertError(result?.asLegacy.legacyBridge, matches: Cancelled.self)
   }
 
   func test_processPayload_fails_withDuplicateAccount() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([validAccount])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([validAccount])
+    )
     let accountTransfer: AccountTransfer = try await testInstance()
     var result: Error?
 
@@ -825,42 +853,50 @@ final class AccountTransferTests: TestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertError(result, matches: AccountDuplicate.self)
   }
 
   func test_processPayload_sendsCancelationRequest_withDuplicateAccount() async throws {
-    var networkClient: NetworkClient = .placeholder
-    var result: AccountTransferUpdateRequestVariable?
-    networkClient.accountTransferUpdate = .respondingWith(
-      accountTransferUpdateResponse,
-      storeVariableIn: &result
+    var result: AccountTransferUpdateNetworkOperationVariable?
+    let uncheckedSendableResult: UncheckedSendable<AccountTransferUpdateNetworkOperationVariable?> = .init(
+      get: { result },
+      set: { result = $0 }
     )
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([validAccount])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: { input in
+        uncheckedSendableResult.variable = input
+        return accountTransferUpdateResponse
+      }
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([validAccount])
+    )
+
     let accountTransfer: AccountTransfer = try await testInstance()
 
     try? await processPart(qrCodePart0, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result?.currentPage, 0)
     XCTAssertEqual(result?.status, .cancel)
   }
 
   func test_processPayload_finishesTransferWithDuplicateError_withDuplicateAccount() async throws {
-    var networkClient: NetworkClient = .placeholder
-    networkClient.accountTransferUpdate = .respondingWith(accountTransferUpdateResponse)
-    await features.use(networkClient)
-    await features.use(AccountSession.placeholder)
-    var accounts: Accounts = .placeholder
-    accounts.storedAccounts = always([validAccount])
-    await features.use(accounts)
+    await features.patch(
+      \AccountTransferUpdateNetworkOperation.execute,
+      with: always(accountTransferUpdateResponse)
+    )
+    await features.patch(
+      \Accounts.storedAccounts,
+      with: always([validAccount])
+    )
+
     let accountTransfer: AccountTransfer = try await testInstance()
 
     var result: Error?
@@ -879,7 +915,7 @@ final class AccountTransferTests: TestCase {
     try? await processPart(qrCodePart0, using: accountTransfer)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertError(result, matches: AccountDuplicate.self)
   }
@@ -897,20 +933,14 @@ extension AccountTransferTests {
   }
 }
 
-private let accountTransferUpdateResponse: AccountTransferUpdateResponse = .init(
-  header: .init(
-    id: "id",
-    message: "message"
-  ),
-  body: .init(
-    user: .init(
-      username: "username",
-      profile: .init(
-        firstName: "firstName",
-        lastName: "lastName",
-        avatar: .init(
-          urlString: "https://passbolt.com/image.jpg"
-        )
+private let accountTransferUpdateResponse: AccountTransferUpdateNetworkOperationResult = .init(
+  user: .init(
+    username: "username",
+    profile: .init(
+      firstName: "firstName",
+      lastName: "lastName",
+      avatar: .init(
+        urlString: "https://passbolt.com/image.jpg"
       )
     )
   )
@@ -921,19 +951,6 @@ private let validAccount: Account = .init(
   domain: "https://localhost:8443",
   userID: "f848277c-5398-58f8-a82a-72397af2d450",
   fingerprint: "FINGERPRINT"
-)
-
-private let validAccountWithProfile: AccountWithProfile = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  userID: "f848277c-5398-58f8-a82a-72397af2d450",
-  domain: "https://localhost:8443",
-  label: "firstName lastName",
-  username: "username",
-  firstName: "firstName",
-  lastName: "lastName",
-  avatarImageURL: "avatarImagePath",
-  fingerprint: "FINGERPRINT",
-  biometricsEnabled: false
 )
 
 private let qrCodePart0: String =

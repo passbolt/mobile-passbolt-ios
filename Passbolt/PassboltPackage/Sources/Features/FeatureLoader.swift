@@ -26,22 +26,22 @@ import Commons
 public struct FeatureLoader {
 
   internal let identifier: FeatureTypeIdentifier
-  internal let load: @FeaturesActor (FeatureFactory, Any, Cancellables) async throws -> AnyFeature
-  internal let initialize: @FeaturesActor (FeatureFactory, AnyFeature, Any, Cancellables) async throws -> Void
-  internal let cacheUnload: (@FeaturesActor (AnyFeature) async throws -> Void)?
+  internal let load: @MainActor (FeatureFactory, Any, Cancellables) async throws -> AnyFeature
+  internal let initialize: @MainActor (FeatureFactory, AnyFeature, Any, Cancellables) async throws -> Void
+  internal let cacheUnload: (@MainActor (AnyFeature) async throws -> Void)?
 }
 
 extension FeatureLoader {
 
   public static func lazyLoaded<Feature>(
     _ featureType: Feature.Type,
-    load: @escaping @FeaturesActor (FeatureFactory, Feature.Context, Cancellables) async throws -> Feature,
-    initialize: @escaping @FeaturesActor (FeatureFactory, Feature, Feature.Context, Cancellables) async throws -> Void =
+    load: @escaping @MainActor (FeatureFactory, Feature.Context, Cancellables) async throws -> Feature,
+    initialize: @escaping @MainActor (FeatureFactory, Feature, Feature.Context, Cancellables) async throws -> Void =
       { _, _, _, _ in },
-    cacheUnload: @escaping @FeaturesActor (Feature) async throws -> Void = { _ in }
+    cacheUnload: @escaping @MainActor (Feature) async throws -> Void = { _ in }
   ) -> Self
   where Feature: LoadableFeature {
-    @FeaturesActor func loadFeature(
+    @MainActor func loadFeature(
       _ factory: FeatureFactory,
       _ context: Any,
       _ cancellables: Cancellables
@@ -56,7 +56,7 @@ extension FeatureLoader {
       )
     }
 
-    @FeaturesActor func initializeFeature(
+    @MainActor func initializeFeature(
       _ factory: FeatureFactory,
       _ feature: AnyFeature,
       _ context: Any,
@@ -76,7 +76,7 @@ extension FeatureLoader {
       )
     }
 
-    @FeaturesActor func cacheFeatureUnload(
+    @MainActor func cacheFeatureUnload(
       _ feature: AnyFeature
     ) async throws {
       guard let feature: Feature = feature as? Feature
@@ -96,12 +96,12 @@ extension FeatureLoader {
 
   public static func lazyLoaded<Feature>(
     _ featureType: Feature.Type,
-    load: @escaping @FeaturesActor (FeatureFactory, Cancellables) async throws -> Feature,
-    initialize: @escaping @FeaturesActor (FeatureFactory, Feature, Cancellables) async throws -> Void = { _, _, _ in },
-    cacheUnload: @escaping @FeaturesActor (Feature) async throws -> Void = { _ in }
+    load: @escaping @MainActor (FeatureFactory, Cancellables) async throws -> Feature,
+    initialize: @escaping @MainActor (FeatureFactory, Feature, Cancellables) async throws -> Void = { _, _, _ in },
+    cacheUnload: @escaping @MainActor (Feature) async throws -> Void = { _ in }
   ) -> Self
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
-    @FeaturesActor func loadFeature(
+    @MainActor func loadFeature(
       _ factory: FeatureFactory,
       _: Any,
       _ cancellables: Cancellables
@@ -112,7 +112,7 @@ extension FeatureLoader {
       )
     }
 
-    @FeaturesActor func initializeFeature(
+    @MainActor func initializeFeature(
       _ factory: FeatureFactory,
       _ feature: AnyFeature,
       _: Any,
@@ -128,7 +128,7 @@ extension FeatureLoader {
       )
     }
 
-    @FeaturesActor func cacheFeatureUnload(
+    @MainActor func cacheFeatureUnload(
       _ feature: AnyFeature
     ) async throws {
       guard let feature: Feature = feature as? Feature
@@ -148,10 +148,10 @@ extension FeatureLoader {
 
   public static func disposable<Feature>(
     _ featureType: Feature.Type,
-    load: @escaping @FeaturesActor (FeatureFactory, Feature.Context) async throws -> Feature
+    load: @escaping @MainActor (FeatureFactory, Feature.Context) async throws -> Feature
   ) -> Self
   where Feature: LoadableFeature {
-    @FeaturesActor func loadFeature(
+    @MainActor func loadFeature(
       _ factory: FeatureFactory,
       _ context: Any,
       _: Cancellables
@@ -174,10 +174,10 @@ extension FeatureLoader {
 
   public static func disposable<Feature>(
     _ featureType: Feature.Type,
-    load: @escaping @FeaturesActor (FeatureFactory) async throws -> Feature
+    load: @escaping @MainActor (FeatureFactory) async throws -> Feature
   ) -> Self
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
-    @FeaturesActor func loadFeature(
+    @MainActor func loadFeature(
       _ factory: FeatureFactory,
       _: Any,
       _: Cancellables
@@ -197,7 +197,7 @@ extension FeatureLoader {
     _ instance: Feature
   ) -> Self
   where Feature: LoadableFeature {
-    @FeaturesActor func loadFeature(
+    @MainActor func loadFeature(
       _: FeatureFactory,
       _: Any,
       _: Cancellables

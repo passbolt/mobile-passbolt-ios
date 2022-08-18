@@ -38,7 +38,7 @@ public final class NFCReader: NSObject {
   public static func readOTP(
     instructionMessage: String,
     successMessage: String,
-    parser: NDEFParser = .yubikeyOTPParser(),
+    parser: NDEFParser = .yubiKeyOTPParser(),
     callback: @escaping (Result<String, Error>) -> Void
   ) {
     let reader: NFCReader = .init(
@@ -54,7 +54,7 @@ public final class NFCReader: NSObject {
     queue: DispatchQueue = .init(label: "NFCQueue"),
     instructionMessage: String,
     successMessage: String,
-    parser: NDEFParser = .yubikeyOTPParser(),
+    parser: NDEFParser = .yubiKeyOTPParser(),
     resultCallback: @escaping (Result<String, Error>) -> Void
   ) {
     self.queue = queue

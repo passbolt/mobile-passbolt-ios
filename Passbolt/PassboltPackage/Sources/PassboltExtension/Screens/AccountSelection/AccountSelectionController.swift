@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import NetworkClient
+import Session
 import SharedUIComponents
 import UIComponents
 
@@ -51,60 +51,37 @@ extension AccountSelectionController: UIController {
     cancellables: Cancellables
   ) async throws -> AccountSelectionController {
     let accounts: Accounts = try await features.instance()
-    let accountSession: AccountSession = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
-    let diagnostics: Diagnostics = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
-
-    var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
-    for account in await accounts.storedAccounts() {
-      try await initialAccountsWithProfiles.append(accountSettings.accountWithProfile(account))
-    }
-    let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
-      initialAccountsWithProfiles
-    )
+    let session: Session = try await features.instance()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
-      Publishers.CombineLatest(
-        storedAccountsWithProfilesSubject,
-        accountSession.statePublisher()
-      )
-      .map { accountsWithProfiles, sessionState -> Array<AccountSelectionListItem> in
-        accountsWithProfiles
-          .map { accountWithProfile in
-            let imageDataPublisher: AnyPublisher<Data?, Never> = Deferred { () -> AnyPublisher<Data?, Never> in
-              networkClient.mediaDownload
-                .make(using: accountWithProfile.avatarImageURL)
-                .map { data -> Data? in data }
-                .collectErrorLog(using: diagnostics)
-                .replaceError(with: nil)
-                .eraseToAnyPublisher()
-            }
-            .eraseToAnyPublisher()
-
-            func isCurrentAccount() -> Bool {
-              switch sessionState {
-              case let .authorized(account) where account.localID == accountWithProfile.localID,
-                let .authorizationRequired(account) where account.localID == accountWithProfile.localID:
-                return true
-              case _:
-                return false
-              }
-            }
+      accounts
+        .updates
+        .map { () -> Array<AccountSelectionListItem> in
+          let currentAccount: Account? = try? await session.currentAccount()
+          var listItems: Array<AccountSelectionListItem> = .init()
+          for storedAccount in accounts.storedAccounts() {
+            let accountDetails: AccountDetails = try await features.instance(context: storedAccount)
+            let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
             let item: AccountSelectionCellItem = AccountSelectionCellItem(
               account: accountWithProfile.account,
               title: accountWithProfile.label,
               subtitle: accountWithProfile.username,
-              isCurrentAccount: isCurrentAccount(),
-              imagePublisher: imageDataPublisher.eraseToAnyPublisher(),
+              isCurrentAccount: storedAccount == currentAccount,
+              imagePublisher:
+                Just(Void())
+                .asyncMap {
+                  try? await accountDetails.avatarImage()
+                }
+                .eraseToAnyPublisher(),
               listModePublisher: Empty().eraseToAnyPublisher()
             )
 
-            return .account(item)
+            listItems.append(.account(item))
           }
-      }
-      .eraseToAnyPublisher()
+          return listItems
+        }
+        .asPublisher()
     }
 
     func screenMode() -> AccountSelectionController.Mode {

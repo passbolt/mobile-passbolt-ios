@@ -27,7 +27,7 @@ import NFC
 
 import func Foundation.NSLocalizedString
 
-extension Yubikey {
+extension YubiKey {
 
   public static func live() -> Self {
     func readNFC() -> AnyPublisher<String, Error> {
@@ -35,8 +35,8 @@ extension Yubikey {
       let otpPublisher: PassthroughSubject<String, Error> = .init()
 
       NFCReader.readOTP(
-        instructionMessage: DisplayableString.localized("yubikey.scan.instruction").string(),
-        successMessage: DisplayableString.localized("yubikey.scan.success").string()
+        instructionMessage: DisplayableString.localized("yubiKey.scan.instruction").string(),
+        successMessage: DisplayableString.localized("yubiKey.scan.success").string()
       ) { readResult in
         switch readResult {
         case let .success(otp):

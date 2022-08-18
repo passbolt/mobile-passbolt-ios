@@ -25,3 +25,10 @@ public protocol FeatureConfigItem {
 
   static var `default`: Self { get }
 }
+
+extension FeatureConfigItem {
+
+  public static var identifier: AnyHashable {
+    ObjectIdentifier(Self.self)
+  }
+}

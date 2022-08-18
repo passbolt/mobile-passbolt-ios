@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import Resources
+import SessionData
 import UIComponents
 
 internal struct ResourcesSelectionListController {
@@ -54,12 +55,12 @@ extension ResourcesSelectionListController: UIController {
     let diagnostics: Diagnostics = try await features.instance()
     let autofillContext: AutofillExtensionContext = try await features.instance()
     let resources: Resources = try await features.instance()
-    let sessionData: AccountSessionData = try await features.instance()
+    let sessionData: SessionData = try await features.instance()
 
     let resourceCreatePresentationSubject: PassthroughSubject<Void, Never> = .init()
 
     func refreshResources() -> AnyPublisher<Void, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher {
+      cancellables.executeAsyncWithPublisher {
         return try await sessionData.refreshIfNeeded()
       }
     }
@@ -102,40 +103,39 @@ extension ResourcesSelectionListController: UIController {
     func selectResource(
       _ resourceID: Resource.ID
     ) -> AnyPublisher<Void, Error> {
-      return cancellables.executeOnAccountSessionActorWithPublisher {
-        return
-          resources
-          .loadResourceSecret(resourceID)
-          .map { resourceSecret -> AnyPublisher<String, Error> in
-            if let password: String = resourceSecret.password {
-              return Just(password)
-                .eraseErrorType()
-                .eraseToAnyPublisher()
-            }
-            else {
-              return Fail<String, Error>(error: TheErrorLegacy.invalidResourceSecret())
-                .eraseToAnyPublisher()
-            }
+      return
+        resources
+        .loadResourceSecret(resourceID)
+        .map { resourceSecret -> AnyPublisher<String, Error> in
+          if let password: String = resourceSecret.password {
+            return Just(password)
+              .eraseErrorType()
+              .eraseToAnyPublisher()
           }
-          .switchToLatest()
-          .combineLatest(
-            resources
-              .resourceDetailsPublisher(resourceID)
-              .first()
-              .map { $0.username }
-          )
-          .handleEvents(receiveOutput: { (password, username) in
-            autofillContext
-              .completeWithCredential(
-                AutofillExtensionContext.Credential(
-                  user: username ?? "",
-                  password: password
-                )
+          else {
+            return Fail<String, Error>(error: TheErrorLegacy.invalidResourceSecret())
+              .eraseToAnyPublisher()
+          }
+        }
+        .switchToLatest()
+        .combineLatest(
+          resources
+            .resourceDetailsPublisher(resourceID)
+            .first()
+            .map { $0.username }
+        )
+        .handleEvents(receiveOutput: { (password, username) in
+          autofillContext
+            .completeWithCredential(
+              AutofillExtensionContext.Credential(
+                user: username ?? "",
+                password: password
               )
-          })
-          .mapToVoid()
-          .collectErrorLog(using: diagnostics)
-      }
+            )
+        })
+        .mapToVoid()
+        .collectErrorLog(using: diagnostics)
+        .eraseToAnyPublisher()
     }
 
     return Self(

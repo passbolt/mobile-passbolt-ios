@@ -64,77 +64,86 @@ extension Publisher {
   public func collectErrorLog(
     using diagnostics: Diagnostics
   ) -> Publishers.HandleEvents<Self> {
-    handleEvents(receiveCompletion: { completion in
-      switch completion {
-      case .finished, .failure(_ as Cancelled):
-        break
+    self.handleEvents(
+      receiveCompletion: { (completion: Subscribers.Completion<Self.Failure>) -> Void in
+        switch completion {
+        case .finished:
+          break
 
-        #warning("TODO: remove after migrating to TheError")
-      case let .failure(error as TheErrorLegacy):
-        guard error.identifier != .canceled
-        else { return }
-        #if DEBUG
-        diagnostics.debugLog(error.debugDescription)
-        #else
-        if let theError: TheError = error.legacyBridge {
-          theError
+        case let .failure(error)
+        where error is Cancelled:
+          break
+
+        case let .failure(error)
+        where error is CancellationError:
+          break
+
+        // TODO: remove after migrating to TheError
+        case let .failure(error as TheErrorLegacy):
+          guard error.identifier != .canceled
+          else { return }
+          #if DEBUG
+          diagnostics.debugLog(error.debugDescription)
+          #else
+          if let theError: TheError = error.legacyBridge {
+            theError
+              .diagnosticMessages
+              .forEach { message in
+                diagnostics.diagnosticLog(message)
+              }
+          }
+          else {
+            diagnostics
+              .diagnosticLog(
+                "Error: %{public}s",
+                variable: error.identifier.rawValue
+              )
+          }
+          #endif
+        case let .failure(error as TheError):
+          #if DEBUG
+          diagnostics.debugLog(error.debugDescription)
+          #else
+          error
             .diagnosticMessages
             .forEach { message in
               diagnostics.diagnosticLog(message)
             }
-        }
-        else {
-          diagnostics
-            .diagnosticLog(
-              "Error: %{public}s",
-              variable: error.identifier.rawValue
-            )
-        }
-        #endif
-      case let .failure(error as TheError):
-        #if DEBUG
-        diagnostics.debugLog(error.debugDescription)
-        #else
-        error
-          .diagnosticMessages
-          .forEach { message in
-            diagnostics.diagnosticLog(message)
-          }
-        #endif
+          #endif
 
-      case let .failure(error as Unidentified):
-        #if DEBUG
-        diagnostics.debugLog("\(error)")
-        #else
-        error
-          .asUnidentified()
-          .diagnosticMessages
-          .forEach { message in
-            diagnostics.diagnosticLog(message)
-          }
-        diagnostics.diagnosticLog(
-          "Error: %{public}",
-          unsafeVariable: error.underlyingError.localizedDescription
-        )
-        #endif
+        case let .failure(error as Unidentified):
+          #if DEBUG
+          diagnostics.debugLog("\(error)")
+          #else
+          error
+            .asUnidentified()
+            .diagnosticMessages
+            .forEach { message in
+              diagnostics.diagnosticLog(message)
+            }
+          diagnostics.diagnosticLog(
+            "Error: %{public}",
+            unsafeVariable: error.underlyingError.localizedDescription
+          )
+          #endif
 
-      case let .failure(error):
-        let unidentified: Unidentified = error.asUnidentified()
-        #if DEBUG
-        diagnostics.debugLog("\(unidentified)")
-        #else
-        unidentified
-          .diagnosticMessages
-          .forEach { message in
-            diagnostics.diagnosticLog(message)
-          }
-        diagnostics.diagnosticLog(
-          "Error: %{public}",
-          unsafeVariable: unidentified.underlyingError.localizedDescription
-        )
-        #endif
-      }
-    })
+        case let .failure(error):
+          let unidentified: Unidentified = error.asUnidentified()
+          #if DEBUG
+          diagnostics.debugLog("\(unidentified)")
+          #else
+          unidentified
+            .diagnosticMessages
+            .forEach { message in
+              diagnostics.diagnosticLog(message)
+            }
+          diagnostics.diagnosticLog(
+            "Error: %{public}",
+            unsafeVariable: unidentified.underlyingError.localizedDescription
+          )
+          #endif
+        }
+      })
   }
 }
 

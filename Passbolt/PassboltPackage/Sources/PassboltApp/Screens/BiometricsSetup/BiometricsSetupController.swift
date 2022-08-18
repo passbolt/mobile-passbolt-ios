@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Session
 import UIComponents
 
 internal struct BiometricsSetupController {
@@ -51,7 +52,8 @@ extension BiometricsSetupController: UIController {
   ) async throws -> Self {
     let autoFill: AutoFill = try await features.instance()
     let diagnostics: Diagnostics = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
+    let session: Session = try await features.instance()
+    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
     let biometry: Biometry = try await features.instance()
 
     let destinationPresentationSubject: PassthroughSubject<Destination, Never> = .init()
@@ -65,25 +67,24 @@ extension BiometricsSetupController: UIController {
     }
 
     func setupBiometrics() -> AnyPublisher<Never, Error> {
-      cancellables.executeOnStorageAccessActorWithPublisher {
-        accountSettings
-          .setBiometricsEnabled(true)
-          .map { autoFill.extensionEnabledStatePublisher().eraseErrorType() }
-          .switchToLatest()
-          .handleEvents(receiveOutput: { enabled in
-            if enabled {
-              destinationPresentationSubject.send(.finish)
-            }
-            else {
-              destinationPresentationSubject.send(.extensionSetup)
-            }
-          })
-          .ignoreOutput()
-          .collectErrorLog(using: diagnostics)
-          .eraseToAnyPublisher()
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
+      Just(Void())
+        .eraseErrorType()
+        .asyncMap {
+          try await accountPreferences.storePassphrase(true)
+        }
+        .map { autoFill.extensionEnabledStatePublisher().eraseErrorType() }
+        .switchToLatest()
+        .handleEvents(receiveOutput: { enabled in
+          if enabled {
+            destinationPresentationSubject.send(.finish)
+          }
+          else {
+            destinationPresentationSubject.send(.extensionSetup)
+          }
+        })
+        .ignoreOutput()
+        .collectErrorLog(using: diagnostics)
+        .eraseToAnyPublisher()
     }
 
     func skipSetup() {

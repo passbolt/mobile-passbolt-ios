@@ -211,6 +211,7 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
             parentView.setContent(view: childView)
           }
         )
+      let cancellables: Cancellables = self.cancellables
 
       self.observationToken = child.observe(\.title, options: [.initial, .new]) { [weak self] _, change in
         guard
@@ -218,8 +219,9 @@ public final class SheetMenuViewController<Content: UIComponent>: PlainViewContr
           newValue != change.oldValue,
           let childTitle: String = newValue
         else { return }
-
-        self?.contentView.setTitle(childTitle)
+        cancellables.executeOnMainActor { [weak self] in
+          self?.contentView.setTitle(childTitle)
+        }
       }
 
       self.setupSubscriptions()

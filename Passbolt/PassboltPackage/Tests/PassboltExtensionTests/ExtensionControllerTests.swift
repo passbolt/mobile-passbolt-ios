@@ -31,26 +31,37 @@ import UIComponents
 @MainActor
 final class ExtensionControllerTests: MainActorTestCase {
 
-  var accounts: Accounts! = .placeholder
-  var accountSession: AccountSession! = .placeholder
+  var sessionUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    accounts = .placeholder
-    accountSession = .placeholder
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([])
+    )
+    features.patch(
+      \Accounts.lastUsedAccount,
+      with: always(.none)
+    )
+    features.patch(
+      \Session.currentAccount,
+      with: alwaysThrow(SessionMissing.error())
+    )
+    sessionUpdates = .init()
+    features.patch(
+      \Session.updatesSequence,
+      with: sessionUpdates.updatesSequence
+    )
+    features.patch(
+      \Session.pendingAuthorization,
+      with: always(.none)
+    )
   }
 
   override func mainActorTearDown() {
-    accounts = nil
-    accountSession = nil
+    sessionUpdates = .none
   }
 
   func test_destinationPublisher_publishesAccountSelection_whenNoAccounts_arePresent_andNotAuthorized() async throws {
-    accounts.storedAccounts = always([])
-    await features.use(accounts)
-
-    accountSession.statePublisher = always(Just(.none(lastUsed: nil)).eraseToAnyPublisher())
-    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    await features.use(accountSession)
 
     let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
@@ -62,18 +73,20 @@ final class ExtensionControllerTests: MainActorTestCase {
       .store(in: cancellables)
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .accountSelection(lastUsedAccount: nil))
   }
 
   func test_destinationPublisher_publishesHome_whenAccount_isPresent_andAuthorized() async throws {
-    accounts.storedAccounts = always([firstAccount])
-    await features.use(accounts)
-
-    accountSession.statePublisher = always(Just(.authorized(firstAccount)).eraseToAnyPublisher())
-    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    await features.use(accountSession)
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([firstAccount])
+    )
+    features.patch(
+      \Session.currentAccount,
+      with: always(firstAccount)
+    )
 
     let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
@@ -83,17 +96,20 @@ final class ExtensionControllerTests: MainActorTestCase {
         result = destination
       }
       .store(in: cancellables)
+
+    sessionUpdates.sendUpdate()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertEqual(result, .home(firstAccount))
   }
 
-  func test_destinationPublisher_doesNotPublish_whenSessionAuthorizationRequired() async throws {
-    accounts.storedAccounts = always([firstAccount, secondAccount])
-    await features.use(accounts)
-
-    accountSession.statePublisher = always(Just(.authorizationRequired(secondAccount)).eraseToAnyPublisher())
-    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    await features.use(accountSession)
+  func test_destinationPublisher_publishesAccountSelectionInitially_whenNoActiveSession() async throws {
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([firstAccount, secondAccount])
+    )
 
     let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
@@ -104,17 +120,28 @@ final class ExtensionControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertNil(result)
+    sessionUpdates.sendUpdate()
+
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
+    XCTAssertEqual(result, .accountSelection(lastUsedAccount: .none))
   }
 
   func test_destinationPublisher_publishesAccountSelection_whenLastUsedAccount_isPresent_andNotAuthorized() async throws
   {
-    accounts.storedAccounts = always([firstAccount, secondAccount])
-    await features.use(accounts)
-
-    accountSession.statePublisher = always(Just(.none(lastUsed: secondAccount)).eraseToAnyPublisher())
-    accountSession.authorizationPromptPresentationPublisher = always(Empty().eraseToAnyPublisher())
-    await features.use(accountSession)
+    features.patch(
+      \Accounts.storedAccounts,
+      with: always([firstAccount, secondAccount])
+    )
+    features.patch(
+      \Accounts.lastUsedAccount,
+      with: always(secondAccount)
+    )
+    features.patch(
+      \Session.pendingAuthorization,
+      with: always(.passphrase(secondAccount))
+    )
 
     let controller: ExtensionController = try await testController()
     var result: ExtensionController.Destination?
@@ -125,38 +152,12 @@ final class ExtensionControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, .accountSelection(lastUsedAccount: secondAccount))
-  }
-
-  func test_sessionCloses_whenAuthorizationPromptIsRequired() async throws {
-    await features.use(accounts)
-
-    var result: Void?
-    accountSession.close = {
-      result = Void()
-    }
-    accountSession.statePublisher = always(Just(.authorized(.validAccount)).eraseToAnyPublisher())
-    let authorizationPromptPresentationSubject: PassthroughSubject<AuthorizationPromptRequest, Never> = .init()
-    accountSession.authorizationPromptPresentationPublisher = always(
-      authorizationPromptPresentationSubject.eraseToAnyPublisher()
-    )
-    await features.use(accountSession)
-
-    let controller: ExtensionController = try await testController()
-    _ = controller  // silence warning
-
-    authorizationPromptPresentationSubject
-      .send(
-        .passphraseRequest(
-          account: firstAccount,
-          message: .none
-        )
-      )
+    sessionUpdates.sendUpdate()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertNotNil(result)
+    XCTAssertEqual(result, .accountSelection(lastUsedAccount: .none))
   }
 }
 

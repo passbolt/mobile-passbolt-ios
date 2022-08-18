@@ -25,6 +25,7 @@ import Accounts
 import Combine
 import Features
 import Resources
+import SessionData
 import TestExtensions
 import UIComponents
 import XCTest
@@ -35,31 +36,27 @@ import XCTest
 @MainActor
 final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
-  var resources: Resources!
-  var autofillContext: AutofillExtensionContext!
+  var updatesSequence: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    resources = .placeholder
-    autofillContext = .placeholder
-  }
-
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    features.usePlaceholder(for: AccountSessionData.self)
+    features.usePlaceholder(for: AutofillExtensionContext.self)
+    features.usePlaceholder(for: Resources.self)
+    updatesSequence = .init()
+    features.patch(
+      \SessionData.updatesSequence,
+      with: updatesSequence.updatesSequence
+    )
   }
 
   override func mainActorTearDown() {
-    resources = nil
-    autofillContext = nil
+    updatesSequence = .none
   }
 
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() async throws {
-    await features.use(autofillContext)
-    await features.patch(
-      \AccountSessionData.refreshIfNeeded,
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: always(Void())
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -78,12 +75,10 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
   }
 
   func test_refreshResources_fails_whenResourcesRefreshFails() async throws {
-    await features.use(autofillContext)
-    await features.patch(
-      \AccountSessionData.refreshIfNeeded,
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -108,11 +103,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
   }
 
   func test_resourcesListPublisher_publishesResourcesListFromResources() async throws {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just(Array<AutofillExtensionContext.ServiceIdentifier>())
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -129,11 +126,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "passbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -161,20 +160,25 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
   }
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just(Array<AutofillExtensionContext.ServiceIdentifier>())
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
+
     var result: ResourcesFilter?
-    resources.filteredResourcesListPublisher = { filterPublisher in
-      filterPublisher.map { filter in
-        result = filter
-        return []
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: { filtersPublisher in
+        filtersPublisher.map { filter in
+          result = filter
+          return []
+        }
+        .eraseToAnyPublisher()
       }
-      .eraseToAnyPublisher()
-    }
-    await features.use(resources)
+    )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically, text: "1")
@@ -195,11 +199,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
   func test_resourcesListPublisher_publishesSuggestedResourcesListFromResources_usingRequestedServiceIdentifiers()
     async throws
   {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")])
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")])
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -216,11 +222,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "alterpassbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -253,11 +261,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
   func test_resourcesListPublisher_publishesOneMatchingResourcesListFromResources_usingRequestedServiceIdentifiers()
     async throws
   {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -274,11 +284,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "alterpassbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -312,11 +324,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     test_resourcesListPublisher_publishesOneMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers()
     async throws
   {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -333,11 +347,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "alter.passbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -371,11 +387,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiers()
     async throws
   {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -392,11 +410,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "alterpassbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -430,11 +450,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiersWithURLPath()
     async throws
   {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com/some/path/here")])
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com/some/path/here")])
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -451,11 +473,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "alterpassbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -489,11 +513,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     test_resourcesListPublisher_publishesSingleMatchingSuggestionsResourcesListFromResources_usingRequestedServiceIdentifiersWithResourceURLPath()
     async throws
   {
-    autofillContext.requestedServiceIdentifiersPublisher = always(
-      Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-        .eraseToAnyPublisher()
+    features.patch(
+      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      with: always(
+        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(autofillContext)
     let resourcesList: Array<ResourceListItemDSV> = [
       ResourceListItemDSV(
         id: "resource_1",
@@ -510,11 +536,13 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
         url: "alterpassbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)

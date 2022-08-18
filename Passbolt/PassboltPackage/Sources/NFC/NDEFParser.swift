@@ -36,7 +36,7 @@ public struct NDEFParser {
 
 extension NDEFParser {
 
-  public static func yubikeyOTPParser() -> Self {
+  public static func yubiKeyOTPParser() -> Self {
 
     func validate(token: String?) -> Bool {
       // validate length

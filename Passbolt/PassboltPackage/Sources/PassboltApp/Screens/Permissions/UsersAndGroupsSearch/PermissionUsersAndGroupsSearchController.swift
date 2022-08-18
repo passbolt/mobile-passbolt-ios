@@ -102,7 +102,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
               .filteredUsers(.init(text: searchText))
             matchingUserGroups =
               try await userGroups
-              .filteredUserGroups(.init(text: searchText))
+              .filteredUserGroups(.init(userID: .none, text: searchText))
           }
           catch {
             diagnostics.log(error)

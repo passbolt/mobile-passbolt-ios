@@ -23,6 +23,8 @@
 
 import Accounts
 import Features
+import Session
+import SessionData
 
 internal struct HomePresentation {
 
@@ -38,16 +40,16 @@ extension HomePresentation: LegacyFeature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let featureConfig: FeatureConfig = try await features.instance()
-    let currentAccount: CurrentAccount = try await features.instance()
-    let accountPreferences: AccountPreferences = try await features.instance(context: currentAccount.account().localID)
+    let sessionConfiguration: SessionConfiguration = try await features.instance()
+    let session: Session = try await features.instance()
+    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
 
     var useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
-      .useLastUsedHomePresentationAsDefault
+      .useLastHomePresentationAsDefault
     var defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
-    let foldersConfig: FeatureFlags.Folders = await featureConfig.configuration(for: FeatureFlags.Folders.self)
-    let tagsConfig: FeatureFlags.Tags = await featureConfig.configuration(for: FeatureFlags.Tags.self)
+    let foldersConfig: FeatureFlags.Folders = await sessionConfiguration.configuration(for: FeatureFlags.Folders.self)
+    let tagsConfig: FeatureFlags.Tags = await sessionConfiguration.configuration(for: FeatureFlags.Tags.self)
 
     let availablePresentationModes: OrderedSet<HomePresentationMode> = {
       // order is preserved on display
@@ -126,7 +128,7 @@ extension HomePresentation: LegacyFeature {
 
 extension HomePresentation {
 
-  internal var featureUnload: @FeaturesActor () async throws -> Void { {} }
+  internal var featureUnload: @MainActor () async throws -> Void { {} }
 }
 
 #if DEBUG

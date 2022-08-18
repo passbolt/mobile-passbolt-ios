@@ -24,7 +24,7 @@
 import AccountSetup
 import Accounts
 import CommonModels
-import NetworkClient
+import Session
 import UIComponents
 
 internal struct WindowController {
@@ -39,7 +39,7 @@ extension WindowController {
     case useInitialScreenState(for: Account?)
     case useCachedScreenState(for: Account)
     case requestPassphrase(Account, message: DisplayableString?)
-    case requestMFA(Account, providers: Array<MFAProvider>)
+    case requestMFA(Account, providers: Array<SessionMFAProvider>)
   }
 }
 
@@ -52,162 +52,71 @@ extension WindowController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let accountSession: AccountSession = try await features.instance()
+    let session: Session = try await features.instance()
+    let accounts: Accounts = try await features.instance()
 
+    let storedAccounts: Array<Account> = accounts.storedAccounts()
+    let initialAccount: Account?
+    if let lastUsedAccount: Account = accounts.lastUsedAccount() {
+      initialAccount = lastUsedAccount
+    }
+    else if storedAccounts.count == 1, let singleAccount: Account = storedAccounts.first {
+      initialAccount = singleAccount
+    }
+    else {
+      initialAccount = .none
+    }
     let screenStateDispositionSubject: CurrentValueSubject<ScreenStateDisposition, Never> = .init(
-      .useInitialScreenState(for: .none)
+      .useInitialScreenState(for: initialAccount)
     )
 
-    Publishers.Merge(
-      accountSession
-        .authorizationPromptPresentationPublisher()
-        .asyncMap { [unowned features] (promptRequest: AuthorizationPromptRequest) -> ScreenStateDisposition? in
-          switch (screenStateDispositionSubject.value, promptRequest) {
-          // Previous disposition presented authorization prompt for MFA and requesting passphrase
-          case let (.requestMFA, .passphraseRequest(account, message)):
-            // Replacing mfa prompt with passphrase prompt
-            return .requestPassphrase(account, message: message)
+    session
+      .updatesSequence
+      .dropFirst() // we have predefined initial state
+      .compactMap { () -> ScreenStateDisposition? in
+        async let currentAccount: Account? = session.currentAccount()
+        async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
 
-          // Previous disposition presented passphrase prompt and requesting MFA
-          case let (.requestPassphrase, .mfaRequest(account, providers: mfaProviders)):
-            // Pushing mfa prompt on passphrase prompt
-            return .requestMFA(account, providers: mfaProviders)
+        switch (try? await currentAccount, await currentAuthorizationRequest, screenStateDispositionSubject.value) {
 
-          // Previous disposition presented MFA prompt
-          case (.requestPassphrase, _), (.requestMFA, _):
-            // Ignoring other cases than previously handled.
+        case  // fully authorized after prompting
+        let (.some(account), .none, .requestPassphrase),
+          let (.some(account), .none, .requestMFA):
+          return .useCachedScreenState(for: account)
+
+        case  // fully authorized initially
+        let (.some(account), .none, .useCachedScreenState),
+          let (.some(account), .none, .useInitialScreenState):
+          if features.isLoaded(AccountTransfer.self) {
+            // Ignoring during new account setup.
             return .none
-
-          // Previous disposition was not authorization prompt and requesting passphrase
-          case let (.useCachedScreenState, .passphraseRequest(account, message)),
-            let (.useInitialScreenState, .passphraseRequest(account, message)):
-            // Presenting passphrase prompt
-            return .requestPassphrase(account, message: message)
-
-          // Previous disposition was not authorization prompt and requesting mfa
-          case let (.useCachedScreenState, .mfaRequest(account, mfaProviders)),
-            let (.useInitialScreenState, .mfaRequest(account, mfaProviders)):
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring prompt requests during new account setup.
-              // Setup is finished after successfully providing passphrase for the first time.
-              return .none
-            }
-            else {
-              // Presenting mfa prompt
-              return .requestMFA(account, providers: mfaProviders)
-            }
           }
-        }
-        .filterMapOptional(),
-      accountSession
-        .statePublisher()
-        .asyncMap { sessionState -> ScreenStateDisposition? in
-          switch (sessionState, screenStateDispositionSubject.value) {
-          // authorized after prompting
-          case let (.authorized(account), .requestPassphrase(promptedAccount, _))
-          where promptedAccount == account,
-            let (.authorized(account), .requestMFA(promptedAccount, _))
-          where promptedAccount == account:
-            return .useCachedScreenState(for: account)
-
-          // switched to same account (mfa has to be handled by sign in flow if needed)
-          case let (.authorized(account), .useInitialScreenState(previousAccount))
-          where account == previousAccount:
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useInitialScreenState(for: account)
-            }
-
-          // switched to same account (mfa has to be handled by sign in flow if needed)
-          case let (.authorized(account), .useCachedScreenState(previousAccount))
-          where account == previousAccount:
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useInitialScreenState(for: account)
-            }
-
-          // initially authorized (mfa has to be handled by sign in flow if needed)
-          case let (.authorized(account), .useInitialScreenState),
-            let (.authorized(account), .requestPassphrase):
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useInitialScreenState(for: account)
-            }
-
-          // switched to other account (mfa has to be handled by sign in flow if needed)
-          case let (.authorized(account), .useCachedScreenState):
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useInitialScreenState(for: account)
-            }
-
-          // passphrase cache cleared or started authorization for other account
-          case (.authorizationRequired, _):
-            return .none
-
-          // no change at all (authorization screen displayed without session)
-          case (.none, .requestPassphrase), (.none, .useInitialScreenState(.none)):
-            return .none
-
-          // signed out after requesting MFA
-          case (.none, .requestMFA):
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useInitialScreenState(for: nil)
-            }
-
-          // signed out
-          case (.none, .useInitialScreenState(.some)),
-            (.none, .useCachedScreenState):
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useInitialScreenState(for: .none)
-            }
-
-          // Session state changed to mfa required
-          case (.authorizedMFARequired, _):
-            // always handled by using prompt (prompting changes session state)
-            // or during passphrase auth flow if needed
-            return .none
-
-          // mfa auth succeeded
-          case let (.authorized(account), .requestMFA(previousAccount, _))
-          where account == previousAccount:
-            if await features.isLoaded(AccountTransfer.self) {
-              // Ignoring during new account setup.
-              return .none
-            }
-            else {
-              return .useCachedScreenState(for: account)
-            }
-
-          // mfa auth succeeded but for wrong account
-          case (.authorized, .requestMFA):
-            unreachable("Cannot authorize to an account after requesting MFA for a different one")
+          else {
+            return .useInitialScreenState(for: account)
           }
+
+        case  // passphrase required
+        let (_, .passphrase(account), _):
+          return .requestPassphrase(account, message: .none)
+
+        case  // mfa required
+        let (_, .mfa(account, providers), _):
+          if features.isLoaded(AccountTransfer.self) {
+            // Ignoring during new account setup.
+            return .none
+          }
+          else {
+            return .requestMFA(account, providers: providers)
+          }
+
+        case  // signed out
+        (.none, .none, _):
+          return .useInitialScreenState(for: .none)
         }
-        .filterMapOptional()
-    )
-    .subscribe(screenStateDispositionSubject)
-    .store(in: cancellables)
+      }
+      .asPublisher()
+      .subscribe(screenStateDispositionSubject)
+      .store(in: cancellables)
 
     func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
       screenStateDispositionSubject

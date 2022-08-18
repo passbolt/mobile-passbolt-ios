@@ -31,6 +31,7 @@ extension EnvironmentElement {
   fileprivate static var environmentIdentifier: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }
 
+@available(*, deprecated, message: "Legacy bridge, please use OSFeatures instead of AppEnvironment")
 public struct AppEnvironment {
 
   private var environment: Dictionary<ObjectIdentifier, EnvironmentElement> = .init()

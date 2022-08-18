@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import NetworkClient
+import DatabaseOperations
 import Resources
 import UIComponents
 import Users
@@ -49,8 +49,9 @@ extension ResourcePermissionListController: ComponentController {
     let diagnostics: Diagnostics = try await features.instance()
     let users: Users = try await features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: context)
-    let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetch = try await features.instance()
-    let resourceUserGroupPermissionsDetailsFetch: ResourceUserGroupPermissionsDetailsFetch =
+    let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetchDatabaseOperation =
+      try await features.instance()
+    let resourceUserGroupPermissionsDetailsFetch: ResourceUserGroupPermissionsDetailsFetchDatabaseOperation =
       try await features.instance()
 
     func userAvatarImageFetch(

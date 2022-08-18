@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Session
 import UICommons
 import UIComponents
 
@@ -67,11 +68,11 @@ extension SignOutAlertController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
 
-    let accountSession: AccountSession = try await features.instance()
+    let session: Session = try await features.instance()
 
     func close() {
-      cancellables.executeOnAccountSessionActor {
-        await accountSession.close()
+      cancellables.executeAsync {
+        await session.close(.none)
       }
     }
 

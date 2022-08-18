@@ -264,13 +264,13 @@
 "totp.paste.otp.button.label" = "Paste code";
 "totp.remember.device.toggle.label" = "Remember this device for 30 days";
 
-"yubikey.scan.instruction" = "Place your Yubikey on your device.";
-"yubikey.scan.success" = "Scan success";
-"mfa.yubikey.title" = "Yubikey OTP";
-"mfa.yubikey.description" = "Please note that your Yubikey must support
+"yubiKey.scan.instruction" = "Place your YubiKey on your device.";
+"yubiKey.scan.success" = "Scan success";
+"mfa.yubiKey.title" = "YubiKey OTP";
+"mfa.yubiKey.description" = "Please note that your YubiKey must support
 NFC for this to work.";
-"mfa.yubikey.scan" = "Scan your Yubikey";
-"mfa.yubikey.nfc.not.supported" = "This device does not support NFC.";
+"mfa.yubiKey.scan" = "Scan your YubiKey";
+"mfa.yubiKey.nfc.not.supported" = "This device does not support NFC.";
 "mfa.provider.try.another" = "Try with another provider";
 "mfa.remember.token" = "Remember this device for 30 days";
 "mfa.unsupported.provider.title" = "Your MFA provider is not supported";
@@ -337,7 +337,7 @@ Contact your administrator for more information.";
 "totp.wrong.code.error" = "Wrong code";
 "error.another.account.transfer.in.progress" = "There is another account transfer in progress. Please complete it first.";
 "resource.menu.action.failed" = "%@ failed!";
-"mfa.yubikey.scan.failed" = "Scan failed";
+"mfa.yubiKey.scan.failed" = "Scan failed";
 "home.presentation.mode.menu.title" = "Filter view by";
 "home.presentation.mode.plain.resources.title" = "All items";
 "home.presentation.mode.favorite.resources.title" = "Favorites";

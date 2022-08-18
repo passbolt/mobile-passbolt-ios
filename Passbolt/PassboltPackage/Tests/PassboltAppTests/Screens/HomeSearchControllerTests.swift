@@ -23,7 +23,6 @@
 
 import Combine
 import Features
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -35,23 +34,37 @@ import XCTest
 @MainActor
 final class HomeSearchControllerTests: MainActorTestCase {
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    await features.usePlaceholder(for: NetworkClient.self)
-    await features.usePlaceholder(for: HomePresentation.self)
-    await features.usePlaceholder(for: AccountSettings.self)
+  var detailsUpdates: UpdatesSequenceSource!
+
+  override func mainActorSetUp() {
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    features.usePlaceholder(for: HomePresentation.self)
+    detailsUpdates = .init()
+    features.patch(
+      \AccountDetails.updates,
+      context: Account.valid,
+      with: detailsUpdates.updatesSequence
+    )
+    features.patch(
+      \AccountDetails.profile,
+      context: Account.valid,
+      with: always(AccountWithProfile.valid)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: Account.valid,
+      with: always(.init())
+    )
+  }
+
+  override func mainActorTearDown() {
+    detailsUpdates = .none
   }
 
   func test_accountMenuPresentationPublisher_doesNotPublish_initially() async throws {
-    await features
-      .patch(
-        \AccountSettings.currentAccountProfilePublisher,
-        with: always(
-          Just(validAccountWithProfile)
-            .eraseToAnyPublisher()
-        )
-      )
-
     let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
@@ -68,13 +81,6 @@ final class HomeSearchControllerTests: MainActorTestCase {
   }
 
   func test_accountMenuPresentationPublisher_publishes_whenRequested() async throws {
-    await features
-      .patch(
-        \AccountSettings.currentAccountProfilePublisher,
-        with: always(
-          Just(validAccountWithProfile).eraseToAnyPublisher()
-        )
-      )
 
     let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
@@ -94,14 +100,6 @@ final class HomeSearchControllerTests: MainActorTestCase {
   }
 
   func test_accountMenuPresentationPublisher_publishesCurrentAccountWithProfile_whenRequested() async throws {
-    await features
-      .patch(
-        \AccountSettings.currentAccountProfilePublisher,
-        with: always(
-          Just(validAccountWithProfile)
-            .eraseToAnyPublisher()
-        )
-      )
 
     let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
@@ -117,11 +115,11 @@ final class HomeSearchControllerTests: MainActorTestCase {
 
     controller.presentAccountMenu()
 
-    XCTAssertEqual(result, validAccountWithProfile)
+    XCTAssertEqual(result, AccountWithProfile.valid)
   }
 
   func test_homePresentationMenuPresentationPublisher_doesNotPublish_initially() async throws {
-    await features
+    features
       .patch(
         \HomePresentation.currentPresentationModePublisher,
         with: always(
@@ -146,7 +144,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
   }
 
   func test_homePresentationMenuPresentationPublisher_publishes_whenRequested() async throws {
-    await features
+    features
       .patch(
         \HomePresentation.currentPresentationModePublisher,
         with: always(
@@ -175,13 +173,6 @@ final class HomeSearchControllerTests: MainActorTestCase {
   func test_homePresentationMenuPresentationPublisher_publishesCurrentPresentationMode_whenRequested() async throws {
     await features
       .patch(
-        \AccountSettings.currentAccountProfilePublisher,
-        with: always(
-          Just(validAccountWithProfile).eraseToAnyPublisher()
-        )
-      )
-    await features
-      .patch(
         \HomePresentation.currentPresentationModePublisher,
         with: always(
           Just(HomePresentationMode.plainResourcesList)
@@ -207,20 +198,12 @@ final class HomeSearchControllerTests: MainActorTestCase {
   }
 
   func test_avatarImagePublisher_publishesImageData_fromMediaDownload() async throws {
-    await features
-      .patch(
-        \AccountSettings.currentAccountProfilePublisher,
-        with: always(
-          Just(validAccountWithProfile)
-            .eraseToAnyPublisher()
-        )
-      )
-    let data: Data = Data([0x65, 0x66])
-    await features.patch(
-      \NetworkClient.mediaDownload,
-      with: .respondingWith(data)
+    let data: Data = .init([65, 66])
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: Account.valid,
+      with: always(data)
     )
-
     let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
     )
@@ -234,19 +217,11 @@ final class HomeSearchControllerTests: MainActorTestCase {
   }
 
   func test_avatarImagePublisher_fails_whenMediaDownloadFails() async throws {
-    await features
-      .patch(
-        \AccountSettings.currentAccountProfilePublisher,
-        with: always(
-          Just(validAccountWithProfile)
-            .eraseToAnyPublisher()
-        )
-      )
-    await features
-      .patch(
-        \NetworkClient.mediaDownload,
-        with: .failingWith(MockIssue.error())
-      )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: Account.valid,
+      with: alwaysThrow(MockIssue.error())
+    )
 
     let controller: HomeSearchController = try await testController(
       context: { _ in /* NOP */ }
@@ -319,25 +294,3 @@ final class HomeSearchControllerTests: MainActorTestCase {
     XCTAssertEqual(result, "updated")
   }
 }
-
-private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  domain: "passbolt.com",
-  userID: .init(rawValue: UUID.test.uuidString),
-  fingerprint: "fingerprint"
-)
-
-private let validAccountProfile: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.test.uuidString),
-  label: "firstName lastName",
-  username: "username",
-  firstName: "firstName",
-  lastName: "lastName",
-  avatarImageURL: "avatarImagePath",
-  biometricsEnabled: false
-)
-
-private let validAccountWithProfile: AccountWithProfile = .init(
-  account: validAccount,
-  profile: validAccountProfile
-)

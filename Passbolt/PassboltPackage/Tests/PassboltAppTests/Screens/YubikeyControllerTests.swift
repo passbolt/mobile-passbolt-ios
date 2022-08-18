@@ -24,7 +24,6 @@
 import Accounts
 import Combine
 import Features
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -33,23 +32,19 @@ import XCTest
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 @MainActor
-final class YubikeyControllerTests: MainActorTestCase {
-
-  var mfa: MFA!
+final class YubiKeyControllerTests: MainActorTestCase {
 
   override func mainActorSetUp() {
-    mfa = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    mfa = nil
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
   }
 
   func test_rememberDevicePublisher_initiallyPublishesTrue() async throws {
-    await features.use(mfa)
 
-    let controller: YubikeyController = try await testController()
-    var result: Bool!
+    let controller: YubiKeyController = try await testController()
+    var result: Bool?
 
     controller.rememberDevicePublisher()
       .sink { value in
@@ -61,9 +56,9 @@ final class YubikeyControllerTests: MainActorTestCase {
   }
 
   func test_rememberDevicePublisher_publishesFalse_whenToggleRememberDeviceIsCalled() async throws {
-    await features.use(mfa)
+    features.usePlaceholder(for: Session.self)
 
-    let controller: YubikeyController = try await testController()
+    let controller: YubiKeyController = try await testController()
     var result: Bool!
 
     controller.rememberDevicePublisher()
@@ -78,14 +73,12 @@ final class YubikeyControllerTests: MainActorTestCase {
   }
 
   func test_authorizeUsingOTP_succeeds() async throws {
-    mfa.authorizeUsingYubikey = always(
-      Just(())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
     )
-    await features.use(mfa)
 
-    let controller: YubikeyController = try await testController()
+    let controller: YubiKeyController = try await testController()
     let result: Void? =
       try? await controller.authorizeUsingOTP()
       .asAsyncValue()
@@ -94,12 +87,12 @@ final class YubikeyControllerTests: MainActorTestCase {
   }
 
   func test_authorizeUsingOTP_fails() async throws {
-    mfa.authorizeUsingYubikey = always(
-      Fail(error: MockIssue.error()).eraseToAnyPublisher()
+    features.patch(
+      \Session.authorizeMFA,
+      with: alwaysThrow(MockIssue.error())
     )
-    await features.use(mfa)
 
-    let controller: YubikeyController = try await testController()
+    let controller: YubiKeyController = try await testController()
     var result: Error?
     do {
       try await controller.authorizeUsingOTP()

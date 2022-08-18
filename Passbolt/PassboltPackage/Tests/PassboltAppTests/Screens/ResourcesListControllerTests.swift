@@ -26,6 +26,7 @@ import Combine
 import CommonModels
 import Features
 import Resources
+import SessionData
 import TestExtensions
 import UIComponents
 import XCTest
@@ -36,28 +37,26 @@ import XCTest
 @MainActor
 final class ResourceListControllerTests: MainActorTestCase {
 
-  var resources: Resources!
+  var updates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    resources = .placeholder
-  }
-
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    features.usePlaceholder(for: AccountSessionData.self)
+    features.usePlaceholder(for: Resources.self)
+    updates = .init()
+    features.patch(
+      \SessionData.updatesSequence,
+      with: updates.updatesSequence
+    )
+    features.patch(
+      \SessionData.refreshIfNeeded,
+      with: always(Void())
+    )
   }
 
   override func mainActorTearDown() {
-    resources = nil
+    updates = nil
   }
 
   func test_refreshResources_succeeds_whenResourcesRefreshSuceeds() async throws {
-    await features.patch(
-      \AccountSessionData.refreshIfNeeded,
-      with: always(Void())
-    )
-    await features.use(resources)
-
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
     )
@@ -73,11 +72,10 @@ final class ResourceListControllerTests: MainActorTestCase {
   }
 
   func test_refreshResources_fails_whenResourcesRefreshFails() async throws {
-    await features.patch(
-      \AccountSessionData.refreshIfNeeded,
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -116,11 +114,13 @@ final class ResourceListControllerTests: MainActorTestCase {
         url: "passbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -142,14 +142,17 @@ final class ResourceListControllerTests: MainActorTestCase {
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
     var result: ResourcesFilter?
-    resources.filteredResourcesListPublisher = { filterPublisher in
-      filterPublisher.map { filter in
-        result = filter
-        return []
+
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: { filterPublisher in
+        filterPublisher.map { filter in
+          result = filter
+          return []
+        }
+        .eraseToAnyPublisher()
       }
-      .eraseToAnyPublisher()
-    }
-    await features.use(resources)
+    )
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically, text: "1")
@@ -182,11 +185,13 @@ final class ResourceListControllerTests: MainActorTestCase {
         url: "passbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -226,11 +231,13 @@ final class ResourceListControllerTests: MainActorTestCase {
         url: "passbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)
@@ -272,11 +279,13 @@ final class ResourceListControllerTests: MainActorTestCase {
         url: "passbolt.com"
       ),
     ]
-    resources.filteredResourcesListPublisher = always(
-      Just(resourcesList)
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.filteredResourcesListPublisher,
+      with: always(
+        Just(resourcesList)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
 
     let filtersSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(
       ResourcesFilter(sorting: .nameAlphabetically)

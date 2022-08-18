@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Session
 import UIComponents
 
 internal struct UnsupportedMFAController {
@@ -38,11 +39,11 @@ extension UnsupportedMFAController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let accountSession: AccountSession = try await features.instance()
+    let session: Session = try await features.instance()
 
     func closeSession() {
-      cancellables.executeOnStorageAccessActor {
-        await accountSession.close()
+      cancellables.executeAsync {
+        await session.close(.none)
       }
     }
 

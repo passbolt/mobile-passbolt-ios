@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -33,45 +32,67 @@ import XCTest
 @MainActor
 final class AccountDetailsControllerTests: MainActorTestCase {
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    features.usePlaceholder(for: AccountSettings.self)
-    features.usePlaceholder(for: NetworkClient.self)
+  var detailsUpdates: UpdatesSequenceSource!
+  var preferencesUpdates: UpdatesSequenceSource!
+
+  override func mainActorSetUp() {
+    detailsUpdates = .init()
+    features.patch(
+      \AccountDetails.updates,
+      context: Account.valid,
+      with: detailsUpdates.updatesSequence
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: Account.valid,
+      with: always(.init())
+    )
+    preferencesUpdates = .init()
+    features.patch(
+      \AccountPreferences.updates,
+      context: Account.valid,
+      with: preferencesUpdates.updatesSequence
+    )
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
-    XCTAssertEqual(controller.currentAccountWithProfile, validAccountWithProfile)
+    XCTAssertEqual(controller.currentAccountWithProfile, AccountWithProfile.valid)
   }
 
-  func test_currentAcountAvatarImagePublisher_usesMediaDownloadToRequestImage() async throws {
+  func test_currentAcountAvatarImagePublisher_usesAccountDetailsToRequestImage() async throws {
 
-    var result: MediaDownloadRequestVariable?
-    await features
-      .patch(
-        \NetworkClient.mediaDownload,
-        with: .respondingWith(
-          MediaDownloadResponse(),
-          storeVariableIn: &result
-        )
-      )
+    var result: Void?
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: Account.valid,
+      with: {
+        uncheckedSendableResult.variable = Void()
+        return .init()
+      }
+    )
+
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     try await controller
       .currentAcountAvatarImagePublisher()
       .asAsyncValue()
 
-    XCTAssertEqual(result, validAccountWithProfile.avatarImageURL)
+    XCTAssertNotNil(result)
   }
 
   func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     var result: Validated<String>?
@@ -82,12 +103,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.value, validAccountWithProfile.label)
+    XCTAssertEqual(result?.value, AccountWithProfile.valid.label)
   }
 
   func test_validatedAccountLabelPublisher_publishesValidValueWhenLabelIsValid() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     var result: Validated<String>?
@@ -105,7 +126,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_validatedAccountLabelPublisher_publishesInvalidValueWhenLabelIsTooLong() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     var result: Validated<String>?
@@ -123,7 +144,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_updateCurrentAccountLabel_updatesLabel() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     var result: Validated<String>?
@@ -136,12 +157,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
     controller.updateCurrentAccountLabel("updated")
 
-    XCTAssertNotEqual(result?.value, validAccountWithProfile.label)
+    XCTAssertNotEqual(result?.value, AccountWithProfile.valid.label)
   }
 
   func test_saveChanges_fails_whenLabelValidationFails() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     controller
@@ -163,15 +184,20 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_saveChanges_usesDefaultLabel_whenLabelIsEmpty() async throws {
     var result: String?
-    await features.patch(
-      \AccountSettings.setAccountLabel,
-      with: { label, _ in
-        result = label
-        return .success
+    let uncheckedSendableResult: UncheckedSendable<String?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \AccountPreferences.setLocalAccountLabel,
+      context: Account.valid,
+      with: { label in
+        uncheckedSendableResult.variable = label
       }
     )
+
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     controller.updateCurrentAccountLabel("")
@@ -180,17 +206,18 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       .saveChanges()
       .asAsyncValue()
 
-    XCTAssertEqual(result, "\(validAccountWithProfile.firstName) \(validAccountWithProfile.lastName)")
+    XCTAssertEqual(result, "\(AccountWithProfile.valid.firstName) \(AccountWithProfile.valid.lastName)")
   }
 
   func test_saveChanges_fails_whenLabelSaveFails() async throws {
-    await features.patch(
-      \AccountSettings.setAccountLabel,
-      with: always(.failure(MockIssue.error()))
+    features.patch(
+      \AccountPreferences.setLocalAccountLabel,
+      context: Account.valid,
+      with: alwaysThrow(MockIssue.error())
     )
 
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     var result: Error?
@@ -209,43 +236,26 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_saveChanges_succeeds_whenLabelSaveSucceeds() async throws {
     var result: String?
-    await features.patch(
-      \AccountSettings.setAccountLabel,
-      with: { label, _ in
-        result = label
-        return .success
+    let uncheckedSendableResult: UncheckedSendable<String?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \AccountPreferences.setLocalAccountLabel,
+      context: Account.valid,
+      with: { label in
+        uncheckedSendableResult.variable = label
       }
     )
+
     let controller: AccountDetailsController = try await testController(
-      context: validAccountWithProfile
+      context: AccountWithProfile.valid
     )
 
     try await controller
       .saveChanges()
       .asAsyncValue()
 
-    XCTAssertEqual(result, validAccountWithProfile.label)
+    XCTAssertEqual(result, AccountWithProfile.valid.label)
   }
 }
-
-private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  domain: "passbolt.com",
-  userID: .init(rawValue: UUID.test.uuidString),
-  fingerprint: "fingerprint"
-)
-
-private let validAccountProfile: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.test.uuidString),
-  label: "firstName lastName",
-  username: "username",
-  firstName: "firstName",
-  lastName: "lastName",
-  avatarImageURL: "avatarImagePath",
-  biometricsEnabled: false
-)
-
-private let validAccountWithProfile: AccountWithProfile = .init(
-  account: validAccount,
-  profile: validAccountProfile
-)

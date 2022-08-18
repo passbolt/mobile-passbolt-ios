@@ -59,7 +59,7 @@ extension StoredProperty {
 
 extension StoredProperty {
 
-  @FeaturesActor fileprivate static func load(
+  @MainActor fileprivate static func load(
     features: FeatureFactory,
     context key: StoredPropertyKey,
     cancellables: Cancellables
@@ -90,7 +90,7 @@ extension StoredProperty {
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltStoredProperty<Property>(
+  @MainActor public func usePassboltStoredProperty<Property>(
     _: Property.Type
   ) {
     self.use(

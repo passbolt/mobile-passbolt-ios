@@ -23,56 +23,19 @@
 
 import struct Foundation.UUID
 
-public final class UpdatesSequence: Sendable {
+public struct UpdatesSequence: Sendable {
 
   internal typealias Generation = UInt64
-  fileprivate struct Awaiter: Hashable {
+  private struct State {
 
-    fileprivate let id: AwaiterID
-    private let continuation: AwaiterContinuation
-
-    fileprivate init(
-      id: AwaiterID,
-      continuation: AwaiterContinuation
-    ) {
-      self.id = id
-      self.continuation = continuation
-    }
-
-    fileprivate func resume(
-      with generation: Generation?
-    ) {
-      self.continuation.resume(returning: generation)
-    }
-
-    fileprivate static func == (
-      _ lhs: Self,
-      _ rhs: Self
-    ) -> Bool {
-      lhs.id == rhs.id
-    }
-
-    fileprivate func hash(
-      into hasher: inout Hasher
-    ) {
-      hasher.combine(self.id)
-    }
-  }
-  #if DEBUG
-  fileprivate typealias AwaiterContinuation = CheckedContinuation<Generation?, Never>
-  #else
-  fileprivate typealias AwaiterContinuation = UnsafeContinuation<Generation?, Never>
-  #endif
-  fileprivate typealias AwaiterID = ObjectIdentifier
-
-  fileprivate struct State {
-    fileprivate var awaiters: Set<Awaiter> = .init()
+    fileprivate var active: Bool
     fileprivate var generation: Generation
+    fileprivate var awaiters: Set<Awaiter<Generation?>>
   }
 
   private let state: CriticalState<State>
 
-  public init() {
+  internal init() {
     // Generation starting from 1
     // means that sequence will
     // emit initial value without
@@ -80,31 +43,48 @@ public final class UpdatesSequence: Sendable {
     // after creating new instance
     let initialGeneration: Generation = 1
     self.state = .init(
-      .init(generation: initialGeneration)
+      .init(
+        active: true,
+        generation: initialGeneration,
+        awaiters: .init()
+      ),
+      cleanup: { state in
+        for awaiter: Awaiter in state.awaiters {
+          awaiter
+            .resume(returning: .none)
+        }
+      }
     )
-  }
-
-  deinit {
-    for awaiter: Awaiter in self.state.get(\.awaiters) {
-      awaiter
-        .resume(with: .none)
-    }
   }
 }
 
 extension UpdatesSequence {
 
-  public func sendUpdate() {
+  #if DEBUG
+  public static var placeholder: Self {
+    let sequence: Self = .init()
+    sequence.endSequence()
+    return sequence
+  }
+  #endif
+
+  @Sendable internal func sendUpdate() {
     self.state
       .access { (state: inout State) in
+        guard state.active else { return }
         state.generation &+= 1
         for awaiter: Awaiter in state.awaiters {
           awaiter
-            .resume(with: state.generation)
+            .resume(returning: state.generation)
         }
         state.awaiters
           .removeAll(keepingCapacity: true)
       }
+  }
+
+  @Sendable internal func endSequence() {
+    self.state
+      .set(\.active, false)
   }
 }
 
@@ -123,50 +103,38 @@ extension UpdatesSequence: AsyncSequence {
     // variable when the same instance of iterator is reused
     // across multiple threads, but it should be avoided anyway
     private var generation: Generation = 0
-    private let update: @Sendable (Generation, AwaiterContinuation) -> Void
-    private let cancelAwaiter: @Sendable () -> Void
+    private let update: @Sendable (Generation, Awaiter<Generation?>) -> Void
+    private let cancel: @Sendable (PrivateID) -> Void
+    #if DEBUG
+    private var pendingNext: Bool = false
+    #endif
 
     fileprivate init(
-      update: @escaping @Sendable (Generation, Awaiter) -> Void,
-      cancelAwaiter: @escaping @Sendable (AwaiterID) -> Void
+      update: @escaping @Sendable (Generation, Awaiter<Generation?>) -> Void,
+      cancel: @escaping @Sendable (PrivateID) -> Void
     ) {
-      final class ID {}
-      let id: AwaiterID = AwaiterID(ID())
-
-      self.update = { (generation: Generation, continuation: AwaiterContinuation) -> Void in
-        update(
-          generation,
-          .init(
-            id: id,
-            continuation: continuation
-          )
-        )
-      }
-      self.cancelAwaiter = { @Sendable () -> Void in
-        cancelAwaiter(id)
-      }
+      self.update = update
+      self.cancel = cancel
     }
 
     public mutating func next() async -> Element? {
+      #if DEBUG
+      assert(!pendingNext, "Cannot reuse iterators.")
+      self.pendingNext = true
+      defer { self.pendingNext = false }
+      #endif
       let lastGeneration: Generation = self.generation
-      let rawUpdate: (Generation, AwaiterContinuation) -> Void = self.update
-      let update: @Sendable (AwaiterContinuation) -> Void = { (continuation: AwaiterContinuation) -> Void in
-        rawUpdate(lastGeneration, continuation)
-      }
-      let nextGeneration: Generation? = await withTaskCancellationHandler(
-        operation: {
-          #if DEBUG
-          await withCheckedContinuation { (continuation: AwaiterContinuation) in
-            update(continuation)
+
+      let update: @Sendable (Generation, Awaiter<Generation?>) -> Void = self.update
+      let cancel: @Sendable (PrivateID) -> Void = self.cancel
+
+      let nextGeneration: Generation? = try? await Awaiter<Generation?>
+        .withCancelation(
+          cancel,
+          execute: { awaiter in
+            update(lastGeneration, awaiter)
           }
-          #else
-          await withUnsafeContinuation { (continuation: AwaiterContinuation) in
-            update(continuation)
-          }
-          #endif
-        },
-        onCancel: self.cancelAwaiter
-      )
+        )
 
       if let nextGeneration: Generation = nextGeneration {
         self.generation = nextGeneration
@@ -180,19 +148,14 @@ extension UpdatesSequence: AsyncSequence {
 
   public nonisolated func makeAsyncIterator() -> AsyncIterator {
     AsyncIterator(
-      update: { @Sendable [weak self] (generation: Generation, awaiter: Awaiter) in
-        if let self: UpdatesSequence = self {
-          self.update(
-            after: generation,
-            using: awaiter
-          )
-        }
-        else {
-          awaiter.resume(with: .none)
-        }
+      update: { @Sendable (generation: Generation, awaiter: Awaiter) in
+        self.update(
+          after: generation,
+          using: awaiter
+        )
       },
-      cancelAwaiter: { @Sendable [weak self] (id: AwaiterID) -> Void in
-        self?.cancelAwaiter(withID: id)
+      cancel: { @Sendable (id: PrivateID) -> Void in
+        self.cancelAwaiter(withID: id)
       }
     )
   }
@@ -204,6 +167,8 @@ extension UpdatesSequence {
     after generation: Generation
   ) throws -> Generation {
     try self.state.access { (state: inout State) in
+      guard state.active else { throw NoUpdate.error() }
+
       if state.generation > generation {
         return state.generation
       }
@@ -218,35 +183,35 @@ extension UpdatesSequence {
 
   fileprivate func update(
     after generation: Generation,
-    using awaiter: Awaiter
+    using awaiter: Awaiter<Generation?>
   ) {
-    self.state.access { (state: inout State) in
+    self.state.access { (state: inout State) -> Void in
+      guard state.active
+      else { return awaiter.resume(returning: .none) }
+
       if state.generation > generation {
-        awaiter.resume(with: state.generation)
+        awaiter
+          .resume(returning: state.generation)
       }
       else {
         assert(
-          !state.awaiters.contains(awaiter),
-          "Async iterators cannot be reused."
+          !state.awaiters.contains(awaiter: awaiter),
+          "Awaiters cannot be reused."
         )
-        state.awaiters.insert(awaiter)
+        state.awaiters.update(with: awaiter)?
+          .resume(throwing: CancellationError())
       }
     }
   }
 
   private func cancelAwaiter(
-    withID id: AwaiterID
+    withID id: PrivateID
   ) {
-    self.state.access { (state: inout State) in
-      if let index: Set<Awaiter>.Index = state.awaiters.firstIndex(where: { $0.id == id }) {
-        state.awaiters
-          .remove(at: index)
-          // cancellation breaks iteration
-          .resume(with: .none)
-      }
-      else {
-        /* NOP */
-      }
+    let canceledAwaiter: Awaiter<Generation?>? = self.state.access { (state: inout State) in
+      state.awaiters
+        .removeAwaiter(withID: id)
     }
+    canceledAwaiter?
+      .resume(throwing: CancellationError())
   }
 }

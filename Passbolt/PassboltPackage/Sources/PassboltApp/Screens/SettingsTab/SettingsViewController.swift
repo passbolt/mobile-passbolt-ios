@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Session
 import SharedUIComponents
 import UICommons
 import UIComponents
@@ -139,8 +140,10 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
     contentView
       .termsTapPublisher
-      .map {
-        self.controller.openTerms()
+      .map { [weak self] () -> AnyPublisher<Void, Never> in
+        guard let self = self
+        else { return Empty<Void, Never>().eraseToAnyPublisher() }
+        return self.controller.openTerms()
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] value in
             guard !value else { return }
@@ -152,6 +155,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
             )
           })
           .mapToVoid()
+          .eraseToAnyPublisher()
       }
       .switchToLatest()
       .sink { /* */  }
@@ -159,8 +163,10 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
 
     contentView
       .privacyPolicyTapPublisher
-      .map {
-        self.controller.openPrivacyPolicy()
+      .map { [weak self] () -> AnyPublisher<Void, Never> in
+        guard let self = self
+        else { return Empty<Void, Never>().eraseToAnyPublisher() }
+        return self.controller.openPrivacyPolicy()
           .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] value in
             guard !value else { return }
@@ -172,6 +178,7 @@ internal final class SettingsViewController: PlainViewController, UIComponent {
             )
           })
           .mapToVoid()
+          .eraseToAnyPublisher()
       }
       .switchToLatest()
       .sink { /* */  }

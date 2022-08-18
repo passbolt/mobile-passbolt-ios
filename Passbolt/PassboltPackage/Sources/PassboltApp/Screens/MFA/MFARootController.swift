@@ -23,12 +23,12 @@
 
 import Accounts
 import CommonModels
-import NetworkClient
+import Session
 import UIComponents
 
 internal struct MFARootController {
 
-  internal var mfaProviderPublisher: @MainActor () -> AnyPublisher<MFAProvider, Error>
+  internal var mfaProviderPublisher: @MainActor () -> AnyPublisher<SessionMFAProvider, Error>
   internal var navigateToOtherMFA: @MainActor () -> Void
   internal var closeSession: @MainActor () -> Void
   internal var isProviderSwitchingAvailable: @MainActor () -> Bool
@@ -36,17 +36,17 @@ internal struct MFARootController {
 
 extension MFARootController: UIController {
 
-  internal typealias Context = Array<MFAProvider>
+  internal typealias Context = Array<SessionMFAProvider>
 
   internal static func instance(
     in context: Context,
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> MFARootController {
-    let accountSession: AccountSession = try await features.instance()
-    let mfaProviderSubject: CurrentValueSubject<MFAProvider?, Error> = .init(context.first)
+    let session: Session = try await features.instance()
+    let mfaProviderSubject: CurrentValueSubject<SessionMFAProvider?, Error> = .init(context.first)
 
-    func mfaProviderPublisher() -> AnyPublisher<MFAProvider, Error> {
+    func mfaProviderPublisher() -> AnyPublisher<SessionMFAProvider, Error> {
       mfaProviderSubject
         .handleEvents(receiveOutput: { provider in
           if provider == nil {
@@ -61,24 +61,24 @@ extension MFARootController: UIController {
     }
 
     func navigateToOtherMFA() {
-      let providers: Array<MFAProvider> = context
+      let providers: Array<SessionMFAProvider> = context
 
       guard
-        let currentProvider: MFAProvider = mfaProviderSubject.value,
+        let currentProvider: SessionMFAProvider = mfaProviderSubject.value,
         let currentIndex: Array.Index = providers.firstIndex(of: currentProvider)
       else { return }
 
       let nextIndex: Array.Index =
         currentIndex.advanced(by: 1) < providers.count ? currentIndex.advanced(by: 1) : providers.startIndex
 
-      let nextProvider: MFAProvider = providers[nextIndex]
+      let nextProvider: SessionMFAProvider = providers[nextIndex]
 
       mfaProviderSubject.send(nextProvider)
     }
 
     func closeSession() {
-      cancellables.executeOnAccountSessionActor {
-        await accountSession.close()
+      cancellables.executeAsync {
+        await session.close(.none)
       }
     }
 

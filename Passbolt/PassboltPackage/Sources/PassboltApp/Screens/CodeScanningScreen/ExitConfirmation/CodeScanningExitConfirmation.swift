@@ -68,7 +68,7 @@ extension CodeScanningExitConfirmationController: UIController {
     let accountTransfer: AccountTransfer = try await features.instance()
 
     func exit() {
-      cancellables.executeOnAccountSessionActor {
+      cancellables.executeAsync {
         await accountTransfer.cancelTransfer()
       }
     }

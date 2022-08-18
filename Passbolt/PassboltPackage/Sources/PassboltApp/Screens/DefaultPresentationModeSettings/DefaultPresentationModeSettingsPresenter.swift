@@ -23,6 +23,7 @@
 
 import Accounts
 import Display
+import Session
 
 internal struct DefaultPresentationModeSettingsController {
 
@@ -58,12 +59,12 @@ extension DefaultPresentationModeSettingsController {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     let navigation: DisplayNavigation = try await features.instance()
-    let currentAccount: CurrentAccount = try await features.instance()
-    let accountPreferences: AccountPreferences = try await features.instance(context: currentAccount.account().localID)
+    let session: Session = try await features.instance()
+    let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
     let homePresentation: HomePresentation = try await features.instance()
 
     let useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
-      .useLastUsedHomePresentationAsDefault
+      .useLastHomePresentationAsDefault
     let defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let displayViewState: DisplayViewState<ViewState> = .init(

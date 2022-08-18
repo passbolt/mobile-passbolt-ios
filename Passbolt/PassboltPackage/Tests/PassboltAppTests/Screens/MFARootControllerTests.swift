@@ -25,7 +25,6 @@ import Accounts
 import Combine
 import CommonModels
 import Features
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -36,31 +35,21 @@ import XCTest
 @MainActor
 final class MFARootControllerTests: MainActorTestCase {
 
-  var accountSession: AccountSession!
-  var mfa: MFA!
-
   override func mainActorSetUp() {
-    accountSession = .placeholder
-    mfa = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    accountSession = nil
-    mfa = nil
+    features.patch(
+      \Session.close,
+      with: always(Void())
+    )
   }
 
   func test_mfaProviderPublisher_initiallyPublishesFirstProvider_fromAvailableProviders() async throws {
-    accountSession.close = {}
-    await features.use(accountSession)
-    await features.use(mfa)
-
-    let providers: Array<MFAProvider> = [
-      .totp, .yubikey,
+    let providers: Array<SessionMFAProvider> = [
+      .totp, .yubiKey,
     ]
 
     let controller: MFARootController = try await testController(context: providers)
-    var result: MFAProvider!
 
+    var result: SessionMFAProvider?
     controller.mfaProviderPublisher()
       .sink(
         receiveCompletion: { _ in
@@ -75,16 +64,13 @@ final class MFARootControllerTests: MainActorTestCase {
   }
 
   func test_mfaProviderPublisher_publishesOtherProvider_whenNavigateToOtherMFACalled() async throws {
-    accountSession.close = {}
-    await features.use(accountSession)
-    await features.use(mfa)
-
-    let providers: Array<MFAProvider> = [
-      .totp, .yubikey,
+    let providers: Array<SessionMFAProvider> = [
+      .totp, .yubiKey,
     ]
 
     let controller: MFARootController = try await testController(context: providers)
-    var result: MFAProvider!
+
+    var result: SessionMFAProvider?
 
     controller.mfaProviderPublisher()
       .sink(
@@ -98,20 +84,16 @@ final class MFARootControllerTests: MainActorTestCase {
 
     controller.navigateToOtherMFA()
 
-    XCTAssertEqual(result, .yubikey)
+    XCTAssertEqual(result, .yubiKey)
   }
 
   func test_mfaProviderPublisher_cyclesThroughProviders_whenNavigateToOtherMFACalledMultipleTimes() async throws {
-    accountSession.close = {}
-    await features.use(accountSession)
-    await features.use(mfa)
-
-    let providers: Array<MFAProvider> = [
-      .totp, .yubikey,
+    let providers: Array<SessionMFAProvider> = [
+      .totp, .yubiKey,
     ]
 
     let controller: MFARootController = try await testController(context: providers)
-    var result: Array<MFAProvider> = []
+    var result: Array<SessionMFAProvider> = []
 
     controller.mfaProviderPublisher()
       .sink(
@@ -126,35 +108,37 @@ final class MFARootControllerTests: MainActorTestCase {
     controller.navigateToOtherMFA()
     controller.navigateToOtherMFA()
 
-    XCTAssertEqual(result, [.totp, .yubikey, .totp])
+    XCTAssertEqual(result, [.totp, .yubiKey, .totp])
   }
 
   func test_closeSession_succeeds() async throws {
-    var result: Void!
-    accountSession.close = {
-      result = Void()
-    }
-    await features.use(accountSession)
-    await features.use(mfa)
+    var result: Void?
+    let unchecedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.close,
+      with: { _ in
+        unchecedSendableResult.variable = Void()
+      }
+    )
 
-    let providers: Array<MFAProvider> = [
-      .totp, .yubikey,
+    let providers: Array<SessionMFAProvider> = [
+      .totp, .yubiKey,
     ]
 
     let controller: MFARootController = try await testController(context: providers)
 
     controller.closeSession()
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
     XCTAssertNotNil(result)
   }
 
   func test_isProviderSwitchingAvailable_returnsFalse_whenNoProvidersArePresent() async throws {
-    accountSession.close = {}
-    await features.use(accountSession)
-    await features.use(mfa)
 
-    let providers: Array<MFAProvider> = []
+    let providers: Array<SessionMFAProvider> = []
 
     let controller: MFARootController = try await testController(context: providers)
     let result: Bool = controller.isProviderSwitchingAvailable()
@@ -163,11 +147,7 @@ final class MFARootControllerTests: MainActorTestCase {
   }
 
   func test_isProviderSwitchingAvailable_returnsFalse_whenSingleProviderIsPresent() async throws {
-    accountSession.close = {}
-    await features.use(accountSession)
-    await features.use(mfa)
-
-    let providers: Array<MFAProvider> = [
+    let providers: Array<SessionMFAProvider> = [
       .totp
     ]
 
@@ -178,12 +158,8 @@ final class MFARootControllerTests: MainActorTestCase {
   }
 
   func test_isProviderSwitchingAvailable_returnsTrue_whenMoreThanOneProviderIsPresent() async throws {
-    accountSession.close = {}
-    await features.use(accountSession)
-    await features.use(mfa)
-
-    let providers: Array<MFAProvider> = [
-      .totp, .yubikey,
+    let providers: Array<SessionMFAProvider> = [
+      .totp, .yubiKey,
     ]
 
     let controller: MFARootController = try await testController(context: providers)

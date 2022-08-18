@@ -22,8 +22,9 @@
 //
 
 import Accounts
-import NetworkClient
 import Resources
+import Session
+import SessionData
 import SharedUIComponents
 import UIComponents
 import Users
@@ -53,10 +54,11 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
+    let session: Session = try await features.instance()
+    let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
     let resources: Resources = try await features.instance()
     let userGroups: UserGroups = try await features.instance()
-    let sessionData: AccountSessionData = try await features.instance()
+    let sessionData: SessionData = try await features.instance()
 
     let viewState: ObservableValue<ViewState>
 
@@ -126,9 +128,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     cancellables.executeOnMainActor {
       // ignore errors on getting avatar
       viewState.userAvatarImage =
-        try? await accountSettings
-        .currentAccountAvatarPublisher()
-        .asAsyncValue()
+        try? await accountDetails
+        .avatarImage()
     }
 
     @MainActor func refreshIfNeeded() async {
@@ -260,9 +261,8 @@ extension ResourceUserGroupsExplorerController: ComponentController {
       cancellables.executeOnMainActor {
         do {
           let accountWithProfile: AccountWithProfile =
-            try await accountSettings
-            .currentAccountProfilePublisher()
-            .asAsyncValue()
+            try accountDetails
+            .profile()
 
           await navigation.presentSheet(
             AccountMenuViewController.self,

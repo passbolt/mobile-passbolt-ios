@@ -178,48 +178,46 @@ extension ResourceMenuController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return
               resources
-                .loadResourceSecret(resourceDetails.id)
-                .map { resourceSecret -> AnyPublisher<Void, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
-                    guard let url: URL = URL(string: secret)
-                    else {
-                      return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
-                        .eraseToAnyPublisher()
-                    }
-
-                    return
-                      linkOpener
-                      .openLink(url)
-                      .map { opened -> AnyPublisher<Void, Error> in
-                        if opened {
-                          return Just(Void())
-                            .eraseErrorType()
-                            .eraseToAnyPublisher()
-                        }
-                        else {
-                          return Fail<Void, Error>(error: TheErrorLegacy.failedToOpenURL())
-                            .eraseToAnyPublisher()
-                        }
-                      }
-                      .switchToLatest()
-                      .eraseToAnyPublisher()
-                  }
-                  else if !field.required {
-                    return Just(Void())
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
+              .loadResourceSecret(resourceDetails.id)
+              .map { resourceSecret -> AnyPublisher<Void, Error> in
+                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                  guard let url: URL = URL(string: secret)
                   else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    return Fail<Void, Error>(error: TheErrorLegacy.invalidResourceData())
                       .eraseToAnyPublisher()
                   }
+
+                  return
+                    linkOpener
+                    .openLink(url)
+                    .map { opened -> AnyPublisher<Void, Error> in
+                      if opened {
+                        return Just(Void())
+                          .eraseErrorType()
+                          .eraseToAnyPublisher()
+                      }
+                      else {
+                        return Fail<Void, Error>(error: TheErrorLegacy.failedToOpenURL())
+                          .eraseToAnyPublisher()
+                      }
+                    }
+                    .switchToLatest()
+                    .eraseToAnyPublisher()
                 }
-                .switchToLatest()
-            }
-            .switchToLatest()
-            .eraseToAnyPublisher()
+                else if !field.required {
+                  return Just(Void())
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
+                }
+                else {
+                  return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    .eraseToAnyPublisher()
+                }
+              }
+              .switchToLatest()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resourceDetails.url {
             guard let url: URL = URL(string: value)
@@ -269,33 +267,31 @@ extension ResourceMenuController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return
               resources
-                .loadResourceSecret(resourceDetails.id)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
-                      .eraseToAnyPublisher()
-                  }
+              .loadResourceSecret(resourceDetails.id)
+              .map { resourceSecret -> AnyPublisher<String, Error> in
+                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                  return Just(secret)
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
                 }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-            }
-            .switchToLatest()
-            .mapToVoid()
-            .eraseToAnyPublisher()
+                else if !field.required {
+                  return Just("")
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
+                }
+                else {
+                  return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    .eraseToAnyPublisher()
+                }
+              }
+              .switchToLatest()
+              .handleEvents(receiveOutput: { value in
+                pasteboard.put(value)
+              })
+              .mapToVoid()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resourceDetails.url {
             return Just(Void())
@@ -329,33 +325,31 @@ extension ResourceMenuController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return
               resources
-                .loadResourceSecret(resourceDetails.id)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
-                      .eraseToAnyPublisher()
-                  }
+              .loadResourceSecret(resourceDetails.id)
+              .map { resourceSecret -> AnyPublisher<String, Error> in
+                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                  return Just(secret)
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
                 }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-            }
-            .switchToLatest()
-            .mapToVoid()
-            .eraseToAnyPublisher()
+                else if !field.required {
+                  return Just("")
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
+                }
+                else {
+                  return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    .eraseToAnyPublisher()
+                }
+              }
+              .switchToLatest()
+              .handleEvents(receiveOutput: { value in
+                pasteboard.put(value)
+              })
+              .mapToVoid()
+              .eraseToAnyPublisher()
           }
           else {
             return Fail(error: TheErrorLegacy.missingResourceData())
@@ -381,33 +375,31 @@ extension ResourceMenuController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return
               resources
-                .loadResourceSecret(resourceDetails.id)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
-                      .eraseToAnyPublisher()
-                  }
+              .loadResourceSecret(resourceDetails.id)
+              .map { resourceSecret -> AnyPublisher<String, Error> in
+                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                  return Just(secret)
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
                 }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-            }
-            .switchToLatest()
-            .mapToVoid()
-            .eraseToAnyPublisher()
+                else if !field.required {
+                  return Just("")
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
+                }
+                else {
+                  return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    .eraseToAnyPublisher()
+                }
+              }
+              .switchToLatest()
+              .handleEvents(receiveOutput: { value in
+                pasteboard.put(value)
+              })
+              .mapToVoid()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resourceDetails.username {
             return Just(Void())
@@ -441,33 +433,31 @@ extension ResourceMenuController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return
               resources
-                .loadResourceSecret(resourceDetails.id)
-                .map { resourceSecret -> AnyPublisher<String, Error> in
-                  if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
-                    return Just(secret)
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else if !field.required {
-                    return Just("")
-                      .eraseErrorType()
-                      .eraseToAnyPublisher()
-                  }
-                  else {
-                    return Fail(error: TheErrorLegacy.invalidResourceSecret())
-                      .eraseToAnyPublisher()
-                  }
+              .loadResourceSecret(resourceDetails.id)
+              .map { resourceSecret -> AnyPublisher<String, Error> in
+                if let secret: String = resourceSecret[dynamicMember: field.name.rawValue] {
+                  return Just(secret)
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
                 }
-                .switchToLatest()
-                .handleEvents(receiveOutput: { value in
-                  pasteboard.put(value)
-                })
-            }
-            .switchToLatest()
-            .mapToVoid()
-            .eraseToAnyPublisher()
+                else if !field.required {
+                  return Just("")
+                    .eraseErrorType()
+                    .eraseToAnyPublisher()
+                }
+                else {
+                  return Fail(error: TheErrorLegacy.invalidResourceSecret())
+                    .eraseToAnyPublisher()
+                }
+              }
+              .switchToLatest()
+              .handleEvents(receiveOutput: { value in
+                pasteboard.put(value)
+              })
+              .mapToVoid()
+              .eraseToAnyPublisher()
           }
           else if let value: String = resourceDetails.description {
             return Just(Void())

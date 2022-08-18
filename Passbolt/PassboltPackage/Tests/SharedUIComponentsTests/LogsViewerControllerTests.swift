@@ -42,7 +42,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
 
   func test_refreshLogs_triggersDiagnosticLogsRead() async throws {
     var result: Void?
-    await features.patch(
+    features.patch(
       \Diagnostics.collectedLogs,
       with: { () -> Array<String> in
         result = Void()
@@ -73,7 +73,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
   }
 
   func test_logsPublisher_publishesCachedValue_afterRefreshingLogs() async throws {
-    await features.patch(
+    features.patch(
       \Diagnostics.collectedLogs,
       with: always([])
     )
@@ -128,7 +128,7 @@ final class LogsViewerControllerTests: MainActorTestCase {
   func test_shareMenuPresentationPublisher_publishesJoinedLogs_afterCallingPresentShareMenu_withLogsInCache()
     async throws
   {
-    await features.patch(
+    features.patch(
       \Diagnostics.collectedLogs,
       with: always(["test", "another"])
     )

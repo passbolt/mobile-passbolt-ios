@@ -24,6 +24,7 @@
 import Combine
 import CommonModels
 import Features
+import SessionData
 import TestExtensions
 import UIComponents
 import XCTest
@@ -36,29 +37,36 @@ import XCTest
 @MainActor
 final class ResourceMenuControllerTests: MainActorTestCase {
 
-  var resources: Resources!
-  var pasteboard: Pasteboard!
-  var linkOpener: LinkOpener!
-
   override func mainActorSetUp() {
-    linkOpener = .placeholder
-    pasteboard = .placeholder
-    resources = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    resources = nil
+    features.usePlaceholder(for: Pasteboard.self)
+    features.usePlaceholder(for: LinkOpener.self)
+    features.usePlaceholder(for: SessionConfiguration.self)
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResource)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Resources.loadResourceSecret,
+      with: always(
+        Just(resourceSecret)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \LinkOpener.openLink,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
+    )
   }
 
   func test_resourceDetailsPublisher_publishes_initially() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(linkOpener)
-    await features.use(pasteboard)
-    await features.use(resources)
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -86,14 +94,6 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_availableActionsPublisher_publishesActionAvailable_initially() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(linkOpener)
-    await features.use(pasteboard)
-    await features.use(resources)
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -115,24 +115,13 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    var result: String? = nil
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        result = $0
+      }
     )
-    resources.loadResourceSecret = always(
-      Just(resourceSecret)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-
-    var result: String?
-    pasteboard.put = { string in
-      result = string
-    }
-    await features.use(pasteboard)
-    await features.use(linkOpener)
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -144,7 +133,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     )
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .performAction(.copyPassword)
@@ -154,19 +143,13 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_copiesURLToPasteboard_forCopyURLAction() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-
     var result: String? = nil
-    pasteboard.put = { string in
-      result = string
-    }
-    await features.use(pasteboard)
-    await features.use(linkOpener)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        result = $0
+      }
+    )
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -186,20 +169,15 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_opensURL_forOpenURLAction() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-    await features.use(pasteboard)
-
     var result: URL? = nil
-    linkOpener.openLink = { url in
-      result = url
-      return Just(true).eraseToAnyPublisher()
-    }
-    await features.use(linkOpener)
+    features.patch(
+      \LinkOpener.openLink,
+      with: {
+        result = $0
+        return Just(true)
+          .eraseToAnyPublisher()
+      }
+    )
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -219,19 +197,13 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_fails_forOpenURLAction_whenOpeningFails() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \LinkOpener.openLink,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(resources)
-    await features.use(pasteboard)
-
-    linkOpener.openLink = { _ in
-      Just(false)
-        .eraseToAnyPublisher()
-    }
-    await features.use(linkOpener)
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -259,19 +231,13 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_copiesUsernameToPasteboard_forCopyUsernameAction() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-
     var result: String? = nil
-    pasteboard.put = { string in
-      result = string
-    }
-    await features.use(pasteboard)
-    await features.use(linkOpener)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        result = $0
+      }
+    )
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -293,19 +259,13 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withUnencryptedDescription()
     async throws
   {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResource)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-
     var result: String? = nil
-    pasteboard.put = { string in
-      result = string
-    }
-    await features.use(pasteboard)
-    await features.use(linkOpener)
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        result = $0
+      }
+    )
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -326,24 +286,22 @@ final class ResourceMenuControllerTests: MainActorTestCase {
 
   func test_performAction_copiesDescriptionToPasteboard_forCopyDescriptionAction_withEncryptedDescription() async throws
   {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResourceWithoutDescription)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResourceWithoutDescription)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    resources.loadResourceSecret = always(
-      Just(resourceSecret)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
 
-    var result: String?
-    pasteboard.put = { string in
-      result = string
-    }
-    await features.use(pasteboard)
-    await features.use(linkOpener)
+    var result: String? = nil
+    features.patch(
+      \Pasteboard.put,
+      with: {
+        result = $0
+      }
+    )
 
     let controller: ResourceMenuController = try await testController(
       context: (
@@ -355,7 +313,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
     )
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try await controller
       .performAction(.copyDescription)
@@ -365,19 +323,14 @@ final class ResourceMenuControllerTests: MainActorTestCase {
   }
 
   func test_performAction_triggersShowDeleteAlert_forDeleteAction() async throws {
-    resources.resourceDetailsPublisher = always(
-      Just(detailsViewResourceWithoutDescription)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Resources.resourceDetailsPublisher,
+      with: always(
+        Just(detailsViewResourceWithoutDescription)
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
     )
-    resources.loadResourceSecret = always(
-      Just(resourceSecret)
-        .eraseErrorType()
-        .eraseToAnyPublisher()
-    )
-    await features.use(resources)
-    await features.use(pasteboard)
-    await features.use(linkOpener)
 
     var result: Resource.ID?
 

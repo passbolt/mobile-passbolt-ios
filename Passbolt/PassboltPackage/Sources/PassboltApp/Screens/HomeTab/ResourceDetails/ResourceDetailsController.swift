@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import Resources
+import SessionData
 import UIComponents
 
 internal struct ResourceDetailsController {
@@ -67,7 +68,7 @@ extension ResourceDetailsController: UIController {
     let diagnostics: Diagnostics = try await features.instance()
     let resources: Resources = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
-    let featureConfig: FeatureConfig = try await features.instance()
+    let sessionConfiguration: SessionConfiguration = try await features.instance()
 
     var revealedFields: Set<ResourceFieldNameDSV> = .init()
 
@@ -82,7 +83,7 @@ extension ResourceDetailsController: UIController {
       .asyncMap { resourceDetails in
         var resourceDetails: ResourceDetailsDSV = resourceDetails
         resourceDetails.fields = resourceDetails.fields.sorted(by: { $0.name < $1.name })
-        let previewPassword: FeatureFlags.PreviewPassword = await featureConfig.configuration()
+        let previewPassword: FeatureFlags.PreviewPassword = await sessionConfiguration.configuration()
         let previewPasswordEnabled: Bool = {
           switch previewPassword {
           case .enabled:
@@ -127,7 +128,7 @@ extension ResourceDetailsController: UIController {
           .eraseToAnyPublisher()
       }
       else {
-        return cancellables.executeOnAccountSessionActorWithPublisher {
+        return cancellables.executeAsyncWithPublisher {
           resources
             .loadResourceSecret(context)
             .map { resourceSecret -> String in
@@ -165,7 +166,7 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return cancellables.executeAsyncWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
@@ -225,7 +226,7 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return cancellables.executeAsyncWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
@@ -277,7 +278,7 @@ extension ResourceDetailsController: UIController {
           }
 
           if field.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return cancellables.executeAsyncWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
@@ -337,7 +338,7 @@ extension ResourceDetailsController: UIController {
           }
 
           if property.encrypted {
-            return cancellables.executeOnAccountSessionActorWithPublisher {
+            return cancellables.executeAsyncWithPublisher {
               resources
                 .loadResourceSecret(resourceDetails.id)
                 .map { resourceSecret -> AnyPublisher<String, Error> in
@@ -432,7 +433,7 @@ extension ResourceDetailsController: UIController {
     }
 
     func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher {
+      cancellables.executeAsyncWithPublisher {
         resources.deleteResource(resourceID)
       }
       .switchToLatest()

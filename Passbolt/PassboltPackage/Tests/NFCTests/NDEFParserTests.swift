@@ -31,7 +31,7 @@ import XCTest
 final class NDEFParserTests: TestCase {
 
   func test_parsePayloadContainingURI_succeeds() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [validPayloadContaingURI])
     ]
@@ -42,7 +42,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingTextEmbeddedInURI_succeeds() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [validPayloadContaingTextEmbeddedInURI])
     ]
@@ -53,7 +53,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingText_succeeds() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [validPayloadContainingText])
     ]
@@ -64,7 +64,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingUnsupportedFormat_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingURIWithUnsupportedFormat])
     ]
@@ -75,7 +75,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingUnsupportedType_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingURIWithInvalidType])
     ]
@@ -86,7 +86,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingURI_withIllegalCharactersInOTP_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingURIwithIllegalCharactersInOTP])
     ]
@@ -97,7 +97,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingURI_withOTPLessThanMinLength_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingUriWithOTPLessThanMinLength])
     ]
@@ -108,7 +108,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingURI_withOTPExceedingMaxLength_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingUriWithOTPExceedingMaxLength])
     ]
@@ -119,7 +119,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingURI_withEmptyOTP_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [emptyURIPayload])
     ]
@@ -130,7 +130,7 @@ final class NDEFParserTests: TestCase {
   }
 
   func test_parsePayloadContainingText_withEmptyOTP_fails() {
-    let parser: NDEFParser = .yubikeyOTPParser()
+    let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [emptyTextPayload])
     ]

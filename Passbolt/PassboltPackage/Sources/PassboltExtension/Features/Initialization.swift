@@ -23,12 +23,13 @@
 
 import Accounts
 import Features
+import Session
 import UICommons
 
 public struct Initialization {
 
   public var initialize: @MainActor () -> Void
-  public var featureUnload: @FeaturesActor () async throws -> Void
+  public var featureUnload: @MainActor () async throws -> Void
 }
 
 extension Initialization: LegacyFeature {
@@ -41,33 +42,27 @@ extension Initialization: LegacyFeature {
     let diagnostics: Diagnostics = try await features.instance()
 
     // swift-format-ignore: NoLeadingUnderscores
-    @FeaturesActor func _initialize(with features: FeatureFactory) async throws {
+    @MainActor func _initialize(with features: FeatureFactory) async throws {
       diagnostics.diagnosticLog("Initializing the app extension...")
       defer { diagnostics.diagnosticLog("...app extension initialization completed!") }
       // initialize application extension features here
       analytics()
-      // register features implementations
-      await features.usePassboltFeatures()
       // load features that require root scope
       try await features.loadIfNeeded(Diagnostics.self)
       try await features.loadIfNeeded(Executors.self)
       try await features.loadIfNeeded(LinkOpener.self)
       try await features.loadIfNeeded(OSPermissions.self)
-      try await features.loadIfNeeded(FingerprintStorage.self)
-      try await features.loadIfNeeded(Accounts.self)
-      try await features.loadIfNeeded(AccountSession.self)
-      try await features.loadIfNeeded(AccountSettings.self)
 
       try await features.unload(Initialization.self)
     }
     let initialize: @MainActor () -> Void = { [unowned features] in
       setupApplicationAppearance()
-      cancellables.executeOnFeaturesActor {
+      cancellables.executeOnMainActor {
         try await _initialize(with: features)
       }
     }
 
-    @FeaturesActor func featureUnload() async throws {
+    @MainActor func featureUnload() async throws {
       // always succeeds
     }
 

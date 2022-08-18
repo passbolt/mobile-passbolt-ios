@@ -23,7 +23,6 @@
 
 import CommonModels
 import Features
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -35,29 +34,15 @@ import XCTest
 @MainActor
 final class TOTPControllerTests: MainActorTestCase {
 
-  var networkClient: NetworkClient!
-  var accounts: Accounts!
-  var mfa: MFA!
-  var pasteboard: Pasteboard!
-
   override func mainActorSetUp() {
-    networkClient = .placeholder
-    accounts = .placeholder
-    mfa = .placeholder
-    pasteboard = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    networkClient = nil
-    accounts = nil
-    mfa = nil
-    pasteboard = nil
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    features.usePlaceholder(for: Pasteboard.self)
   }
 
   func test_statusChangePublisher_doesNotPublish_initially() async throws {
-    await features.use(mfa)
-    await features.use(pasteboard)
-
     let controller: TOTPController = try await testController()
 
     var result: Void?
@@ -72,8 +57,6 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_statusChangePublisher_doesNotPublish_whenOTPIsShorterThanRequired() async throws {
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 
@@ -91,12 +74,10 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_statusChangePublisher_publishLoading_whenOTPProcessingStarts() async throws {
-    mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
     )
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 
@@ -119,13 +100,10 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_statusChangePublisher_publishIdle_whenOTPProcessingFinishes() async throws {
-    mfa.authorizeUsingTOTP = always(
-      Just(Void())
-        .eraseErrorType()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
     )
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 
@@ -140,7 +118,7 @@ final class TOTPControllerTests: MainActorTestCase {
     controller.setOTP("123456")
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     if case .idle = result {
     }
@@ -150,12 +128,10 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_statusChangePublisher_publishError_whenOTPProcessingFails() async throws {
-    mfa.authorizeUsingTOTP = always(
-      Fail(error: MockIssue.error())
-        .eraseToAnyPublisher()
+    features.patch(
+      \Session.authorizeMFA,
+      with: alwaysThrow(MockIssue.error())
     )
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 
@@ -170,7 +146,7 @@ final class TOTPControllerTests: MainActorTestCase {
     controller.setOTP("123456")
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     guard case let .error(error) = result
     else { return XCTFail() }
@@ -178,14 +154,15 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_statusChangePublisher_publishError_whenPastingOTPWithInvalidCharacters() async throws {
-    pasteboard.get = always("123abc")
-    await features.use(pasteboard)
-
-    mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Pasteboard.get,
+      with: always("123abc")
     )
-    await features.use(mfa)
+
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
+    )
 
     let controller: TOTPController = try await testController()
 
@@ -205,14 +182,15 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_statusChangePublisher_publishError_whenPastingTooLongOTP() async throws {
-    pasteboard.get = always("123456789")
-    await features.use(pasteboard)
-
-    mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Pasteboard.get,
+      with: always("123456789")
     )
-    await features.use(mfa)
+
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
+    )
 
     let controller: TOTPController = try await testController()
 
@@ -233,13 +211,16 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_setOTP_doesNotStartProcessing_whenOTPIsShorterThanRequired() async throws {
     var result: Void?
-    mfa.authorizeUsingTOTP = { _, _ in
-      result = Void()
-      return PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
-    }
-    await features.use(mfa)
-    await features.use(pasteboard)
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.authorizeMFA,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
 
     let controller: TOTPController = try await testController()
 
@@ -250,35 +231,44 @@ final class TOTPControllerTests: MainActorTestCase {
 
   func test_setOTP_startsProcessing_whenOTPMeetsRequirements() async throws {
     var result: Void?
-    mfa.authorizeUsingTOTP = { _, _ in
-      result = Void()
-      return PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
-    }
-    await features.use(mfa)
-    await features.use(pasteboard)
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.authorizeMFA,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
 
     let controller: TOTPController = try await testController()
 
     controller.setOTP("123456")
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
 
   func test_pasteOTP_doesNotStartProcessing_whenPastedOTPIsShorterThanRequired() async throws {
-    pasteboard.get = always("12345")
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.get,
+      with: always("12345")
+    )
 
     var result: Void?
-    mfa.authorizeUsingTOTP = { _, _ in
-      result = Void()
-      return PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
-    }
-    await features.use(mfa)
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.authorizeMFA,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
 
     let controller: TOTPController = try await testController()
 
@@ -288,36 +278,42 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_pasteOTP_startsProcessing_whenPastedOTPMeetsRequirements() async throws {
-    pasteboard.get = always("123456")
-    await features.use(pasteboard)
+    features.patch(
+      \Pasteboard.get,
+      with: always("123456")
+    )
 
     var result: Void?
-    mfa.authorizeUsingTOTP = { _, _ in
-      result = Void()
-      return PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
-    }
-    await features.use(mfa)
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.authorizeMFA,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
 
     let controller: TOTPController = try await testController()
 
     controller.pasteOTP()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPHasInvalidCharacters() async throws {
-    pasteboard.get = always("123abc")
-    await features.use(pasteboard)
-
-    mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Pasteboard.get,
+      with: always("123abc")
     )
-    await features.use(mfa)
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
+    )
 
     let controller: TOTPController = try await testController()
 
@@ -335,14 +331,15 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_pasteOTP_doesNotChangeOTP_whenPastedOTPIsTooLong() async throws {
-    pasteboard.get = always("123456789")
-    await features.use(pasteboard)
-
-    mfa.authorizeUsingTOTP = always(
-      PassthroughSubject<Void, Error>()
-        .eraseToAnyPublisher()
+    features.patch(
+      \Pasteboard.get,
+      with: always("123456789")
     )
-    await features.use(mfa)
+
+    features.patch(
+      \Session.authorizeMFA,
+      with: always(Void())
+    )
 
     let controller: TOTPController = try await testController()
 
@@ -360,8 +357,6 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_rememberDevicePublisher_publishesTrue_initially() async throws {
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 
@@ -377,8 +372,6 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_toggleRememberDevice_togglesRememberDevice() async throws {
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 
@@ -396,8 +389,6 @@ final class TOTPControllerTests: MainActorTestCase {
   }
 
   func test_otpPublisher_publishesEmptyString_initially() async throws {
-    await features.use(mfa)
-    await features.use(pasteboard)
 
     let controller: TOTPController = try await testController()
 

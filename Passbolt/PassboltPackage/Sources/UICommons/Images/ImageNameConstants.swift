@@ -85,7 +85,7 @@ extension ImageNameConstant {
   public static var touchIDSetup: Self { "TouchIDSetup" }
   public static var faceIDSetup: Self { "FaceIDSetup" }
   public static var qrCodeSample: Self { "QRCodeSample" }
-  public static var yubikeyLogo: Self { "YubikeyLogo" }
+  public static var yubiKeyLogo: Self { "YubiKeyLogo" }
   public static var settingsIcon: Self { "SettingsIcon" }
   public static var keyboardIcon: Self { "KeyboardIcon" }
   public static var keychainIcon: Self { "KeychainIcon" }

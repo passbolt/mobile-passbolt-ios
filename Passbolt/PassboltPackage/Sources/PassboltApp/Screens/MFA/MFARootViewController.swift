@@ -94,8 +94,8 @@ internal final class MFARootViewController: PlainViewController, UIComponent {
           self?.cancellables.executeOnMainActor { [weak self] in
             guard let self = self else { return }
             switch provider {
-            case .yubikey:
-              await self.addChild(YubikeyViewController.self) { parent, child in
+            case .yubiKey:
+              await self.addChild(YubiKeyViewController.self) { parent, child in
                 parent.setContent(view: child)
               }
             case .totp:

@@ -23,42 +23,48 @@
 
 import Combine
 
-public final actor Cancellables {
+public struct Cancellables {
 
   private typealias Cancellation = () -> Void
   private typealias Cleanup = () -> Void
 
-  private var cancellations: Array<Cancellation>
-  private var cleanups: Array<Cleanup>
-
-  public init() {
-    self.cancellations = .init()
-    self.cleanups = .init()
+  private struct State {
+    var cancellations: Array<Cancellation> = .init()
+    var cleanups: Array<Cleanup> = .init()
   }
 
-  deinit {
-    for cancellation: Cancellation in self.cancellations {
-      cancellation()
+  private let state: CriticalState<State> = .init(
+    .init(),
+    cleanup: { state in
+      for cancellation: Cancellation in state.cancellations {
+        cancellation()
+      }
+      for cleanup: Cleanup in state.cleanups {
+        cleanup()
+      }
     }
-    for cleanup: Cleanup in self.cleanups {
-      cleanup()
-    }
-  }
+  )
+
+  public init() {}
 
   public func addCleanup(
     _ cleanup: @escaping () async throws -> Void
   ) {
-    self.cleanups.append({
-      Task.detached(priority: .utility) {
-        try await cleanup()
-      }
-    })
+    self.state.access { state in
+      state.cleanups.append({
+        Task.detached(priority: .utility) {
+          try await cleanup()
+        }
+      })
+    }
   }
 
   public func store(
     _ cancellable: AnyCancellable
   ) {
-    self.cancellations.append(cancellable.cancel)
+    self.state.access { state in
+      state.cancellations.append(cancellable.cancel)
+    }
   }
 
   public func task<Success>(
@@ -70,12 +76,8 @@ public final actor Cancellables {
   public func store<Success, Failure: Error>(
     _ task: Task<Success, Failure>
   ) {
-    self.cancellations.append(task.cancel)
-  }
-
-  public func cancelAll() {
-    for cancellation: Cancellation in self.cancellations {
-      cancellation()
+    self.state.access { state in
+      state.cancellations.append(task.cancel)
     }
   }
 }
@@ -85,9 +87,7 @@ extension AnyCancellable {
   public func store(
     in cancellables: Cancellables?
   ) {
-    Task.detached(priority: .utility) {
-      await cancellables?.store(self)
-    }
+    cancellables?.store(self)
   }
 }
 
@@ -96,9 +96,7 @@ extension Task {
   public func store(
     in cancellables: Cancellables?
   ) {
-    Task<Void, Never>.detached(priority: .utility) {
-      await cancellables?.store(self)
-    }
+    cancellables?.store(self)
   }
 }
 
@@ -130,6 +128,18 @@ extension Cancellables {
     return task
   }
 
+  public nonisolated func executeAsyncWithPublisher<Success>(
+    _ operation: @escaping () async throws -> Success
+  ) -> AnyPublisher<Success, Error> {
+    let task = Task {
+      try await operation()
+    }
+    task.store(in: self)
+    return
+      task
+      .asPublisher()
+  }
+
   @discardableResult
   public nonisolated func executeOnMainActor(
     _ operation: @MainActor @escaping () async throws -> Void
@@ -159,135 +169,6 @@ extension Cancellables {
   ) -> AnyPublisher<Success.Output, Error>
   where Success: Publisher {
     let task = Task { @MainActor in
-      try await operation()
-        .eraseErrorType()
-    }
-    task.store(in: self)
-    return
-      task
-      .asPublisher()
-      .switchToLatest()
-      .eraseToAnyPublisher()
-  }
-}
-
-extension Cancellables {
-
-  @discardableResult
-  public nonisolated func executeOnAccountSessionActor(
-    _ operation: @AccountSessionActor @escaping () async throws -> Void
-  ) -> Task<Void, Error> {
-    let task = Task { @AccountSessionActor in
-      try await operation()
-    }
-    task.store(in: self)
-    return task
-  }
-
-  public nonisolated func executeOnAccountSessionActorWithPublisher<Success>(
-    _ operation: @AccountSessionActor @escaping () async throws -> Success
-  ) -> AnyPublisher<Success, Error> {
-    let task = Task { @AccountSessionActor in
-      try await operation()
-    }
-    task.store(in: self)
-    return
-      task
-      .asPublisher()
-  }
-
-  @_disfavoredOverload
-  public nonisolated func executeOnAccountSessionActorWithPublisher<Success>(
-    _ operation: @AccountSessionActor @escaping () async throws -> Success
-  ) -> AnyPublisher<Success.Output, Error>
-  where Success: Publisher {
-    let task = Task { @AccountSessionActor in
-      try await operation()
-        .eraseErrorType()
-    }
-    task.store(in: self)
-    return
-      task
-      .asPublisher()
-      .switchToLatest()
-      .eraseToAnyPublisher()
-  }
-}
-
-extension Cancellables {
-
-  @discardableResult
-  public nonisolated func executeOnStorageAccessActor(
-    _ operation: @StorageAccessActor @escaping () async throws -> Void
-  ) -> Task<Void, Error> {
-    let task = Task { @StorageAccessActor in
-      try await operation()
-    }
-    task.store(in: self)
-    return task
-  }
-
-  public nonisolated func executeOnStorageAccessActorWithPublisher<Success>(
-    _ operation: @StorageAccessActor @escaping () async throws -> Success
-  ) -> AnyPublisher<Success, Error> {
-    let task = Task { @StorageAccessActor in
-      try await operation()
-    }
-    task.store(in: self)
-    return
-      task
-      .asPublisher()
-  }
-
-  @_disfavoredOverload
-  public nonisolated func executeOnStorageAccessActorWithPublisher<Success>(
-    _ operation: @StorageAccessActor @escaping () async throws -> Success
-  ) -> AnyPublisher<Success.Output, Error>
-  where Success: Publisher {
-    let task = Task { @StorageAccessActor in
-      try await operation()
-        .eraseErrorType()
-    }
-    task.store(in: self)
-    return
-      task
-      .asPublisher()
-      .switchToLatest()
-      .eraseToAnyPublisher()
-  }
-}
-
-extension Cancellables {
-
-  @discardableResult
-  public nonisolated func executeOnFeaturesActor(
-    _ operation: @FeaturesActor @escaping () async throws -> Void
-  ) -> Task<Void, Error> {
-    let task = Task { @FeaturesActor in
-      try await operation()
-    }
-    task.store(in: self)
-    return task
-  }
-
-  public nonisolated func executeOnFeaturesActorWithPublisher<Success>(
-    _ operation: @FeaturesActor @escaping () async throws -> Success
-  ) -> AnyPublisher<Success, Error> {
-    let task = Task { @FeaturesActor in
-      try await operation()
-    }
-    task.store(in: self)
-    return
-      task
-      .asPublisher()
-  }
-
-  @_disfavoredOverload
-  public nonisolated func executeOnFeaturesActorWithPublisher<Success>(
-    _ operation: @FeaturesActor @escaping () async throws -> Success
-  ) -> AnyPublisher<Success.Output, Error>
-  where Success: Publisher {
-    let task = Task { @FeaturesActor in
       try await operation()
         .eraseErrorType()
     }

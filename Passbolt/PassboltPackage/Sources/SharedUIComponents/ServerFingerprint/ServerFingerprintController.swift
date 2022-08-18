@@ -47,7 +47,7 @@ extension ServerFingerprintController: UIController {
     cancellables: Cancellables
   ) async throws -> ServerFingerprintController {
 
-    let fingerprintStorage: FingerprintStorage = try await features.instance()
+    let accountsData: AccountsDataStore = try await features.instance()
 
     let fingerprintMarkedAsCheckedSubject: CurrentValueSubject<Bool, Never> = .init(false)
 
@@ -64,10 +64,10 @@ extension ServerFingerprintController: UIController {
       }
 
       return cancellables.executeOnMainActorWithPublisher {
-        try await fingerprintStorage.storeServerFingerprint(
+        try accountsData.storeServerFingerprint(
           context.accountID,
           context.fingerprint
-        ).get()
+        )
       }
     }
 

@@ -23,80 +23,80 @@
 
 import CommonModels
 
-public func always<V>(
+@Sendable public func always<V>(
   _ value: @autoclosure @escaping () -> V
-) -> () -> V {
-  value
+) -> @Sendable () -> V {
+  { value() }
 }
 
-public func alwaysThrow<V>(
+@Sendable public func alwaysThrow<V>(
   _ error: @autoclosure @escaping () -> Error
-) -> () throws -> V {
+) -> @Sendable () throws -> V {
   { throw error() }
 }
 
-public func always<A1, V>(
+@Sendable public func always<A1, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1) -> V {
+) -> @Sendable (A1) -> V {
   { _ in value() }
 }
 
-public func alwaysThrow<A1, V>(
+@Sendable public func alwaysThrow<A1, V>(
   _ error: @autoclosure @escaping () -> Error
-) -> (A1) throws -> V {
+) -> @Sendable (A1) throws -> V {
   { _ in throw error() }
 }
 
-public func always<A1, A2, V>(
+@Sendable public func always<A1, A2, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2) -> V {
+) -> @Sendable (A1, A2) -> V {
   { _, _ in value() }
 }
 
-public func alwaysThrow<A1, A2, V>(
+@Sendable public func alwaysThrow<A1, A2, V>(
   _ error: @autoclosure @escaping () -> Error
-) -> (A1, A2) throws -> V {
+) -> @Sendable (A1, A2) throws -> V {
   { _, _ in throw error() }
 }
 
-public func always<A1, A2, A3, V>(
+@Sendable public func always<A1, A2, A3, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2, A3) -> V {
+) -> @Sendable (A1, A2, A3) -> V {
   { _, _, _ in value() }
 }
 
-public func alwaysThrow<A1, A2, A3, V>(
+@Sendable public func alwaysThrow<A1, A2, A3, V>(
   _ error: @autoclosure @escaping () -> Error
-) -> (A1, A2, A3) throws -> V {
+) -> @Sendable (A1, A2, A3) throws -> V {
   { _, _, _ in throw error() }
 }
 
-public func always<A1, A2, A3, A4, V>(
+@Sendable public func always<A1, A2, A3, A4, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2, A3, A4) -> V {
+) -> @Sendable (A1, A2, A3, A4) -> V {
   { _, _, _, _ in value() }
 }
 
-public func always<A1, A2, A3, A4, A5, V>(
+@Sendable public func always<A1, A2, A3, A4, A5, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2, A3, A4, A5) -> V {
+) -> @Sendable (A1, A2, A3, A4, A5) -> V {
   { _, _, _, _, _ in value() }
 }
 
-public func always<A1, A2, A3, A4, A5, A6, V>(
+@Sendable public func always<A1, A2, A3, A4, A5, A6, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2, A3, A4, A5, A6) -> V {
+) -> @Sendable (A1, A2, A3, A4, A5, A6) -> V {
   { _, _, _, _, _, _ in value() }
 }
 
-public func always<A1, A2, A3, A4, A5, A6, A7, V>(
+@Sendable public func always<A1, A2, A3, A4, A5, A6, A7, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2, A3, A4, A5, A6, A7) -> V {
+) -> @Sendable (A1, A2, A3, A4, A5, A6, A7) -> V {
   { _, _, _, _, _, _, _ in value() }
 }
 
-public func always<A1, A2, A3, A4, A5, A6, A7, A8, V>(
+@Sendable public func always<A1, A2, A3, A4, A5, A6, A7, A8, V>(
   _ value: @autoclosure @escaping () -> V
-) -> (A1, A2, A3, A4, A5, A6, A7, A8) -> V {
+) -> @Sendable (A1, A2, A3, A4, A5, A6, A7, A8) -> V {
   { _, _, _, _, _, _, _, _ in value() }
 }

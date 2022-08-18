@@ -108,7 +108,7 @@ extension RandomStringGenerator: LegacyFeature {
 
 extension RandomStringGenerator {
 
-  public var featureUnload: @FeaturesActor () async throws -> Void { {} }
+  public var featureUnload: @MainActor () async throws -> Void { {} }
 }
 
 #if DEBUG

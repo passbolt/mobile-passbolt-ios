@@ -23,17 +23,19 @@
 
 import CommonModels
 
-@FeaturesActor
+@MainActor
 public final class FeatureFactory {
 
   private struct FeatureCacheItem {
     fileprivate var feature: AnyFeature
-    fileprivate var unload: @FeaturesActor () async throws -> Void
+    fileprivate var unload: @MainActor () async throws -> Void
     fileprivate var cancellables: Cancellables
   }
 
   #if DEBUG  // debug builds allow change and access to environment for mocking and debug
   public var environment: AppEnvironment
+  public let autoLoadFeatures: Bool
+  public let allowScopes: Bool
   #else  // production builds cannot access environment directly
   private nonisolated let environment: AppEnvironment
   #endif
@@ -47,21 +49,51 @@ public final class FeatureFactory {
 
   private var staticFeatures: Dictionary<FeatureIdentifier, AnyFeature> = .init()
 
+  #if DEBUG
+  nonisolated public init(
+    environment: AppEnvironment,
+    autoLoadFeatures: Bool = true,
+    allowScopes: Bool = true
+  ) {
+    self.environment = environment
+    self.autoLoadFeatures = autoLoadFeatures
+    self.allowScopes = allowScopes
+    // Legacy Bridge, to be removed with AppEnvironment
+    self.staticFeatures[
+      FeatureIdentifier(
+        featureTypeIdentifier: EnvironmentLegacyBridge.typeIdentifier,
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
+      )
+    ] = EnvironmentLegacyBridge(
+      environment: environment
+    )
+  }
+  #else
   nonisolated public init(
     environment: AppEnvironment
   ) {
     self.environment = environment
+    // Legacy Bridge, to be removed with AppEnvironment
+    self.staticFeatures[
+      FeatureIdentifier(
+        featureTypeIdentifier: EnvironmentLegacyBridge.typeIdentifier,
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
+      )
+    ] = EnvironmentLegacyBridge(
+      environment: environment
+    )
   }
+  #endif
 
-  @FeaturesActor private var currentScope: FeaturesScope {
+  @MainActor private var currentScope: FeaturesScope {
     self.scopeStack.last ?? .root
   }
 
-  @FeaturesActor private var isRoot: Bool {
+  @MainActor private var isRoot: Bool {
     self.scopeStack.isEmpty
   }
 
-  @FeaturesActor private var currentScopeFeaturesCache: Dictionary<FeatureIdentifier, FeatureCacheItem> {
+  @MainActor private var currentScopeFeaturesCache: Dictionary<FeatureIdentifier, FeatureCacheItem> {
     get {
       self.scopeFeaturesCacheStack.last
         ?? self.rootFeaturesCache
@@ -82,7 +114,7 @@ public final class FeatureFactory {
     }
   }
 
-  @FeaturesActor private var currentScopePendingFeatures: Dictionary<FeatureIdentifier, Task<FeatureCacheItem, Error>> {
+  @MainActor private var currentScopePendingFeatures: Dictionary<FeatureIdentifier, Task<FeatureCacheItem, Error>> {
     get {
       self.scopePendingFeaturesStack.last
         ?? self.rootPendingFeatures
@@ -103,11 +135,28 @@ public final class FeatureFactory {
     }
   }
 
-  @FeaturesActor public func ensureScope<Identifier>(
+  @MainActor public func assertScope<Identifier>(
     identifier: Identifier
   ) async where Identifier: Hashable {
     #if DEBUG
-    guard Self.allowScopes else { return }
+    guard self.allowScopes else { return }
+
+    let checkedScope: FeaturesScope = .init(
+      identifier: identifier
+    )
+
+    assert(
+      self.scopeStack.contains(checkedScope),
+      "Missing required scope: \(identifier)"
+    )
+    #endif
+  }
+
+  @MainActor public func ensureScope<Identifier>(
+    identifier: Identifier
+  ) async where Identifier: Hashable {
+    #if DEBUG
+    guard self.allowScopes else { return }
     #endif
     let ensuredScope: FeaturesScope = .init(
       identifier: identifier
@@ -151,7 +200,7 @@ public final class FeatureFactory {
     }
   }
 
-  @FeaturesActor public func pushScope<Identifier>(
+  @MainActor public func pushScope<Identifier>(
     identifier: Identifier
   ) -> () async -> Void
   where Identifier: Hashable {
@@ -162,11 +211,11 @@ public final class FeatureFactory {
     )
   }
 
-  @FeaturesActor public func pushScope(
+  @MainActor public func pushScope(
     _ scope: FeaturesScope
   ) -> () async -> Void {
     #if DEBUG
-    guard Self.allowScopes else { return {} }
+    guard self.allowScopes else { return {} }
     #endif
     self.scopeStack.append(scope)
     self.scopePendingFeaturesStack.append(.init())
@@ -174,9 +223,9 @@ public final class FeatureFactory {
     return self.popScope
   }
 
-  @FeaturesActor private func popScope() async {
+  @MainActor private func popScope() async {
     #if DEBUG
-    guard Self.allowScopes else { return }
+    guard self.allowScopes else { return }
     #endif
     _ = self.scopeStack.popLast()
     if let pendingFeatures = self.scopePendingFeaturesStack.popLast() {
@@ -200,7 +249,7 @@ public final class FeatureFactory {
     }
   }
 
-  @FeaturesActor public func clearScope() async {
+  @MainActor public func clearScope() async {
     self.scopeStack = .init()
     for pendingFeatures in self.scopePendingFeaturesStack {
       for pending in pendingFeatures.values {
@@ -225,7 +274,7 @@ public final class FeatureFactory {
 
 extension FeatureFactory {
 
-  @FeaturesActor public func use(
+  @MainActor public func use(
     _ loader: FeatureLoader,
     _ tail: FeatureLoader...
   ) {
@@ -235,18 +284,18 @@ extension FeatureFactory {
     }
   }
 
-  @FeaturesActor public func use<Feature>(
+  @MainActor public func use<Feature>(
     _ staticFeature: Feature
   ) where Feature: StaticFeature {
     let identifier: FeatureIdentifier = .init(
       featureTypeIdentifier: Feature.typeIdentifier,
-      featureContextIdentifier: .none
+      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
     )
     assert(self.staticFeatures[identifier] == nil)
     self.staticFeatures[identifier] = staticFeature
   }
 
-  @FeaturesActor public func instance<Feature>(
+  @MainActor public func instance<Feature>(
     of featureType: Feature.Type = Feature.self
   ) async throws -> Feature
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
@@ -256,7 +305,7 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func instance<Feature>(
+  @MainActor public func instance<Feature>(
     of featureType: Feature.Type = Feature.self,
     context: Feature.Context
   ) async throws -> Feature
@@ -275,16 +324,16 @@ extension FeatureFactory {
       return pending
     }
     else if let loader: FeatureLoader = self.loader(for: featureTypeIdentifier) {
-      if let cacheUnload: @FeaturesActor (AnyFeature) async throws -> Void = loader.cacheUnload {
+      if let cacheUnload: @MainActor (AnyFeature) async throws -> Void = loader.cacheUnload {
         let cancellables: Cancellables = .init()
 
         let pendingLoad: Task<FeatureCacheItem, Error>
         if self.isRoot {
-          pendingLoad = Task<FeatureCacheItem, Error> { @FeaturesActor in
+          pendingLoad = Task<FeatureCacheItem, Error> { @MainActor in
             guard let loaded: Feature = try await loader.load(self, context, cancellables) as? Feature
             else { unreachable("Cannot create wrong type of feature") }
 
-            let unload: @FeaturesActor () async throws -> Void = {
+            let unload: @MainActor () async throws -> Void = {
               try await cacheUnload(loaded)
             }
 
@@ -332,11 +381,11 @@ extension FeatureFactory {
         }
         else {
           let scopeIndex: Int = self.scopeStack.index(before: self.scopeStack.endIndex)
-          pendingLoad = Task<FeatureCacheItem, Error> { @FeaturesActor in
+          pendingLoad = Task<FeatureCacheItem, Error> { @MainActor in
             guard let loaded: Feature = try await loader.load(self, context, cancellables) as? Feature
             else { unreachable("Cannot create wrong type of feature") }
 
-            let unload: @FeaturesActor () async throws -> Void = {
+            let unload: @MainActor () async throws -> Void = {
               try await cacheUnload(loaded)
             }
 
@@ -399,16 +448,17 @@ extension FeatureFactory {
       throw
         FeatureUndefined
         .error(featureName: "\(Feature.self)")
+        .asAssertionFailure()
     }
   }
 
-  @FeaturesActor public func instance<Feature>(
+  @MainActor public func instance<Feature>(
     of featureType: Feature.Type = Feature.self
   ) -> Feature
   where Feature: StaticFeature {
     let identifier: FeatureIdentifier = .init(
       featureTypeIdentifier: Feature.typeIdentifier,
-      featureContextIdentifier: .none
+      featureContextIdentifier: ContextlessFeatureContext.instance.identifier
     )
     if let feature: Feature = self.staticFeatures[identifier] as? Feature {
       return feature
@@ -469,7 +519,7 @@ extension FeatureFactory {
     self.featureLoaders[featureTypeIdentifier]
   }
 
-  @FeaturesActor public func unload<Feature>(
+  @MainActor public func unload<Feature>(
     _ featureType: Feature.Type,
     context: Feature.Context
   ) async throws
@@ -484,7 +534,7 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func unload<Feature>(
+  @MainActor public func unload<Feature>(
     _ featureType: Feature.Type
   ) async throws
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
@@ -498,7 +548,7 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor private func unload(
+  @MainActor private func unload(
     _ featureIdentifier: FeatureIdentifier
   ) async throws {
     if let pendingFeaturesIndex: Array<Dictionary<FeatureIdentifier, Task<FeatureCacheItem, Error>>>.Index = self
@@ -545,7 +595,7 @@ extension FeatureFactory {
 
 extension FeatureFactory {
 
-  @FeaturesActor public func instance<Feature>(
+  @MainActor public func instance<Feature>(
     of feature: Feature.Type = Feature.self
   ) async throws -> Feature
   where Feature: LegacyFeature {
@@ -560,18 +610,19 @@ extension FeatureFactory {
     }
     else {
       #if DEBUG
-      guard Self.autoLoadFeatures
+      guard self.autoLoadFeatures
       else {
         throw
           FeatureUndefined
           .error(featureName: "\(Feature.self)")
+          .asAssertionFailure()
       }
       #endif
       let featureCancellables: Cancellables = .init()
 
       let pendingLoad: Task<FeatureCacheItem, Error>
       if self.isRoot {
-        pendingLoad = Task<FeatureCacheItem, Error> { @FeaturesActor in
+        pendingLoad = Task<FeatureCacheItem, Error> { @MainActor in
           let loaded: Feature = try await .load(
             in: self.environment,
             using: self,
@@ -603,7 +654,7 @@ extension FeatureFactory {
       }
       else {
         let scopeIndex: Int = self.scopeStack.index(before: self.scopeStack.endIndex)
-        pendingLoad = Task<FeatureCacheItem, Error> { @FeaturesActor in
+        pendingLoad = Task<FeatureCacheItem, Error> { @MainActor in
           let loaded: Feature = try await .load(
             in: self.environment,
             using: self,
@@ -645,38 +696,63 @@ extension FeatureFactory {
     }
   }
 
-  @FeaturesActor public func unload<F>(
+  @MainActor public func unload<F>(
     _ feature: F.Type
   ) async throws where F: LegacyFeature {
     let featureIdentifier: FeatureIdentifier =
       .init(
         featureTypeIdentifier: feature.typeIdentifier,
-        featureContextIdentifier: .none
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
       )
     try await self.unload(
       featureIdentifier
     )
   }
 
-  @FeaturesActor public func isLoaded<F>(
+  @MainActor public func isLoaded<F>(
     _ feature: F.Type
   ) -> Bool where F: LegacyFeature {
     #warning("TODO: to check if we should not check for pending instances also")
     return self.cacheItem(
       for: .init(
         featureTypeIdentifier: feature.typeIdentifier,
-        featureContextIdentifier: .none
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
       )
     ) != nil
   }
 
-  @FeaturesActor public func loadIfNeeded<F>(
+  //  @MainActor public func isLoaded<F>(
+  //    _ feature: F.Type,
+  //    context: F.Context
+  //  ) -> Bool where F: LoadableFeature {
+  //    #warning("TODO: to check if we should not check for pending instances also")
+  //    return self.cacheItem(
+  //      for: .init(
+  //        featureTypeIdentifier: feature.typeIdentifier,
+  //        featureContextIdentifier: context.identifier
+  //      )
+  //    ) != nil
+  //  }
+  //
+  //  @MainActor public func isLoaded<F>(
+  //    _ feature: F.Type
+  //  ) -> Bool where F: LoadableFeature, F.Context == ContextlessFeatureContext {
+  //    #warning("TODO: to check if we should not check for pending instances also")
+  //    return self.cacheItem(
+  //      for: .init(
+  //        featureTypeIdentifier: feature.typeIdentifier,
+  //        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
+  //      )
+  //    ) != nil
+  //  }
+
+  @MainActor public func loadIfNeeded<F>(
     _ feature: F.Type = F.self
   ) async throws where F: LegacyFeature {
     _ = try await instance(of: F.self)
   }
 
-  @FeaturesActor public func use<F>(
+  @MainActor public func use<F>(
     _ feature: F,
     cancellables: Cancellables = .init()
   ) where F: LegacyFeature {
@@ -698,10 +774,7 @@ extension FeatureFactory {
 // into account pending feature loads
 extension FeatureFactory {
 
-  public static var autoLoadFeatures: Bool = true
-  public static var allowScopes: Bool = true
-
-  @FeaturesActor public func isCached<Feature>(
+  @MainActor public func isCached<Feature>(
     _ featureType: Feature.Type,
     context: Feature.Context
   ) -> Bool
@@ -715,7 +788,7 @@ extension FeatureFactory {
     ) != nil
   }
 
-  @FeaturesActor public func isCached<Feature>(
+  @MainActor public func isCached<Feature>(
     _ featureType: Feature.Type
   ) -> Bool
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
@@ -725,7 +798,7 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func usePlaceholder<Feature>(
+  @MainActor public func usePlaceholder<Feature>(
     for featureType: Feature.Type,
     context: Feature.Context
   ) where Feature: LoadableFeature {
@@ -740,7 +813,7 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func usePlaceholder<Feature>(
+  @MainActor public func usePlaceholder<Feature>(
     for featureType: Feature.Type
   ) where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
     self.usePlaceholder(
@@ -749,18 +822,18 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func usePlaceholder<Feature>(
+  @MainActor public func usePlaceholder<Feature>(
     for featureType: Feature.Type
   ) where Feature: StaticFeature {
     let featureIdentifier: FeatureIdentifier =
       .init(
         featureTypeIdentifier: Feature.typeIdentifier,
-        featureContextIdentifier: .none
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
       )
     self.staticFeatures[featureIdentifier] = Feature.placeholder
   }
 
-  @FeaturesActor public func patch<Feature, Property>(
+  @MainActor public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     context: Feature.Context,
     with updated: Property
@@ -793,7 +866,7 @@ extension FeatureFactory {
     }
   }
 
-  @FeaturesActor public func patch<Feature, Property>(
+  @MainActor public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     with updated: Property
   ) where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {
@@ -804,14 +877,14 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func patch<Feature, Property>(
+  @MainActor public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     with updated: Property
   ) where Feature: StaticFeature {
     let featureIdentifier: FeatureIdentifier =
       .init(
         featureTypeIdentifier: Feature.typeIdentifier,
-        featureContextIdentifier: .none
+        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
       )
     if var feature: Feature = self.staticFeatures[featureIdentifier] as? Feature {
       feature[keyPath: keyPath] = updated
@@ -824,7 +897,7 @@ extension FeatureFactory {
     }
   }
 
-  @FeaturesActor public func usePlaceholder<F>(
+  @MainActor public func usePlaceholder<F>(
     for featureType: F.Type
   ) where F: LegacyFeature {
     self.currentScopeFeaturesCache[F.identifier] = .init(
@@ -834,7 +907,7 @@ extension FeatureFactory {
     )
   }
 
-  @FeaturesActor public func patch<F, P>(
+  @MainActor public func patch<F, P>(
     _ keyPath: WritableKeyPath<F, P>,
     with updated: P
   ) where F: LegacyFeature {
@@ -873,6 +946,24 @@ extension FeatureFactory {
         )
       }
     }
+  }
+
+  @MainActor internal func set(
+    staticFeatures: Dictionary<FeatureIdentifier, AnyFeature>
+  ) {
+    self.staticFeatures = staticFeatures
+  }
+
+  @MainActor internal func set(
+    dynamicFeatures: Dictionary<FeatureIdentifier, AnyFeature>
+  ) {
+    self.rootFeaturesCache = dynamicFeatures.mapValues({ (feature: AnyFeature) in
+      FeatureCacheItem(
+        feature: feature,
+        unload: {},
+        cancellables: .init()
+      )
+    })
   }
 }
 #endif

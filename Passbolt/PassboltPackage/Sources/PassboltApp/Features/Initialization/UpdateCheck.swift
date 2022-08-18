@@ -23,7 +23,7 @@
 
 import Environment
 import Features
-import NetworkClient
+import NetworkOperations
 
 import class Foundation.Bundle
 
@@ -42,7 +42,7 @@ extension UpdateCheck: LegacyFeature {
   ) async throws -> Self {
     let updateChecker: UpdateChecker = try await .init(
       appMeta: environment.appMeta,
-      networkClient: features.instance()
+      appVersionsFetchNetworkOperation: features.instance()
     )
 
     return Self(
@@ -89,16 +89,16 @@ fileprivate actor UpdateChecker {
   }
 
   private let appMeta: AppMeta
-  private let networkClient: NetworkClient
+  private let appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
   private let cancellables: Cancellables = .init()
   private var status: Status = .unknown
 
   fileprivate init(
     appMeta: AppMeta,
-    networkClient: NetworkClient
+    appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
   ) {
     self.appMeta = appMeta
-    self.networkClient = networkClient
+    self.appVersionsFetchNetworkOperation = appVersionsFetchNetworkOperation
   }
 
   fileprivate func isStatusCheckRequired() async -> Bool {
@@ -166,32 +166,15 @@ fileprivate actor UpdateChecker {
   }
 
   private func latestAppVersion() async throws -> String {
-    try await withCheckedThrowingContinuation { continuation in
-      networkClient
-        .appVersionsAvailableRequest
-        .make()
-        .first()  // make 100% sure that it will emit only once
-        .handleEvents(
-          receiveOutput: { response in
-            // results should always contain only one result with latest version
-            if let version: String = response.results.first?.version {
-              continuation.resume(returning: version)
-            }
-            else {
-              continuation.resume(throwing: TheErrorLegacy.versionCheckFailed())
-            }
-          },
-          receiveCompletion: { completion in
-            guard case let .failure(error) = completion
-            else { return }
-            continuation.resume(throwing: TheErrorLegacy.versionCheckFailed(underlyingError: error))
-          },
-          receiveCancel: {
-            continuation.resume(throwing: TheErrorLegacy.canceled)
-          }
-        )
-        .sinkDrop()
-        .store(in: cancellables)
+    let availableVersions = try await appVersionsFetchNetworkOperation()
+
+    if let version: String = availableVersions.results.first?.version {
+      return version
+    }
+    else {
+      throw
+        TheErrorLegacy
+        .versionCheckFailed()
     }
   }
 

@@ -107,7 +107,7 @@ private let supportedTypes: Set<ObjectIdentifier> = [
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltSharedStoredProperties() {
+  @MainActor public func usePassboltSharedStoredProperties() {
     self.use(
       StoredProperties.sharedUserDefaults(suiteName: "group.com.passbolt.mobile")
     )

@@ -15,6 +15,7 @@
   ],
   "defaultOptions" : {
     "testExecutionOrdering" : "random",
+    "testRepetitionMode" : "retryOnFailure",
     "testTimeoutsEnabled" : true
   },
   "testTargets" : [
@@ -32,13 +33,6 @@
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltExtensionTests",
         "name" : "PassboltExtensionTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "NetworkClientTests",
-        "name" : "NetworkClientTests"
       }
     },
     {
@@ -80,22 +74,8 @@
     {
       "target" : {
         "containerPath" : "container:PassboltPackage",
-        "identifier" : "AccountsTests",
-        "name" : "AccountsTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
         "identifier" : "FeaturesTests",
         "name" : "FeaturesTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "ResourcesTests",
-        "name" : "ResourcesTests"
       }
     },
     {
@@ -115,8 +95,29 @@
     {
       "target" : {
         "containerPath" : "container:PassboltPackage",
-        "identifier" : "UsersTests",
-        "name" : "UsersTests"
+        "identifier" : "PassboltAccountsTests",
+        "name" : "PassboltAccountsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltResourcesTests",
+        "name" : "PassboltResourcesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltSessionTests",
+        "name" : "PassboltSessionTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltUsersTests",
+        "name" : "PassboltUsersTests"
       }
     }
   ],

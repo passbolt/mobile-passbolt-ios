@@ -32,25 +32,20 @@ import UIComponents
 @MainActor
 final class BiometricsInfoScreenTests: MainActorTestCase {
 
-  var linkOpener: LinkOpener!
-  var biometry: Biometry!
-
   override func mainActorSetUp() {
-    linkOpener = .placeholder
-    biometry = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    linkOpener = nil
-    biometry = nil
+    features.usePlaceholder(for: Biometry.self)
+    features.usePlaceholder(for: LinkOpener.self)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(Just(false).eraseToAnyPublisher())
+    )
   }
 
   func test_presentationDestinationPublisher_doesNotPublishInitially() async throws {
-    await features.use(linkOpener)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(Just(false).eraseToAnyPublisher())
+    )
 
     let controller: BiometricsInfoController = try await testController()
 
@@ -63,17 +58,34 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   }
 
   func test_setupBiometrics_opensSystemSettings() async throws {
-    var result: Void!
-    linkOpener.openSystemSettings = {
-      result = Void()
-      return Just(true).eraseToAnyPublisher()
-    }
-    await features.use(linkOpener)
-    biometry.biometricsStatePublisher = always(Just(.configuredTouchID).eraseToAnyPublisher())
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    var result: Void?
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \LinkOpener.openSystemSettings,
+      with: {
+        uncheckedSendableResult.variable = Void()
+        return Just(true)
+          .eraseToAnyPublisher()
+      }
+    )
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Biometry.biometricsStatePublisher,
+      with: always(
+        Just(.configuredTouchID)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsInfoController = try await testController()
 
     controller.presentationDestinationPublisher()
@@ -86,11 +98,13 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   }
 
   func test_presentationDestinationPublisher_publishExtensionSetup_whenSkipped_andExtensionIsEnabled() async throws {
-    await features.use(linkOpener)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: BiometricsInfoController = try await testController()
 
@@ -105,11 +119,13 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   }
 
   func test_presentationDestinationPublisher_publishExtensionSetup_whenSkipped_andExtensionIsDisabled() async throws {
-    await features.use(linkOpener)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: BiometricsInfoController = try await testController()
 
@@ -124,16 +140,29 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   }
 
   func test_presentationDestinationPublisher_publishBiometrySetup_afterSetup_withBiometricsAvailable() async throws {
-    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    await features.use(linkOpener)
-    // by default it publishes current state, it is ignored so it has to publish again
-    biometry.biometricsStatePublisher = always(
-      [.unconfigured, .configuredTouchID].publisher.eraseToAnyPublisher()
+    features.patch(
+      \LinkOpener.openSystemSettings,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
     )
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \Biometry.biometricsStatePublisher,
+      with: always(
+        // by default it publishes current state, it is ignored so it has to publish again
+        [.unconfigured, .configuredTouchID]
+          .publisher
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: BiometricsInfoController = try await testController()
 
@@ -148,13 +177,27 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
   }
 
   func test_presentationDestinationPublisher_doesNotPublish_afterSetup_withBiometricsUnavailable() async throws {
-    linkOpener.openSystemSettings = always(Just(true).eraseToAnyPublisher())
-    await features.use(linkOpener)
-    biometry.biometricsStatePublisher = always(Just(.unavailable).eraseToAnyPublisher())
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \LinkOpener.openSystemSettings,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \Biometry.biometricsStatePublisher,
+      with: always(
+        Just(.unavailable)
+          .eraseToAnyPublisher()
+      )
+    )
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
 
     let controller: BiometricsInfoController = try await testController()
 

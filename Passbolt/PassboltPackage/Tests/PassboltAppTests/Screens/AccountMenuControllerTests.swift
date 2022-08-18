@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -33,34 +32,49 @@ import XCTest
 @MainActor
 final class AccountMenuControllerTests: MainActorTestCase {
 
-  @FeaturesActor var updatedAccountIDsSubject: PassthroughSubject<Account.LocalID, Never>!
+  var accountUpdates: UpdatesSequenceSource!
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
+  override func mainActorSetUp() {
+    accountUpdates = .init()
+    features.usePlaceholder(for: Session.self)
+    features.patch(
+      \Accounts.updates,
+      with: accountUpdates.updatesSequence
+    )
     features.patch(
       \Accounts.storedAccounts,
       with: always(
         []
       )
     )
-    await features.usePlaceholder(for: AccountSession.self)
     features.patch(
-      \NetworkClient.mediaDownload,
-      with: .respondingWith(MediaDownloadResponse())
+      \Session.currentAccount,
+      with: always(validAccount)
     )
-    updatedAccountIDsSubject = .init()
     features.patch(
-      \AccountSettings.updatedAccountIDsPublisher,
-      with: always(
-        self.updatedAccountIDsSubject
-          .eraseToAnyPublisher()
-      )
+      \AccountDetails.profile,
+      context: validAccount,
+      with: always(validAccountWithProfile)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: validAccount,
+      with: always(.init())
+    )
+    features.patch(
+      \AccountDetails.profile,
+      context: validAccountAlt,
+      with: always(validAccountWithProfileAlt)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: validAccountAlt,
+      with: always(.init())
     )
   }
 
-  override func featuresActorTearDown() async throws {
-    updatedAccountIDsSubject = nil
-    try await super.featuresActorTearDown()
+  override func mainActorTearDown() {
+    accountUpdates = .none
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
@@ -75,16 +89,10 @@ final class AccountMenuControllerTests: MainActorTestCase {
   }
 
   func test_accountsListPublisher_publishesAccountListWithoutCurrentAccount() async throws {
-    await features.patch(
+    features.patch(
       \Accounts.storedAccounts,
       with: always(
         [validAccount, validAccountAlt]
-      )
-    )
-    await features.patch(
-      \AccountSettings.accountWithProfile,
-      with: always(
-        validAccountWithProfileAlt
       )
     )
 
@@ -109,22 +117,17 @@ final class AccountMenuControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
+    // temporary wait for detached tasks
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
     XCTAssertEqual(result?.map { $0.accountWithProfile }, [validAccountWithProfileAlt])
   }
 
   func test_accountsListPublisher_publishesUpdatedAccountListAterUpdatingAccounts() async throws {
     var storedAccounts: Array<Account> = [validAccount]
-    await features.patch(
+    features.patch(
       \Accounts.storedAccounts,
-      with: always(
-        storedAccounts
-      )
-    )
-    await features.patch(
-      \AccountSettings.accountWithProfile,
-      with: always(
-        validAccountWithProfileAlt
-      )
+      with: always(storedAccounts)
     )
 
     let controller: AccountMenuController = try await testController(
@@ -135,10 +138,10 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
 
     storedAccounts = [validAccount, validAccountAlt]
-    await updatedAccountIDsSubject.send(.init(rawValue: "some ID"))
+    accountUpdates.sendUpdate()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     let result:
       Array<
@@ -295,10 +298,14 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
   func test_signOut_closesCurrentSession() async throws {
     var result: Void?
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
     await features.patch(
-      \AccountSession.close,
-      with: {
-        result = Void()
+      \Session.close,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
       }
     )
     let controller: AccountMenuController = try await testController(
@@ -310,7 +317,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     controller.signOut()
     // temporary wait for detached tasks, to be removed
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
     XCTAssertNotNil(result)
   }
 }
@@ -352,8 +359,7 @@ private let validAccountProfile: AccountProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImageURL: "avatarImagePath",
-  biometricsEnabled: false
+  avatarImageURL: "avatarImagePath"
 )
 
 private let validAccountWithProfile: AccountWithProfile = .init(
@@ -374,8 +380,7 @@ private let validAccountProfileAlt: AccountProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImageURL: "avatarImagePath",
-  biometricsEnabled: false
+  avatarImageURL: "avatarImagePath"
 )
 
 private let validAccountWithProfileAlt: AccountWithProfile = .init(

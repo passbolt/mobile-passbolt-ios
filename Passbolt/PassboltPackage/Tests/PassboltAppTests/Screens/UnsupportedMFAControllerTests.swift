@@ -24,7 +24,6 @@
 import Accounts
 import Combine
 import Features
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -35,29 +34,25 @@ import XCTest
 @MainActor
 final class UnsupportedMFAControllerTests: MainActorTestCase {
 
-  var accountSession: AccountSession!
-
-  override func mainActorSetUp() {
-    accountSession = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    accountSession = nil
-  }
-
   func test_closeSession_succeeds() async throws {
-    var result: Void!
-    accountSession.close = {
-      result = Void()
-    }
-    await features.use(accountSession)
+    var result: Void?
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.close,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
 
     let controller: UnsupportedMFAController = try await testController()
 
     controller.closeSession()
 
     // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     XCTAssertNotNil(result)
   }

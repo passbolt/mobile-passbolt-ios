@@ -22,7 +22,7 @@
 //
 
 import Accounts
-import NetworkClient
+import Session
 import UIComponents
 
 internal struct AccountMenuController {
@@ -31,7 +31,7 @@ internal struct AccountMenuController {
   internal let navigation: ComponentNavigation<Void>
   internal var currentAcountAvatarImagePublisher: @MainActor () -> AnyPublisher<Data?, Never>
   internal var accountsListPublisher:
-    @MainActor () -> AnyPublisher<
+    () -> AnyPublisher<
       Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)>, Never
     >
   internal var dismissPublisher: @MainActor () -> AnyPublisher<Void, Never>
@@ -57,84 +57,48 @@ extension AccountMenuController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let accounts: Accounts = try await features.instance()
-    let accountSession: AccountSession = try await features.instance()
-    let networkClient: NetworkClient = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
+    let session: Session = try await features.instance()
+    let currentAccountDetails: AccountDetails = try await features.instance(context: context.accountWithProfile.account)
 
-    var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
-    let filteredAccounts =
-      await accounts
-      .storedAccounts()
-      .filter { $0 != context.accountWithProfile.account }
-    for account in filteredAccounts {
-      try await initialAccountsWithProfiles.append(accountSettings.accountWithProfile(account))
-    }
-
-    let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
-      initialAccountsWithProfiles
+    typealias AccountsListItem = (
+      accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>
     )
-    accountSettings
-      .updatedAccountIDsPublisher()
-      .sink { updatedAccountID in
-        cancellables.executeOnStorageAccessActor {
-          var updated: Array<AccountWithProfile> = .init()
-          let filteredAccounts =
-            accounts
-            .storedAccounts()
-            .filter { $0 != context.accountWithProfile.account }
-          for account in filteredAccounts {
-            try updated.append(accountSettings.accountWithProfile(account))
+
+    nonisolated func accountsListPublisher() -> AnyPublisher<Array<AccountsListItem>, Never> {
+      accounts
+        .updates
+        .map { () -> Array<AccountsListItem> in
+          var listItems:
+            Array<(accountWithProfile: AccountWithProfile, avatarImagePublisher: AnyPublisher<Data?, Never>)> = .init()
+
+          for storedAccount in accounts.storedAccounts() {
+            guard
+              storedAccount != context.accountWithProfile.account,
+              let accountDetails: AccountDetails = try? await features.instance(context: storedAccount),
+              let accountWithProfile: AccountWithProfile = try? accountDetails.profile()
+            else { continue }  // skip current account
+
+            listItems
+              .append(
+                (
+                  accountWithProfile: accountWithProfile,
+                  avatarImagePublisher: Just(Void())
+                    .asyncMap {
+                      try? await accountDetails.avatarImage()
+                    }
+                    .eraseToAnyPublisher()
+                )
+              )
           }
-          storedAccountsWithProfilesSubject
-            .send(updated)
+          return listItems
         }
-      }
-      .store(in: cancellables)
+        .asPublisher()
+    }
 
     func currentAcountAvatarImagePublisher() -> AnyPublisher<Data?, Never> {
-      networkClient
-        .mediaDownload
-        .make(using: context.accountWithProfile.avatarImageURL)
-        .mapToOptional()
-        .replaceError(with: nil)
-        .eraseToAnyPublisher()
-    }
-
-    func accountsListPublisher() -> AnyPublisher<
-      Array<
-        (
-          accountWithProfile: AccountWithProfile,
-          avatarImagePublisher: AnyPublisher<Data?, Never>
-        )
-      >,
-      Never
-    > {
-      storedAccountsWithProfilesSubject
-        .map {
-          (accounts: Array<AccountWithProfile>)
-            -> Array<
-              (
-                accountWithProfile: AccountWithProfile,
-                avatarImagePublisher: AnyPublisher<Data?, Never>
-              )
-            > in
-          accounts
-            .map {
-              (accountWithProfile: AccountWithProfile)
-                -> (
-                  accountWithProfile: AccountWithProfile,
-                  avatarImagePublisher: AnyPublisher<Data?, Never>
-                ) in
-              (
-                accountWithProfile: accountWithProfile,
-                avatarImagePublisher: networkClient
-                  .mediaDownload
-                  .make(using: accountWithProfile.avatarImageURL)
-                  .mapToOptional()
-                  .replaceError(with: nil)
-                  .eraseToAnyPublisher()
-              )
-            }
+      Just(Void())
+        .asyncMap {
+          try? await currentAccountDetails.avatarImage()
         }
         .eraseToAnyPublisher()
     }
@@ -160,8 +124,8 @@ extension AccountMenuController: UIController {
     }
 
     func signOut() {
-      cancellables.executeOnStorageAccessActor {
-        await accountSession.close()
+      cancellables.executeAsync {
+        await session.close(.none)
       }
     }
 

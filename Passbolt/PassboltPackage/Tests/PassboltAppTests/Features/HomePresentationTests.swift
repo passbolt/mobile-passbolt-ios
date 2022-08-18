@@ -23,7 +23,7 @@
 
 import Accounts
 import Features
-import NetworkClient
+import SessionData
 import TestExtensions
 import XCTest
 
@@ -34,18 +34,19 @@ final class HomePresentationTests: TestCase {
 
   func test_currentPresentationModePublisher_publishesDefault_initially() async throws {
     await features.patch(
-      \CurrentAccount.account,
-      with: always(Account.validAccount)
+      \Session.currentAccount,
+      with: always(Account.valid)
     )
     await features.patch(
       \AccountPreferences.defaultHomePresentation,
-      context: Account.validAccount.localID,
+      context: Account.valid,
       with: .constant(HomePresentationMode.ownedResourcesList)
     )
     await features.patch(
-      \FeatureConfig.config,
+      \SessionConfiguration.configuration,
       with: always(FeatureFlags.Folders.disabled)
     )
+
     let feature: HomePresentation = try await testInstance()
 
     var result: HomePresentationMode?

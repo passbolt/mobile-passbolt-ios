@@ -49,7 +49,14 @@ public final actor RecurringTask {
         // it will continue to running new task
       }
       else {
-        return await runningTask.value
+        return await withTaskCancellationHandler(
+          operation: {
+            await runningTask.value
+          },
+          onCancel: {
+            runningTask.cancel()
+          }
+        )
       }
     }
     else { /* continue */
@@ -61,7 +68,14 @@ public final actor RecurringTask {
     )
 
     self.currentTask = newTask
-    await newTask.value
+    await withTaskCancellationHandler(
+      operation: {
+        await newTask.value
+      },
+      onCancel: {
+        newTask.cancel()
+      }
+    )
 
     if !newTask.isCancelled {
       self.currentTask = .none

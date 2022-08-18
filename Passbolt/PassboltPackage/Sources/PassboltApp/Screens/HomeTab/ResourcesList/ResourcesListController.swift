@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import Resources
+import SessionData
 import UIComponents
 
 internal struct ResourcesListController {
@@ -54,7 +55,7 @@ extension ResourcesListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let sessionData: AccountSessionData = try await features.instance()
+    let sessionData: SessionData = try await features.instance()
     let resources: Resources = try await features.instance()
 
     let resourceDetailsIDSubject: PassthroughSubject<Resource.ID, Never> = .init()
@@ -128,13 +129,9 @@ extension ResourcesListController: UIController {
     }
 
     func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
-      cancellables.executeOnAccountSessionActorWithPublisher {
         resources
           .deleteResource(resourceID)
           .eraseToAnyPublisher()
-      }
-      .switchToLatest()
-      .eraseToAnyPublisher()
     }
 
     return Self(

@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct Yubikey: EnvironmentElement {
+public struct YubiKey: EnvironmentElement {
 
   public var readNFC: () -> AnyPublisher<String, Error>
 
@@ -36,27 +36,27 @@ public struct Yubikey: EnvironmentElement {
 
 extension AppEnvironment {
 
-  public var yubikey: Yubikey {
-    get { element(Yubikey.self) }
+  public var yubiKey: YubiKey {
+    get { element(YubiKey.self) }
     set { use(newValue) }
   }
 }
 
-extension Yubikey {
+extension YubiKey {
 
   public static func unavailable() -> Self {
     Self(
       readNFC: Fail(
         error:
           FeatureUnavailable
-          .error(feature: "Yubikey")
+          .error(feature: "YubiKey")
       )
       .eraseToAnyPublisher
     )
   }
 }
 
-extension Yubikey {
+extension YubiKey {
 
   public static var placeholder: Self {
     Self(readNFC: unimplemented("You have to provide mocks for used methods"))

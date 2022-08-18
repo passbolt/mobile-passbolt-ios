@@ -31,26 +31,14 @@ import UIComponents
 @MainActor
 final class ExtensionSetupControllerTests: MainActorTestCase {
 
-  var linkOpener: LinkOpener!
-  var extensionContext: AutofillExtensionContext!
-
-  override func mainActorSetUp() {
-    linkOpener = .placeholder
-    extensionContext = .placeholder
-  }
-
-  override func mainActorTearDown() {
-    linkOpener = nil
-    extensionContext = nil
-  }
-
   func test_closeConfiguration_closesExtension() async throws {
-    var result: Void!
-    extensionContext.completeExtensionConfiguration = {
-      result = Void()
-    }
-    await features.use(extensionContext)
-    await features.use(linkOpener)
+    var result: Void?
+    features.patch(
+      \AutofillExtensionContext.completeExtensionConfiguration,
+      with: {
+        result = Void()
+      }
+    )
 
     let controller: ExtensionSetupController = try await testController()
 

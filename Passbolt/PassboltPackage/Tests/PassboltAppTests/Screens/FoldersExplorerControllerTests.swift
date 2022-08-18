@@ -24,8 +24,8 @@
 import Accounts
 import Combine
 import Features
-import NetworkClient
 import Resources
+import SessionData
 import TestExtensions
 import UIComponents
 import XCTest
@@ -36,35 +36,51 @@ import XCTest
 @MainActor
 final class FoldersExplorerControllerTests: MainActorTestCase {
 
-  override func featuresActorSetUp() async throws {
-    try await super.featuresActorSetUp()
-    features.usePlaceholder(for: Resources.self)
+  var updates: UpdatesSequenceSource!
+
+  override func mainActorSetUp() {
+    updates = .init()
     features.patch(
-      \AccountSessionData.refreshIfNeeded,
+      \SessionData.updatesSequence,
+      with: updates.updatesSequence
+    )
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: always(Void())
     )
+    features.usePlaceholder(for: Resources.self)
     features.usePlaceholder(for: ResourceFolders.self)
+    features.usePlaceholder(for: HomePresentation.self)
+  }
+
+  override func mainActorTearDown() {
+    updates = .none
+  }
+
+  override func featuresActorSetUp() async throws {
+    try await super.featuresActorSetUp()
     features.patch(
       \ResourceFolders.filteredFolderContent,
       with: always(
         AnyAsyncSequence([])
       )
     )
-    features.usePlaceholder(for: HomePresentation.self)
-    features.usePlaceholder(for: AccountSettings.self)
     features
       .patch(
-        \AccountSettings.currentAccountAvatarPublisher,
-        with: always(
-          Just(nil)
-            .eraseToAnyPublisher()
-        )
+        \Session.currentAccount,
+        with: always(Account.valid)
+      )
+    features
+      .patch(
+        \AccountDetails.avatarImage,
+        context: Account.valid,
+        with: always(.init())
       )
   }
 
   func test_refreshIfNeeded_setsViewStateError_whenRefreshFails() async throws {
-    await features.patch(
-      \AccountSessionData.refreshIfNeeded,
+    features.patch(
+      \SessionData.refreshIfNeeded,
       with: alwaysThrow(MockIssue.error())
     )
 

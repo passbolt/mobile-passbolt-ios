@@ -33,25 +33,35 @@ import UIComponents
 @MainActor
 final class BiometricsSetupScreenTests: MainActorTestCase {
 
-  var accountSettings: AccountSettings!
-  var biometry: Biometry!
+  var preferencesUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    accountSettings = .placeholder
-    biometry = .placeholder
+    features.usePlaceholder(for: Biometry.self)
+    preferencesUpdates = .init()
+    features.patch(
+      \Session.currentAccount,
+      with: always(Account.valid)
+    )
+    features.patch(
+      \AccountPreferences.updates,
+      context: Account.valid,
+      with: preferencesUpdates.updatesSequence
+    )
   }
 
   override func mainActorTearDown() {
-    accountSettings = nil
-    biometry = nil
+    preferencesUpdates = .none
   }
 
   func test_destinationPresentationPublisher_doesNotPublishInitially() async throws {
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
@@ -63,11 +73,14 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   }
 
   func test_destinationPresentationPublisher_publishesFinish_WhenSkipping_andExtensionIsEnabled() async throws {
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
@@ -82,11 +95,14 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
 
   func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSkipping_andExtensionIsDisabled() async throws
   {
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
@@ -100,14 +116,19 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   }
 
   func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() async throws {
-    accountSettings.setBiometricsEnabled = always(
-      Just(Void()).eraseErrorType().eraseToAnyPublisher()
+    features.patch(
+      \AccountPreferences.storePassphrase,
+      context: Account.valid,
+      with: always(Void())
     )
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
@@ -124,14 +145,19 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   func test_destinationPresentationPublisher_publishesExtensionSetup_WhenSetupSucceed_andExtensionIsDisabled()
     async throws
   {
-    accountSettings.setBiometricsEnabled = always(
-      Just(Void()).eraseErrorType().eraseToAnyPublisher()
+    features.patch(
+      \AccountPreferences.storePassphrase,
+      context: Account.valid,
+      with: always(Void())
     )
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     var result: BiometricsSetupController.Destination!
@@ -146,17 +172,26 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   }
 
   func test_setupBiometrics_setsBiometricsAsEnabled() async throws {
-    var result: Bool!
-    accountSettings.setBiometricsEnabled = { enabled in
-      result = enabled
-      return Just(Void()).eraseErrorType()
-        .eraseToAnyPublisher()
-    }
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(true).eraseToAnyPublisher())
-    await features.use(autoFill)
+    var result: Bool?
+    let uncheckedSendableResult: UncheckedSendable<Bool?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \AccountPreferences.storePassphrase,
+      context: Account.valid,
+      with: { store in
+        uncheckedSendableResult.variable = store
+      }
+    )
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(true)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     try? await controller
@@ -167,15 +202,19 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   }
 
   func test_setupBiometrics_fails_whenBiometricsEnableFails() async throws {
-    accountSettings.setBiometricsEnabled = { _ in
-      Fail<Void, Error>(error: MockIssue.error())
-        .eraseToAnyPublisher()
-    }
-    await features.use(accountSettings)
-    await features.use(biometry)
-    var autoFill: AutoFill = .placeholder
-    autoFill.extensionEnabledStatePublisher = always(Just(false).eraseToAnyPublisher())
-    await features.use(autoFill)
+    features.patch(
+      \AccountPreferences.storePassphrase,
+      context: Account.valid,
+      with: alwaysThrow(MockIssue.error())
+    )
+    features.patch(
+      \AutoFill.extensionEnabledStatePublisher,
+      with: always(
+        Just(false)
+          .eraseToAnyPublisher()
+      )
+    )
+
     let controller: BiometricsSetupController = try await testController()
 
     var result: Error?

@@ -26,13 +26,11 @@ import TestExtensions
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class BiometryTests: TestCase {
+final class BiometryTests: MainActorTestCase {
 
   func test_biometricsStatePublisher_publishesBiometricsState_initially() async throws {
-    try await FeaturesActor.execute {
-      self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
-      self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
-    }
+    self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
+    self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
     let feature: Biometry = try await testInstance()
 
@@ -50,21 +48,19 @@ final class BiometryTests: TestCase {
     async throws
   {
     var biometricsState: Biometrics.State = .configuredTouchID
-    try await FeaturesActor.execute {
-      self.environment.biometrics.checkBiometricsState = always(biometricsState)
-      self.environment.appLifeCycle.lifeCyclePublisher = always(
-        [
-          AppLifeCycle.Transition.didEnterBackground,
-          AppLifeCycle.Transition.didBecomeActive,
-        ]
-        .publisher
-        // lifeCyclePublisher is used in Biometry instance creation
-        // it publishes immediately after creating so delaying for test case
-        .delay(for: 0.1, scheduler: RunLoop.main)
-        .handleEvents(receiveOutput: { _ in biometricsState = .configuredFaceID })
-        .eraseToAnyPublisher()
-      )
-    }
+    self.environment.biometrics.checkBiometricsState = always(biometricsState)
+    self.environment.appLifeCycle.lifeCyclePublisher = always(
+      [
+        AppLifeCycle.Transition.didEnterBackground,
+        AppLifeCycle.Transition.didBecomeActive,
+      ]
+      .publisher
+      // lifeCyclePublisher is used in Biometry instance creation
+      // it publishes immediately after creating so delaying for test case
+      .delay(for: 0.1, scheduler: RunLoop.main)
+      .handleEvents(receiveOutput: { _ in biometricsState = .configuredFaceID })
+      .eraseToAnyPublisher()
+    )
 
     let feature: Biometry = try await testInstance()
     let expectation: XCTestExpectation = .init()
@@ -85,20 +81,18 @@ final class BiometryTests: TestCase {
     test_biometricsStatePublisher_publishesBiometricsStateOnce_afterPickingApplicationFromBackground_whenStateChanges()
     async throws
   {
-    try await FeaturesActor.execute {
-      self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
-      self.environment.appLifeCycle.lifeCyclePublisher = always(
-        [
-          AppLifeCycle.Transition.didEnterBackground,
-          AppLifeCycle.Transition.didBecomeActive,
-        ]
-        .publisher
-        // lifeCyclePublisher is used in Biometry instance creation
-        // it publishes immediately after creating so delaying for test case
-        .delay(for: 0.1, scheduler: RunLoop.main)
-        .eraseToAnyPublisher()
-      )
-    }
+    self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
+    self.environment.appLifeCycle.lifeCyclePublisher = always(
+      [
+        AppLifeCycle.Transition.didEnterBackground,
+        AppLifeCycle.Transition.didBecomeActive,
+      ]
+      .publisher
+      // lifeCyclePublisher is used in Biometry instance creation
+      // it publishes immediately after creating so delaying for test case
+      .delay(for: 0.1, scheduler: RunLoop.main)
+      .eraseToAnyPublisher()
+    )
 
     let feature: Biometry = try await testInstance()
     let expectation: XCTestExpectation = .init()
@@ -116,10 +110,8 @@ final class BiometryTests: TestCase {
   }
 
   func test_biometricsStatePublisher_publishesConfiguredTouchID_whenBiometricsStateIsConfiguredTouchID() async throws {
-    try await FeaturesActor.execute {
-      self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
-      self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
-    }
+    self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
+    self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
     let feature: Biometry = try await testInstance()
 
@@ -133,10 +125,8 @@ final class BiometryTests: TestCase {
   }
 
   func test_biometricsStatePublisher_publishesConfiguredFaceID_whenBiometricsStateIsConfiguredFaceID() async throws {
-    try await FeaturesActor.execute {
-      self.environment.biometrics.checkBiometricsState = always(.configuredFaceID)
-      self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
-    }
+    self.environment.biometrics.checkBiometricsState = always(.configuredFaceID)
+    self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
     let feature: Biometry = try await testInstance()
 

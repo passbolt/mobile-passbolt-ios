@@ -22,13 +22,19 @@
 //
 
 import XCTest
+import Commons
 
 open class AsyncTestCase: XCTestCase {
 
-  private var testTask: Task<Void, Error>?
+  private let criticalState: CriticalState<Task<Void, Error>?> = .init(.none)
+  private var testTask: Task<Void, Error>? {
+    get { criticalState.get(\.self) }
+    set { criticalState.set(\.self, newValue) }
+  }
 
   open override func tearDown() async throws {
     await self.testTask?.waitForCompletion()
+    self.testTask = .none
     try await super.tearDown()
   }
 
@@ -71,9 +77,11 @@ open class AsyncTestCase: XCTestCase {
     guard self.testTask == .none
     else { fatalError("Cannot use more than once per test") }
 
-    var executedCount: UInt = 0
+    let executedCount: CriticalState<UInt> = .init(0)
     let executed: () -> Void = {
-      executedCount += 1
+      executedCount.access { (count: inout UInt) in
+        count += 1
+      }
     }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
@@ -94,9 +102,9 @@ open class AsyncTestCase: XCTestCase {
 
     waitForExpectations(timeout: timeout)
     XCTAssertEqual(
-      executedCount,
+      executedCount.get(\.self),
       count,
-      "Execution count (\(executedCount)) does not match expected (\(count)).",
+      "Execution count (\(executedCount.get(\.self)) does not match expected (\(count)).",
       file: file,
       line: line
     )

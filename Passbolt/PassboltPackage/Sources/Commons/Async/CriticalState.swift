@@ -21,31 +21,37 @@
 // @since         v1.0
 //
 
-import libkern
+import struct os.os_unfair_lock
+import func os.os_unfair_lock_lock
+import func os.os_unfair_lock_unlock
 
 public struct CriticalState<State> {
 
   @usableFromInline internal let memory: Memory
 
   public init(
-    _ initial: State
+    _ initial: State,
+    cleanup: @escaping @Sendable (State) -> Void = { _ in }
   ) {
-    self.memory = .init(initial)
+    self.memory = .init(
+      initial,
+      cleanup: cleanup
+    )
   }
 
   @inlinable public func access<Value>(
     _ access: (inout State) throws -> Value
   ) rethrows -> Value {
-    while !atomic_flag_test_and_set(self.memory.flagPtr) {}
-    defer { atomic_flag_clear(self.memory.flagPtr) }
+    os_unfair_lock_lock(self.memory.lockPtr)
+    defer { os_unfair_lock_unlock(self.memory.lockPtr) }
     return try access(&self.memory.statePtr.pointee)
   }
 
   @inlinable public func get<Value>(
     _ keyPath: KeyPath<State, Value>
   ) -> Value {
-    while !atomic_flag_test_and_set(self.memory.flagPtr) {}
-    defer { atomic_flag_clear(self.memory.flagPtr) }
+    os_unfair_lock_lock(self.memory.lockPtr)
+    defer { os_unfair_lock_unlock(self.memory.lockPtr) }
     return self.memory.statePtr.pointee[keyPath: keyPath]
   }
 
@@ -53,8 +59,8 @@ public struct CriticalState<State> {
     _ keyPath: WritableKeyPath<State, Value>,
     _ newValue: Value
   ) {
-    while !atomic_flag_test_and_set(self.memory.flagPtr) {}
-    defer { atomic_flag_clear(self.memory.flagPtr) }
+    os_unfair_lock_lock(self.memory.lockPtr)
+    defer { os_unfair_lock_unlock(self.memory.lockPtr) }
     return self.memory.statePtr.pointee[keyPath: keyPath] = newValue
   }
 }
@@ -64,22 +70,28 @@ extension CriticalState {
   @usableFromInline internal final class Memory {
 
     @usableFromInline internal let statePtr: UnsafeMutablePointer<State>
-    @usableFromInline internal let flagPtr: UnsafeMutablePointer<atomic_flag>
+    @usableFromInline internal let lockPtr: UnsafeMutablePointer<os_unfair_lock>
+
+    private let cleanup: @Sendable (State) -> Void
 
     fileprivate init(
-      _ state: State
+      _ state: State,
+      cleanup: @escaping @Sendable (State) -> Void
     ) {
+      
       self.statePtr = .allocate(capacity: 1)
       self.statePtr.initialize(to: state)
-      self.flagPtr = .allocate(capacity: 1)
-      self.flagPtr.initialize(to: atomic_flag())
+      self.lockPtr = .allocate(capacity: 1)
+      self.lockPtr.initialize(to: os_unfair_lock())
+      self.cleanup = cleanup
     }
 
     deinit {
+      self.cleanup(self.statePtr.pointee)
       self.statePtr.deinitialize(count: 1)
       self.statePtr.deallocate()
-      self.flagPtr.deinitialize(count: 1)
-      self.flagPtr.deallocate()
+      self.lockPtr.deinitialize(count: 1)
+      self.lockPtr.deallocate()
     }
   }
 }

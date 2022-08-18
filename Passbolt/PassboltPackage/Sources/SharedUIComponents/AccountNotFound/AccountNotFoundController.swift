@@ -39,10 +39,10 @@ extension AccountNotFoundController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let accountSettings: AccountSettings = try await features.instance()
+    let accountProfile: AccountDetails = try await features.instance(context: context)
 
     let backNavigationPresentationSubject: PassthroughSubject<Void, Never> = .init()
-    let loadedAccountWithProfile = try await accountSettings.accountWithProfile(context)
+    let loadedAccountWithProfile: AccountWithProfile = try accountProfile.profile()
 
     func accountWithProfile() -> AccountWithProfile {
       loadedAccountWithProfile

@@ -34,19 +34,14 @@ import UIComponents
 @MainActor
 final class ServerFingerprintControllerTests: MainActorTestCase {
 
-  var fingerprintStorage: FingerprintStorage!
-
   override func mainActorSetUp() {
-    fingerprintStorage = .placeholder
+    features.usePlaceholder(for: AccountsDataStore.self)
   }
 
   override func mainActorTearDown() {
-    fingerprintStorage = nil
   }
 
   func test_fingerprint_isCorrectlyFormatted() async throws {
-    await features.use(fingerprintStorage)
-
     let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
@@ -57,13 +52,11 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_fingerprintCheckedPublisher_initially_publishes_false() async throws {
-    await features.use(fingerprintStorage)
-
     let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
-    var result: Bool!
+    var result: Bool?
 
     controller.fingerprintMarkedAsCheckedPublisher()
       .sink { value in
@@ -75,13 +68,11 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_fingerprintCheckedPublisher_publishes_whenToggled() async throws {
-    await features.use(fingerprintStorage)
-
     let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
-    var result: Bool!
+    var result: Bool?
 
     controller.fingerprintMarkedAsCheckedPublisher()
       .sink { value in
@@ -95,12 +86,18 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_saveFingerprintPublisher_publishes_whenSaveFingerprintEnabled_andTriggered() async throws {
-    var storedFingerprint: Fingerprint?
-    fingerprintStorage.storeServerFingerprint = { _, fingerprint in
-      storedFingerprint = fingerprint
-      return .success(())
-    }
-    await features.use(fingerprintStorage)
+    var fingerprint: Fingerprint?
+    let uncheckedSendableFingerprint: UncheckedSendable<Fingerprint?> = .init(
+      get: { fingerprint },
+      set: { fingerprint = $0 }
+    )
+    features.patch(
+      \AccountsDataStore.storeServerFingerprint,
+      with: { _, fingerprint in
+        uncheckedSendableFingerprint.variable = fingerprint
+        return Void()
+      }
+    )
 
     let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
@@ -113,7 +110,7 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
       .asAsyncValue()
 
     XCTAssertNotNil(result)
-    XCTAssertEqual(storedFingerprint, validFingerprint)
+    XCTAssertEqual(fingerprint, validFingerprint)
   }
 
   func test_saveFingerprintPublisher_doesNotPublish_whenSaveFingerprintDisabled_andTriggered() async throws {
@@ -121,14 +118,16 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
 
     return XCTFail()
 
-    fingerprintStorage.storeServerFingerprint = always(.success(()))
-    await features.use(fingerprintStorage)
+    features.patch(
+      \AccountsDataStore.storeServerFingerprint,
+      with: always(Void())
+    )
 
     let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)
     )
 
-    var result: Void!
+    var result: Void?
 
     controller.saveFingerprintPublisher()
       .sink(
@@ -141,8 +140,10 @@ final class ServerFingerprintControllerTests: MainActorTestCase {
   }
 
   func test_saveFingerprintPublisher_publishesError_whenSaveFingerprintFails() async throws {
-    fingerprintStorage.storeServerFingerprint = always(.failure(MockIssue.error()))
-    await features.use(fingerprintStorage)
+    features.patch(
+      \AccountsDataStore.storeServerFingerprint,
+      with: alwaysThrow(MockIssue.error())
+    )
 
     let controller: ServerFingerprintController = try await testController(
       context: (accountID: accountID, fingerprint: validFingerprint)

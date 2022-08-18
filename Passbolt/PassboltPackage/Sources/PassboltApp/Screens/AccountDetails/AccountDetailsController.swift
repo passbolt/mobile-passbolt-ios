@@ -23,7 +23,7 @@
 
 import Accounts
 import CommonModels
-import NetworkClient
+import Session
 import UIComponents
 
 internal struct AccountDetailsController {
@@ -44,8 +44,9 @@ extension AccountDetailsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let networkClient: NetworkClient = try await features.instance()
-    let accountSettings: AccountSettings = try await features.instance()
+    await features.assertScope(identifier: context.account)
+    let accountDetails: AccountDetails = try await features.instance(context: context.account)
+    let accountPreferences: AccountPreferences = try await features.instance(context: context.account)
 
     let accountLabelValidator: Validator<String> =
       .maxLength(
@@ -73,11 +74,10 @@ extension AccountDetailsController: UIController {
     }
 
     func currentAcountAvatarImagePublisher() -> AnyPublisher<Data?, Never> {
-      networkClient
-        .mediaDownload
-        .make(using: context.avatarImageURL)
-        .mapToOptional()
-        .replaceError(with: nil)
+      Just(Void())
+        .asyncMap {
+          try? await accountDetails.avatarImage()
+        }
         .eraseToAnyPublisher()
     }
 
@@ -85,7 +85,7 @@ extension AccountDetailsController: UIController {
       currentAccountLabelSubject
         .first()
         .eraseErrorType()
-        .asyncMap { validatedLabel -> Result<Void, Error> in
+        .asyncMap { validatedLabel in
           let label: String
           if validatedLabel.value.isEmpty {
             label = "\(context.firstName) \(context.lastName)"
@@ -94,20 +94,16 @@ extension AccountDetailsController: UIController {
             label = validatedLabel.value
           }
           else {
-            return .failure(
+            throw
               InvalidForm
-                .error(
-                  displayable: .localized(
-                    key: "form.error.invalid"
-                  )
+              .error(
+                displayable: .localized(
+                  key: "form.error.invalid"
                 )
-            )
+              )
           }
-          return
-            await accountSettings
-            .setAccountLabel(label, context.account)
+          return try await accountPreferences.setLocalAccountLabel(label)
         }
-        .flatMapResult { $0 }
         .eraseToAnyPublisher()
     }
 

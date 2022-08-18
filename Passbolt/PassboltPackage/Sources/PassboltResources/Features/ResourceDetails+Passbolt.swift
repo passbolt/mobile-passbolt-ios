@@ -1,0 +1,96 @@
+//
+// Passbolt - Open source password manager for teams
+// Copyright (c) 2021 Passbolt SA
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+// Public License (AGPL) as published by the Free Software Foundation version 3.
+//
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
+// agreement with Passbolt SA.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with this program. If not,
+// see GNU Affero General Public License v3 (http://www.gnu.org/licenses/agpl-3.0.html).
+//
+// @copyright     Copyright (c) Passbolt SA (https://www.passbolt.com)
+// @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+// @link          https://www.passbolt.com Passbolt (tm)
+// @since         v1.0
+//
+
+import DatabaseOperations
+import NetworkOperations
+import Resources
+import SessionData
+
+// MARK: - Implementation
+
+extension ResourceDetails {
+
+  @MainActor fileprivate static func load(
+    features: FeatureFactory,
+    context resourceID: Context,
+    cancellables: Cancellables
+  ) async throws -> Self {
+    let sessionData: SessionData = try await features.instance()
+    let sessionCryptography: SessionCryptography = try await features.instance()
+    let resourceDetailsFetchDatabaseOperation: ResourceDetailsFetchDatabaseOperation = try await features.instance()
+    let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try await features.instance()
+
+    @Sendable nonisolated func fetchResourceDetails() async throws -> ResourceDetailsDSV {
+      try await resourceDetailsFetchDatabaseOperation(
+        resourceID
+      )
+    }
+
+    let currentDetails: UpdatableValue<ResourceDetailsDSV> = .init(
+      updatesSequence:
+        sessionData
+        .updatesSequence,
+      update: fetchResourceDetails
+    )
+
+    @Sendable nonisolated func details() async throws -> ResourceDetailsDSV {
+      try await currentDetails.value
+    }
+
+    @Sendable nonisolated func secret() async throws -> ResourceSecret {
+      let encryptedSecret: ArmoredPGPMessage =
+        try await ArmoredPGPMessage(
+          rawValue: resourceSecretFetchNetworkOperation(
+            .init(
+              resourceID: resourceID
+            )
+          )
+          .data
+        )
+
+      let decryptedSecret: String =
+        try await sessionCryptography
+        // Skipping public key for signature verification.
+        .decryptMessage(encryptedSecret, nil)
+
+      return try .from(decrypted: decryptedSecret)
+    }
+
+    return Self(
+      details: details,
+      secret: secret
+    )
+  }
+}
+
+extension FeatureFactory {
+
+  internal func usePassboltResourceDetails() {
+    self.use(
+      .lazyLoaded(
+        ResourceDetails.self,
+        load: ResourceDetails.load(features:context:cancellables:)
+      )
+    )
+  }
+}

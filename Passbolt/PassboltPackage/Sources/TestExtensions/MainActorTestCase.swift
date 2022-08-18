@@ -34,7 +34,7 @@ open class MainActorTestCase: TestCase {
 
   open override func featuresActorSetUp() async throws {
     try await super.featuresActorSetUp()
-    await mainActorSetUp()
+    mainActorSetUp()
   }
 
   open func mainActorSetUp() {
@@ -42,7 +42,7 @@ open class MainActorTestCase: TestCase {
   }
 
   open override func featuresActorTearDown() async throws {
-    await mainActorTearDown()
+    mainActorTearDown()
     try await super.featuresActorTearDown()
   }
 

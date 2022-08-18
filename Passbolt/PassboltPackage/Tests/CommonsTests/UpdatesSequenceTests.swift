@@ -56,11 +56,12 @@ final class UpdatesSequenceTests: AsyncTestCase {
     }
   }
 
-  func test_deinit_endsSequence() {
+  func test_deinit_ofUpdatesSource_endsSequence() {
     asyncTestReturnsNone { () -> Void? in
-      let uncheckedSendableSequence: UncheckedSendable<UpdatesSequence?> = .init(.init())
+      let uncheckedSendableSequence: UncheckedSendable<UpdatesSequenceSource?> = .init(.init())
 
-      var iterator: UpdatesSequence.AsyncIterator = uncheckedSendableSequence.variable!.makeAsyncIterator()
+      var iterator: UpdatesSequence.AsyncIterator = uncheckedSendableSequence.variable!.updatesSequence
+        .makeAsyncIterator()
 
       uncheckedSendableSequence.variable = .none
 

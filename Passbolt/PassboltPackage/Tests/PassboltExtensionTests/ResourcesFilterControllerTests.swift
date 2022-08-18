@@ -23,7 +23,6 @@
 
 import Combine
 import Features
-import NetworkClient
 import TestExtensions
 import UIComponents
 import XCTest
@@ -35,47 +34,65 @@ import XCTest
 @MainActor
 final class ResourcesFilterControllerTests: MainActorTestCase {
 
-  var accountSession: AccountSession!
-  var accountSettings: AccountSettings!
-  var networkClient: NetworkClient!
+  var detailsUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    accountSession = .placeholder
-    accountSettings = .placeholder
-    networkClient = .placeholder
+    features.patch(
+      \Session.currentAccount,
+      with: always(validAccount)
+    )
+    detailsUpdates = .init()
+    features.patch(
+      \AccountDetails.updates,
+      context: validAccount,
+      with: detailsUpdates.updatesSequence
+    )
+    features.patch(
+      \AccountDetails.profile,
+      context: validAccount,
+      with: always(validAccountWithProfile)
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: validAccount,
+      with: always(.init())
+    )
   }
 
   override func mainActorTearDown() {
-    accountSession = nil
-    accountSettings = nil
-    networkClient = nil
+    detailsUpdates = .none
   }
 
   func test_switchAccount_closesSession() async throws {
     var result: Void?
-    accountSession.close = { result = Void() }
-    await features.use(accountSession)
-    await features.use(accountSettings)
-    await features.use(networkClient)
+    let uncheckedSendableResult: UncheckedSendable<Void?> = .init(
+      get: { result },
+      set: { result = $0 }
+    )
+    features.patch(
+      \Session.close,
+      with: { _ in
+        uncheckedSendableResult.variable = Void()
+      }
+    )
 
     let controller: ResourcesFilterController = try await testController()
 
     controller.switchAccount()
+
     // wait for detached tasks - temporary solution
-    try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+
     XCTAssertNotNil(result)
   }
 
   func test_avatarImagePublisher_publishesImageData_fromMediaDownload() async throws {
-    await features.use(accountSession)
-    accountSettings.currentAccountProfilePublisher = always(
-      Just(validAccountWithProfile)
-        .eraseToAnyPublisher()
+    let expectedResult: Data = .init([0x65, 0x66])
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: validAccount,
+      with: always(expectedResult)
     )
-    await features.use(accountSettings)
-    let data: Data = Data([0x65, 0x66])
-    networkClient.mediaDownload.execute = always(data)
-    await features.use(networkClient)
 
     let controller: ResourcesFilterController = try await testController()
 
@@ -84,20 +101,15 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
       .avatarImagePublisher()
       .asAsyncValue()
 
-    XCTAssertEqual(result, data)
+    XCTAssertEqual(result, expectedResult)
   }
 
   func test_avatarImagePublisher_fails_whenMediaDownloadFails() async throws {
-    await features.use(accountSession)
-    accountSettings.currentAccountProfilePublisher = always(
-      Just(validAccountWithProfile)
-        .eraseToAnyPublisher()
+    features.patch(
+      \AccountDetails.avatarImage,
+      context: validAccount,
+      with: alwaysThrow(MockIssue.error())
     )
-    await features.use(accountSettings)
-    networkClient.mediaDownload.execute = alwaysThrow(
-      MockIssue.error()
-    )
-    await features.use(networkClient)
 
     let controller: ResourcesFilterController = try await testController()
 
@@ -115,10 +127,6 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
   }
 
   func test_searchTextPublisher_publishesEmptyTextInitially() async throws {
-    await features.use(accountSession)
-    await features.use(accountSettings)
-    await features.use(networkClient)
-
     let controller: ResourcesFilterController = try await testController()
 
     var result: String?
@@ -133,10 +141,6 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
   }
 
   func test_searchTextPublisher_publishesTextUpdates() async throws {
-    await features.use(accountSession)
-    await features.use(accountSettings)
-    await features.use(networkClient)
-
     let controller: ResourcesFilterController = try await testController()
 
     var result: String?
@@ -153,10 +157,6 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
   }
 
   func test_resourcesFilterPublisher_publishesEmptyFilterInitially() async throws {
-    await features.use(accountSession)
-    await features.use(accountSettings)
-    await features.use(networkClient)
-
     let controller: ResourcesFilterController = try await testController()
 
     var result: ResourcesFilter?
@@ -171,10 +171,6 @@ final class ResourcesFilterControllerTests: MainActorTestCase {
   }
 
   func test_resourcesFilterPublisher_publishesUpdatesOnTextUpdates() async throws {
-    await features.use(accountSession)
-    await features.use(accountSettings)
-    await features.use(networkClient)
-
     let controller: ResourcesFilterController = try await testController()
 
     var result: ResourcesFilter?
@@ -204,8 +200,7 @@ private let validAccountProfile: AccountProfile = .init(
   username: "username",
   firstName: "firstName",
   lastName: "lastName",
-  avatarImageURL: "avatarImagePath",
-  biometricsEnabled: false
+  avatarImageURL: "avatarImagePath"
 )
 
 private let validAccountWithProfile: AccountWithProfile = .init(

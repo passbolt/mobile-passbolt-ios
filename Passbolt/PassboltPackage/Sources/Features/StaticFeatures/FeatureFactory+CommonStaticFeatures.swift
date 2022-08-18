@@ -23,7 +23,7 @@
 
 extension FeatureFactory {
 
-  @FeaturesActor public func usePassboltCommonStaticFeatures() {
+  @MainActor public func usePassboltCommonStaticFeatures() {
     self.usePassboltSharedStoredProperties()
   }
 }

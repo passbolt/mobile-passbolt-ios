@@ -29,7 +29,6 @@ public func testEnvironment() -> AppEnvironment {
     Time.placeholder,
     UUIDGenerator.placeholder,
     Logger.placeholder,
-    Networking.placeholder,
     Preferences.placeholder,
     Keychain.placeholder,
     Biometrics.placeholder,
@@ -39,11 +38,10 @@ public func testEnvironment() -> AppEnvironment {
     PGP.placeholder,
     SignatureVerfication.placeholder,
     MDMConfig.placeholder,
-    Database.placeholder,
     Files.placeholder,
     AutoFillExtension.placeholder,
     SystemPasteboard.placeholder,
-    Yubikey.placeholder,
+    YubiKey.placeholder,
     AppMeta.placeholder
   )
 }

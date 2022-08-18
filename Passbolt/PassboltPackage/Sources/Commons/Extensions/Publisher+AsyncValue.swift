@@ -30,12 +30,7 @@ extension Publisher {
       self
       .asAsyncThrowingSequence()
 
-    let output: Output? =
-      try await sequence
-      .makeAsyncIterator()
-      .next()
-
-    if let output: Output = output {
+    if let output: Output = try await sequence.first() {
       return output
     }
     else {
