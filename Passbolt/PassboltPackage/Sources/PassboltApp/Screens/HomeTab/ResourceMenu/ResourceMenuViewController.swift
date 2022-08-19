@@ -91,6 +91,7 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
       .map { [unowned self] action in
         self.controller
           .performAction(action)
+          .receive(on: RunLoop.main)
           .handleEvents(receiveOutput: { [weak self] in
             self?.cancellables.executeOnMainActor { [weak self] in
               switch action {

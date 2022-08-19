@@ -98,6 +98,7 @@ internal final class AccountDetailsViewController: PlainViewController, UICompon
       .map { [unowned self] in
         self.controller
           .saveChanges()
+          .receive(on: RunLoop.main)
           .handleErrors(
             (
               [.canceled],

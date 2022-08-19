@@ -21,42 +21,27 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import SessionData
 import TestExtensions
-import XCTest
 
-@testable import PassboltApp
+@testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class HomePresentationTests: TestCase {
+final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
 
-  func test_currentPresentationModePublisher_publishesDefault_initially() async throws {
-    await features.patch(
-      \Session.currentAccount,
-      with: always(Account.valid)
-    )
-    await features.patch(
-      \AccountPreferences.defaultHomePresentation,
-      context: Account.valid,
-      with: .constant(HomePresentationMode.ownedResourcesList)
-    )
-    await features.patch(
-      \SessionConfiguration.configuration,
-      with: always(FeatureFlags.Folders.disabled)
-    )
+  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
+    FeatureFactory.usePassboltSessionPassphrase
+  }
 
-    let feature: HomePresentation = try await testedInstance()
+  override func prepare() throws {
 
-    var result: HomePresentationMode?
-    await feature
-      .currentPresentationModePublisher()
-      .sink { mode in
-        result = mode
-      }
-      .store(in: cancellables)
+  }
 
-    XCTAssertEqual(result, .ownedResourcesList)
+  func test_() {
+    XCTExpectFailure("Not completed yet")
+    return XCTFail("TODO: Implement missing unit tests")
+    
+    withTestedInstance(context: Account.valid) { (testedInstance: SessionPassphrase) in
+
+    }
   }
 }

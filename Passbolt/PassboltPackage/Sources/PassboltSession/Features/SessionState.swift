@@ -103,11 +103,11 @@ extension SessionState {
     ) {
       guard accountStorage != newAccount
       else { return }
-      accountStorage = newAccount
       setPassphrase(.none)
       setAccessToken(.none)
       setRefreshToken(.none)
       setMFAToken(.none)
+      accountStorage = newAccount
     }
 
     // access only using SessionActor
@@ -128,6 +128,7 @@ extension SessionState {
     @SessionActor func setPassphrase(
       _ newPassphrase: Passphrase?
     ) {
+      guard case .some = accountStorage else { return }
       passphraseStorage = newPassphrase
       passphraseTimestamp = osTime.timestamp()
     }
@@ -153,6 +154,7 @@ extension SessionState {
     @SessionActor func setAccessToken(
       _ newToken: SessionAccessToken?
     ) {
+      guard case .some = accountStorage else { return }
       accessTokenStorage = newToken
     }
 
@@ -167,6 +169,7 @@ extension SessionState {
     @SessionActor func setRefreshToken(
       _ newToken: SessionRefreshToken?
     ) {
+      guard case .some = accountStorage else { return }
       refreshTokenStorage = newToken
     }
 
@@ -180,6 +183,7 @@ extension SessionState {
     @SessionActor func setMFAToken(
       _ newToken: SessionMFAToken?
     ) {
+      guard case .some = accountStorage else { return }
       mfaTokenStorage = newToken
     }
 

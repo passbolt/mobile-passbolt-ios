@@ -129,9 +129,9 @@ extension ResourcesListController: UIController {
     }
 
     func resourceDeletionPublisher(resourceID: Resource.ID) -> AnyPublisher<Void, Error> {
-        resources
-          .deleteResource(resourceID)
-          .eraseToAnyPublisher()
+      resources
+        .deleteResource(resourceID)
+        .eraseToAnyPublisher()
     }
 
     return Self(

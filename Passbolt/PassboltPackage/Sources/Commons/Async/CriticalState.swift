@@ -78,7 +78,7 @@ extension CriticalState {
       _ state: State,
       cleanup: @escaping @Sendable (State) -> Void
     ) {
-      
+
       self.statePtr = .allocate(capacity: 1)
       self.statePtr.initialize(to: state)
       self.lockPtr = .allocate(capacity: 1)

@@ -43,7 +43,7 @@ final class StoredPropertyTests: TestCase {
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testInstance(context: "test")
+    var instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
 
     XCTAssertEqual(
       instance.value,
@@ -62,7 +62,7 @@ final class StoredPropertyTests: TestCase {
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testInstance(context: expectedResult)
+    var instance: StoredProperty<Int> = try await self.testedInstance(context: expectedResult)
 
     _ = instance.value
 
@@ -82,7 +82,7 @@ final class StoredPropertyTests: TestCase {
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testInstance(context: "test")
+    var instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
 
     instance.value = expectedResult
 
@@ -102,7 +102,7 @@ final class StoredPropertyTests: TestCase {
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testInstance(context: "test")
+    var instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
 
     instance.value = 0
 

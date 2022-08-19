@@ -65,7 +65,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
       with: always(expectedResult)
     )
 
-    let feature: ResourceDetails = try await self.testInstance(
+    let feature: ResourceDetails = try await self.testedInstance(
       context: .random()
     )
 
@@ -90,7 +90,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
       with: always(nextResult())
     )
 
-    let feature: ResourceDetails = try await self.testInstance(
+    let feature: ResourceDetails = try await self.testedInstance(
       context: .random()
     )
 
@@ -117,7 +117,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
       with: always(.init(data: "encrypted-data"))
     )
 
-    let feature: ResourceDetails = try await self.testInstance(
+    let feature: ResourceDetails = try await self.testedInstance(
       context: .random()
     )
 
@@ -134,7 +134,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceDetails = try await self.testInstance(
+    let feature: ResourceDetails = try await self.testedInstance(
       context: .random()
     )
 
@@ -159,7 +159,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
       with: always(.init(data: "encrypted-data"))
     )
 
-    let feature: ResourceDetails = try await self.testInstance(
+    let feature: ResourceDetails = try await self.testedInstance(
       context: .random()
     )
 

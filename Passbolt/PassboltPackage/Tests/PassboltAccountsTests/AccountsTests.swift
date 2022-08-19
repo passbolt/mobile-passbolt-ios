@@ -47,7 +47,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.valid])
     )
 
-    let accounts: Accounts = try await testInstance()
+    let accounts: Accounts = try await testedInstance()
 
     let result: Array<Account> = accounts.storedAccounts()
 
@@ -71,7 +71,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.valid])
     )
 
-    let accounts: Accounts = try await testInstance()
+    let accounts: Accounts = try await testedInstance()
 
     _ = try? accounts.verifyDataIntegrity()
 
@@ -108,7 +108,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(.success)
     )
 
-    let accounts: Accounts = try await testInstance()
+    let accounts: Accounts = try await testedInstance()
 
     _ =
       try await accounts
@@ -147,7 +147,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(.success)
     )
 
-    let accounts: Accounts = try await testInstance()
+    let accounts: Accounts = try await testedInstance()
 
     var result: Error?
     do {
@@ -182,7 +182,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let accounts: Accounts = try await testInstance()
+    let accounts: Accounts = try await testedInstance()
 
     var result: Error?
     do {
@@ -224,7 +224,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always([.valid])
     )
 
-    let accounts: Accounts = try await testInstance()
+    let accounts: Accounts = try await testedInstance()
 
     _ = try? await accounts.removeAccount(Account.valid)
 

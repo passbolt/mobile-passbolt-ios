@@ -32,7 +32,7 @@ final class BiometryTests: MainActorTestCase {
     self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
-    let feature: Biometry = try await testInstance()
+    let feature: Biometry = try await testedInstance()
 
     var result: Biometrics.State!
     feature
@@ -62,7 +62,7 @@ final class BiometryTests: MainActorTestCase {
       .eraseToAnyPublisher()
     )
 
-    let feature: Biometry = try await testInstance()
+    let feature: Biometry = try await testedInstance()
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
     feature
@@ -94,7 +94,7 @@ final class BiometryTests: MainActorTestCase {
       .eraseToAnyPublisher()
     )
 
-    let feature: Biometry = try await testInstance()
+    let feature: Biometry = try await testedInstance()
     let expectation: XCTestExpectation = .init()
     var result: Array<Biometrics.State> = .init()
     feature
@@ -113,7 +113,7 @@ final class BiometryTests: MainActorTestCase {
     self.environment.biometrics.checkBiometricsState = always(.configuredTouchID)
     self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
-    let feature: Biometry = try await testInstance()
+    let feature: Biometry = try await testedInstance()
 
     var result: Biometrics.State!
     feature
@@ -128,7 +128,7 @@ final class BiometryTests: MainActorTestCase {
     self.environment.biometrics.checkBiometricsState = always(.configuredFaceID)
     self.environment.appLifeCycle.lifeCyclePublisher = always(Empty().eraseToAnyPublisher())
 
-    let feature: Biometry = try await testInstance()
+    let feature: Biometry = try await testedInstance()
 
     var result: Biometrics.State!
     feature

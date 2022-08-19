@@ -64,7 +64,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
 
-    let feature: UserGroups = try await self.testInstance()
+    let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
       await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
@@ -89,7 +89,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
 
-    let feature: UserGroups = try await self.testInstance()
+    let feature: UserGroups = try await self.testedInstance()
 
     let result: Array<ResourceUserGroupListItemDSV>? =
       await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
@@ -130,7 +130,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: always(nextResult())
     )
 
-    let feature: UserGroups = try await self.testInstance()
+    let feature: UserGroups = try await self.testedInstance()
 
     _ = await feature.filteredResourceUserGroupList(filtersSequence.asAnyAsyncSequence())
       .first()
@@ -154,7 +154,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UserGroups = try await self.testInstance()
+    let feature: UserGroups = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -169,7 +169,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       context: "groupID",
       with: alwaysThrow(MockIssue.error())
     )
-    let feature: UserGroups = try await self.testInstance()
+    let feature: UserGroups = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -192,7 +192,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       )
     )
 
-    let feature: UserGroups = try await self.testInstance()
+    let feature: UserGroups = try await self.testedInstance()
 
     await XCTAssertValue(
       equal: expectedResult

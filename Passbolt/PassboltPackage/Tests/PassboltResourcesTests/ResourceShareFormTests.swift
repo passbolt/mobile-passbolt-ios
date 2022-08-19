@@ -72,7 +72,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     await XCTAssertError(
       matches: MockIssue.self
     ) {
-      try await self.testInstance(context: resource.id)
+      try await self.testedInstance(context: resource.id)
     }
   }
 
@@ -109,7 +109,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
         }
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> = feature.permissionsSequence()
 
@@ -150,7 +150,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> = feature.permissionsSequence()
 
@@ -205,7 +205,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserPermission("new-user", .read)
@@ -222,7 +222,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   }
 
   func test_cancelForm_unloadsFeature() async throws {
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     var loaded: Bool =
       isCached(
@@ -258,7 +258,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await XCTAssertError(
       matches: MissingResourceOwner.self
@@ -283,7 +283,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
       .random(),
@@ -320,7 +320,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
       .random(),
@@ -366,7 +366,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
       .random(),
@@ -416,7 +416,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
       .random(),
@@ -468,7 +468,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       }
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     try await feature.sendForm()
 
@@ -511,7 +511,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: always(Void())
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await XCTAssertNoError {
       try await feature.sendForm()
@@ -532,7 +532,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       with: always(Void())
     )
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     var loaded: Bool =
       isCached(
@@ -562,7 +562,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserPermission(
@@ -598,7 +598,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserPermission(
@@ -646,7 +646,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserPermission(
@@ -688,7 +688,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserPermission(
@@ -724,7 +724,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserPermission(
@@ -767,7 +767,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .deleteUserPermission(
@@ -798,7 +798,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserGroupPermission(
@@ -834,7 +834,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserGroupPermission(
@@ -882,7 +882,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserGroupPermission(
@@ -924,7 +924,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserGroupPermission(
@@ -960,7 +960,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       )
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .setUserGroupPermission(
@@ -1003,7 +1003,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
       ),
     ]
 
-    let feature: ResourceShareForm = try await self.testInstance(context: resource.id)
+    let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature
       .deleteUserGroupPermission(

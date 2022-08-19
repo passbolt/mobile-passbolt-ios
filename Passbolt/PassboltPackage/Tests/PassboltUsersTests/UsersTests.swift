@@ -46,7 +46,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: Users = try await testInstance()
+    let feature: Users = try await testedInstance()
 
     var result: Error?
     do {
@@ -67,7 +67,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
       with: always(expectedResult)
     )
 
-    let feature: Users = try await testInstance()
+    let feature: Users = try await testedInstance()
 
     var result: UserDetailsDSV?
     do {

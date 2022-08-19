@@ -48,7 +48,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       with: always([])
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: UsersListEmpty.self
@@ -68,7 +68,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -88,7 +88,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       with: always([])
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: UserPublicKeyMissing.self
@@ -115,7 +115,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       )
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -142,7 +142,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       )
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertValue(
       equal: [
@@ -163,7 +163,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -183,7 +183,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -210,7 +210,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       )
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertError(
       matches: MockIssue.self
@@ -237,7 +237,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       )
     )
 
-    let feature: UsersPGPMessages = try await self.testInstance()
+    let feature: UsersPGPMessages = try await self.testedInstance()
 
     await XCTAssertValue(
       equal: [

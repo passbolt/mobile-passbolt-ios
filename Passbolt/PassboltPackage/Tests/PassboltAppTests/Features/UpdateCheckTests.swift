@@ -38,7 +38,7 @@ final class UpdateCheckTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
     var result: Error?
     do {
       try await feature.updateAvailable()
@@ -61,7 +61,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     var result: Error?
     do {
@@ -89,7 +89,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     var result: Error?
     do {
@@ -117,7 +117,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     var result: Error?
     do {
@@ -145,7 +145,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     var result: Error?
     do {
@@ -161,7 +161,7 @@ final class UpdateCheckTests: MainActorTestCase {
   func test_checkRequired_returnsTrue_whenNotCheckedYet() async throws {
     features.usePlaceholder(for: AppVersionsFetchNetworkOperation.self)
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     let result = await feature.checkRequired()
     XCTAssertTrue(result)
@@ -174,7 +174,7 @@ final class UpdateCheckTests: MainActorTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     _ = try? await feature.updateAvailable()
 
@@ -197,7 +197,7 @@ final class UpdateCheckTests: MainActorTestCase {
       )
     )
 
-    let feature: UpdateCheck = try await testInstance()
+    let feature: UpdateCheck = try await testedInstance()
 
     _ = try await feature.updateAvailable()
     let result = await feature.checkRequired()

@@ -83,7 +83,7 @@ open class TestCase: AsyncTestCase {
     self.cancellables = nil
   }
 
-  public final func testInstance<F: LegacyFeature>(
+  public final func testedInstance<F: LegacyFeature>(
     _ type: F.Type = F.self
   ) async throws -> F {
     try await F.load(
@@ -93,7 +93,7 @@ open class TestCase: AsyncTestCase {
     )
   }
 
-  public final func testInstance<Feature>(
+  public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self,
     context: Feature.Context
   ) async throws -> Feature
@@ -105,7 +105,7 @@ open class TestCase: AsyncTestCase {
       )
   }
 
-  public final func testInstance<Feature>(
+  public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self
   ) async throws -> Feature
   where Feature: LoadableFeature, Feature.Context == ContextlessFeatureContext {

@@ -63,7 +63,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -101,7 +101,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -143,7 +143,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -185,7 +185,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       permissions: .init()
     )
 
-    let feature: ResourceFolders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
@@ -236,7 +236,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
       ),
     ]
 
-    let feature: ResourceFolders = try await self.testInstance()
+    let feature: ResourceFolders = try await self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
     for await folderContent in feature.filteredFolderContent(.init(filters)).prefix(2) {

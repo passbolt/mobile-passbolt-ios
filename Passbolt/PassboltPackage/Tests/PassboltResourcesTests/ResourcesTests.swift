@@ -94,7 +94,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: { uncheckedSendableResult.variable = Void() }
     )
 
-    let _: Resources = try await testInstance()
+    let _: Resources = try await testedInstance()
 
     // wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -108,7 +108,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(.testResources)
     )
 
-    let feature: Resources = try await testInstance()
+    let feature: Resources = try await testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -134,7 +134,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       }
     )
 
-    let feature: Resources = try await testInstance()
+    let feature: Resources = try await testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -153,7 +153,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(resources)
     )
 
-    let feature: Resources = try await testInstance()
+    let feature: Resources = try await testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -180,7 +180,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: Resources = try await testInstance()
+    let feature: Resources = try await testedInstance()
 
     let filterSubject: CurrentValueSubject<ResourcesFilter, Never> = .init(testFilter)
 
@@ -207,7 +207,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
       with: always(Void())
     )
 
-    let feature: Resources = try await testInstance()
+    let feature: Resources = try await testedInstance()
 
     try await feature
       .deleteResource(.init(rawValue: "test"))

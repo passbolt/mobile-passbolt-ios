@@ -21,20 +21,52 @@
 // @since         v1.0
 //
 
-import XCTest
 import Commons
+import XCTest
 
+@dynamicMemberLookup
 open class AsyncTestCase: XCTestCase {
 
-  private let criticalState: CriticalState<Task<Void, Error>?> = .init(.none)
-  private var testTask: Task<Void, Error>? {
-    get { criticalState.get(\.self) }
-    set { criticalState.set(\.self, newValue) }
+  private var currentTestTask: Task<Void, Error>? {
+    didSet {
+      guard let task: Task<Void, Error> = currentTestTask
+      else { return }
+      self.testTasks.append(task)
+    }
+  }
+  private var testTasks: Array<Task<Void, Error>> = .init()
+  public var variables: TestVariables!
+
+  public subscript<Value>(
+    dynamicMember keyPath: KeyPath<TestVariables, TestVariables.VariableName>
+  ) -> Value {
+    get {
+      self.variables.get(
+        keyPath,
+        of: Value.self
+      )
+    }
+    set {
+      self.variables.set(
+        keyPath,
+        of: Value.self,
+        to: newValue
+      )
+    }
+  }
+
+  open override func setUp() async throws {
+    try await super.setUp()
+    self.variables = .init()
   }
 
   open override func tearDown() async throws {
-    await self.testTask?.waitForCompletion()
-    self.testTask = .none
+    for task in self.testTasks {
+      await task.waitForCompletion()
+    }
+    self.testTasks = .init()
+    self.currentTestTask = .none
+    self.variables = .none
     try await super.tearDown()
   }
 
@@ -44,12 +76,12 @@ open class AsyncTestCase: XCTestCase {
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Void
   ) {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
         try await test()
       }
@@ -64,7 +96,8 @@ open class AsyncTestCase: XCTestCase {
     }
 
     waitForExpectations(timeout: timeout)
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 
   public func asyncTestExecuted<Value>(
@@ -72,13 +105,13 @@ open class AsyncTestCase: XCTestCase {
     timeout: TimeInterval = 0.3,
     file: StaticString = #file,
     line: UInt = #line,
-    test: @escaping @Sendable (@escaping () -> Void) async throws -> Value
+    test: @escaping @Sendable (@escaping @Sendable () -> Void) async throws -> Value
   ) {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let executedCount: CriticalState<UInt> = .init(0)
-    let executed: () -> Void = {
+    let executed: @Sendable () -> Void = {
       executedCount.access { (count: inout UInt) in
         count += 1
       }
@@ -86,7 +119,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
         _ = try await test(executed)
       }
@@ -108,7 +141,8 @@ open class AsyncTestCase: XCTestCase {
       file: file,
       line: line
     )
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 
   public func asyncTestReturnsEqual<Value>(
@@ -118,12 +152,12 @@ open class AsyncTestCase: XCTestCase {
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value?
   ) where Value: Equatable {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
         let result: Value? = try await test()
         XCTAssertEqual(
@@ -144,23 +178,24 @@ open class AsyncTestCase: XCTestCase {
     }
 
     waitForExpectations(timeout: timeout)
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 
-  public func asyncTestReturnsSome<Value>(
+  public func asyncTestReturnsSome(
     timeout: TimeInterval = 0.3,
     file: StaticString = #file,
     line: UInt = #line,
-    test: @escaping @Sendable () async throws -> Value?
+    test: @escaping @Sendable () async throws -> Any?
   ) {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
-        let result: Value? = try await test()
+        let result: Any? = try await test()
         XCTAssertNotNil(
           result,
           file: file,
@@ -178,23 +213,24 @@ open class AsyncTestCase: XCTestCase {
     }
 
     waitForExpectations(timeout: timeout)
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 
-  public func asyncTestReturnsNone<Value>(
+  public func asyncTestReturnsNone(
     timeout: TimeInterval = 0.3,
     file: StaticString = #file,
     line: UInt = #line,
-    test: @escaping @Sendable () async throws -> Value?
+    test: @escaping @Sendable () async throws -> Any?
   ) {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
-        let result: Value? = try await test()
+        let result: Any? = try await test()
         XCTAssertNil(
           result,
           file: file,
@@ -212,7 +248,8 @@ open class AsyncTestCase: XCTestCase {
     }
 
     waitForExpectations(timeout: timeout)
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 
   public func asyncTestNotThrows<Value>(
@@ -221,12 +258,12 @@ open class AsyncTestCase: XCTestCase {
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value
   ) {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
         _ = try await test()
       }
@@ -241,7 +278,8 @@ open class AsyncTestCase: XCTestCase {
     }
 
     waitForExpectations(timeout: timeout)
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 
   public func asyncTestThrows<Value, Failure>(
@@ -251,12 +289,12 @@ open class AsyncTestCase: XCTestCase {
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value
   ) where Failure: Error {
-    guard self.testTask == .none
-    else { fatalError("Cannot use more than once per test") }
+    guard self.currentTestTask == .none
+    else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.testTask = Task {
+    self.currentTestTask = Task {
       do {
         let result: Value = try await test()
         XCTFail(
@@ -277,6 +315,7 @@ open class AsyncTestCase: XCTestCase {
     }
 
     waitForExpectations(timeout: timeout)
-    self.testTask?.cancel()
+    self.currentTestTask?.cancel()
+    self.currentTestTask = .none
   }
 }

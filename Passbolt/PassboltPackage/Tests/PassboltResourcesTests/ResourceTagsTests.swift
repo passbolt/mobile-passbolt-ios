@@ -65,7 +65,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       }
     )
 
-    let feature: ResourceTags = try await self.testInstance()
+    let feature: ResourceTags = try await self.testedInstance()
 
     _ = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
       .first()
@@ -81,7 +81,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceTags = try await self.testInstance()
+    let feature: ResourceTags = try await self.testedInstance()
 
     let result: Array<ResourceTagListItemDSV>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
       .first()
@@ -105,7 +105,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       with: always(expectedResult)
     )
 
-    let feature: ResourceTags = try await self.testInstance()
+    let feature: ResourceTags = try await self.testedInstance()
 
     let result: Array<ResourceTagListItemDSV>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
       .first()
@@ -133,7 +133,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       with: always(nextResult())
     )
 
-    let feature: ResourceTags = try await self.testInstance()
+    let feature: ResourceTags = try await self.testedInstance()
 
     let filteredTagsSequenceIterator = feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
       .makeAsyncIterator()

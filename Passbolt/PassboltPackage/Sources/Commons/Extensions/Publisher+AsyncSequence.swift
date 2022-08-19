@@ -64,9 +64,9 @@ extension AsyncSequence {
         },
         receiveCancel: { [weak subject] in
           withExtendedLifetime(subject) {
-          iterationTask
-            .get(\.self)?
-            .cancel()
+            iterationTask
+              .get(\.self)?
+              .cancel()
           }
         }
       )
