@@ -54,13 +54,13 @@ where Feature: LoadableFeature {
   public final override func setUp() async throws {
     try await super.setUp()
     await Task { @MainActor in
-      self.mockedStaticFeatures = .init()
-      self.mockedDynamicFeatures = [
+      self.mockedStaticFeatures = [
         FeatureIdentifier(
           featureTypeIdentifier: Diagnostics.typeIdentifier,
           featureContextIdentifier: ContextlessFeatureContext.instance.identifier
         ): Diagnostics.disabled
       ]
+      self.mockedDynamicFeatures = .init()
       self.mockedEnvironment = testEnvironment()
       self.mockedEnvironment.asyncExecutors = .immediate
       do {

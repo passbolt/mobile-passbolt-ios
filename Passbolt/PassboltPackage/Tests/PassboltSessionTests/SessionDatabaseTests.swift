@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
-import TestExtensions
 import Crypto
 import Database
+import TestExtensions
 
 @testable import PassboltSession
 
@@ -44,15 +44,15 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_returnsSome_withActiveSessionWithPassphrase() {
     patch(
       \SessionState.account,
-       with: always(.valid)
+      with: always(.valid)
     )
     patch(
       \SessionStateEnsurance.passphrase,
-       with: always("passphrase")
+      with: always("passphrase")
     )
     patch(
       \DatabaseAccess.openConnection,
-       with: always(.placeholder)
+      with: always(.placeholder)
     )
 
     withTestedInstanceReturnsSome { (testedInstance: SessionDatabase) in
@@ -63,15 +63,15 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_throws_whenOpeningConnectionFails() {
     patch(
       \SessionState.account,
-       with: always(.valid)
+      with: always(.valid)
     )
     patch(
       \SessionStateEnsurance.passphrase,
-       with: always("passphrase")
+      with: always("passphrase")
     )
     patch(
       \DatabaseAccess.openConnection,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(DatabaseConnectionClosed.self) { (testedInstance: SessionDatabase) in
@@ -82,11 +82,11 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_throws_withoutPassphrase() {
     patch(
       \SessionState.account,
-       with: always(.valid)
+      with: always(.valid)
     )
     patch(
       \SessionStateEnsurance.passphrase,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(DatabaseConnectionClosed.self) { (testedInstance: SessionDatabase) in
@@ -97,7 +97,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_throws_withoutSession() {
     patch(
       \SessionState.account,
-       with: always(.none)
+      with: always(.none)
     )
 
     withTestedInstanceThrows(DatabaseConnectionClosed.self) { (testedInstance: SessionDatabase) in
@@ -109,19 +109,19 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
     let sessionUpdatesSequenceSource: UpdatesSequenceSource = .init()
     patch(
       \Session.updatesSequence,
-       with: sessionUpdatesSequenceSource.updatesSequence
+      with: sessionUpdatesSequenceSource.updatesSequence
     )
     patch(
       \SessionState.account,
-       with: always(self.account)
+      with: always(self.account)
     )
     patch(
       \SessionStateEnsurance.passphrase,
-       with: always("passphrase")
+      with: always("passphrase")
     )
     patch(
       \DatabaseAccess.openConnection,
-       with: always(.placeholder)
+      with: always(.placeholder)
     )
 
     self.account = Account.valid

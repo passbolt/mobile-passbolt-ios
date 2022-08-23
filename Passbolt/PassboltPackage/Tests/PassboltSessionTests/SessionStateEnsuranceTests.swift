@@ -39,7 +39,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
   func test_() {
     XCTExpectFailure("Not completed yet")
     return XCTFail("TODO: Implement missing unit tests")
-    
+
     withTestedInstance { (testedInstance: SessionStateEnsurance) in
 
     }

@@ -52,7 +52,7 @@ extension SessionMFAAuthorization {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionState: SessionState = try await features.instance()
     let accountsData: AccountsDataStore = try await features.instance()
     let yubiKey: YubiKey = try await features.instance(of: EnvironmentLegacyBridge.self).environment.yubiKey
@@ -106,7 +106,7 @@ extension SessionMFAAuthorization {
     @SessionActor @Sendable func authorizeMFA(
       _ method: SessionMFAAuthorizationMethod
     ) async throws {
-      diagnostics.diagnosticLog("Starting MFA authorization...")
+      diagnostics.log(diagnostic: "Starting MFA authorization...")
       do {
         let mfaToken: SessionMFAToken
         let account: Account
@@ -138,11 +138,11 @@ extension SessionMFAAuthorization {
           account: account,
           saveLocally: rememberDevice
         )
-        diagnostics.diagnosticLog("...MFA authorization succeeded!")
+        diagnostics.log(diagnostic: "...MFA authorization succeeded!")
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("...MFA authorization failed!")
+        diagnostics.log(error: error)
+        diagnostics.log(diagnostic: "...MFA authorization failed!")
         throw error
       }
     }

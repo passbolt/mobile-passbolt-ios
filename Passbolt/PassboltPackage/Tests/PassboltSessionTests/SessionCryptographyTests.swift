@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import TestExtensions
 import Crypto
+import TestExtensions
 
 @testable import PassboltSession
 
@@ -51,11 +51,11 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always("privatePGPKey")
+      with: always("privatePGPKey")
     )
     patch(
       environment: \.pgp.decryptAndVerify,
-       with: always(.success("plainMessage"))
+      with: always(.success("plainMessage"))
     )
 
     withTestedInstanceReturnsEqual("plainMessage") { (testedInstance: SessionCryptography) in
@@ -74,11 +74,11 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always("privatePGPKey")
+      with: always("privatePGPKey")
     )
     patch(
       environment: \.pgp.decrypt,
-       with: always(.success("plainMessage"))
+      with: always(.success("plainMessage"))
     )
 
     withTestedInstanceReturnsEqual("plainMessage") { (testedInstance: SessionCryptography) in
@@ -97,7 +97,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always("privatePGPKey")
+      with: always("privatePGPKey")
     )
     patch(
       environment: \.pgp.decrypt,
@@ -120,7 +120,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(MockIssue.self) { (testedInstance: SessionCryptography) in
@@ -146,7 +146,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_decryptMessage_fails_whenSessionMissing() {
     patch(
       \Session.currentAccount,
-       with: alwaysThrow(SessionMissing.error())
+      with: alwaysThrow(SessionMissing.error())
     )
 
     withTestedInstanceThrows(SessionMissing.self) { (testedInstance: SessionCryptography) in
@@ -161,15 +161,15 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \SessionStateEnsurance.passphrase,
-       with: always("passphrase")
+      with: always("passphrase")
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always("privatePGPKey")
+      with: always("privatePGPKey")
     )
     patch(
       environment: \.pgp.encryptAndSign,
-       with: always(.success("encryptedMessage"))
+      with: always(.success("encryptedMessage"))
     )
 
     withTestedInstanceReturnsEqual("encryptedMessage") { (testedInstance: SessionCryptography) in
@@ -188,7 +188,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: always("privatePGPKey")
+      with: always("privatePGPKey")
     )
     patch(
       environment: \.pgp.decrypt,
@@ -216,7 +216,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     )
     patch(
       \AccountsDataStore.loadAccountPrivateKey,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(MockIssue.self) { (testedInstance: SessionCryptography) in
@@ -242,7 +242,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_encryptAndSignMessage_fails_whenSessionMissing() {
     patch(
       \Session.currentAccount,
-       with: alwaysThrow(SessionMissing.error())
+      with: alwaysThrow(SessionMissing.error())
     )
 
     withTestedInstanceThrows(SessionMissing.self) { (testedInstance: SessionCryptography) in

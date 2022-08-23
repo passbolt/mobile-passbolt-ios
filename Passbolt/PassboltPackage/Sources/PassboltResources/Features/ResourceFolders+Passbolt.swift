@@ -33,7 +33,7 @@ extension ResourceFolders {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try await features.instance()
@@ -71,7 +71,7 @@ extension ResourceFolders {
               )
           }
           catch {
-            diagnostics.log(error)
+            diagnostics.log(error: error)
             folders = .init()
           }
 
@@ -90,7 +90,7 @@ extension ResourceFolders {
               )
           }
           catch {
-            diagnostics.log(error)
+            diagnostics.log(error: error)
             resources = .init()
           }
 

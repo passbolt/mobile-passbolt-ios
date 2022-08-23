@@ -36,24 +36,12 @@ extension Publisher where Failure == TheErrorLegacy {
         break
 
       case let .failure(error):
-        #if DEBUG
-        diagnostics.debugLog("\(prefix)\(error.debugDescription)")
-        #else
         if let theError: TheError = error.legacyBridge {
-          theError
-            .diagnosticMessages
-            .forEach { message in
-              diagnostics.diagnosticLog(message)
-            }
+          diagnostics.log(error: theError)
         }
         else {
-          diagnostics
-            .diagnosticLog(
-              "Error: %{public}s",
-              variable: error.identifier.rawValue
-            )
+          diagnostics.log(error: error)
         }
-        #endif
       }
     })
   }
@@ -82,66 +70,15 @@ extension Publisher {
         case let .failure(error as TheErrorLegacy):
           guard error.identifier != .canceled
           else { return }
-          #if DEBUG
-          diagnostics.debugLog(error.debugDescription)
-          #else
           if let theError: TheError = error.legacyBridge {
-            theError
-              .diagnosticMessages
-              .forEach { message in
-                diagnostics.diagnosticLog(message)
-              }
+            diagnostics.log(error: theError)
           }
           else {
-            diagnostics
-              .diagnosticLog(
-                "Error: %{public}s",
-                variable: error.identifier.rawValue
-              )
+            diagnostics.log(error: error)
           }
-          #endif
-        case let .failure(error as TheError):
-          #if DEBUG
-          diagnostics.debugLog(error.debugDescription)
-          #else
-          error
-            .diagnosticMessages
-            .forEach { message in
-              diagnostics.diagnosticLog(message)
-            }
-          #endif
-
-        case let .failure(error as Unidentified):
-          #if DEBUG
-          diagnostics.debugLog("\(error)")
-          #else
-          error
-            .asUnidentified()
-            .diagnosticMessages
-            .forEach { message in
-              diagnostics.diagnosticLog(message)
-            }
-          diagnostics.diagnosticLog(
-            "Error: %{public}",
-            unsafeVariable: error.underlyingError.localizedDescription
-          )
-          #endif
 
         case let .failure(error):
-          let unidentified: Unidentified = error.asUnidentified()
-          #if DEBUG
-          diagnostics.debugLog("\(unidentified)")
-          #else
-          unidentified
-            .diagnosticMessages
-            .forEach { message in
-              diagnostics.diagnosticLog(message)
-            }
-          diagnostics.diagnosticLog(
-            "Error: %{public}",
-            unsafeVariable: unidentified.underlyingError.localizedDescription
-          )
-          #endif
+          diagnostics.log(error: error)
         }
       })
   }
@@ -155,7 +92,7 @@ extension Publisher {
   ) -> AnyPublisher<Output, Failure> {
     #if DEBUG
     handleEvents(receiveOutput: { output in
-      diagnostics.debugLog("\(prefix)\(output)")
+      diagnostics.log(debug: "\(prefix)\(output)")
     })
     .eraseToAnyPublisher()
     #else
@@ -173,7 +110,7 @@ extension Publisher {
     #if DEBUG
     handleEvents(receiveCancel: {
 
-      diagnostics.debugLog("\(prefix)")
+      diagnostics.log(debug: "\(prefix)")
     })
     .eraseToAnyPublisher()
     #else

@@ -52,7 +52,7 @@ extension FoldersExplorerController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
     let resources: Resources = try await features.instance()
@@ -133,7 +133,7 @@ extension FoldersExplorerController: ComponentController {
           .refreshIfNeeded()
       }
       catch {
-        diagnostics.log(error)
+        diagnostics.log(error: error)
         viewState.snackBarMessage = .error(error.asTheError().displayableMessage)
       }
     }

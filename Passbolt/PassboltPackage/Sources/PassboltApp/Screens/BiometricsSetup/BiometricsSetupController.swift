@@ -51,7 +51,7 @@ extension BiometricsSetupController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let autoFill: AutoFill = try await features.instance()
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
     let biometry: Biometry = try await features.instance()

@@ -34,7 +34,7 @@ final class ExtensionSetupControllerTests: MainActorTestCase {
   func test_closeConfiguration_closesExtension() async throws {
     var result: Void?
     features.patch(
-      \AutofillExtensionContext.completeExtensionConfiguration,
+      \ConfigurationExtensionContext.completeExtensionConfiguration,
       with: {
         result = Void()
       }

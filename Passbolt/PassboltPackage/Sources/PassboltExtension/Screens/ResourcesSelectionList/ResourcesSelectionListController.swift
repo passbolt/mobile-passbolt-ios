@@ -52,7 +52,7 @@ extension ResourcesSelectionListController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let autofillContext: AutofillExtensionContext = try await features.instance()
     let resources: Resources = try await features.instance()
     let sessionData: SessionData = try await features.instance()
@@ -72,24 +72,23 @@ extension ResourcesSelectionListController: UIController {
       ),
       Never
     > {
-      Publishers.CombineLatest(
+      let requestedServiceIdentifiers = autofillContext.requestedServiceIdentifiers()
+      return
         resources
-          .filteredResourcesListPublisher(context),
-        autofillContext.requestedServiceIdentifiersPublisher()
-      )
-      .map { resources, requested in
-        (
-          suggested:
-            resources
-            .filter { resource in
-              requested.matches(resource)
-            }
-            .map(ResourcesSelectionResourceListItemDSVItem.init(from:))
-            .map(\.suggestionCopy),
-          all: resources.map(ResourcesSelectionResourceListItemDSVItem.init(from:))
-        )
-      }
-      .eraseToAnyPublisher()
+        .filteredResourcesListPublisher(context)
+        .map { resources in
+          (
+            suggested:
+              resources
+              .filter { resource in
+                requestedServiceIdentifiers.matches(resource)
+              }
+              .map(ResourcesSelectionResourceListItemDSVItem.init(from:))
+              .map(\.suggestionCopy),
+            all: resources.map(ResourcesSelectionResourceListItemDSVItem.init(from:))
+          )
+        }
+        .eraseToAnyPublisher()
     }
 
     func addResource() {

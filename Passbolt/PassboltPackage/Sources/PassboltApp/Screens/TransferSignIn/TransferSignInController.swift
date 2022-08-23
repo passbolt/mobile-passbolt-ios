@@ -66,7 +66,7 @@ extension TransferSignInController: UIController {
     let accountTransfer: AccountTransfer = try await features.instance()
     let autoFill: AutoFill = try await features.instance()
     let biometrics: Biometry = try await features.instance()
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()

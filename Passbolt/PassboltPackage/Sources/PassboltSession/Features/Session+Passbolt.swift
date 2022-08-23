@@ -34,7 +34,7 @@ extension Session {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionState: SessionState = try await features.instance()
     let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
     let sessionAuthorization: SessionAuthorization = try await features.instance()
@@ -105,7 +105,7 @@ extension Session {
           }
           catch {
             // ignore errors it won't be able to retry anyway
-            diagnostics.log(error)
+            diagnostics.log(error: error)
           }
         }
       }  // else NOP

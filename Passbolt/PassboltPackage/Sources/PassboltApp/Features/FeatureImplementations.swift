@@ -34,6 +34,7 @@ import PassboltUsers
 extension FeatureFactory {
 
   @MainActor public func usePassboltFeatures() {
+    self.useOSDiagnostics()
     self.useLiveDisplay()
     self.useOSFeatures()
 

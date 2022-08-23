@@ -26,61 +26,65 @@ import Features
 import Session
 import UICommons
 
+// MARK: - Interface
+
 public struct Initialization {
 
   public var initialize: @MainActor () -> Void
-  public var featureUnload: @MainActor () async throws -> Void
 }
 
-extension Initialization: LegacyFeature {
+extension Initialization: StaticFeature {
 
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      initialize: unimplemented()
+    )
+  }
+  #endif
+}
 
-    // swift-format-ignore: NoLeadingUnderscores
-    @MainActor func _initialize(with features: FeatureFactory) async throws {
-      diagnostics.diagnosticLog("Initializing the app extension...")
-      defer { diagnostics.diagnosticLog("...app extension initialization completed!") }
-      // initialize application extension features here
-      analytics()
-      // load features that require root scope
-      try await features.loadIfNeeded(Diagnostics.self)
-      try await features.loadIfNeeded(Executors.self)
-      try await features.loadIfNeeded(LinkOpener.self)
-      try await features.loadIfNeeded(OSPermissions.self)
+// MARK: - Implementation
 
-      try await features.unload(Initialization.self)
-    }
-    let initialize: @MainActor () -> Void = { [unowned features] in
+extension Initialization {
+
+  @MainActor fileprivate static func passbolt(
+    features: FeatureFactory
+  ) -> Self {
+    unowned let features: FeatureFactory = features
+    features.useOSDiagnostics()
+    features.useOSFeatures()
+    features.useLiveDisplay()
+
+    let diagnostics: Diagnostics = features.instance()
+
+    @MainActor func initialize() {
+      diagnostics.log(diagnostic: "Initializing the app extension...")
+      defer { diagnostics.log(diagnostic: "...app extension initialization completed!") }
+
       setupApplicationAppearance()
-      cancellables.executeOnMainActor {
-        try await _initialize(with: features)
+      features.usePassboltFeatures()
+      analytics()
+
+      Task {
+        // preload features that require root scope
+        try await features.loadIfNeeded(Executors.self)
+        try await features.loadIfNeeded(LinkOpener.self)
+        try await features.loadIfNeeded(OSPermissions.self)
       }
     }
 
-    @MainActor func featureUnload() async throws {
-      // always succeeds
-    }
-
     return Self(
-      initialize: initialize,
-      featureUnload: featureUnload
+      initialize: initialize
     )
   }
 }
 
-#if DEBUG
-extension Initialization {
+extension FeatureFactory {
 
-  public static var placeholder: Self {
-    Self(
-      initialize: unimplemented("You have to provide mocks for used methods"),
-      featureUnload: unimplemented("You have to provide mocks for used methods")
+  @MainActor public func usePassboltInitialization() {
+    self.use(
+      Initialization.passbolt(features: self)
     )
   }
 }
-#endif

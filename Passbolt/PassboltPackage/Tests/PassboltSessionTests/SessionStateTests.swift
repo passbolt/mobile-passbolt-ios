@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import TestExtensions
 import Crypto
+import TestExtensions
 
 @testable import PassboltSession
 
@@ -36,7 +36,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
   override func prepare() throws {
     patch(
       \OSTime.timestamp,
-       with: always(self.timestamp)
+      with: always(self.timestamp)
     )
     self.timestamp = 0 as Timestamp
   }

@@ -36,7 +36,7 @@ extension SessionConfiguration {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let configurationFetchNetworkOperation: ConfigurationFetchNetworkOperation = try await features.instance()
 
@@ -50,10 +50,10 @@ extension SessionConfiguration {
     )
 
     @Sendable nonisolated func fetchConfiguration() async throws -> Dictionary<AnyHashable, FeatureConfigItem> {
-      diagnostics.diagnosticLog("Fetching server configuration...")
+      diagnostics.log(diagnostic: "Fetching server configuration...")
       guard case .some = try? await session.currentAccount()
       else {
-        diagnostics.diagnosticLog("...server configuration fetching skipped!")
+        diagnostics.log(diagnostic: "...server configuration fetching skipped!")
         return .init()
       }
       let rawConfiguration: ConfigurationFetchNetworkOperationResult.Config
@@ -61,8 +61,8 @@ extension SessionConfiguration {
         rawConfiguration = try await configurationFetchNetworkOperation().config
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("...server configuration fetching failed!")
+        diagnostics.log(error: error)
+        diagnostics.log(diagnostic: "...server configuration fetching failed!")
         throw error
       }
 
@@ -119,7 +119,7 @@ extension SessionConfiguration {
         configuration[FeatureFlags.Tags.identifier] = FeatureFlags.Tags.default
       }
 
-      diagnostics.diagnosticLog("...server configuration fetched!")
+      diagnostics.log(diagnostic: "...server configuration fetched!")
 
       return configuration
     }

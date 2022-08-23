@@ -36,7 +36,7 @@ extension DatabaseAccess {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let osFiles: OSFiles = features.instance()
 
     nonisolated func databaseLocation(
@@ -92,8 +92,8 @@ extension DatabaseAccess {
           )
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("Failed to open database, cleaning up...")
+        diagnostics.log(error: error)
+        diagnostics.log(diagnostic: "Failed to open database, cleaning up...")
         try osFiles.deleteFile(location)
         // single retry after deleting previous database, fail if it fails
         databaseConnection =

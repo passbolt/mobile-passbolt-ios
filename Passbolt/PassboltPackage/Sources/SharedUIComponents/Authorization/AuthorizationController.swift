@@ -67,7 +67,7 @@ extension AuthorizationController: UIController {
     let accountPreferences: AccountPreferences = try await features.instance(context: context)
     let session: Session = try await features.instance()
     let biometry: Biometry = try await features.instance()
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
 
     let passphraseSubject: CurrentValueSubject<String, Never> = .init("")
     let forgotAlertPresentationSubject: PassthroughSubject<Bool, Never> = .init()
@@ -154,13 +154,13 @@ extension AuthorizationController: UIController {
               )
             )
             do {
-              diagnostics.diagnosticLog("Updating account profile data...")
+              diagnostics.log(diagnostic: "Updating account profile data...")
               try await accountDetails.updateProfile()
-              diagnostics.diagnosticLog("...account profile data updated!")
+              diagnostics.log(diagnostic: "...account profile data updated!")
             }
             catch {
-              diagnostics.log(error)
-              diagnostics.diagnosticLog("...account profile data update failed!")
+              diagnostics.log(error: error)
+              diagnostics.log(diagnostic: "...account profile data update failed!")
             }
             return false
           }
@@ -198,13 +198,13 @@ extension AuthorizationController: UIController {
               .biometrics(account)
             )
           do {
-            diagnostics.diagnosticLog("Updating account profile data...")
+            diagnostics.log(diagnostic: "Updating account profile data...")
             try await accountDetails.updateProfile()
-            diagnostics.diagnosticLog("...account profile data updated!")
+            diagnostics.log(diagnostic: "...account profile data updated!")
           }
           catch {
-            diagnostics.log(error)
-            diagnostics.diagnosticLog("...account profile data update failed!")
+            diagnostics.log(error: error)
+            diagnostics.log(diagnostic: "...account profile data update failed!")
           }
           return false
         }

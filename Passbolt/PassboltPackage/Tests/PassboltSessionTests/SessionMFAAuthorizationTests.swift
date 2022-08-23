@@ -39,7 +39,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
   func test_() {
     XCTExpectFailure("Not completed yet")
     return XCTFail("TODO: Implement missing unit tests")
-    
+
     withTestedInstance { (testedInstance: SessionMFAAuthorization) in
 
     }

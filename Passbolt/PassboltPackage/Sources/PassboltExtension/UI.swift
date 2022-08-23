@@ -31,7 +31,6 @@ public final class UI {
 
   private let rootViewController: UIViewController
   private let features: FeatureFactory
-  private let components: UIComponentFactory
 
   public init(
     rootViewController: UIViewController,
@@ -39,16 +38,17 @@ public final class UI {
   ) {
     self.rootViewController = rootViewController
     self.features = features
-    self.components = UIComponentFactory(features: features)
   }
 }
 
 extension UI {
 
-  public func prepareCredentialList() {
+  @MainActor public func prepareCredentialList() {
     MainActor.execute {
       do {
-        try await self.setRootContent(self.components.instance(of: ExtensionViewController.self))
+        try await self.setRootContent(
+          UIComponentFactory(features: self.features).instance(of: ExtensionViewController.self)
+        )
       }
       catch {
         error
@@ -58,10 +58,12 @@ extension UI {
     }
   }
 
-  public func prepareInterfaceForExtensionConfiguration() {
+  @MainActor public func prepareInterfaceForExtensionConfiguration() {
     MainActor.execute {
       do {
-        try await self.setRootContent(self.components.instance(of: ExtensionSetupViewController.self))
+        try await self.setRootContent(
+          UIComponentFactory(features: self.features).instance(of: ExtensionSetupViewController.self)
+        )
       }
       catch {
         error
@@ -71,19 +73,25 @@ extension UI {
     }
   }
 
-  private func setRootContent(_ viewController: UIViewController) {
-    rootViewController.children.forEach {
-      $0.willMove(toParent: nil)
+  @MainActor private func setRootContent(
+    _ viewController: UIViewController
+  ) {
+    self.rootViewController.children.forEach {
+      $0.willMove(toParent: .none)
       $0.view.removeFromSuperview()
       $0.removeFromParent()
     }
-    rootViewController.addChild(viewController)
+    self.rootViewController.addChild(viewController)
     mut(viewController.view) {
       .combined(
-        .subview(of: rootViewController.view),
-        .edges(equalTo: rootViewController.view, usingSafeArea: false)
+        .subview(of: self.rootViewController.view),
+        .edges(
+          equalTo: self.rootViewController.view,
+          usingSafeArea: false
+        )
       )
     }
-    rootViewController.didMove(toParent: rootViewController)
+    self.rootViewController
+      .didMove(toParent: self.rootViewController)
   }
 }

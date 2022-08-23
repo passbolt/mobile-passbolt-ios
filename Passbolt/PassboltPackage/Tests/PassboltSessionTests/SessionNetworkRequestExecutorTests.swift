@@ -39,7 +39,7 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
   func test_() {
     XCTExpectFailure("Not completed yet")
     return XCTFail("TODO: Implement missing unit tests")
-    
+
     withTestedInstance { (testedInstance: SessionNetworkRequestExecutor) in
 
     }

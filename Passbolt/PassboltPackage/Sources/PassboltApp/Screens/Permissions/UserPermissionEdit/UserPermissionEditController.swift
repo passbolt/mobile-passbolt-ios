@@ -48,7 +48,7 @@ extension UserPermissionEditController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let userDetails: UserDetails = try await features.instance(context: context.permissionDetails.id)
     let resourceShareForm: ResourceShareForm = try await features.instance(context: context.resourceID)
 

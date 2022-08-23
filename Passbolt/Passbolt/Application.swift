@@ -38,7 +38,6 @@ internal struct Application {
     environment: AppEnvironment = AppEnvironment(
       Time.live,
       UUIDGenerator.live,
-      Logger.live,
       Preferences.sharedUserDefaults(),
       Keychain.live(),
       Biometrics.live,

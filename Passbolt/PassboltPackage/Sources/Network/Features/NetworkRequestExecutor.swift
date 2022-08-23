@@ -69,9 +69,11 @@ extension NetworkRequestExecutor: LoadableContextlessFeature {
 extension NetworkRequestExecutor {
 
   @MainActor fileprivate static func load(
-    features _: FeatureFactory,
+    features: FeatureFactory,
     cancellables _: Cancellables
   ) async throws -> Self {
+    let diagnostics: Diagnostics = features.instance()
+
     let urlSessionConfiguration: URLSessionConfiguration = .ephemeral
     urlSessionConfiguration.networkServiceType = .responsiveData
     urlSessionConfiguration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
@@ -152,32 +154,40 @@ extension NetworkRequestExecutor {
       )
     }
 
-    #if DEBUG
     nonisolated func withLogs(
       _ execute: @escaping @Sendable (HTTPRequest) async throws -> HTTPResponse
     ) -> @Sendable (HTTPRequest) async throws -> HTTPResponse {
       { (httpRequest: HTTPRequest) async throws -> HTTPResponse in
-        let diagnosticsID = UUID()
-        print("[\(diagnosticsID)] Request: \(httpRequest.debugDescription)")
+        let trace: Diagnostics.Trace = diagnostics.trace()
+        trace.log(
+          diagnostic: "HTTP",
+          unsafe: httpRequest.method.rawValue,
+          httpRequest.path
+        )
+        trace.log(debug: "Network request: \(httpRequest.debugDescription)")
         do {
           let httpResponse: HTTPResponse = try await execute(httpRequest)
-          print("[\(diagnosticsID)] Response: \(httpResponse.debugDescription)")
+          trace.log(
+            diagnostic: "HTTP",
+            unsafe: httpResponse.statusCode,
+            httpRequest.path
+          )
+          trace.log(debug: "Network response: \(httpResponse.debugDescription)")
           return httpResponse
         }
         catch {
-          print("[\(diagnosticsID)] Failure: \(error)")
+          trace.log(
+            error: error,
+            info: .message("Network call failed.")
+          )
           throw error
         }
       }
     }
+
     return Self(
       execute: withLogs(execute(_:))
     )
-    #else
-    return Self(
-      execute: execute(_:)
-    )
-    #endif
   }
 }
 
@@ -215,7 +225,7 @@ extension HTTPRequest {
       var urlRequest: URLRequest = url.map({ URLRequest(url: $0) })
     else { return nil }
 
-    urlRequest.httpMethod = method.rawValue
+    urlRequest.httpMethod = "\(method.rawValue)"
     urlRequest.httpBody = body
     urlRequest.allHTTPHeaderFields = headers
     urlRequest.timeoutInterval = 30

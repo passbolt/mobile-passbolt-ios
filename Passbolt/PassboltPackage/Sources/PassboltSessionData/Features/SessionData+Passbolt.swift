@@ -34,7 +34,7 @@ extension SessionData {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionConfiguration: SessionConfiguration = try await features.instance()
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try await features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try await features.instance()
@@ -61,35 +61,43 @@ extension SessionData {
     let refreshTask: ManagedTask<Void> = .init()
 
     @Sendable nonisolated func refreshUsers() async throws {
-      diagnostics.diagnosticLog("Refreshing users data...")
+      diagnostics.log(diagnostic: "Refreshing users data...")
       do {
         try await usersStoreDatabaseOperation(
           usersFetchNetworkOperation()
             .filter(\.isValid)
             .compactMap(\.asFilteredDSO)
         )
-        diagnostics.diagnosticLog("...users data refresh finished!")
+        diagnostics.log(diagnostic: "...users data refresh finished!")
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("...users data refresh failed!")
+        diagnostics.log(
+          error: error,
+          info: .message(
+            "...users data refresh failed!"
+          )
+        )
         throw error
       }
     }
 
     @Sendable nonisolated func refreshUserGroups() async throws {
-      diagnostics.diagnosticLog("Refreshing user groups data...")
+      diagnostics.log(diagnostic: "Refreshing user groups data...")
       do {
         try await userGroupsStoreDatabaseOperation(
           userGroupsFetchNetworkOperation()
             .filter(\.isValid)
         )
 
-        diagnostics.diagnosticLog("...user groups data refresh finished!")
+        diagnostics.log(diagnostic: "...user groups data refresh finished!")
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("...user groups data refresh failed!")
+        diagnostics.log(
+          error: error,
+          info: .message(
+            "...user groups data refresh failed!"
+          )
+        )
         throw error
       }
     }
@@ -97,26 +105,30 @@ extension SessionData {
     @Sendable nonisolated func refreshFolders() async throws {
       guard foldersEnabled
       else {
-        return diagnostics.diagnosticLog("Refreshing folders skipped, feature disabled!")
+        return diagnostics.log(diagnostic: "Refreshing folders skipped, feature disabled!")
       }
-      diagnostics.diagnosticLog("Refreshing folders data...")
+      diagnostics.log(diagnostic: "Refreshing folders data...")
       do {
         try await resourceFoldersStoreDatabaseOperation(
           resourceFoldersFetchNetworkOperation()
             .filter(\.isValid)
         )
 
-        diagnostics.diagnosticLog("...folders data refresh finished!")
+        diagnostics.log(diagnostic: "...folders data refresh finished!")
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("...folders data refresh failed!")
+        diagnostics.log(
+          error: error,
+          info: .message(
+            "...folders data refresh failed!"
+          )
+        )
         throw error
       }
     }
 
     @Sendable nonisolated func refreshResources() async throws {
-      diagnostics.diagnosticLog("Refreshing resources data...")
+      diagnostics.log(diagnostic: "Refreshing resources data...")
       do {
         try await resourceTypesStoreDatabaseOperation(
           resourceTypesFetchNetworkOperation()
@@ -127,11 +139,15 @@ extension SessionData {
             .filter(\.isValid)
         )
 
-        diagnostics.diagnosticLog("...resources data refresh finished!")
+        diagnostics.log(diagnostic: "...resources data refresh finished!")
       }
       catch {
-        diagnostics.log(error)
-        diagnostics.diagnosticLog("...resources data refresh failed!")
+        diagnostics.log(
+          error: error,
+          info: .message(
+            "...resources data refresh failed!"
+          )
+        )
         throw error
       }
     }

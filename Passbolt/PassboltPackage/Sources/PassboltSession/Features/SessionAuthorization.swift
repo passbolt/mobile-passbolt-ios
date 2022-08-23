@@ -56,7 +56,7 @@ extension SessionAuthorization {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionState: SessionState = try await features.instance()
     let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
     let sessionNetworkAuthorization: SessionNetworkAuthorization = try await features.instance()
@@ -124,7 +124,7 @@ extension SessionAuthorization {
         return true
       }
       catch {
-        diagnostics.log(error)
+        diagnostics.log(error: error)
         return false
       }
     }
@@ -256,7 +256,7 @@ extension SessionAuthorization {
     @SessionActor @Sendable func authorize(
       _ method: SessionAuthorizationMethod
     ) async throws {
-      diagnostics.diagnosticLog("Beginning authorization...")
+      diagnostics.log(diagnostic: "Beginning authorization...")
       do {
         // prepare and validate authorization data
         let authorizationData: AuthorizationData = try validatedAuthorizationData(
@@ -273,18 +273,18 @@ extension SessionAuthorization {
           // check current token expiration
           if isCurrentAccessTokenValid() {
             diagnostics
-              .diagnosticLog("...reusing access token...")
+              .log(diagnostic: "...reusing access token...")
             // extend passphrase cache expire time
             sessionState
               .setPassphrase(authorizationData.passphrase)
             diagnostics
-              .diagnosticLog("...authorization succeeded!")
+              .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
           }
           // refresh session using refresh token
           else if let refreshToken: SessionRefreshToken = currentRefreshToken() {
             diagnostics
-              .diagnosticLog("...refreshing access token...")
+              .log(diagnostic: "...refreshing access token...")
             do {
               let sessionTokens: SessionTokens = try await refreshSessionTokens(
                 authorizationData,
@@ -299,20 +299,20 @@ extension SessionAuthorization {
                 mfaToken: mfaToken
               )
               diagnostics
-                .diagnosticLog("...authorization succeeded!")
+                .log(diagnostic: "...authorization succeeded!")
               return  // nothing more to do...
             }
             catch {
-              diagnostics.log(error)
+              diagnostics.log(error: error)
               // ignore refresh error and fallback to regular
               // authorization  / create new tokens
               diagnostics
-                .diagnosticLog("...refreshing access token failed, fallback to token creation...")
+                .log(diagnostic: "...refreshing access token failed, fallback to token creation...")
             }
           }  // else / catch - continue
 
           diagnostics
-            .diagnosticLog("...creating new access token...")
+            .log(diagnostic: "...creating new access token...")
 
           let (sessionTokens, requiredMFAProviders): (SessionTokens, Array<SessionMFAProvider>) =
             try await createSessionTokens(
@@ -331,12 +331,12 @@ extension SessionAuthorization {
 
           if requiredMFAProviders.isEmpty {
             diagnostics
-              .diagnosticLog("...authorization succeeded!")
+              .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
           }
           else {
             diagnostics
-              .diagnosticLog("...authorization finished, mfa required!")
+              .log(diagnostic: "...authorization finished, mfa required!")
             throw
               SessionMFAAuthorizationRequired
               .error(
@@ -348,7 +348,7 @@ extension SessionAuthorization {
         // diffrent or new account authorization
         else {
           diagnostics
-            .diagnosticLog("...creating new access token...")
+            .log(diagnostic: "...creating new access token...")
           let mfaToken: SessionMFAToken? = storedMFAToken(
             for: authorizationData.account
           )
@@ -370,12 +370,12 @@ extension SessionAuthorization {
 
           if requiredMFAProviders.isEmpty {
             diagnostics
-              .diagnosticLog("...authorization succeeded!")
+              .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
           }
           else {
             diagnostics
-              .diagnosticLog("...authorization finished, mfa required!")
+              .log(diagnostic: "...authorization finished, mfa required!")
             throw
               SessionMFAAuthorizationRequired
               .error(
@@ -393,9 +393,9 @@ extension SessionAuthorization {
       }
       catch {
         diagnostics
-          .log(error)
+          .log(error: error)
         diagnostics
-          .diagnosticLog("...authorization failed!")
+          .log(diagnostic: "...authorization failed!")
         throw error
       }
     }
@@ -408,7 +408,7 @@ extension SessionAuthorization {
       else { throw SessionClosed.error(account: account) }
 
       diagnostics
-        .diagnosticLog("Refreshing session...")
+        .log(diagnostic: "Refreshing session...")
 
       do {
         let authorizationData: AuthorizationData = try validatedAuthorizationData(
@@ -435,11 +435,11 @@ extension SessionAuthorization {
               mfaToken: mfaToken
             )
             diagnostics
-              .diagnosticLog("...session refresh succeeded!")
+              .log(diagnostic: "...session refresh succeeded!")
             return  // nothing more to do...
           }
           catch {
-            diagnostics.log(error)
+            diagnostics.log(error: error)
             // ignore refresh error and fallback to regular
             // authorization  / create new tokens
           }
@@ -462,12 +462,12 @@ extension SessionAuthorization {
 
         if requiredMFAProviders.isEmpty {
           diagnostics
-            .diagnosticLog("...session refresh succeeded!")
+            .log(diagnostic: "...session refresh succeeded!")
           return  // nothing more to do...
         }
         else {
           diagnostics
-            .diagnosticLog("...session refresh finished, mfa required!")
+            .log(diagnostic: "...session refresh finished, mfa required!")
           throw
             SessionMFAAuthorizationRequired
             .error(
@@ -485,9 +485,9 @@ extension SessionAuthorization {
       }
       catch {
         diagnostics
-          .log(error)
+          .log(error: error)
         diagnostics
-          .diagnosticLog("...session refresh failed!")
+          .log(diagnostic: "...session refresh failed!")
         throw error
       }
     }

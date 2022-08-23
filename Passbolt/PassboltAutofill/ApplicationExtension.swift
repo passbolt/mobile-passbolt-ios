@@ -23,6 +23,7 @@
 
 import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier
+import struct AuthenticationServices.ASExtensionError
 import Crypto
 import Features
 
@@ -30,18 +31,18 @@ import PassboltExtension
 import UIComponents
 
 @MainActor 
-internal struct ApplicationExtension {
+internal final class ApplicationExtension {
   
-  internal let ui: UI
+  private let ui: UI
   private let features: FeatureFactory
-  private let requestedServicesSubject: CurrentValueSubject<Array<AutofillExtensionContext.ServiceIdentifier>, Never>
+  private var requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> = .init()
   
-  internal init(
-    rootViewController: ASCredentialProviderViewController,
-    environment: AppEnvironment = AppEnvironment(
+  @MainActor internal init(
+    rootViewController: ASCredentialProviderViewController
+  ) {
+    let environment: AppEnvironment = AppEnvironment(
       Time.live,
       UUIDGenerator.live,
-      Logger.live,
       Preferences.sharedUserDefaults(),
       Keychain.live(),
       Biometrics.live,
@@ -57,81 +58,83 @@ internal struct ApplicationExtension {
       AsyncExecutors.libDispatch(),
       AppMeta.live
     )
-  ) {
-    let requestedServicesSubject: CurrentValueSubject<Array<AutofillExtensionContext.ServiceIdentifier>, Never>
-    = .init(Array())
     let features: FeatureFactory = .init(environment: environment)
     // register features implementations
-    features.usePassboltFeatures()
-    Task { @MainActor in
-    features.use(
-      AutofillExtensionContext(
-        completeWithCredential: { credential in
-          Task { @MainActor in
-            rootViewController
-              .extensionContext
-              .completeRequest(
-                withSelectedCredential: .init(
-                  user: credential.user,
-                  password: credential.password
-                ),
-                completionHandler: nil
-              )
-          }
-        },
-        completeWithError: { error in
-          Task { @MainActor in
-            rootViewController
-              .extensionContext
-              .cancelRequest(withError: error)
-          }
-        },
-        completeExtensionConfiguration: {
-          Task { @MainActor in
-            rootViewController
-              .extensionContext
-              .completeExtensionConfigurationRequest()
-          }
-        },
-        requestedServiceIdentifiersPublisher: requestedServicesSubject.eraseToAnyPublisher
-      )
-    )
-  }
-    
+    features.usePassboltInitialization()
+
     self.ui = UI(
       rootViewController: rootViewController,
       features: features
     )
     self.features = features
-    self.requestedServicesSubject = requestedServicesSubject
+    features.use(
+      ConfigurationExtensionContext(
+        completeExtensionConfiguration: {
+          rootViewController
+            .extensionContext
+            .completeExtensionConfigurationRequest()
+        }
+      )
+    )
+    features.use(
+      AutofillExtensionContext(
+        completeWithCredential: { credential in
+          rootViewController
+            .extensionContext
+            .completeRequest(
+              withSelectedCredential: .init(
+                user: credential.user,
+                password: credential.password
+              ),
+              completionHandler: nil
+            )
+        },
+        completeWithError: { error in
+          rootViewController
+            .extensionContext
+            .cancelRequest(withError: error)
+        },
+        cancelAndCloseExtension: {
+          rootViewController
+            .extensionContext
+            .cancelRequest(withError: ASExtensionError(.userCanceled))
+        },
+        requestedServiceIdentifiers: { [weak self] in
+          self?.requestedServiceIdentifiers ?? .init()
+        }
+      )
+    )
   }
 }
 
 extension ApplicationExtension {
   
-  internal func initialize() {
-    Task { @MainActor in
-      do {
-        try await features.instance(of: Initialization.self).initialize()
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError()
-      }
-    }
+  @MainActor internal func initialize() {
+    self.features
+      .instance(of: Initialization.self)
+      .initialize()
   }
   
   internal func requestSuggestions(
     for identifiers: Array<ASCredentialServiceIdentifier>
   ) {
-    requestedServicesSubject.send(
-      identifiers
-        .map { identifier in
-          AutofillExtensionContext.ServiceIdentifier(
-            rawValue: identifier.identifier
-          )
-        }
+    assert(
+      self.requestedServiceIdentifiers.isEmpty,
+      "Requested suggestions should not change during extension lifetime"
     )
+    self.requestedServiceIdentifiers = identifiers
+      .map { identifier in
+        AutofillExtensionContext.ServiceIdentifier(
+          rawValue: identifier.identifier
+        )
+      }
+  }
+
+  internal func prepareCredentialList() {
+    self.ui.prepareCredentialList()
+  }
+
+  internal func prepareInterfaceForExtensionConfiguration() {
+    self.ui.prepareInterfaceForExtensionConfiguration()
   }
 }

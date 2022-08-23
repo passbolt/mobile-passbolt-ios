@@ -27,176 +27,293 @@ import OSLog
 
 import struct Foundation.Date
 import struct Foundation.UUID
+import struct OSLog.Logger
 import class UIKit.UIDevice
 import let os.SIGTRAP
 import func os.raise
 
+// MARK: - Interface
+
 public struct Diagnostics {
 
+  public var trace: () -> Trace
   public var debugLog: (String) -> Void
-  public var diagnosticLog: (StaticString, DiagnosticMessageVariable) -> Void
-  public var deviceInfo: () -> String
-  public var collectedLogs: () -> Array<String>
-  public var measurePerformance: (StaticString) -> TimeMeasurement
-  public var uniqueID: () -> String
+  public var diagnosticLog: (StaticString, MessageVariable) -> Void
+  public var diagnosticsInfo: () -> Array<String>
   public var breakpoint: () -> Void
 }
 
 extension Diagnostics {
 
-  public struct TimeMeasurement {
+  public struct Trace {
 
-    public let event: (StaticString) -> Void
-    public let end: () -> Void
+    fileprivate var debugLog: (String) -> Void
+    fileprivate var diagnosticLog: (StaticString, MessageVariable) -> Void
   }
 
-  public enum DiagnosticMessageVariable {
+  public enum MessageVariable {
 
     case none
     case variable(StaticString)
     case variables(StaticString, StaticString)
     case unsafeVariable(String)
+    case unsafeVariables(String, String)
   }
 }
 
-extension Diagnostics: LegacyFeature {
+extension Diagnostics: StaticFeature {
 
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Diagnostics {
-    let time: Time = environment.time
-    let uuidGenerator: UUIDGenerator = environment.uuidGenerator
-    let diagnosticLog: OSLog = .init(subsystem: "com.passbolt.mobile", category: "diagnostic")
-    let perfomanceLog: OSLog = .init(subsystem: "com.passbolt.mobile.performance", category: .pointsOfInterest)
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      trace: unimplemented(),
+      debugLog: unimplemented(),
+      diagnosticLog: unimplemented(),
+      diagnosticsInfo: unimplemented(),
+      breakpoint: unimplemented()
+    )
+  }
+  #endif
+}
 
-    nonisolated func hardwareModel() -> String {
-      var systemInfo: utsname = .init()
-      uname(&systemInfo)
-      let machineMirror = Mirror(reflecting: systemInfo.machine)
-      return machineMirror.children.reduce("") { identifier, element in
-        guard let value = element.value as? Int8, value != 0 else { return identifier }
-        return identifier + String(UnicodeScalar(UInt8(value)))
-      }
-    }
+// MARK: - Implementation
 
-    nonisolated func appVersion() -> String {
-      Bundle.main
-        .infoDictionary?["CFBundleShortVersionString"]
-        as? String
-        ?? "?.?.?"
-    }
+extension Diagnostics {
 
-    return Self(
-      debugLog: { message in
-        #if DEBUG
-        print(
-          "[\(time.timestamp().asDate)] \(message)"
-        )
-        #endif
-      },
-      diagnosticLog: { message, variables in
-        switch variables {
-        case .none:
-          os_log(.info, log: diagnosticLog, message)
+  fileprivate static func osDiagnostics() -> Self {
+    #if DEBUG
+    let debugLog: Logger = .init(
+      subsystem: "com.passbolt.mobile",
+      category: "debug"
+    )
+    #endif
+    let diagnosticLog: Logger = .init(
+      subsystem: "com.passbolt.mobile",
+      category: "diagnostic"
+    )
+    let environmentInfo: String =
+      """
+      Device: \(UIDevice.current.localizedModel) \(UIDevice.current.model)
+      OS: \(UIDevice.current.systemVersion)
+      App: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?.?.?")
+      ----------
+      """
 
-        case let .variable(string):
-          os_log(.info, log: diagnosticLog, message, string.description)
+    func trace() -> Trace {
+      let id: String = UUID().uuidString
 
-        case let .variables(first, second):
-          os_log(.info, log: diagnosticLog, message, first.description, second.description)
-
-        case let .unsafeVariable(string):
-          os_log(.info, log: diagnosticLog, message, string)
-        }
-      },
-      deviceInfo: {
-        """
-        Device: \(hardwareModel())
-        OS: \(UIDevice.current.systemVersion)
-        App: \(appVersion())
-        ----------
-        """
-      },
-      collectedLogs: {
-        do {
-          let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
-          let dateFormatter: DateFormatter = .init()
-          dateFormatter.timeZone = .init(secondsFromGMT: 0)
-          dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
-          return
-            try logStore
-            .getEntries(
-              at:
-                logStore
-                .position(
-                  date:
-                    time
-                    .dateNow()
-                    .addingTimeInterval(-60 * 60 /* last hour */)
-                ),
-              matching: NSPredicate(
-                format: "category == %@",
-                argumentArray: ["diagnostic"]
-              )
+      return .init(
+        debugLog: { (message: String) in
+          #if DEBUG
+          debugLog.log(
+            level: .debug,
+            "[\(id, privacy: .public)] \(message, privacy: .public)"
+          )
+          #endif
+        },
+        diagnosticLog: { (message: StaticString, variable: MessageVariable) in
+          switch variable {
+          case .none:
+            diagnosticLog.log(
+              level: .default,
+              "[\(id, privacy: .public)] \(message, privacy: .public)"
             )
-            .map { logEntry in
-              "[\(dateFormatter.string(from: logEntry.date))] \(logEntry.composedMessage)"
-            }
-        }
-        catch {
-          return ["Logs are not available"]
-        }
-      },
-      measurePerformance: { name in
-        let id: String = uuidGenerator().uuidString
 
-        os_signpost(
-          .begin,
-          log: perfomanceLog,
-          name: name,
-          "[%{public}s] time measurement start",
-          id
-        )
-
-        return TimeMeasurement(
-          event: { eventName in
-            os_signpost(
-              .event,
-              log: perfomanceLog,
-              name: name,
-              "[%{public}s] %{public}s",
-              id,
-              eventName.description
+          case let .variable(string):
+            diagnosticLog.log(
+              level: .default,
+              "[\(id, privacy: .public)] \(message, privacy: .public) \(string, privacy: .public)"
             )
-          },
-          end: {
-            os_signpost(
-              .end,
-              log: perfomanceLog,
-              name: name,
-              "[%{public}s] time measurement end",
-              id
+
+          case let .variables(first, second):
+            diagnosticLog.log(
+              level: .default,
+              "[\(id, privacy: .public)] \(message, privacy: .public) \(first, privacy: .public) \(second, privacy: .public)"
+            )
+
+          case let .unsafeVariable(string):
+            diagnosticLog.log(
+              level: .default,
+              "[\(id, privacy: .public)] \(message, privacy: .public) \(string, privacy: .public)"
+            )
+
+          case let .unsafeVariables(first, second):
+            diagnosticLog.log(
+              level: .default,
+              "[\(id, privacy: .public)] \(message, privacy: .public) \(first, privacy: .public) \(second, privacy: .public)"
             )
           }
+        }
+      )
+    }
+
+    func debugLog(
+      _ message: String
+    ) {
+      #if DEBUG
+      debugLog.log(
+        level: .debug,
+        "\(message, privacy: .public)"
+      )
+      #endif
+    }
+
+    func diagnosticLog(
+      _ message: StaticString,
+      variable: MessageVariable
+    ) {
+      switch variable {
+      case .none:
+        diagnosticLog.log(
+          level: .default,
+          "\(message, privacy: .public)"
+        )
+
+      case let .variable(string):
+        diagnosticLog.log(
+          level: .default,
+          "\(message, privacy: .public) \(string, privacy: .public)"
+        )
+
+      case let .variables(first, second):
+        diagnosticLog.log(
+          level: .default,
+          "\(message, privacy: .public) \(first, privacy: .public) \(second, privacy: .public)"
+        )
+
+      case let .unsafeVariable(string):
+        diagnosticLog.log(
+          level: .default,
+          "\(message, privacy: .public) \(string, privacy: .public)"
+        )
+
+      case let .unsafeVariables(first, second):
+        diagnosticLog.log(
+          level: .default,
+          "\(message, privacy: .public) \(first, privacy: .public) \(second, privacy: .public)"
+        )
+      }
+    }
+
+    func diagnosticsInfo() -> Array<String> {
+      do {
+        let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
+        let dateFormatter: DateFormatter = .init()
+        dateFormatter.timeZone = .init(secondsFromGMT: 0)
+        dateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
+        return try [environmentInfo]
+          + logStore
+          .getEntries(
+            at:
+              logStore
+              .position(  // last hour
+                date: Date(timeIntervalSinceNow: -60 * 60)
+              ),
+            matching: NSPredicate(
+              format: "category == %@",
+              argumentArray: ["diagnostic"]
+            )
+          )
+          .map { logEntry in
+            "[\(dateFormatter.string(from: logEntry.date))] \(logEntry.composedMessage)"
+          }
+      }
+      catch {
+        return [
+          environmentInfo,
+          "Logs are not available",
+        ]
+      }
+    }
+
+    func breakpoint() {
+      #if DEBUG
+      raise(SIGTRAP)
+      #endif
+    }
+
+    return .init(
+      trace: trace,
+      debugLog: debugLog(_:),
+      diagnosticLog: diagnosticLog(_:variable:),
+      diagnosticsInfo: diagnosticsInfo,
+      breakpoint: breakpoint
+    )
+  }
+
+  // drop all diagnostics
+  public nonisolated static var disabled: Self {
+    .init(
+      trace: {
+        .init(
+          debugLog: { _ in },
+          diagnosticLog: { _, _ in }
         )
       },
-      uniqueID: { uuidGenerator().uuidString },
-      breakpoint: {
-        #if DEBUG
-        raise(SIGTRAP)
-        #endif
-      }
+      debugLog: { _ in },
+      diagnosticLog: { _, _ in },
+      diagnosticsInfo: { ["Diagnostics disabled"] },
+      breakpoint: {}
     )
   }
 }
 
 extension Diagnostics {
 
-  public nonisolated func log(
-    _ error: Error,
-    info: DiagnosticsInfo? = nil
+  public func log<Variable>(
+    debug message: @autoclosure () -> Variable
+  ) {
+    #if DEBUG
+    self.debugLog(String(describing: message()))
+    #endif
+  }
+
+  public func log(
+    diagnostic message: StaticString,
+    _ variable: Diagnostics.MessageVariable = .none
+  ) {
+    self.diagnosticLog(message, variable)
+  }
+
+  public func log<Variable>(
+    diagnostic message: StaticString,
+    unsafe variable: Variable
+  ) {
+    self.log(diagnostic: message, .unsafeVariable(String(describing: variable)))
+  }
+
+  public func log<First, Second>(
+    diagnostic message: StaticString,
+    unsafe first: First,
+    _ second: Second
+  ) {
+    self.log(
+      diagnostic: message,
+      .unsafeVariables(
+        String(describing: first),
+        String(describing: second)
+      )
+    )
+  }
+
+  public func log(
+    diagnostic message: StaticString,
+    _ variable: StaticString
+  ) {
+    self.log(diagnostic: message, .variable(variable))
+  }
+
+  public func log(
+    diagnostic message: StaticString,
+    _ first: StaticString,
+    _ second: StaticString
+  ) {
+    self.log(diagnostic: message, .variables(first, second))
+  }
+
+  public func log(
+    error: Error,
+    info: DiagnosticsInfo? = .none
   ) {
     let theError: TheError =
       info
@@ -204,65 +321,94 @@ extension Diagnostics {
       ?? error.asTheError()
     #if DEBUG
     self.debugLog(theError.debugDescription)
-    #else
+    #endif
     for message in theError.diagnosticMessages {
-      self.diagnosticLog(message, .none)
+      self.log(diagnostic: message)
     }
+  }
+}
+
+extension Diagnostics.Trace {
+
+  public func log<Variable>(
+    debug message: @autoclosure () -> Variable
+  ) {
+    #if DEBUG
+    self.debugLog(String(describing: message()))
     #endif
   }
 
-  public nonisolated func diagnosticLog(
-    _ message: StaticString,
-    variable: StaticString? = nil
+  public func log(
+    diagnostic message: StaticString,
+    _ variable: Diagnostics.MessageVariable = .none
   ) {
-    self.diagnosticLog(message, variable.map { .variable($0) } ?? .none)
+    self.diagnosticLog(message, variable)
   }
 
-  public nonisolated func diagnosticLog(
-    _ message: StaticString,
-    variables first: StaticString,
+  public func log<Variable>(
+    diagnostic message: StaticString,
+    unsafe variable: Variable
+  ) {
+    self.log(diagnostic: message, .unsafeVariable(String(describing: variable)))
+  }
+
+  public func log<First, Second>(
+    diagnostic message: StaticString,
+    unsafe first: First,
+    _ second: Second
+  ) {
+    self.log(
+      diagnostic: message,
+      .unsafeVariables(
+        String(describing: first),
+        String(describing: second)
+      )
+    )
+  }
+
+  public func log(
+    diagnostic message: StaticString,
+    _ variable: StaticString
+  ) {
+    self.log(diagnostic: message, .variable(variable))
+  }
+
+  public func log(
+    diagnostic message: StaticString,
+    _ first: StaticString,
     _ second: StaticString
   ) {
-    self.diagnosticLog(message, .variables(first, second))
+    self.log(diagnostic: message, .variables(first, second))
   }
 
-  public nonisolated func diagnosticLog(
-    _ message: StaticString,
-    unsafeVariable: String
+  public func log(
+    error: Error,
+    info: DiagnosticsInfo? = .none
   ) {
-    self.diagnosticLog(message, .unsafeVariable(unsafeVariable))
-  }
-
-  // drop all diagnostics
-  public nonisolated static var disabled: Self {
-    Self(
-      debugLog: { _ in },
-      diagnosticLog: { _, _ in },
-      deviceInfo: { "" },
-      collectedLogs: { [] },
-      measurePerformance: { _ in
-        TimeMeasurement(event: { _ in }, end: {})
-      },
-      uniqueID: { UUID().uuidString },
-      breakpoint: {}
-    )
+    let theError: TheError =
+      info
+      .map { error.asTheError().pushing($0) }
+      ?? error.asTheError()
+    #if DEBUG
+    self.debugLog(theError.debugDescription)
+    #endif
+    for message in theError.diagnosticMessages {
+      self.log(diagnostic: message)
+    }
   }
 }
 
-#if DEBUG
-extension Diagnostics {
+extension FeatureFactory {
 
-  // placeholder implementation for mocking and testing, unavailable in release
-  public static var placeholder: Self {
-    Self(
-      debugLog: unimplemented("You have to provide mocks for used methods"),
-      diagnosticLog: unimplemented("You have to provide mocks for used methods"),
-      deviceInfo: unimplemented("You have to provide mocks for used methods"),
-      collectedLogs: unimplemented("You have to provide mocks for used methods"),
-      measurePerformance: unimplemented("You have to provide mocks for used methods"),
-      uniqueID: unimplemented("You have to provide mocks for used methods"),
-      breakpoint: unimplemented("You have to provide mocks for used methods")
+  @MainActor public func useOSDiagnostics() {
+    self.use(
+      Diagnostics.osDiagnostics()
+    )
+  }
+
+  @MainActor public func useDisabledDiagnostics() {
+    self.use(
+      Diagnostics.disabled
     )
   }
 }
-#endif

@@ -36,7 +36,7 @@ extension Accounts {
     let environment: AppEnvironment = try await features.instance(of: EnvironmentLegacyBridge.self).environment
     let uuidGenerator: UUIDGenerator = environment.uuidGenerator
     let pgp: PGP = environment.pgp
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let dataStore: AccountsDataStore = try await features.instance()
 
@@ -71,7 +71,7 @@ extension Accounts {
         break  // continue process
 
       case let .failure(error):
-        diagnostics.diagnosticLog("...invalid passphrase!")
+        diagnostics.log(diagnostic: "...invalid passphrase!")
         throw
           error
           .asTheError()
@@ -115,7 +115,7 @@ extension Accounts {
           updatesSequenceSource.sendUpdate()
         }
         catch {
-          diagnostics.diagnosticLog("...failed to store account data...")
+          diagnostics.log(diagnostic: "...failed to store account data...")
           diagnostics.debugLog(
             "Failed to save account: \(account.localID): \(error)"
           )
@@ -133,14 +133,14 @@ extension Accounts {
     @Sendable nonisolated func remove(
       account: Account
     ) throws {
-      diagnostics.diagnosticLog("Removing local account data...")
+      diagnostics.log(diagnostic: "Removing local account data...")
       Task {
         #warning("TODO: manage spawning tasks")
         await session.close(account)
       }
       dataStore.deleteAccount(account.localID)
       updatesSequenceSource.sendUpdate()
-      diagnostics.diagnosticLog("...removing local account data succeeded!")
+      diagnostics.log(diagnostic: "...removing local account data succeeded!")
     }
 
     return Self(

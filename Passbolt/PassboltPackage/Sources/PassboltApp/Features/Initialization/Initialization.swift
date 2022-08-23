@@ -38,16 +38,15 @@ extension Initialization: LegacyFeature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Initialization {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
 
     // swift-format-ignore: NoLeadingUnderscores
     @MainActor func _initialize(with features: FeatureFactory) async throws {
-      diagnostics.diagnosticLog("Initializing the app...")
-      defer { diagnostics.diagnosticLog("...app initialization completed!") }
+      diagnostics.log(diagnostic: "Initializing the app...")
+      defer { diagnostics.log(diagnostic: "...app initialization completed!") }
       // initialize application extension features here
       analytics()
       // load features that require root scope
-      try await features.loadIfNeeded(Diagnostics.self)
       try await features.loadIfNeeded(Executors.self)
       try await features.loadIfNeeded(UpdateCheck.self)
       try await features.loadIfNeeded(LinkOpener.self)

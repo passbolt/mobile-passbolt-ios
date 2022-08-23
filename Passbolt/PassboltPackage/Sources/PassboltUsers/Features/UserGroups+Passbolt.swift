@@ -28,12 +28,12 @@ import Users
 
 extension UserGroups {
 
-  public static func load(
+  @MainActor fileprivate static func load(
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceUserGroupsListFetchDatabaseOperation: ResourceUserGroupsListFetchDatabaseOperation =
@@ -55,7 +55,7 @@ extension UserGroups {
             )
           }
           catch {
-            diagnostics.log(error)
+            diagnostics.log(error: error)
             userGroups = .init()
           }
 

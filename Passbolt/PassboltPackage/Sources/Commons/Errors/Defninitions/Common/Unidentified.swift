@@ -32,13 +32,28 @@ public struct Unidentified: TheError {
     line: UInt = #line
   ) -> Self {
     Self(
-      context: .context(
-        .message(
-          message,
-          file: file,
-          line: line
-        )
-      ),
+      context: (underlyingError as? Unidentified)?.context
+        ?? (underlyingError as? TheError)
+        .map {
+          DiagnosticsContext
+            .merging(
+              $0.context,
+              .context(
+                .message(
+                  message,
+                  file: file,
+                  line: line
+                )
+              )
+            )
+        }
+        ?? .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
+        ),
       underlyingError: underlyingError,
       displayableMessage: .raw(underlyingError.localizedDescription)
     )

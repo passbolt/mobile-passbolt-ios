@@ -38,10 +38,10 @@ extension ExtensionSetupController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let autofillExtensionContext: AutofillExtensionContext = try await features.instance()
+    let configurationExtensionContext: ConfigurationExtensionContext = features.instance()
 
     func closeConfiguration() {
-      autofillExtensionContext.completeExtensionConfiguration()
+      configurationExtensionContext.completeExtensionConfiguration()
     }
 
     return Self(

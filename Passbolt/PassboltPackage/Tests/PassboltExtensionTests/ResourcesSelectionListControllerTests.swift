@@ -104,10 +104,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
   func test_resourcesListPublisher_publishesResourcesListFromResources() async throws {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
-          .eraseToAnyPublisher()
+        Array<AutofillExtensionContext.ServiceIdentifier>()
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [
@@ -161,10 +160,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
 
   func test_resourcesListPublisher_requestsResourcesListWithFilters() async throws {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just(Array<AutofillExtensionContext.ServiceIdentifier>())
-          .eraseToAnyPublisher()
+        Array<AutofillExtensionContext.ServiceIdentifier>()
       )
     )
 
@@ -200,10 +198,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")])
-          .eraseToAnyPublisher()
+        [AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alterpassbolt.com")]
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [
@@ -262,10 +259,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")])
-          .eraseToAnyPublisher()
+        [AutofillExtensionContext.ServiceIdentifier(rawValue: "https://alter.passbolt.com")]
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [
@@ -325,10 +321,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-          .eraseToAnyPublisher()
+        [AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")]
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [
@@ -388,10 +383,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-          .eraseToAnyPublisher()
+        [AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")]
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [
@@ -451,10 +445,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com/some/path/here")])
-          .eraseToAnyPublisher()
+        [AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com/some/path/here")]
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [
@@ -514,10 +507,9 @@ final class ResourcesSelectionListControllerTests: MainActorTestCase {
     async throws
   {
     features.patch(
-      \AutofillExtensionContext.requestedServiceIdentifiersPublisher,
+      \AutofillExtensionContext.requestedServiceIdentifiers,
       with: always(
-        Just([AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")])
-          .eraseToAnyPublisher()
+        [AutofillExtensionContext.ServiceIdentifier(rawValue: "https://passbolt.com")]
       )
     )
     let resourcesList: Array<ResourceListItemDSV> = [

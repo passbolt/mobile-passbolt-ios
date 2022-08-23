@@ -50,7 +50,7 @@ extension ResourcePermissionEditListController: ComponentController {
     await cancellables.addCleanup(
       features.pushScope(.resourceShare)
     )
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
 
     let viewState: ObservableValue<ViewState>
@@ -176,7 +176,7 @@ extension ResourcePermissionEditListController: ComponentController {
           viewState.set(\.loading, to: false)
         }
         catch {
-          diagnostics.log(error)
+          diagnostics.log(error: error)
           viewState.withValue { (state: inout ViewState) in
             state.loading = false
             state.snackBarMessage = .error(error)

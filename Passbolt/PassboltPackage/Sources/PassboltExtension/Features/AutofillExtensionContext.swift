@@ -29,21 +29,21 @@ import struct Foundation.URL
 
 public struct AutofillExtensionContext {
 
-  public var completeWithCredential: (Credential) -> Void
-  public var completeWithError: (TheErrorLegacy) -> Void
-  public var completeExtensionConfiguration: () -> Void
-  public var requestedServiceIdentifiersPublisher: () -> AnyPublisher<Array<ServiceIdentifier>, Never>
+  public var completeWithCredential: @MainActor (Credential) -> Void
+  public var completeWithError: @MainActor (TheError) -> Void
+  public var cancelAndCloseExtension: @MainActor () -> Void
+  public var requestedServiceIdentifiers: @MainActor () -> Array<ServiceIdentifier>
 
   public init(
-    completeWithCredential: @escaping (Credential) -> Void,
-    completeWithError: @escaping (TheErrorLegacy) -> Void,
-    completeExtensionConfiguration: @escaping () -> Void,
-    requestedServiceIdentifiersPublisher: @escaping () -> AnyPublisher<Array<ServiceIdentifier>, Never>
+    completeWithCredential: @escaping @MainActor (Credential) -> Void,
+    completeWithError: @escaping @MainActor (TheError) -> Void,
+    cancelAndCloseExtension: @escaping @MainActor () -> Void,
+    requestedServiceIdentifiers: @escaping @MainActor () -> Array<ServiceIdentifier>
   ) {
     self.completeWithCredential = completeWithCredential
     self.completeWithError = completeWithError
-    self.completeExtensionConfiguration = completeExtensionConfiguration
-    self.requestedServiceIdentifiersPublisher = requestedServiceIdentifiersPublisher
+    self.cancelAndCloseExtension = cancelAndCloseExtension
+    self.requestedServiceIdentifiers = requestedServiceIdentifiers
   }
 }
 
@@ -67,32 +67,19 @@ extension AutofillExtensionContext {
   }
 }
 
-extension AutofillExtensionContext: LegacyFeature {
+extension AutofillExtensionContext: StaticFeature {
 
-  public static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    unreachable(
-      "Auto loading is not supported for AutofillExtensionContext, instance has to be created manually using root ASCredentialProviderViewController instance."
-    )
-  }
-}
-
-#if DEBUG
-extension AutofillExtensionContext {
-
+  #if DEBUG
   public static var placeholder: Self {
     Self(
-      completeWithCredential: unimplemented("You have to provide mocks for used methods"),
-      completeWithError: unimplemented("You have to provide mocks for used methods"),
-      completeExtensionConfiguration: unimplemented("You have to provide mocks for used methods"),
-      requestedServiceIdentifiersPublisher: unimplemented("You have to provide mocks for used methods")
+      completeWithCredential: unimplemented(),
+      completeWithError: unimplemented(),
+      cancelAndCloseExtension: unimplemented(),
+      requestedServiceIdentifiers: unimplemented()
     )
   }
+  #endif
 }
-#endif
 
 extension AutofillExtensionContext.ServiceIdentifier {
 

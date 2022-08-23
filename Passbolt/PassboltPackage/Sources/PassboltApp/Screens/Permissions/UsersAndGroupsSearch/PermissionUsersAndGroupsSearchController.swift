@@ -45,7 +45,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let resourceShareForm: ResourceShareForm = try await features.instance(context: context)
     let users: Users = try await features.instance()
     let userGroups: UserGroups = try await features.instance()
@@ -79,7 +79,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error)
+          diagnostics.log(error: error)
           return nil
         }
       }
@@ -105,7 +105,7 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
               .filteredUserGroups(.init(userID: .none, text: searchText))
           }
           catch {
-            diagnostics.log(error)
+            diagnostics.log(error: error)
             viewState.set(
               \.snackBarMessage,
               to: .error(error)

@@ -46,7 +46,7 @@ extension ResourcePermissionListController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let users: Users = try await features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: context)
     let resourceUserPermissionsDetailsFetch: ResourceUserPermissionsDetailsFetchDatabaseOperation =
@@ -62,7 +62,7 @@ extension ResourcePermissionListController: ComponentController {
           return try await users.userAvatarImage(userID)
         }
         catch {
-          diagnostics.log(error)
+          diagnostics.log(error: error)
           return nil
         }
       }

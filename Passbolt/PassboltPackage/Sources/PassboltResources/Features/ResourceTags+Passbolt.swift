@@ -33,7 +33,7 @@ extension ResourceTags {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try await features.instance()
 
@@ -48,7 +48,7 @@ extension ResourceTags {
               try await resourceTagsListFetchDatabaseOperation(filter)
           }
           catch {
-            diagnostics.log(error)
+            diagnostics.log(error: error)
             tags = .init()
           }
 

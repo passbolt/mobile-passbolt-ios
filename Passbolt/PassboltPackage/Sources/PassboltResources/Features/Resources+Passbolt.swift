@@ -34,7 +34,7 @@ extension Resources {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try await features.instance()
     let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try await features.instance()
@@ -47,7 +47,7 @@ extension Resources {
         try await sessionData.refreshIfNeeded()
       }
       catch {
-        diagnostics.log(error)
+        diagnostics.log(error: error)
       }
     }
 

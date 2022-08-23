@@ -35,7 +35,7 @@ extension UserDetails {
     context userID: Context,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try await features.instance()
     let userDetailsFetchDatabaseOperation: UserDetailsFetchDatabaseOperation = try await features.instance()
@@ -85,7 +85,7 @@ extension UserDetails {
           }
       }
       catch {
-        diagnostics.log(error)
+        diagnostics.log(error: error)
         return .none
       }
     }

@@ -79,7 +79,7 @@ extension SessionNetworkAuthorization {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let accountData: AccountsDataStore = try await features.instance()
     let time: OSTime = features.instance()
     let environmentBridge: EnvironmentLegacyBridge = features.instance()
@@ -99,7 +99,7 @@ extension SessionNetworkAuthorization {
       for account: Account
     ) async throws -> ArmoredPGPPublicKey {
       diagnostics
-        .diagnosticLog("...fetching server public PGP key...")
+        .log(diagnostic: "...fetching server public PGP key...")
 
       let publicKey: ArmoredPGPPublicKey = try await .init(
         rawValue: serverPGPPublicKeyFetchNetworkOperation(.init(domain: account.domain))
@@ -119,7 +119,7 @@ extension SessionNetworkAuthorization {
       for account: Account
     ) throws {
       diagnostics
-        .diagnosticLog("...verifying server public PGP key...")
+        .log(diagnostic: "...verifying server public PGP key...")
 
       let serverFingerprint: Fingerprint
       do {
@@ -172,7 +172,7 @@ extension SessionNetworkAuthorization {
       for account: Account
     ) async throws -> PEMRSAPublicKey {
       diagnostics
-        .diagnosticLog("...fetching server public RSA key...")
+        .log(diagnostic: "...fetching server public RSA key...")
 
       return PEMRSAPublicKey(
         rawValue: try await serverRSAPublicKeyFetchNetworkOperation(.init(domain: account.domain))
@@ -205,7 +205,7 @@ extension SessionNetworkAuthorization {
       }
 
       diagnostics
-        .diagnosticLog("...preparing authorization challenge...")
+        .log(diagnostic: "...preparing authorization challenge...")
       do {
         let challengeData: Data =
           try jsonEncoder

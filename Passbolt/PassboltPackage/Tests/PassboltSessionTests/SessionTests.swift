@@ -83,7 +83,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_performsUsingSessionAuthorizationStatePerformAuthorization() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: always(self.executed())
+      with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: Session) in
@@ -100,9 +100,9 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_performsUsingRequestedAccount() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { account, _ in
-         self.result = account
-       }
+      with: { account, _ in
+        self.result = account
+      }
     )
 
     withTestedInstanceResultEqual(Account.valid) { (testedInstance: Session) in
@@ -119,13 +119,13 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_performsUsingSessionAuthorizationAuthorize() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { _, authorize in
-         try await authorize()
-       }
+      with: { _, authorize in
+        try await authorize()
+      }
     )
     patch(
       \SessionAuthorization.authorize,
-       with: always(self.executed())
+      with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: Session) in
@@ -142,13 +142,13 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_fails_whenSessionAuthorizationAuthorizeFails() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { _, authorize in
-         try await authorize()
-       }
+      with: { _, authorize in
+        try await authorize()
+      }
     )
     patch(
       \SessionAuthorization.authorize,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(MockIssue.self) { (testedInstance: Session) in
@@ -165,7 +165,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_performsUsingSessionAuthorizationStatePerformAuthorization() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: always(self.executed())
+      with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: Session) in
@@ -182,9 +182,9 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_performsUsingRequestedAccount() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { account, _ in
-         self.result = account
-       }
+      with: { account, _ in
+        self.result = account
+      }
     )
 
     withTestedInstanceResultEqual(Account.valid) { (testedInstance: Session) in
@@ -201,13 +201,13 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_performsUsingSessionMFAAuthorizationAuthorizeMFA() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { _, authorize in
-         try await authorize()
-       }
+      with: { _, authorize in
+        try await authorize()
+      }
     )
     patch(
       \SessionMFAAuthorization.authorizeMFA,
-       with: always(self.executed())
+      with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: Session) in
@@ -224,13 +224,13 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_fails_whenSessionMFAAuthorizationAuthorizeMFAFails() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { _, authorize in
-         try await authorize()
-       }
+      with: { _, authorize in
+        try await authorize()
+      }
     )
     patch(
       \SessionMFAAuthorization.authorizeMFA,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(MockIssue.self) { (testedInstance: Session) in
@@ -247,7 +247,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_close_doesNothing_whenNoOrDifferentAccount() {
     patch(
       \SessionState.account,
-       with: always(self.account)
+      with: always(self.account)
     )
 
     self.account = Optional<Account>.none
@@ -264,19 +264,19 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_close_cancelsOngoingAuthorization_whenClosingSession() {
     patch(
       \SessionState.account,
-       with: always(.valid)
+      with: always(.valid)
     )
     patch(
       \SessionState.refreshToken,
-       with: always(.none)
+      with: always(.none)
     )
     patch(
       \SessionState.setAccount,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \SessionAuthorizationState.cancelAuthorization,
-       with: always(self.executed())
+      with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: Session) in
@@ -287,23 +287,23 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_close_invalidatesTokens_whenRefreshTokenAvailable() {
     patch(
       \SessionState.account,
-       with: always(.valid)
+      with: always(.valid)
     )
     patch(
       \SessionState.refreshToken,
-       with: always(self.refreshToken)
+      with: always(self.refreshToken)
     )
     patch(
       \SessionState.setAccount,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \SessionAuthorizationState.cancelAuthorization,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \SessionNetworkAuthorization.invalidateSessionTokens,
-       with: always(self.executed())
+      with: always(self.executed())
     )
 
     self.refreshToken = Optional<SessionRefreshToken>.none
@@ -320,21 +320,21 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_close_clearsCurrentAccount_whenClosingSession() {
     patch(
       \SessionState.account,
-       with: always(.valid)
+      with: always(.valid)
     )
     patch(
       \SessionState.refreshToken,
-       with: always(.none)
+      with: always(.none)
     )
     patch(
       \SessionState.setAccount,
-       with: { account in
-         self.result = account
-       }
+      with: { account in
+        self.result = account
+      }
     )
     patch(
       \SessionAuthorizationState.cancelAuthorization,
-       with: always(Void())
+      with: always(Void())
     )
 
     withTestedInstanceResultEqual(Optional<Account>.none) { (testedInstance: Session) in

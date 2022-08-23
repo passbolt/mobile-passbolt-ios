@@ -65,7 +65,7 @@ extension ResourceDetailsController: UIController {
     await cancellables.addCleanup(
       features.pushScope(.resourceDetails)
     )
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let resources: Resources = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
     let sessionConfiguration: SessionConfiguration = try await features.instance()

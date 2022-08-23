@@ -21,19 +21,19 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-import AuthenticationServices
+import class AuthenticationServices.ASCredentialProviderViewController
+import class AuthenticationServices.ASCredentialServiceIdentifier
 import Commons
-import PassboltExtension
+import Foundation.NSCoder
 
 @objc(RootViewController)
-@MainActor internal class RootViewController: ASCredentialProviderViewController {
+@MainActor internal final class RootViewController: ASCredentialProviderViewController {
   
-  private lazy var applicationExtension: ApplicationExtension = .init(rootViewController: self)
+  @MainActor private lazy var applicationExtension: ApplicationExtension = .init(rootViewController: self)
   
   @MainActor internal init() {
     super.init(nibName: nil, bundle: nil)
-    applicationExtension.initialize()
+    self.applicationExtension.initialize()
   }
   
   @available(*, unavailable)
@@ -41,14 +41,17 @@ import PassboltExtension
     unreachable(#function)
   }
 
-  override internal func prepareCredentialList(
+  @MainActor override internal func prepareCredentialList(
     for serviceIdentifiers: Array<ASCredentialServiceIdentifier>
   ) {
-    applicationExtension.requestSuggestions(for: serviceIdentifiers)
-    applicationExtension.ui.prepareCredentialList()
+    self.applicationExtension
+      .requestSuggestions(for: serviceIdentifiers)
+    self.applicationExtension
+      .prepareCredentialList()
   }
 
-  override internal func prepareInterfaceForExtensionConfiguration() {
-    applicationExtension.ui.prepareInterfaceForExtensionConfiguration()
+  @MainActor override internal func prepareInterfaceForExtensionConfiguration() {
+    self.applicationExtension
+      .prepareInterfaceForExtensionConfiguration()
   }
 }

@@ -39,7 +39,7 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
   func test_() {
     XCTExpectFailure("Not completed yet")
     return XCTFail("TODO: Implement missing unit tests")
-    
+
     withTestedInstance(context: Account.valid) { (testedInstance: SessionLocking) in
 
     }

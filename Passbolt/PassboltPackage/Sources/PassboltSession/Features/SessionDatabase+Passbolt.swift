@@ -35,7 +35,7 @@ extension SessionDatabase {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
     let sessionState: SessionState = try await features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
@@ -76,7 +76,7 @@ extension SessionDatabase {
           .openConnection(account.localID, key)
       }
       catch {
-        diagnostics.log(error)
+        diagnostics.log(error: error)
         return .none
       }
     }

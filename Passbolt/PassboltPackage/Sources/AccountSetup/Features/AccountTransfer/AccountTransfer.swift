@@ -61,8 +61,8 @@ extension AccountTransfer: LegacyFeature {
     using features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> AccountTransfer {
-    let diagnostics: Diagnostics = try await features.instance()
-    diagnostics.diagnosticLog("Beginning new account transfer...")
+    let diagnostics: Diagnostics = features.instance()
+    diagnostics.log(diagnostic: "Beginning new account transfer...")
     #if DEBUG
     let mdmSupport: MDMSupport = try await features.instance()
     #endif
@@ -175,7 +175,7 @@ extension AccountTransfer: LegacyFeature {
       _ payload: String,
       using features: FeatureFactory
     ) -> AnyPublisher<Never, Error> {
-      diagnostics.diagnosticLog("Processing QR code payload...")
+      diagnostics.log(diagnostic: "Processing QR code payload...")
       switch processQRCodePayload(payload, in: transferState.value) {
       case var .success(updatedState):
         // if we have config we can ask for profile,
@@ -199,7 +199,7 @@ extension AccountTransfer: LegacyFeature {
 
           guard !accountAlreadyStored
           else {
-            diagnostics.diagnosticLog("...duplicate account detected, aborting!")
+            diagnostics.log(diagnostic: "...duplicate account detected, aborting!")
             requestCancelation(
               with: configuration,
               lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
@@ -234,7 +234,7 @@ extension AccountTransfer: LegacyFeature {
 
           guard !updatedState.scanningFinished
           else {
-            diagnostics.diagnosticLog("...missing profile data, aborting!")
+            diagnostics.log(diagnostic: "...missing profile data, aborting!")
             transferState
               .send(
                 completion: .failure(
@@ -250,7 +250,7 @@ extension AccountTransfer: LegacyFeature {
               .eraseToAnyPublisher()
           }
 
-          diagnostics.diagnosticLog("...processing succeeded, continuing transfer...")
+          diagnostics.log(diagnostic: "...processing succeeded, continuing transfer...")
           return requestNextPageWithUserProfile(
             for: updatedState,
             using: accountTransferUpdateNetworkOperation
@@ -274,7 +274,7 @@ extension AccountTransfer: LegacyFeature {
           .eraseToAnyPublisher()
         }
         else {
-          diagnostics.diagnosticLog("...processing succeeded, continuing transfer...")
+          diagnostics.log(diagnostic: "...processing succeeded, continuing transfer...")
           return requestNextPage(
             for: updatedState,
             using: accountTransferUpdateNetworkOperation
@@ -288,20 +288,20 @@ extension AccountTransfer: LegacyFeature {
         }
       case let .failure(error)
       where error.asLegacy.identifier == .canceled:
-        diagnostics.diagnosticLog("...processing canceled!")
+        diagnostics.log(diagnostic: "...processing canceled!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
       case let .failure(error)
       where error.asLegacy.identifier == .accountTransferScanningRecoverableError:
-        diagnostics.diagnosticLog("...processing failed, recoverable!")
+        diagnostics.log(diagnostic: "...processing failed, recoverable!")
         return Fail<Never, Error>(error: error)
           .collectErrorLog(using: diagnostics)
           .eraseToAnyPublisher()
 
       case let .failure(error):
-        diagnostics.diagnosticLog("...processing failed, aborting!")
+        diagnostics.log(diagnostic: "...processing failed, aborting!")
         if let configuration: AccountTransferConfiguration = transferState.value.configuration {
           return requestCancelation(
             with: configuration,
@@ -338,13 +338,13 @@ extension AccountTransfer: LegacyFeature {
     }
 
     nonisolated func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, Error> {
-      diagnostics.diagnosticLog("Completing account transfer...")
+      diagnostics.log(diagnostic: "Completing account transfer...")
       guard
         let configuration = transferState.value.configuration,
         let account = transferState.value.account,
         let profile = transferState.value.profile
       else {
-        diagnostics.diagnosticLog("...missing required data!")
+        diagnostics.log(diagnostic: "...missing required data!")
         return Fail<Never, Error>(
           error: TheErrorLegacy.accountTransferScanningRecoverableError(
             context: "account-transfer-complete-invalid-state"
@@ -367,19 +367,19 @@ extension AccountTransfer: LegacyFeature {
               account.armoredKey,
               passphrase
             )
-          diagnostics.diagnosticLog("...account transfer succeeded!")
+          diagnostics.log(diagnostic: "...account transfer succeeded!")
           transferState.send(completion: .finished)
           try await features?.unload(Self.self)
         }
         catch let error as AccountDuplicate {
-          diagnostics.log(error)
-          diagnostics.diagnosticLog("...account transfer failed!")
+          diagnostics.log(error: error)
+          diagnostics.log(diagnostic: "...account transfer failed!")
           transferState.send(completion: .failure(error))
           try await features?.unload(Self.self)
         }
         catch {
-          diagnostics.log(error)
-          diagnostics.diagnosticLog("...account transfer failed!")
+          diagnostics.log(error: error)
+          diagnostics.log(diagnostic: "...account transfer failed!")
           throw error
         }
       }
@@ -417,7 +417,7 @@ extension AccountTransfer: LegacyFeature {
     }
 
     @MainActor func featureUnload() async throws {
-      diagnostics.diagnosticLog("...account transfer process closed!")
+      diagnostics.log(diagnostic: "...account transfer process closed!")
       // we should unload this feature after use and it always succeeds
     }
 

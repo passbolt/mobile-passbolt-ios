@@ -39,7 +39,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   func test_() {
     XCTExpectFailure("Not completed yet")
     return XCTFail("TODO: Implement missing unit tests")
-    
+
     withTestedInstance(context: Account.valid) { (testedInstance: SessionPassphrase) in
 
     }

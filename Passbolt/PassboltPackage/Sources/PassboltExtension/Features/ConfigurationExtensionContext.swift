@@ -21,38 +21,30 @@
 // @since         v1.0
 //
 
+import Accounts
 import CommonModels
+import Features
 
-public struct Logger: EnvironmentElement {
+import struct Foundation.URL
 
-  public var consoleLog: (String) -> Void
-}
+public struct ConfigurationExtensionContext {
 
-extension Logger {
+  public var completeExtensionConfiguration: @MainActor () -> Void
 
-  public static var live: Self {
-    Self(
-      consoleLog: { message in print(message) }
-    )
+  public init(
+    completeExtensionConfiguration: @escaping @MainActor () -> Void
+  ) {
+    self.completeExtensionConfiguration = completeExtensionConfiguration
   }
 }
 
-extension AppEnvironment {
+extension ConfigurationExtensionContext: StaticFeature {
 
-  public var logger: Logger {
-    get { element(Logger.self) }
-    set { use(newValue) }
-  }
-}
-
-#if DEBUG
-extension Logger {
-
-  // placeholder implementation for mocking and testing, unavailable in release
+  #if DEBUG
   public static var placeholder: Self {
     Self(
-      consoleLog: unimplemented("You have to provide mocks for used methods")
+      completeExtensionConfiguration: unimplemented()
     )
   }
+  #endif
 }
-#endif

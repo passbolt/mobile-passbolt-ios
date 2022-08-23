@@ -33,9 +33,7 @@ import PassboltUsers
 
 extension FeatureFactory {
 
-  @MainActor public func usePassboltFeatures() {
-    self.useOSFeatures()
-    self.useLiveDisplay()
+  @MainActor internal func usePassboltFeatures() {
     self.usePassboltCommonStaticFeatures()
     self.usePassboltCommonLoadableFeatures()
     self.usePassboltNetworkModule()

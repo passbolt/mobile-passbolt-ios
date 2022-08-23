@@ -43,21 +43,20 @@ extension LogsViewerController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let logsFetchExecutor: AsyncExecutor = try await features.instance(of: Executors.self).newBackgroundExecutor()
 
-    let logsCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
+    let diagnosticsInfoCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()
 
     func refreshLogs() {
       logsFetchExecutor {
-        logsCacheSubject.send(diagnostics.collectedLogs())
+        diagnosticsInfoCacheSubject.send(diagnostics.diagnosticsInfo())
       }
     }
 
     func logsPublisher() -> AnyPublisher<Array<String>?, Never> {
-      logsCacheSubject
-        .map { $0.map { [diagnostics.deviceInfo()] + $0 } }
+      diagnosticsInfoCacheSubject
         .eraseToAnyPublisher()
     }
 
@@ -65,7 +64,7 @@ extension LogsViewerController: UIController {
       shareMenuPresentationSubject
         .send(
           "Passbolt:\n"
-            + (logsCacheSubject
+            + (diagnosticsInfoCacheSubject
               .value?
               .joined(separator: "\n")
               ?? "N/A")

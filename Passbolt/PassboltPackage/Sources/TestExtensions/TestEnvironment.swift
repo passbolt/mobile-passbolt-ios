@@ -28,7 +28,6 @@ public func testEnvironment() -> AppEnvironment {
   AppEnvironment(
     Time.placeholder,
     UUIDGenerator.placeholder,
-    Logger.placeholder,
     Preferences.placeholder,
     Keychain.placeholder,
     Biometrics.placeholder,

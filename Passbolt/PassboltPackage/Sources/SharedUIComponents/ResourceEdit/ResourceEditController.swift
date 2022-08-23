@@ -61,7 +61,7 @@ extension ResourceEditController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let diagnostics: Diagnostics = try await features.instance()
+    let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceForm: ResourceEditForm = try await features.instance()
     let randomGenerator: RandomStringGenerator = try await features.instance()
