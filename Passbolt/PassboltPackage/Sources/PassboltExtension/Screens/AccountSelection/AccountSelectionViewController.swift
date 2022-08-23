@@ -21,11 +21,12 @@
 // @since         v1.0
 //
 
+import AuthenticationServices
 import SharedUIComponents
 import UICommons
 import UIComponents
 
-internal final class AccountSelectionViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
+internal final class AccountSelectionViewController: PlainViewController, UIComponent {
 
   internal typealias ContentView = AccountSelectionView
   internal typealias Controller = AccountSelectionController
@@ -61,8 +62,27 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     )
   }
 
+  internal func setup() {
+    setupNavigationBar()
+  }
+
   internal func setupView() {
     setupSubscriptions()
+  }
+
+  private func setupNavigationBar() {
+    mut(navigationItem) {
+      .rightBarButtonItem(
+        Mutation<UIBarButtonItem>
+          .combined(
+            .image(named: .close, from: .uiCommons),
+            .action { [weak self] in
+              self?.controller.closeExtension()
+            }
+          )
+          .instantiate()
+      )
+    }
   }
 
   private func setupSubscriptions() {
@@ -79,12 +99,7 @@ internal final class AccountSelectionViewController: PlainViewController, UIComp
     contentView
       .accountTapPublisher
       .sink { [weak self] item in
-        self?.cancellables.executeOnMainActor { [weak self] in
-          await self?.push(
-            AuthorizationViewController.self,
-            in: item.account
-          )
-        }
+        self?.controller.selectAccount(item.account)
       }
       .store(in: cancellables)
   }

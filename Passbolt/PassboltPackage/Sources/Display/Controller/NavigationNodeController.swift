@@ -21,48 +21,14 @@
 // @since         v1.0
 //
 
-import Accounts
-import SharedUIComponents
-import UICommons
-import UIComponents
+// refine protocol to distinct between
+// navigation nodes and regular controllers
+public protocol NavigationNodeController: DisplayController {}
 
-internal final class ResourcesNavigationViewController: NavigationViewController, UIComponent {
+public protocol ContextlessNavigationNodeController: NavigationNodeController
+where Context == ContextlessFeatureContext {}
 
-  internal typealias Controller = ResourcesNavigationController
+extension NavigationNodeController {
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
-  }
-
-  internal let components: UIComponentFactory
-  private let controller: Controller
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super.init(
-      cancellables: cancellables
-    )
-  }
-
-  internal func setup() {
-    self.cancellables.executeOnMainActor { [weak self] in
-      guard let self = self else { return }
-      await self.replaceNavigationRoot(
-        with: ResourcesFilterViewController.self
-      )
-    }
-  }
+  public var navigationNodeID: NavigationNodeID { .init(self) }
 }

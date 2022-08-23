@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Display
 import Features
 import SharedUIComponents
 import TestExtensions
@@ -70,6 +71,8 @@ final class AccountSelectionControllerTests: MainActorTestCase {
       \Session.currentAccount,
       with: always(firstAccount.account)
     )
+    features.use(NavigationTree.placeholder)
+    features.use(AutofillExtensionContext.placeholder)
   }
 
   override func mainActorTearDown() {

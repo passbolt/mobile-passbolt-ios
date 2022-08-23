@@ -70,10 +70,18 @@ extension TheError {
   ///   - line: Line in given source code file.
   ///   Filled automatically based on compile time constants.
   public func asFatalError(
-    message: @autoclosure () -> String = .init(),
+    message: @autoclosure () -> StaticString = .init(),
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Never {
+    logFatal(
+      error: self,
+      info: .message(
+        message(),
+        file: file,
+        line: line
+      )
+    )
     fatalError(
       "\(message())\n\(self.debugDescription)",
       file: file,

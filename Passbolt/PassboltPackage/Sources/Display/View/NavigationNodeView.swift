@@ -21,30 +21,9 @@
 // @since         v1.0
 //
 
-import Display
-import Features
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+import SwiftUI
 
-extension FeatureFactory {
-
-  @MainActor internal func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltNetworkModule()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-
-    self.usePassboltAutofillRootNavigationNodeController()
-  }
-}
+// refine protocol to distinct between
+// navigation nodes and regular views
+public protocol NavigationNodeView: DisplayView
+where Controller: NavigationNodeController {}

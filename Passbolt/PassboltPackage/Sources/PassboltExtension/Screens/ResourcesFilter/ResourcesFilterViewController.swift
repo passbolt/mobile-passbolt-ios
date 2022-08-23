@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import AuthenticationServices
 import UICommons
 import UIComponents
 
@@ -57,15 +58,35 @@ internal final class ResourcesFilterViewController: PlainViewController, UICompo
   internal let components: UIComponentFactory
   private let controller: Controller
 
+  internal func setup() {
+    self.title =
+      DisplayableString
+      .localized(key: "autofill.extension.resource.list.title")
+      .string()
+
+    setupNavigationBar()
+  }
+
   internal func setupView() {
-    setupNavigationView()
     setupFiltersView()
     setupResourcesListView()
   }
 
-  private func setupNavigationView() {
-    mut(self.navigationItem) {
-      .title(.localized(key: "autofill.extension.resource.list.title"))
+  private func setupNavigationBar() {
+    mut(navigationItem) {
+      .combined(
+        .rightBarButtonItem(
+          Mutation<UIBarButtonItem>
+            .combined(
+              .closeStyle(),
+              .accessibilityIdentifier("button.close"),
+              .action { [weak self] in
+                self?.extensionContext?.cancelRequest(withError: ASExtensionError(.userCanceled))
+              }
+            )
+            .instantiate()
+        )
+      )
     }
   }
 
@@ -120,5 +141,3 @@ internal final class ResourcesFilterViewController: PlainViewController, UICompo
     }
   }
 }
-
-extension ResourcesFilterViewController: CustomPresentableUIComponent {}

@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import Session
 import SharedUIComponents
 import UIComponents
@@ -30,6 +31,8 @@ internal struct AccountSelectionController {
 
   internal var accountsPublisher: @MainActor () -> AnyPublisher<Array<AccountSelectionListItem>, Never>
   internal var screenMode: @MainActor () -> AccountSelectionController.Mode
+  internal var selectAccount: @MainActor (Account) -> Void
+  internal var closeExtension: @MainActor () -> Void
 }
 
 extension AccountSelectionController {
@@ -50,6 +53,8 @@ extension AccountSelectionController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> AccountSelectionController {
+    let navigationTree: NavigationTree = features.instance()
+    let autofillContext: AutofillExtensionContext = features.instance()
     let accounts: Accounts = try await features.instance()
     let session: Session = try await features.instance()
 
@@ -88,9 +93,27 @@ extension AccountSelectionController: UIController {
       context
     }
 
+    @MainActor func selectAccount(
+      _ account: Account
+    ) {
+      Task {
+        await navigationTree.push(
+          AuthorizationViewController.self,
+          context: account,
+          using: features
+        )
+      }
+    }
+
+    @MainActor func closeExtension() {
+      autofillContext.cancelAndCloseExtension()
+    }
+
     return Self(
       accountsPublisher: accountsPublisher,
-      screenMode: screenMode
+      screenMode: screenMode,
+      selectAccount: selectAccount,
+      closeExtension: closeExtension
     )
   }
 }

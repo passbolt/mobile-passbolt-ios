@@ -65,12 +65,11 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
     )
   }
 
-  public func setupView() {
-    mut(self) {
-      .title(
-        .localized(key: "authorization.title")
-      )
-    }
+  public func setup() {
+    self.title =
+      DisplayableString
+      .localized(key: "authorization.title")
+      .string()
 
     mut(navigationItem) {
       .rightBarButtonItem(
@@ -86,7 +85,9 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
           .instantiate()
       )
     }
+  }
 
+  public func setupView() {
     mut(contentView) {
       .backgroundColor(dynamic: .background)
     }
@@ -383,5 +384,13 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
         self?.dismissOverlay()
       }
       .sinkDrop()
+  }
+
+  public override func willMove(
+    toParent parent: UIViewController?
+  ) {
+    super.willMove(toParent: parent)
+    guard parent == .none else { return }
+    self.dismissOverlay()
   }
 }

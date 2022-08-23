@@ -30,9 +30,8 @@ public protocol DisplayController: Hashable, LoadableFeature {
   var displayViewState: DisplayViewState<ViewState> { get }
 }
 
-public protocol ContextlessDisplayController: DisplayController where Context == ContextlessFeatureContext {
-
-}
+public protocol ContextlessDisplayController: DisplayController
+where Context == ContextlessFeatureContext {}
 
 extension DisplayController /* Hashable */ {
 
@@ -40,14 +39,14 @@ extension DisplayController /* Hashable */ {
     _ lhs: Self,
     _ rhs: Self
   ) -> Bool {
-    // relaying on object reference equality
-    lhs.displayViewState === rhs.displayViewState
+    // relaying on DisplayViewState equality
+    lhs.displayViewState == rhs.displayViewState
   }
 
   public func hash(
     into hasher: inout Hasher
   ) {
-    // relaying on object reference equality
+    // relaying on DisplayViewState hash
     hasher.combine(self.displayViewState)
   }
 }

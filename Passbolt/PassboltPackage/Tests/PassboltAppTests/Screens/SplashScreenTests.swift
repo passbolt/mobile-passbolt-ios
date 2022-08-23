@@ -226,20 +226,15 @@ final class SplashScreenTests: MainActorTestCase {
     let uncheckedSendableIndex: UncheckedSendable<Int> = .init(0)
     features.patch(
       \SessionConfiguration.fetchIfNeeded,
-      with: {
-        guard uncheckedSendableIndex.variable > 0 else {
-          uncheckedSendableIndex.variable += 1
-          throw MockIssue.error()
-        }
-
-        return Void()
-      }
+      with: always(Void())
     )
 
     let controller: SplashScreenController = try await testController(context: .none)
-    var destination: SplashScreenController.Destination!
+    var destination: SplashScreenController.Destination?
 
-    controller.navigationDestinationPublisher()
+    controller
+      .navigationDestinationPublisher()
+      .dropFirst()
       .sink { value in
         destination = value
       }

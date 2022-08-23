@@ -21,63 +21,33 @@
 // @since         v1.0
 //
 
-import AuthenticationServices
-import UICommons
-import UIComponents
+import Display
+import SharedUIComponents
 
-internal final class NoAccountsViewController: PlainViewController, UIComponent {
+internal struct AutofillRootNavigationNodeView: NavigationNodeView {
 
-  internal typealias ContentView = NoAccountsView
-  internal typealias Controller = NoAccountsController
-
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
-    )
-  }
-
-  internal private(set) var contentView: ContentView = .init()
-  internal var components: UIComponentFactory
+  internal typealias Controller = AutofillRootNavigationNodeController
 
   private let controller: Controller
 
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
+  init(
+    controller: Controller
   ) {
     self.controller = controller
-    self.components = components
-    super.init(
-      cancellables: cancellables
-    )
   }
 
-  internal func setup() {
-    mut(navigationItem) {
-      .combined(
-        .rightBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .closeStyle(),
-              .accessibilityIdentifier("button.close"),
-              .action { [weak self] in
-                self?.extensionContext?.cancelRequest(withError: ASExtensionError(.userCanceled))
-              }
-            )
-            .instantiate()
-        )
-      )
+  internal var body: some View {
+    ZStack {
+      Image(named: .passboltLogo)
     }
-  }
-
-  func setupView() {
-    // NOP
+    .ignoresSafeArea()
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity
+    )
+    .backgroundColor(.passboltBackground)
+    .task {
+      await self.controller.startSessionMonitoring()
+    }
   }
 }

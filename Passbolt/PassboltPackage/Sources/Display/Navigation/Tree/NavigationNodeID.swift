@@ -21,26 +21,21 @@
 // @since         v1.0
 //
 
-import AuthenticationServices
-import UIComponents
+public struct NavigationNodeID {
 
-extension CustomPresentableUIComponent {
+  private let id: AnyHashable
 
-  public func customPresentationSetup() {
-    mut(navigationItem) {
-      .combined(
-        .rightBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .closeStyle(),
-              .accessibilityIdentifier("button.close"),
-              .action { [weak self] in
-                self?.extensionContext?.cancelRequest(withError: ASExtensionError(.userCanceled))
-              }
-            )
-            .instantiate()
-        )
-      )
-    }
+  internal init<Controller>(
+    _ controller: Controller
+  ) where Controller: NavigationNodeController {
+    self.id = ObjectIdentifier(controller.displayViewState)
+  }
+
+  internal init<Component>(
+    _ legacyBridge: LegacyNavigationNodeBridgeView<Component>
+  ) where Component: UIComponent {
+    self.id = ObjectIdentifier(legacyBridge.component)
   }
 }
+
+extension NavigationNodeID: Hashable {}

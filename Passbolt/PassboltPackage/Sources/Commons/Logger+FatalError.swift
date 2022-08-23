@@ -21,6 +21,20 @@
 // @since         v1.0
 //
 
-import SharedUIComponents
+import OSLog
 
-extension AuthorizationViewController: CustomPresentableUIComponent {}
+private let errorLogger: Logger = .init(
+  subsystem: "com.passbolt.mobile",
+  category: "error"
+)
+
+// use only for fatal errors
+internal func logFatal(
+  error: Error,
+  info: DiagnosticsInfo? = .none
+) {
+  errorLogger.log(level: .error, "Fatal error:\(info?.message ?? "", privacy: .public)")
+  for message in error.asTheError().diagnosticMessages {
+    errorLogger.log(level: .error, "\(message, privacy: .public)")
+  }
+}

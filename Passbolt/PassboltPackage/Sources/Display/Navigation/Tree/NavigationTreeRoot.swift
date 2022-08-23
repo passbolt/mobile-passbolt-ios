@@ -21,30 +21,11 @@
 // @since         v1.0
 //
 
-import Display
-import Features
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+import UIKit
 
-extension FeatureFactory {
+public protocol NavigationTreeRoot {
 
-  @MainActor internal func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltNetworkModule()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-
-    self.usePassboltAutofillRootNavigationNodeController()
-  }
+  @MainActor func setRoot<RootView>(
+    _ view: RootView
+  ) where RootView: View
 }

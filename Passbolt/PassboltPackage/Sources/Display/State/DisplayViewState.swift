@@ -85,13 +85,6 @@ where State: Hashable {
     }
     self.cancellable =
       updatesSubject
-      // we don't want to trigger
-      // screen refresh too often,
-      // 60 Hz is enough
-      .debounce(
-        for: .seconds(1.0 / 60.0),
-        scheduler: RunLoop.main
-      )
       .sink(receiveValue: self.objectWillChange.send)
   }
 
@@ -135,6 +128,12 @@ extension DisplayViewState {
   ) {
     self.wrappedValue[keyPath: keyPath] = property
   }
+
+  public func with<Value>(
+    _ access: (inout State) throws -> Value
+  ) rethrows -> Value {
+    try access(&self.wrappedValue)
+  }
 }
 
 extension DisplayViewState: Hashable {
@@ -150,7 +149,7 @@ extension DisplayViewState: Hashable {
   public func hash(
     into hasher: inout Hasher
   ) {
-    // relaying on object reference equality
+    // relaying on object reference
     hasher.combine(ObjectIdentifier(self))
   }
 }

@@ -21,20 +21,33 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import Display
 
-internal struct ResourcesNavigationController {}
+import class AuthenticationServices.ASCredentialProviderViewController
 
-extension ResourcesNavigationController: UIController {
+extension ASCredentialProviderViewController: NavigationTreeRoot {
 
-  internal typealias Context = Void
+  @MainActor public func setRoot<RootView>(
+    _ view: RootView
+  ) where RootView: View {
+    let viewController: UIHostingController<RootView> = .init(rootView: view)
 
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self()
+    self.children.forEach {
+      $0.willMove(toParent: .none)
+      $0.view.removeFromSuperview()
+      $0.removeFromParent()
+    }
+    self.addChild(viewController)
+    mut(viewController.view) {
+      .combined(
+        .subview(of: self.view),
+        .edges(
+          equalTo: self.view,
+          usingSafeArea: false
+        )
+      )
+    }
+    viewController
+      .didMove(toParent: self)
   }
 }

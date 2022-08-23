@@ -21,30 +21,9 @@
 // @since         v1.0
 //
 
-import Display
-import Features
-import PassboltAccounts
-import PassboltDatabaseOperations
-import PassboltNetworkOperations
-import PassboltResources
-import PassboltSession
-import PassboltSessionData
-import PassboltUsers
+public struct HashableVoid {
 
-extension FeatureFactory {
-
-  @MainActor internal func usePassboltFeatures() {
-    self.usePassboltCommonStaticFeatures()
-    self.usePassboltCommonLoadableFeatures()
-    self.usePassboltNetworkModule()
-    self.usePassboltAccountsModule()
-    self.usePassboltDatabaseOperationsModule()
-    self.usePassboltNetworkOperationsModule()
-    self.usePassboltResourcesModule()
-    self.usePassboltSessionModule()
-    self.usePassboltSessionDataModule()
-    self.usePassboltUsersModule()
-
-    self.usePassboltAutofillRootNavigationNodeController()
-  }
+  public init() {}
 }
+
+extension HashableVoid: Hashable {}

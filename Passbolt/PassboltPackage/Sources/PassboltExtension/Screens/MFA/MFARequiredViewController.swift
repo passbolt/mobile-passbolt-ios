@@ -21,10 +21,11 @@
 // @since         v1.0
 //
 
+import AuthenticationServices
 import UICommons
 import UIComponents
 
-internal final class MFARequiredViewController: PlainViewController, UIComponent, CustomPresentableUIComponent {
+internal final class MFARequiredViewController: PlainViewController, UIComponent {
 
   internal typealias ContentView = MFARequiredView
   internal typealias Controller = MFARequiredController
@@ -58,7 +59,25 @@ internal final class MFARequiredViewController: PlainViewController, UIComponent
     )
   }
 
-  internal func setupView() {
-    customPresentationSetup()
+  internal func setup() {
+    mut(navigationItem) {
+      .combined(
+        .rightBarButtonItem(
+          Mutation<UIBarButtonItem>
+            .combined(
+              .closeStyle(),
+              .accessibilityIdentifier("button.close"),
+              .action { [weak self] in
+                self?.extensionContext?.cancelRequest(withError: ASExtensionError(.userCanceled))
+              }
+            )
+            .instantiate()
+        )
+      )
+    }
+  }
+
+  func setupView() {
+    // NOP
   }
 }

@@ -210,8 +210,8 @@ extension Diagnostics {
                 date: Date(timeIntervalSinceNow: -60 * 60)
               ),
             matching: NSPredicate(
-              format: "category == %@",
-              argumentArray: ["diagnostic"]
+              format: "category == %@ OR category == %@",
+              argumentArray: ["diagnostic", "error"]
             )
           )
           .map { logEntry in

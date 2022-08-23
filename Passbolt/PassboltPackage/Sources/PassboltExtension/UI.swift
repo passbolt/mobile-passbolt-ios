@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Display
 import UIComponents
 
 import class AuthenticationServices.ASPasswordCredentialIdentity
@@ -29,11 +30,11 @@ import class AuthenticationServices.ASPasswordCredentialIdentity
 @MainActor
 public final class UI {
 
-  private let rootViewController: UIViewController
+  private let rootViewController: UIViewController & NavigationTreeRoot
   private let features: FeatureFactory
 
   public init(
-    rootViewController: UIViewController,
+    rootViewController: UIViewController & NavigationTreeRoot,
     features: FeatureFactory
   ) {
     self.rootViewController = rootViewController
@@ -44,17 +45,13 @@ public final class UI {
 extension UI {
 
   @MainActor public func prepareCredentialList() {
-    MainActor.execute {
-      do {
-        try await self.setRootContent(
-          UIComponentFactory(features: self.features).instance(of: ExtensionViewController.self)
+    Task { @MainActor in
+      try await features
+        .instance(of: NavigationTree.self)
+        .replaceRoot(
+          with: AutofillRootNavigationNodeView.self,
+          controller: features.instance()
         )
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError()
-      }
     }
   }
 

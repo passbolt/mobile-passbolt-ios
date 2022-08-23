@@ -21,42 +21,49 @@
 // @since         v1.0
 //
 
-import Accounts
-import UIComponents
+import SwiftUI
 
-internal struct AuthorizationNavigationController {
+internal struct InitialNavigationNodeView: NavigationNodeView {
 
-  internal var selectedAccount: Account?
-  internal var mode: AccountSelectionController.Mode
-  internal var hasAccounts: Bool
+  internal typealias Controller = InitialNavigationNodeController
+
+  internal static var erasedInstance: AnyNavigationNodeView = .init(
+    for: Self.self,
+    controller: .init()
+  )
+
+  private let controller: Controller
+
+  init(
+    controller: Controller
+  ) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    ZStack {
+      Image(named: .passboltLogo)
+    }
+    .ignoresSafeArea()
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity
+    )
+    .backgroundColor(.passboltBackground)
+  }
 }
 
-extension AuthorizationNavigationController: UIController {
+internal struct InitialNavigationNodeController: ContextlessNavigationNodeController {
 
-  internal typealias Context = (account: Account?, mode: AccountSelectionController.Mode)
+  internal typealias ViewState = HashableVoid
 
-  internal static func instance(
-    in context: Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) async throws -> Self {
-    let accounts: Accounts = try await features.instance()
+  internal var displayViewState: DisplayViewState<ViewState> = .init(initial: .init())
 
-    let storedAccounts: Array<Account> = await accounts.storedAccounts()
-
-    if let account = context.account, storedAccounts.contains(account) {
-      return Self(
-        selectedAccount: context.account,
-        mode: context.mode,
-        hasAccounts: true
-      )
-    }
-    else {
-      return Self(
-        selectedAccount: nil,
-        mode: context.mode,
-        hasAccounts: !storedAccounts.isEmpty
-      )
-    }
+  #if DEBUG
+  nonisolated static var placeholder: Self {
+    .init(
+      displayViewState: .placeholder
+    )
   }
+  #endif
 }

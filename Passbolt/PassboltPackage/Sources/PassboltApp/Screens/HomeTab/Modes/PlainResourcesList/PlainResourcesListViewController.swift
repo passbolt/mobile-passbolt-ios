@@ -58,11 +58,11 @@ internal final class PlainResourcesListViewController: PlainViewController, UICo
   }
 
   internal func setupView() {
-    setupNavigationView()
+    setupNavigationBar()
     setupContentView()
   }
 
-  private func setupNavigationView() {
+  private func setupNavigationBar() {
     let titleView: PlainView = .init()
     mut(titleView) {
       .backgroundColor(.clear)

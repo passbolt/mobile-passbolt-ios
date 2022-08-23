@@ -61,7 +61,9 @@ internal final class ApplicationExtension {
     let features: FeatureFactory = .init(environment: environment)
     // register features implementations
     features.usePassboltInitialization()
-
+    features.useLiveNavigationTree(
+      from: rootViewController
+    )
     self.ui = UI(
       rootViewController: rootViewController,
       features: features
