@@ -57,6 +57,6 @@ extension DisplayController {
   public func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>
   ) -> Binding<Value> {
-    self.displayViewState.binding(to: keyPath)
+    self.displayViewState.binding(to: keyPath).binding
   }
 }

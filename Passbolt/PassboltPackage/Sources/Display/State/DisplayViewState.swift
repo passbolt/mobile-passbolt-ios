@@ -69,8 +69,8 @@ where State: Hashable {
     let updatesSubject: PassthroughSubject<Void, Never> = .init()
     let value: CriticalState<State> = .init(initial)
     self.read = { value.get(\.self) }
-    self.write = { @Sendable newValue in
-      let updated: Bool = value.access { (state: inout State) in
+    self.write = { @Sendable (newValue: State) in
+      let updated: Bool = value.access { (state: inout State) -> Bool in
         if newValue == state {
           return false
         }
@@ -86,7 +86,9 @@ where State: Hashable {
     self.cancellable =
       updatesSubject
       .receive(on: RunLoop.main)
-      .sink(receiveValue: self.objectWillChange.send)
+      .sink { [weak self] in
+        self?.objectWillChange.send()
+      }
   }
 
   public var wrappedValue: State {
@@ -94,22 +96,38 @@ where State: Hashable {
     set { self.write(newValue) }
   }
 
-  public var projectedValue: Binding<State> {
+  public var projectedValue: ValueBinding<State> {
     .init(
       get: self.read,
       set: self.write
     )
   }
 
+  @_disfavoredOverload
   public func binding<Value>(
     to keyPath: WritableKeyPath<State, Value>
-  ) -> Binding<Value> {
+  ) -> ValueBinding<Value> {
     .init(
       get: { self.get(keyPath) },
       set: { newValue in
         self.set(keyPath, newValue)
       }
     )
+  }
+
+  public func binding<Value>(
+    to keyPath: WritableKeyPath<State, ValueBinding<Value>>
+  ) -> ValueBinding<Value> {
+    self.get(keyPath)
+  }
+
+  public func associate<Value>(
+    binding: ValueBinding<Value>,
+    with keyPath: WritableKeyPath<State, Value>
+  ) {
+    binding.onSet { [weak self] (value: Value) in
+      self?.wrappedValue[keyPath: keyPath] = value
+    }
   }
 
   public subscript<Value>(

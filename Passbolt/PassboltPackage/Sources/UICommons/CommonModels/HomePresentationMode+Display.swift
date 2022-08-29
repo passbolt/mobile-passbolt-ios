@@ -22,11 +22,10 @@
 //
 
 import CommonModels
-import UICommons
 
 extension HomePresentationMode {
 
-  internal var title: DisplayableString {
+  public var title: DisplayableString {
     switch self {
     case .plainResourcesList:
       return .localized(key: "home.presentation.mode.plain.resources.title")
@@ -54,7 +53,7 @@ extension HomePresentationMode {
     }
   }
 
-  internal var iconName: ImageNameConstant {
+  public var iconName: ImageNameConstant {
     switch self {
     case .plainResourcesList:
       return .list

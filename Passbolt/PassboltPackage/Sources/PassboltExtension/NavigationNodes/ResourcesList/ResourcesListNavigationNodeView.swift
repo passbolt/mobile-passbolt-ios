@@ -48,8 +48,8 @@ internal struct ResourcesListNavigationNodeView: NavigationNodeView {
     with state: ViewState
   ) -> some View {
     ScreenView(
-      titleIcon: .list,
-      title: state.title,
+      titleIcon: state.mode.iconName,
+      title: state.mode.title,
       titleBarShadow: true,
       snackBarMessage: self.controller.binding(to: \.snackBarMessage),
       titleExtensionView: {

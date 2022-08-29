@@ -45,7 +45,10 @@ extension FeatureFactory {
     self.usePassboltSessionDataModule()
     self.usePassboltUsersModule()
 
+    self.usePassboltHomePresentation()
+
     self.usePassboltAutofillRootNavigationNodeController()
     self.usePassboltPlainResourcesListNavigationNodeController()
+    self.usePassboltHomePresentationMenuNavigationNodeController()
   }
 }

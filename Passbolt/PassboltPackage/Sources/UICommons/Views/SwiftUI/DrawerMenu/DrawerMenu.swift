@@ -23,7 +23,6 @@
 
 import SwiftUI
 
-@MainActor
 public struct DrawerMenu<TitleView, ContentView>: View
 where TitleView: View, ContentView: View {
 

@@ -21,32 +21,47 @@
 // @since         v1.0
 //
 
-import Accounts
-import Features
-import Session
+import Commons
+import CommonModels
 import SessionData
+import Accounts
+import Session
+
+// MARK: - Interface
 
 internal struct HomePresentation {
 
-  internal var currentPresentationModePublisher: @MainActor () -> AnyPublisher<HomePresentationMode, Never>
-  internal var setPresentationMode: @MainActor (HomePresentationMode) -> Void
-  internal var availableHomePresentationModes: @MainActor () -> OrderedSet<HomePresentationMode>
+  internal var currentMode: ValueBinding<HomePresentationMode>
+  internal var availableModes: () -> OrderedSet<HomePresentationMode>
 }
 
-extension HomePresentation: LegacyFeature {
+extension HomePresentation: LoadableContextlessFeature {
 
-  internal static func load(
-    in environment: AppEnvironment,
-    using features: FeatureFactory,
+  #if DEBUG
+  internal nonisolated static var placeholder: Self {
+    .init(
+      currentMode: .placeholder,
+      availableModes: unimplemented()
+    )
+  }
+  #endif
+}
+
+// MARK: - Implementation
+
+extension HomePresentation {
+
+  @MainActor fileprivate static func load(
+    features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
     let sessionConfiguration: SessionConfiguration = try await features.instance()
     let session: Session = try await features.instance()
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
 
-    var useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
+    let useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    var defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    let defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let foldersConfig: FeatureFlags.Folders = await sessionConfiguration.configuration(for: FeatureFlags.Folders.self)
     let tagsConfig: FeatureFlags.Tags = await sessionConfiguration.configuration(for: FeatureFlags.Tags.self)
@@ -94,52 +109,33 @@ extension HomePresentation: LegacyFeature {
       }
     }()
 
-    let currentPresentationModeSubject: CurrentValueSubject<HomePresentationMode, Never> =
-      .init(
-        initialPresentationMode
-      )
-
-    @MainActor func currentPresentationModePublisher() -> AnyPublisher<HomePresentationMode, Never> {
-      currentPresentationModeSubject
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    }
-
-    @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
-      currentPresentationModeSubject.send(mode)
+    let currentModeBinding: ValueBinding<HomePresentationMode> = .variable(initial: initialPresentationMode)
+    
+    currentModeBinding.onSet { mode in
       if useLastUsedHomePresentationAsDefault.wrappedValue {
-        defaultHomePresentation.wrappedValue = mode
-      }
-      else { /* NOP */
-      }
+        defaultHomePresentation.set(\.self, mode)
+      }  // else NOP
     }
 
-    @MainActor func availableHomePresentationModes() -> OrderedSet<HomePresentationMode> {
-      return availablePresentationModes
+    nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
+      availablePresentationModes
     }
 
     return Self(
-      currentPresentationModePublisher: currentPresentationModePublisher,
-      setPresentationMode: setPresentationMode(_:),
-      availableHomePresentationModes: availableHomePresentationModes
+      currentMode: currentModeBinding,
+      availableModes: availableModes
     )
   }
 }
 
-extension HomePresentation {
+extension FeatureFactory {
 
-  internal var featureUnload: @MainActor () async throws -> Void { {} }
-}
-
-#if DEBUG
-extension HomePresentation {
-
-  static var placeholder: Self {
-    Self(
-      currentPresentationModePublisher: unimplemented("You have to provide mocks for used methods"),
-      setPresentationMode: unimplemented("You have to provide mocks for used methods"),
-      availableHomePresentationModes: unimplemented("You have to provide mocks for used methods")
+  @MainActor public func usePassboltHomePresentation() {
+    self.use(
+      .lazyLoaded(
+        HomePresentation.self,
+        load: HomePresentation.load(features:cancellables:)
+      )
     )
   }
 }
-#endif

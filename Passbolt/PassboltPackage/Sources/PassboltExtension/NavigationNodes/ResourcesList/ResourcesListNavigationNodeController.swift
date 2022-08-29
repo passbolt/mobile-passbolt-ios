@@ -44,7 +44,7 @@ extension ResourcesListNavigationNodeController: ContextlessNavigationNodeContro
 
   internal struct ViewState: Hashable {
 
-    internal var title: DisplayableString
+    internal var mode: HomePresentationMode
     internal var accountAvatar: Data?
     internal var searchText: String
     internal var suggested: Array<ResourceListItemDSV>
@@ -76,18 +76,20 @@ extension ResourcesListNavigationNodeController {
   ) async throws -> Self {
     let diagnostics: Diagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
+    let asyncExecutor: AsyncExecutor = features.instance()
     let autofillContext: AutofillExtensionContext = features.instance()
     let session: Session = try await features.instance()
     let sessionData: SessionData = try await features.instance()
     let accountDetails: AccountDetails = try await features.instance(context: session.currentAccount())
     let resources: Resources = try await features.instance()
+    let homePresentation: HomePresentation = try await features.instance()
 
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
       autofillContext.requestedServiceIdentifiers()
 
     let displayViewState: DisplayViewState<ViewState> = .init(
       initial: .init(
-        title: .localized("autofill.extension.resource.list.title"),
+        mode: homePresentation.currentMode.wrappedValue,
         accountAvatar: .none,
         searchText: "",
         suggested: .init(),
@@ -96,8 +98,14 @@ extension ResourcesListNavigationNodeController {
       )
     )
 
+    displayViewState
+      .associate(
+        binding: homePresentation.currentMode,
+        with: \.mode
+      )
+
     nonisolated func activate() async {
-      Task {
+      asyncExecutor.schedule(.reuse) {
         do {
           let avatar: Data? = try await accountDetails.avatarImage()
           displayViewState.with { state in
@@ -167,7 +175,7 @@ extension ResourcesListNavigationNodeController {
       _ text: String
     ) {
       displayViewState.searchText = text
-      Task {
+      asyncExecutor.schedule(.replace) {
         do {
           let filteredResources =
             try await resources.filteredResourcesList(
@@ -191,7 +199,7 @@ extension ResourcesListNavigationNodeController {
     }
 
     nonisolated func createResource() {
-      Task {
+      asyncExecutor.schedule(.reuse) {
         await navigationTree
           .push(
             ResourceEditViewController.self,
@@ -209,7 +217,7 @@ extension ResourcesListNavigationNodeController {
     @Sendable nonisolated func selectResource(
       _ resourceID: Resource.ID
     ) {
-      Task {
+      asyncExecutor.schedule(.replace) {
         do {
           let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
           let resource: ResourceDetailsDSV = try await resourceDetails.details()
@@ -242,18 +250,33 @@ extension ResourcesListNavigationNodeController {
     }
 
     nonisolated func showPresentationMenu() {
-      let error: Unimplemented = .error("Not implemented yet")
-      displayViewState.snackBarMessage = .error(error)
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigationTree.present(
+            HomePresentationMenuNavigationNodeView.self,
+            controller: features.instance()
+          )
+        }
+        catch {
+          diagnostics.log(
+            error: error,
+            info: .message(
+              "Failed to open home presentation menu."
+            )
+          )
+          displayViewState.snackBarMessage = .error(error)
+        }
+      }
     }
 
     nonisolated func signOut() {
-      Task {
+      asyncExecutor.schedule(.reuse) {
         await session.close(.none)
       }
     }
 
     nonisolated func closeExtension() {
-      Task {
+      asyncExecutor.schedule(.reuse) {
         await autofillContext.cancelAndCloseExtension()
       }
     }

@@ -23,26 +23,41 @@
 
 import struct SwiftUI.Binding
 
-@frozen @dynamicMemberLookup
-public struct ValueBinding<Value>: Sendable {
+@frozen @dynamicMemberLookup @propertyWrapper
+public struct ValueBinding<Value> {
 
-  public var get: @Sendable () -> Value
-  public var set: @Sendable (Value) -> Void
+  public let get: @Sendable () -> Value
+  public let set: @Sendable (Value) -> Void
+  private let observers: CriticalState<Dictionary<IID, @Sendable (Value) -> Void>>
 
   public init(
     get: @escaping @Sendable () -> Value,
     set: @escaping @Sendable (Value) -> Void
   ) {
+    let observers: CriticalState<Dictionary<IID, @Sendable (Value) -> Void>> = .init(.init())
     self.get = get
-    self.set = set
+    self.set = { @Sendable (newValue: Value) in
+      set(newValue)
+      observers.access { (observers: inout Dictionary<IID, @Sendable (Value) -> Void>) in
+        observers.values.forEach { (observer: @Sendable (Value) -> Void) in
+          observer(newValue)
+        }
+      }
+    }
+    self.observers = observers
   }
 
-  public var value: Value {
+  public var wrappedValue: Value {
     get { self.get() }
     set { self.set(newValue) }
   }
 
-  public var projectedValue: Binding<Value> {
+  public var projectedValue: ValueBinding<Value> {
+    get { self }
+    set { self = newValue }
+  }
+
+  public var binding: Binding<Value> {
     .init(
       get: self.get,
       set: self.set
@@ -75,6 +90,17 @@ extension ValueBinding {
     )
   }
 
+  @discardableResult
+  public func onSet(
+    _ execute: @escaping @Sendable (Value) -> Void
+  ) -> IID {
+    let id: IID = .init()
+    self.observers.access { (observers: inout Dictionary<IID, @Sendable (Value) -> Void>) in
+      observers[id] = execute
+    }
+    return id
+  }
+
   public func convert<Mapped>(
     get getMapping: @escaping @Sendable (Value) -> Mapped,
     set setMapping: @escaping @Sendable (Mapped) -> Value
@@ -92,18 +118,48 @@ extension ValueBinding {
   public subscript<Property>(
     dynamicMember keyPath: KeyPath<Value, Property>
   ) -> Property {
-    self.value[keyPath: keyPath]
+    self.wrappedValue[keyPath: keyPath]
   }
 
   public subscript<Property>(
     dynamicMember keyPath: WritableKeyPath<Value, Property>
   ) -> Property {
     get {
-      self.value[keyPath: keyPath]
+      self.wrappedValue[keyPath: keyPath]
     }
     set {
-      self.value[keyPath: keyPath] = newValue
+      self.wrappedValue[keyPath: keyPath] = newValue
     }
+  }
+
+  @inlinable @Sendable public func set<Property>(
+    _ keyPath: WritableKeyPath<Value, Property>,
+    _ newValue: Property
+  ) {
+    var value: Value = self.get()
+    value[keyPath: keyPath] = newValue
+    self.set(value)
+  }
+}
+
+extension ValueBinding: @unchecked Sendable where Value: Sendable {}
+
+extension ValueBinding: Equatable where Value: Equatable {
+
+  public static func == (
+    _ lhs: ValueBinding<Value>,
+    _ rhs: ValueBinding<Value>
+  ) -> Bool {
+    lhs.wrappedValue == rhs.wrappedValue
+  }
+}
+
+extension ValueBinding: Hashable where Value: Hashable {
+
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.wrappedValue)
   }
 }
 

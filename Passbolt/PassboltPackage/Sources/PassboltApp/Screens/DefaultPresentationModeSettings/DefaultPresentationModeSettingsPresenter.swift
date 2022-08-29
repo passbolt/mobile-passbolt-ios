@@ -71,9 +71,9 @@ extension DefaultPresentationModeSettingsController {
 
     let displayViewState: DisplayViewState<ViewState> = .init(
       initial: .init(
-        selectedMode: useLastUsedHomePresentationAsDefault.value
+        selectedMode: useLastUsedHomePresentationAsDefault.wrappedValue
           ? .none
-          : defaultHomePresentation.value,
+          : defaultHomePresentation.wrappedValue,
         availableModes: await homePresentation.availableHomePresentationModes()
       )
     )
