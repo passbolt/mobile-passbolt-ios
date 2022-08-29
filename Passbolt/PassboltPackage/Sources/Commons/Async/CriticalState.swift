@@ -25,76 +25,64 @@ import struct os.os_unfair_lock
 import func os.os_unfair_lock_lock
 import func os.os_unfair_lock_unlock
 
-public struct CriticalState<State> {
+public final class CriticalState<State> {
 
-  @usableFromInline internal let memory: Memory
+  @usableFromInline internal let statePtr: UnsafeMutablePointer<State>
+  @usableFromInline internal let lockPtr: UnsafeMutablePointer<os_unfair_lock>
+
+  private let cleanup: @Sendable (State) -> Void
 
   public init(
     _ initial: State,
     cleanup: @escaping @Sendable (State) -> Void = { _ in }
   ) {
-    self.memory = .init(
-      initial,
-      cleanup: cleanup
-    )
+    self.statePtr = .allocate(capacity: 1)
+    self.statePtr.initialize(to: initial)
+    self.lockPtr = .allocate(capacity: 1)
+    self.lockPtr.initialize(to: os_unfair_lock())
+    self.cleanup = cleanup
   }
 
-  @inlinable public func access<Value>(
+  deinit {
+    self.cleanup(self.statePtr.pointee)
+    self.statePtr.deinitialize(count: 1)
+    self.statePtr.deallocate()
+    self.lockPtr.deinitialize(count: 1)
+    self.lockPtr.deallocate()
+  }
+
+  @inlinable @Sendable public func access<Value>(
     _ access: (inout State) throws -> Value
   ) rethrows -> Value {
-    os_unfair_lock_lock(self.memory.lockPtr)
-    defer { os_unfair_lock_unlock(self.memory.lockPtr) }
-    return try access(&self.memory.statePtr.pointee)
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    return try access(&self.statePtr.pointee)
   }
 
-  @inlinable public func get<Value>(
+  @inlinable @Sendable public func synchronize<Value>(
+    _ access: () throws -> Value
+  ) rethrows -> Value {
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    return try access()
+  }
+
+  @inlinable @Sendable public func get<Value>(
     _ keyPath: KeyPath<State, Value>
   ) -> Value {
-    os_unfair_lock_lock(self.memory.lockPtr)
-    defer { os_unfair_lock_unlock(self.memory.lockPtr) }
-    return self.memory.statePtr.pointee[keyPath: keyPath]
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    return self.statePtr.pointee[keyPath: keyPath]
   }
 
-  @inlinable public func set<Value>(
+  @inlinable @Sendable public func set<Value>(
     _ keyPath: WritableKeyPath<State, Value>,
     _ newValue: Value
   ) {
-    os_unfair_lock_lock(self.memory.lockPtr)
-    defer { os_unfair_lock_unlock(self.memory.lockPtr) }
-    return self.memory.statePtr.pointee[keyPath: keyPath] = newValue
-  }
-}
-
-extension CriticalState {
-
-  @usableFromInline internal final class Memory {
-
-    @usableFromInline internal let statePtr: UnsafeMutablePointer<State>
-    @usableFromInline internal let lockPtr: UnsafeMutablePointer<os_unfair_lock>
-
-    private let cleanup: @Sendable (State) -> Void
-
-    fileprivate init(
-      _ state: State,
-      cleanup: @escaping @Sendable (State) -> Void
-    ) {
-
-      self.statePtr = .allocate(capacity: 1)
-      self.statePtr.initialize(to: state)
-      self.lockPtr = .allocate(capacity: 1)
-      self.lockPtr.initialize(to: os_unfair_lock())
-      self.cleanup = cleanup
-    }
-
-    deinit {
-      self.cleanup(self.statePtr.pointee)
-      self.statePtr.deinitialize(count: 1)
-      self.statePtr.deallocate()
-      self.lockPtr.deinitialize(count: 1)
-      self.lockPtr.deallocate()
-    }
+    os_unfair_lock_lock(self.lockPtr)
+    defer { os_unfair_lock_unlock(self.lockPtr) }
+    return self.statePtr.pointee[keyPath: keyPath] = newValue
   }
 }
 
 extension CriticalState: Sendable where State: Sendable {}
-extension CriticalState.Memory: Sendable where State: Sendable {}

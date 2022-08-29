@@ -25,7 +25,7 @@ import Environment
 
 public struct Executors {
 
-  public var newBackgroundExecutor: () -> AsyncExecutor
+  public var newBackgroundExecutor: () -> AsyncExecutorLegacy
 }
 
 extension Executors: LegacyFeature {

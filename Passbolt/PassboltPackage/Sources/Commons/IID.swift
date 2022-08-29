@@ -21,30 +21,26 @@
 // @since         v1.0
 //
 
-public final class PrivateID {
+@propertyWrapper
+public final class IID {
 
-  private init() {}
+  public var wrappedValue: IID { self }
+
+  public init() {}
 }
 
-extension PrivateID {
+extension IID: Sendable {}
 
-  public static func newID() -> Self {
-    Self()
-  }
-}
-
-extension PrivateID: Sendable {}
-
-extension PrivateID: Equatable {
+extension IID: Equatable {
 
   public static func == (
-    _ lhs: PrivateID,
-    _ rhs: PrivateID
+    _ lhs: IID,
+    _ rhs: IID
   ) -> Bool {
     lhs === rhs
   }
 }
-extension PrivateID: Hashable {
+extension IID: Hashable {
 
   public func hash(
     into hasher: inout Hasher

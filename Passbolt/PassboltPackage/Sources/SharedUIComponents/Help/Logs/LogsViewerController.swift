@@ -44,7 +44,7 @@ extension LogsViewerController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = features.instance()
-    let logsFetchExecutor: AsyncExecutor = try await features.instance(of: Executors.self).newBackgroundExecutor()
+    let logsFetchExecutor: AsyncExecutorLegacy = try await features.instance(of: Executors.self).newBackgroundExecutor()
 
     let diagnosticsInfoCacheSubject: CurrentValueSubject<Array<String>?, Never> = .init(nil)
     let shareMenuPresentationSubject: PassthroughSubject<String?, Never> = .init()

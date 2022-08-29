@@ -115,14 +115,14 @@ extension AsyncVariable: AsyncSequence {
     // across multiple threads, but it should be avoided anyway
     private var generation: Generation = 0
     private let update: @Sendable (Generation, Awaiter<(value: Value, generation: Generation)?>) -> Void
-    private let cancel: @Sendable (PrivateID) -> Void
+    private let cancel: @Sendable (IID) -> Void
     #if DEBUG
     private var pendingNext: Bool = false
     #endif
 
     fileprivate init(
       update: @escaping @Sendable (Generation, Awaiter<(value: Value, generation: Generation)?>) -> Void,
-      cancel: @escaping @Sendable (PrivateID) -> Void
+      cancel: @escaping @Sendable (IID) -> Void
     ) {
       self.update = update
       self.cancel = cancel
@@ -136,7 +136,7 @@ extension AsyncVariable: AsyncSequence {
       #endif
       let lastGeneration: Generation = self.generation
       let update: @Sendable (Generation, Awaiter<(value: Value, generation: Generation)?>) -> Void = self.update
-      let cancel: @Sendable (PrivateID) -> Void = self.cancel
+      let cancel: @Sendable (IID) -> Void = self.cancel
       let next: (value: Value, generation: Generation)? = try? await Awaiter<(value: Value, generation: Generation)?>
         .withCancelation(
           { id in
@@ -166,7 +166,7 @@ extension AsyncVariable: AsyncSequence {
           using: awaiter
         )
       },
-      cancel: { @Sendable (id: PrivateID) -> Void in
+      cancel: { @Sendable (id: IID) -> Void in
         self.cancelAwaiter(withID: id)
       }
     )
@@ -200,7 +200,7 @@ extension AsyncVariable {
   }
 
   @Sendable private func cancelAwaiter(
-    withID id: PrivateID
+    withID id: IID
   ) {
     let canceledAwaiter: Awaiter<(value: Value, generation: Generation)?>? = self.state.access { (state: inout State) in
       state.awaiters

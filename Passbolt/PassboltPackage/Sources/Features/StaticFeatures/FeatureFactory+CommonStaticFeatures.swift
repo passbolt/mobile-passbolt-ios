@@ -25,5 +25,6 @@ extension FeatureFactory {
 
   @MainActor public func usePassboltCommonStaticFeatures() {
     self.usePassboltSharedStoredProperties()
+    self.usePassboltAsyncExecutor()
   }
 }

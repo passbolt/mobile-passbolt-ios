@@ -104,14 +104,14 @@ extension UpdatesSequence: AsyncSequence {
     // across multiple threads, but it should be avoided anyway
     private var generation: Generation = 0
     private let update: @Sendable (Generation, Awaiter<Generation?>) -> Void
-    private let cancel: @Sendable (PrivateID) -> Void
+    private let cancel: @Sendable (IID) -> Void
     #if DEBUG
     private var pendingNext: Bool = false
     #endif
 
     fileprivate init(
       update: @escaping @Sendable (Generation, Awaiter<Generation?>) -> Void,
-      cancel: @escaping @Sendable (PrivateID) -> Void
+      cancel: @escaping @Sendable (IID) -> Void
     ) {
       self.update = update
       self.cancel = cancel
@@ -126,7 +126,7 @@ extension UpdatesSequence: AsyncSequence {
       let lastGeneration: Generation = self.generation
 
       let update: @Sendable (Generation, Awaiter<Generation?>) -> Void = self.update
-      let cancel: @Sendable (PrivateID) -> Void = self.cancel
+      let cancel: @Sendable (IID) -> Void = self.cancel
 
       let nextGeneration: Generation? = try? await Awaiter<Generation?>
         .withCancelation(
@@ -154,7 +154,7 @@ extension UpdatesSequence: AsyncSequence {
           using: awaiter
         )
       },
-      cancel: { @Sendable (id: PrivateID) -> Void in
+      cancel: { @Sendable (id: IID) -> Void in
         self.cancelAwaiter(withID: id)
       }
     )
@@ -205,7 +205,7 @@ extension UpdatesSequence {
   }
 
   private func cancelAwaiter(
-    withID id: PrivateID
+    withID id: IID
   ) {
     let canceledAwaiter: Awaiter<Generation?>? = self.state.access { (state: inout State) in
       state.awaiters

@@ -23,13 +23,13 @@
 
 public struct Awaiter<Value> {
 
-  public let id: PrivateID
+  public let id: IID
   #if DEBUG
   @usableFromInline internal let continuation: CheckedContinuation<Value, Error>?
 
   @usableFromInline
   internal init(
-    id: PrivateID,
+    id: IID,
     continuation: CheckedContinuation<Value, Error>?
   ) {
     self.id = id
@@ -40,7 +40,7 @@ public struct Awaiter<Value> {
 
   @usableFromInline
   internal init(
-    id: PrivateID,
+    id: IID,
     continuation: UnsafeContinuation<Value, Error>?
   ) {
     self.id = id
@@ -69,8 +69,8 @@ extension Awaiter {
 
   @inlinable
   public static func withCancelation(
-    _ cancelation: @escaping @Sendable (PrivateID) -> Void,
-    id: PrivateID = .newID(),
+    _ cancelation: @escaping @Sendable (IID) -> Void,
+    id: IID = .init(),
     execute: @escaping (Awaiter) -> Void
   ) async throws -> Value {
     try await withTaskCancellationHandler(
@@ -135,7 +135,7 @@ extension Swift.Set {
 
   @inlinable
   internal mutating func removeAwaiter<Value>(
-    withID awaiterID: PrivateID
+    withID awaiterID: IID
   ) -> Awaiter<Value>?
   where Self.Element == Awaiter<Value> {
     guard

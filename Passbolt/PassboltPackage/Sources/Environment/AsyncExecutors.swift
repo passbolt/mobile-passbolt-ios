@@ -24,11 +24,11 @@
 import CommonModels
 import Dispatch
 
-public typealias AsyncExecutor = (@escaping () -> Void) -> Void
+public typealias AsyncExecutorLegacy = (@escaping () -> Void) -> Void
 
 public struct AsyncExecutors: EnvironmentElement {
 
-  public var newBackgroundExecutor: () -> AsyncExecutor
+  public var newBackgroundExecutor: () -> AsyncExecutorLegacy
 }
 
 extension AsyncExecutors {
