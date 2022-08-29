@@ -37,7 +37,6 @@ extension Resources {
     let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try await features.instance()
-    let resourceSecretFetchNetworkOperation: ResourceSecretFetchNetworkOperation = try await features.instance()
     let resourceDeleteNetworkOperation: ResourceDeleteNetworkOperation = try await features.instance()
 
     // initial refresh after loading
@@ -60,30 +59,7 @@ extension Resources {
           sessionData
             .updatesSequence
             .map { () async throws -> Array<ResourceListItemDSV> in
-              try await resourcesListFetchDatabaseOperation(
-                .init(
-                  sorting: {
-                    switch filter.sorting {
-                    case .modifiedRecently:
-                      return .modifiedRecently
-
-                    case .nameAlphabetically:
-                      return .nameAlphabetically
-                    }
-                  }(),
-                  text: filter.text,
-                  favoriteOnly: filter.favoriteOnly,
-                  permissions: filter.permissions,
-                  tags: filter.tags,
-                  userGroups: filter.userGroups,
-                  folders: filter.folders.map {
-                    ResourcesFolderDatabaseFilter(
-                      folderID: $0.folderID,
-                      flattenContent: $0.flattenContent
-                    )
-                  }
-                )
-              )
+              try await filteredResourcesList(filter)
             }
             .asThrowingPublisher()
             .eraseToAnyPublisher()
@@ -91,6 +67,35 @@ extension Resources {
         .switchToLatest()
         .replaceError(with: Array<ResourceListItemDSV>())
         .eraseToAnyPublisher()
+    }
+
+    @Sendable nonisolated func filteredResourcesList(
+      _ filter: ResourcesFilter
+    ) async throws -> Array<ResourceListItemDSV> {
+      try await resourcesListFetchDatabaseOperation(
+        .init(
+          sorting: {
+            switch filter.sorting {
+            case .modifiedRecently:
+              return .modifiedRecently
+
+            case .nameAlphabetically:
+              return .nameAlphabetically
+            }
+          }(),
+          text: filter.text,
+          favoriteOnly: filter.favoriteOnly,
+          permissions: filter.permissions,
+          tags: filter.tags,
+          userGroups: filter.userGroups,
+          folders: filter.folders.map {
+            ResourcesFolderDatabaseFilter(
+              folderID: $0.folderID,
+              flattenContent: $0.flattenContent
+            )
+          }
+        )
+      )
     }
 
     @Sendable nonisolated func loadResourceSecret(
@@ -144,6 +149,7 @@ extension Resources {
 
     return Self(
       filteredResourcesListPublisher: filteredResourcesListPublisher,
+      filteredResourcesList: filteredResourcesList(_:),
       loadResourceSecret: loadResourceSecret,
       resourceDetailsPublisher: resourceDetailsPublisher(resourceID:),
       deleteResource: deleteResource(resourceID:)

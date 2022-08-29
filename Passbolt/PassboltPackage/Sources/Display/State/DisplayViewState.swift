@@ -33,8 +33,8 @@ where State: Hashable {
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      get: unimplemented(),
-      set: unimplemented()
+      read: unimplemented(),
+      write: unimplemented()
     )
   }
 
@@ -42,25 +42,25 @@ where State: Hashable {
     _ state: State
   ) -> Self {
     .init(
-      get: { state },
-      set: { _ in /* NOP */ }
+      read: { state },
+      write: { _ in /* NOP */ }
     )
   }
 
-  public var get: @Sendable () -> State
-  public var set: @Sendable (State) -> Void
+  public var read: @Sendable () -> State
+  public var write: @Sendable (State) -> Void
   #else
-  private let get: @Sendable () -> State
-  private let set: @Sendable (State) -> Void
+  private let read: @Sendable () -> State
+  private let write: @Sendable (State) -> Void
   #endif
   private var cancellable: AnyCancellable?
 
   private init(
-    get: @escaping @Sendable () -> State,
-    set: @escaping @Sendable (State) -> Void
+    read: @escaping @Sendable () -> State,
+    write: @escaping @Sendable (State) -> Void
   ) {
-    self.get = get
-    self.set = set
+    self.read = read
+    self.write = write
   }
 
   public nonisolated init(
@@ -68,8 +68,8 @@ where State: Hashable {
   ) {
     let updatesSubject: PassthroughSubject<Void, Never> = .init()
     let value: CriticalState<State> = .init(initial)
-    self.get = { value.get(\.self) }
-    self.set = { @Sendable newValue in
+    self.read = { value.get(\.self) }
+    self.write = { @Sendable newValue in
       let updated: Bool = value.access { (state: inout State) in
         if newValue == state {
           return false
@@ -85,32 +85,44 @@ where State: Hashable {
     }
     self.cancellable =
       updatesSubject
+      .receive(on: RunLoop.main)
       .sink(receiveValue: self.objectWillChange.send)
   }
 
   public var wrappedValue: State {
-    get { self.get() }
-    set { self.set(newValue) }
+    get { self.read() }
+    set { self.write(newValue) }
   }
 
   public var projectedValue: Binding<State> {
     .init(
-      get: self.get,
-      set: self.set
+      get: self.read,
+      set: self.write
     )
   }
 
-  public subscript<Property>(
-    dynamicMember keyPath: KeyPath<State, Property>
-  ) -> Property {
+  public func binding<Value>(
+    to keyPath: WritableKeyPath<State, Value>
+  ) -> Binding<Value> {
+    .init(
+      get: { self.get(keyPath) },
+      set: { newValue in
+        self.set(keyPath, newValue)
+      }
+    )
+  }
+
+  public subscript<Value>(
+    dynamicMember keyPath: KeyPath<State, Value>
+  ) -> Value {
     get {
       self.wrappedValue[keyPath: keyPath]
     }
   }
 
-  public subscript<Property>(
-    dynamicMember keyPath: WritableKeyPath<State, Property>
-  ) -> Property {
+  public subscript<Value>(
+    dynamicMember keyPath: WritableKeyPath<State, Value>
+  ) -> Value {
     get {
       self.wrappedValue[keyPath: keyPath]
     }
@@ -122,9 +134,15 @@ where State: Hashable {
 
 extension DisplayViewState {
 
-  public func set<Property>(
-    _ keyPath: WritableKeyPath<State, Property>,
-    _ property: Property
+  public func get<Value>(
+    _ keyPath: KeyPath<State, Value>
+  ) -> Value {
+    self.wrappedValue[keyPath: keyPath]
+  }
+
+  public func set<Value>(
+    _ keyPath: WritableKeyPath<State, Value>,
+    _ property: Value
   ) {
     self.wrappedValue[keyPath: keyPath] = property
   }

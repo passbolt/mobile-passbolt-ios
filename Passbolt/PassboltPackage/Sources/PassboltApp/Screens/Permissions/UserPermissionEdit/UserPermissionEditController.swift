@@ -32,6 +32,7 @@ internal struct UserPermissionEditController {
   internal var setPermissionType: @MainActor (PermissionType) -> Void
   internal var saveChanges: @MainActor () -> Void
   internal var deletePermission: @MainActor () -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension UserPermissionEditController: ComponentController {
@@ -116,11 +117,18 @@ extension UserPermissionEditController: ComponentController {
       await navigation.pop(if: UserPermissionEditView.self)
     }
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: UserPermissionEditView.self)
+      }
+    }
+
     return Self(
       viewState: viewState,
       setPermissionType: setPermissionType(_:),
       saveChanges: saveChanges,
-      deletePermission: deletePermission
+      deletePermission: deletePermission,
+      navigateBack: navigateBack
     )
   }
 }

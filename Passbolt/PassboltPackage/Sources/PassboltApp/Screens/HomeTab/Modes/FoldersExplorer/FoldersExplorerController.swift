@@ -150,7 +150,7 @@ extension FoldersExplorerController: ComponentController {
     @MainActor func presentResourceCreationFrom(
       folderID: ResourceFolder.ID?
     ) {
-      presentResourceEditingForm(for: .new(in: folderID))
+      presentResourceEditingForm(for: .new(in: folderID, url: .none))
     }
 
     @MainActor func presentResourceShareForm(

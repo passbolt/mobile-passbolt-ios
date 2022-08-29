@@ -43,6 +43,9 @@ internal struct UserPermissionEditView: ComponentView {
       title: .localized(
         key: "resource.permission.details.title"
       ),
+      backButtonAction: {
+        self.controller.navigateBack()
+      },
       snackBarMessage: self.$state.snackBarMessage
     ) {
       self.contentView
@@ -53,7 +56,7 @@ internal struct UserPermissionEditView: ComponentView {
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
       UserAvatarView(
-        imageData: self.state.avatarImageFetch
+        imageLoad: self.state.avatarImageFetch
       )
       .frame(
         width: 96,

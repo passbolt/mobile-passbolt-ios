@@ -30,7 +30,6 @@ where Component: UIComponent {
 
   @State internal private(set) var component: Component
   internal let title: String
-  internal let leftBarButton: UIBarButtonItem?
   internal let rightBarButton: UIBarButtonItem?
 
   @MainActor internal init(
@@ -45,7 +44,6 @@ where Component: UIComponent {
     )
     self.component = component
     self.title = component.title ?? ""
-    self.leftBarButton = component.navigationItem.leftBarButtonItem
     self.rightBarButton = component.navigationItem.rightBarButtonItem
   }
 
@@ -60,28 +58,6 @@ where Component: UIComponent {
     context: Context
   ) {
     uiViewController.view.setNeedsLayout()
-  }
-
-  @ViewBuilder internal var leadingBarButton: some View {
-    if let button: UIBarButtonItem = self.leftBarButton {
-      Button(
-        action: {
-          _ = button.target?
-            .perform(button.action, with: nil)
-        },
-        label: {
-          if let image: UIImage = button.image {
-            Image(uiImage: image)
-          }
-          else {
-            Text(button.title ?? "")
-          }
-        }
-      )
-    }
-    else {
-      EmptyView()
-    }
   }
 
   @ViewBuilder internal var trailingBarButton: some View {

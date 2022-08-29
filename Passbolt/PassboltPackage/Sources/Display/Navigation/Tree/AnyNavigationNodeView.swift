@@ -56,7 +56,6 @@ internal struct AnyNavigationNodeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(legacyBridge.title)
         .navigationBarItems(
-          leading: legacyBridge.leadingBarButton,
           trailing: legacyBridge.trailingBarButton
         )
     )

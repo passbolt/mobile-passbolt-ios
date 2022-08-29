@@ -25,7 +25,6 @@ import Commons
 import SwiftUI
 
 @available(*, deprecated, message: "Please switch to `PrimaryButton`/`SecondaryButton` or regular `Button`")
-@MainActor
 public struct AsyncButton<LabelView>: View where LabelView: View {
 
   @State private var action: RecurringTask

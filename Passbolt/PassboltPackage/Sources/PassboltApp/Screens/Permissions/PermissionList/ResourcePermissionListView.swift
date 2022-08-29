@@ -43,6 +43,9 @@ internal struct ResourcePermissionListView: ComponentView {
       title: .localized(
         key: "resource.permission.list.title"
       ),
+      backButtonAction: {
+        self.controller.navigateBack()
+      },
       snackBarMessage: self.$state.snackBarMessage
     ) {
       self.contentView

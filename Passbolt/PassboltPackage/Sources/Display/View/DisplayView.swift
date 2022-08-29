@@ -29,3 +29,8 @@ public protocol DisplayView: View {
 
   init(controller: Controller)
 }
+
+extension DisplayView {
+
+  public typealias ViewState = Controller.ViewState
+}

@@ -62,7 +62,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { _ in /* NOP */ }
       )
     )
@@ -225,7 +225,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { _ in /* NOP */ }
       )
     )
@@ -272,7 +272,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { _ in /* NOP */ }
       )
     )
@@ -317,7 +317,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { _ in /* NOP */ }
       )
     )
@@ -365,7 +365,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { _ in /* NOP */ }
       )
     )
@@ -403,7 +403,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
     var result: Resource.ID?
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { id in result = id }
       )
     )
@@ -427,7 +427,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
 
     let controller: ResourceEditController = try await testController(
       context: (
-        .new(in: nil),
+        .new(in: nil, url: .none),
         completion: { _ in /* NOP */ }
       )
     )

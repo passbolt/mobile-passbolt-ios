@@ -43,6 +43,9 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
       title: .localized(
         key: "resource.permission.edit.user.and.group.search.title"
       ),
+      backButtonAction: {
+        self.controller.navigateBack()
+      },
       snackBarMessage: self.$state.snackBarMessage,
       contentView: {
         VStack(spacing: 0) {

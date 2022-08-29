@@ -60,7 +60,7 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
   private var fieldCancellables: Cancellables = .init()
   private let showErrorSubject: PassthroughSubject<Void, Never> = .init()
 
-  public func setupView() {
+  public func setup() {
     mut(navigationItem) {
       .when(
         controller.createsNewResource,
@@ -95,7 +95,9 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
         )
       )
     }
+  }
 
+  public func setupView() {
     setupSubscriptions()
   }
 

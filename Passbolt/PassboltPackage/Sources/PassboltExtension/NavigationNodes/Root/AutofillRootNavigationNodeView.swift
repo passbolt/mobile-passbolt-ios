@@ -30,7 +30,7 @@ internal struct AutofillRootNavigationNodeView: NavigationNodeView {
 
   private let controller: Controller
 
-  init(
+  internal init(
     controller: Controller
   ) {
     self.controller = controller

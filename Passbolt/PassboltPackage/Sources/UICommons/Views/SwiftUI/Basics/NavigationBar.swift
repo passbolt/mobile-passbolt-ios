@@ -21,53 +21,117 @@
 // @since         v1.0
 //
 
+import Commons
 import Localization
 import SwiftUI
 
-public struct NavigationBar<TitleView>: View
-where TitleView: View {
+public struct NavigationBar<TitleView, ExtensionView, LeadingItem, TrailingItem>: View
+where TitleView: View, ExtensionView: View, LeadingItem: View, TrailingItem: View {
 
+  @Environment(\.isInNavigationTreeContext) var isInNavigationTreeContext: Bool
+  private let barShadow: Bool
   private let titleView: () -> TitleView
+  private let extensionView: () -> ExtensionView
+  private let leadingItem: () -> LeadingItem
+  private let trailingItem: () -> TrailingItem
 
   public init(
-    @ViewBuilder titleView: @escaping () -> TitleView
+    barShadow: Bool = false,
+    @ViewBuilder titleView: @escaping () -> TitleView,
+    @ViewBuilder extensionView: @escaping () -> ExtensionView,
+    @ViewBuilder leadingItem: @escaping () -> LeadingItem,
+    @ViewBuilder trailingItem: @escaping () -> TrailingItem
   ) {
+    self.barShadow = barShadow
     self.titleView = titleView
+    self.extensionView = extensionView
+    self.leadingItem = leadingItem
+    self.trailingItem = trailingItem
   }
 
   public init(
-    title: DisplayableString
-  ) where TitleView == Text {
-    self.init {
-      Text(
-        displayable: title
-      )
-      .font(
-        .inter(
-          ofSize: 16,
-          weight: .semibold
-        )
-      )
-      .foregroundColor(.passboltPrimaryText)
-    }
+    barShadow: Bool = false,
+    backAction: (() -> Void)? = .none,
+    @ViewBuilder titleView: @escaping () -> TitleView,
+    @ViewBuilder leadingItem: @escaping () -> LeadingItem,
+    @ViewBuilder trailingItem: @escaping () -> TrailingItem
+  ) where ExtensionView == EmptyView {
+    self.barShadow = barShadow
+    self.titleView = titleView
+    self.extensionView = EmptyView.init
+    self.leadingItem = leadingItem
+    self.trailingItem = trailingItem
   }
 
   public var body: some View {
     ZStack(alignment: .top) {
-      Rectangle()
-        .fill(Color.passboltBackground)
-        .ignoresSafeArea(.all, edges: .top)
+      if self.barShadow {
+        Rectangle()
+          .fill(Color.passboltBackground)
+          .shadow(
+            color: .black.opacity(0.2),
+            radius: 12,
+            x: 0,
+            y: -10
+          )
+          .ignoresSafeArea(.all, edges: .top)
+      }
+      else {
+        Rectangle()
+          .fill(Color.passboltBackground)
+          .ignoresSafeArea(.all, edges: .top)
+      }
+      VStack(spacing: 0) {
+        // ignore bar buttons out of navigationtree
+        // it will be inaccesible anyway
+        if self.isInNavigationTreeContext {
+          HStack {
+            self.leadingItem()
+              .frame(
+                minWidth: 24,
+                idealWidth: 40,
+                maxWidth: 40,
+                maxHeight: 40
+              )
+            Spacer()
+            self.titleView()
+            Spacer()
+            self.trailingItem()
+              .frame(
+                minWidth: 24,
+                idealWidth: 40,
+                maxWidth: 40,
+                maxHeight: 40
+              )
+          }
+          .frame(height: 40)
+          .padding(top: 8)
+        }
+        else {
+          self.titleView()
+            .frame(height: 40)
+            .padding(
+              top: 8,
+              leading: 24,
+              trailing: 24
+            )
+        }
 
-      self.titleView()
-        .frame(minHeight: 40)
-        .padding(
-          top: -42,  // hide under navigation bar
-          leading: 32,
-          trailing: 32
-        )
+        self.extensionView()
+      }
+      .padding(
+        // hide under navigation bar without NavigationTree
+        top: isInNavigationTreeContext ? 0 : -52,
+        leading: 8,
+        trailing: 8
+      )
     }
-    .fixedSize(horizontal: false, vertical: true)
+    .fixedSize(
+      horizontal: false,
+      vertical: true
+    )
     // ensure being on top
     .zIndex(.greatestFiniteMagnitude)
+    .navigationBarHidden(isInNavigationTreeContext)
   }
 }

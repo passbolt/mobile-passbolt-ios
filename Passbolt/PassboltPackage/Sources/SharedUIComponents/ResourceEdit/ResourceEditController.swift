@@ -44,7 +44,7 @@ public struct ResourceEditController {
 extension ResourceEditController {
 
   public enum EditingContext {
-    case new(in: ResourceFolder.ID?)
+    case new(in: ResourceFolder.ID?, url: URLString?)
     case existing(Resource.ID)
   }
 }
@@ -88,9 +88,15 @@ extension ResourceEditController: UIController {
         )
         .store(in: cancellables)
 
-    case let .new(in: enclosingFolder):
+    case let .new(in: enclosingFolder, url):
       createsNewResource = true
       resourceForm.setEnclosingFolder(enclosingFolder)
+      if let urlString: URLString = url {
+        resourceForm
+          .setFieldValue(.string(urlString.rawValue), .uri)
+          .sinkDrop()
+          .store(in: cancellables)
+      }
     }
 
     resourceForm

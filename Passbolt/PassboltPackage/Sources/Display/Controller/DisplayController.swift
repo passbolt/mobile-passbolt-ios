@@ -22,6 +22,7 @@
 //
 
 import Features
+import UIComponents
 
 public protocol DisplayController: Hashable, LoadableFeature {
 
@@ -48,5 +49,14 @@ extension DisplayController /* Hashable */ {
   ) {
     // relaying on DisplayViewState hash
     hasher.combine(self.displayViewState)
+  }
+}
+
+extension DisplayController {
+
+  public func binding<Value>(
+    to keyPath: WritableKeyPath<ViewState, Value>
+  ) -> Binding<Value> {
+    self.displayViewState.binding(to: keyPath)
   }
 }

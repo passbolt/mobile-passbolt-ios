@@ -29,6 +29,7 @@ internal struct UserGroupPermissionDetailsController {
 
   internal var viewState: ObservableValue<ViewState>
   internal var showGroupMembers: () async -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension UserGroupPermissionDetailsController: ComponentController {
@@ -81,9 +82,16 @@ extension UserGroupPermissionDetailsController: ComponentController {
         )
     }
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: UserGroupPermissionDetailsView.self)
+      }
+    }
+
     return Self(
       viewState: viewState,
-      showGroupMembers: showGroupMembers
+      showGroupMembers: showGroupMembers,
+      navigateBack: navigateBack
     )
   }
 }

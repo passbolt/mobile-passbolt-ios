@@ -32,6 +32,7 @@ internal struct PermissionUsersAndGroupsSearchController {
   internal var toggleUserSelection: @MainActor (User.ID) -> Void
   internal var toggleUserGroupSelection: @MainActor (UserGroup.ID) -> Void
   internal var saveSelection: @MainActor () -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension PermissionUsersAndGroupsSearchController: ComponentController {
@@ -280,11 +281,18 @@ extension PermissionUsersAndGroupsSearchController: ComponentController {
       }
     }
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: PermissionUsersAndGroupsSearchView.self)
+      }
+    }
+
     return .init(
       viewState: viewState,
       toggleUserSelection: toggleUserSelection(_:),
       toggleUserGroupSelection: toggleUserGroupSelection(_:),
-      saveSelection: saveSelection
+      saveSelection: saveSelection,
+      navigateBack: navigateBack
     )
   }
 }

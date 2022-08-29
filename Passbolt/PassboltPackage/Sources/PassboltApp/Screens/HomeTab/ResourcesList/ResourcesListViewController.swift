@@ -158,7 +158,7 @@ internal final class ResourcesListViewController: PlainViewController, UICompone
           await self?.push(
             ResourceEditViewController.self,
             in: (
-              .new(in: nil),
+              .new(in: nil, url: .none),
               completion: { _ in
                 self?.cancellables.executeOnMainActor { [weak self] in
                   self?.presentInfoSnackbar(

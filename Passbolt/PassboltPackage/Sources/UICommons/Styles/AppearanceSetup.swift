@@ -25,6 +25,7 @@ import AegithalosCocoa
 
 @MainActor public func setupApplicationAppearance() {
   let appearance: UINavigationBarAppearance = .init()
+  appearance.configureWithTransparentBackground()
 
   appearance.backgroundColor = .clear
   appearance.backgroundImage = UIImage()

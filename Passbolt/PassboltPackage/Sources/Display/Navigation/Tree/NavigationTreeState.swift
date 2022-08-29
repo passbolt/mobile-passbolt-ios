@@ -21,49 +21,11 @@
 // @since         v1.0
 //
 
-import Commons
-import SwiftUI
+// public access to tree state without actual
+// access to modifying it, can be used to state restoration
+public struct NavigationTreeState {
 
-public struct ResourceListAddView: View {
-
-  private let action: @MainActor () -> Void
-
-  public init(
-    action: @escaping @MainActor () -> Void
-  ) {
-    self.action = action
-  }
-
-  public var body: some View {
-    ListRowView(
-      leftAccessory: {
-        Image(named: .create)
-          .resizable()
-          .frame(
-            width: 40,
-            height: 40,
-            alignment: .center
-          )
-      },
-      contentAction: self.action,
-      content: {
-        Text(displayable: .localized(key: .create))
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundColor(Color.passboltPrimaryText)
-      },
-      rightAccessory: EmptyView.init
-    )
-  }
+  internal let tree: NavigationTreeNode
 }
 
-#if DEBUG
-
-internal struct ResourceListAddView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    ResourceListAddView {
-      // action
-    }
-  }
-}
-#endif
+extension NavigationTreeState: Hashable {}

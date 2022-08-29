@@ -29,6 +29,7 @@ internal struct DefaultPresentationModeSettingsController {
 
   internal var displayViewState: DisplayViewState<ViewState>
   internal var selectMode: (HomePresentationMode?) -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension DefaultPresentationModeSettingsController {
@@ -46,7 +47,8 @@ extension DefaultPresentationModeSettingsController: ContextlessDisplayControlle
   nonisolated static var placeholder: Self {
     .init(
       displayViewState: .placeholder,
-      selectMode: unimplemented()
+      selectMode: unimplemented(),
+      navigateBack: unimplemented()
     )
   }
   #endif
@@ -92,9 +94,16 @@ extension DefaultPresentationModeSettingsController {
       }
     }
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: DefaultPresentationModeSettingsView.self)
+      }
+    }
+
     return Self(
       displayViewState: displayViewState,
-      selectMode: selectMode(_:)
+      selectMode: selectMode(_:),
+      navigateBack: navigateBack
     )
   }
 }

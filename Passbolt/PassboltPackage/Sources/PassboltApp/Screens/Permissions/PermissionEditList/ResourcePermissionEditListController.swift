@@ -33,6 +33,7 @@ internal struct ResourcePermissionEditListController {
   internal var showUserPermissionEdit: @MainActor (UserPermissionDetailsDSV) -> Void
   internal var showUserGroupPermissionEdit: @MainActor (UserGroupPermissionDetailsDSV) -> Void
   internal var saveChanges: @MainActor () -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension ResourcePermissionEditListController: ComponentController {
@@ -185,12 +186,19 @@ extension ResourcePermissionEditListController: ComponentController {
       }
     }
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: ResourcePermissionEditListView.self)
+      }
+    }
+
     return Self(
       viewState: viewState,
       addPermission: addPermission,
       showUserPermissionEdit: showUserPermissionEdit(_:),
       showUserGroupPermissionEdit: showUserGroupPermissionEdit(_:),
-      saveChanges: saveChanges
+      saveChanges: saveChanges,
+      navigateBack: navigateBack
     )
   }
 }

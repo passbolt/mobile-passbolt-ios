@@ -88,26 +88,12 @@ extension NavigationTreeNode {
     }
   }
 
-  internal var overlayNode: NavigationTreeNode? {
-    switch self {
-    case .just:
-      return .none
-
-    case .stack:
-      return .none
-
-    case let .overlay(overlayTree, covering: _):
-      return overlayTree
-    }
-  }
-
   @discardableResult
   internal func pushing(
     _ nodeView: AnyNavigationNodeView
   ) -> NavigationTreeNode {
     switch self {
     case let .just(currentNodeView):
-//      assertionFailure("Pushing view without stack")
       return .stack(
         .element(
           currentNodeView,

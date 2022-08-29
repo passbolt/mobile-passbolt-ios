@@ -23,38 +23,44 @@
 
 import SwiftUI
 
-@MainActor
 public struct UserAvatarView: View {
 
-  private let imageData: () async -> Data?
-  @State private var image: Image?
+  private let imageLoad: (() async -> Data?)?
+  @State var loadedImage: Image?
+  private let image: Image
 
   public init(
-    imageData: @escaping () async -> Data?
+    imageLoad: @escaping () async -> Data?
   ) {
-    self.imageData = imageData
+    self.imageLoad = imageLoad
+    self.image = Image(named: .person)
   }
 
   public init(
     imageData: Data?
   ) {
-    self.imageData = { imageData }
+    self.imageLoad = .none
+    self.image =
+      imageData.flatMap(Image.init(data:))
+      ?? Image(named: .person)
   }
 
   public var body: some View {
-    AvatarView<Image>(
-      contentView: (self.image
-        ?? Image(named: .person)).resizable()
-    )
-    .onAppear {
-      if self.image == nil {
-        MainActor.execute {
-          self.image =
-            await self.imageData().flatMap(Image.init(data:))
-            ?? Image(named: .person)
-        }
+    AvatarView {
+      if case .some = imageLoad, let loadedImage: Image = self.loadedImage {
+        loadedImage
+          .resizable()
+          .task {
+            if case .none = self.loadedImage {
+              self.loadedImage =
+                await self.imageLoad?().flatMap(Image.init(data:))
+                ?? self.image
+            }  // else NOP
+          }
       }
-      else { /* NOP */
+      else {
+        self.image
+          .resizable()
       }
     }
   }
@@ -65,7 +71,7 @@ public struct UserAvatarView: View {
 internal struct UserAvatarView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    UserAvatarView(imageData: nil)
+    UserAvatarView(imageData: .none)
   }
 }
 #endif

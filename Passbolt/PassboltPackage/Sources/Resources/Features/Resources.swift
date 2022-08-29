@@ -30,6 +30,7 @@ public struct Resources {
 
   public var filteredResourcesListPublisher:
     (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ResourceListItemDSV>, Never>
+  public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>
   public var loadResourceSecret: @Sendable (Resource.ID) -> AnyPublisher<ResourceSecret, Error>
   public var resourceDetailsPublisher: (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>
   public var deleteResource: @Sendable (Resource.ID) -> AnyPublisher<Void, Error>
@@ -37,11 +38,14 @@ public struct Resources {
   public init(
     filteredResourcesListPublisher:
       @escaping (AnyPublisher<ResourcesFilter, Never>) -> AnyPublisher<Array<ResourceListItemDSV>, Never>,
+    filteredResourcesList:
+      @escaping @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>,
     loadResourceSecret: @escaping @Sendable (Resource.ID) -> AnyPublisher<ResourceSecret, Error>,
     resourceDetailsPublisher: @escaping @Sendable (Resource.ID) -> AnyPublisher<ResourceDetailsDSV, Error>,
     deleteResource: @escaping @Sendable (Resource.ID) -> AnyPublisher<Void, Error>
   ) {
     self.filteredResourcesListPublisher = filteredResourcesListPublisher
+    self.filteredResourcesList = filteredResourcesList
     self.loadResourceSecret = loadResourceSecret
     self.resourceDetailsPublisher = resourceDetailsPublisher
     self.deleteResource = deleteResource
@@ -54,6 +58,7 @@ extension Resources: LoadableContextlessFeature {
   public static var placeholder: Resources {
     Self(
       filteredResourcesListPublisher: unimplemented(),
+      filteredResourcesList: unimplemented(),
       loadResourceSecret: unimplemented(),
       resourceDetailsPublisher: unimplemented(),
       deleteResource: unimplemented()

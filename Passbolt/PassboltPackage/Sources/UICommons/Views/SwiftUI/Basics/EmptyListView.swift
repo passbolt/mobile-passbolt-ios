@@ -24,7 +24,6 @@
 import Localization
 import SwiftUI
 
-@MainActor
 public struct EmptyListView: View {
 
   private let message: DisplayableString

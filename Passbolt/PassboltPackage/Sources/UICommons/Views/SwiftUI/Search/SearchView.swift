@@ -24,7 +24,6 @@
 import Commons
 import SwiftUI
 
-@MainActor
 public struct SearchView<LeftAccessoryView, RightAccessoryView>: View
 where LeftAccessoryView: View, RightAccessoryView: View {
 
@@ -177,7 +176,6 @@ extension SearchView where LeftAccessoryView == ImageWithPadding, RightAccessory
   }
 }
 
-@MainActor
 private func defaultSearchImage() -> ImageWithPadding {
   ImageWithPadding(
     4,

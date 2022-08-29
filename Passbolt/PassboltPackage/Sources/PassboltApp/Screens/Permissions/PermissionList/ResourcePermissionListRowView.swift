@@ -45,7 +45,7 @@ internal struct ResourcePermissionListRowView: View {
         title: "\(details.firstName) \(details.lastName)",
         subtitle: "\(details.username)",
         leftAccessory: {
-          UserAvatarView(imageData: imageData)
+          UserAvatarView(imageLoad: imageData)
         },
         contentAction: self.action,
         rightAccessory: {

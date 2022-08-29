@@ -33,6 +33,7 @@ internal struct UserGroupPermissionEditController {
   internal var setPermissionType: (PermissionType) -> Void
   internal var saveChanges: () -> Void
   internal var deletePermission: () -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension UserGroupPermissionEditController: ComponentController {
@@ -148,12 +149,19 @@ extension UserGroupPermissionEditController: ComponentController {
       await navigation.pop(if: UserGroupPermissionEditView.self)
     }
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: UserGroupPermissionEditView.self)
+      }
+    }
+
     return Self(
       viewState: viewState,
       showGroupMembers: showGroupMembers,
       setPermissionType: setPermissionType(_:),
       saveChanges: saveChanges,
-      deletePermission: deletePermission
+      deletePermission: deletePermission,
+      navigateBack: navigateBack
     )
   }
 }

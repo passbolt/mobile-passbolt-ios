@@ -43,7 +43,7 @@ internal struct UserGroupMembersListRowView: View {
       title: "\(self.item.userDetails.firstName) \(self.item.userDetails.lastName)",
       subtitle: "\(self.item.userDetails.username)",
       leftAccessory: {
-        UserAvatarView(imageData: self.item.avatarImageData)
+        UserAvatarView(imageLoad: self.item.avatarImageData)
       },
       contentAction: self.action
     )

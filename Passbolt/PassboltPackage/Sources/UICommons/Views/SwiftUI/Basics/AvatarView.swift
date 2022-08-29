@@ -27,16 +27,16 @@ import SwiftUI
 public struct AvatarView<ContentView>: View
 where ContentView: View {
 
-  private let contentView: ContentView
+  private let contentView: () -> ContentView
 
   public init(
-    contentView: ContentView
+    @ViewBuilder contentView: @escaping () -> ContentView
   ) {
     self.contentView = contentView
   }
 
   public var body: some View {
-    self.contentView
+    self.contentView()
       .aspectRatio(1, contentMode: .fit)
       .foregroundColor(.passboltPrimaryText)
       .backgroundColor(.passboltBackground)
@@ -57,7 +57,10 @@ where ContentView: View {
 internal struct AvatarView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    AvatarView(contentView: Image(named: .person).resizable())
+    AvatarView {
+      Image(named: .person)
+        .resizable()
+    }
   }
 }
 #endif

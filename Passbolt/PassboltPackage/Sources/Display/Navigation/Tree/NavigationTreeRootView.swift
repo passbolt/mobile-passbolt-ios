@@ -38,6 +38,7 @@ public struct NavigationTreeRootView: View {
     WithDisplayViewState(self.navigationTree.state) { (state: NavigationTreeNode) in
       self.viewFor(node: state)
     }
+    .environment(\.isInNavigationTreeContext, true)
   }
 
   @ViewBuilder private func viewFor(
@@ -80,7 +81,7 @@ public struct NavigationTreeRootView: View {
                 .id(stackNode.nodeID)
 
               case .overlay:
-                InternalInconsistency // SwiftUI does not support it
+                InternalInconsistency  // SwiftUI does not support it
                   .error("Cannot present more than one overlay navigation node")
                   .asFatalError()
               }
@@ -114,7 +115,7 @@ public struct NavigationTreeRootView: View {
               .id(stackNode.nodeID)
 
             case .overlay:
-              InternalInconsistency // SwiftUI does not support it
+              InternalInconsistency  // SwiftUI does not support it
                 .error("Cannot present more than one overlay navigation node")
                 .asFatalError()
             }
@@ -123,7 +124,7 @@ public struct NavigationTreeRootView: View {
         .id(stackNode.nodeID)
 
       case .overlay:
-        InternalInconsistency // SwiftUI does not support it
+        InternalInconsistency  // SwiftUI does not support it
           .error("Cannot present more than one overlay navigation node")
           .asFatalError()
       }

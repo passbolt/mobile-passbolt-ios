@@ -28,6 +28,7 @@ import Users
 internal struct UserPermissionDetailsController {
 
   internal var viewState: ObservableValue<ViewState>
+  internal var navigateBack: () -> Void
 }
 
 extension UserPermissionDetailsController: ComponentController {
@@ -65,8 +66,15 @@ extension UserPermissionDetailsController: ComponentController {
       )
     )
 
+    nonisolated func navigateBack() {
+      Task {
+        await navigation.pop(if: UserPermissionDetailsView.self)
+      }
+    }
+
     return Self(
-      viewState: viewState
+      viewState: viewState,
+      navigateBack: navigateBack
     )
   }
 }

@@ -149,7 +149,7 @@ internal final class ResourcesSelectionListViewController: PlainViewController, 
           await self?.push(
             ResourceEditViewController.self,
             in: (
-              .new(in: nil),
+              .new(in: nil, url: .none),
               completion: { [weak self] resourceID in
                 guard let self = self else { return }
                 self.controller

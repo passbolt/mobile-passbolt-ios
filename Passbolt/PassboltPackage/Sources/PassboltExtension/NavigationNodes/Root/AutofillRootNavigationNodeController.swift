@@ -55,6 +55,9 @@ extension AutofillRootNavigationNodeController {
 
     let accounts: Accounts = try await features.instance()
     let session: Session = try await features.instance()
+    let authorizationPromptRecoveryTreeState: CriticalState<(account: Account, tree: NavigationTreeState)?> = .init(
+      .none
+    )
 
     nonisolated func startSessionMonitoring() async {
       let storedAccounts: Array<Account> = accounts.storedAccounts()
@@ -106,15 +109,22 @@ extension AutofillRootNavigationNodeController {
             .pendingAuthorization()
 
           switch (currentAccount, pendingAuthorization) {
-          case (.some, .none):
-            await navigationTree
-              .replaceRoot(
-                pushing: ResourcesFilterViewController.self,
-                context: Void(),
-                using: features
+          case let (.some(currentAccount), .none):
+            if let (account, tree): (Account, NavigationTreeState) = authorizationPromptRecoveryTreeState.get(\.self),
+              account == currentAccount
+            {
+              authorizationPromptRecoveryTreeState.set(\.self, .none)
+              navigationTree.set(treeState: tree)
+            }
+            else {
+              try await navigationTree.replaceRoot(
+                pushing: ResourcesListNavigationNodeView.self,
+                controller: features.instance()
               )
+            }
 
           case let (.some(account), .passphrase):
+            authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
             await navigationTree
               .replaceRoot(
                 pushing: AccountSelectionViewController.self,
@@ -137,6 +147,7 @@ extension AutofillRootNavigationNodeController {
               )
 
           case (.none, _):
+            authorizationPromptRecoveryTreeState.set(\.self, .none)
             if accounts.storedAccounts().isEmpty {
               await navigationTree
                 .replaceRoot(
@@ -177,4 +188,3 @@ extension FeatureFactory {
     )
   }
 }
-

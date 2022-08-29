@@ -51,6 +51,18 @@ extension NavigationTree {
     }
   }
 
+  public var treeState: NavigationTreeState {
+    .init(tree: self.state.wrappedValue)
+  }
+
+  public func set(
+    treeState: NavigationTreeState
+  ) {
+    self.state.with { (state: inout NavigationTreeNode) in
+      state = treeState.tree
+    }
+  }
+
   @discardableResult
   public func replaceRoot<NodeView>(
     with nodeType: NodeView.Type,

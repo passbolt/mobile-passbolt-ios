@@ -153,7 +153,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
     }
 
     @MainActor func presentResourceCreationFrom() {
-      presentResourceEditingForm(for: .new(in: .none))
+      presentResourceEditingForm(for: .new(in: .none, url: .none))
     }
 
     @MainActor func presentResourceShareForm(

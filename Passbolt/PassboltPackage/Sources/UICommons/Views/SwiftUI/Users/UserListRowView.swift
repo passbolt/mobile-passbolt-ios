@@ -54,7 +54,7 @@ where RightAccessoryView: View {
       subtitle: self.model.username,
       leftAccessory: {
         UserAvatarView(
-          imageData: self.model.avatarImageFetch
+          imageLoad: self.model.avatarImageFetch
         )
       },
       contentAction: self.contentAction,

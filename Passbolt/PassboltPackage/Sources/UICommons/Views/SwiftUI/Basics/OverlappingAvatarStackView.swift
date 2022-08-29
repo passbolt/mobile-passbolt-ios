@@ -81,7 +81,7 @@ public struct OverlappingAvatarStackView: View {
         ForEach(self.items.prefix(itemsCount)) { item in
           switch item {
           case let .user(_, avatarImage: avatarImage):
-            UserAvatarView(imageData: avatarImage)
+            UserAvatarView(imageLoad: avatarImage)
               .frame(width: itemSize, height: itemSize)
 
           case .userGroup:
@@ -91,24 +91,24 @@ public struct OverlappingAvatarStackView: View {
         }
 
         if reminderCount >= 100 {
-          AvatarView(
-            contentView: Text("99+")
+          AvatarView {
+            Text("99+")
               .text(
                 font: .inter(ofSize: 14, weight: .semibold),
                 color: .passboltTertiaryText
               )
               .frame(width: itemSize, height: itemSize)
-          )
+          }
         }
         else if reminderCount > 0 {
-          AvatarView(
-            contentView: Text("\(reminderCount)")
+          AvatarView {
+            Text("\(reminderCount)")
               .text(
                 font: .inter(ofSize: 14, weight: .semibold),
                 color: .passboltTertiaryText
               )
               .frame(width: itemSize, height: itemSize)
-          )
+          }
         }  // else { /* NOP */ }
       }
     }
