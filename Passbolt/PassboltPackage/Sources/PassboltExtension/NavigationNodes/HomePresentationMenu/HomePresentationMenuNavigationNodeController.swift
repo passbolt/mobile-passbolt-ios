@@ -28,8 +28,8 @@ import Display
 internal struct HomePresentationMenuNavigationNodeController {
 
   internal var displayViewState: DisplayViewState<ViewState>
-  internal var selectMode: (HomePresentationMode, NavigationNodeID) -> Void
-  internal var dismissView: (NavigationNodeID) -> Void
+  internal var selectMode: (HomePresentationMode) -> Void
+  internal var dismissView: () -> Void
 }
 
 extension HomePresentationMenuNavigationNodeController: ContextlessNavigationNodeController {
@@ -40,7 +40,7 @@ extension HomePresentationMenuNavigationNodeController: ContextlessNavigationNod
     internal var availableModes: OrderedSet<HomePresentationMode>
   }
 
-#if DEBUG
+  #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       displayViewState: .placeholder,
@@ -48,7 +48,7 @@ extension HomePresentationMenuNavigationNodeController: ContextlessNavigationNod
       dismissView: unimplemented()
     )
   }
-#endif
+  #endif
 }
 
 // MARK: - Implementation
@@ -69,22 +69,19 @@ extension HomePresentationMenuNavigationNodeController {
     )
 
     nonisolated func selectMode(
-      _ mode: HomePresentationMode,
-      dismiss nodeID: NavigationNodeID
+      _ mode: HomePresentationMode
     ) {
       homePresentation.currentMode.set(\.self, mode)
-      navigationTree.dismiss(nodeID)
+      navigationTree.dismiss(viewState.navigationNodeID)
     }
 
-    nonisolated func dismissView(
-      _ nodeID: NavigationNodeID
-    ) {
-      navigationTree.dismiss(nodeID)
+    nonisolated func dismissView() {
+      navigationTree.dismiss(viewState.navigationNodeID)
     }
 
     return .init(
       displayViewState: viewState,
-      selectMode: selectMode(_:dismiss:),
+      selectMode: selectMode(_:),
       dismissView: dismissView
     )
   }

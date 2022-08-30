@@ -64,7 +64,7 @@ extension NavigationTree {
   }
 
   @discardableResult
-  public func replaceRoot<NodeView>(
+  @Sendable public func replaceRoot<NodeView>(
     with nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
@@ -82,7 +82,7 @@ extension NavigationTree {
   }
 
   @discardableResult
-  public func replaceRoot<NodeView>(
+  @Sendable public func replaceRoot<NodeView>(
     pushing nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
@@ -100,7 +100,7 @@ extension NavigationTree {
   }
 
   @discardableResult
-  public func push<NodeView>(
+  @Sendable public func push<NodeView>(
     _ nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
@@ -118,7 +118,7 @@ extension NavigationTree {
   }
 
   @discardableResult
-  public func present<NodeView>(
+  @Sendable public func present<NodeView>(
     _ nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
@@ -136,7 +136,7 @@ extension NavigationTree {
   }
 
   @discardableResult
-  public func present<NodeView>(
+  @Sendable public func present<NodeView>(
     pushing nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
@@ -153,7 +153,7 @@ extension NavigationTree {
     return nodeView.nodeID
   }
 
-  public func dismiss(
+  @Sendable public func dismiss(
     _ nodeID: NavigationNodeID
   ) {
     self.state.with { (state: inout NavigationTreeNode) in

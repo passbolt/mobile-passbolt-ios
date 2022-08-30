@@ -37,17 +37,16 @@ internal struct AutofillRootNavigationNodeView: NavigationNodeView {
   }
 
   internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
-    .task {
-      await self.controller.startSessionMonitoring()
+    WithDisplayViewState(self.controller) { state in
+      ZStack {
+        Image(named: .passboltLogo)
+      }
+      .ignoresSafeArea()
+      .frame(
+        maxWidth: .infinity,
+        maxHeight: .infinity
+      )
+      .backgroundColor(.passboltBackground)
     }
   }
 }

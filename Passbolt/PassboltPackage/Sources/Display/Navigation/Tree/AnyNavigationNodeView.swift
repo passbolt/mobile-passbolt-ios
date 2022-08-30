@@ -35,7 +35,7 @@ internal struct AnyNavigationNodeView: View {
     // skipping view for identifier
     // multiple views for the same controller
     // are not supported (could be in future)
-    let nodeID: NavigationNodeID = .init(controller)
+    let nodeID: NavigationNodeID = controller.navigationNodeID
     self.contentView = .init(
       erasing: ErasedNodeView(
         controller: controller
@@ -48,7 +48,7 @@ internal struct AnyNavigationNodeView: View {
     for legacyBridge: LegacyNavigationNodeBridgeView<Component>
   ) where Component: UIComponent {
     // using view controller as an identifier
-    let nodeID: NavigationNodeID = .init(legacyBridge)
+    let nodeID: NavigationNodeID = legacyBridge.navigationNodeID
     self.contentView = .init(
       erasing:
         legacyBridge
@@ -64,5 +64,6 @@ internal struct AnyNavigationNodeView: View {
 
   internal var body: some View {
     self.contentView
+      .id(self.nodeID)
   }
 }

@@ -27,8 +27,3 @@ public protocol NavigationNodeController: DisplayController {}
 
 public protocol ContextlessNavigationNodeController: NavigationNodeController
 where Context == ContextlessFeatureContext {}
-
-extension NavigationNodeController {
-
-  public var navigationNodeID: NavigationNodeID { .init(self) }
-}

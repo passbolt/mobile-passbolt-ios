@@ -28,7 +28,7 @@ import class Foundation.RunLoop
 
 @propertyWrapper @dynamicMemberLookup
 public final class DisplayViewState<State>: ObservableObject
-where State: Hashable {
+where State: Equatable {
 
   #if DEBUG
   public static var placeholder: Self {
@@ -54,35 +54,51 @@ where State: Hashable {
   private let write: @Sendable (State) -> Void
   #endif
   private var cancellable: AnyCancellable?
+  private let observers: CriticalState<Dictionary<IID, @Sendable (State) -> Void>>
 
   private init(
     read: @escaping @Sendable () -> State,
     write: @escaping @Sendable (State) -> Void
   ) {
+    let observers: CriticalState<Dictionary<IID, @Sendable (State) -> Void>> = .init(.init())
     self.read = read
-    self.write = write
+    self.write = { (newState: State) in
+      write(newState)
+      let observers: Dictionary<IID, @Sendable (State) -> Void> = observers.get(\.self)
+      observers.values.forEach { (observer: @Sendable (State) -> Void) in
+        observer(newState)
+      }
+    }
+    self.observers = observers
   }
 
   public nonisolated init(
     initial: State
   ) {
+    let observers: CriticalState<Dictionary<IID, @Sendable (State) -> Void>> = .init(.init())
     let updatesSubject: PassthroughSubject<Void, Never> = .init()
     let value: CriticalState<State> = .init(initial)
     self.read = { value.get(\.self) }
-    self.write = { @Sendable (newValue: State) in
+    self.write = { @Sendable (newState: State) in
       let updated: Bool = value.access { (state: inout State) -> Bool in
-        if newValue == state {
+        if newState == state {
           return false
         }
         else {
-          state = newValue
+          state = newState
           return true
         }
       }
       // remove duplicates
       guard updated else { return }
       updatesSubject.send()
+      let observers: Dictionary<IID, @Sendable (State) -> Void> = observers.get(\.self)
+      observers.values.forEach { (observer: @Sendable (State) -> Void) in
+        observer(newState)
+      }
     }
+    self.observers = observers
+
     self.cancellable =
       updatesSubject
       .receive(on: RunLoop.main)
@@ -124,10 +140,24 @@ where State: Hashable {
   public func associate<Value>(
     binding: ValueBinding<Value>,
     with keyPath: WritableKeyPath<State, Value>
-  ) {
-    binding.onSet { [weak self] (value: Value) in
+  ) where Value: Equatable {
+    self.onUpdate { (state: State) in
+      binding.set(state[keyPath: keyPath])
+    }
+    binding.onUpdate { [weak self] (value: Value) in
       self?.wrappedValue[keyPath: keyPath] = value
     }
+  }
+
+  @discardableResult
+  public func onUpdate(
+    _ execute: @escaping @Sendable (State) -> Void
+  ) -> IID {
+    let id: IID = .init()
+    self.observers.access { (observers: inout Dictionary<IID, @Sendable (State) -> Void>) in
+      observers[id] = execute
+    }
+    return id
   }
 
   public subscript<Value>(
@@ -187,5 +217,17 @@ extension DisplayViewState: Hashable {
   ) {
     // relaying on object reference
     hasher.combine(ObjectIdentifier(self))
+  }
+}
+
+public typealias DisplayViewStateless = DisplayViewState<HashableVoid>
+
+extension DisplayViewStateless {
+
+  public static var stateless: Self {
+    .init(
+      read: { HashableVoid() },
+      write: { _ in }
+    )
   }
 }

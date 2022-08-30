@@ -25,17 +25,57 @@ public struct NavigationNodeID {
 
   private let id: AnyHashable
 
-  internal init<Controller>(
+  fileprivate init<Controller>(
     _ controller: Controller
   ) where Controller: NavigationNodeController {
     self.id = ObjectIdentifier(controller.displayViewState)
   }
 
-  internal init<Component>(
+  fileprivate init<ViewState>(
+    _ displayViewState: DisplayViewState<ViewState>
+  ) where ViewState: Equatable {
+    self.id = ObjectIdentifier(displayViewState)
+  }
+
+  fileprivate init<Component>(
     _ legacyBridge: LegacyNavigationNodeBridgeView<Component>
   ) where Component: UIComponent {
     self.id = ObjectIdentifier(legacyBridge.component)
   }
+
+  fileprivate init<Component>(
+    _ legacyComponent: Component
+  ) where Component: UIComponent {
+    self.id = ObjectIdentifier(legacyComponent)
+  }
 }
 
 extension NavigationNodeID: Hashable {}
+
+extension DisplayViewState {
+
+  public var navigationNodeID: NavigationNodeID {
+    .init(self)
+  }
+}
+
+extension NavigationNodeController {
+
+  internal var navigationNodeID: NavigationNodeID {
+    .init(self)
+  }
+}
+
+extension UIComponent {
+
+  internal var navigationNodeID: NavigationNodeID {
+    .init(self)
+  }
+}
+
+extension LegacyNavigationNodeBridgeView {
+
+  internal var navigationNodeID: NavigationNodeID {
+    .init(self)
+  }
+}

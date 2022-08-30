@@ -21,11 +21,11 @@
 // @since         v1.0
 //
 
-import Commons
-import CommonModels
-import SessionData
 import Accounts
+import CommonModels
+import Commons
 import Session
+import SessionData
 
 // MARK: - Interface
 
@@ -110,12 +110,13 @@ extension HomePresentation {
     }()
 
     let currentModeBinding: ValueBinding<HomePresentationMode> = .variable(initial: initialPresentationMode)
-    
-    currentModeBinding.onSet { mode in
-      if useLastUsedHomePresentationAsDefault.wrappedValue {
-        defaultHomePresentation.set(\.self, mode)
-      }  // else NOP
-    }
+
+    currentModeBinding
+      .onUpdate { mode in
+        if useLastUsedHomePresentationAsDefault.wrappedValue {
+          defaultHomePresentation.set(\.self, mode)
+        }  // else NOP
+      }
 
     nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
       availablePresentationModes

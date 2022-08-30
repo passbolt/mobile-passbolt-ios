@@ -39,9 +39,6 @@ internal struct ResourcesListNavigationNodeView: NavigationNodeView {
     WithDisplayViewState(self.controller) { state in
       self.bodyView(with: state)
     }
-    .task {
-      await self.controller.activate()
-    }
   }
 
   @ViewBuilder private func bodyView(

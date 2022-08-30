@@ -38,10 +38,9 @@ public struct ValueBinding<Value> {
     self.get = get
     self.set = { @Sendable (newValue: Value) in
       set(newValue)
-      observers.access { (observers: inout Dictionary<IID, @Sendable (Value) -> Void>) in
-        observers.values.forEach { (observer: @Sendable (Value) -> Void) in
-          observer(newValue)
-        }
+      let observers: Dictionary<IID, @Sendable (Value) -> Void> = observers.get(\.self)
+      observers.values.forEach { (observer: @Sendable (Value) -> Void) in
+        observer(newValue)
       }
     }
     self.observers = observers
@@ -91,7 +90,7 @@ extension ValueBinding {
   }
 
   @discardableResult
-  public func onSet(
+  public func onUpdate(
     _ execute: @escaping @Sendable (Value) -> Void
   ) -> IID {
     let id: IID = .init()

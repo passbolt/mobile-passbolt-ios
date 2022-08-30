@@ -28,22 +28,20 @@ import SharedUIComponents
 
 internal struct AutofillRootNavigationNodeController {
 
-  internal var displayViewState: DisplayViewState<ViewState>
-  internal var startSessionMonitoring: () async -> Void
+  internal var displayViewState: DisplayViewStateless
+  internal var activate: @Sendable () async -> Void
 }
 
 extension AutofillRootNavigationNodeController: ContextlessNavigationNodeController {
 
-  internal typealias ViewState = HashableVoid
-
-  #if DEBUG
+#if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       displayViewState: .placeholder,
-      startSessionMonitoring: unimplemented()
+      activate: unimplemented()
     )
   }
-  #endif
+#endif
 }
 
 extension AutofillRootNavigationNodeController {
@@ -51,15 +49,16 @@ extension AutofillRootNavigationNodeController {
   @MainActor fileprivate static func load(
     features: FeatureFactory
   ) async throws -> Self {
+    let diagnostics: Diagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-
+    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
     let accounts: Accounts = try await features.instance()
     let session: Session = try await features.instance()
     let authorizationPromptRecoveryTreeState: CriticalState<(account: Account, tree: NavigationTreeState)?> = .init(
       .none
     )
 
-    nonisolated func startSessionMonitoring() async {
+    @Sendable nonisolated func activate() async {
       let storedAccounts: Array<Account> = accounts.storedAccounts()
 
       if storedAccounts.isEmpty {
@@ -99,80 +98,90 @@ extension AutofillRootNavigationNodeController {
         }  // else NOP
       }
 
-      await Task.detached { @SessionActor in
+      asyncExecutor.schedule { @SessionActor in
         for await _ in session.updatesSequence.dropFirst() {
-          let currentAccount: Account? =
+          do {
+            let currentAccount: Account? =
             try? await session
-            .currentAccount()
-          let pendingAuthorization: SessionAuthorizationRequest? =
+              .currentAccount()
+            let pendingAuthorization: SessionAuthorizationRequest? =
             session
-            .pendingAuthorization()
+              .pendingAuthorization()
 
-          switch (currentAccount, pendingAuthorization) {
-          case let (.some(currentAccount), .none):
-            if let (account, tree): (Account, NavigationTreeState) = authorizationPromptRecoveryTreeState.get(\.self),
-              account == currentAccount
-            {
-              authorizationPromptRecoveryTreeState.set(\.self, .none)
-              navigationTree.set(treeState: tree)
-            }
-            else {
-              try await navigationTree.replaceRoot(
-                pushing: ResourcesListNavigationNodeView.self,
-                controller: features.instance()
-              )
-            }
-
-          case let (.some(account), .passphrase):
-            authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
-            await navigationTree
-              .replaceRoot(
-                pushing: AccountSelectionViewController.self,
-                context: .signIn,
-                using: features
-              )
-            await navigationTree
-              .push(
-                AuthorizationViewController.self,
-                context: account,
-                using: features
-              )
-
-          case (.some, .mfa):
-            await navigationTree
-              .replaceRoot(
-                pushing: MFARequiredViewController.self,
-                context: Void(),
-                using: features
-              )
-
-          case (.none, _):
-            authorizationPromptRecoveryTreeState.set(\.self, .none)
-            if accounts.storedAccounts().isEmpty {
-              await navigationTree
-                .replaceRoot(
-                  pushing: NoAccountsViewController.self,
-                  context: Void(),
-                  using: features
+            switch (currentAccount, pendingAuthorization) {
+            case let (.some(currentAccount), .none):
+              if let (account, tree): (Account, NavigationTreeState) = authorizationPromptRecoveryTreeState.get(\.self),
+                 account == currentAccount
+              {
+                authorizationPromptRecoveryTreeState.set(\.self, .none)
+                navigationTree.set(treeState: tree)
+              }
+              else {
+                try await navigationTree.replaceRoot(
+                  pushing: ResourcesListNavigationNodeView.self,
+                  controller: features.instance()
                 )
-            }
-            else {
+              }
+
+            case let (.some(account), .passphrase):
+              authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
               await navigationTree
                 .replaceRoot(
                   pushing: AccountSelectionViewController.self,
                   context: .signIn,
                   using: features
                 )
+              await navigationTree
+                .push(
+                  AuthorizationViewController.self,
+                  context: account,
+                  using: features
+                )
+
+            case (.some, .mfa):
+              await navigationTree
+                .replaceRoot(
+                  pushing: MFARequiredViewController.self,
+                  context: Void(),
+                  using: features
+                )
+
+            case (.none, _):
+              authorizationPromptRecoveryTreeState.set(\.self, .none)
+              if accounts.storedAccounts().isEmpty {
+                await navigationTree
+                  .replaceRoot(
+                    pushing: NoAccountsViewController.self,
+                    context: Void(),
+                    using: features
+                  )
+              }
+              else {
+                await navigationTree
+                  .replaceRoot(
+                    pushing: AccountSelectionViewController.self,
+                    context: .signIn,
+                    using: features
+                  )
+              }
             }
+          }
+          catch {
+            diagnostics
+              .log(
+                error: error,
+                info: .message(
+                  "Root navigation failed."
+                )
+              )
           }
         }
       }
-      .waitForCompletion()
     }
 
     return .init(
-      displayViewState: .init(initial: .init()),
-      startSessionMonitoring: startSessionMonitoring
+      displayViewState: .stateless,
+      activate: activate
     )
   }
 }

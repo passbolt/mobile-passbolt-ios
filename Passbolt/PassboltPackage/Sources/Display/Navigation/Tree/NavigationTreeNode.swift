@@ -34,6 +34,22 @@ internal indirect enum NavigationTreeNode {
   )
 }
 
+extension NavigationTreeNode: Identifiable {
+
+  internal var id: NavigationNodeID {
+    switch self {
+    case let .just(nodeView):
+      return nodeView.nodeID
+
+    case let .stack(stackNode):
+      return stackNode.nodeID
+
+    case let .overlay(overlayTree, covering: _):
+      return overlayTree.id
+    }
+  }
+}
+
 extension NavigationTreeNode: Hashable {
 
   internal static func == (
@@ -74,19 +90,6 @@ extension NavigationTreeNode: Hashable {
 }
 
 extension NavigationTreeNode {
-
-  internal var id: NavigationNodeID {
-    switch self {
-    case let .just(nodeView):
-      return nodeView.nodeID
-
-    case let .stack(stackNode):
-      return stackNode.nodeID
-
-    case let .overlay(overlayTree, covering: _):
-      return overlayTree.id
-    }
-  }
 
   @discardableResult
   internal func pushing(

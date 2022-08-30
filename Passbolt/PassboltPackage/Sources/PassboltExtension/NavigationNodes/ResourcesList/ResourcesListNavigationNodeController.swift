@@ -30,7 +30,7 @@ import SharedUIComponents
 internal struct ResourcesListNavigationNodeController {
 
   internal var displayViewState: DisplayViewState<ViewState>
-  internal var activate: () async -> Void
+  internal var activate: @Sendable () async -> Void
   internal var refresh: () async -> Void
   internal var updateSearchText: (String) -> Void
   internal var createResource: () -> Void
@@ -76,7 +76,7 @@ extension ResourcesListNavigationNodeController {
   ) async throws -> Self {
     let diagnostics: Diagnostics = features.instance()
     let navigationTree: NavigationTree = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance()
+    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
     let autofillContext: AutofillExtensionContext = features.instance()
     let session: Session = try await features.instance()
     let sessionData: SessionData = try await features.instance()
@@ -104,7 +104,54 @@ extension ResourcesListNavigationNodeController {
         with: \.mode
       )
 
-    nonisolated func activate() async {
+    homePresentation.currentMode
+      .onUpdate { _ in
+        asyncExecutor.schedule(.reuse) {
+          await updateDisplayedResources()
+        }
+      }
+
+    @Sendable nonisolated func updateDisplayedResources() async {
+      do {
+        try Task.checkCancellation()
+        let currentResourcesFilter: ResourcesFilter? =
+          displayViewState.with { state in
+            state.mode.resourcesFilter(searchText: state.searchText)
+          }
+
+        try Task.checkCancellation()
+
+        let filteredResources: Array<ResourceListItemDSV>
+        if let resourcesFilter: ResourcesFilter = currentResourcesFilter {
+          filteredResources =
+            try await resources.filteredResourcesList(resourcesFilter)
+        }
+        else {
+          filteredResources = .init()
+        }
+
+        try Task.checkCancellation()
+
+        displayViewState.suggested = filteredResources.filter { resource in
+          requestedServiceIdentifiers.matches(resource)
+        }
+        displayViewState.resources = filteredResources
+      }
+      catch is CancellationError {
+        // NOP
+      }
+      catch {
+        diagnostics.log(
+          error: error,
+          info: .message(
+            "Failed to load resources from the database."
+          )
+        )
+        displayViewState.snackBarMessage = .error(error)
+      }
+    }
+
+    @Sendable nonisolated func activate() async {
       asyncExecutor.schedule(.reuse) {
         do {
           let avatar: Data? = try await accountDetails.avatarImage()
@@ -124,25 +171,7 @@ extension ResourcesListNavigationNodeController {
 
       do {
         try await sessionData.updatesSequence.forLatest {
-          do {
-            let filteredResources =
-              try await resources.filteredResourcesList(
-                .init(sorting: .nameAlphabetically, text: displayViewState.searchText)
-              )
-            displayViewState.suggested = filteredResources.filter { resource in
-              requestedServiceIdentifiers.matches(resource)
-            }
-            displayViewState.resources = filteredResources
-          }
-          catch {
-            diagnostics.log(
-              error: error,
-              info: .message(
-                "Failed to load resources from the database."
-              )
-            )
-            displayViewState.snackBarMessage = .error(error)
-          }
+          await updateDisplayedResources()
         }
       }
       catch {
@@ -176,25 +205,7 @@ extension ResourcesListNavigationNodeController {
     ) {
       displayViewState.searchText = text
       asyncExecutor.schedule(.replace) {
-        do {
-          let filteredResources =
-            try await resources.filteredResourcesList(
-              .init(sorting: .nameAlphabetically, text: displayViewState.searchText)
-            )
-          displayViewState.suggested = filteredResources.filter { resource in
-            requestedServiceIdentifiers.matches(resource)
-          }
-          displayViewState.resources = filteredResources
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to load resources from the database."
-            )
-          )
-          displayViewState.snackBarMessage = .error(error)
-        }
+        await updateDisplayedResources()
       }
     }
 

@@ -29,6 +29,7 @@ public protocol DisplayController: Hashable, LoadableFeature {
   associatedtype ViewState: Hashable
 
   var displayViewState: DisplayViewState<ViewState> { get }
+  var activate: @Sendable () async -> Void { get }
 }
 
 public protocol ContextlessDisplayController: DisplayController
@@ -53,6 +54,10 @@ extension DisplayController /* Hashable */ {
 }
 
 extension DisplayController {
+
+  public var activate: @Sendable () async -> Void {
+    { /* NOP */  }
+  }
 
   public func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>

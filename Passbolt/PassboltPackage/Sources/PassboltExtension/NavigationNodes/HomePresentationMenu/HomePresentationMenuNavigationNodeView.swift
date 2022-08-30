@@ -44,7 +44,7 @@ internal struct HomePresentationMenuNavigationNodeView: NavigationNodeView {
   ) -> some View {
     DrawerMenu(
       closeTap: {
-        self.controller.dismissView(self.controller.navigationNodeID)
+        self.controller.dismissView()
       },
       title: {
         Text(
@@ -67,10 +67,7 @@ internal struct HomePresentationMenuNavigationNodeView: NavigationNodeView {
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
-                self.controller.selectMode(
-                  mode,
-                  self.controller.navigationNodeID
-                )
+                self.controller.selectMode(mode)
               },
               title: {
                 Text(displayable: mode.title)

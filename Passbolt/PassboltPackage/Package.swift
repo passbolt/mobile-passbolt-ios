@@ -337,6 +337,10 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+        // Modules
+        "Accounts",
+        "Users",
+        "Resources",
         // External
         .product(
           name: "AegithalosCocoa",
