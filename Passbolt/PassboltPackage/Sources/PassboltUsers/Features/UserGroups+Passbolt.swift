@@ -64,6 +64,17 @@ extension UserGroups {
         .asAnyAsyncSequence()
     }
 
+    @Sendable nonisolated func filteredResourceUserGroups(
+      _ filter: UserGroupsFilter
+    ) async throws -> Array<ResourceUserGroupListItemDSV> {
+      try await resourceUserGroupsListFetchDatabaseOperation(
+        .init(
+          userID: filter.userID,
+          text: filter.text
+        )
+      )
+    }
+
     @Sendable nonisolated func filteredUserGroups(
       _ filter: UserGroupsFilter
     ) async throws -> Array<UserGroupDetailsDSV> {
@@ -93,6 +104,7 @@ extension UserGroups {
 
     return Self(
       filteredResourceUserGroupList: filteredResourceUserGroupList(filters:),
+      filteredResourceUserGroups: filteredResourceUserGroups(_:),
       filteredUserGroups: filteredUserGroups(_:),
       groupMembers: groupMembers(_:)
     )

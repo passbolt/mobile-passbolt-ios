@@ -74,12 +74,12 @@ where TitleView: View, ExtensionView: View, LeadingItem: View, TrailingItem: Vie
             x: 0,
             y: -10
           )
-          .ignoresSafeArea(.all, edges: .top)
+          .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
       }
       else {
         Rectangle()
           .fill(Color.passboltBackground)
-          .ignoresSafeArea(.all, edges: .top)
+          .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
       }
       VStack(spacing: 0) {
         // ignore bar buttons out of navigationtree
@@ -95,6 +95,8 @@ where TitleView: View, ExtensionView: View, LeadingItem: View, TrailingItem: Vie
               )
             Spacer()
             self.titleView()
+              .frame(maxWidth: .infinity)
+              .frame(height: 40)
             Spacer()
             self.trailingItem()
               .frame(
@@ -109,6 +111,7 @@ where TitleView: View, ExtensionView: View, LeadingItem: View, TrailingItem: Vie
         }
         else {
           self.titleView()
+            .frame(maxWidth: .infinity)
             .frame(height: 40)
             .padding(
               top: 8,

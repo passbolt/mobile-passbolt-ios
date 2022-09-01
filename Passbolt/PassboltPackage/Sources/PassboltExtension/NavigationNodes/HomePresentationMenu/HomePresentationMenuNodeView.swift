@@ -23,12 +23,12 @@
 
 import Display
 
-internal struct HomePresentationMenuNavigationNodeView: NavigationNodeView {
+internal struct HomePresentationMenuNodeView: NavigationNodeView {
 
-  private let controller: HomePresentationMenuNavigationNodeController
+  private let controller: HomePresentationMenuNodeController
 
   internal init(
-    controller: HomePresentationMenuNavigationNodeController
+    controller: HomePresentationMenuNodeController
   ) {
     self.controller = controller
   }

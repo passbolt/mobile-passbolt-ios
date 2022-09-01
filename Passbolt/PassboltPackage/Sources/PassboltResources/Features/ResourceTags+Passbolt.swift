@@ -38,27 +38,13 @@ extension ResourceTags {
     let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try await features.instance()
 
     nonisolated func filteredTagsList(
-      filters: AnyAsyncSequence<String>
-    ) -> AnyAsyncSequence<Array<ResourceTagListItemDSV>> {
-      AsyncCombineLatestSequence(sessionData.updatesSequence, filters)
-        .map { (_, filter: String) async -> Array<ResourceTagListItemDSV> in
-          let tags: Array<ResourceTagListItemDSV>
-          do {
-            tags =
-              try await resourceTagsListFetchDatabaseOperation(filter)
-          }
-          catch {
-            diagnostics.log(error: error)
-            tags = .init()
-          }
-
-          return tags
-        }
-        .asAnyAsyncSequence()
+      filter: String
+    ) async throws -> Array<ResourceTagListItemDSV> {
+      try await resourceTagsListFetchDatabaseOperation(filter)
     }
 
     return Self(
-      filteredTagsList: filteredTagsList(filters:)
+      filteredTagsList: filteredTagsList(filter:)
     )
   }
 }

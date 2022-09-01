@@ -62,7 +62,12 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     features.patch(
       \ResourceFolders.filteredFolderContent,
       with: always(
-        AnyAsyncSequence([])
+        .init(
+          folderID: .none,
+          flattened: false,
+          subfolders: [],
+          resources: []
+        )
       )
     )
     features

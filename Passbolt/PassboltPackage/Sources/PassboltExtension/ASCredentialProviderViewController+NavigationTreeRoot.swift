@@ -37,6 +37,7 @@ extension ASCredentialProviderViewController: NavigationTreeRoot {
       $0.view.removeFromSuperview()
       $0.removeFromParent()
     }
+
     self.addChild(viewController)
     mut(viewController.view) {
       .combined(

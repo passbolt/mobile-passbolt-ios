@@ -92,38 +92,39 @@ extension FoldersExplorerController: ComponentController {
 
     // refresh the list based on filters data
     cancellables.executeOnMainActor {
-      let filterSequence: AnyAsyncSequence<ResourceFoldersFilter> =
-        viewState
-        .valuePublisher
-        .map { filter in
-          ResourceFoldersFilter(
-            sorting: .nameAlphabetically,
-            text: filter.searchText,
-            folderID: context?.id,
-            flattenContent: !filter.searchText.isEmpty,
-            permissions: .init()
-          )
+      try await AsyncCombineLatestSequence(
+        sessionData.updatesSequence,
+        viewState.asAnyAsyncSequence()
+      )
+      .map { (_, state: ViewState) -> ResourceFoldersFilter in
+        ResourceFoldersFilter(
+          sorting: .nameAlphabetically,
+          text: state.searchText,
+          folderID: context?.id,
+          flattenContent: !state.searchText.isEmpty,
+          permissions: .init()
+        )
+      }
+      .map { filter in
+        try await folders
+          .filteredFolderContent(filter)
+      }
+      .forLatest { content in
+        await viewState.withValue { state in
+          state.directFolders = content
+            .subfolders
+            .filter { $0.parentFolderID == context?.id }
+          state.nestedFolders = content
+            .subfolders
+            .filter { $0.parentFolderID != context?.id }
+          state.directResources = content
+            .resources
+            .filter { $0.parentFolderID == context?.id }
+          state.nestedResources = content
+            .resources
+            .filter { $0.parentFolderID != context?.id }
         }
-        .asAnyAsyncSequence()
-
-      try await folders
-        .filteredFolderContent(filterSequence)
-        .forLatest { content in
-          await viewState.withValue { state in
-            state.directFolders = content
-              .subfolders
-              .filter { $0.parentFolderID == context?.id }
-            state.nestedFolders = content
-              .subfolders
-              .filter { $0.parentFolderID != context?.id }
-            state.directResources = content
-              .resources
-              .filter { $0.parentFolderID == context?.id }
-            state.nestedResources = content
-              .resources
-              .filter { $0.parentFolderID != context?.id }
-          }
-        }
+      }
     }
 
     @MainActor func refreshIfNeeded() async {

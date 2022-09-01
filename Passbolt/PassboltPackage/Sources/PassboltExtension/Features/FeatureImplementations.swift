@@ -48,7 +48,11 @@ extension FeatureFactory {
     self.usePassboltHomePresentation()
 
     self.usePassboltAutofillRootNavigationNodeController()
-    self.usePassboltPlainResourcesListNavigationNodeController()
-    self.usePassboltHomePresentationMenuNavigationNodeController()
+    self.usePassboltHomeNavigationNodeController()
+    self.usePassboltHomePresentationMenuNodeController()
+    self.usePassboltResourcesListDisplayController()
+    self.usePassboltResourceTagsListDisplayController()
+    self.usePassboltResourceUserGroupsListDisplayController()
+    self.usePassboltResourceFolderContentDisplayController()
   }
 }

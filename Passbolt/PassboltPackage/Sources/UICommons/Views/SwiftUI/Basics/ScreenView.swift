@@ -309,6 +309,11 @@ where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTr
       .foregroundColor(.passboltPrimaryText)
 
       self.contentView()
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity,
+          alignment: .top
+        )
     }
     .backgroundColor(.passboltBackground)
     .snackBarMessage(presenting: self.snackBarMessage)

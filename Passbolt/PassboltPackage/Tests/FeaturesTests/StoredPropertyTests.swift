@@ -36,14 +36,14 @@ final class StoredPropertyTests: TestCase {
 
   func test_get_fetchesPropertyWithExpectedValue() async throws {
     let expectedResult: Int = 42
-    await self.features.patch(
+    self.features.patch(
       \StoredProperties.fetch,
       with: { _ in
         expectedResult
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
+    let instance: StoredProperty<Int> = try await self.testedInstance(context: "test")
 
     XCTAssertEqual(
       instance.value,
@@ -54,7 +54,7 @@ final class StoredPropertyTests: TestCase {
   func test_get_fetchesPropertyWithExpectedKey() async throws {
     let expectedResult: StoredPropertyKey = "test"
     let result: CriticalState<StoredPropertyKey?> = .init(.none)
-    await self.features.patch(
+    self.features.patch(
       \StoredProperties.fetch,
       with: { key in
         result.set(\.self, key)
@@ -62,7 +62,7 @@ final class StoredPropertyTests: TestCase {
       }
     )
 
-    var instance: StoredProperty<Int> = try await self.testedInstance(context: expectedResult)
+    let instance: StoredProperty<Int> = try await self.testedInstance(context: expectedResult)
 
     _ = instance.value
 
@@ -75,7 +75,11 @@ final class StoredPropertyTests: TestCase {
   func test_set_storesPropertyWithExpectedValue() async throws {
     let expectedResult: Int = 42
     let result: CriticalState<Int?> = .init(.none)
-    await self.features.patch(
+    self.features.patch(
+      \StoredProperties.fetch,
+      with: always(result.get(\.self))
+    )
+    self.features.patch(
       \StoredProperties.store,
       with: { _, value in
         result.set(\.self, value as? Int)
@@ -95,7 +99,11 @@ final class StoredPropertyTests: TestCase {
   func test_set_storesPropertyWithExpectedKey() async throws {
     let expectedResult: StoredPropertyKey = "test"
     let result: CriticalState<StoredPropertyKey?> = .init(.none)
-    await self.features.patch(
+    self.features.patch(
+      \StoredProperties.fetch,
+      with: always(result.get(\.self))
+    )
+    self.features.patch(
       \StoredProperties.store,
       with: { key, _ in
         result.set(\.self, key)

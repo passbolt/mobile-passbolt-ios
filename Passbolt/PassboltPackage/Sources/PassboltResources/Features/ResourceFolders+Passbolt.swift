@@ -34,7 +34,6 @@ extension ResourceFolders {
     cancellables: Cancellables
   ) async throws -> Self {
     let diagnostics: Diagnostics = features.instance()
-    let sessionData: SessionData = try await features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try await features.instance()
     let resourceFoldersListFetchDatabaseOperation: ResourceFoldersListFetchDatabaseOperation =
@@ -53,60 +52,46 @@ extension ResourceFolders {
     }
 
     @Sendable nonisolated func filteredFolderContent(
-      filters: AnyAsyncSequence<ResourceFoldersFilter>
-    ) -> AnyAsyncSequence<ResourceFolderContent> {
-      AsyncCombineLatestSequence(sessionData.updatesSequence, filters)
-        .map { (_, filter: ResourceFoldersFilter) async -> ResourceFolderContent in
-          let folders: Array<ResourceFolderListItemDSV>
-          do {
-            folders =
-              try await resourceFoldersListFetchDatabaseOperation(
-                .init(
-                  sorting: .nameAlphabetically,
-                  text: filter.text,
-                  folderID: filter.folderID,
-                  flattenContent: filter.flattenContent,
-                  permissions: filter.permissions
-                )
-              )
-          }
-          catch {
-            diagnostics.log(error: error)
-            folders = .init()
-          }
+      filter: ResourceFoldersFilter
+    ) async throws -> ResourceFolderContent {
+      try Task.checkCancellation()
 
-          let resources: Array<ResourceListItemDSV>
-          do {
-            resources =
-              try await resourcesListFetchDatabaseOperation(
-                .init(
-                  sorting: .nameAlphabetically,
-                  text: filter.text,
-                  folders: .init(
-                    folderID: filter.folderID,
-                    flattenContent: filter.flattenContent
-                  )
-                )
-              )
-          }
-          catch {
-            diagnostics.log(error: error)
-            resources = .init()
-          }
-
-          return ResourceFolderContent(
+      let folders: Array<ResourceFolderListItemDSV> =
+        try await resourceFoldersListFetchDatabaseOperation(
+          .init(
+            sorting: .nameAlphabetically,
+            text: filter.text,
             folderID: filter.folderID,
-            flattened: filter.flattenContent,
-            subfolders: folders,
-            resources: resources
+            flattenContent: filter.flattenContent,
+            permissions: filter.permissions
           )
-        }
-        .asAnyAsyncSequence()
+        )
+
+      try Task.checkCancellation()
+
+      let resources: Array<ResourceListItemDSV> =
+        try await resourcesListFetchDatabaseOperation(
+          .init(
+            sorting: .nameAlphabetically,
+            text: filter.text,
+            folders: .init(
+              folderID: filter.folderID,
+              flattenContent: filter.flattenContent
+            )
+          )
+        )
+
+      return ResourceFolderContent(
+        folderID: filter.folderID,
+        flattened: filter.flattenContent,
+        subfolders: folders,
+        resources: resources
+      )
     }
 
     return Self(
       details: details(_:),
-      filteredFolderContent: filteredFolderContent(filters:)
+      filteredFolderContent: filteredFolderContent(filter:)
     )
   }
 }

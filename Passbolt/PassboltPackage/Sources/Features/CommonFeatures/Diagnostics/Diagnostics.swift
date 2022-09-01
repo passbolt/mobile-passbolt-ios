@@ -315,10 +315,17 @@ extension Diagnostics {
     error: Error,
     info: DiagnosticsInfo? = .none
   ) {
-    let theError: TheError =
-      info
-      .map { error.asTheError().pushing($0) }
-      ?? error.asTheError()
+    let theError: TheError
+    switch error {
+    case is CancellationError, is Cancelled:
+      return  // ignore log
+    case let error:
+      theError =
+        info
+        .map { error.asTheError().pushing($0) }
+        ?? error.asTheError()
+    }
+
     #if DEBUG
     self.debugLog(theError.debugDescription)
     #endif
@@ -385,10 +392,17 @@ extension Diagnostics.Trace {
     error: Error,
     info: DiagnosticsInfo? = .none
   ) {
-    let theError: TheError =
-      info
-      .map { error.asTheError().pushing($0) }
-      ?? error.asTheError()
+    let theError: TheError
+    switch error {
+    case is CancellationError, is Cancelled:
+      return  // ignore log
+    case let error:
+      theError =
+        info
+        .map { error.asTheError().pushing($0) }
+        ?? error.asTheError()
+    }
+
     #if DEBUG
     self.debugLog(theError.debugDescription)
     #endif

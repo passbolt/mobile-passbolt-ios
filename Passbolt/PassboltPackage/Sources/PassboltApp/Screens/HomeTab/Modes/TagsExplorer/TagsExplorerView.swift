@@ -157,7 +157,7 @@ internal struct TagsExplorerView: ComponentView {
         self.state.tags,
         id: \ResourceTagListItemDSV.id
       ) { listTag in
-        TagListItemView(
+        ResourceTagListItemView(
           name: listTag.slug.rawValue,
           shared: listTag.shared,
           contentCount: listTag.contentCount,

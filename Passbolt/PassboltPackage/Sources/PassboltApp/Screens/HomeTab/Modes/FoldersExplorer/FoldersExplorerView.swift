@@ -250,7 +250,7 @@ internal struct FoldersExplorerView: ComponentView {
         self.state.directFolders,
         id: \ResourceFolderListItemDSV.id
       ) { folder in
-        FolderListItemView(
+        ResourceFolderListItemView(
           name: folder.name,
           shared: folder.shared,
           contentCount: folder.contentCount,
@@ -295,7 +295,7 @@ internal struct FoldersExplorerView: ComponentView {
         self.state.nestedFolders,
         id: \ResourceFolderListItemDSV.id
       ) { folder in
-        FolderListItemView(
+        ResourceFolderListItemView(
           name: folder.name,
           shared: folder.shared,
           contentCount: folder.contentCount,

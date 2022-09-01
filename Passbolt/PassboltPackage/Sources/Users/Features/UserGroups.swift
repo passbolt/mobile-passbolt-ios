@@ -32,6 +32,8 @@ public struct UserGroups {
   /// Access filtered user groups in context of resources.
   public var filteredResourceUserGroupList:
     @Sendable (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>
+  public var filteredResourceUserGroups:
+    @Sendable (UserGroupsFilter) async throws -> Array<ResourceUserGroupListItemDSV>
   /// Access filtered user groups details.
   public var filteredUserGroups: @Sendable (UserGroupsFilter) async throws -> Array<UserGroupDetailsDSV>
   /// Access group members details for a given group.
@@ -40,10 +42,13 @@ public struct UserGroups {
   public init(
     filteredResourceUserGroupList:
       @escaping @Sendable (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceUserGroupListItemDSV>>,
+    filteredResourceUserGroups:
+      @escaping @Sendable (UserGroupsFilter) async throws -> Array<ResourceUserGroupListItemDSV>,
     filteredUserGroups: @escaping @Sendable (UserGroupsFilter) async throws -> Array<UserGroupDetailsDSV>,
     groupMembers: @escaping @Sendable (UserGroup.ID) async throws -> OrderedSet<UserDetailsDSV>
   ) {
     self.filteredResourceUserGroupList = filteredResourceUserGroupList
+    self.filteredResourceUserGroups = filteredResourceUserGroups
     self.filteredUserGroups = filteredUserGroups
     self.groupMembers = groupMembers
   }
@@ -56,6 +61,7 @@ extension UserGroups: LoadableContextlessFeature {
   public static var placeholder: Self {
     Self(
       filteredResourceUserGroupList: unimplemented(),
+      filteredResourceUserGroups: unimplemented(),
       filteredUserGroups: unimplemented(),
       groupMembers: unimplemented()
     )

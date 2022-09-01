@@ -46,7 +46,7 @@ extension NavigationTree {
   public func contains(
     _ nodeID: NavigationNodeID
   ) -> Bool {
-    self.state.with { (state: inout NavigationTreeNode) -> Bool in
+    self.state.mutate { (state: inout NavigationTreeNode) -> Bool in
       state.contains(nodeID)
     }
   }
@@ -58,7 +58,7 @@ extension NavigationTree {
   public func set(
     treeState: NavigationTreeState
   ) {
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = treeState.tree
     }
   }
@@ -74,9 +74,11 @@ extension NavigationTree {
       controller: controller
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
-      state = .just(rootNode)
-    }
+    self.state
+      .set(
+        \.self,
+        to: .just(rootNode)
+      )
 
     return rootNode.nodeID
   }
@@ -92,9 +94,11 @@ extension NavigationTree {
       controller: controller
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
-      state = .stack(.element(rootNode, next: .none))
-    }
+    self.state
+      .set(
+        \.self,
+        to: .stack(.element(rootNode, next: .none))
+      )
 
     return rootNode.nodeID
   }
@@ -110,7 +114,7 @@ extension NavigationTree {
       controller: controller
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = state.pushing(nodeView)
     }
 
@@ -128,7 +132,7 @@ extension NavigationTree {
       controller: controller
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = state.presenting(nodeView)
     }
 
@@ -146,7 +150,7 @@ extension NavigationTree {
       controller: controller
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = state.presenting(pushed: nodeView)
     }
 
@@ -156,7 +160,7 @@ extension NavigationTree {
   @Sendable public func dismiss(
     _ nodeID: NavigationNodeID
   ) {
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       if let subtree: NavigationTreeNode = state.removing(nodeID) {
         state = subtree
       }
@@ -202,9 +206,11 @@ extension NavigationTree {
       )
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
-      state = .just(rootNode)
-    }
+    self.state
+      .set(
+        \.self,
+        to: .just(rootNode)
+      )
 
     return rootNode.nodeID
   }
@@ -239,9 +245,11 @@ extension NavigationTree {
       )
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
-      state = .stack(.element(rootNode, next: .none))
-    }
+    self.state
+      .set(
+        \.self,
+        to: .stack(.element(rootNode, next: .none))
+      )
 
     return rootNode.nodeID
   }
@@ -276,7 +284,7 @@ extension NavigationTree {
       )
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = state.pushing(nodeView)
     }
 
@@ -313,7 +321,7 @@ extension NavigationTree {
       )
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = state.presenting(nodeView)
     }
 
@@ -350,7 +358,7 @@ extension NavigationTree {
       )
     )
 
-    self.state.with { (state: inout NavigationTreeNode) in
+    self.state.mutate { (state: inout NavigationTreeNode) in
       state = state.presenting(pushed: nodeView)
     }
 
@@ -363,7 +371,7 @@ extension NavigationTree {
   @MainActor fileprivate static func liveNavigationTree(
     from root: NavigationTreeRoot
   ) -> Self {
-    let initialNode: AnyNavigationNodeView = InitialNavigationNodeView.erasedInstance
+    let initialNode: AnyNavigationNodeView = InitializationNavigationNodeView.erasedInstance
 
     let navigationTree: NavigationTree = .init(
       state: .init(initial: .just(initialNode))

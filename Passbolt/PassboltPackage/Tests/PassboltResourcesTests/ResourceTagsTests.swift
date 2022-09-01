@@ -50,7 +50,6 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
   func test_filteredTagsList_fetchesData_withGivenFilter() async throws {
     let expectedResult: String = "filter"
-    let filtersSequence: AsyncVariable<String> = .init(initial: expectedResult)
 
     var result: String?
     let uncheckedSendableResult: UncheckedSendable<String?> = .init(
@@ -67,15 +66,12 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     let feature: ResourceTags = try await self.testedInstance()
 
-    _ = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
-      .first()
+    _ = try await feature.filteredTagsList(expectedResult)
 
     XCTAssertEqual(result, expectedResult)
   }
 
-  func test_filteredTagsList_returnsEmptyList_whenDatabaseFetchFails() async throws {
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
-
+  func test_filteredTagsList_throws_whenDatabaseFetchFails() async throws {
     patch(
       \ResourceTagsListFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
@@ -83,10 +79,9 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     let feature: ResourceTags = try await self.testedInstance()
 
-    let result: Array<ResourceTagListItemDSV>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
-      .first()
-
-    XCTAssertEqual(result, [])
+    await XCTAssertError(matches: MockIssue.self) {
+      try await feature.filteredTagsList("filter")
+    }
   }
 
   func test_filteredTagsList_returnsDataFromDabase() async throws {
@@ -98,7 +93,6 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
         contentCount: 0
       )
     ]
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
 
     patch(
       \ResourceTagsListFetchDatabaseOperation.execute,
@@ -107,42 +101,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     let feature: ResourceTags = try await self.testedInstance()
 
-    let result: Array<ResourceTagListItemDSV>? = await feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
-      .first()
-
-    XCTAssertEqual(result, expectedResult)
-  }
-
-  func test_filteredTagsList_returnsUpdates_whenFilterChanges() async throws {
-    var expectedResult: Array<ResourceTagListItemDSV> = []
-    let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
-
-    let nextResult: () -> Array<ResourceTagListItemDSV> = {
-      defer {
-        if expectedResult.isEmpty {
-          expectedResult.append(.random())
-        }
-        else { /* NOP */
-        }
-      }
-      return expectedResult
-    }
-
-    patch(
-      \ResourceTagsListFetchDatabaseOperation.execute,
-      with: always(nextResult())
-    )
-
-    let feature: ResourceTags = try await self.testedInstance()
-
-    let filteredTagsSequenceIterator = feature.filteredTagsList(filtersSequence.asAnyAsyncSequence())
-      .makeAsyncIterator()
-    // ignoring first, expecting update
-    _ = await filteredTagsSequenceIterator.next()
-
-    filtersSequence.send("updated")
-
-    let result: Array<ResourceTagListItemDSV>? = await filteredTagsSequenceIterator.next()
+    let result: Array<ResourceTagListItemDSV> = try await feature.filteredTagsList("filter")
 
     XCTAssertEqual(result, expectedResult)
   }

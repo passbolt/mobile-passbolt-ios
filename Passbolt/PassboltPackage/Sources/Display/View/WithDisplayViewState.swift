@@ -44,7 +44,7 @@ where State: Hashable, ContentView: View {
     _ controller: Controller,
     @ViewBuilder content: @escaping (State) -> ContentView
   ) where Controller: DisplayController, Controller.ViewState == State {
-    self.viewState = controller.displayViewState
+    self.viewState = controller.viewState
     self.activate = controller.activate
     self.content = content
   }

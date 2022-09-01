@@ -28,13 +28,13 @@ public struct NavigationNodeID {
   fileprivate init<Controller>(
     _ controller: Controller
   ) where Controller: NavigationNodeController {
-    self.id = ObjectIdentifier(controller.displayViewState)
+    self.id = ObjectIdentifier(controller.viewState)
   }
 
   fileprivate init<ViewState>(
-    _ displayViewState: DisplayViewState<ViewState>
+    _ viewState: DisplayViewState<ViewState>
   ) where ViewState: Equatable {
-    self.id = ObjectIdentifier(displayViewState)
+    self.id = ObjectIdentifier(viewState)
   }
 
   fileprivate init<Component>(

@@ -27,7 +27,7 @@ import Session
 
 internal struct DefaultPresentationModeSettingsController {
 
-  internal var displayViewState: DisplayViewState<ViewState>
+  internal var viewState: DisplayViewState<ViewState>
   internal var selectMode: (HomePresentationMode?) -> Void
   internal var navigateBack: () -> Void
 }
@@ -46,7 +46,7 @@ extension DefaultPresentationModeSettingsController: ContextlessDisplayControlle
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      displayViewState: .placeholder,
+      viewState: .placeholder,
       selectMode: unimplemented(),
       navigateBack: unimplemented()
     )
@@ -65,15 +65,15 @@ extension DefaultPresentationModeSettingsController {
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
     let homePresentation: HomePresentation = try await features.instance()
 
-    let useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
+    let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    let defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
-    let displayViewState: DisplayViewState<ViewState> = .init(
+    let viewState: DisplayViewState<ViewState> = .init(
       initial: .init(
-        selectedMode: useLastUsedHomePresentationAsDefault.wrappedValue
+        selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
           ? .none
-          : defaultHomePresentation.wrappedValue,
+          : defaultHomePresentation.get(\.self),
         availableModes: await homePresentation.availableHomePresentationModes()
       )
     )
@@ -81,13 +81,13 @@ extension DefaultPresentationModeSettingsController {
     nonisolated func selectMode(
       _ mode: HomePresentationMode?
     ) {
-      displayViewState.selectedMode = mode
+      viewState.selectedMode = mode
       if let mode: HomePresentationMode = mode {
-        useLastUsedHomePresentationAsDefault.set(false)
-        defaultHomePresentation.set(mode)
+        useLastUsedHomePresentationAsDefault.set(to: false)
+        defaultHomePresentation.set(to: mode)
       }
       else {
-        useLastUsedHomePresentationAsDefault.set(true)
+        useLastUsedHomePresentationAsDefault.set(to: true)
       }
       Task {
         await navigation.pop(if: DefaultPresentationModeSettingsView.self)
@@ -101,7 +101,7 @@ extension DefaultPresentationModeSettingsController {
     }
 
     return Self(
-      displayViewState: displayViewState,
+      viewState: viewState,
       selectMode: selectMode(_:),
       navigateBack: navigateBack
     )

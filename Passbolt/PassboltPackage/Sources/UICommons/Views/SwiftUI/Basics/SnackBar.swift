@@ -34,16 +34,21 @@ extension SnackBarMessage {
 
   public static func error(
     _ error: Error
-  ) -> Self {
-    .error(
-      error
-        .asTheError()
-        .displayableMessage
-    )
+  ) -> Self? {
+    switch error {
+    case is CancellationError, is Cancelled:
+      return .none
+
+    case let error:
+      return .error(
+        error
+          .asTheError()
+          .displayableMessage
+      )
+    }
   }
 }
 
-@MainActor
 private struct SnackBar<SnackBarModel, SnackBarView>: ViewModifier
 where SnackBarView: View {
 
@@ -65,9 +70,9 @@ where SnackBarView: View {
   fileprivate func body(
     content: Content
   ) -> some View {
-    if let model: SnackBarModel = self.presenting.wrappedValue {
-      content
-        .overlay(
+    content
+      .overlay(alignment: .bottom) {
+        if let model: SnackBarModel = self.presenting.wrappedValue {
           snackBar(model)
             .cornerRadius(4)
             .padding(16)
@@ -75,28 +80,25 @@ where SnackBarView: View {
             .onTapGesture {
               self.presenting.wrappedValue = nil
             }
-            .onAppear {
+            .task {
               guard self.autoDismissDelaySeconds > 0 else { return }
-              Task {
+              await Task {
                 try await self.dismissTask.run { @MainActor in
                   try? await Task.sleep(seconds: self.autoDismissDelaySeconds)
                   guard !Task.isCancelled else { return }
                   self.presenting.wrappedValue = nil
                 }
               }
-            },
-          alignment: .bottom
-        )
-    }
-    else {
-      content
-    }
+              .waitForCompletion()
+            }  // else no snack bar
+        }
+      }
   }
 }
 
 extension View {
 
-  @MainActor public func snackBar<Model, SnackBarView>(
+  public func snackBar<Model, SnackBarView>(
     presenting: Binding<Model?>,
     autoDismissDelaySeconds: UInt64 = 3,
     @ViewBuilder snackBar: @escaping (Model) -> SnackBarView
@@ -112,7 +114,7 @@ extension View {
     )
   }
 
-  @MainActor public func snackBarMessage(
+  public func snackBarMessage(
     presenting: Binding<SnackBarMessage?>,
     autoDismissDelaySeconds: UInt64 = 3
   ) -> some View {

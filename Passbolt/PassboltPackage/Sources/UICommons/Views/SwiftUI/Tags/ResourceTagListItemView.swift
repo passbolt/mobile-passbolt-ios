@@ -24,8 +24,7 @@
 import Commons
 import SwiftUI
 
-@MainActor
-public struct FolderListItemView: View {
+public struct ResourceTagListItemView: View {
 
   private let name: String
   private let shared: Bool
@@ -36,7 +35,7 @@ public struct FolderListItemView: View {
     name: String,
     shared: Bool,
     contentCount: Int,
-    action: @escaping () -> Void
+    action: @escaping @MainActor () -> Void
   ) {
     self.name = name
     self.shared = shared
@@ -50,8 +49,8 @@ public struct FolderListItemView: View {
       leftAccessory: {
         Image(
           named: self.shared
-            ? .sharedFolderIcon
-            : .folderIcon
+            ? .sharedTagIcon
+            : .tagIcon
         )
         .frame(
           width: 40,
@@ -81,11 +80,11 @@ public struct FolderListItemView: View {
 
 #if DEBUG
 
-internal struct FolderListItemView_Previews: PreviewProvider {
+internal struct TagListItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    FolderListItemView(
-      name: "Folder",
+    ResourceTagListItemView(
+      name: "Tag",
       shared: false,
       contentCount: 0,
       action: {

@@ -27,178 +27,103 @@ import class Combine.PassthroughSubject
 import class Foundation.RunLoop
 
 @propertyWrapper @dynamicMemberLookup
-public final class DisplayViewState<State>: ObservableObject
-where State: Equatable {
+public final class DisplayViewState<Value>: ObservableObject
+where Value: Equatable {
 
   #if DEBUG
   public static var placeholder: Self {
     .init(
-      read: unimplemented(),
-      write: unimplemented()
+      stateSource: .placeholder
     )
   }
-
-  public static func always(
-    _ state: State
-  ) -> Self {
-    .init(
-      read: { state },
-      write: { _ in /* NOP */ }
-    )
-  }
-
-  public var read: @Sendable () -> State
-  public var write: @Sendable (State) -> Void
-  #else
-  private let read: @Sendable () -> State
-  private let write: @Sendable (State) -> Void
   #endif
-  private var cancellable: AnyCancellable?
-  private let observers: CriticalState<Dictionary<IID, @Sendable (State) -> Void>>
 
-  private init(
-    read: @escaping @Sendable () -> State,
-    write: @escaping @Sendable (State) -> Void
+  public let cancellables: Cancellables
+  private let stateSource: StateBinding<Value>
+
+  public init(
+    stateSource: StateBinding<Value>
   ) {
-    let observers: CriticalState<Dictionary<IID, @Sendable (State) -> Void>> = .init(.init())
-    self.read = read
-    self.write = { (newState: State) in
-      write(newState)
-      let observers: Dictionary<IID, @Sendable (State) -> Void> = observers.get(\.self)
-      observers.values.forEach { (observer: @Sendable (State) -> Void) in
-        observer(newState)
-      }
-    }
-    self.observers = observers
-  }
-
-  public nonisolated init(
-    initial: State
-  ) {
-    let observers: CriticalState<Dictionary<IID, @Sendable (State) -> Void>> = .init(.init())
-    let updatesSubject: PassthroughSubject<Void, Never> = .init()
-    let value: CriticalState<State> = .init(initial)
-    self.read = { value.get(\.self) }
-    self.write = { @Sendable (newState: State) in
-      let updated: Bool = value.access { (state: inout State) -> Bool in
-        if newState == state {
-          return false
-        }
-        else {
-          state = newState
-          return true
-        }
-      }
-      // remove duplicates
-      guard updated else { return }
-      updatesSubject.send()
-      let observers: Dictionary<IID, @Sendable (State) -> Void> = observers.get(\.self)
-      observers.values.forEach { (observer: @Sendable (State) -> Void) in
-        observer(newState)
-      }
-    }
-    self.observers = observers
-
-    self.cancellable =
-      updatesSubject
+    self.stateSource = stateSource
+    self.cancellables = .init()
+    stateSource
       .receive(on: RunLoop.main)
-      .sink { [weak self] in
+      .sink { [weak self] _ in
         self?.objectWillChange.send()
       }
+      .store(in: cancellables)
   }
 
-  public var wrappedValue: State {
-    get { self.read() }
-    set { self.write(newValue) }
-  }
-
-  public var projectedValue: ValueBinding<State> {
-    .init(
-      get: self.read,
-      set: self.write
+  public convenience init(
+    initial: Value
+  ) {
+    self.init(
+      stateSource: .variable(initial: initial)
     )
   }
 
-  @_disfavoredOverload
-  public func binding<Value>(
-    to keyPath: WritableKeyPath<State, Value>
-  ) -> ValueBinding<Value> {
-    .init(
-      get: { self.get(keyPath) },
-      set: { newValue in
-        self.set(keyPath, newValue)
-      }
-    )
+  public var wrappedValue: Value {
+    get { self.stateSource.get(\.self) }
+    set { self.stateSource.set(to: newValue) }
   }
 
-  public func binding<Value>(
-    to keyPath: WritableKeyPath<State, ValueBinding<Value>>
-  ) -> ValueBinding<Value> {
-    self.get(keyPath)
+  public var projectedValue: StateBinding<Value> {
+    self.stateSource
   }
 
-  public func associate<Value>(
-    binding: ValueBinding<Value>,
-    with keyPath: WritableKeyPath<State, Value>
-  ) where Value: Equatable {
-    self.onUpdate { (state: State) in
-      binding.set(state[keyPath: keyPath])
-    }
-    binding.onUpdate { [weak self] (value: Value) in
-      self?.wrappedValue[keyPath: keyPath] = value
-    }
-  }
-
-  @discardableResult
-  public func onUpdate(
-    _ execute: @escaping @Sendable (State) -> Void
-  ) -> IID {
-    let id: IID = .init()
-    self.observers.access { (observers: inout Dictionary<IID, @Sendable (State) -> Void>) in
-      observers[id] = execute
-    }
-    return id
-  }
-
-  public subscript<Value>(
-    dynamicMember keyPath: KeyPath<State, Value>
-  ) -> Value {
+  public subscript<Property>(
+    dynamicMember keyPath: KeyPath<Value, Property>
+  ) -> Property {
     get {
-      self.wrappedValue[keyPath: keyPath]
+      self.stateSource.get(keyPath)
     }
   }
 
-  public subscript<Value>(
-    dynamicMember keyPath: WritableKeyPath<State, Value>
-  ) -> Value {
+  public subscript<Property>(
+    dynamicMember keyPath: WritableKeyPath<Value, Property>
+  ) -> Property {
     get {
-      self.wrappedValue[keyPath: keyPath]
+      self.stateSource.get(keyPath)
     }
     set {
-      self.wrappedValue[keyPath: keyPath] = newValue
+      self.stateSource.set(keyPath, to: newValue)
     }
   }
 }
 
 extension DisplayViewState {
 
-  public func get<Value>(
-    _ keyPath: KeyPath<State, Value>
-  ) -> Value {
-    self.wrappedValue[keyPath: keyPath]
+  public func get<Property>(
+    _ keyPath: KeyPath<Value, Property>
+  ) -> Property {
+    self.stateSource.get(keyPath)
   }
 
-  public func set<Value>(
-    _ keyPath: WritableKeyPath<State, Value>,
-    _ property: Value
+  public func set<Property>(
+    _ keyPath: WritableKeyPath<Value, Property>,
+    to newValue: Property
   ) {
-    self.wrappedValue[keyPath: keyPath] = property
+    self.stateSource.set(keyPath, to: newValue)
   }
 
-  public func with<Value>(
-    _ access: (inout State) throws -> Value
-  ) rethrows -> Value {
-    try access(&self.wrappedValue)
+  public func mutate<Property>(
+    _ access: (inout Value) throws -> Property
+  ) rethrows -> Property {
+    try self.stateSource
+      .mutate { (value: inout Value) -> Property in
+        try access(&value)
+      }
+  }
+
+  public func binding<BindingValue>(
+    to keyPath: WritableKeyPath<Value, BindingValue>
+  ) -> Binding<BindingValue> {
+    Binding<BindingValue>(
+      get: { self.get(keyPath) },
+      set: { (newValue: BindingValue) in
+        self.set(keyPath, to: newValue)
+      }
+    )
   }
 }
 
@@ -226,8 +151,10 @@ extension DisplayViewStateless {
 
   public static var stateless: Self {
     .init(
-      read: { HashableVoid() },
-      write: { _ in }
+      stateSource: .fromSource(
+        read: { HashableVoid() },
+        write: { _ in }
+      )
     )
   }
 }

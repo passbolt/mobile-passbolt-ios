@@ -23,9 +23,9 @@
 
 import SwiftUI
 
-internal struct InitialNavigationNodeView: NavigationNodeView {
+public struct InitializationNavigationNodeView: NavigationNodeView {
 
-  internal typealias Controller = InitialNavigationNodeController
+  public typealias Controller = EmptyController
 
   internal static var erasedInstance: AnyNavigationNodeView = .init(
     for: Self.self,
@@ -34,13 +34,13 @@ internal struct InitialNavigationNodeView: NavigationNodeView {
 
   private let controller: Controller
 
-  internal init(
+  public init(
     controller: Controller
   ) {
     self.controller = controller
   }
 
-  internal var body: some View {
+  public var body: some View {
     ZStack {
       Image(named: .passboltLogo)
     }
@@ -51,19 +51,4 @@ internal struct InitialNavigationNodeView: NavigationNodeView {
     )
     .backgroundColor(.passboltBackground)
   }
-}
-
-internal struct InitialNavigationNodeController: ContextlessNavigationNodeController {
-
-  internal typealias ViewState = HashableVoid
-
-  internal var displayViewState: DisplayViewState<ViewState> = .init(initial: .init())
-
-  #if DEBUG
-  nonisolated static var placeholder: Self {
-    .init(
-      displayViewState: .placeholder
-    )
-  }
-  #endif
 }

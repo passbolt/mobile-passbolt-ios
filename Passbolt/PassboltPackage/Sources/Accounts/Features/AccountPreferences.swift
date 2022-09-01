@@ -40,18 +40,18 @@ public struct AccountPreferences {
   public var storePassphrase: @Sendable (_ store: Bool) async throws -> Void
   /// Control if default ``HomePresentationMode``
   /// should be last used for the context account.
-  public var useLastHomePresentationAsDefault: ValueBinding<Bool>
+  public var useLastHomePresentationAsDefault: StateBinding<Bool>
   /// Access default ``HomePresentationMode``
   /// for the context account.
-  public var defaultHomePresentation: ValueBinding<HomePresentationMode>
+  public var defaultHomePresentation: StateBinding<HomePresentationMode>
 
   public init(
     updates: UpdatesSequence,
     setLocalAccountLabel: @escaping @Sendable (_ label: String) throws -> Void,
     isPassphraseStored: @escaping @Sendable () -> Bool,
     storePassphrase: @escaping @Sendable (_ store: Bool) async throws -> Void,
-    useLastHomePresentationAsDefault: ValueBinding<Bool>,
-    defaultHomePresentation: ValueBinding<HomePresentationMode>
+    useLastHomePresentationAsDefault: StateBinding<Bool>,
+    defaultHomePresentation: StateBinding<HomePresentationMode>
   ) {
     self.updates = updates
     self.setLocalAccountLabel = setLocalAccountLabel

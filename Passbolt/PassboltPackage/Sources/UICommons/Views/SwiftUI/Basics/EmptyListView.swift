@@ -62,6 +62,11 @@ public struct EmptyListView: View {
         )
       Spacer()
     }
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity,
+      alignment: .center
+    )
     .padding(
       top: 24,
       leading: 16,

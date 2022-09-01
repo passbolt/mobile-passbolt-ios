@@ -26,9 +26,9 @@ import Commons
 // MARK: - Interface
 
 @dynamicMemberLookup
-public struct StoredProperty<Value> {
+public struct StoredProperty<Value: Equatable> {
 
-  public var binding: ValueBinding<Value?>
+  public var binding: StateBinding<Value?>
 }
 
 extension StoredProperty: LoadableFeature {
@@ -40,13 +40,13 @@ extension StoredProperty {
 
   public var value: Value? {
     get { self.binding.get() }
-    set { self.binding.set(newValue) }
+    set { self.binding.set(to: newValue) }
   }
 
   public subscript<Property>(
     dynamicMember keyPath: KeyPath<Value, Property>
   ) -> Property? {
-    if let value: Value = self.binding.get() {
+    if let value: Value = self.binding.get(\.self) {
       return value[keyPath: keyPath]
     }
     else {
@@ -76,13 +76,13 @@ extension StoredProperty {
       _ property: Value?
     ) {
       storedProperties
-        .store(key, property)
+        .store(key, property as Any)
     }
 
     return Self(
-      binding: .init(
-        get: fetch,
-        set: store(_:)
+      binding: .fromSource(
+        read: fetch,
+        write: store(_:)
       )
     )
   }
@@ -90,7 +90,7 @@ extension StoredProperty {
 
 extension FeatureFactory {
 
-  @MainActor public func usePassboltStoredProperty<Property>(
+  @MainActor public func usePassboltStoredProperty<Property: Equatable>(
     _: Property.Type
   ) {
     self.use(

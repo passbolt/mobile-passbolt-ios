@@ -40,7 +40,7 @@ final class HomePresentationTests: TestCase {
     await features.patch(
       \AccountPreferences.defaultHomePresentation,
       context: Account.valid,
-      with: .constant(HomePresentationMode.ownedResourcesList)
+      with: .variable(initial: HomePresentationMode.ownedResourcesList)
     )
     await features.patch(
       \SessionConfiguration.configuration,

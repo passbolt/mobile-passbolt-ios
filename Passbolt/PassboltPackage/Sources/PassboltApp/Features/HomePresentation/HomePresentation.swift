@@ -44,9 +44,9 @@ extension HomePresentation: LegacyFeature {
     let session: Session = try await features.instance()
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
 
-    var useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
+    var useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    var defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    var defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let foldersConfig: FeatureFlags.Folders = await sessionConfiguration.configuration(for: FeatureFlags.Folders.self)
     let tagsConfig: FeatureFlags.Tags = await sessionConfiguration.configuration(for: FeatureFlags.Tags.self)
@@ -85,7 +85,7 @@ extension HomePresentation: LegacyFeature {
     let initialPresentationMode: HomePresentationMode = {
       let defaultMode: HomePresentationMode = accountPreferences
         .defaultHomePresentation
-        .wrappedValue
+        .get(\.self)
       if availablePresentationModes.contains(defaultMode) {
         return defaultMode
       }
@@ -107,8 +107,8 @@ extension HomePresentation: LegacyFeature {
 
     @MainActor func setPresentationMode(_ mode: HomePresentationMode) {
       currentPresentationModeSubject.send(mode)
-      if useLastUsedHomePresentationAsDefault.wrappedValue {
-        defaultHomePresentation.wrappedValue = mode
+      if useLastUsedHomePresentationAsDefault.get() {
+        defaultHomePresentation.set(to: mode)
       }
       else { /* NOP */
       }

@@ -67,11 +67,11 @@ extension AccountPreferences {
       .instance(
         context: "UseLastUsedHomePresentationAsDefault-\(account)"
       )
-    let useLastHomePresentationAsDefault: ValueBinding<Bool> = useLastHomePresentationAsDefaultProperty
+    let useLastHomePresentationAsDefault: StateBinding<Bool> = useLastHomePresentationAsDefaultProperty
       .binding
       .convert(
-        get: unwrapped(default: true),
-        set: identity
+        read: unwrapped(default: true),
+        write: identity
       )
 
     let defaultHomePresentationProperty: StoredProperty<String> =
@@ -79,17 +79,17 @@ extension AccountPreferences {
       .instance(
         context: "DefaultHomePresentationProperty-\(account)"
       )
-    let defaultHomePresentation: ValueBinding<HomePresentationMode> = defaultHomePresentationProperty
+    let defaultHomePresentation: StateBinding<HomePresentationMode> = defaultHomePresentationProperty
       .binding
       .convert(
-        get: unwrappedMap(
+        read: unwrappedMap(
           default: .plainResourcesList,
           mapping: {
             HomePresentationMode
               .init(rawValue: $0)
           }
         ),
-        set: { $0.rawValue }
+        write: { $0.rawValue }
       )
 
     return Self(

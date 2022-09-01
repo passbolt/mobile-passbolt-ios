@@ -40,6 +40,7 @@ internal struct NavigationTreeAnchorView: View {
           dismissNode: self.dismissNode
         )
       }
+      .navigationViewStyle(.stack)
 
     case let .overlay(_, covering: .overlay(overlayNode, covering: coveredNode)):
       NavigationTreeAnchorView(

@@ -23,7 +23,6 @@
 
 import SwiftUI
 
-@MainActor
 private struct Loader: ViewModifier {
 
   private var visible: Bool
@@ -87,7 +86,7 @@ private struct Loader: ViewModifier {
 
 extension View {
 
-  @MainActor public func loader(
+  public func loader(
     visible: Bool
   ) -> some View {
     ModifiedContent(

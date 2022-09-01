@@ -28,7 +28,7 @@ public protocol DisplayController: Hashable, LoadableFeature {
 
   associatedtype ViewState: Hashable
 
-  var displayViewState: DisplayViewState<ViewState> { get }
+  var viewState: DisplayViewState<ViewState> { get }
   var activate: @Sendable () async -> Void { get }
 }
 
@@ -42,14 +42,14 @@ extension DisplayController /* Hashable */ {
     _ rhs: Self
   ) -> Bool {
     // relaying on DisplayViewState equality
-    lhs.displayViewState == rhs.displayViewState
+    lhs.viewState == rhs.viewState
   }
 
   public func hash(
     into hasher: inout Hasher
   ) {
     // relaying on DisplayViewState hash
-    hasher.combine(self.displayViewState)
+    hasher.combine(self.viewState)
   }
 }
 
@@ -62,6 +62,6 @@ extension DisplayController {
   public func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>
   ) -> Binding<Value> {
-    self.displayViewState.binding(to: keyPath).binding
+    self.viewState.binding(to: keyPath)
   }
 }

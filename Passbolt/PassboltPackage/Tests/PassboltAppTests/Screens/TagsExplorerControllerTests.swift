@@ -54,7 +54,7 @@ final class TagsExplorerControllerTests: MainActorTestCase {
     )
     features.patch(
       \ResourceTags.filteredTagsList,
-      with: always(AnyAsyncSequence([]))
+      with: always([])
     )
     features.usePlaceholder(for: Resources.self)
     features.usePlaceholder(for: HomePresentation.self)

@@ -45,29 +45,51 @@ public final class UI {
 extension UI {
 
   @MainActor public func prepareCredentialList() {
-    Task { @MainActor in
-      try await features
-        .instance(of: NavigationTree.self)
-        .replaceRoot(
-          with: AutofillRootNavigationNodeView.self,
-          controller: features.instance()
-        )
-    }
+    self.features.instance(of: AsyncExecutor.self)
+      .schedule(.reuse) { @MainActor[weak self] in
+        do {
+          guard let self = self
+          else {
+            throw
+              InternalInconsistency
+              .error("Reference to UI lost.")
+          }
+          try await self.features
+            .instance(of: NavigationTree.self)
+            .replaceRoot(
+              with: AutofillRootNavigationNodeView.self,
+              controller: self.features.instance()
+            )
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Failed to prepare credentials list.")
+        }
+      }
   }
 
   @MainActor public func prepareInterfaceForExtensionConfiguration() {
-    MainActor.execute {
-      do {
-        try await self.setRootContent(
-          UIComponentFactory(features: self.features).instance(of: ExtensionSetupViewController.self)
-        )
+    self.features.instance(of: AsyncExecutor.self)
+      .schedule(.reuse) { @MainActor[weak self] in
+        do {
+          guard let self = self
+          else {
+            throw
+              InternalInconsistency
+              .error("Reference to UI lost.")
+          }
+          try await self.setRootContent(
+            UIComponentFactory(features: self.features)
+              .instance(of: ExtensionSetupViewController.self)
+          )
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Failed to prepare extension configuration.")
+        }
       }
-      catch {
-        error
-          .asTheError()
-          .asFatalError()
-      }
-    }
   }
 
   @MainActor private func setRootContent(

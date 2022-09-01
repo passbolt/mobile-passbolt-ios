@@ -24,27 +24,24 @@
 import CommonModels
 import SwiftUI
 
-public struct ResourceListSectionView: View {
+public struct ResourceTagsListSectionView: View {
 
   private let title: DisplayableString?
-  private let resources: Array<ResourceListItemDSV>
-  private let tapAction: (Resource.ID) -> Void
-  private let menuAction: ((Resource.ID) -> Void)?
+  private let tags: Array<ResourceTagListItemDSV>
+  private let tapAction: (ResourceTag.ID) -> Void
 
   public init(
     title: DisplayableString? = .none,
-    resources: Array<ResourceListItemDSV>,
-    tapAction: @escaping (Resource.ID) -> Void,
-    menuAction: ((Resource.ID) -> Void)? = .none
+    tags: Array<ResourceTagListItemDSV>,
+    tapAction: @escaping (ResourceTag.ID) -> Void
   ) {
     self.title = title
-    self.resources = resources
+    self.tags = tags
     self.tapAction = tapAction
-    self.menuAction = menuAction
   }
 
   public var body: some View {
-    if !self.resources.isEmpty {
+    if !self.tags.isEmpty {
       Section {
         if let title: DisplayableString = self.title {
           Text(displayable: title)
@@ -68,30 +65,15 @@ public struct ResourceListSectionView: View {
         }  // else skip title
 
         ForEach(
-          self.resources,
-          id: \ResourceListItemDSV.id
-        ) { resource in
-          ResourceListItemView(
-            name: resource.name,
-            username: resource.username,
-            contentAction: {
-              self.tapAction(resource.id)
-            },
-            rightAction: self.menuAction.map { action in
-              { action(resource.id) }
-            },
-            rightAccessory: {
-              if case .none = self.menuAction {
-                EmptyView()
-              }
-              else {
-                Image(named: .more)
-                  .resizable()
-                  .aspectRatio(1, contentMode: .fit)
-                  .foregroundColor(Color.passboltIcon)
-                  .padding(8)
-                  .frame(width: 44)
-              }
+          self.tags,
+          id: \ResourceTagListItemDSV.id
+        ) { item in
+          ResourceTagListItemView(
+            name: item.slug.rawValue,
+            shared: item.shared,
+            contentCount: item.contentCount,
+            action: {
+              self.tapAction(item.id)
             }
           )
         }
@@ -100,32 +82,3 @@ public struct ResourceListSectionView: View {
     }  // else there is no section
   }
 }
-
-#if DEBUG
-
-internal struct ResourceListSectionView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    List {
-      ResourceListSectionView(
-        title: .none,
-        resources: .random(countIn: 3..<9),
-        tapAction: { print("Tap \($0)") },
-        menuAction: { print("Menu \($0)") }
-      )
-      ResourceListSectionView(
-        title: "Some Section",
-        resources: .random(countIn: 3..<9),
-        tapAction: { print("Tap \($0)") },
-        menuAction: { print("Menu \($0)") }
-      )
-      ResourceListSectionView(
-        title: "Other Section",
-        resources: .random(countIn: 3..<9),
-        tapAction: { print("Tap \($0)") },
-        menuAction: .none
-      )
-    }
-  }
-}
-#endif

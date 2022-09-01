@@ -31,7 +31,7 @@ import SessionData
 
 internal struct HomePresentation {
 
-  internal var currentMode: ValueBinding<HomePresentationMode>
+  internal var currentMode: StateBinding<HomePresentationMode>
   internal var availableModes: () -> OrderedSet<HomePresentationMode>
 }
 
@@ -59,9 +59,9 @@ extension HomePresentation {
     let session: Session = try await features.instance()
     let accountPreferences: AccountPreferences = try await features.instance(context: session.currentAccount())
 
-    let useLastUsedHomePresentationAsDefault: ValueBinding<Bool> = accountPreferences
+    let useLastUsedHomePresentationAsDefault: StateBinding<Bool> = accountPreferences
       .useLastHomePresentationAsDefault
-    let defaultHomePresentation: ValueBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
+    let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
     let foldersConfig: FeatureFlags.Folders = await sessionConfiguration.configuration(for: FeatureFlags.Folders.self)
     let tagsConfig: FeatureFlags.Tags = await sessionConfiguration.configuration(for: FeatureFlags.Tags.self)
@@ -100,7 +100,7 @@ extension HomePresentation {
     let initialPresentationMode: HomePresentationMode = {
       let defaultMode: HomePresentationMode = accountPreferences
         .defaultHomePresentation
-        .wrappedValue
+        .get(\.self)
       if availablePresentationModes.contains(defaultMode) {
         return defaultMode
       }
@@ -109,14 +109,15 @@ extension HomePresentation {
       }
     }()
 
-    let currentModeBinding: ValueBinding<HomePresentationMode> = .variable(initial: initialPresentationMode)
+    let currentModeBinding: StateBinding<HomePresentationMode> = .variable(initial: initialPresentationMode)
 
     currentModeBinding
-      .onUpdate { mode in
-        if useLastUsedHomePresentationAsDefault.wrappedValue {
-          defaultHomePresentation.set(\.self, mode)
+      .sink { mode in
+        if useLastUsedHomePresentationAsDefault.get() {
+          defaultHomePresentation.set(to: mode)
         }  // else NOP
       }
+      .store(in: cancellables)
 
     nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
       availablePresentationModes

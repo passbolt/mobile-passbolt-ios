@@ -28,10 +28,10 @@ import Features
 
 public struct ResourceTags {
 
-  public var filteredTagsList: (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceTagListItemDSV>>
+  public var filteredTagsList: (String) async throws -> Array<ResourceTagListItemDSV>
 
   public init(
-    filteredTagsList: @escaping (AnyAsyncSequence<String>) -> AnyAsyncSequence<Array<ResourceTagListItemDSV>>
+    filteredTagsList: @escaping (String) async throws -> Array<ResourceTagListItemDSV>
   ) {
     self.filteredTagsList = filteredTagsList
   }

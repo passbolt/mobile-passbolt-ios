@@ -29,13 +29,11 @@ import Features
 public struct ResourceFolders {
 
   public var details: @Sendable (ResourceFolder.ID) async throws -> ResourceFolderDetails?
-  public var filteredFolderContent: (AnyAsyncSequence<ResourceFoldersFilter>) -> AnyAsyncSequence<ResourceFolderContent>
+  public var filteredFolderContent: @Sendable (ResourceFoldersFilter) async throws -> ResourceFolderContent
 
   public init(
     details: @escaping @Sendable (ResourceFolder.ID) async throws -> ResourceFolderDetails?,
-    filteredFolderContent: @escaping (AnyAsyncSequence<ResourceFoldersFilter>) -> AnyAsyncSequence<
-      ResourceFolderContent
-    >
+    filteredFolderContent: @escaping @Sendable (ResourceFoldersFilter) async throws -> ResourceFolderContent
   ) {
     self.details = details
     self.filteredFolderContent = filteredFolderContent

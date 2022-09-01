@@ -87,7 +87,7 @@ extension WindowController: UIController {
         case  // fully authorized initially
         let (.some(account), .none, .useCachedScreenState),
           let (.some(account), .none, .useInitialScreenState):
-          if features.isLoaded(AccountTransfer.self) {
+          if await features.isLoaded(AccountTransfer.self) {
             // Ignoring during new account setup.
             return .none
           }
@@ -101,7 +101,7 @@ extension WindowController: UIController {
 
         case  // mfa required
         let (_, .mfa(account, providers), _):
-          if features.isLoaded(AccountTransfer.self) {
+          if await features.isLoaded(AccountTransfer.self) {
             // Ignoring during new account setup.
             return .none
           }

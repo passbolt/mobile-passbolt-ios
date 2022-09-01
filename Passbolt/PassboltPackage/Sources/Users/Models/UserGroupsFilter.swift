@@ -36,3 +36,5 @@ public struct UserGroupsFilter {
     self.text = text
   }
 }
+
+extension UserGroupsFilter: Hashable {}

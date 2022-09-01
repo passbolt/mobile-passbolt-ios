@@ -23,9 +23,9 @@
 
 import Display
 
-internal struct ResourcesListNavigationNodeView: NavigationNodeView {
+internal struct HomeNavigationNodeView: NavigationNodeView {
 
-  internal typealias Controller = ResourcesListNavigationNodeController
+  internal typealias Controller = HomeNavigationNodeController
 
   private let controller: Controller
 
@@ -52,9 +52,7 @@ internal struct ResourcesListNavigationNodeView: NavigationNodeView {
       titleExtensionView: {
         self.searchView(with: state)
       },
-      titleLeadingItem: {
-        EmptyView()
-      },
+      titleLeadingItem: EmptyView.init,
       titleTrailingItem: {
         Button(
           action: self.controller.closeExtension,
@@ -72,10 +70,9 @@ internal struct ResourcesListNavigationNodeView: NavigationNodeView {
   ) -> some View {
     SearchView(
       prompt: .localized(key: "resources.search.placeholder"),
-      text: .init(
-        get: { state.searchText },
-        set: self.controller.updateSearchText
-      ),
+      text: self.controller
+        .viewState
+        .binding(to: \.searchText),
       leftAccessory: {
         Button(
           action: self.controller.showPresentationMenu,
@@ -108,34 +105,15 @@ internal struct ResourcesListNavigationNodeView: NavigationNodeView {
   @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    List {
-      ResourceListAddView {
-        self.controller.createResource()
-      }
-      if state.resources.isEmpty && state.suggested.isEmpty {
-        EmptyListView()
-      }
-      else {
-        ResourceListSectionView(
-          title: .localized("autofill.extension.resource.list.section.suggested.title"),
-          resources: state.suggested,
-          tapAction: { resourceID in
-            self.controller.selectResource(resourceID)
-          }
-        )
-        ResourceListSectionView(
-          title: .localized("autofill.extension.resource.list.section.all.title"),
-          resources: state.resources,
-          tapAction: { resourceID in
-            self.controller.selectResource(resourceID)
-          }
-        )
-      }
-    }
-    .refreshable {
-      await self.controller.refresh()
-    }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
+    state
+      .modeContent
+      .controlling(
+        ResourcesListDisplayView.self,
+        or: ResourceFolderContentDisplayView.self,
+        or: ResourceTagsListDisplayView.self,
+        or: ResourceUserGroupsListDisplayView.self,
+        or: LoaderNavigationNodeView.self,
+        default: EmptyView.init
+      )
   }
 }

@@ -721,31 +721,6 @@ extension FeatureFactory {
     ) != nil
   }
 
-  //  @MainActor public func isLoaded<F>(
-  //    _ feature: F.Type,
-  //    context: F.Context
-  //  ) -> Bool where F: LoadableFeature {
-  //    #warning("TODO: to check if we should not check for pending instances also")
-  //    return self.cacheItem(
-  //      for: .init(
-  //        featureTypeIdentifier: feature.typeIdentifier,
-  //        featureContextIdentifier: context.identifier
-  //      )
-  //    ) != nil
-  //  }
-  //
-  //  @MainActor public func isLoaded<F>(
-  //    _ feature: F.Type
-  //  ) -> Bool where F: LoadableFeature, F.Context == ContextlessFeatureContext {
-  //    #warning("TODO: to check if we should not check for pending instances also")
-  //    return self.cacheItem(
-  //      for: .init(
-  //        featureTypeIdentifier: feature.typeIdentifier,
-  //        featureContextIdentifier: ContextlessFeatureContext.instance.identifier
-  //      )
-  //    ) != nil
-  //  }
-
   @MainActor public func loadIfNeeded<F>(
     _ feature: F.Type = F.self
   ) async throws where F: LegacyFeature {

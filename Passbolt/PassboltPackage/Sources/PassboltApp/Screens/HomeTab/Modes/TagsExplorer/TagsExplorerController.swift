@@ -106,20 +106,22 @@ extension TagsExplorerController: ComponentController {
 
       // refresh the list based on filters data
       cancellables.executeOnMainActor {
-        let filterSequence: AnyAsyncSequence<String> =
+        try await AsyncCombineLatestSequence(
           viewState
-          .valuePublisher
-          .map(\.searchText)
-          .removeDuplicates()
-          .asAnyAsyncSequence()
-
-        try await resourceTags
-          .filteredTagsList(filterSequence)
-          .forLatest { tagsList in
-            await viewState.withValue { state in
-              state.tags = tagsList
-            }
+            .asAnyAsyncSequence()
+            .map(\.searchText)
+            .removeDuplicates(),
+          sessionData.updatesSequence
+        )
+        .map { (filter: String, _) in
+          try await resourceTags
+            .filteredTagsList(filter)
+        }
+        .forLatest { tagsList in
+          await viewState.withValue { state in
+            state.tags = tagsList
           }
+        }
       }
     }
 

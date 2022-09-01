@@ -28,20 +28,20 @@ import SharedUIComponents
 
 internal struct AutofillRootNavigationNodeController {
 
-  internal var displayViewState: DisplayViewStateless
+  internal var viewState: DisplayViewStateless
   internal var activate: @Sendable () async -> Void
 }
 
 extension AutofillRootNavigationNodeController: ContextlessNavigationNodeController {
 
-#if DEBUG
+  #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      displayViewState: .placeholder,
+      viewState: .placeholder,
       activate: unimplemented()
     )
   }
-#endif
+  #endif
 }
 
 extension AutofillRootNavigationNodeController {
@@ -98,27 +98,27 @@ extension AutofillRootNavigationNodeController {
         }  // else NOP
       }
 
-      asyncExecutor.schedule { @SessionActor in
+      asyncExecutor.schedule(.reuse) { @SessionActor in
         for await _ in session.updatesSequence.dropFirst() {
           do {
             let currentAccount: Account? =
-            try? await session
+              try? await session
               .currentAccount()
             let pendingAuthorization: SessionAuthorizationRequest? =
-            session
+              session
               .pendingAuthorization()
 
             switch (currentAccount, pendingAuthorization) {
             case let (.some(currentAccount), .none):
               if let (account, tree): (Account, NavigationTreeState) = authorizationPromptRecoveryTreeState.get(\.self),
-                 account == currentAccount
+                account == currentAccount
               {
                 authorizationPromptRecoveryTreeState.set(\.self, .none)
                 navigationTree.set(treeState: tree)
               }
               else {
                 try await navigationTree.replaceRoot(
-                  pushing: ResourcesListNavigationNodeView.self,
+                  pushing: HomeNavigationNodeView.self,
                   controller: features.instance()
                 )
               }
@@ -180,7 +180,7 @@ extension AutofillRootNavigationNodeController {
     }
 
     return .init(
-      displayViewState: .stateless,
+      viewState: .stateless,
       activate: activate
     )
   }

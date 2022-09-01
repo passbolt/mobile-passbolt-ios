@@ -65,25 +65,12 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
     let feature: ResourceFolders = try await self.testedInstance()
 
-    var result: Array<ResourceFolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
-      result.append(folderContent)
+    await XCTAssertError(matches: MockIssue.self) {
+      try await feature.filteredFolderContent(filter)
     }
-
-    XCTAssertEqual(
-      result,
-      [
-        .init(
-          folderID: filter.folderID,
-          flattened: filter.flattenContent,
-          subfolders: [],
-          resources: []
-        )
-      ]
-    )
   }
 
-  func test_filteredFolderContent_producesEmptyContent_whenDatabaseFetchingFail() async throws {
+  func test_filteredFolderContent_throws_whenDatabaseFetchingFail() async throws {
     patch(
       \ResourceFoldersListFetchDatabaseOperation.execute,
       with: alwaysThrow(MockIssue.error())
@@ -103,22 +90,9 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
     let feature: ResourceFolders = try await self.testedInstance()
 
-    var result: Array<ResourceFolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
-      result.append(folderContent)
+    await XCTAssertError(matches: MockIssue.self) {
+      try await feature.filteredFolderContent(filter)
     }
-
-    XCTAssertEqual(
-      result,
-      [
-        .init(
-          folderID: filter.folderID,
-          flattened: filter.flattenContent,
-          subfolders: [],
-          resources: []
-        )
-      ]
-    )
   }
 
   func test_filteredFolderContent_producesContent_whenDatabaseFetchingSucceeds() async throws {
@@ -145,21 +119,16 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
     let feature: ResourceFolders = try await self.testedInstance()
 
-    var result: Array<ResourceFolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
-      result.append(folderContent)
-    }
+    let result: ResourceFolderContent = try await feature.filteredFolderContent(filter)
 
     XCTAssertEqual(
       result,
-      [
-        .init(
-          folderID: filter.folderID,
-          flattened: filter.flattenContent,
-          subfolders: folders,
-          resources: resources
-        )
-      ]
+      .init(
+        folderID: filter.folderID,
+        flattened: filter.flattenContent,
+        subfolders: folders,
+        resources: resources
+      )
     )
   }
 
@@ -187,21 +156,16 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
 
     let feature: ResourceFolders = try await self.testedInstance()
 
-    var result: Array<ResourceFolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init([filter])).prefix(1) {
-      result.append(folderContent)
-    }
+    let result: ResourceFolderContent = try await feature.filteredFolderContent(filter)
 
     XCTAssertEqual(
       result,
-      [
-        .init(
-          folderID: filter.folderID,
-          flattened: filter.flattenContent,
-          subfolders: folders,
-          resources: resources
-        )
-      ]
+      .init(
+        folderID: filter.folderID,
+        flattened: filter.flattenContent,
+        subfolders: folders,
+        resources: resources
+      )
     )
   }
 
@@ -239,9 +203,8 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
     let feature: ResourceFolders = try await self.testedInstance()
 
     var result: Array<ResourceFolderContent> = .init()
-    for await folderContent in feature.filteredFolderContent(.init(filters)).prefix(2) {
-      result.append(folderContent)
-    }
+    try await result.append(feature.filteredFolderContent(filters[0]))
+    try await result.append(feature.filteredFolderContent(filters[1]))
 
     XCTAssertEqual(
       result,
