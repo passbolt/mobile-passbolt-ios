@@ -21,35 +21,20 @@
 // @since         v1.0
 //
 
-import Display
+import AegithalosCocoa
 
-internal struct HomeNavigationNodeView: NavigationNodeView {
+extension ImageNameConstant: Hashable {
 
-  private let controller: HomeNavigationNodeController
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.rawValue == rhs.rawValue
+  }
 
-  internal init(
-    controller: HomeNavigationNodeController
+  public func hash(
+    into hasher: inout Hasher
   ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
-      self.bodyView(with: state)
-    }
-  }
-
-  @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    state
-      .contentController
-      .controlling(
-        ResourcesListNodeView.self,
-        or: ResourceFolderContentNodeView.self,
-        or: ResourceTagsListNodeView.self,
-        or: ResourceUserGroupsListNodeView.self,
-        default: LoaderNavigationNodeView.instance
-      )
+    hasher.combine(self.rawValue)
   }
 }

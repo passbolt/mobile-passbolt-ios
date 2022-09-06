@@ -98,83 +98,94 @@ extension AutofillRootNavigationNodeController {
         }  // else NOP
       }
 
-      asyncExecutor.schedule(.reuse) { @SessionActor in
-        for await _ in session.updatesSequence.dropFirst() {
-          do {
-            let currentAccount: Account? =
-              try? await session
-              .currentAccount()
-            let pendingAuthorization: SessionAuthorizationRequest? =
-              session
-              .pendingAuthorization()
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await session.updatesSequence
+            .dropFirst()
+            .forLatest { @SessionActor in
+              do {
+                let currentAccount: Account? =
+                  try? await session
+                  .currentAccount()
+                let pendingAuthorization: SessionAuthorizationRequest? =
+                  session
+                  .pendingAuthorization()
 
-            switch (currentAccount, pendingAuthorization) {
-            case let (.some(currentAccount), .none):
-              if let (account, tree): (Account, NavigationTreeState) = authorizationPromptRecoveryTreeState.get(\.self),
-                account == currentAccount
-              {
-                authorizationPromptRecoveryTreeState.set(\.self, .none)
-                navigationTree.set(treeState: tree)
+                switch (currentAccount, pendingAuthorization) {
+                case let (.some(currentAccount), .none):
+                  if let (account, tree): (Account, NavigationTreeState) = authorizationPromptRecoveryTreeState.get(
+                    \.self
+                  ),
+                    account == currentAccount
+                  {
+                    authorizationPromptRecoveryTreeState.set(\.self, .none)
+                    navigationTree.set(treeState: tree)
+                  }
+                  else {
+                    try await navigationTree.replaceRoot(
+                      pushing: HomeNavigationNodeView.self,
+                      controller: features.instance()
+                    )
+                  }
+
+                case let (.some(account), .passphrase):
+                  authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
+                  await navigationTree
+                    .replaceRoot(
+                      pushing: AccountSelectionViewController.self,
+                      context: .signIn,
+                      using: features
+                    )
+                  await navigationTree
+                    .push(
+                      AuthorizationViewController.self,
+                      context: account,
+                      using: features
+                    )
+
+                case (.some, .mfa):
+                  await navigationTree
+                    .replaceRoot(
+                      pushing: MFARequiredViewController.self,
+                      context: Void(),
+                      using: features
+                    )
+
+                case (.none, _):
+                  authorizationPromptRecoveryTreeState.set(\.self, .none)
+                  if accounts.storedAccounts().isEmpty {
+                    await navigationTree
+                      .replaceRoot(
+                        pushing: NoAccountsViewController.self,
+                        context: Void(),
+                        using: features
+                      )
+                  }
+                  else {
+                    await navigationTree
+                      .replaceRoot(
+                        pushing: AccountSelectionViewController.self,
+                        context: .signIn,
+                        using: features
+                      )
+                  }
+                }
               }
-              else {
-                try await navigationTree.replaceRoot(
-                  pushing: HomeNavigationNodeView.self,
-                  controller: features.instance()
-                )
-              }
-
-            case let (.some(account), .passphrase):
-              authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
-              await navigationTree
-                .replaceRoot(
-                  pushing: AccountSelectionViewController.self,
-                  context: .signIn,
-                  using: features
-                )
-              await navigationTree
-                .push(
-                  AuthorizationViewController.self,
-                  context: account,
-                  using: features
-                )
-
-            case (.some, .mfa):
-              await navigationTree
-                .replaceRoot(
-                  pushing: MFARequiredViewController.self,
-                  context: Void(),
-                  using: features
-                )
-
-            case (.none, _):
-              authorizationPromptRecoveryTreeState.set(\.self, .none)
-              if accounts.storedAccounts().isEmpty {
-                await navigationTree
-                  .replaceRoot(
-                    pushing: NoAccountsViewController.self,
-                    context: Void(),
-                    using: features
-                  )
-              }
-              else {
-                await navigationTree
-                  .replaceRoot(
-                    pushing: AccountSelectionViewController.self,
-                    context: .signIn,
-                    using: features
+              catch {
+                diagnostics
+                  .log(
+                    error: error,
+                    info: .message(
+                      "Root navigation failed."
+                    )
                   )
               }
             }
-          }
-          catch {
-            diagnostics
-              .log(
-                error: error,
-                info: .message(
-                  "Root navigation failed."
-                )
-              )
-          }
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Session monitoring broken.")
         }
       }
     }

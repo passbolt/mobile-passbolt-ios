@@ -39,7 +39,7 @@ public struct NavigationTreeRootView: View {
       NavigationTreeAnchorView(
         node: state,
         dismissNode: self.navigationTree
-          .dismiss
+          .dismiss(_:)
       )
     }
     .environment(\.isInNavigationTreeContext, true)

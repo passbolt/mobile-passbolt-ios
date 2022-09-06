@@ -21,35 +21,6 @@
 // @since         v1.0
 //
 
-import Display
+import CommonModels
 
-internal struct HomeNavigationNodeView: NavigationNodeView {
-
-  private let controller: HomeNavigationNodeController
-
-  internal init(
-    controller: HomeNavigationNodeController
-  ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
-      self.bodyView(with: state)
-    }
-  }
-
-  @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    state
-      .contentController
-      .controlling(
-        ResourcesListNodeView.self,
-        or: ResourceFolderContentNodeView.self,
-        or: ResourceTagsListNodeView.self,
-        or: ResourceUserGroupsListNodeView.self,
-        default: LoaderNavigationNodeView.instance
-      )
-  }
-}
+public typealias ResourceTagDetailsFetchDatabaseOperation = DatabaseOperation<ResourceTag.ID, ResourceTagDSV>

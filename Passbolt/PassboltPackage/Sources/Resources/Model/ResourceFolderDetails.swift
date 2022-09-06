@@ -27,15 +27,20 @@ public struct ResourceFolderDetails {
 
   public var folderID: ResourceFolder.ID
   public var name: String
+  public var shared: Bool
   public var permissionType: PermissionType
 
   public init(
     folderID: ResourceFolder.ID,
     name: String,
+    shared: Bool,
     permissionType: PermissionType
   ) {
     self.folderID = folderID
     self.name = name
+    self.shared = shared
     self.permissionType = permissionType
   }
 }
+
+extension ResourceFolderDetails: Hashable {}

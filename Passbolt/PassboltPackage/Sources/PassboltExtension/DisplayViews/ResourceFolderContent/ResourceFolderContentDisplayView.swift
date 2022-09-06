@@ -36,9 +36,11 @@ internal struct ResourceFolderContentDisplayView: DisplayView {
   internal var body: some View {
     WithDisplayViewState(self.controller) { state in
       ResourceFolderContentView(
+        folderName: state.folderName,
         isSearchResult: state.isSearchResult,
         directFolders: state.directFolders,
         nestedFolders: state.nestedFolders,
+        suggestedResources: state.suggestedResources,
         directResources: state.directResources,
         nestedResources: state.nestedResources,
         refreshAction: self.controller.refresh,

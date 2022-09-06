@@ -25,81 +25,53 @@ import AegithalosCocoa
 import Localization
 import SwiftUI
 
-public struct ScreenView<TitleView, TitleExtensionView, TitleLeadingItem, TitleTrailingItem, ContentView>: View
-where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTrailingItem: View, ContentView: View {
+public struct ScreenView<TitleCenterView, TitleBottomView, TitleLeadingItem, TitleTrailingItem, ContentView>: View
+where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, TitleTrailingItem: View, ContentView: View {
 
-  private let titleView: () -> TitleView
-  private let titleExtensionView: () -> TitleExtensionView
+  @Environment(\.isInNavigationTreeContext) var isInNavigationTreeContext: Bool
+  @Environment(\.navigationTreeDismiss) var navigationTreeDismiss: NavigationTreeDismiss?
+  @Environment(\.navigationTreeBack) var navigationTreeBack: NavigationTreeBack?
+  private let title: DisplayableString
+  private let loading: Bool
+  private let snackBarMessage: Binding<SnackBarMessage?>
+  private let titleCenterView: () -> TitleCenterView
+  private let titleBottomView: () -> TitleBottomView
   private let titleLeadingItem: () -> TitleLeadingItem
   private let titleTrailingItem: () -> TitleTrailingItem
   private let contentView: () -> ContentView
-  private let titleBarShadow: Bool
-  private let loading: Bool
-  private let snackBarMessage: Binding<SnackBarMessage?>
 
   public init(
-    titleBarShadow: Bool = false,
+    title: DisplayableString,
     loading: Bool = false,
     snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder titleView: @escaping () -> TitleView,
-    @ViewBuilder titleExtensionView: @escaping () -> TitleExtensionView,
+    @ViewBuilder titleCenterView: @escaping () -> TitleCenterView,
+    @ViewBuilder titleBottomView: @escaping () -> TitleBottomView,
     @ViewBuilder titleLeadingItem: @escaping () -> TitleLeadingItem,
     @ViewBuilder titleTrailingItem: @escaping () -> TitleTrailingItem,
     @ViewBuilder contentView: @escaping () -> ContentView
   ) {
-    self.titleView = titleView
-    self.titleExtensionView = titleExtensionView
+    self.title = title
+    self.loading = loading
+    self.snackBarMessage = snackBarMessage
+    self.titleCenterView = titleCenterView
+    self.titleBottomView = titleBottomView
     self.titleLeadingItem = titleLeadingItem
     self.titleTrailingItem = titleTrailingItem
     self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
-    self.loading = loading
-    self.snackBarMessage = snackBarMessage
-  }
-
-  public init(
-    title: DisplayableString,
-    titleBarShadow: Bool = false,
-    loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder contentView: @escaping () -> ContentView
-  )
-  where
-    TitleView == Text, TitleExtensionView == EmptyView, TitleLeadingItem == EmptyView, TitleTrailingItem == EmptyView
-  {
-    self.titleView = {
-      Text(
-        displayable: title
-      )
-      .font(
-        .inter(
-          ofSize: 16,
-          weight: .semibold
-        )
-      )
-      .foregroundColor(.passboltPrimaryText)
-    }
-    self.titleExtensionView = EmptyView.init
-    self.titleLeadingItem = EmptyView.init
-    self.titleTrailingItem = EmptyView.init
-    self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
-    self.loading = loading
-    self.snackBarMessage = snackBarMessage
   }
 
   public init(
     titleIcon: ImageNameConstant,
     title: DisplayableString,
-    titleBarShadow: Bool = false,
     loading: Bool = false,
     snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder titleExtensionView: @escaping () -> TitleExtensionView,
+    @ViewBuilder titleExtensionView: @escaping () -> TitleBottomView,
     @ViewBuilder titleLeadingItem: @escaping () -> TitleLeadingItem,
     @ViewBuilder titleTrailingItem: @escaping () -> TitleTrailingItem,
     @ViewBuilder contentView: @escaping () -> ContentView
-  ) where TitleView == HStack<TupleView<(Image, Text)>> {
-    self.titleView = {
+  ) where TitleCenterView == HStack<TupleView<(Image, Text)>> {
+    self.title = title
+    self.titleCenterView = {
       HStack<TupleView<(Image, Text)>>(spacing: 12) {
         Image(named: titleIcon)
 
@@ -115,11 +87,10 @@ where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTr
         .foregroundColor(.passboltPrimaryText)
       }
     }
-    self.titleExtensionView = titleExtensionView
+    self.titleBottomView = titleExtensionView
     self.titleLeadingItem = titleLeadingItem
     self.titleTrailingItem = titleTrailingItem
     self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
     self.loading = loading
     self.snackBarMessage = snackBarMessage
   }
@@ -127,14 +98,16 @@ where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTr
   public init(
     titleIcon: ImageNameConstant,
     title: DisplayableString,
-    titleBarShadow: Bool = false,
     loading: Bool = false,
     snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder titleLeadingItem: @escaping () -> TitleLeadingItem,
     @ViewBuilder contentView: @escaping () -> ContentView
   )
-  where TitleView == HStack<TupleView<(Image, Text)>>, TitleExtensionView == EmptyView, TitleTrailingItem == EmptyView {
-    self.titleView = {
+  where
+    TitleCenterView == HStack<TupleView<(Image, Text)>>, TitleBottomView == EmptyView, TitleLeadingItem == EmptyView,
+    TitleTrailingItem == EmptyView
+  {
+    self.title = title
+    self.titleCenterView = {
       HStack<TupleView<(Image, Text)>>(spacing: 12) {
         Image(named: titleIcon)
 
@@ -150,128 +123,27 @@ where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTr
         .foregroundColor(.passboltPrimaryText)
       }
     }
-    self.titleExtensionView = EmptyView.init
-    self.titleLeadingItem = titleLeadingItem
+    self.titleBottomView = EmptyView.init
+    self.titleLeadingItem = EmptyView.init
     self.titleTrailingItem = EmptyView.init
     self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
     self.loading = loading
     self.snackBarMessage = snackBarMessage
   }
 
   public init(
-    titleIcon: ImageNameConstant,
     title: DisplayableString,
-    titleBarShadow: Bool = false,
     loading: Bool = false,
     backButtonAction: @escaping () -> Void,
     snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
     @ViewBuilder contentView: @escaping () -> ContentView
   )
   where
-    TitleView == HStack<TupleView<(Image, Text)>>, TitleExtensionView == EmptyView, TitleLeadingItem == Button<Image>,
+    TitleCenterView == Text, TitleBottomView == EmptyView, TitleLeadingItem == Button<Image>,
     TitleTrailingItem == EmptyView
   {
-    self.titleView = {
-      HStack<TupleView<(Image, Text)>>(spacing: 12) {
-        Image(named: titleIcon)
-
-        Text(
-          displayable: title
-        )
-        .font(
-          .inter(
-            ofSize: 16,
-            weight: .semibold
-          )
-        )
-        .foregroundColor(.passboltPrimaryText)
-      }
-    }
-    self.titleExtensionView = EmptyView.init
-    self.titleLeadingItem = {
-      Button(
-        action: backButtonAction,
-        label: { Image(named: .arrowLeft) }
-      )
-    }
-    self.titleTrailingItem = EmptyView.init
-    self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
-    self.loading = loading
-    self.snackBarMessage = snackBarMessage
-  }
-
-  public init(
-    titleIcon: ImageNameConstant,
-    title: DisplayableString,
-    titleBarShadow: Bool = false,
-    loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder contentView: @escaping () -> ContentView
-  )
-  where
-    TitleView == HStack<TupleView<(Image, Text)>>, TitleExtensionView == EmptyView, TitleLeadingItem == EmptyView,
-    TitleTrailingItem == EmptyView
-  {
-    self.titleView = {
-      HStack<TupleView<(Image, Text)>>(spacing: 12) {
-        Image(named: titleIcon)
-
-        Text(
-          displayable: title
-        )
-        .font(
-          .inter(
-            ofSize: 16,
-            weight: .semibold
-          )
-        )
-        .foregroundColor(.passboltPrimaryText)
-      }
-    }
-    self.titleExtensionView = EmptyView.init
-    self.titleLeadingItem = EmptyView.init
-    self.titleTrailingItem = EmptyView.init
-    self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
-    self.loading = loading
-    self.snackBarMessage = snackBarMessage
-  }
-
-  public init(
-    titleBarShadow: Bool = false,
-    loading: Bool = false,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder contentView: @escaping () -> ContentView
-  )
-  where
-    TitleView == EmptyView, TitleExtensionView == EmptyView, TitleLeadingItem == EmptyView,
-    TitleTrailingItem == EmptyView
-  {
-    self.titleView = EmptyView.init
-    self.titleExtensionView = EmptyView.init
-    self.titleLeadingItem = EmptyView.init
-    self.titleTrailingItem = EmptyView.init
-    self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
-    self.loading = loading
-    self.snackBarMessage = snackBarMessage
-  }
-
-  public init(
-    title: DisplayableString,
-    titleBarShadow: Bool = false,
-    loading: Bool = false,
-    backButtonAction: @escaping () -> Void,
-    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
-    @ViewBuilder contentView: @escaping () -> ContentView
-  )
-  where
-    TitleView == Text, TitleExtensionView == EmptyView, TitleLeadingItem == Button<Image>,
-    TitleTrailingItem == EmptyView
-  {
-    self.titleView = {
+    self.title = title
+    self.titleCenterView = {
       Text(
         displayable: title
       )
@@ -283,7 +155,7 @@ where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTr
       )
       .foregroundColor(.passboltPrimaryText)
     }
-    self.titleExtensionView = EmptyView.init
+    self.titleBottomView = EmptyView.init
     self.titleLeadingItem = {
       Button(
         action: backButtonAction,
@@ -292,21 +164,124 @@ where TitleView: View, TitleExtensionView: View, TitleLeadingItem: View, TitleTr
     }
     self.titleTrailingItem = EmptyView.init
     self.contentView = contentView
-    self.titleBarShadow = titleBarShadow
+    self.loading = loading
+    self.snackBarMessage = snackBarMessage
+  }
+
+  public init(
+    title: DisplayableString,
+    loading: Bool = false,
+    dismissButtonAction: @escaping () -> Void,
+    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
+    @ViewBuilder contentView: @escaping () -> ContentView
+  )
+  where
+    TitleCenterView == Text, TitleBottomView == EmptyView, TitleLeadingItem == EmptyView,
+    TitleTrailingItem == Button<Image>
+  {
+    self.title = title
+    self.titleCenterView = {
+      Text(
+        displayable: title
+      )
+      .font(
+        .inter(
+          ofSize: 16,
+          weight: .semibold
+        )
+      )
+      .foregroundColor(.passboltPrimaryText)
+    }
+    self.titleBottomView = EmptyView.init
+    self.titleLeadingItem = EmptyView.init
+    self.titleTrailingItem = {
+      Button(
+        action: dismissButtonAction,
+        label: { Image(named: .close) }
+      )
+    }
+    self.contentView = contentView
+    self.loading = loading
+    self.snackBarMessage = snackBarMessage
+  }
+
+  public init(
+    title: DisplayableString,
+    loading: Bool = false,
+    snackBarMessage: Binding<SnackBarMessage?> = .constant(.none),
+    @ViewBuilder contentView: @escaping () -> ContentView
+  )
+  where
+    TitleCenterView == Text, TitleBottomView == EmptyView, TitleLeadingItem == EmptyView,
+    TitleTrailingItem == EmptyView
+  {
+    self.title = title
+    self.titleCenterView = {
+      Text(
+        displayable: title
+      )
+      .font(
+        .inter(
+          ofSize: 16,
+          weight: .semibold
+        )
+      )
+      .foregroundColor(.passboltPrimaryText)
+    }
+    self.titleBottomView = EmptyView.init
+    self.titleLeadingItem = EmptyView.init
+    self.titleTrailingItem = EmptyView.init
+    self.contentView = contentView
     self.loading = loading
     self.snackBarMessage = snackBarMessage
   }
 
   public var body: some View {
+    if self.isInNavigationTreeContext {
+      VStack(spacing: 0) {
+        self.titleBottomView()
+          .padding(leading: 16, trailing: 16)
+
+        self.contentView()
+          .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .top
+          )
+      }
+      .snackBarMessage(presenting: self.snackBarMessage)
+      .loader(visible: self.loading)
+      .navigationBarTitleDisplayMode(.inline)
+      .navigationTitle(Text(displayable: self.title))
+      .navigationBarBackButtonHidden(TitleLeadingItem.self != EmptyView.self)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          self.titleLeadingItem()
+            .frame(maxWidth: 60, alignment: .leading)
+        }
+        ToolbarItem(placement: .principal) {
+          self.titleCenterView()
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          self.titleTrailingItem()
+            .frame(maxWidth: 60, alignment: .trailing)
+        }
+      }
+      .backgroundColor(.passboltBackground)
+      .foregroundColor(.passboltPrimaryText)
+    }
+    else {
+      self.legacyBody
+    }
+  }
+
+  @ViewBuilder private var legacyBody: some View {
     VStack(spacing: 0) {
       NavigationBar(
-        barShadow: self.titleBarShadow,
-        titleView: self.titleView,
-        extensionView: self.titleExtensionView,
-        leadingItem: self.titleLeadingItem,
-        trailingItem: self.titleTrailingItem
+        centerView: self.titleCenterView,
+        bottomView: self.titleBottomView
       )
-      .foregroundColor(.passboltPrimaryText)
 
       self.contentView()
         .frame(

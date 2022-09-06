@@ -39,9 +39,6 @@ internal struct DefaultPresentationModeSettingsView: DisplayView {
       title: .localized(
         key: "account.settings.default.home.mode.title"
       ),
-      backButtonAction: {
-        self.controller.navigateBack()
-      },
       contentView: {
         WithDisplayViewState(self.controller) { (state) in
           List {

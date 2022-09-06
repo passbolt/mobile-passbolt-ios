@@ -23,12 +23,12 @@
 
 import Display
 
-internal struct HomeNavigationNodeView: NavigationNodeView {
+internal struct ResourceTagsListNodeView: NavigationNodeView {
 
-  private let controller: HomeNavigationNodeController
+  private let controller: ResourceTagsListNodeController
 
   internal init(
-    controller: HomeNavigationNodeController
+    controller: ResourceTagsListNodeController
   ) {
     self.controller = controller
   }
@@ -42,14 +42,40 @@ internal struct HomeNavigationNodeView: NavigationNodeView {
   @ViewBuilder private func bodyView(
     with state: ViewState
   ) -> some View {
-    state
-      .contentController
-      .controlling(
-        ResourcesListNodeView.self,
-        or: ResourceFolderContentNodeView.self,
-        or: ResourceTagsListNodeView.self,
-        or: ResourceUserGroupsListNodeView.self,
-        default: LoaderNavigationNodeView.instance
-      )
+    ScreenView(
+      titleIcon: state.titleIconName,
+      title: state.title,
+      snackBarMessage: self.controller.binding(to: \.snackBarMessage),
+      titleExtensionView: {
+        self.searchView(with: state)
+      },
+      titleLeadingItem: EmptyView.init,
+      titleTrailingItem: {
+        Button(
+          action: self.controller.closeExtension,
+          label: { Image(named: .close) }
+        )
+      },
+      contentView: {
+        self.contentView(with: state)
+      }
+    )
+  }
+
+  @ViewBuilder private func searchView(
+    with state: ViewState
+  ) -> some View {
+    ResourceSearchDisplayView(
+      controller: self.controller.searchController
+    )
+  }
+
+  @ViewBuilder private func contentView(
+    with state: ViewState
+  ) -> some View {
+    ResourceTagsListDisplayView(
+      controller: self.controller.contentController
+    )
+    .shadowTopEdgeOverlay()
   }
 }

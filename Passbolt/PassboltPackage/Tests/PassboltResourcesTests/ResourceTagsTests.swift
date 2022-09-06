@@ -42,6 +42,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       \SessionData.updatesSequence,
       with: self.updatesSequence.updatesSequence
     )
+    use(ResourceTagDetailsFetchDatabaseOperation.placeholder)
   }
 
   override func cleanup() throws {

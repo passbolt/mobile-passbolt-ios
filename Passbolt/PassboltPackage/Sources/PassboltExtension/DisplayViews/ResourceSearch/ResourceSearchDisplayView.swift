@@ -21,38 +21,58 @@
 // @since         v1.0
 //
 
-import UICommons
+import Display
 
-extension UICollectionViewLayout {
+internal struct ResourceSearchDisplayView: NavigationNodeView {
 
-  internal static func resourcesSelectionList() -> UICollectionViewCompositionalLayout {
+  internal typealias Controller = ResourceSearchDisplayController
 
-    let item: NSCollectionLayoutItem = .init(
-      layoutSize: .init(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(64)
-      )
+  private let controller: ResourceSearchDisplayController
+
+  internal init(
+    controller: ResourceSearchDisplayController
+  ) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    WithDisplayViewState(self.controller) { state in
+      self.bodyView(with: state)
+    }
+  }
+
+  @ViewBuilder private func bodyView(
+    with state: ViewState
+  ) -> some View {
+    SearchView(
+      prompt: .localized(key: "resources.search.placeholder"),
+      text: self.controller
+        .viewState
+        .binding(to: \.searchText),
+      leftAccessory: {
+        Button(
+          action: self.controller.showPresentationMenu,
+          label: { ImageWithPadding(4, named: .filter) }
+        )
+      },
+      rightAccessory: {
+        Button(
+          action: self.controller.signOut,
+          label: {
+            UserAvatarView(imageData: state.accountAvatar)
+              .padding(
+                top: 0,
+                leading: 0,
+                bottom: 0,
+                trailing: 6
+              )
+          }
+        )
+      }
     )
-
-    let group: NSCollectionLayoutGroup = .vertical(
-      layoutSize: .init(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(64)
-      ),
-      subitems: [item]
+    .padding(
+      top: 10,
+      bottom: 16
     )
-
-    let section: NSCollectionLayoutSection = .init(group: group)
-
-    let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
-      layoutSize: NSCollectionLayoutSize(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(44)
-      ),
-      elementKind: UICollectionView.elementKindSectionHeader,
-      alignment: .top
-    )
-    section.boundarySupplementaryItems = [sectionHeader]
-    return UICollectionViewCompositionalLayout(section: section)
   }
 }

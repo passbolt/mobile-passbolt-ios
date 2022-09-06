@@ -25,12 +25,14 @@ import SwiftUI
 
 public struct LoaderNavigationNodeView: NavigationNodeView {
 
-  public typealias Controller = EmptyController
+  public static func instance() -> Self {
+    .init(controller: .init())
+  }
 
-  private let controller: Controller
+  private let controller: EmptyController
 
   public init(
-    controller: Controller
+    controller: EmptyController
   ) {
     self.controller = controller
   }

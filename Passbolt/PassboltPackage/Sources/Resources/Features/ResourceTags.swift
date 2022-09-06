@@ -28,12 +28,15 @@ import Features
 
 public struct ResourceTags {
 
-  public var filteredTagsList: (String) async throws -> Array<ResourceTagListItemDSV>
+  public var filteredTagsList: @Sendable (String) async throws -> Array<ResourceTagListItemDSV>
+  public var details: @Sendable (ResourceTag.ID) async throws -> ResourceTagDSV
 
   public init(
-    filteredTagsList: @escaping (String) async throws -> Array<ResourceTagListItemDSV>
+    filteredTagsList: @escaping @Sendable (String) async throws -> Array<ResourceTagListItemDSV>,
+    details: @escaping @Sendable (ResourceTag.ID) async throws -> ResourceTagDSV
   ) {
     self.filteredTagsList = filteredTagsList
+    self.details = details
   }
 }
 
@@ -42,7 +45,8 @@ extension ResourceTags: LoadableContextlessFeature {
   #if DEBUG
   public static var placeholder: Self {
     Self(
-      filteredTagsList: unimplemented()
+      filteredTagsList: unimplemented(),
+      details: unimplemented()
     )
   }
   #endif

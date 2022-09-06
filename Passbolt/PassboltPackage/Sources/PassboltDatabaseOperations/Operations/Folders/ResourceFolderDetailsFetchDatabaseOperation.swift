@@ -76,7 +76,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         .statement(
           """
           SELECT
-            userGroupsResourceFolders.userGroupID AS userID,
+            userGroupsResourceFolders.userGroupID AS userGroupID,
             userGroupsResourceFolders.resourceFolderID AS folderID,
             userGroupsResourceFolders.permissionType AS permissionType,
             userGroupsResourceFolders.permissionID AS permissionID
@@ -95,7 +95,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
             let name: String = dataRow.name,
             let shared: Bool = dataRow.shared,
-            let permissionType: PermissionTypeDSV = dataRow.permissioType.flatMap(PermissionTypeDSV.init(rawValue:))
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
           else {
             throw
               DatabaseIssue
@@ -139,7 +139,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             guard
               let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
               let folderID: ResourceFolder.ID = dataRow.folderID.flatMap(ResourceFolder.ID.init(rawValue:)),
-              let permissionType: PermissionTypeDSV = dataRow.permissioType.flatMap(PermissionTypeDSV.init(rawValue:)),
+              let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
               let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
               throw

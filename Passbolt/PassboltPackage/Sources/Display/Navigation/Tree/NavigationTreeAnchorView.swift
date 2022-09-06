@@ -34,13 +34,25 @@ internal struct NavigationTreeAnchorView: View {
       nodeView
 
     case let .stack(stackNode), let .overlay(_, covering: .stack(stackNode)):
-      NavigationView {
-        NavigationStackAnchorView(
-          node: stackNode,
-          dismissNode: self.dismissNode
-        )
+      if #available(iOS 16.0, *) {
+        #warning("TODO: use NavigationStack")
+        NavigationView {
+          NavigationStackAnchorView(
+            node: stackNode,
+            dismissNode: self.dismissNode
+          )
+        }
+        .navigationViewStyle(.stack)
       }
-      .navigationViewStyle(.stack)
+      else {
+        NavigationView {
+          NavigationStackAnchorView(
+            node: stackNode,
+            dismissNode: self.dismissNode
+          )
+        }
+        .navigationViewStyle(.stack)
+      }
 
     case let .overlay(_, covering: .overlay(overlayNode, covering: coveredNode)):
       NavigationTreeAnchorView(
@@ -80,6 +92,12 @@ internal struct NavigationTreeAnchorView: View {
             node: overlayNode,
             dismissNode: self.dismissNode
           )
+          .environment(
+            \.navigationTreeDismiss,
+            {
+              self.dismissNode(overlayNode.id)
+            }
+          )
         }
       )
   }
@@ -108,6 +126,12 @@ internal struct NavigationStackAnchorView: View {
             NavigationStackAnchorView(
               node: nextNode,
               dismissNode: self.dismissNode
+            )
+            .environment(
+              \.navigationTreeBack,
+              {
+                self.dismissNode(nextNode.nodeID)
+              }
             )
           }  // else no destination
         },

@@ -21,35 +21,20 @@
 // @since         v1.0
 //
 
-import Display
+import SwiftUI
 
-internal struct HomeNavigationNodeView: NavigationNodeView {
+// module placement required by dependency tree
+private struct NavigationTreeBackEnvironmentKey: EnvironmentKey {
 
-  private let controller: HomeNavigationNodeController
+  static let defaultValue: NavigationTreeBack? = .none
+}
 
-  internal init(
-    controller: HomeNavigationNodeController
-  ) {
-    self.controller = controller
-  }
+public typealias NavigationTreeBack = @Sendable () -> Void
 
-  internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
-      self.bodyView(with: state)
-    }
-  }
+extension EnvironmentValues {
 
-  @ViewBuilder private func bodyView(
-    with state: ViewState
-  ) -> some View {
-    state
-      .contentController
-      .controlling(
-        ResourcesListNodeView.self,
-        or: ResourceFolderContentNodeView.self,
-        or: ResourceTagsListNodeView.self,
-        or: ResourceUserGroupsListNodeView.self,
-        default: LoaderNavigationNodeView.instance
-      )
+  public var navigationTreeBack: NavigationTreeBack? {
+    get { self[NavigationTreeBackEnvironmentKey.self] }
+    set { self[NavigationTreeBackEnvironmentKey.self] = newValue }
   }
 }

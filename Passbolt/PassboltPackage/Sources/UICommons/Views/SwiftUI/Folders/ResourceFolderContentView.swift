@@ -26,12 +26,15 @@ import SwiftUI
 
 public struct ResourceFolderContentView: View {
 
+  private let folderName: DisplayableString
   private let isSearchResult: Bool
   private let directFolders: Array<ResourceFolderListItemDSV>
   private let nestedFolders: Array<ResourceFolderListItemDSV>
+  private let suggestedResources: Array<ResourceListItemDSV>?
   private let directResources: Array<ResourceListItemDSV>
   private let nestedResources: Array<ResourceListItemDSV>
   private let contentEmpty: Bool
+  private let suggestedContentEmpty: Bool
   private let directContentEmpty: Bool
   private let nestedContentEmpty: Bool
   private let refreshAction: () async -> Void
@@ -41,9 +44,11 @@ public struct ResourceFolderContentView: View {
   private let resourceMenuAction: ((Resource.ID) -> Void)?
 
   public init(
+    folderName: DisplayableString,
     isSearchResult: Bool,
     directFolders: Array<ResourceFolderListItemDSV>,
     nestedFolders: Array<ResourceFolderListItemDSV>,
+    suggestedResources: Array<ResourceListItemDSV>?,
     directResources: Array<ResourceListItemDSV>,
     nestedResources: Array<ResourceListItemDSV>,
     refreshAction: @escaping () async -> Void,
@@ -52,16 +57,20 @@ public struct ResourceFolderContentView: View {
     resourceTapAction: @escaping (Resource.ID) -> Void,
     resourceMenuAction: ((Resource.ID) -> Void)?
   ) {
+    self.folderName = folderName
     self.isSearchResult = isSearchResult
     self.directFolders = directFolders
     self.nestedFolders = nestedFolders
+    self.suggestedResources = suggestedResources
     self.directResources = directResources
     self.nestedResources = nestedResources
     self.contentEmpty =
       directFolders.isEmpty
       && directResources.isEmpty
+      && (suggestedResources?.isEmpty ?? true)
       && nestedFolders.isEmpty
       && nestedResources.isEmpty
+    self.suggestedContentEmpty = (suggestedResources?.isEmpty ?? true)
     self.directContentEmpty =
       directFolders.isEmpty
       && directResources.isEmpty
@@ -86,25 +95,43 @@ public struct ResourceFolderContentView: View {
         EmptyListView()
       }
       else if self.isSearchResult {
-        if !self.directContentEmpty {
-          Text(displayable: .localized("home.presentation.mode.folders.explorer.search.direct.results"))
-            .text(
-              font: .inter(
-                ofSize: 14,
-                weight: .semibold
-              ),
-              color: .passboltPrimaryText
+        if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources {
+          ResourcesListSectionView(
+            title: .localized("autofill.extension.resource.list.section.suggested.title"),
+            resources: suggestedResources,
+            tapAction: self.resourceTapAction,
+            menuAction: self.resourceMenuAction
+          )
+        }  // else no suggested
+
+        if !self.suggestedContentEmpty {
+          if !self.suggestedContentEmpty {
+            ListDividerView()
+          }  // else no divider
+
+          Text(
+            displayable: .localized(
+              key: "home.presentation.mode.folders.explorer.search.direct.results",
+              arguments: [self.folderName.string()]
             )
-            .padding(
-              leading: 16,
-              trailing: 16
-            )
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: 24)
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets())
-            .buttonStyle(.plain)
+          )
+          .text(
+            font: .inter(
+              ofSize: 14,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .padding(
+            leading: 16,
+            trailing: 16
+          )
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .frame(height: 24)
+          .listRowSeparator(.hidden)
+          .listRowInsets(EdgeInsets())
+          .buttonStyle(.plain)
 
           ResourceFoldersListSectionView(
             folders: self.directFolders,
@@ -152,6 +179,44 @@ public struct ResourceFolderContentView: View {
             menuAction: self.resourceMenuAction
           )
         }  // else skip nested content
+      }
+      else if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources {
+        ResourcesListSectionView(
+          title: .localized("autofill.extension.resource.list.section.suggested.title"),
+          resources: suggestedResources,
+          tapAction: self.resourceTapAction,
+          menuAction: self.resourceMenuAction
+        )
+
+        Text(displayable: .localized("autofill.extension.resource.list.section.all.title"))
+          .text(
+            font: .inter(
+              ofSize: 14,
+              weight: .semibold
+            ),
+            color: .passboltPrimaryText
+          )
+          .padding(
+            leading: 16,
+            trailing: 16
+          )
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .frame(height: 24)
+          .listRowSeparator(.hidden)
+          .listRowInsets(EdgeInsets())
+          .buttonStyle(.plain)
+
+        ResourceFoldersListSectionView(
+          folders: self.directFolders,
+          tapAction: self.folderTapAction
+        )
+
+        ResourcesListSectionView(
+          resources: self.directResources,
+          tapAction: self.resourceTapAction,
+          menuAction: self.resourceMenuAction
+        )
       }
       else {
         ResourceFoldersListSectionView(

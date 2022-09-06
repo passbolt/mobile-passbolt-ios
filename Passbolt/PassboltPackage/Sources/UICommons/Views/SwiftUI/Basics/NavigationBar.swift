@@ -25,106 +25,42 @@ import Commons
 import Localization
 import SwiftUI
 
-public struct NavigationBar<TitleView, ExtensionView, LeadingItem, TrailingItem>: View
-where TitleView: View, ExtensionView: View, LeadingItem: View, TrailingItem: View {
+@available(*, deprecated, message: "Please switch to screen view")
+internal struct NavigationBar<CenterView, BottomView>: View
+where CenterView: View, BottomView: View {
 
-  @Environment(\.isInNavigationTreeContext) var isInNavigationTreeContext: Bool
-  private let barShadow: Bool
-  private let titleView: () -> TitleView
-  private let extensionView: () -> ExtensionView
-  private let leadingItem: () -> LeadingItem
-  private let trailingItem: () -> TrailingItem
+  private let centerView: () -> CenterView
+  private let bottomView: () -> BottomView
 
-  public init(
-    barShadow: Bool = false,
-    @ViewBuilder titleView: @escaping () -> TitleView,
-    @ViewBuilder extensionView: @escaping () -> ExtensionView,
-    @ViewBuilder leadingItem: @escaping () -> LeadingItem,
-    @ViewBuilder trailingItem: @escaping () -> TrailingItem
+  internal init(
+    @ViewBuilder centerView: @escaping () -> CenterView,
+    @ViewBuilder bottomView: @escaping () -> BottomView
   ) {
-    self.barShadow = barShadow
-    self.titleView = titleView
-    self.extensionView = extensionView
-    self.leadingItem = leadingItem
-    self.trailingItem = trailingItem
-  }
-
-  public init(
-    barShadow: Bool = false,
-    backAction: (() -> Void)? = .none,
-    @ViewBuilder titleView: @escaping () -> TitleView,
-    @ViewBuilder leadingItem: @escaping () -> LeadingItem,
-    @ViewBuilder trailingItem: @escaping () -> TrailingItem
-  ) where ExtensionView == EmptyView {
-    self.barShadow = barShadow
-    self.titleView = titleView
-    self.extensionView = EmptyView.init
-    self.leadingItem = leadingItem
-    self.trailingItem = trailingItem
+    self.centerView = centerView
+    self.bottomView = bottomView
   }
 
   public var body: some View {
     ZStack(alignment: .top) {
-      if self.barShadow {
-        Rectangle()
-          .fill(Color.passboltBackground)
-          .shadow(
-            color: .black.opacity(0.2),
-            radius: 12,
-            x: 0,
-            y: -10
-          )
-          .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
-      }
-      else {
-        Rectangle()
-          .fill(Color.passboltBackground)
-          .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
-      }
-      VStack(spacing: 0) {
-        // ignore bar buttons out of navigationtree
-        // it will be inaccesible anyway
-        if self.isInNavigationTreeContext {
-          HStack {
-            self.leadingItem()
-              .frame(
-                minWidth: 24,
-                idealWidth: 40,
-                maxWidth: 40,
-                maxHeight: 40
-              )
-            Spacer()
-            self.titleView()
-              .frame(maxWidth: .infinity)
-              .frame(height: 40)
-            Spacer()
-            self.trailingItem()
-              .frame(
-                minWidth: 24,
-                idealWidth: 40,
-                maxWidth: 40,
-                maxHeight: 40
-              )
-          }
-          .frame(height: 40)
-          .padding(top: 8)
-        }
-        else {
-          self.titleView()
-            .frame(maxWidth: .infinity)
-            .frame(height: 40)
-            .padding(
-              top: 8,
-              leading: 24,
-              trailing: 24
-            )
-        }
+      Rectangle()
+        .fill(Color.passboltBackground)
+        .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
 
-        self.extensionView()
+      VStack(spacing: 0) {
+        self.centerView()
+          .frame(maxWidth: .infinity)
+          .frame(height: 40)
+          .padding(
+            top: 8,
+            leading: 24,
+            trailing: 24
+          )
+
+        self.bottomView()
       }
       .padding(
         // hide under navigation bar without NavigationTree
-        top: isInNavigationTreeContext ? 0 : -52,
+        top: -52,
         leading: 8,
         trailing: 8
       )
@@ -135,6 +71,6 @@ where TitleView: View, ExtensionView: View, LeadingItem: View, TrailingItem: Vie
     )
     // ensure being on top
     .zIndex(.greatestFiniteMagnitude)
-    .navigationBarHidden(isInNavigationTreeContext)
+    .foregroundColor(.passboltPrimaryText)
   }
 }

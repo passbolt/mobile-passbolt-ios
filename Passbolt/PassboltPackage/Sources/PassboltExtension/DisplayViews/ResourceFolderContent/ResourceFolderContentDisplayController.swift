@@ -44,6 +44,7 @@ extension ResourceFolderContentDisplayController: DisplayController {
     // feature is disposable, we don't care about ID
     internal let identifier: AnyHashable = IID()
 
+    internal var folderName: DisplayableString
     internal var filter: StateView<ResourceFoldersFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createFolder: (() -> Void)?
@@ -56,10 +57,11 @@ extension ResourceFolderContentDisplayController: DisplayController {
 
   internal struct ViewState: Hashable {
 
+    internal var folderName: DisplayableString
     @StateView internal var isSearchResult: Bool
-    internal var suggested: Array<ResourceListItemDSV>
     internal var directFolders: Array<ResourceFolderListItemDSV>
     internal var nestedFolders: Array<ResourceFolderListItemDSV>
+    internal var suggestedResources: Array<ResourceListItemDSV>
     internal var directResources: Array<ResourceListItemDSV>
     internal var nestedResources: Array<ResourceListItemDSV>
   }
@@ -94,13 +96,14 @@ extension ResourceFolderContentDisplayController {
 
     let state: StateBinding<ViewState> = .variable(
       initial: .init(
+        folderName: context.folderName,
         isSearchResult: context.filter
           .convert { (filter: ResourceFoldersFilter) in
             !filter.text.isEmpty
           },
-        suggested: .init(),
         directFolders: .init(),
         nestedFolders: .init(),
+        suggestedResources: .init(),
         directResources: .init(),
         nestedResources: .init()
       )
@@ -167,7 +170,7 @@ extension ResourceFolderContentDisplayController {
           try Task.checkCancellation()
 
           viewState.mutate { (viewState: inout ViewState) in
-            viewState.suggested = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
+            viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
             viewState.directFolders = filteredResourceFolderContent.subfolders
               .filter { $0.parentFolderID == filter.folderID }
             viewState.nestedFolders = filteredResourceFolderContent.subfolders

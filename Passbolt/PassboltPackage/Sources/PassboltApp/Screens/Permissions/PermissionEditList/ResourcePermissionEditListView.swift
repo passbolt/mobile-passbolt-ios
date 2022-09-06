@@ -44,9 +44,6 @@ internal struct ResourcePermissionEditListView: ComponentView {
         key: "resource.permission.edit.list.title"
       ),
       loading: self.state.loading,
-      backButtonAction: {
-        self.controller.navigateBack()
-      },
       snackBarMessage: self.$state.snackBarMessage
     ) {
       self.contentView

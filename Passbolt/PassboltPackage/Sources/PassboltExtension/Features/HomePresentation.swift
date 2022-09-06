@@ -24,6 +24,7 @@
 import Accounts
 import CommonModels
 import Commons
+import Display
 import Session
 import SessionData
 
@@ -32,7 +33,7 @@ import SessionData
 internal struct HomePresentation {
 
   internal var currentMode: StateBinding<HomePresentationMode>
-  internal var availableModes: () -> OrderedSet<HomePresentationMode>
+  internal var availableModes: @Sendable () -> OrderedSet<HomePresentationMode>
 }
 
 extension HomePresentation: LoadableContextlessFeature {
@@ -101,6 +102,7 @@ extension HomePresentation {
       let defaultMode: HomePresentationMode = accountPreferences
         .defaultHomePresentation
         .get(\.self)
+
       if availablePresentationModes.contains(defaultMode) {
         return defaultMode
       }
@@ -119,7 +121,7 @@ extension HomePresentation {
       }
       .store(in: cancellables)
 
-    nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
+    @Sendable nonisolated func availableModes() -> OrderedSet<HomePresentationMode> {
       availablePresentationModes
     }
 

@@ -36,15 +36,24 @@ extension ResourceTags {
     let diagnostics: Diagnostics = features.instance()
     let sessionData: SessionData = try await features.instance()
     let resourceTagsListFetchDatabaseOperation: ResourceTagsListFetchDatabaseOperation = try await features.instance()
+    let resourceTagDetailsFetchDatabaseOperation: ResourceTagDetailsFetchDatabaseOperation =
+      try await features.instance()
 
-    nonisolated func filteredTagsList(
+    @Sendable nonisolated func filteredTagsList(
       filter: String
     ) async throws -> Array<ResourceTagListItemDSV> {
       try await resourceTagsListFetchDatabaseOperation(filter)
     }
 
+    @Sendable nonisolated func details(
+      _ resourceTagID: ResourceTag.ID
+    ) async throws -> ResourceTagDSV {
+      try await resourceTagDetailsFetchDatabaseOperation(resourceTagID)
+    }
+
     return Self(
-      filteredTagsList: filteredTagsList(filter:)
+      filteredTagsList: filteredTagsList(filter:),
+      details: details(_:)
     )
   }
 }

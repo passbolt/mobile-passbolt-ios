@@ -144,6 +144,25 @@ extension NavigationStackNode {
     return stackPrefix
   }
 
+  internal func prefix(
+    upTo nodeID: NavigationNodeID
+  ) -> NavigationStackNode {
+    var stackPrefix: NavigationStackNode = .element(self.nodeView, next: .none)
+
+    var currentNode: NavigationStackNode = self
+    while currentNode.nodeID != nodeID {
+      if let nextNode: NavigationStackNode = currentNode.next {
+        stackPrefix.last = .element(nextNode.nodeView, next: .none)
+        currentNode = nextNode
+      }
+      else {
+        return stackPrefix
+      }
+    }
+
+    return stackPrefix
+  }
+
   internal func contains(
     _ nodeID: NavigationNodeID
   ) -> Bool {

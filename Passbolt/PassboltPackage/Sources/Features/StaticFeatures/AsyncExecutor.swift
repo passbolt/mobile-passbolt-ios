@@ -167,10 +167,11 @@ extension AsyncExecutor {
 
     public static func contextual(
       function: StaticString = #function,
-      file: StaticString = #fileID
+      file: StaticString = #fileID,
+      line: UInt = #line
     ) -> Self {
       .init(
-        identifier: "\(file):\(function)"
+        identifier: "\(file):\(function):\(line)"
       )
     }
   }

@@ -32,30 +32,20 @@ internal struct HomeNavigationNodeController {
 
   internal var viewState: DisplayViewState<ViewState>
   internal var activate: @Sendable () async -> Void
-  internal var showPresentationMenu: () -> Void
-  internal var signOut: () -> Void
-  internal var closeExtension: () -> Void
 }
 
 extension HomeNavigationNodeController: ContextlessNavigationNodeController {
 
   internal struct ViewState: Hashable {
 
-    @StateBinding internal var mode: HomePresentationMode
-    internal var modeContent: AnyDisplayController
-    internal var accountAvatar: Data?
-    internal var searchText: String
-    internal var snackBarMessage: SnackBarMessage?
+    internal var contentController: AnyDisplayController
   }
 
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      activate: { unimplemented() },
-      showPresentationMenu: { unimplemented() },
-      signOut: { unimplemented() },
-      closeExtension: { unimplemented() }
+      activate: unimplemented()
     )
   }
   #endif
@@ -67,43 +57,44 @@ extension HomeNavigationNodeController {
     features: FeatureFactory
   ) async throws -> Self {
     let diagnostics: Diagnostics = features.instance()
-    let navigationTree: NavigationTree = features.instance()
     let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
-    let autofillContext: AutofillExtensionContext = features.instance()
-    let session: Session = try await features.instance()
-    let currentAccount: Account = try await session.currentAccount()
-    let accountDetails: AccountDetails = try await features.instance(context: currentAccount)
+    let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try await features.instance()
 
-    let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
-      autofillContext.requestedServiceIdentifiers()
-
-    let state: StateBinding<ViewState> = try await .variable(
+    let state: StateBinding<ViewState> = await .variable(
       initial: .init(
-        mode: homePresentation.currentMode,
-        modeContent: .empty(),
-        accountAvatar: .none,
-        searchText: "",
-        snackBarMessage: .none
+        contentController: contentRoot(
+          for: homePresentation.currentMode.get()
+        )
       )
     )
-    state.bind(\.$mode)
 
     let viewState: DisplayViewState<ViewState> = .init(stateSource: state)
 
-    homePresentation
-      .currentMode
-      .sink { (mode: HomePresentationMode) in
-        asyncExecutor.schedule(.replace) {
-          await state.set(
-            \.modeContent,
-            to: modeContent(for: mode)
+    @Sendable nonisolated func activate() async {
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await homePresentation
+            .currentMode
+            .asAnyAsyncSequence()
+            .forLatest { (mode: HomePresentationMode) in
+              await state.set(
+                \.contentController,
+                to: contentRoot(for: mode)
+              )
+              navigationTree.dismiss(upTo: viewState.navigationNodeID)
+            }
+        }
+        catch {
+          diagnostics.log(
+            error: error,
+            info: .message("Home navigation mode updates broken.")
           )
         }
       }
-      .store(in: viewState.cancellables)
+    }
 
-    @Sendable nonisolated func modeContent(
+    @Sendable nonisolated func contentRoot(
       for mode: HomePresentationMode
     ) async -> AnyDisplayController {
       do {
@@ -113,30 +104,13 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourcesListDisplayController.self,
+                of: ResourcesListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      ResourcesFilter(
-                        sorting: .nameAlphabetically,
-                        text: state.searchText,
-                        favoriteOnly: false,
-                        permissions: [],
-                        tags: [],
-                        userGroups: [],
-                        folders: .none
-                      )
-                    },
-                  suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-                    requestedServiceIdentifiers.matches(resource)
-                  },
-                  createResource: createResource,
-                  selectResource: selectResource(_:),
-                  openResourceMenu: .none,
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName,
+                  baseFilter: .init(
+                    sorting: .nameAlphabetically
+                  )
                 )
               )
           )
@@ -146,30 +120,13 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourcesListDisplayController.self,
+                of: ResourcesListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      ResourcesFilter(
-                        sorting: .modifiedRecently,
-                        text: state.searchText,
-                        favoriteOnly: false,
-                        permissions: [],
-                        tags: [],
-                        userGroups: [],
-                        folders: .none
-                      )
-                    },
-                  suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-                    requestedServiceIdentifiers.matches(resource)
-                  },
-                  createResource: createResource,
-                  selectResource: selectResource(_:),
-                  openResourceMenu: .none,
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName,
+                  baseFilter: .init(
+                    sorting: .modifiedRecently
+                  )
                 )
               )
           )
@@ -179,30 +136,14 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourcesListDisplayController.self,
+                of: ResourcesListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      ResourcesFilter(
-                        sorting: .nameAlphabetically,
-                        text: state.searchText,
-                        favoriteOnly: true,
-                        permissions: [],
-                        tags: [],
-                        userGroups: [],
-                        folders: .none
-                      )
-                    },
-                  suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-                    requestedServiceIdentifiers.matches(resource)
-                  },
-                  createResource: createResource,
-                  selectResource: selectResource(_:),
-                  openResourceMenu: .none,
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName,
+                  baseFilter: .init(
+                    sorting: .nameAlphabetically,
+                    favoriteOnly: true
+                  )
                 )
               )
           )
@@ -212,30 +153,14 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourcesListDisplayController.self,
+                of: ResourcesListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      ResourcesFilter(
-                        sorting: .nameAlphabetically,
-                        text: state.searchText,
-                        favoriteOnly: false,
-                        permissions: [.read, .write],
-                        tags: [],
-                        userGroups: [],
-                        folders: .none
-                      )
-                    },
-                  suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-                    requestedServiceIdentifiers.matches(resource)
-                  },
-                  createResource: createResource,
-                  selectResource: selectResource(_:),
-                  openResourceMenu: .none,
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName,
+                  baseFilter: .init(
+                    sorting: .nameAlphabetically,
+                    permissions: [.read, .write]
+                  )
                 )
               )
           )
@@ -245,30 +170,14 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourcesListDisplayController.self,
+                of: ResourcesListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      ResourcesFilter(
-                        sorting: .nameAlphabetically,
-                        text: state.searchText,
-                        favoriteOnly: false,
-                        permissions: [.owner],
-                        tags: [],
-                        userGroups: [],
-                        folders: .none
-                      )
-                    },
-                  suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-                    requestedServiceIdentifiers.matches(resource)
-                  },
-                  createResource: createResource,
-                  selectResource: selectResource(_:),
-                  openResourceMenu: .none,
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName,
+                  baseFilter: .init(
+                    sorting: .nameAlphabetically,
+                    permissions: [.owner]
+                  )
                 )
               )
           )
@@ -278,17 +187,10 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourceTagsListDisplayController.self,
+                of: ResourceTagsListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      state.searchText
-                    },
-                  selectTag: selectResourceTag(_:),
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName
                 )
               )
           )
@@ -298,20 +200,10 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourceUserGroupsListDisplayController.self,
+                of: ResourceUserGroupsListNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      UserGroupsFilter(
-                        userID: currentAccount.userID,
-                        text: state.searchText
-                      )
-                    },
-                  selectGroup: selectUserGroup(_:),
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  title: mode.title,
+                  titleIconName: mode.iconName
                 )
               )
           )
@@ -321,29 +213,9 @@ extension HomeNavigationNodeController {
             erasing:
               features
               .instance(
-                of: ResourceFolderContentDisplayController.self,
+                of: ResourceFolderContentNodeController.self,
                 context: .init(
-                  filter:
-                    state
-                    .scopeView { (state: ViewState) in
-                      ResourceFoldersFilter(
-                        sorting: .nameAlphabetically,
-                        text: state.searchText,
-                        folderID: .none,
-                        flattenContent: !state.searchText.isEmpty,
-                        permissions: []
-                      )
-                    },
-                  suggestionFilter: { (resource: ResourceListItemDSV) -> Bool in
-                    requestedServiceIdentifiers.matches(resource)
-                  },
-                  createResource: createResource,
-                  selectFolder: selectResourceFolder(_:),
-                  selectResource: selectResource(_:),
-                  openResourceMenu: .none,
-                  showMessage: { (message: SnackBarMessage?) in
-                    state.set(\.snackBarMessage, to: message)
-                  }
+                  folderDetails: .none
                 )
               )
           )
@@ -352,175 +224,13 @@ extension HomeNavigationNodeController {
       catch {
         error
           .asTheError()
-          .asFatalError(message: "Failed to prepare home screen.")
-      }
-    }
-
-    @Sendable nonisolated func activate() async {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          let avatar: Data? = try await accountDetails.avatarImage()
-          state.mutate { state in
-            state.accountAvatar = avatar
-          }
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to load account avatar image, using placeholder."
-            )
-          )
-        }
-      }
-    }
-
-    @Sendable nonisolated func createResource() {
-      asyncExecutor.schedule(.reuse) {
-        await navigationTree
-          .push(
-            ResourceEditViewController.self,
-            context: (
-              editing: .new(in: .none, url: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }),
-              completion: { resourceID in
-                selectResource(resourceID)
-              }
-            ),
-            using: features
-          )
-      }
-    }
-
-    @Sendable nonisolated func selectResource(
-      _ resourceID: Resource.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          let resourceDetails: ResourceDetails = try await features.instance(context: resourceID)
-          let resource: ResourceDetailsDSV = try await resourceDetails.details()
-          let secret: ResourceSecret = try await resourceDetails.secret()
-
-          guard let password: String = secret.password
-          else {
-            throw
-              ResourceSecretInvalid
-              .error("Missing resource password ine secret.")
-          }
-          await autofillContext
-            .completeWithCredential(
-              AutofillExtensionContext.Credential(
-                user: resource.username ?? "",
-                password: password
-              )
-            )
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle resource selection."
-            )
-          )
-          state.set(\.snackBarMessage, to: .error(error))
-        }
-      }
-    }
-
-    @Sendable nonisolated func selectResourceFolder(
-      _ resourceFolderID: ResourceFolder.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          #warning("TODO: [MOB-477] navigate")
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle resource folder selection."
-            )
-          )
-          state.set(\.snackBarMessage, to: .error(error))
-        }
-      }
-    }
-
-    @Sendable nonisolated func selectResourceTag(
-      _ resourceTagID: ResourceTag.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          #warning("TODO: [MOB-477] navigate")
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle resource tag selection."
-            )
-          )
-          state.set(\.snackBarMessage, to: .error(error))
-        }
-      }
-    }
-
-    @Sendable nonisolated func selectUserGroup(
-      _ userGroupID: UserGroup.ID
-    ) {
-      asyncExecutor.schedule(.replace) {
-        do {
-          #warning("TODO: [MOB-477] navigate")
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to handle user group selection."
-            )
-          )
-          state.set(\.snackBarMessage, to: .error(error))
-        }
-      }
-    }
-
-    nonisolated func showPresentationMenu() {
-      asyncExecutor.schedule(.reuse) {
-        do {
-          try await navigationTree.present(
-            HomePresentationMenuNodeView.self,
-            controller: features.instance()
-          )
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message(
-              "Failed to open home presentation menu."
-            )
-          )
-          state.set(\.snackBarMessage, to: .error(error))
-        }
-      }
-    }
-
-    nonisolated func signOut() {
-      asyncExecutor.schedule(.reuse) {
-        await session.close(.none)
-      }
-    }
-
-    nonisolated func closeExtension() {
-      asyncExecutor.schedule(.reuse) {
-        await autofillContext.cancelAndCloseExtension()
+          .asFatalError(message: "Failed to update home screen.")
       }
     }
 
     return .init(
       viewState: viewState,
-      activate: activate,
-      showPresentationMenu: showPresentationMenu,
-      signOut: signOut,
-      closeExtension: closeExtension
+      activate: activate
     )
   }
 }

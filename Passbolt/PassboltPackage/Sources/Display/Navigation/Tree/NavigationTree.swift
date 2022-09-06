@@ -171,6 +171,14 @@ extension NavigationTree {
       }
     }
   }
+
+  @Sendable public func dismiss(
+    upTo nodeID: NavigationNodeID
+  ) {
+    self.state.mutate { (state: inout NavigationTreeNode) in
+      state = state.removing(upTo: nodeID)
+    }
+  }
 }
 
 // LegacyBridge

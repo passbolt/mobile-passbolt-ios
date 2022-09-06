@@ -172,6 +172,33 @@ extension NavigationTreeNode {
     }
   }
 
+  internal func removing(
+    upTo nodeID: NavigationNodeID
+  ) -> Self {
+    switch self {
+    case .just:
+      // no matter what ID it has it will stay
+      return self
+
+    case let .stack(stackNode):
+      return .stack(
+        stackNode
+          .prefix(upTo: nodeID)
+      )
+
+    case let .overlay(overlayTree, coveredTree):
+      if coveredTree.contains(nodeID) {
+        return coveredTree.removing(upTo: nodeID)
+      }
+      else {
+        return .overlay(
+          overlayTree.removing(upTo: nodeID),
+          covering: coveredTree
+        )
+      }
+    }
+  }
+
   internal func contains(
     _ nodeID: NavigationNodeID
   ) -> Bool {

@@ -56,9 +56,11 @@ extension AnyDisplayController {
     switch self.controller {
     case let controller as ControlledView.Controller:
       ControlledView(controller: controller)
+        .id(self)
 
     case _:
       defaultView()
+        .id(self)
     }
   }
 
@@ -71,12 +73,15 @@ extension AnyDisplayController {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
+        .id(self)
 
     case _:
       defaultView()
+        .id(self)
     }
   }
 
@@ -90,15 +95,19 @@ extension AnyDisplayController {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
+        .id(self)
 
     case _:
       defaultView()
+        .id(self)
     }
   }
 
@@ -116,18 +125,23 @@ extension AnyDisplayController {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
+        .id(self)
 
     case _:
       defaultView()
+        .id(self)
     }
   }
 
@@ -154,21 +168,27 @@ extension AnyDisplayController {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
+        .id(self)
 
     case let controller as ControlledViewE.Controller:
       ControlledViewE(controller: controller)
+        .id(self)
 
     case _:
       defaultView()
+        .id(self)
     }
   }
 }

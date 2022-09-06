@@ -54,5 +54,10 @@ extension FeatureFactory {
     self.usePassboltResourceTagsListDisplayController()
     self.usePassboltResourceUserGroupsListDisplayController()
     self.usePassboltResourceFolderContentDisplayController()
+    self.usePassboltFolderContentNodeController()
+    self.usePassboltResourcesListNodeController()
+    self.usePassboltResourceSearchDisplayController()
+    self.usePassboltResourceUserGroupsListNodeController()
+    self.usePassboltResourceTagsListNodeController()
   }
 }
