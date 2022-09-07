@@ -63,9 +63,9 @@ extension ResourcesListFetchDatabaseOperation {
                   FROM
                     resourceFolders
                   WHERE
-                    resourceFolders.id IS ?
+                    resourceFolders.parentFolderID IS ?
 
-                  UNION ALL
+                  UNION
 
                   SELECT
                     resourceFolders.id,
@@ -83,15 +83,14 @@ extension ResourcesListFetchDatabaseOperation {
                 resources.username AS username,
                 resources.url AS url
               FROM
-                resources
-              LEFT JOIN
+                resources,
                 flattenedResourceFolders
-              ON
-                resources.parentFolderID IS ?
-              OR
-                resources.parentFolderID IS flattenedResourceFolders.id
               WHERE
-                1 -- equivalent of true, used to simplify dynamic query building
+                (
+                  resources.parentFolderID IS ?
+                OR
+                  resources.parentFolderID IS flattenedResourceFolders.id
+                )
             """
           statement.appendArguments(
             foldersFilter.folderID,

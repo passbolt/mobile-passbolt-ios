@@ -70,9 +70,9 @@ extension ResourceFoldersListFetchDatabaseOperation {
               WHERE
                 resourceFolders.parentFolderID IS ?
 
-              UNION ALL
+              UNION
 
-              SELECT DISTINCT
+              SELECT
                 resourceFolders.id,
                 resourceFolders.name,
                 resourceFolders.permissionType,
@@ -143,9 +143,9 @@ extension ResourceFoldersListFetchDatabaseOperation {
                   SELECT
                     COUNT(*)
                   FROM
-                    resourceFolders
+                    resourceFolders AS folders
                   WHERE
-                    resourceFolders.parentFolderID IS resourceFolders.id
+                    folders.parentFolderID IS resourceFolders.id
                 )
               )
             ) AS contentCount

@@ -52,9 +52,9 @@ extension ResourceUsersIDFetchDatabaseOperation {
             WHERE
               usersResources.resourceID == ?1
 
-            UNION ALL
+            UNION
 
-            SELECT
+            SELECT DISTINCT
               usersGroups.userID AS id
             FROM
               userGroupsResources
