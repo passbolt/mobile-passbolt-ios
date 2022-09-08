@@ -27,7 +27,7 @@ import UIKit
 
 public struct NavigationTree {
 
-  internal var state: DisplayViewState<NavigationTreeNode>
+  internal var state: ViewStateBinding<NavigationTreeState>
 }
 
 extension NavigationTree: StaticFeature {
@@ -46,20 +46,28 @@ extension NavigationTree {
   public func contains(
     _ nodeID: NavigationNodeID
   ) -> Bool {
-    self.state.mutate { (state: inout NavigationTreeNode) -> Bool in
+    self.state.mutate { (state: inout NavigationTreeState) -> Bool in
       state.contains(nodeID)
     }
   }
 
   public var treeState: NavigationTreeState {
-    .init(tree: self.state.wrappedValue)
+    self.state.wrappedValue
   }
 
   public func set(
     treeState: NavigationTreeState
   ) {
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = treeState.tree
+    self.state.mutate { (state: inout NavigationTreeState) in
+      state = treeState
+    }
+  }
+
+  @Sendable public func mutate<Returned>(
+    _ access: (inout NavigationTreeState) throws -> Returned
+  ) rethrows -> Returned {
+    try self.state.mutate { (value: inout NavigationTreeState) -> Returned in
+      try access(&value)
     }
   }
 
@@ -68,19 +76,13 @@ extension NavigationTree {
     with nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
-  where NodeView: NavigationNodeView {
-    let rootNode: AnyNavigationNodeView = .init(
-      for: nodeType,
-      controller: controller
-    )
-
-    self.state
-      .set(
-        \.self,
-        to: .just(rootNode)
+  where NodeView: ControlledViewNode {
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.replaceRoot(
+        with: nodeType,
+        controller: controller
       )
-
-    return rootNode.nodeID
+    }
   }
 
   @discardableResult
@@ -88,19 +90,13 @@ extension NavigationTree {
     pushing nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
-  where NodeView: NavigationNodeView {
-    let rootNode: AnyNavigationNodeView = .init(
-      for: nodeType,
-      controller: controller
-    )
-
-    self.state
-      .set(
-        \.self,
-        to: .stack(.element(rootNode, next: .none))
+  where NodeView: ControlledViewNode {
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.replaceRoot(
+        withOnStack: nodeType,
+        controller: controller
       )
-
-    return rootNode.nodeID
+    }
   }
 
   @discardableResult
@@ -108,89 +104,74 @@ extension NavigationTree {
     _ nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
-  where NodeView: NavigationNodeView {
-    let nodeView: AnyNavigationNodeView = .init(
-      for: nodeType,
-      controller: controller
-    )
-
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.pushing(nodeView)
+  where NodeView: ControlledViewNode {
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.push(
+        nodeType,
+        controller: controller
+      )
     }
-
-    return nodeView.nodeID
   }
 
   @discardableResult
   @Sendable public func present<NodeView>(
+    _ presentation: NavigationTreeOverlayPresentation = .sheet,
     _ nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
-  where NodeView: NavigationNodeView {
-    let nodeView: AnyNavigationNodeView = .init(
-      for: nodeType,
-      controller: controller
-    )
-
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.presenting(nodeView)
+  where NodeView: ControlledViewNode {
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.present(
+        presentation,
+        nodeType,
+        controller: controller
+      )
     }
-
-    return nodeView.nodeID
   }
 
   @discardableResult
   @Sendable public func present<NodeView>(
+    _ presentation: NavigationTreeOverlayPresentation = .sheet,
     pushing nodeType: NodeView.Type,
     controller: NodeView.Controller
   ) -> NavigationNodeID
-  where NodeView: NavigationNodeView {
-    let nodeView: AnyNavigationNodeView = .init(
-      for: nodeType,
-      controller: controller
-    )
-
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.presenting(pushed: nodeView)
+  where NodeView: ControlledViewNode {
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.present(
+        presentation,
+        onStack: nodeType,
+        controller: controller
+      )
     }
-
-    return nodeView.nodeID
   }
 
   @Sendable public func dismiss(
     _ nodeID: NavigationNodeID
   ) {
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      if let subtree: NavigationTreeNode = state.removing(nodeID) {
-        state = subtree
-      }
-      else {
-        InternalInconsistency
-          .error("Invalid navigation tree state, cannot dismiss root of the tree")
-          .asFatalError()
-      }
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.dismiss(nodeID)
     }
   }
 
   @Sendable public func dismiss(
     upTo nodeID: NavigationNodeID
   ) {
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.removing(upTo: nodeID)
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.dismiss(upTo: nodeID)
     }
   }
 }
 
-// LegacyBridge
 extension NavigationTree {
 
-  @discardableResult
+  @available(*, deprecated, message: "For legacy bridge only") @discardableResult
   public func replaceRoot<Component>(
     with componentType: Component.Type,
     context: Component.Controller.Context,
     using features: FeatureFactory
   ) async -> NavigationNodeID
   where Component: UIComponent {
+    let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
     do {
@@ -206,30 +187,32 @@ extension NavigationTree {
         .asFatalError(message: "Cannot instantiate UIComponent")
     }
 
-    let rootNode: AnyNavigationNodeView = await .init(
+    let newNode: AnyViewNode = await .init(
       for: LegacyNavigationNodeBridgeView<Component>(
         features: features,
         controller: controller,
         cancellables: cancellables
-      )
+      ),
+      withID: nodeID
     )
 
-    self.state
-      .set(
-        \.self,
-        to: .just(rootNode)
-      )
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.mutate { (treeRoot: inout NavigationTreeNode) in
+        treeRoot = .just(newNode)
+      }
+    }
 
-    return rootNode.nodeID
+    return nodeID
   }
 
-  @discardableResult
+  @available(*, deprecated, message: "For legacy bridge only") @discardableResult
   public func replaceRoot<Component>(
     pushing componentType: Component.Type,
     context: Component.Controller.Context,
     using features: FeatureFactory
   ) async -> NavigationNodeID
   where Component: UIComponent {
+    let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
     do {
@@ -245,30 +228,32 @@ extension NavigationTree {
         .asFatalError(message: "Cannot instantiate UIComponent")
     }
 
-    let rootNode: AnyNavigationNodeView = await .init(
+    let newNode: AnyViewNode = await .init(
       for: LegacyNavigationNodeBridgeView<Component>(
         features: features,
         controller: controller,
         cancellables: cancellables
-      )
+      ),
+      withID: nodeID
     )
 
-    self.state
-      .set(
-        \.self,
-        to: .stack(.element(rootNode, next: .none))
-      )
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.mutate { (treeRoot: inout NavigationTreeNode) in
+        treeRoot = .stack(.element(newNode, next: .none))
+      }
+    }
 
-    return rootNode.nodeID
+    return nodeID
   }
 
-  @discardableResult
+  @available(*, deprecated, message: "For legacy bridge only") @discardableResult
   public func push<Component>(
     _ componentType: Component.Type,
     context: Component.Controller.Context,
     using features: FeatureFactory
   ) async -> NavigationNodeID
   where Component: UIComponent {
+    let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
     do {
@@ -284,28 +269,33 @@ extension NavigationTree {
         .asFatalError(message: "Cannot instantiate UIComponent")
     }
 
-    let nodeView: AnyNavigationNodeView = await .init(
+    let newNode: AnyViewNode = await .init(
       for: LegacyNavigationNodeBridgeView<Component>(
         features: features,
         controller: controller,
         cancellables: cancellables
-      )
+      ),
+      withID: nodeID
     )
 
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.pushing(nodeView)
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.mutate { (treeRoot: inout NavigationTreeNode) in
+        treeRoot = treeRoot.pushing(newNode)
+      }
     }
 
-    return nodeView.nodeID
+    return nodeID
   }
 
-  @discardableResult
+  @available(*, deprecated, message: "For legacy bridge only") @discardableResult
   public func present<Component>(
+    _ presentation: NavigationTreeOverlayPresentation = .sheet,
     _ componentType: Component.Type,
     context: Component.Controller.Context,
     using features: FeatureFactory
   ) async -> NavigationNodeID
   where Component: UIComponent {
+    let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
     do {
@@ -321,28 +311,33 @@ extension NavigationTree {
         .asFatalError(message: "Cannot instantiate UIComponent")
     }
 
-    let nodeView: AnyNavigationNodeView = await .init(
+    let newNode: AnyViewNode = await .init(
       for: LegacyNavigationNodeBridgeView<Component>(
         features: features,
         controller: controller,
         cancellables: cancellables
-      )
+      ),
+      withID: nodeID
     )
 
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.presenting(nodeView)
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.mutate { (treeRoot: inout NavigationTreeNode) in
+        treeRoot = treeRoot.presenting(newNode, presentation)
+      }
     }
 
-    return nodeView.nodeID
+    return nodeID
   }
 
-  @discardableResult
+  @available(*, deprecated, message: "For legacy bridge only") @discardableResult
   public func present<Component>(
+    _ presentation: NavigationTreeOverlayPresentation = .sheet,
     pushing componentType: Component.Type,
     context: Component.Controller.Context,
     using features: FeatureFactory
   ) async -> NavigationNodeID
   where Component: UIComponent {
+    let nodeID: NavigationNodeID = .init()
     let cancellables: Cancellables = .init()
     let controller: Component.Controller
     do {
@@ -358,31 +353,38 @@ extension NavigationTree {
         .asFatalError(message: "Cannot instantiate UIComponent")
     }
 
-    let nodeView: AnyNavigationNodeView = await .init(
+    let newNode: AnyViewNode = await .init(
       for: LegacyNavigationNodeBridgeView<Component>(
         features: features,
         controller: controller,
         cancellables: cancellables
-      )
+      ),
+      withID: nodeID
     )
 
-    self.state.mutate { (state: inout NavigationTreeNode) in
-      state = state.presenting(pushed: nodeView)
+    self.mutate { (treeState: inout NavigationTreeState) in
+      treeState.mutate { (treeRoot: inout NavigationTreeNode) in
+        treeRoot = treeRoot.presenting(pushed: newNode, presentation)
+      }
     }
 
-    return nodeView.nodeID
+    return nodeID
   }
 }
 
 extension NavigationTree {
 
   @MainActor fileprivate static func liveNavigationTree(
-    from root: NavigationTreeRoot
+    from root: NavigationTreeRootViewAnchor
   ) -> Self {
-    let initialNode: AnyNavigationNodeView = InitializationNavigationNodeView.erasedInstance
+    let initialNode: AnyViewNode = InitializationViewNode.erasedInstance
 
     let navigationTree: NavigationTree = .init(
-      state: .init(initial: .just(initialNode))
+      state: .init(
+        initial: .init(
+          root: .just(initialNode)
+        )
+      )
     )
 
     root.setRoot(
@@ -398,7 +400,7 @@ extension NavigationTree {
 extension FeatureFactory {
 
   @MainActor public func useLiveNavigationTree(
-    from root: NavigationTreeRoot
+    from root: NavigationTreeRootViewAnchor
   ) {
     self.use(
       NavigationTree.liveNavigationTree(from: root)

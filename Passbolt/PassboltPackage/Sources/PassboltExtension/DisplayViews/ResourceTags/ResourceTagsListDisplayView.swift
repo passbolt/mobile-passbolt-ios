@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceTagsListDisplayView: DisplayView {
+internal struct ResourceTagsListDisplayView: ControlledView {
 
   private let controller: ResourceTagsListDisplayController
 
@@ -34,12 +34,12 @@ internal struct ResourceTagsListDisplayView: DisplayView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       ResourceTagsListView(
         tags: state.resourceTags,
-        refreshAction: self.controller.refresh,
+        refreshAction: self.controller.actionAsync(\.refresh),
         createAction: .none,
-        tagTapAction: self.controller.selectTag
+        tagTapAction: self.controller.action(\.selectTag)
       )
     }
   }

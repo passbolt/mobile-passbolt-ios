@@ -21,9 +21,12 @@
 // @since         v1.0
 //
 
-import SwiftUI
-
 // refine protocol to distinct between
-// navigation nodes and regular views
-public protocol NavigationNodeView: DisplayView
-where Controller: NavigationNodeController {}
+// navigation nodes and regular controllers
+public protocol ViewNodeController: ViewController {
+
+  var nodeID: NavigationNodeID { get }
+}
+
+public protocol ContextlessViewNodeController: ViewNodeController
+where Context == ContextlessFeatureContext {}

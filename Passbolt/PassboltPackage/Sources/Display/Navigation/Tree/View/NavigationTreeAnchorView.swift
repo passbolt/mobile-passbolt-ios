@@ -54,10 +54,19 @@ internal struct NavigationTreeAnchorView: View {
         .navigationViewStyle(.stack)
       }
 
-    case let .overlay(_, covering: .overlay(overlayNode, covering: coveredNode)):
+    case let .overlay(_, covering: .overlay(.sheet(overlayNode), covering: coveredNode)):
       NavigationTreeAnchorView(
         node: .overlay(
-          overlayNode,
+          .sheet(overlayNode),
+          covering: coveredNode
+        ),
+        dismissNode: self.dismissNode
+      )
+
+    case let .overlay(_, covering: .overlay(.overFullScreen(overlayNode), covering: coveredNode)):
+      NavigationTreeAnchorView(
+        node: .overlay(
+          .overFullScreen(overlayNode),
           covering: coveredNode
         ),
         dismissNode: self.dismissNode
@@ -65,29 +74,51 @@ internal struct NavigationTreeAnchorView: View {
     }
   }
 
-  internal var nodeOverlay: NavigationTreeNode? {
+  internal var nodeOverlay: NavigationTreeOverlay? {
     switch node {
     case .just, .stack:
       return .none
 
-    case let .overlay(overlayNode, covering: _):
-      return overlayNode
+    case let .overlay(overlay, covering: _):
+      return overlay
     }
   }
 
   @ViewBuilder internal var body: some View {
-    let overlayNode: NavigationTreeNode? = self.nodeOverlay
+    let overlay: NavigationTreeOverlay? = self.nodeOverlay
     self.nodeView
-      .sheet(
+      .fullScreenCover(
         item: .init(
-          get: { overlayNode },
+          get: { overlay?.overFullScreenNode },
           set: { _ in
-            guard let overlayNodeID: NavigationNodeID = overlayNode?.id
+            guard let overlayNodeID: NavigationNodeID = overlay?.nodeID
             else { return }
             self.dismissNode(overlayNodeID)
           }
         ),
-        content: { overlayNode in
+        content: { (overlayNode: NavigationTreeNode) in
+          NavigationTreeAnchorView(
+            node: overlayNode,
+            dismissNode: self.dismissNode
+          )
+          .environment(
+            \.navigationTreeDismiss,
+            {
+              self.dismissNode(overlayNode.id)
+            }
+          )
+        }
+      )
+      .sheet(
+        item: .init(
+          get: { overlay?.sheetNode },
+          set: { _ in
+            guard let overlayNodeID: NavigationNodeID = overlay?.nodeID
+            else { return }
+            self.dismissNode(overlayNodeID)
+          }
+        ),
+        content: { (overlayNode: NavigationTreeNode) in
           NavigationTreeAnchorView(
             node: overlayNode,
             dismissNode: self.dismissNode

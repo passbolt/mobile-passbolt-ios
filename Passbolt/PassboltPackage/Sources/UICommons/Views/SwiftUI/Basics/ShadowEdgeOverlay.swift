@@ -36,6 +36,7 @@ extension View {
         startPoint: .top,
         endPoint: .bottom
       )
+      .ignoresSafeArea(.all, edges: [.leading, .trailing])
       .frame(
         height: 12,
         alignment: .top
@@ -54,6 +55,7 @@ extension View {
         startPoint: .bottom,
         endPoint: .top
       )
+      .ignoresSafeArea(.all, edges: [.leading, .trailing])
       .frame(
         height: 12,
         alignment: .bottom
@@ -73,6 +75,7 @@ extension View {
           startPoint: .top,
           endPoint: .bottom
         )
+        .ignoresSafeArea(.all, edges: [.leading, .trailing])
         .frame(height: 12)
 
         Spacer()
@@ -85,6 +88,7 @@ extension View {
           startPoint: .bottom,
           endPoint: .top
         )
+        .ignoresSafeArea(.all, edges: [.leading, .trailing])
         .frame(height: 12)
       }
     }

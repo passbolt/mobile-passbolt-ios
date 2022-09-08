@@ -40,7 +40,6 @@ where HostedView: ComponentView {
       cancellables: cancellables
     )
   }
-
   public var components: UIComponentFactory
   public var cancellables: Cancellables
   private let controller: Controller

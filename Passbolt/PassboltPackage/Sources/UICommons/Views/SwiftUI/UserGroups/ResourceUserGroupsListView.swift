@@ -26,6 +26,7 @@ import SwiftUI
 
 public struct ResourceUserGroupsListView: View {
 
+  @State var id: IID = .init()
   private let userGroups: Array<ResourceUserGroupListItemDSV>
   private let contentEmpty: Bool
   private let refreshAction: () async -> Void
@@ -67,5 +68,6 @@ public struct ResourceUserGroupsListView: View {
     }
     .listStyle(.plain)
     .environment(\.defaultMinListRowHeight, 20)
+    .id(self.id)
   }
 }

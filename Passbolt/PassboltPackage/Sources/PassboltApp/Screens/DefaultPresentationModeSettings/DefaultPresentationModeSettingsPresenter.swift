@@ -27,9 +27,9 @@ import Session
 
 internal struct DefaultPresentationModeSettingsController {
 
-  internal var viewState: DisplayViewState<ViewState>
-  internal var selectMode: (HomePresentationMode?) -> Void
-  internal var navigateBack: () -> Void
+  @IID var id
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
 }
 
 extension DefaultPresentationModeSettingsController {
@@ -39,6 +39,19 @@ extension DefaultPresentationModeSettingsController {
     internal var selectedMode: HomePresentationMode?
     internal var availableModes: OrderedSet<HomePresentationMode>
   }
+
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var selectMode: (HomePresentationMode?) -> Void
+    internal var navigateBack: () -> Void
+
+    internal static var placeholder: Self {
+      .init(
+        selectMode: { _ in unimplemented() },
+        navigateBack: { unimplemented() }
+      )
+    }
+  }
 }
 
 extension DefaultPresentationModeSettingsController: ContextlessDisplayController {
@@ -47,8 +60,7 @@ extension DefaultPresentationModeSettingsController: ContextlessDisplayControlle
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      selectMode: unimplemented(),
-      navigateBack: unimplemented()
+      viewActions: .placeholder
     )
   }
   #endif
@@ -69,7 +81,7 @@ extension DefaultPresentationModeSettingsController {
       .useLastHomePresentationAsDefault
     let defaultHomePresentation: StateBinding<HomePresentationMode> = accountPreferences.defaultHomePresentation
 
-    let viewState: DisplayViewState<ViewState> = .init(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         selectedMode: useLastUsedHomePresentationAsDefault.get(\.self)
           ? .none
@@ -102,8 +114,10 @@ extension DefaultPresentationModeSettingsController {
 
     return Self(
       viewState: viewState,
-      selectMode: selectMode(_:),
-      navigateBack: navigateBack
+      viewActions: .init(
+        selectMode: selectMode(_:),
+        navigateBack: navigateBack
+      )
     )
   }
 }

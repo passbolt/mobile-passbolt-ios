@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceFolderContentDisplayView: DisplayView {
+internal struct ResourceFolderContentDisplayView: ControlledView {
 
   private let controller: ResourceFolderContentDisplayController
 
@@ -34,7 +34,7 @@ internal struct ResourceFolderContentDisplayView: DisplayView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       ResourceFolderContentView(
         folderName: state.folderName,
         isSearchResult: state.isSearchResult,
@@ -43,11 +43,11 @@ internal struct ResourceFolderContentDisplayView: DisplayView {
         suggestedResources: state.suggestedResources,
         directResources: state.directResources,
         nestedResources: state.nestedResources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.create,
-        folderTapAction: self.controller.selectFolder,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.openResourceMenu
+        refreshAction: self.controller.actionAsync(\.refresh),
+        createAction: self.controller.actionOptional(\.create),
+        folderTapAction: self.controller.action(\.selectFolder),
+        resourceTapAction: self.controller.action(\.selectResource),
+        resourceMenuAction: self.controller.actionOptional(\.openResourceMenu)
       )
     }
   }

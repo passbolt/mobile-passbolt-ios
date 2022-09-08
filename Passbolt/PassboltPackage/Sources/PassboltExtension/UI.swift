@@ -30,11 +30,11 @@ import class AuthenticationServices.ASPasswordCredentialIdentity
 @MainActor
 public final class UI {
 
-  private let rootViewController: UIViewController & NavigationTreeRoot
+  private let rootViewController: UIViewController & NavigationTreeRootViewAnchor
   private let features: FeatureFactory
 
   public init(
-    rootViewController: UIViewController & NavigationTreeRoot,
+    rootViewController: UIViewController & NavigationTreeRootViewAnchor,
     features: FeatureFactory
   ) {
     self.rootViewController = rootViewController

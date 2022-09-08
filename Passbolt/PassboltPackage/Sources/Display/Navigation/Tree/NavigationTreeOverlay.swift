@@ -21,36 +21,51 @@
 // @since         v1.0
 //
 
-import SwiftUI
+public enum NavigationTreeOverlayPresentation {
 
-public struct WithDisplayViewState<State, ContentView>: View
-where State: Hashable, ContentView: View {
+  case sheet
+  case overFullScreen
+}
 
-  @ObservedObject private var viewState: DisplayViewState<State>
-  private let content: (State) -> ContentView
-  private let activate: @Sendable () async -> Void
+extension NavigationTreeOverlayPresentation: Hashable {}
 
-  internal init(
-    _ viewState: DisplayViewState<State>,
-    activate: @escaping @Sendable () async -> Void = { /* NOP */  },
-    @ViewBuilder content: @escaping (State) -> ContentView
-  ) {
-    self.viewState = viewState
-    self.activate = activate
-    self.content = content
+internal enum NavigationTreeOverlay {
+
+  case sheet(NavigationTreeNode)
+  case overFullScreen(NavigationTreeNode)
+}
+
+extension NavigationTreeOverlay: Hashable {}
+
+extension NavigationTreeOverlay {
+
+  internal var nodeID: NavigationNodeID {
+    switch self {
+    case let .sheet(node):
+      return node.nodeID
+
+    case let .overFullScreen(node):
+      return node.nodeID
+    }
   }
 
-  public init<Controller>(
-    _ controller: Controller,
-    @ViewBuilder content: @escaping (State) -> ContentView
-  ) where Controller: DisplayController, Controller.ViewState == State {
-    self.viewState = controller.viewState
-    self.activate = controller.activate
-    self.content = content
+  internal var sheetNode: NavigationTreeNode? {
+    switch self {
+    case let .sheet(node):
+      return node
+
+    case .overFullScreen:
+      return .none
+    }
   }
 
-  public var body: some View {
-    self.content(self.viewState.wrappedValue)
-      .task(self.activate)
+  internal var overFullScreenNode: NavigationTreeNode? {
+    switch self {
+    case let .overFullScreen(node):
+      return node
+
+    case .sheet:
+      return .none
+    }
   }
 }

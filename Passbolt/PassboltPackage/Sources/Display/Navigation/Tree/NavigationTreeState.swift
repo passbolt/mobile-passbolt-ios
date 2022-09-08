@@ -21,11 +21,130 @@
 // @since         v1.0
 //
 
-// public access to tree state without actual
-// access to modifying it, can be used to state restoration
 public struct NavigationTreeState {
 
-  internal let tree: NavigationTreeNode
+  internal private(set) var root: NavigationTreeNode
 }
 
 extension NavigationTreeState: Hashable {}
+
+extension NavigationTreeState {
+
+  public func contains(
+    _ nodeID: NavigationNodeID
+  ) -> Bool {
+    self.root.contains(nodeID)
+  }
+
+  @discardableResult
+  public mutating func replaceRoot<ViewNode>(
+    with _: ViewNode.Type,
+    controller: ViewNode.Controller
+  ) -> NavigationNodeID
+  where ViewNode: ControlledViewNode {
+    let newNode: AnyViewNode = .init(
+      erasing: ViewNode.self,
+      with: controller
+    )
+
+    self.root = .just(newNode)
+
+    return newNode.nodeID
+  }
+
+  @discardableResult
+  public mutating func replaceRoot<ViewNode>(
+    withOnStack _: ViewNode.Type,
+    controller: ViewNode.Controller
+  ) -> NavigationNodeID
+  where ViewNode: ControlledViewNode {
+    let newNode: AnyViewNode = .init(
+      erasing: ViewNode.self,
+      with: controller
+    )
+
+    self.root = .stack(.element(newNode, next: .none))
+
+    return newNode.nodeID
+  }
+
+  @discardableResult
+  public mutating func push<ViewNode>(
+    _: ViewNode.Type,
+    controller: ViewNode.Controller
+  ) -> NavigationNodeID
+  where ViewNode: ControlledViewNode {
+    let newNode: AnyViewNode = .init(
+      erasing: ViewNode.self,
+      with: controller
+    )
+
+    self.root = self.root.pushing(newNode)
+
+    return newNode.nodeID
+  }
+
+  @discardableResult
+  public mutating func present<ViewNode>(
+    _ presentation: NavigationTreeOverlayPresentation = .sheet,
+    _: ViewNode.Type,
+    controller: ViewNode.Controller
+  ) -> NavigationNodeID
+  where ViewNode: ControlledViewNode {
+    let newNode: AnyViewNode = .init(
+      erasing: ViewNode.self,
+      with: controller
+    )
+
+    self.root = self.root.presenting(newNode, presentation)
+
+    return newNode.nodeID
+  }
+
+  @discardableResult
+  public mutating func present<ViewNode>(
+    _ presentation: NavigationTreeOverlayPresentation = .sheet,
+    onStack _: ViewNode.Type,
+    controller: ViewNode.Controller
+  ) -> NavigationNodeID
+  where ViewNode: ControlledViewNode {
+    let newNode: AnyViewNode = .init(
+      erasing: ViewNode.self,
+      with: controller
+    )
+
+    self.root = self.root.presenting(pushed: newNode, presentation)
+
+    return newNode.nodeID
+  }
+
+  public mutating func dismiss(
+    _ nodeID: NavigationNodeID
+  ) {
+    if let subtree: NavigationTreeNode = self.root.removing(nodeID) {
+      self.root = subtree
+    }
+    else {
+      InternalInconsistency
+        .error("Invalid navigation tree state, cannot dismiss root of the tree")
+        .asFatalError()
+    }
+  }
+
+  public mutating func dismiss(
+    upTo nodeID: NavigationNodeID
+  ) {
+    self.root = self.root.removing(upTo: nodeID)
+  }
+}
+
+// Legacy only
+extension NavigationTreeState {
+
+  @available(*, deprecated, message: "For legacy bridge only")
+  internal mutating func mutate(
+    _ mutation: (inout NavigationTreeNode) -> Void
+  ) {
+    mutation(&self.root)
+  }
+}

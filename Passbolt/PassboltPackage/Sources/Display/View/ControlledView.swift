@@ -21,11 +21,16 @@
 // @since         v1.0
 //
 
-import UIKit
+import SwiftUI
 
-public protocol NavigationTreeRoot {
+public protocol ControlledView: View {
 
-  @MainActor func setRoot<RootView>(
-    _ view: RootView
-  ) where RootView: View
+  associatedtype Controller: ViewController
+
+  init(controller: Controller)
+}
+
+extension ControlledView {
+
+  public typealias ViewState = Controller.ViewState
 }

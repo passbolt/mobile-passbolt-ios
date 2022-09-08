@@ -26,6 +26,7 @@ import SwiftUI
 
 public struct ResourceFolderContentView: View {
 
+  @State var id: IID = .init()
   private let folderName: DisplayableString
   private let isSearchResult: Bool
   private let directFolders: Array<ResourceFolderListItemDSV>
@@ -104,7 +105,7 @@ public struct ResourceFolderContentView: View {
           )
         }  // else no suggested
 
-        if !self.suggestedContentEmpty {
+        if !self.directContentEmpty {
           if !self.suggestedContentEmpty {
             ListDividerView()
           }  // else no divider
@@ -236,5 +237,6 @@ public struct ResourceFolderContentView: View {
     }
     .listStyle(.plain)
     .environment(\.defaultMinListRowHeight, 20)
+    .id(self.id)
   }
 }

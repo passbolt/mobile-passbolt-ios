@@ -24,6 +24,7 @@
 import Features
 import UIComponents
 
+@available(*, deprecated, message: "Please switch to `NavigationTree`")
 internal struct LegacyNavigationBridge {
 
   internal let bridgeComponent: () async -> AnyUIComponent?

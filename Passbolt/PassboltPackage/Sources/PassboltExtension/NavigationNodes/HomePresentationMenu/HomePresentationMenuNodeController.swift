@@ -27,25 +27,40 @@ import Display
 
 internal struct HomePresentationMenuNodeController {
 
-  internal var viewState: DisplayViewState<ViewState>
-  internal var selectMode: (HomePresentationMode) -> Void
-  internal var dismissView: () -> Void
+  @IID internal var id
+  @NavigationNodeID public var nodeID
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
 }
 
-extension HomePresentationMenuNodeController: ContextlessNavigationNodeController {
+extension HomePresentationMenuNodeController: ContextlessViewNodeController {
 
   internal struct ViewState: Hashable {
 
-    internal var currentMode: HomePresentationMode
+    @StateBinding internal var currentMode: HomePresentationMode
     internal var availableModes: OrderedSet<HomePresentationMode>
+  }
+
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var selectMode: (HomePresentationMode) -> Void
+    internal var dismissView: () -> Void
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        selectMode: { _ in unimplemented() },
+        dismissView: { unimplemented() }
+      )
+    }
+    #endif
   }
 
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      selectMode: unimplemented(),
-      dismissView: unimplemented()
+      viewActions: .placeholder
     )
   }
   #endif
@@ -58,28 +73,20 @@ extension HomePresentationMenuNodeController {
   @MainActor fileprivate static func load(
     features: FeatureFactory
   ) async throws -> Self {
+    let nodeID: NavigationNodeID = .init()
     let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try await features.instance()
 
     let state: StateBinding<ViewState> =
-      .combined(
-        homePresentation.currentMode,
-        .variable(initial: homePresentation.availableModes()),
-        compose: { (currentMode, availableModes) in
-          ViewState(
-            currentMode: currentMode,
-            availableModes: availableModes
-          )
-        },
-        decompose: { viewState in
-          (
-            viewState.currentMode,
-            viewState.availableModes
-          )
-        }
+      .variable(
+        initial: .init(
+          currentMode: homePresentation.currentMode,
+          availableModes: homePresentation.availableModes()
+        )
       )
+    state.bind(\.$currentMode)
 
-    let viewState: DisplayViewState<ViewState> = .init(
+    let viewState: ViewStateBinding<ViewState> = .init(
       stateSource: state
     )
 
@@ -87,17 +94,20 @@ extension HomePresentationMenuNodeController {
       _ mode: HomePresentationMode
     ) {
       homePresentation.currentMode.set(to: mode)
-      navigationTree.dismiss(viewState.navigationNodeID)
+      navigationTree.dismiss(nodeID)
     }
 
     nonisolated func dismissView() {
-      navigationTree.dismiss(viewState.navigationNodeID)
+      navigationTree.dismiss(nodeID)
     }
 
     return .init(
+      nodeID: nodeID,
       viewState: viewState,
-      selectMode: selectMode(_:),
-      dismissView: dismissView
+      viewActions: .init(
+        selectMode: selectMode(_:),
+        dismissView: dismissView
+      )
     )
   }
 }

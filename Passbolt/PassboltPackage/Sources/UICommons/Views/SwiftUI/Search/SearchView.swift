@@ -28,7 +28,8 @@ public struct SearchView<LeftAccessoryView, RightAccessoryView>: View
 where LeftAccessoryView: View, RightAccessoryView: View {
 
   @Binding private var text: String
-  @FocusState private var editing: Bool
+  @FocusState private var focused: Bool
+  @State private var editing: Bool = false
   private let prompt: DisplayableString?
   private let leftAccessory: () -> LeftAccessoryView
   private let rightAccessory: () -> RightAccessoryView
@@ -47,69 +48,18 @@ where LeftAccessoryView: View, RightAccessoryView: View {
 
   public var body: some View {
     HStack(spacing: 0) {
-      if self.editing {
-        defaultSearchImage()
-          .padding(
-            top: 8,
-            bottom: 8
-          )
-          .frame(maxWidth: 48, maxHeight: 48)
-      }
-      else {
-        leftAccessory()
-          .aspectRatio(1, contentMode: .fit)
-          .padding(
-            top: 8,
-            bottom: 8
-          )
-          .frame(maxWidth: 48, maxHeight: 48)
-      }
+      self.leadingAccessoryView
+        .transition(.opacity)
 
-      SwiftUI.TextField(
-        "",  // Empty, we don't use this label at all
-        text: self.$text,
-        prompt: self.prompt
-          .map {
-            Text(displayable: $0)
-              .foregroundColor(.passboltSecondaryText)
+      self.searchTextView
+        .onChange(of: focused) { (focused: Bool) in
+          withAnimation {
+            editing = focused
           }
-      )
-      .focused(self.$editing)
-      .contentShape(Rectangle())
-      .padding(
-        top: 8,
-        bottom: 8
-      )
-      .frame(maxWidth: .infinity, maxHeight: 48)
+        }
 
-      if !self.editing, self.text.isEmpty {
-        rightAccessory()
-          .padding(
-            top: 8,
-            bottom: 8
-          )
-          .frame(maxWidth: 48, maxHeight: 48)
-      }
-      else {
-        Button(
-          action: {
-            if self.text.isEmpty {
-              self.editing = false
-            }
-            else {
-              self.text = ""
-            }
-          },
-          label: {
-            ImageWithPadding(
-              12,
-              named: .close
-            )
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: 48, maxHeight: 48)
-          }
-        )
-      }
+      self.trailingAccessoryView
+        .transition(.opacity)
     }
     .font(.inter(ofSize: 14, weight: .regular))
     .foregroundColor(.passboltPrimaryText)
@@ -124,8 +74,79 @@ where LeftAccessoryView: View, RightAccessoryView: View {
           lineWidth: 1
         )
         .allowsHitTesting(false)
+        .transition(.opacity)
     )
     .padding(1)  // border size
+  }
+
+  @ViewBuilder private var searchTextView: some View {
+    SwiftUI.TextField(
+      "",  // Empty, we don't use this label at all
+      text: self.$text,
+      prompt: self.prompt
+        .map {
+          Text(displayable: $0)
+            .foregroundColor(.passboltSecondaryText)
+        }
+    )
+    .focused(self.$focused)
+    .contentShape(Rectangle())
+    .padding(
+      top: 8,
+      bottom: 8
+    )
+    .frame(maxWidth: .infinity, maxHeight: 48)
+  }
+
+  @ViewBuilder private var leadingAccessoryView: some View {
+    if self.editing {
+      defaultSearchImage()
+        .padding(
+          top: 8,
+          bottom: 8
+        )
+        .frame(maxWidth: 48, maxHeight: 48)
+    }
+    else {
+      leftAccessory()
+        .aspectRatio(1, contentMode: .fit)
+        .padding(
+          top: 8,
+          bottom: 8
+        )
+        .frame(maxWidth: 48, maxHeight: 48)
+    }
+  }
+
+  @ViewBuilder private var trailingAccessoryView: some View {
+    if !self.editing, self.text.isEmpty {
+      rightAccessory()
+        .padding(
+          top: 8,
+          bottom: 8
+        )
+        .frame(maxWidth: 48, maxHeight: 48)
+    }
+    else {
+      Button(
+        action: {
+          if self.text.isEmpty {
+            self.focused = false
+          }
+          else {
+            self.text = ""
+          }
+        },
+        label: {
+          ImageWithPadding(
+            12,
+            named: .close
+          )
+          .aspectRatio(1, contentMode: .fit)
+          .frame(maxWidth: 48, maxHeight: 48)
+        }
+      )
+    }
   }
 }
 

@@ -30,22 +30,37 @@ import Users
 
 internal struct HomeNavigationNodeController {
 
-  internal var viewState: DisplayViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
+  @IID internal var id
+  @NavigationNodeID public var nodeID
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
 }
 
-extension HomeNavigationNodeController: ContextlessNavigationNodeController {
+extension HomeNavigationNodeController: ContextlessViewNodeController {
 
   internal struct ViewState: Hashable {
 
     internal var contentController: AnyDisplayController
   }
 
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var activate: @Sendable () async -> Void
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        activate: { unimplemented() }
+      )
+    }
+    #endif
+  }
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      activate: unimplemented()
+      viewActions: .placeholder
     )
   }
   #endif
@@ -56,6 +71,7 @@ extension HomeNavigationNodeController {
   @MainActor fileprivate static func load(
     features: FeatureFactory
   ) async throws -> Self {
+    let nodeID: NavigationNodeID = .init()
     let diagnostics: Diagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
     let navigationTree: NavigationTree = features.instance()
@@ -69,7 +85,7 @@ extension HomeNavigationNodeController {
       )
     )
 
-    let viewState: DisplayViewState<ViewState> = .init(stateSource: state)
+    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
 
     @Sendable nonisolated func activate() async {
       asyncExecutor.schedule(.reuse) {
@@ -82,7 +98,7 @@ extension HomeNavigationNodeController {
                 \.contentController,
                 to: contentRoot(for: mode)
               )
-              navigationTree.dismiss(upTo: viewState.navigationNodeID)
+              navigationTree.dismiss(upTo: nodeID)
             }
         }
         catch {
@@ -229,8 +245,11 @@ extension HomeNavigationNodeController {
     }
 
     return .init(
+      nodeID: nodeID,
       viewState: viewState,
-      activate: activate
+      viewActions: .init(
+        activate: activate
+      )
     )
   }
 }

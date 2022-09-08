@@ -25,9 +25,9 @@ import CommonModels
 
 public struct AnyDisplayController: ContextlessDisplayController {
 
-  public typealias ViewState = HashableVoid
-
-  public let viewState: DisplayViewState<HashableVoid>
+  @IID public var id
+  @Stateless public var viewState
+  @Actionless public var viewActions
   private let controllerType: Any.Type
   private let controller: Any
 
@@ -42,25 +42,24 @@ extension AnyDisplayController {
 
   public init<Controller>(
     erasing controller: Controller
-  ) where Controller: DisplayController {
+  ) where Controller: ViewController {
     self.controllerType = Controller.self
     self.controller = controller
-    self.viewState = .init(initial: HashableVoid())
   }
 
-  @ViewBuilder public func controlling<ControlledView, DefaultView>(
-    _ viewType: ControlledView.Type,
+  @ViewBuilder public func controlling<ControlledViewA, DefaultView>(
+    _ viewType: ControlledViewA.Type,
     @ViewBuilder default defaultView: () -> DefaultView
   ) -> some View
-  where ControlledView: DisplayView, DefaultView: View {
+  where ControlledViewA: ControlledView, DefaultView: View {
     switch self.controller {
-    case let controller as ControlledView.Controller:
-      ControlledView(controller: controller)
-        .id(self)
+    case let controller as ControlledViewA.Controller:
+      ControlledViewA(controller: controller)
+        .id(controller.id)
 
     case _:
       defaultView()
-        .id(self)
+        .id(self.id)
     }
   }
 
@@ -69,19 +68,19 @@ extension AnyDisplayController {
     or viewTypeB: ControlledViewB.Type,
     @ViewBuilder default defaultView: () -> DefaultView
   ) -> some View
-  where ControlledViewA: DisplayView, ControlledViewB: DisplayView, DefaultView: View {
+  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, DefaultView: View {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case _:
       defaultView()
-        .id(self)
+        .id(self.id)
     }
   }
 
@@ -91,23 +90,25 @@ extension AnyDisplayController {
     or viewTypeC: ControlledViewC.Type,
     @ViewBuilder default defaultView: () -> DefaultView
   ) -> some View
-  where ControlledViewA: DisplayView, ControlledViewB: DisplayView, ControlledViewC: DisplayView, DefaultView: View {
+  where
+    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, DefaultView: View
+  {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case _:
       defaultView()
-        .id(self)
+        .id(self.id)
     }
   }
 
@@ -119,29 +120,29 @@ extension AnyDisplayController {
     @ViewBuilder default defaultView: () -> DefaultView
   ) -> some View
   where
-    ControlledViewA: DisplayView, ControlledViewB: DisplayView, ControlledViewC: DisplayView,
-    ControlledViewD: DisplayView, DefaultView: View
+    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView,
+    ControlledViewD: ControlledView, DefaultView: View
   {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case _:
       defaultView()
-        .id(self)
+        .id(self.id)
     }
   }
 
@@ -162,33 +163,33 @@ extension AnyDisplayController {
     @ViewBuilder default defaultView: () -> DefaultView
   ) -> some View
   where
-    ControlledViewA: DisplayView, ControlledViewB: DisplayView, ControlledViewC: DisplayView,
-    ControlledViewD: DisplayView, ControlledViewE: DisplayView, DefaultView: View
+    ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView,
+    ControlledViewD: ControlledView, ControlledViewE: ControlledView, DefaultView: View
   {
     switch self.controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case let controller as ControlledViewE.Controller:
       ControlledViewE(controller: controller)
-        .id(self)
+        .id(controller.id)
 
     case _:
       defaultView()
-        .id(self)
+        .id(self.id)
     }
   }
 }

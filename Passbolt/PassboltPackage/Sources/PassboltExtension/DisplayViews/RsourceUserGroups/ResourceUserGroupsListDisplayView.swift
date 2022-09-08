@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceUserGroupsListDisplayView: DisplayView {
+internal struct ResourceUserGroupsListDisplayView: ControlledView {
 
   private let controller: ResourceUserGroupsListDisplayController
 
@@ -34,12 +34,12 @@ internal struct ResourceUserGroupsListDisplayView: DisplayView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       ResourceUserGroupsListView(
         userGroups: state.userGroups,
-        refreshAction: self.controller.refresh,
+        refreshAction: self.controller.actionAsync(\.refresh),
         createAction: .none,
-        groupTapAction: self.controller.selectGroup
+        groupTapAction: self.controller.action(\.selectGroup)
       )
     }
   }

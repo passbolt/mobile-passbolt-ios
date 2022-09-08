@@ -30,13 +30,15 @@ import Users
 
 internal struct ResourcesListNodeController {
 
-  internal var viewState: DisplayViewState<ViewState>
+  @IID internal var id
+  @NavigationNodeID public var nodeID
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourcesListDisplayController
-  internal var closeExtension: () -> Void
 }
 
-extension ResourcesListNodeController: NavigationNodeController {
+extension ResourcesListNodeController: ViewNodeController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -55,13 +57,26 @@ extension ResourcesListNodeController: NavigationNodeController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var closeExtension: () -> Void
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        closeExtension: { unimplemented() }
+      )
+    }
+    #endif
+  }
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
+      viewActions: .placeholder,
       searchController: .placeholder,
-      contentController: .placeholder,
-      closeExtension: unimplemented()
+      contentController: .placeholder
     )
   }
   #endif
@@ -89,7 +104,7 @@ extension ResourcesListNodeController {
       )
     )
 
-    let viewState: DisplayViewState<ViewState> = .init(stateSource: state)
+    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
 
     let searchController: ResourceSearchDisplayController = try await features.instance(
       context: .init(
@@ -181,9 +196,11 @@ extension ResourcesListNodeController {
 
     return .init(
       viewState: viewState,
+      viewActions: .init(
+        closeExtension: closeExtension
+      ),
       searchController: searchController,
-      contentController: contentController,
-      closeExtension: closeExtension
+      contentController: contentController
     )
   }
 }

@@ -24,7 +24,7 @@
 internal indirect enum NavigationStackNode {
 
   case element(
-    AnyNavigationNodeView,
+    AnyViewNode,
     next: NavigationStackNode?
   )
 }
@@ -60,7 +60,7 @@ extension NavigationStackNode {
     }
   }
 
-  internal var nodeView: AnyNavigationNodeView {
+  internal var nodeView: AnyViewNode {
     switch self {
     case let .element(nodeView, _):
       return nodeView
@@ -112,7 +112,7 @@ extension NavigationStackNode {
   }
 
   internal func appending(
-    _ nodeView: AnyNavigationNodeView
+    _ nodeView: AnyViewNode
   ) -> Self {
     var copy: Self = self
     copy.last = .element(
@@ -145,7 +145,7 @@ extension NavigationStackNode {
   }
 
   internal func prefix(
-    upTo nodeID: NavigationNodeID
+    including nodeID: NavigationNodeID
   ) -> NavigationStackNode {
     var stackPrefix: NavigationStackNode = .element(self.nodeView, next: .none)
 

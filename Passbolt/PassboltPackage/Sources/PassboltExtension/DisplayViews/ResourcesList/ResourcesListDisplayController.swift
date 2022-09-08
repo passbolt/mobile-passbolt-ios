@@ -29,15 +29,12 @@ import SessionData
 
 internal struct ResourcesListDisplayController {
 
-  internal var viewState: DisplayViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
-  internal var refresh: () async -> Void
-  internal var createResource: (() -> Void)?
-  internal var selectResource: (Resource.ID) -> Void
-  internal var openResourceMenu: ((Resource.ID) -> Void)?
+  @IID internal var id
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
 }
 
-extension ResourcesListDisplayController: DisplayController {
+extension ResourcesListDisplayController: ViewController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -57,15 +54,32 @@ extension ResourcesListDisplayController: DisplayController {
     internal var resources: Array<ResourceListItemDSV>
   }
 
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var activate: @Sendable () async -> Void
+    internal var refresh: @Sendable () async -> Void
+    internal var createResource: (() -> Void)?
+    internal var selectResource: (Resource.ID) -> Void
+    internal var openResourceMenu: ((Resource.ID) -> Void)?
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        activate: { unimplemented() },
+        refresh: { unimplemented() },
+        createResource: { unimplemented() },
+        selectResource: { _ in unimplemented() },
+        openResourceMenu: { _ in unimplemented() }
+      )
+    }
+    #endif
+  }
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      activate: { unimplemented() },
-      refresh: { unimplemented() },
-      createResource: { unimplemented() },
-      selectResource: { _ in unimplemented() },
-      openResourceMenu: { _ in unimplemented() }
+      viewActions: .placeholder
     )
   }
   #endif
@@ -90,7 +104,7 @@ extension ResourcesListDisplayController {
         resources: .init()
       )
     )
-    let viewState: DisplayViewState<ViewState> = .init(
+    let viewState: ViewStateBinding<ViewState> = .init(
       stateSource: state
     )
 
@@ -120,7 +134,7 @@ extension ResourcesListDisplayController {
       }
     }
 
-    nonisolated func refresh() async {
+    @Sendable nonisolated func refresh() async {
       do {
         try await sessionData.refreshIfNeeded()
       }
@@ -166,11 +180,13 @@ extension ResourcesListDisplayController {
 
     return .init(
       viewState: viewState,
-      activate: activate,
-      refresh: refresh,
-      createResource: context.createResource,
-      selectResource: context.selectResource,
-      openResourceMenu: context.openResourceMenu
+      viewActions: .init(
+        activate: activate,
+        refresh: refresh,
+        createResource: context.createResource,
+        selectResource: context.selectResource,
+        openResourceMenu: context.openResourceMenu
+      )
     )
   }
 }

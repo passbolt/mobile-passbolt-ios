@@ -26,7 +26,7 @@ import UIComponents
 
 @MainActor
 internal final class DisplayViewBridge<HostedView>: UIHostingController<HostedView>, UIComponent
-where HostedView: DisplayView {
+where HostedView: ControlledView {
 
   @MainActor internal struct Controller: UIController {
 
@@ -58,6 +58,7 @@ where HostedView: DisplayView {
     return instance
   }
 
+  @IID internal nonisolated var id
   // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals, NoLeadingUnderscores
   private var _components: UIComponentFactory!
   // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals, NoLeadingUnderscores

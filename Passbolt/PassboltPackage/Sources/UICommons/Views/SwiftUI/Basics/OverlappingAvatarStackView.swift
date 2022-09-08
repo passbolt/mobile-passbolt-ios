@@ -81,7 +81,7 @@ public struct OverlappingAvatarStackView: View {
         ForEach(self.items.prefix(itemsCount)) { item in
           switch item {
           case let .user(_, avatarImage: avatarImage):
-            UserAvatarView(imageLoad: avatarImage)
+            AsyncUserAvatarView(imageLoad: avatarImage)
               .frame(width: itemSize, height: itemSize)
 
           case .userGroup:

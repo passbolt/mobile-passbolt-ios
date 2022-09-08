@@ -62,19 +62,18 @@ public struct EmptyListView: View {
         )
       Spacer()
     }
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity,
-      alignment: .center
-    )
     .padding(
       top: 24,
       leading: 16,
       bottom: 16,
       trailing: 16
     )
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity,
+      alignment: .center
+    )
     .listRowSeparator(.hidden)
     .listRowInsets(EdgeInsets())
-    .buttonStyle(.plain)
   }
 }

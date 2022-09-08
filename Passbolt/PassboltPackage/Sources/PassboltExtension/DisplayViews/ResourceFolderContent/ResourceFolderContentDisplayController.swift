@@ -29,16 +29,12 @@ import SessionData
 
 internal struct ResourceFolderContentDisplayController {
 
-  internal var viewState: DisplayViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
-  internal var refresh: () async -> Void
-  internal var create: (() -> Void)?
-  internal var selectFolder: (ResourceFolder.ID) -> Void
-  internal var selectResource: (Resource.ID) -> Void
-  internal var openResourceMenu: ((Resource.ID) -> Void)?
+  @IID internal var id
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
 }
 
-extension ResourceFolderContentDisplayController: DisplayController {
+extension ResourceFolderContentDisplayController: ViewController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -66,16 +62,34 @@ extension ResourceFolderContentDisplayController: DisplayController {
     internal var nestedResources: Array<ResourceListItemDSV>
   }
 
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var activate: @Sendable () async -> Void
+    internal var refresh: @Sendable () async -> Void
+    internal var create: (() -> Void)?
+    internal var selectFolder: (ResourceFolder.ID) -> Void
+    internal var selectResource: (Resource.ID) -> Void
+    internal var openResourceMenu: ((Resource.ID) -> Void)?
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        activate: { unimplemented() },
+        refresh: { unimplemented() },
+        create: { unimplemented() },
+        selectFolder: { _ in unimplemented() },
+        selectResource: { _ in unimplemented() },
+        openResourceMenu: { _ in unimplemented() }
+      )
+    }
+    #endif
+  }
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      activate: { unimplemented() },
-      refresh: { unimplemented() },
-      create: { unimplemented() },
-      selectFolder: { _ in unimplemented() },
-      selectResource: { _ in unimplemented() },
-      openResourceMenu: { _ in unimplemented() }
+      viewActions: .placeholder
     )
   }
   #endif
@@ -110,7 +124,7 @@ extension ResourceFolderContentDisplayController {
     )
     state.bind(\.$isSearchResult)
 
-    let viewState: DisplayViewState<ViewState> = .init(
+    let viewState: ViewStateBinding<ViewState> = .init(
       stateSource: state
     )
 
@@ -142,7 +156,7 @@ extension ResourceFolderContentDisplayController {
       }
     }
 
-    nonisolated func refresh() async {
+    @Sendable nonisolated func refresh() async {
       do {
         try await sessionData.refreshIfNeeded()
       }
@@ -195,12 +209,14 @@ extension ResourceFolderContentDisplayController {
 
     return .init(
       viewState: viewState,
-      activate: activate,
-      refresh: refresh,
-      create: context.createResource,
-      selectFolder: context.selectFolder,
-      selectResource: context.selectResource,
-      openResourceMenu: context.openResourceMenu
+      viewActions: .init(
+        activate: activate,
+        refresh: refresh,
+        create: context.createResource,
+        selectFolder: context.selectFolder,
+        selectResource: context.selectResource,
+        openResourceMenu: context.openResourceMenu
+      )
     )
   }
 }

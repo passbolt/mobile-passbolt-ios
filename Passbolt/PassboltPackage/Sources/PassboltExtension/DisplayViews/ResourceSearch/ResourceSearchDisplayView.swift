@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceSearchDisplayView: NavigationNodeView {
+internal struct ResourceSearchDisplayView: ControlledViewNode {
 
   internal typealias Controller = ResourceSearchDisplayController
 
@@ -36,7 +36,7 @@ internal struct ResourceSearchDisplayView: NavigationNodeView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       self.bodyView(with: state)
     }
   }
@@ -51,13 +51,13 @@ internal struct ResourceSearchDisplayView: NavigationNodeView {
         .binding(to: \.searchText),
       leftAccessory: {
         Button(
-          action: self.controller.showPresentationMenu,
+          action: self.controller.action(\.showPresentationMenu),
           label: { ImageWithPadding(4, named: .filter) }
         )
       },
       rightAccessory: {
         Button(
-          action: self.controller.signOut,
+          action: self.controller.action(\.signOut),
           label: {
             UserAvatarView(imageData: state.accountAvatar)
               .padding(

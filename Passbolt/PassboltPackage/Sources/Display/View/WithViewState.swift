@@ -21,31 +21,36 @@
 // @since         v1.0
 //
 
-import Display
-import SharedUIComponents
+import SwiftUI
 
-internal struct AutofillRootNavigationNodeView: ControlledViewNode {
+public struct WithViewState<State, ContentView>: View
+where State: Hashable, ContentView: View {
 
-  internal typealias Controller = AutofillRootNavigationNodeController
-
-  private let controller: Controller
+  @StateObject private var viewState: ViewStateBinding<State>
+  private let content: (State) -> ContentView
+  private let activate: @Sendable () async -> Void
 
   internal init(
-    controller: Controller
+    _ viewState: ViewStateBinding<State>,
+    activate: @escaping @Sendable () async -> Void = { /* NOP */  },
+    @ViewBuilder content: @escaping (State) -> ContentView
   ) {
-    self.controller = controller
+    self._viewState = .init(wrappedValue: viewState)
+    self.activate = activate
+    self.content = content
   }
 
-  internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
-    .task(self.controller.actionAsync(\.activate))
+  public init<Controller>(
+    _ controller: Controller,
+    @ViewBuilder content: @escaping (State) -> ContentView
+  ) where Controller: ViewController, Controller.ViewState == State {
+    self._viewState = .init(wrappedValue: controller.viewState)
+    self.activate = controller.actionAsync(\.activate)
+    self.content = content
+  }
+
+  public var body: some View {
+    self.content(self.viewState.wrappedValue)
+      .task(self.activate)
   }
 }

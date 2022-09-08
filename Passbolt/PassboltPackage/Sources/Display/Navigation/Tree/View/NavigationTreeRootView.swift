@@ -21,49 +21,27 @@
 // @since         v1.0
 //
 
+import Commons
 import SwiftUI
 
-internal struct AnyNavigationNodeView: View {
+public struct NavigationTreeRootView: View {
 
-  private let contentView: AnyView
-  internal let nodeID: NavigationNodeID
+  private let navigationTree: NavigationTree
 
-  internal init<ErasedNodeView>(
-    for _: ErasedNodeView.Type,
-    controller: ErasedNodeView.Controller
-  ) where ErasedNodeView: NavigationNodeView {
-    // skipping view for identifier
-    // multiple views for the same controller
-    // are not supported (could be in future)
-    let nodeID: NavigationNodeID = controller.navigationNodeID
-    self.contentView = .init(
-      erasing: ErasedNodeView(
-        controller: controller
+  public init(
+    navigationTree: NavigationTree
+  ) {
+    self.navigationTree = navigationTree
+  }
+
+  public var body: some View {
+    WithViewState(self.navigationTree.state) { (state: NavigationTreeState) in
+      NavigationTreeAnchorView(
+        node: state.root,
+        dismissNode: self.navigationTree
+          .dismiss(_:)
       )
-    )
-    self.nodeID = nodeID
-  }
-
-  internal init<Component>(
-    for legacyBridge: LegacyNavigationNodeBridgeView<Component>
-  ) where Component: UIComponent {
-    // using view controller as an identifier
-    let nodeID: NavigationNodeID = legacyBridge.navigationNodeID
-    self.contentView = .init(
-      erasing:
-        legacyBridge
-        .navigationViewStyle(.stack)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(legacyBridge.title)
-        .navigationBarItems(
-          trailing: legacyBridge.trailingBarButton
-        )
-    )
-    self.nodeID = nodeID
-  }
-
-  internal var body: some View {
-    self.contentView
-      .id(self.nodeID)
+    }
+    .environment(\.isInNavigationTreeContext, true)
   }
 }

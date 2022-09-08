@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct HomeNavigationNodeView: NavigationNodeView {
+internal struct HomeNavigationNodeView: ControlledViewNode {
 
   private let controller: HomeNavigationNodeController
 
@@ -34,7 +34,7 @@ internal struct HomeNavigationNodeView: NavigationNodeView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       self.bodyView(with: state)
     }
   }
@@ -49,7 +49,7 @@ internal struct HomeNavigationNodeView: NavigationNodeView {
         or: ResourceFolderContentNodeView.self,
         or: ResourceTagsListNodeView.self,
         or: ResourceUserGroupsListNodeView.self,
-        default: LoaderNavigationNodeView.instance
+        default: LoaderViewNode.instance
       )
   }
 }

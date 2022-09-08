@@ -79,7 +79,7 @@ internal struct UserGroupMemberDetailsView: ComponentView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      UserAvatarView(
+      AsyncUserAvatarView(
         imageLoad: self.state.avatarImageFetch
       )
       .frame(

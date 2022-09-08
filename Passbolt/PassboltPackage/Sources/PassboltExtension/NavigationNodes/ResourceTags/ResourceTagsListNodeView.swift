@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceTagsListNodeView: NavigationNodeView {
+internal struct ResourceTagsListNodeView: ControlledViewNode {
 
   private let controller: ResourceTagsListNodeController
 
@@ -34,7 +34,7 @@ internal struct ResourceTagsListNodeView: NavigationNodeView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       self.bodyView(with: state)
     }
   }
@@ -52,7 +52,7 @@ internal struct ResourceTagsListNodeView: NavigationNodeView {
       titleLeadingItem: EmptyView.init,
       titleTrailingItem: {
         Button(
-          action: self.controller.closeExtension,
+          action: self.controller.action(\.closeExtension),
           label: { Image(named: .close) }
         )
       },

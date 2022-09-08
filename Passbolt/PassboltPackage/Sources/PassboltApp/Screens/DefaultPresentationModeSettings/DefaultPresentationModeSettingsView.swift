@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct DefaultPresentationModeSettingsView: DisplayView {
+internal struct DefaultPresentationModeSettingsView: ControlledView {
 
   private let controller: DefaultPresentationModeSettingsController
 
@@ -40,7 +40,7 @@ internal struct DefaultPresentationModeSettingsView: DisplayView {
         key: "account.settings.default.home.mode.title"
       ),
       contentView: {
-        WithDisplayViewState(self.controller) { (state) in
+        WithViewState(self.controller) { (state) in
           List {
             ListRowView(
               title: .localized(
@@ -52,7 +52,7 @@ internal struct DefaultPresentationModeSettingsView: DisplayView {
                   .padding(4)
               },
               contentAction: {
-                self.controller.selectMode(.none)
+                self.controller.perform(\.selectMode, with: .none)
               },
               rightAccessory: {
                 Image(
@@ -78,7 +78,7 @@ internal struct DefaultPresentationModeSettingsView: DisplayView {
                     .padding(4)
                 },
                 contentAction: {
-                  self.controller.selectMode(mode)
+                  self.controller.perform(\.selectMode, with: mode)
                 },
                 rightAccessory: {
                   Image(

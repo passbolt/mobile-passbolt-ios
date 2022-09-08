@@ -27,7 +27,7 @@ import class Combine.PassthroughSubject
 import class Foundation.RunLoop
 
 @propertyWrapper @dynamicMemberLookup
-public final class DisplayViewState<Value>: ObservableObject
+public final class ViewStateBinding<Value>: ObservableObject
 where Value: Equatable {
 
   #if DEBUG
@@ -91,7 +91,7 @@ where Value: Equatable {
   }
 }
 
-extension DisplayViewState {
+extension ViewStateBinding {
 
   public func get<Property>(
     _ keyPath: KeyPath<Value, Property>
@@ -123,38 +123,6 @@ extension DisplayViewState {
       set: { (newValue: BindingValue) in
         self.set(keyPath, to: newValue)
       }
-    )
-  }
-}
-
-extension DisplayViewState: Hashable {
-
-  public static func == (
-    _ lhs: DisplayViewState,
-    _ rhs: DisplayViewState
-  ) -> Bool {
-    // relaying on object reference equality
-    lhs === rhs
-  }
-
-  public func hash(
-    into hasher: inout Hasher
-  ) {
-    // relaying on object reference
-    hasher.combine(ObjectIdentifier(self))
-  }
-}
-
-public typealias DisplayViewStateless = DisplayViewState<HashableVoid>
-
-extension DisplayViewStateless {
-
-  public static var stateless: Self {
-    .init(
-      stateSource: .fromSource(
-        read: { HashableVoid() },
-        write: { _ in }
-      )
     )
   }
 }

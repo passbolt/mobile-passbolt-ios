@@ -33,26 +33,34 @@ where Value: Equatable {
   private let write: @Sendable (Value) -> Void
   private let updated: @Sendable () -> Void
   private let updatesPublisher: AnyPublisher<Value, Never>
-  private let cancellables: Cancellables = .init()
+  private let cancellables: Cancellables
 
   public static func variable(
     initial: Value
   ) -> Self {
-    let valueSubject = CurrentValueSubject<Value, Never>(initial)
+    let cancellables: Cancellables = .init()
+    let state: CriticalState<Value> = .init(initial)
+    let updatesSubject: PassthroughSubject<Value, Never> = .init()
+    let updatesPublisher: AnyPublisher<Value, Never> =
+      updatesSubject
+      .removeDuplicates()
+      .eraseToAnyPublisher()
+    updatesPublisher
+      .sink { (newValue: Value) in
+        state.set(\.self, newValue)
+      }
+      .store(in: cancellables)
 
     return .init(
-      read: { valueSubject.value },
+      read: { state.get(\.self) },
       write: { (newValue: Value) in
-        valueSubject.value = newValue
+        updatesSubject.send(newValue)
       },
       updated: {
-        valueSubject.send(valueSubject.value)
+        updatesSubject.send(state.get(\.self))
       },
-      updatesPublisher:
-        valueSubject
-        .dropFirst()
-        .removeDuplicates()
-        .eraseToAnyPublisher()
+      updatesPublisher: updatesPublisher,
+      cancellables: cancellables
     )
   }
 
@@ -60,21 +68,28 @@ where Value: Equatable {
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void
   ) -> Self {
-    let valueSubject = PassthroughSubject<Value, Never>()
+    let cancellables: Cancellables = .init()
+    let updatesSubject: PassthroughSubject<Value, Never> = .init()
+    let updatesPublisher: AnyPublisher<Value, Never> =
+      updatesSubject
+      .removeDuplicates()
+      .eraseToAnyPublisher()
+    updatesPublisher
+      .sink { (newValue: Value) in
+        write(newValue)
+      }
+      .store(in: cancellables)
 
     return .init(
       read: read,
       write: { (newValue: Value) in
-        write(newValue)
-        valueSubject.send(newValue)
+        updatesSubject.send(newValue)
       },
       updated: {
-        valueSubject.send(read())
+        updatesSubject.send(read())
       },
-      updatesPublisher:
-        valueSubject
-        .removeDuplicates()
-        .eraseToAnyPublisher()
+      updatesPublisher: updatesPublisher,
+      cancellables: cancellables
     )
   }
 
@@ -82,12 +97,14 @@ where Value: Equatable {
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void,
     updated: @escaping @Sendable () -> Void,
-    updatesPublisher: AnyPublisher<Value, Never>
+    updatesPublisher: AnyPublisher<Value, Never>,
+    cancellables: Cancellables = .init()
   ) {
     self.read = read
     self.write = write
     self.updated = updated
     self.updatesPublisher = updatesPublisher
+    self.cancellables = cancellables
   }
 
   public var wrappedValue: Value {
@@ -154,7 +171,7 @@ extension StateBinding {
   public func bind<Property>(
     _ keyPath: KeyPath<Value, StateBinding<Property>>
   ) {
-    self.read()[keyPath: keyPath]
+    self.get(keyPath)
       .sink { (_: Property) in
         self.updated()
       }
@@ -164,7 +181,7 @@ extension StateBinding {
   public func bind<Property>(
     _ keyPath: KeyPath<Value, StateView<Property>>
   ) {
-    self.read()[keyPath: keyPath]
+    self.get(keyPath)
       .sink { (_: Property) in
         self.updated()
       }
@@ -175,11 +192,9 @@ extension StateBinding {
     _ keyPath: WritableKeyPath<Value, ScopedValue>
   ) -> StateBinding<ScopedValue> {
     StateBinding<ScopedValue>(
-      read: { self.read()[keyPath: keyPath] },
+      read: { self.get(keyPath) },
       write: { (newValue: ScopedValue) in
-        self.mutate { (value: inout Value) in
-          value[keyPath: keyPath] = newValue
-        }
+        self.set(keyPath, to: newValue)
       },
       updated: self.updated,
       updatesPublisher: self
@@ -194,7 +209,7 @@ extension StateBinding {
     _ keyPath: KeyPath<Value, ScopedValue>
   ) -> StateView<ScopedValue> {
     StateView<ScopedValue>(
-      read: { self.read()[keyPath: keyPath] },
+      read: { self.get(keyPath) },
       updatesPublisher: self
         .updatesPublisher
         .map(keyPath)
@@ -223,100 +238,12 @@ extension StateBinding {
     StateBinding<ConvertedValue>(
       read: { read(self.read()) },
       write: { (newValue: ConvertedValue) in
-        self.mutate { (value: inout Value) in
-          value = write(newValue)
-        }
+        self.write(write(newValue))
       },
       updated: self.updated,
       updatesPublisher: self
         .updatesPublisher
         .map(read)
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    )
-  }
-}
-
-extension StateBinding {
-
-  public static func combined<ValueA, ValueB>(
-    _ stateA: StateBinding<ValueA>,
-    _ stateB: StateBinding<ValueB>,
-    compose: @escaping @Sendable (ValueA, ValueB) -> Value,
-    decompose: @escaping @Sendable (Value) -> (ValueA, ValueB)
-  ) -> Self {
-    Self(
-      read: {
-        compose(
-          stateA.read(),
-          stateB.read()
-        )
-      },
-      write: { (newValue: Value) in
-        let (valueA, valueB) = decompose(newValue)
-        stateA.mutate { (value: inout ValueA) in
-          value = valueA
-        }
-        stateB.mutate { (value: inout ValueB) in
-          value = valueB
-        }
-      },
-      updated: {
-        stateA.updated()
-        stateB.updated()
-      },
-      updatesPublisher:
-        Publishers
-        .CombineLatest(
-          stateA.updatesPublisher,
-          stateB.updatesPublisher
-        )
-        .map(compose)
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    )
-  }
-
-  public static func combined<ValueA, ValueB, ValueC>(
-    _ stateA: StateBinding<ValueA>,
-    _ stateB: StateBinding<ValueB>,
-    _ stateC: StateBinding<ValueC>,
-    compose: @escaping @Sendable (ValueA, ValueB, ValueC) -> Value,
-    decompose: @escaping @Sendable (Value) -> (ValueA, ValueB, ValueC)
-  ) -> Self {
-    Self(
-      read: {
-        compose(
-          stateA.read(),
-          stateB.read(),
-          stateC.read()
-        )
-      },
-      write: { (newValue: Value) in
-        let (valueA, valueB, valueC) = decompose(newValue)
-        stateA.mutate { (value: inout ValueA) in
-          value = valueA
-        }
-        stateB.mutate { (value: inout ValueB) in
-          value = valueB
-        }
-        stateC.mutate { (value: inout ValueC) in
-          value = valueC
-        }
-      },
-      updated: {
-        stateA.updated()
-        stateB.updated()
-        stateC.updated()
-      },
-      updatesPublisher:
-        Publishers
-        .CombineLatest3(
-          stateA.updatesPublisher,
-          stateB.updatesPublisher,
-          stateC.updatesPublisher
-        )
-        .map(compose)
         .removeDuplicates()
         .eraseToAnyPublisher()
     )

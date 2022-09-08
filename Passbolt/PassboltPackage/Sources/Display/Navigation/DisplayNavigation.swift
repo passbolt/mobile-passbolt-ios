@@ -23,6 +23,7 @@
 
 import UIComponents  // LegacyBridge only
 
+@available(*, deprecated, message: "Please switch to `NavigationTree`")
 public struct DisplayNavigation {
 
   internal var legacyBridge: LegacyNavigationBridge
@@ -44,7 +45,7 @@ extension DisplayNavigation {
   @MainActor public func push<PushedView>(
     _ type: PushedView.Type,
     controller: PushedView.Controller
-  ) async where PushedView: DisplayView {
+  ) async where PushedView: ControlledView {
     await self.legacyBridge
       .bridgeComponent()?
       .push(
@@ -56,7 +57,7 @@ extension DisplayNavigation {
 
   @MainActor public func pop<PushedView>(
     if type: PushedView.Type
-  ) async where PushedView: DisplayView {
+  ) async where PushedView: ControlledView {
     await self.legacyBridge
       .bridgeComponent()?
       .pop(

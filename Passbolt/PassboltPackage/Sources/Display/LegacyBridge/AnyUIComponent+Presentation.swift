@@ -27,11 +27,12 @@ import UIComponents  // LegacyBridge only
 
 extension AnyUIComponent {
 
+  @available(*, deprecated, message: "Please switch to `NavigationTree`")
   @MainActor public func push<DisplayComponent>(
     _ type: DisplayComponent.Type,
     controller: DisplayComponent.Controller,
     animated: Bool = true
-  ) async where DisplayComponent: DisplayView {
+  ) async where DisplayComponent: ControlledView {
     await self.push(
       DisplayViewBridge<DisplayComponent>.self,
       in: controller,
@@ -39,10 +40,11 @@ extension AnyUIComponent {
     )
   }
 
+  @available(*, deprecated, message: "Please switch to `NavigationTree`")
   @MainActor public func pop<DisplayComponent>(
     if type: DisplayComponent.Type,
     animated: Bool = true
-  ) async where DisplayComponent: DisplayView {
+  ) async where DisplayComponent: ControlledView {
     await self.pop(
       if: DisplayViewBridge<DisplayComponent>.self,
       animated: animated

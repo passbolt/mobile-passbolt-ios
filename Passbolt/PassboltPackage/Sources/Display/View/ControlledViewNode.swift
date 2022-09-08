@@ -23,27 +23,7 @@
 
 import SwiftUI
 
-public struct LoaderNavigationNodeView: NavigationNodeView {
-
-  public static func instance() -> Self {
-    .init(controller: .init())
-  }
-
-  private let controller: EmptyController
-
-  public init(
-    controller: EmptyController
-  ) {
-    self.controller = controller
-  }
-
-  public var body: some View {
-    ProgressView()
-      .progressViewStyle(.circular)
-      .frame(
-        maxWidth: .infinity,
-        maxHeight: .infinity
-      )
-      .backgroundColor(.passboltBackground)
-  }
-}
+// refine protocol to distinct between
+// navigation nodes and regular views
+public protocol ControlledViewNode: ControlledView
+where Controller: ViewNodeController {}

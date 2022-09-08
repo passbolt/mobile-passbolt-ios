@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct HomePresentationMenuNodeView: NavigationNodeView {
+internal struct HomePresentationMenuNodeView: ControlledViewNode {
 
   private let controller: HomePresentationMenuNodeController
 
@@ -34,7 +34,7 @@ internal struct HomePresentationMenuNodeView: NavigationNodeView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       self.content(with: state)
     }
   }
@@ -43,9 +43,7 @@ internal struct HomePresentationMenuNodeView: NavigationNodeView {
     with state: ViewState
   ) -> some View {
     DrawerMenu(
-      closeTap: {
-        self.controller.dismissView()
-      },
+      closeTap: self.controller.action(\.dismissView),
       title: {
         Text(
           displayable: .localized(
@@ -67,7 +65,7 @@ internal struct HomePresentationMenuNodeView: NavigationNodeView {
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
-                self.controller.selectMode(mode)
+                self.controller.perform(\.selectMode, with: mode)
               },
               title: {
                 Text(displayable: mode.title)

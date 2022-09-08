@@ -21,31 +21,45 @@
 // @since         v1.0
 //
 
-import Display
-import SharedUIComponents
+import SwiftUI
 
-internal struct AutofillRootNavigationNodeView: ControlledViewNode {
+internal struct AnyViewNode: View {
 
-  internal typealias Controller = AutofillRootNavigationNodeController
+  private let view: AnyView
+  internal let nodeID: NavigationNodeID
 
-  private let controller: Controller
+  internal init<ErasedNodeView>(
+    erasing _: ErasedNodeView.Type,
+    with controller: ErasedNodeView.Controller
+  ) where ErasedNodeView: ControlledViewNode {
+    self.view = .init(
+      erasing: ErasedNodeView(
+        controller: controller
+      )
+    )
+    self.nodeID = controller.nodeID
+  }
 
-  internal init(
-    controller: Controller
-  ) {
-    self.controller = controller
+  internal init<Component>(
+    for legacyBridge: LegacyNavigationNodeBridgeView<Component>,
+    withID nodeID: NavigationNodeID
+  ) where Component: UIComponent {
+    let nodeID: NavigationNodeID = nodeID
+    self.view = .init(
+      erasing:
+        legacyBridge
+        .navigationViewStyle(.stack)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(legacyBridge.title)
+        .navigationBarItems(
+          trailing: legacyBridge.trailingBarButton
+        )
+    )
+    self.nodeID = nodeID
   }
 
   internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
-    .task(self.controller.actionAsync(\.activate))
+    self.view
+      .id(self.nodeID)
   }
 }

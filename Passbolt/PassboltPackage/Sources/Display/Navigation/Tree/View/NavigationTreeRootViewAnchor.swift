@@ -21,31 +21,11 @@
 // @since         v1.0
 //
 
-import Display
-import SharedUIComponents
+import UIKit
 
-internal struct AutofillRootNavigationNodeView: ControlledViewNode {
+public protocol NavigationTreeRootViewAnchor {
 
-  internal typealias Controller = AutofillRootNavigationNodeController
-
-  private let controller: Controller
-
-  internal init(
-    controller: Controller
-  ) {
-    self.controller = controller
-  }
-
-  internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
-    .task(self.controller.actionAsync(\.activate))
-  }
+  @MainActor func setRoot<RootView>(
+    _ view: RootView
+  ) where RootView: View
 }

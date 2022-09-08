@@ -30,13 +30,12 @@ import Users
 
 internal struct ResourceUserGroupsListDisplayController {
 
-  internal var viewState: DisplayViewState<ViewState>
-  internal var activate: @Sendable () async -> Void
-  internal var refresh: () async -> Void
-  internal var selectGroup: (UserGroup.ID) -> Void
+  @IID internal var id
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
 }
 
-extension ResourceUserGroupsListDisplayController: DisplayController {
+extension ResourceUserGroupsListDisplayController: ViewController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -52,13 +51,28 @@ extension ResourceUserGroupsListDisplayController: DisplayController {
     internal var userGroups: Array<ResourceUserGroupListItemDSV>
   }
 
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var activate: @Sendable () async -> Void
+    internal var refresh: @Sendable () async -> Void
+    internal var selectGroup: (UserGroup.ID) -> Void
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        activate: { unimplemented() },
+        refresh: { unimplemented() },
+        selectGroup: { _ in unimplemented() }
+      )
+    }
+    #endif
+  }
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      activate: { unimplemented() },
-      refresh: { unimplemented() },
-      selectGroup: { _ in unimplemented() }
+      viewActions: .placeholder
     )
   }
   #endif
@@ -82,7 +96,7 @@ extension ResourceUserGroupsListDisplayController {
         userGroups: .init()
       )
     )
-    let viewState: DisplayViewState<ViewState> = .init(
+    let viewState: ViewStateBinding<ViewState> = .init(
       stateSource: state
     )
 
@@ -112,7 +126,7 @@ extension ResourceUserGroupsListDisplayController {
       }
     }
 
-    nonisolated func refresh() async {
+    @Sendable nonisolated func refresh() async {
       do {
         try await sessionData.refreshIfNeeded()
       }
@@ -155,9 +169,11 @@ extension ResourceUserGroupsListDisplayController {
 
     return .init(
       viewState: viewState,
-      activate: activate,
-      refresh: refresh,
-      selectGroup: context.selectGroup
+      viewActions: .init(
+        activate: activate,
+        refresh: refresh,
+        selectGroup: context.selectGroup
+      )
     )
   }
 }

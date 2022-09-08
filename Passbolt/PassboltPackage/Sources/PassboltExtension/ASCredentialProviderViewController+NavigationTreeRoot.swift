@@ -25,7 +25,7 @@ import Display
 
 import class AuthenticationServices.ASCredentialProviderViewController
 
-extension ASCredentialProviderViewController: NavigationTreeRoot {
+extension ASCredentialProviderViewController: NavigationTreeRootViewAnchor {
 
   @MainActor public func setRoot<RootView>(
     _ view: RootView

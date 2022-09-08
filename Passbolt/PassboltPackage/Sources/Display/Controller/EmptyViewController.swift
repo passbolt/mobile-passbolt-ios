@@ -21,47 +21,27 @@
 // @since         v1.0
 //
 
-import Features
-import UIComponents
+public struct EmptyViewController: ContextlessViewNodeController {
 
-public protocol DisplayController: Hashable, LoadableFeature {
+  @IID public var id
+  @NavigationNodeID public var nodeID
+  @Stateless public var viewState
+  @Actionless public var viewActions
 
-  associatedtype ViewState: Hashable
+  public init() {}
 
-  var viewState: DisplayViewState<ViewState> { get }
-  var activate: @Sendable () async -> Void { get }
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init()
+  }
+  #endif
 }
 
-public protocol ContextlessDisplayController: DisplayController
-where Context == ContextlessFeatureContext {}
+extension AnyDisplayController {
 
-extension DisplayController /* Hashable */ {
-
-  public static func == (
-    _ lhs: Self,
-    _ rhs: Self
-  ) -> Bool {
-    // relaying on DisplayViewState equality
-    lhs.viewState == rhs.viewState
-  }
-
-  public func hash(
-    into hasher: inout Hasher
-  ) {
-    // relaying on DisplayViewState hash
-    hasher.combine(self.viewState)
-  }
-}
-
-extension DisplayController {
-
-  public var activate: @Sendable () async -> Void {
-    { /* NOP */  }
-  }
-
-  public func binding<Value>(
-    to keyPath: WritableKeyPath<ViewState, Value>
-  ) -> Binding<Value> {
-    self.viewState.binding(to: keyPath)
+  public static func empty() -> Self {
+    .init(
+      erasing: EmptyViewController()
+    )
   }
 }

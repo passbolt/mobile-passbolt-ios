@@ -21,61 +21,30 @@
 // @since         v1.0
 //
 
-public struct NavigationNodeID {
+@propertyWrapper
+public final class NavigationNodeID {
 
-  private let id: AnyHashable
+  public var wrappedValue: NavigationNodeID { self }
 
-  fileprivate init<Controller>(
-    _ controller: Controller
-  ) where Controller: NavigationNodeController {
-    self.id = ObjectIdentifier(controller.viewState)
-  }
-
-  fileprivate init<ViewState>(
-    _ viewState: DisplayViewState<ViewState>
-  ) where ViewState: Equatable {
-    self.id = ObjectIdentifier(viewState)
-  }
-
-  fileprivate init<Component>(
-    _ legacyBridge: LegacyNavigationNodeBridgeView<Component>
-  ) where Component: UIComponent {
-    self.id = ObjectIdentifier(legacyBridge.component)
-  }
-
-  fileprivate init<Component>(
-    _ legacyComponent: Component
-  ) where Component: UIComponent {
-    self.id = ObjectIdentifier(legacyComponent)
-  }
+  public init() {}
 }
 
-extension NavigationNodeID: Hashable {}
+extension NavigationNodeID: Sendable {}
 
-extension DisplayViewState {
+extension NavigationNodeID: Equatable {
 
-  public var navigationNodeID: NavigationNodeID {
-    .init(self)
+  public static func == (
+    _ lhs: NavigationNodeID,
+    _ rhs: NavigationNodeID
+  ) -> Bool {
+    lhs === rhs
   }
 }
+extension NavigationNodeID: Hashable {
 
-extension NavigationNodeController {
-
-  internal var navigationNodeID: NavigationNodeID {
-    .init(self)
-  }
-}
-
-extension UIComponent {
-
-  internal var navigationNodeID: NavigationNodeID {
-    .init(self)
-  }
-}
-
-extension LegacyNavigationNodeBridgeView {
-
-  internal var navigationNodeID: NavigationNodeID {
-    .init(self)
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(ObjectIdentifier(self))
   }
 }

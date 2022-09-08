@@ -30,14 +30,14 @@ import Users
 
 internal struct ResourceSearchDisplayController {
 
-  internal var viewState: DisplayViewState<ViewState>
+  @IID internal var id
+  @NavigationNodeID public var nodeID
+  internal var viewState: ViewStateBinding<ViewState>
+  internal var viewActions: ViewActions
   internal var searchText: StateView<String>
-  internal var activate: @Sendable () async -> Void
-  internal var showPresentationMenu: () -> Void
-  internal var signOut: () -> Void
 }
 
-extension ResourceSearchDisplayController: NavigationNodeController {
+extension ResourceSearchDisplayController: ViewNodeController {
 
   internal struct Context: LoadableFeatureContext {
     // feature is disposable, we don't care about ID
@@ -54,14 +54,29 @@ extension ResourceSearchDisplayController: NavigationNodeController {
     internal var searchText: String
   }
 
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var activate: @Sendable () async -> Void
+    internal var showPresentationMenu: () -> Void
+    internal var signOut: () -> Void
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        activate: { unimplemented() },
+        showPresentationMenu: { unimplemented() },
+        signOut: { unimplemented() }
+      )
+    }
+    #endif
+  }
+
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      searchText: .placeholder,
-      activate: { unimplemented() },
-      showPresentationMenu: { unimplemented() },
-      signOut: { unimplemented() }
+      viewActions: .placeholder,
+      searchText: .placeholder
     )
   }
   #endif
@@ -88,7 +103,7 @@ extension ResourceSearchDisplayController {
       )
     )
 
-    let viewState: DisplayViewState<ViewState> = .init(stateSource: state)
+    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
 
     @Sendable nonisolated func activate() async {
       asyncExecutor.schedule(.reuse) {
@@ -113,6 +128,7 @@ extension ResourceSearchDisplayController {
       asyncExecutor.schedule(.reuse) {
         do {
           try await navigationTree.present(
+            .sheet,
             HomePresentationMenuNodeView.self,
             controller: features.instance()
           )
@@ -137,10 +153,12 @@ extension ResourceSearchDisplayController {
 
     return .init(
       viewState: viewState,
-      searchText: state.scopeView(\.searchText),
-      activate: activate,
-      showPresentationMenu: showPresentationMenu,
-      signOut: signOut
+      viewActions: .init(
+        activate: activate,
+        showPresentationMenu: showPresentationMenu,
+        signOut: signOut
+      ),
+      searchText: state.scopeView(\.searchText)
     )
   }
 }

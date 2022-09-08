@@ -21,27 +21,29 @@
 // @since         v1.0
 //
 
-import Commons
 import SwiftUI
 
-public struct NavigationTreeRootView: View {
+public struct LoaderViewNode: ControlledViewNode {
 
-  private let navigationTree: NavigationTree
+  public static func instance() -> Self {
+    .init(controller: .init())
+  }
+
+  private let controller: EmptyViewController
 
   public init(
-    navigationTree: NavigationTree
+    controller: EmptyViewController
   ) {
-    self.navigationTree = navigationTree
+    self.controller = controller
   }
 
   public var body: some View {
-    WithDisplayViewState(self.navigationTree.state) { (state: NavigationTreeNode) in
-      NavigationTreeAnchorView(
-        node: state,
-        dismissNode: self.navigationTree
-          .dismiss(_:)
+    ProgressView()
+      .progressViewStyle(.circular)
+      .frame(
+        maxWidth: .infinity,
+        maxHeight: .infinity
       )
-    }
-    .environment(\.isInNavigationTreeContext, true)
+      .backgroundColor(.passboltBackground)
   }
 }

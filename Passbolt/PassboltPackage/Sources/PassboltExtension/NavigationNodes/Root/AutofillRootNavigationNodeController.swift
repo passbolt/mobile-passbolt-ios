@@ -28,17 +28,31 @@ import SharedUIComponents
 
 internal struct AutofillRootNavigationNodeController {
 
-  internal var viewState: DisplayViewStateless
-  internal var activate: @Sendable () async -> Void
+  @IID internal var id
+  @NavigationNodeID public var nodeID
+  @Stateless public var viewState
+  public var viewActions: ViewActions
 }
 
-extension AutofillRootNavigationNodeController: ContextlessNavigationNodeController {
+extension AutofillRootNavigationNodeController: ContextlessViewNodeController {
+
+  internal struct ViewActions: ViewControllerActions {
+
+    internal var activate: @Sendable () async -> Void
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      .init(
+        activate: { unimplemented() }
+      )
+    }
+    #endif
+  }
 
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewState: .placeholder,
-      activate: unimplemented()
+      viewActions: .placeholder
     )
   }
   #endif
@@ -191,8 +205,9 @@ extension AutofillRootNavigationNodeController {
     }
 
     return .init(
-      viewState: .stateless,
-      activate: activate
+      viewActions: .init(
+        activate: activate
+      )
     )
   }
 }

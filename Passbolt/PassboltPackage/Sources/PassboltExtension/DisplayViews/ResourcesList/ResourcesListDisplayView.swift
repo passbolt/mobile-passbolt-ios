@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourcesListDisplayView: DisplayView {
+internal struct ResourcesListDisplayView: ControlledView {
 
   private let controller: ResourcesListDisplayController
 
@@ -34,14 +34,14 @@ internal struct ResourcesListDisplayView: DisplayView {
   }
 
   internal var body: some View {
-    WithDisplayViewState(self.controller) { state in
+    WithViewState(self.controller) { state in
       ResourcesListView(
         suggestedResources: state.suggested,
         resources: state.resources,
-        refreshAction: self.controller.refresh,
-        createAction: self.controller.createResource,
-        resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.openResourceMenu
+        refreshAction: self.controller.actionAsync(\.refresh),
+        createAction: self.controller.actionOptional(\.createResource),
+        resourceTapAction: self.controller.action(\.selectResource),
+        resourceMenuAction: self.controller.actionOptional(\.openResourceMenu)
       )
     }
   }

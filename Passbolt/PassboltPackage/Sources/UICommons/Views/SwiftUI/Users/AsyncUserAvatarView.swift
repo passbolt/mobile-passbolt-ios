@@ -23,32 +23,45 @@
 
 import SwiftUI
 
-public struct InitializationNavigationNodeView: NavigationNodeView {
+public struct AsyncUserAvatarView: View {
 
-  public typealias Controller = EmptyController
-
-  internal static var erasedInstance: AnyNavigationNodeView = .init(
-    for: Self.self,
-    controller: .init()
-  )
-
-  private let controller: Controller
+  private let imageLoad: (() async -> Data?)?
+  @State var loadedImage: Image?
 
   public init(
-    controller: Controller
+    imageLoad: @escaping () async -> Data?
   ) {
-    self.controller = controller
+    self.imageLoad = imageLoad
   }
 
   public var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
+    AvatarView {
+      if let loadedImage: Image = self.loadedImage {
+        loadedImage
+          .resizable()
+      }
+      else {
+        Image(named: .person)
+          .resizable()
+          .task { @MainActor in
+            if case .none = self.loadedImage, let loadedImageData: Data = await self.imageLoad?() {
+              self.loadedImage = Image(data: loadedImageData) ?? Image(named: .person)
+            }
+            else {
+              self.loadedImage = Image(named: .person)
+            }
+          }
+      }
     }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
   }
 }
+
+#if DEBUG
+
+internal struct AsyncUserAvatarView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    AsyncUserAvatarView(imageLoad: { .none })
+  }
+}
+#endif

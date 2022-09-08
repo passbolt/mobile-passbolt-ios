@@ -26,6 +26,7 @@ import SwiftUI
 
 public struct ResourceTagsListView: View {
 
+  @State var id: IID = .init()
   private let tags: Array<ResourceTagListItemDSV>
   private let contentEmpty: Bool
   private let refreshAction: () async -> Void
@@ -67,5 +68,6 @@ public struct ResourceTagsListView: View {
     }
     .listStyle(.plain)
     .environment(\.defaultMinListRowHeight, 20)
+    .id(self.id)
   }
 }

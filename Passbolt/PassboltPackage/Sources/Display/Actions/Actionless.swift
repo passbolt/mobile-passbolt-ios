@@ -21,31 +21,19 @@
 // @since         v1.0
 //
 
-import Display
-import SharedUIComponents
+@propertyWrapper
+public struct Actionless {
 
-internal struct AutofillRootNavigationNodeView: ControlledViewNode {
-
-  internal typealias Controller = AutofillRootNavigationNodeController
-
-  private let controller: Controller
-
-  internal init(
-    controller: Controller
-  ) {
-    self.controller = controller
+  public var wrappedValue: Actionless {
+    fatalError("Actions are unavailable for actionless views/controllers")
   }
 
-  internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
-    }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
-    .backgroundColor(.passboltBackground)
-    .task(self.controller.actionAsync(\.activate))
-  }
+  public init() {}
+}
+
+extension Actionless: ViewControllerActions {
+
+  #if DEBUG
+  public static var placeholder: Self { .init() }
+  #endif
 }

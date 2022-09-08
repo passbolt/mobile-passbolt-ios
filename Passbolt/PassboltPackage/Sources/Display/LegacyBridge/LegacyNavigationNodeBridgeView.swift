@@ -25,6 +25,7 @@ import SwiftUI
 import UIComponents
 import UIKit
 
+@available(*, deprecated, message: "Please switch to `NavigationTree`")
 internal struct LegacyNavigationNodeBridgeView<Component>: UIViewControllerRepresentable
 where Component: UIComponent {
 

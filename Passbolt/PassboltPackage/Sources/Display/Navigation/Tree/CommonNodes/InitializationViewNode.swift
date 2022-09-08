@@ -23,14 +23,30 @@
 
 import SwiftUI
 
-public protocol DisplayView: View {
+public struct InitializationViewNode: ControlledViewNode {
 
-  associatedtype Controller: DisplayController
+  internal static var erasedInstance: AnyViewNode = .init(
+    erasing: Self.self,
+    with: .init()
+  )
 
-  init(controller: Controller)
-}
+  private let controller: EmptyViewController
 
-extension DisplayView {
+  public init(
+    controller: EmptyViewController
+  ) {
+    self.controller = controller
+  }
 
-  public typealias ViewState = Controller.ViewState
+  public var body: some View {
+    ZStack {
+      Image(named: .passboltLogo)
+    }
+    .ignoresSafeArea()
+    .frame(
+      maxWidth: .infinity,
+      maxHeight: .infinity
+    )
+    .backgroundColor(.passboltBackground)
+  }
 }

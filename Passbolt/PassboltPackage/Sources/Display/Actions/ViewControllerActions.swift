@@ -21,9 +21,19 @@
 // @since         v1.0
 //
 
-// refine protocol to distinct between
-// navigation nodes and regular controllers
-public protocol NavigationNodeController: DisplayController {}
+public protocol ViewControllerActions {
 
-public protocol ContextlessNavigationNodeController: NavigationNodeController
-where Context == ContextlessFeatureContext {}
+  // executed on view appear
+  var activate: @Sendable () async -> Void { get }
+
+  #if DEBUG
+  static var placeholder: Self { get }
+  #endif
+}
+
+extension ViewControllerActions {
+
+  public var activate: @Sendable () async -> Void {
+    { /* NOP */  }
+  }
+}

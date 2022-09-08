@@ -21,36 +21,14 @@
 // @since         v1.0
 //
 
-public struct EmptyController: ContextlessNavigationNodeController {
+@propertyWrapper
+public struct Stateless {
 
-  public typealias ViewState = HashableVoid
-
-  public var viewState: DisplayViewState<ViewState>
-
-  public init() {
-    self.init(viewState: .init(initial: .init()))
+  public var wrappedValue: ViewStateBinding<Never> {
+    fatalError("ViewState is unavailable for stateless views/controllers")
   }
 
-  private init(
-    viewState: DisplayViewState<ViewState>
-  ) {
-    self.viewState = viewState
-  }
-
-  #if DEBUG
-  public nonisolated static var placeholder: Self {
-    .init(
-      viewState: .placeholder
-    )
-  }
-  #endif
+  public init() {}
 }
 
-extension AnyDisplayController {
-
-  public static func empty() -> Self {
-    .init(
-      erasing: EmptyController()
-    )
-  }
-}
+extension Stateless: Hashable {}

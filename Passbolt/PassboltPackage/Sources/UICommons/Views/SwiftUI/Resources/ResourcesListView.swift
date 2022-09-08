@@ -26,10 +26,11 @@ import SwiftUI
 
 public struct ResourcesListView: View {
 
+  @State var id: IID = .init()
   private let suggestedResources: Array<ResourceListItemDSV>?
   private let resources: Array<ResourceListItemDSV>
   private let contentEmpty: Bool
-  private let refreshAction: () async -> Void
+  private let refreshAction: @Sendable () async -> Void
   private let createAction: (() -> Void)?
   private let resourceTapAction: (Resource.ID) -> Void
   private let resourceMenuAction: ((Resource.ID) -> Void)?
@@ -37,7 +38,7 @@ public struct ResourcesListView: View {
   public init(
     suggestedResources: Array<ResourceListItemDSV>?,
     resources: Array<ResourceListItemDSV>,
-    refreshAction: @escaping () async -> Void,
+    refreshAction: @escaping @Sendable () async -> Void,
     createAction: (() -> Void)?,
     resourceTapAction: @escaping (Resource.ID) -> Void,
     resourceMenuAction: ((Resource.ID) -> Void)?
@@ -91,5 +92,6 @@ public struct ResourcesListView: View {
     }
     .listStyle(.plain)
     .environment(\.defaultMinListRowHeight, 20)
+    .id(self.id)
   }
 }
