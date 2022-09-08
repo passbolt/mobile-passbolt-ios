@@ -302,10 +302,7 @@ let package = Package(
     ),
     .target(
       name: "Localization",
-      dependencies: [],
-      resources: [
-        .process("Localizable.strings")
-      ]
+      dependencies: []
     ),
     .target(
       name: "Features",
