@@ -89,6 +89,8 @@ extension SessionAuthorizationState: LoadableContextlessFeature {
 
 extension SessionAuthorizationState {
 
+  @TaskLocal private static var authorizationIID: IID? = .none
+
   @MainActor fileprivate static func load(
     features: FeatureFactory,
     cancellables: Cancellables
@@ -97,19 +99,21 @@ extension SessionAuthorizationState {
 
     let sessionState: SessionState = try await features.instance()
 
-    typealias OngoingAuthorization = (
-      account: Account,
-      task: Task<Void, Error>
-    )
+    enum PendingAuthorization {
+
+      case passphrase(Account)
+      case mfa(Account, Array<SessionMFAProvider>)
+      case passphraseAndMFA(Account, Array<SessionMFAProvider>)
+    }
+
+    struct OngoingAuthorization {
+
+      let iid: IID
+      let account: Account
+      let task: Task<Void, Error>
+    }
 
     struct State {
-
-      enum PendingAuthorization {
-
-        case passphrase(Account)
-        case mfa(Account, Array<SessionMFAProvider>)
-        case passphraseAndMFA(Account, Array<SessionMFAProvider>)
-      }
 
       var pendingAuthorization: PendingAuthorization?
       var ongoingAuthorization: OngoingAuthorization?
@@ -209,10 +213,15 @@ extension SessionAuthorizationState {
       _ request: SessionAuthorizationRequest
     ) async throws {
       if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
-        // wait for ongoing authorization to finish
-        await ongoingAuthorization.task
-          .waitForCompletion()
-      }  // else NOP
+        if ongoingAuthorization.iid == Self.$authorizationIID.get() {
+          return  // no need to wait, this is current authorization in progress
+        }
+        else {
+          // wait for ongoing authorization to finish
+          await ongoingAuthorization.task
+            .waitForCompletion()
+        }
+      }  // else continue
 
       guard request.account == sessionState.account()
       else {
@@ -397,40 +406,46 @@ extension SessionAuthorizationState {
       _ account: Account,
       _ authorization: @escaping @Sendable () async throws -> Void
     ) async throws {
-      if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
-        if ongoingAuthorization.account == account {
-          // wait for ongoing completion and continue
-          await ongoingAuthorization.task.waitForCompletion()
-        }
-        else {
-          // cancel ongoing and continue
-          ongoingAuthorization.task.cancel()
-        }
-      }  // else NOP
+      let authorizationIID: IID = .init()
 
-      let authorizationTask: Task<Void, Error> = .init { @SessionActor in
-        do {
-          try Task.checkCancellation()
-          try await authorization()
-          completeAuthorization(for: account)
-        }
-        catch {
-          completeAuthorization(
-            for: account,
-            withError: error
+      try await Self.$authorizationIID
+        .withValue(authorizationIID) {
+          if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
+            if ongoingAuthorization.account == account {
+              // wait for ongoing completion and continue
+              await ongoingAuthorization.task.waitForCompletion()
+            }
+            else {
+              // cancel ongoing and continue
+              ongoingAuthorization.task.cancel()
+            }
+          }  // else NOP
+
+          let authorizationTask: Task<Void, Error> = .init { @SessionActor in
+            do {
+              try Task.checkCancellation()
+              try await authorization()
+              completeAuthorization(for: account)
+            }
+            catch {
+              completeAuthorization(
+                for: account,
+                withError: error
+              )
+              throw error
+            }
+          }
+          state.set(
+            \.ongoingAuthorization,
+            .init(
+              iid: authorizationIID,
+              account: account,
+              task: authorizationTask
+            )
           )
-          throw error
-        }
-      }
-      state.set(
-        \.ongoingAuthorization,
-        (
-          account: account,
-          task: authorizationTask
-        )
-      )
 
-      try await authorizationTask.value
+          try await authorizationTask.value
+        }
     }
 
     @SessionActor @Sendable func cancelAuthorization() {

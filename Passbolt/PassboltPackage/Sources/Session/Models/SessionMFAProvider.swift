@@ -24,7 +24,7 @@
 public enum SessionMFAProvider: String {
 
   case totp = "totp"
-  case yubiKey = "yubiKey"
+  case yubiKey = "yubikey"
 }
 
 extension SessionMFAProvider: Equatable {}
