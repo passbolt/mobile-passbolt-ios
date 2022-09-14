@@ -67,8 +67,7 @@ extension FoldersExplorerController: ComponentController {
           title: .raw(folder.name),
           folderID: folder.id,
           folderShared: folder.shared,
-          // temporarily disable create in shared folders
-          canCreateResources: !folder.shared && folder.permissionType != .read  // write / owned
+          canCreateResources: folder.permissionType != .read  // write / owned
         )
       )
     }

@@ -45,6 +45,12 @@ public struct UsersPGPMessages {
       _ message: String
     ) async throws -> OrderedSet<EncryptedMessage>
 
+  public var encryptMessageForResourceFolderUsers:
+    @Sendable (
+      _ resourceFolderID: ResourceFolder.ID,
+      _ message: String
+    ) async throws -> OrderedSet<EncryptedMessage>
+
   public init(
     encryptMessageForUsers:
       @escaping @Sendable (
@@ -55,10 +61,16 @@ public struct UsersPGPMessages {
       @escaping @Sendable (
         _ resourceID: Resource.ID,
         _ message: String
+      ) async throws -> OrderedSet<EncryptedMessage>,
+    encryptMessageForResourceFolderUsers:
+      @escaping @Sendable (
+        _ resourceFolderID: ResourceFolder.ID,
+        _ message: String
       ) async throws -> OrderedSet<EncryptedMessage>
   ) {
     self.encryptMessageForUsers = encryptMessageForUsers
     self.encryptMessageForResourceUsers = encryptMessageForResourceUsers
+    self.encryptMessageForResourceFolderUsers = encryptMessageForResourceFolderUsers
   }
 }
 
@@ -69,7 +81,8 @@ extension UsersPGPMessages: LoadableContextlessFeature {
   public static var placeholder: Self {
     Self(
       encryptMessageForUsers: unimplemented(),
-      encryptMessageForResourceUsers: unimplemented()
+      encryptMessageForResourceUsers: unimplemented(),
+      encryptMessageForResourceFolderUsers: unimplemented()
     )
   }
   #endif

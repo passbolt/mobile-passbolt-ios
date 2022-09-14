@@ -50,6 +50,8 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     use(ResourceEditDetailsFetchDatabaseOperation.placeholder)
     use(ResourceEditNetworkOperation.placeholder)
     use(ResourceCreateNetworkOperation.placeholder)
+		use(ResourceShareNetworkOperation.placeholder)
+		use(ResourceFolderPermissionsFetchDatabaseOperation.placeholder)
   }
 
   override func cleanup() throws {

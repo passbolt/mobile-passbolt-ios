@@ -23,45 +23,45 @@
 
 import Commons
 
-public enum ResourceFolder {}
+public enum ResourceFolderPermissionDSV {
 
-extension ResourceFolder {
-
-  public typealias ID = Tagged<String, Self>
+  case user(
+    User.ID,
+    type: PermissionTypeDSV
+  )
+  case userGroup(
+    UserGroup.ID,
+    type: PermissionTypeDSV
+  )
 }
 
-extension ResourceFolder.ID {
-
-  internal static let validator: Validator<Self> = Validator<String>
-    .uuid()
-    .contraMap(\.rawValue)
-
-  public var isValid: Bool {
-    Self
-      .validator
-      .validate(self)
-      .isValid
-  }
-}
+extension ResourceFolderPermissionDSV: DSV {}
 
 #if DEBUG
 
-// cannot conform to RandomlyGenerated
-extension ResourceFolder.ID {
+extension ResourceFolderPermissionDSV: RandomlyGenerated {
 
   public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+    using randomnessGenerator: RandomnessGenerator
   ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
+    Generator<ResourceFolderPermissionDSV>
+      .any(
+        of: zip(
+          with: ResourceFolderPermissionDSV.user(_:type:),
+          User.ID
+            .randomGenerator(using: randomnessGenerator),
+          PermissionTypeDTO
+            .randomGenerator(using: randomnessGenerator)
+        ),
+        zip(
+          with: ResourceFolderPermissionDSV.userGroup(_:type:),
+          UserGroup.ID
+            .randomGenerator(using: randomnessGenerator),
+          PermissionTypeDTO
+            .randomGenerator(using: randomnessGenerator)
+        ),
+        using: randomnessGenerator
+      )
   }
-
-	public static func random(
-		using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-	) -> Self {
-		Self.randomGenerator(using: randomnessGenerator).next()
-	}
 }
 #endif

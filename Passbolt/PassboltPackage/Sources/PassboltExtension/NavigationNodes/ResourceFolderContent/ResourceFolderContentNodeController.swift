@@ -137,7 +137,7 @@ extension ResourceFolderContentNodeController {
           requestedServiceIdentifiers.matches(resource)
         },
         createFolder: .none,
-        createResource: context.folderDetails?.shared ?? false
+        createResource: context.folderDetails?.permissionType != .read // root or owned / write
           ? .none
           : createResource,
         selectFolder: selectFolder(_:),

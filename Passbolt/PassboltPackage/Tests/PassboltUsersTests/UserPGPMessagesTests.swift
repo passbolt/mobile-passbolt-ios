@@ -40,6 +40,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
     use(SessionCryptography.placeholder)
     use(UsersPublicKeysFetchDatabaseOperation.placeholder)
     use(ResourceUsersIDFetchDatabaseOperation.placeholder)
+		use(ResourceFolderUsersIDFetchDatabaseOperation.placeholder)
   }
 
   func test_encryptMessageForUser_fails_whenUserListIsEmpty() async throws {
@@ -251,4 +252,99 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
         .encryptMessageForResourceUsers(.random(), "message")
     }
   }
+
+	func test_encryptMessageForResourceFolderUsers_fails_whenResourceFolderUsersFetchFails() async throws {
+		patch(
+			\ResourceFolderUsersIDFetchDatabaseOperation.execute,
+			with: alwaysThrow(MockIssue.error())
+		)
+
+		let feature: UsersPGPMessages = try await self.testedInstance()
+
+		await XCTAssertError(
+			matches: MockIssue.self
+		) {
+			try await feature
+				.encryptMessageForResourceFolderUsers(.random(), "message")
+		}
+	}
+
+	func test_encryptMessageForResourceFolderUsers_fails_whenUserKeysFetchFails() async throws {
+		patch(
+			\ResourceFolderUsersIDFetchDatabaseOperation.execute,
+			with: always([.random()])
+		)
+		patch(
+			\UsersPublicKeysFetchDatabaseOperation.execute,
+			with: alwaysThrow(MockIssue.error())
+		)
+
+		let feature: UsersPGPMessages = try await self.testedInstance()
+
+		await XCTAssertError(
+			matches: MockIssue.self
+		) {
+			try await feature
+				.encryptMessageForResourceFolderUsers(.random(), "message")
+		}
+	}
+
+	func test_encryptMessageForResourceFolderUsers_fails_whenEncryptAndSignMessageFails() async throws {
+		let userID: User.ID = .random()
+		patch(
+			\ResourceFolderUsersIDFetchDatabaseOperation.execute,
+			with: always([userID])
+		)
+		patch(
+			\UsersPublicKeysFetchDatabaseOperation.execute,
+			with: always([.init(userID: userID, publicKey: "KEY")])
+		)
+		patch(
+			\SessionCryptography.encryptAndSignMessage,
+			with: alwaysThrow(
+				MockIssue.error()
+			)
+		)
+
+		let feature: UsersPGPMessages = try await self.testedInstance()
+
+		await XCTAssertError(
+			matches: MockIssue.self
+		) {
+			try await feature
+				.encryptMessageForResourceFolderUsers(.random(), "message")
+		}
+	}
+
+	func test_encryptMessageForResourceFolderUsers_succeeds_whenAllOperationsSucceed() async throws {
+		let userID: User.ID = .random()
+		patch(
+			\ResourceFolderUsersIDFetchDatabaseOperation.execute,
+			with: always([userID])
+		)
+		patch(
+			\UsersPublicKeysFetchDatabaseOperation.execute,
+			with: always([.init(userID: userID, publicKey: "KEY")])
+		)
+		patch(
+			\SessionCryptography.encryptAndSignMessage,
+			with: always(
+				"encrypted-message"
+			)
+		)
+
+		let feature: UsersPGPMessages = try await self.testedInstance()
+
+		await XCTAssertValue(
+			equal: [
+				.init(
+					recipient: userID,
+					message: "encrypted-message"
+				)
+			]
+		) {
+			try await feature
+				.encryptMessageForResourceFolderUsers(.random(), "message")
+		}
+	}
 }

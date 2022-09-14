@@ -46,7 +46,9 @@ extension ResourceEditForm {
       try await features.instance()
     let resourceEditNetworkOperation: ResourceEditNetworkOperation = try await features.instance()
     let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try await features.instance()
+    let resourceShareNetworkOperation: ResourceShareNetworkOperation = try await features.instance()
     let session: Session = try await features.instance()
+    let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation = try await features.instance()
 
     let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
     let resourceParentFolderIDSubject: CurrentValueSubject<ResourceFolder.ID?, Never> = .init(nil)
@@ -426,12 +428,9 @@ extension ResourceEditForm {
         }
         else {
           let account: Account = try await session.currentAccount()
-          let encryptedSecret: EncryptedMessage? =
-            try await usersPGPMessages
-            .encryptMessageForUsers([account.userID], encodedSecret)
-            .first
 
-          guard let encryptedSecret: EncryptedMessage = encryptedSecret
+          guard let ownEncryptedMessage: EncryptedMessage = try await usersPGPMessages.encryptMessageForUsers([account.userID], encodedSecret)
+            .first
           else {
             throw
               UserSecretMissing
@@ -446,10 +445,62 @@ extension ResourceEditForm {
               username: fieldValues[.username]?.stringValue,
               url: (fieldValues[.uri]?.stringValue).flatMap(URLString.init(rawValue:)),
               description: fieldValues[.description]?.stringValue,
-              secretData: encryptedSecret.message
+              secrets: [ownEncryptedMessage]
             )
           )
           .resourceID
+
+          if let folderID: ResourceFolder.ID = parentFolderID {
+            let encryptedSecrets: OrderedSet<EncryptedMessage> =
+            try await usersPGPMessages
+              .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
+              .filter { encryptedMessage in
+                encryptedMessage.recipient != account.userID
+              }
+							.asOrderedSet()
+
+            let folderPermissions: Array<ResourceFolderPermissionDSV> = try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+              .filter { permission in
+                switch permission {
+                case .user(account.userID, _):
+                  return false
+
+                case _:
+                  return true
+                }
+              }
+
+            try await resourceShareNetworkOperation(
+              .init(
+                resourceID: newResourceID,
+                body: .init(
+                  newPermissions: OrderedSet(
+                    folderPermissions
+                      .map { folderPermission -> NewPermissionDTO in
+                        switch folderPermission {
+                        case let .user(id, permissionType):
+                          return .userToFolder(
+                              userID: id,
+                              folderID: folderID,
+                              type: permissionType
+                            )
+
+                        case let .userGroup(id, permissionType):
+                          return .userGroupToFolder(
+                              userGroupID: id,
+                              folderID: folderID,
+                              type: permissionType
+                            )
+                        }
+                      }
+                  ),
+                  updatedPermissions: .init(),
+                  deletedPermissions: .init(),
+                  newSecrets: encryptedSecrets
+                )
+              )
+            )
+          } // else continue without sharing
 
           return newResourceID
         }

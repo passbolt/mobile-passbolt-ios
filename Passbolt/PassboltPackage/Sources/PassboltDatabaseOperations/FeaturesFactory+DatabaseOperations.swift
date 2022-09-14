@@ -52,5 +52,7 @@ extension FeatureFactory {
     self.usePassboltUsersListFetchDatabaseOperation()
     self.usePassboltUsersPublicKeysFetchDatabaseOperation()
     self.usePassboltResourceTagDetailsFetchDatabaseOperation()
+    self.usePassboltResourceFolderUsersIDFetchDatabaseOperation()
+    self.usePassboltResourceFolderPermissionsFetchDatabaseOperation()
   }
 }

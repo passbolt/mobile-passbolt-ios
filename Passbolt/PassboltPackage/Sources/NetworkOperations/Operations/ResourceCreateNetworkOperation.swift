@@ -40,7 +40,14 @@ public struct ResourceCreateNetworkOperationVariable: Encodable {
 
   public struct Secret: Encodable {
 
+    public var userID: User.ID
     public var data: ArmoredPGPMessage
+
+    public enum CodingKeys: String, CodingKey {
+
+      case userID = "user_id"
+      case data = "data"
+    }
   }
 
   public init(
@@ -50,7 +57,7 @@ public struct ResourceCreateNetworkOperationVariable: Encodable {
     username: String?,
     url: URLString?,
     description: String?,
-    secretData: ArmoredPGPMessage
+    secrets: OrderedSet<EncryptedMessage>
   ) {
     self.resourceTypeID = resourceTypeID
     self.parentFolderID = parentFolderID
@@ -58,7 +65,7 @@ public struct ResourceCreateNetworkOperationVariable: Encodable {
     self.username = username
     self.url = url
     self.description = description
-    self.secrets = [Secret(data: secretData)]
+    self.secrets = secrets.map { Secret(userID: $0.recipient, data: $0.message) }
   }
 
   public enum CodingKeys: String, CodingKey {
