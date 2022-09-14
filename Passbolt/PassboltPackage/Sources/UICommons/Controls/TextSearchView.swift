@@ -53,13 +53,17 @@ public final class TextSearchView: PlainView {
     mut(clearTextButton) {
       .combined(
         .action { [unowned textField] in
-          mut(textField) {
-            .combined(
-              .set(\.rightView, to: rightAccesoryView),
-              .text("")
-            )
+          if !textField.isEditing {
+            textField.rightView = rightAccesoryView
+          }  // else NOP
+
+          if textField.text?.isEmpty ?? true {
+            self.endEditing(true)
           }
-          textSubject.send("")
+          else {
+            textField.text = ""
+            textSubject.send("")
+          }
         },
         .tintColor(dynamic: .primaryText),
         .image(named: .close, from: .uiCommons),
@@ -85,7 +89,7 @@ public final class TextSearchView: PlainView {
               mut(textField) {
                 .combined(
                   .set(\.leftView, to: searchIconView as UIView?),
-                  .set(\.rightView, to: rightAccesoryView)
+                  .set(\.rightView, to: clearTextButton)
                 )
               }
             }

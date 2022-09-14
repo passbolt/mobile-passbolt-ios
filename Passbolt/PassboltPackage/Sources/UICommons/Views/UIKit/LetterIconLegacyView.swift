@@ -24,7 +24,7 @@
 import SwiftUI
 import UIKit
 
-public final class LetterIconView: PlainView {
+public final class LetterIconLegacyView: PlainView {
 
   private let label: Label = .init()
 
@@ -103,21 +103,3 @@ private let colors: Array<UIColor> = [
   .init(0xa1887f),
   .init(0x90a4ae),
 ]
-
-extension LetterIconView: UIViewRepresentable {
-
-  public typealias UIViewType = LetterIconView
-
-  public func makeUIView(
-    context: Context
-  ) -> Self {
-    self
-  }
-
-  public func updateUIView(
-    _ uiView: LetterIconView,
-    context: Context
-  ) {
-    // NOP
-  }
-}

@@ -21,6 +21,20 @@
 // @since         v1.0
 //
 
-@_exported import OrderedCollections
-@_exported import Combine
-@_exported import Localization
+import SwiftUI
+
+extension Color {
+
+  public init(
+    _ rgb: Int32
+  ) {
+    let red: Int32 = (rgb >> 16) & 0xFF
+    let green: Int32 = (rgb >> 8) & 0xFF
+    let blue: Int32 = rgb & 0xFF
+    self.init(
+      red: CGFloat(red) / 255.0,
+      green: CGFloat(green) / 255.0,
+      blue: CGFloat(blue) / 255.0
+    )
+  }
+}

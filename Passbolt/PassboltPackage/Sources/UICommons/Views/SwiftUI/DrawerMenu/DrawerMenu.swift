@@ -82,7 +82,6 @@ where TitleView: View, ContentView: View {
       }
     }
     .backgroundColor(.passboltBackground)
-    .ignoresSafeArea()
   }
 }
 

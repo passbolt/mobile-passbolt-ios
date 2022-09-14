@@ -74,10 +74,6 @@ let package = Package(
     ),
     // MARK: - Vendor
     .library(
-      name: "Gopenpgp",
-      targets: ["Gopenpgp"]
-    ),
-    .library(
       name: "SQLCipher",
       type: .static,
       targets: ["SQLCipher"]
@@ -292,7 +288,7 @@ let package = Package(
         "Localization",
         // External
         .product(
-          name: "Collections",
+          name: "OrderedCollections",
           package: "swift-collections"
         ),
       ]

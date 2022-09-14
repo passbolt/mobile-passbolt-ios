@@ -51,9 +51,26 @@ internal struct AnyViewNode: View {
         .navigationViewStyle(.stack)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(legacyBridge.title)
-        .navigationBarItems(
-          trailing: legacyBridge.trailingBarButton
-        )
+        .toolbar {
+          ToolbarItem(placement: .principal) {
+            Text(legacyBridge.title)
+              .font(
+                .inter(
+                  ofSize: 16,
+                  weight: .semibold
+                )
+              )
+              .foregroundColor(.passboltPrimaryText)
+              .frame(
+                maxWidth: .infinity,
+                alignment: .center
+              )
+          }
+          ToolbarItem(placement: .navigationBarTrailing) {
+            legacyBridge.trailingBarButton
+              .frame(maxWidth: 60, alignment: .trailing)
+          }
+        }
     )
     self.nodeID = nodeID
   }

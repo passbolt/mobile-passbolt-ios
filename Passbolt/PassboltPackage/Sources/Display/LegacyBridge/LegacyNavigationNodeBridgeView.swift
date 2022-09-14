@@ -77,6 +77,7 @@ where Component: UIComponent {
           }
         }
       )
+      .foregroundColor(.passboltPrimaryText)
     }
     else {
       EmptyView()

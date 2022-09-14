@@ -34,7 +34,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     copyFieldNameTapSubject.eraseToAnyPublisher()
   }
 
-  private let iconView: LetterIconView = .init()
+  private let iconView: LetterIconLegacyView = .init()
   private let titleLabel: Label = .init()
   private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()
   private let copyFieldNameTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()

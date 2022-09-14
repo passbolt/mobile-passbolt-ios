@@ -61,6 +61,15 @@ public final class ResourceEditViewController: PlainViewController, UIComponent 
   private let showErrorSubject: PassthroughSubject<Void, Never> = .init()
 
   public func setup() {
+    self.title =
+      controller.createsNewResource
+      ? DisplayableString
+        .localized(key: "resource.edit.create.title")
+        .string()
+      : DisplayableString
+        .localized(key: "resource.edit.title")
+        .string()
+
     mut(navigationItem) {
       .when(
         controller.createsNewResource,

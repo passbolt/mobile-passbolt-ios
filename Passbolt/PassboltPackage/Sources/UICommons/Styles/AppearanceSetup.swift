@@ -37,19 +37,21 @@ import AegithalosCocoa
       named: ImageNameConstant.arrowLeft.rawValue,
       in: .uiCommons,
       with: nil
-    ),
+    )?
+    .withTintColor(.passboltPrimaryButtonTint),
     transitionMaskImage: UIImage(
       named: ImageNameConstant.arrowLeft.rawValue,
       in: .uiCommons,
       with: nil
-    )
+    )?
+    .withTintColor(.passboltPrimaryButtonTint)
   )
   appearance.titleTextAttributes = [
     .foregroundColor: UIColor.passboltPrimaryText,
     .font: UIFont.inter(ofSize: 16, weight: .semibold),
   ]
   UINavigationBar.appearance().tintColor = .passboltPrimaryButtonTint
-  UINavigationBar.appearance().barTintColor = .clear
+  UINavigationBar.appearance().barTintColor = .passboltPrimaryButtonTint
   UINavigationBar.appearance().standardAppearance = appearance
   UINavigationBar.appearance().compactAppearance = appearance
   UINavigationBar.appearance().scrollEdgeAppearance = appearance

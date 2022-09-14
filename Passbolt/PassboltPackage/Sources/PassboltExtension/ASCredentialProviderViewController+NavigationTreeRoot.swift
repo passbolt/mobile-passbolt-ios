@@ -32,6 +32,8 @@ extension ASCredentialProviderViewController: NavigationTreeRootViewAnchor {
   ) where RootView: View {
     let viewController: UIHostingController<RootView> = .init(rootView: view)
 
+    viewController.view.tintColor = .passboltPrimaryText
+
     self.children.forEach {
       $0.willMove(toParent: .none)
       $0.view.removeFromSuperview()

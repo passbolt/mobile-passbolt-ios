@@ -26,7 +26,7 @@ import UICommons
 
 internal final class ResourcesListResourceCell: CollectionViewCell {
 
-  private let iconView: LetterIconView = .init()
+  private let iconView: LetterIconLegacyView = .init()
   private let titleLabel: Label = .init()
   private let subtitleLabel: Label = .init()
   private var tapAction: (() -> Void)?
