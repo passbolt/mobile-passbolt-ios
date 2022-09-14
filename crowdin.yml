@@ -1,4 +1,6 @@
 files:
   - source: Passbolt/PassboltPackage/Sources/Localization/Localizable.strings
     translation: /Passbolt/Passbolt/%two_letters_code%.lproj/Localizable.strings
+  - source: Passbolt/Passbolt/en.lproj/InfoPlist.strings
+    translation: /Passbolt/Passbolt/%two_letters_code%.lproj/%original_file_name%
 commit_message: '[skip-ci]'
