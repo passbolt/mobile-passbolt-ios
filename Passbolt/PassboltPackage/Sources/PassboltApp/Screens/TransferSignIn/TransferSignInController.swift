@@ -152,9 +152,7 @@ extension TransferSignInController: UIController {
       passphraseSubject
         .map(Passphrase.init(rawValue:))
         .eraseErrorType()
-        .asyncMap {
-          await accountTransfer.completeTransfer($0)
-        }
+        .map(accountTransfer.completeTransfer)
         .switchToLatest()
         .ignoreOutput()
         .eraseToAnyPublisher()

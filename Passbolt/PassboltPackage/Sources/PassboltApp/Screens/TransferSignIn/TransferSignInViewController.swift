@@ -232,6 +232,9 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                       hideAfter: 5
                     )
                   }
+                  else if theError is SessionMFAAuthorizationRequired {
+                    // ignore, handled by window controller
+                  }
                   else {
                     self?.presentErrorSnackbar(theError.displayableMessage)
                   }

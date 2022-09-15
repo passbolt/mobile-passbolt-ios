@@ -213,8 +213,30 @@ extension SessionAuthorizationState {
       _ request: SessionAuthorizationRequest
     ) async throws {
       if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
-        if ongoingAuthorization.iid == Self.$authorizationIID.get() {
-          return  // no need to wait, this is current authorization in progress
+        // MFA authorization requires a valid session token
+        // which forces it to go through this function.
+        // In order to prevent infinite waiting we are skipping
+        // wait in that case and allow it to exit early but
+        // we have to request passphrase if that is actually needed.
+        if ongoingAuthorization.iid == Self.authorizationIID {
+          guard request.account == sessionState.account()
+          else {
+            throw
+              SessionClosed
+              .error(account: request.account)
+          }
+
+          if // check conditions only for MFA
+            case .passphrase = request,
+            case .none = sessionState.passphrase(),
+            case .mfa = state.get(\.pendingAuthorization)
+          {
+            // request authorization if passphrase missing
+            try requestAuthorization(request)
+          }
+          else {
+            return  // no need to request or wait
+          }
         }
         else {
           // wait for ongoing authorization to finish

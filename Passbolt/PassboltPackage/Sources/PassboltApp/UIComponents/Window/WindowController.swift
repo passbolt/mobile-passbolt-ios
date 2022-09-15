@@ -29,7 +29,7 @@ import UIComponents
 
 internal struct WindowController {
 
-  internal var screenStateDispositionPublisher: @MainActor () -> AnyPublisher<ScreenStateDisposition, Never>
+  internal var screenStateDispositionSequence: @MainActor () -> AnyAsyncSequence<ScreenStateDisposition>
 }
 
 extension WindowController {
@@ -66,65 +66,55 @@ extension WindowController: UIController {
     else {
       initialAccount = .none
     }
-    let screenStateDispositionSubject: CurrentValueSubject<ScreenStateDisposition, Never> = .init(
+    let lastDisposition: CriticalState<ScreenStateDisposition> = .init(
       .useInitialScreenState(for: initialAccount)
     )
 
-    session
-      .updatesSequence
-      .dropFirst()  // we have predefined initial state
-      .compactMap { () -> ScreenStateDisposition? in
-        async let currentAccount: Account? = session.currentAccount()
-        async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
+    func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
+      merge(
+        AnyAsyncSequence([lastDisposition.get(\.self)]),
+        session
+          .updatesSequence
+          .dropFirst()  // we have predefined initial state
+          .compactMap { () -> ScreenStateDisposition? in
+            async let currentAccount: Account? = session.currentAccount()
+            async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
 
-        switch (try? await currentAccount, await currentAuthorizationRequest, screenStateDispositionSubject.value) {
+            switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get(\.self)) {
 
-        case  // fully authorized after prompting
-        let (.some(account), .none, .requestPassphrase),
-          let (.some(account), .none, .requestMFA):
-          return .useCachedScreenState(for: account)
+            case  // fully authorized after prompting
+            let (.some(account), .none, .requestPassphrase),
+              let (.some(account), .none, .requestMFA):
+              return .useCachedScreenState(for: account)
 
-        case  // fully authorized initially
-        let (.some(account), .none, .useCachedScreenState),
-          let (.some(account), .none, .useInitialScreenState):
-          if await features.isLoaded(AccountTransfer.self) {
-            // Ignoring during new account setup.
-            return .none
+            case  // fully authorized initially
+            let (.some(account), .none, .useCachedScreenState),
+              let (.some(account), .none, .useInitialScreenState):
+              return .useInitialScreenState(for: account)
+
+            case  // passphrase required
+            let (_, .passphrase(account), _):
+              return .requestPassphrase(account, message: .none)
+
+            case  // mfa required
+            let (_, .mfa(account, providers), _):
+              return .requestMFA(account, providers: providers)
+
+            case  // signed out
+            (.none, .none, _):
+              return .useInitialScreenState(for: .none)
+            }
           }
-          else {
-            return .useInitialScreenState(for: account)
-          }
-
-        case  // passphrase required
-        let (_, .passphrase(account), _):
-          return .requestPassphrase(account, message: .none)
-
-        case  // mfa required
-        let (_, .mfa(account, providers), _):
-          if await features.isLoaded(AccountTransfer.self) {
-            // Ignoring during new account setup.
-            return .none
-          }
-          else {
-            return .requestMFA(account, providers: providers)
-          }
-
-        case  // signed out
-        (.none, .none, _):
-          return .useInitialScreenState(for: .none)
-        }
+      )
+      .map { (disposition: ScreenStateDisposition) -> ScreenStateDisposition in
+        lastDisposition.set(\.self, disposition)
+        return disposition
       }
-      .asPublisher()
-      .subscribe(screenStateDispositionSubject)
-      .store(in: cancellables)
-
-    func screenStateDispositionPublisher() -> AnyPublisher<ScreenStateDisposition, Never> {
-      screenStateDispositionSubject
-        .eraseToAnyPublisher()
+      .asAnyAsyncSequence()
     }
 
     return Self(
-      screenStateDispositionPublisher: screenStateDispositionPublisher
+      screenStateDispositionSequence: screenStateDispositionSequence
     )
   }
 }

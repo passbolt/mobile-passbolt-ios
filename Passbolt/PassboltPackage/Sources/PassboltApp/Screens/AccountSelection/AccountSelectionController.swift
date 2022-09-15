@@ -60,53 +60,51 @@ extension AccountSelectionController: UIController {
     let accounts: Accounts = try await features.instance()
     let session: Session = try await features.instance()
 
-    var initialAccountsWithProfiles: Array<AccountWithProfile> = .init()
-    for account in accounts.storedAccounts() {
-      let accountDetails: AccountDetails = try await features.instance(context: account)
-      try initialAccountsWithProfiles.append(accountDetails.profile())
-    }
-    let storedAccountsWithProfilesSubject: CurrentValueSubject<Array<AccountWithProfile>, Never> = .init(
-      initialAccountsWithProfiles
-    )
-
     let listModeSubject: CurrentValueSubject<AccountSelectionListMode, Never> = .init(.selection)
     let removeAccountAlertPresentationSubject: PassthroughSubject<Void, Never> = .init()
     let addAccountPresentationSubject: PassthroughSubject<Bool, Never> = .init()
 
     func accountsPublisher() -> AnyPublisher<Array<AccountSelectionListItem>, Never> {
-      listModeSubject
-        .map { mode in
-          accounts
-            .updates
-            .map { () -> Array<AccountSelectionListItem> in
-              let currentAccount: Account? = try? await session.currentAccount()
-              var listItems: Array<AccountSelectionListItem> = .init()
-              for storedAccount in accounts.storedAccounts() {
-                let accountDetails: AccountDetails = try await features.instance(context: storedAccount)
-                let accountWithProfile: AccountWithProfile = try accountDetails.profile()
+      accounts
+        .updates
+        .map { () -> Array<AccountSelectionListItem> in
+          let currentAccount: Account? = try? await session.currentAccount()
+          var listItems: Array<AccountSelectionListItem> = .init()
+          for storedAccount in accounts.storedAccounts() {
+            let accountDetails: AccountDetails = try await features.instance(context: storedAccount)
+            let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
-                let item: AccountSelectionCellItem = AccountSelectionCellItem(
-                  account: accountWithProfile.account,
-                  title: accountWithProfile.label,
-                  subtitle: accountWithProfile.username,
-                  isCurrentAccount: storedAccount == currentAccount,
-                  imagePublisher:
-                    Just(Void())
-                    .asyncMap {
-                      try? await accountDetails.avatarImage()
-                    }
-                    .eraseToAnyPublisher(),
-                  listModePublisher: listModeSubject.eraseToAnyPublisher()
-                )
+            let item: AccountSelectionCellItem = AccountSelectionCellItem(
+              account: accountWithProfile.account,
+              title: accountWithProfile.label,
+              subtitle: accountWithProfile.username,
+              isCurrentAccount: storedAccount == currentAccount,
+              imagePublisher:
+                Just(Void())
+                .asyncMap {
+                  try? await accountDetails.avatarImage()
+                }
+                .eraseToAnyPublisher(),
+              listModePublisher: listModeSubject.eraseToAnyPublisher()
+            )
 
-                listItems.append(.account(item))
-              }
+            listItems.append(.account(item))
+          }
+          return listItems
+        }
+        .asPublisher()
+        .map { (listItems: Array<AccountSelectionListItem>) in
+          listModeSubject
+            .map { (mode: AccountSelectionListMode) -> Array<AccountSelectionListItem> in
               if mode == .selection && !listItems.isEmpty {
+                var listItems: Array<AccountSelectionListItem> = listItems
                 listItems.append(.addAccount(.default))
-              }  // else NOP
-              return listItems
-            }
-            .asPublisher()
+                return listItems
+              }
+              else {
+                return listItems
+              }
+          }
         }
         .switchToLatest()
         .eraseToAnyPublisher()
