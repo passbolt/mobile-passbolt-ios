@@ -79,6 +79,7 @@ public struct ResourceFoldersListSectionView: View {
         }
       }
       .listSectionSeparator(.hidden)
+      .backgroundColor(.passboltBackground)
     }  // else there is no section
   }
 }

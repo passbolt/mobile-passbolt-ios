@@ -42,6 +42,7 @@ public struct NavigationTreeRootView: View {
           .dismiss(_:)
       )
     }
+    .backgroundColor(.passboltBackground)
     .environment(\.isInNavigationTreeContext, true)
   }
 }

@@ -75,5 +75,6 @@ public struct EmptyListView: View {
     )
     .listRowSeparator(.hidden)
     .listRowInsets(EdgeInsets())
+    .backgroundColor(.passboltBackground)
   }
 }

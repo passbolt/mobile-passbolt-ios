@@ -97,6 +97,7 @@ public struct ResourcesListSectionView: View {
         }
       }
       .listSectionSeparator(.hidden)
+      .backgroundColor(.passboltBackground)
     }  // else there is no section
   }
 }

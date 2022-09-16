@@ -261,6 +261,8 @@ internal struct FoldersExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
+
     Section {
       ForEach(
         self.state.directResources,
@@ -287,6 +289,7 @@ internal struct FoldersExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
   }
 
   @ViewBuilder private var nestedListContent: some View {
@@ -306,6 +309,8 @@ internal struct FoldersExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
+
     Section {
       ForEach(
         self.state.nestedResources,
@@ -332,6 +337,7 @@ internal struct FoldersExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
   }
 }
 

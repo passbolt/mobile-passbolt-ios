@@ -168,6 +168,7 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
   }
 
   @ViewBuilder private var resourcesListContent: some View {
@@ -197,6 +198,7 @@ internal struct ResourceUserGroupsExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
   }
 }
 

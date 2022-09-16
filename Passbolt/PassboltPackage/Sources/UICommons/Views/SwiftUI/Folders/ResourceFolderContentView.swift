@@ -132,7 +132,7 @@ public struct ResourceFolderContentView: View {
           .frame(height: 24)
           .listRowSeparator(.hidden)
           .listRowInsets(EdgeInsets())
-          .buttonStyle(.plain)
+          .backgroundColor(.passboltBackground)
 
           ResourceFoldersListSectionView(
             folders: self.directFolders,
@@ -168,7 +168,7 @@ public struct ResourceFolderContentView: View {
             .frame(height: 24)
             .listRowSeparator(.hidden)
             .listRowInsets(EdgeInsets())
-            .buttonStyle(.plain)
+            .backgroundColor(.passboltBackground)
 
           ResourceFoldersListSectionView(
             folders: self.nestedFolders,
@@ -206,7 +206,7 @@ public struct ResourceFolderContentView: View {
           .frame(height: 24)
           .listRowSeparator(.hidden)
           .listRowInsets(EdgeInsets())
-          .buttonStyle(.plain)
+          .backgroundColor(.passboltBackground)
 
         ResourceFoldersListSectionView(
           folders: self.directFolders,

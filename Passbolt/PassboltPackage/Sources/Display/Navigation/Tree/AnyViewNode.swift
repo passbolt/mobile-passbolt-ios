@@ -71,6 +71,7 @@ internal struct AnyViewNode: View {
               .frame(maxWidth: 60, alignment: .trailing)
           }
         }
+        .backgroundColor(.passboltBackground)
     )
     self.nodeID = nodeID
   }

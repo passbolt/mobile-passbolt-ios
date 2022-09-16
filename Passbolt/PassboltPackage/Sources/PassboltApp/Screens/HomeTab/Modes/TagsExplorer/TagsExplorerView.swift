@@ -175,6 +175,7 @@ internal struct TagsExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
   }
 
   @ViewBuilder private var resourcesListContent: some View {
@@ -204,6 +205,7 @@ internal struct TagsExplorerView: ComponentView {
       }
     }
     .listSectionSeparator(.hidden)
+    .backgroundColor(.passboltBackground)
   }
 }
 

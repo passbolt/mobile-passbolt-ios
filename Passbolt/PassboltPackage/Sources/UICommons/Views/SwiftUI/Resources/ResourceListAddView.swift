@@ -53,6 +53,7 @@ public struct ResourceListAddView: View {
       },
       rightAccessory: EmptyView.init
     )
+    .backgroundColor(.passboltBackground)
   }
 }
 

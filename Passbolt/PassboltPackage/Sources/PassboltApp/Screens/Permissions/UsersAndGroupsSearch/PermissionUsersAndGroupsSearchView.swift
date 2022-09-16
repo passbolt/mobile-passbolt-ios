@@ -137,6 +137,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
             }
           }
           .listSectionSeparator(.hidden)
+          .backgroundColor(.passboltBackground)
 
           if !self.state.listExistingRowViewModels.isEmpty {
             Section {
@@ -191,6 +192,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
               }
             }
             .listSectionSeparator(.hidden)
+            .backgroundColor(.passboltBackground)
           }  // else NOP
         }
         .listStyle(.plain)
