@@ -74,7 +74,11 @@ public struct OverlappingAvatarStackView: View {
           }
         }
 
-        return (itemsCount, reminderCount, spacing)
+        return (
+          max(0, itemsCount),
+          max(0, reminderCount),
+          spacing
+        )
       }()
 
       HStack(spacing: spacing) {
