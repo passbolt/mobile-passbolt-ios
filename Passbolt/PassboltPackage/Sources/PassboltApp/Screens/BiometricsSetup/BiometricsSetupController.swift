@@ -50,6 +50,8 @@ extension BiometricsSetupController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
+    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
     let autoFill: AutoFill = try await features.instance()
     let diagnostics: Diagnostics = features.instance()
     let session: Session = try await features.instance()
@@ -67,7 +69,8 @@ extension BiometricsSetupController: UIController {
     }
 
     func setupBiometrics() -> AnyPublisher<Never, Error> {
-      Just(Void())
+      accountInitialSetup.completeSetup(.biometrics)
+      return Just(Void())
         .eraseErrorType()
         .asyncMap {
           try await accountPreferences.storePassphrase(true)
@@ -88,6 +91,7 @@ extension BiometricsSetupController: UIController {
     }
 
     func skipSetup() {
+      accountInitialSetup.completeSetup(.biometrics)
       autoFill
         .extensionEnabledStatePublisher()
         .first()

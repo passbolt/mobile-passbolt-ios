@@ -56,9 +56,10 @@ extension AttributedString {
     color: DynamicColor
   ) -> Self {
     let string: String = displayableString.string()
-    let boldSubstring: String = boldDisplayableString.string()
+    let boldSubstring: String = boldDisplayableString
+      .string()
 
-    guard let substringRange = string.range(of: boldSubstring)
+    guard let substringRange = string.range(of: boldSubstring, options: .caseInsensitive, locale: .autoupdatingCurrent)
     else {
       assertionFailure("Invalid localized substring: \(boldDisplayableString) for: \(displayableString)")
       return .string(

@@ -21,16 +21,27 @@
 // @since         v1.0
 //
 
-import Features
+import Localization
 
-extension FeatureFactory {
+public struct Unavailable: TheError {
 
-  public func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsDataStore()
-    self.usePassboltAccountInitialSetup()
+  public static func error(
+    _ message: StaticString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+          .message(
+            message,
+            file: file,
+            line: line
+          )
+        ),
+      displayableMessage: .localized("generic.error")
+    )
   }
+
+  public var context: DiagnosticsContext
+  public var displayableMessage: DisplayableString
 }

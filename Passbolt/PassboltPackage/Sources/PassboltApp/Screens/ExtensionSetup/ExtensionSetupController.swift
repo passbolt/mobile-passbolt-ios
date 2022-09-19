@@ -22,6 +22,8 @@
 //
 
 import UIComponents
+import Accounts
+import Session
 
 internal struct ExtensionSetupController {
 
@@ -39,6 +41,8 @@ extension ExtensionSetupController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
+    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
     let autoFill: AutoFill = try await features.instance()
     let linkOpener: LinkOpener = try await features.instance()
     let continueSetupPresentationSubject: CurrentValueSubject<Void?, Never> = .init(nil)
@@ -68,6 +72,7 @@ extension ExtensionSetupController: UIController {
     }
 
     func skipSetup() {
+      accountInitialSetup.completeSetup(.autofill)
       continueSetupPresentationSubject.send(Void())
     }
 

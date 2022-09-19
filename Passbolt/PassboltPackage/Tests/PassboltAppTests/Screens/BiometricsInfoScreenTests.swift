@@ -39,6 +39,15 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
       \AutoFill.extensionEnabledStatePublisher,
       with: always(Just(false).eraseToAnyPublisher())
     )
+		features.patch(
+			\Session.currentAccount,
+			 with: always(.valid)
+		)
+		features.patch(
+			\AccountInitialSetup.completeSetup,
+			context: Account.valid,
+			 with: always(Void())
+		)
   }
 
   func test_presentationDestinationPublisher_doesNotPublishInitially() async throws {

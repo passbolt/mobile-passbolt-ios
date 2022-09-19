@@ -26,8 +26,7 @@ import class Combine.CurrentValueSubject
 import enum Combine.Publishers
 
 @propertyWrapper
-public struct StateBinding<Value>
-where Value: Equatable {
+public struct StateBinding<Value> {
 
   private let read: @Sendable () -> Value
   private let write: @Sendable (Value) -> Void
@@ -37,13 +36,24 @@ where Value: Equatable {
 
   public static func variable(
     initial: Value
+  ) -> Self
+  where Value: Equatable {
+    Self.variable(
+      initial: initial,
+      removeDuplicates: ==
+    )
+  }
+
+  public static func variable(
+    initial: Value,
+    removeDuplicates: @escaping (Value, Value) -> Bool
   ) -> Self {
     let cancellables: Cancellables = .init()
     let state: CriticalState<Value> = .init(initial)
     let updatesSubject: PassthroughSubject<Value, Never> = .init()
     let updatesPublisher: AnyPublisher<Value, Never> =
       updatesSubject
-      .removeDuplicates()
+      .removeDuplicates(by: removeDuplicates)
       .eraseToAnyPublisher()
     updatesPublisher
       .sink { (newValue: Value) in
@@ -67,12 +77,25 @@ where Value: Equatable {
   public static func fromSource(
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void
+  ) -> Self
+  where Value: Equatable {
+    Self.fromSource(
+      read: read,
+      write: write,
+      removeDuplicates: ==
+    )
+  }
+
+  public static func fromSource(
+    read: @escaping @Sendable () -> Value,
+    write: @escaping @Sendable (Value) -> Void,
+    removeDuplicates: @escaping (Value, Value) -> Bool
   ) -> Self {
     let cancellables: Cancellables = .init()
     let updatesSubject: PassthroughSubject<Value, Never> = .init()
     let updatesPublisher: AnyPublisher<Value, Never> =
       updatesSubject
-      .removeDuplicates()
+      .removeDuplicates(by: removeDuplicates)
       .eraseToAnyPublisher()
     updatesPublisher
       .sink { (newValue: Value) in
@@ -93,6 +116,7 @@ where Value: Equatable {
     )
   }
 
+  // make sure that proper duplicates filtering is applied
   private init(
     read: @escaping @Sendable () -> Value,
     write: @escaping @Sendable (Value) -> Void,
@@ -190,6 +214,17 @@ extension StateBinding {
 
   public func scope<ScopedValue>(
     _ keyPath: WritableKeyPath<Value, ScopedValue>
+  ) -> StateBinding<ScopedValue>
+  where ScopedValue: Equatable {
+    self.scope(
+      keyPath,
+      removeDuplicates: ==
+    )
+  }
+
+  public func scope<ScopedValue>(
+    _ keyPath: WritableKeyPath<Value, ScopedValue>,
+    removeDuplicates: @escaping (ScopedValue, ScopedValue) -> Bool
   ) -> StateBinding<ScopedValue> {
     StateBinding<ScopedValue>(
       read: { self.get(keyPath) },
@@ -200,13 +235,24 @@ extension StateBinding {
       updatesPublisher: self
         .updatesPublisher
         .map(keyPath)
-        .removeDuplicates()
+        .removeDuplicates(by: removeDuplicates)
         .eraseToAnyPublisher()
     )
   }
 
   public func scopeView<ScopedValue>(
     _ keyPath: KeyPath<Value, ScopedValue>
+  ) -> StateView<ScopedValue>
+  where ScopedValue: Equatable {
+    self.scopeView(
+      keyPath,
+      removeDuplicates: ==
+    )
+  }
+
+  public func scopeView<ScopedValue>(
+    _ keyPath: KeyPath<Value, ScopedValue>,
+    removeDuplicates: @escaping (ScopedValue, ScopedValue) -> Bool
   ) -> StateView<ScopedValue> {
     StateView<ScopedValue>(
       read: { self.get(keyPath) },
@@ -220,13 +266,24 @@ extension StateBinding {
 
   public func scopeView<ScopedValue>(
     _ mapping: @escaping @Sendable (Value) -> ScopedValue
+  ) -> StateView<ScopedValue>
+  where ScopedValue: Equatable {
+    self.scopeView(
+      removeDuplicates: ==,
+      mapping
+    )
+  }
+
+  public func scopeView<ScopedValue>(
+    removeDuplicates: @escaping (ScopedValue, ScopedValue) -> Bool,
+    _ mapping: @escaping @Sendable (Value) -> ScopedValue
   ) -> StateView<ScopedValue> {
     StateView<ScopedValue>(
       read: { mapping(self.read()) },
       updatesPublisher: self
         .updatesPublisher
         .map(mapping)
-        .removeDuplicates()
+        .removeDuplicates(by: removeDuplicates)
         .eraseToAnyPublisher()
     )
   }
@@ -234,6 +291,19 @@ extension StateBinding {
   public func convert<ConvertedValue>(
     read: @escaping @Sendable (Value) -> ConvertedValue,
     write: @escaping @Sendable (ConvertedValue) -> Value
+  ) -> StateBinding<ConvertedValue>
+  where ConvertedValue: Equatable {
+    self.convert(
+      read: read,
+      write: write,
+      removeDuplicates: ==
+    )
+  }
+
+  public func convert<ConvertedValue>(
+    read: @escaping @Sendable (Value) -> ConvertedValue,
+    write: @escaping @Sendable (ConvertedValue) -> Value,
+    removeDuplicates: @escaping (ConvertedValue, ConvertedValue) -> Bool
   ) -> StateBinding<ConvertedValue> {
     StateBinding<ConvertedValue>(
       read: { read(self.read()) },
@@ -244,7 +314,7 @@ extension StateBinding {
       updatesPublisher: self
         .updatesPublisher
         .map(read)
-        .removeDuplicates()
+        .removeDuplicates(by: removeDuplicates)
         .eraseToAnyPublisher()
     )
   }

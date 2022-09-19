@@ -28,5 +28,7 @@ extension FeatureFactory {
   public func useOSFeatures() {
     self.useOSTime()
     self.useOSFiles()
+    self.useOSBiometry()
+    self.useOSExtensions()
   }
 }

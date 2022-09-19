@@ -26,7 +26,7 @@ import Commons
 // MARK: - Interface
 
 @dynamicMemberLookup
-public struct StoredProperty<Value: Equatable> {
+public struct StoredProperty<Value> {
 
   public var binding: StateBinding<Value?>
 }
@@ -41,6 +41,18 @@ extension StoredProperty {
   public var value: Value? {
     get { self.binding.get() }
     set { self.binding.set(to: newValue) }
+  }
+
+  public func set(
+    to newValue: Value?
+  ) {
+    self.binding.set(to: newValue)
+  }
+
+  public func get(
+    withDefault value: Value
+  ) -> Value {
+    self.binding.get() ?? value
   }
 
   public subscript<Property>(
@@ -62,6 +74,7 @@ extension StoredProperty {
   @MainActor fileprivate static func load(
     features: FeatureFactory,
     context key: StoredPropertyKey,
+    removeDuplicates: @escaping (Value?, Value?) -> Bool,
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
@@ -76,13 +89,14 @@ extension StoredProperty {
       _ property: Value?
     ) {
       storedProperties
-        .store(key, property as Any)
+        .store(key, property)
     }
 
     return Self(
       binding: .fromSource(
         read: fetch,
-        write: store(_:)
+        write: store(_:),
+        removeDuplicates: removeDuplicates
       )
     )
   }
@@ -93,10 +107,27 @@ extension FeatureFactory {
   @MainActor public func usePassboltStoredProperty<Property: Equatable>(
     _: Property.Type
   ) {
+    self.usePassboltStoredProperty(
+      Property.self,
+      removeDuplicates: ==
+    )
+  }
+
+  @MainActor public func usePassboltStoredProperty<Property>(
+    _: Property.Type,
+    removeDuplicates: @escaping (Property?, Property?) -> Bool
+  ) {
     self.use(
       .lazyLoaded(
         StoredProperty<Property>.self,
-        load: StoredProperty<Property>.load(features:context:cancellables:)
+        load: { (features: FeatureFactory, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
+          try await StoredProperty<Property>.load(
+            features: features,
+            context: context,
+            removeDuplicates: removeDuplicates,
+            cancellables: cancellables
+          )
+        }
       )
     )
   }

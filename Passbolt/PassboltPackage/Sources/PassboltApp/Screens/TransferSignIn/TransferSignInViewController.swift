@@ -289,19 +289,13 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
       .store(in: cancellables)
 
     controller
-      .presentationDestinationPublisher()
+      .exitPublisher()
       .subscribe(on: RunLoop.main)
       .receive(on: RunLoop.main)
-      .handleEvents(
-        receiveOutput: { [weak self] _ in
-          self?.dismissOverlay()
-        },
-        receiveCompletion: { [weak self] _ in
-          self?.dismissOverlay()
-        }
-      )
       .sink(
         receiveCompletion: { [weak self] completion in
+          self?.dismissOverlay()
+
           self?.cancellables.executeOnMainActor {
             switch completion {
             case .finished:
@@ -325,23 +319,6 @@ internal final class TransferSignInViewController: PlainViewController, UICompon
                 AccountTransferFailureViewController.self,
                 in: error
               )
-            }
-          }
-        },
-        receiveValue: { [weak self] destination in
-          self?.cancellables.executeOnMainActor {
-            switch destination {
-            case .biometryInfo:
-              await self?.push(BiometricsInfoViewController.self)
-
-            case .biometrySetup:
-              await self?.push(BiometricsSetupViewController.self)
-
-            case .extensionSetup:
-              await self?.push(ExtensionSetupViewController.self)
-
-            case .finish:
-              await self?.replaceWindowRoot(with: MainTabsViewController.self)
             }
           }
         }

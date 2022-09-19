@@ -24,6 +24,8 @@
 import Accounts
 import Features
 import UIComponents
+import Session
+import OSFeatures
 
 internal struct MainTabsController {
 
@@ -31,6 +33,17 @@ internal struct MainTabsController {
   // temporary solution to avoid blinking after authorization
   internal var tabComponents: @MainActor () -> Array<AnyUIComponent>
   internal var activeTabPublisher: @MainActor () -> AnyPublisher<MainTab, Never>
+  internal var initialModalPresentation: @MainActor () -> AnyPublisher<ModalPresentation?, Never>
+}
+
+extension MainTabsController {
+
+  internal enum ModalPresentation {
+
+    case biometricsInfo
+    case biometricsSetup
+    case autofillSetup
+  }
 }
 
 extension MainTabsController: UIController {
@@ -42,6 +55,10 @@ extension MainTabsController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
+    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
+    let osBiometry: OSBiometry = features.instance()
+
     let activeTabSubject: CurrentValueSubject<MainTab, Never> = .init(.home)
     // temporary solution to avoid blinking after authorization
     // preload tabs so after presenting view all will be in place
@@ -62,10 +79,39 @@ extension MainTabsController: UIController {
       activeTabSubject.eraseToAnyPublisher()
     }
 
+    func initialModalPresentation() -> AnyPublisher<ModalPresentation?, Never> {
+      Future<ModalPresentation?, Never> { promise in
+        Task {
+        let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> = await accountInitialSetup.unfinishedSetupElements()
+
+        if unfinishedSetupElements.contains(.biometrics) {
+          switch osBiometry.availability() {
+          case .unconfigured:
+            promise(.success(.biometricsInfo))
+
+          case .faceID, .touchID:
+            promise(.success(.biometricsSetup))
+
+          case .unavailable:
+            promise(.success(.none))
+          }
+        }
+        else if unfinishedSetupElements.contains(.autofill) {
+          promise(.success(.autofillSetup))
+        }
+        else {
+          promise(.success(.none))
+        }
+        }
+      }
+      .eraseToAnyPublisher()
+    }
+
     return Self(
       setActiveTab: setActiveTab,
       tabComponents: tabComponents,
-      activeTabPublisher: activeTabPublisher
+      activeTabPublisher: activeTabPublisher,
+      initialModalPresentation: initialModalPresentation
     )
   }
 }

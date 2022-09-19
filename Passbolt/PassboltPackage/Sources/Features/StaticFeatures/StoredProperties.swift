@@ -28,8 +28,8 @@ import class Foundation.UserDefaults
 
 public struct StoredProperties {
 
-  public var fetch: @Sendable (StoredPropertyKey) -> Any
-  public var store: @Sendable (StoredPropertyKey, Any) -> Void
+  public var fetch: @Sendable (StoredPropertyKey) -> Any?
+  public var store: @Sendable (StoredPropertyKey, Any?) -> Void
 }
 
 extension StoredProperties: StaticFeature {}
@@ -52,28 +52,32 @@ extension StoredProperties {
 
     @Sendable func fetch(
       _ key: StoredPropertyKey
-    ) -> Any {
+    ) -> Any? {
       userDefaults
-        .value(forKey: key.rawValue) as Any
+        .value(forKey: key.rawValue)
     }
 
     @Sendable func store(
       _ key: StoredPropertyKey,
-      _ value: Any
+      _ value: Any?
     ) {
-      #if DEBUG
-      let typeOfValue: Any.Type = type(of: value)
-      assert(
-        supportedTypes.contains(ObjectIdentifier(typeOfValue)),
-        "Type \(type(of: value)) is not supported by UserDefaults"
-      )
-      #endif
-      return
-        userDefaults
-        .setValue(
-          value,
-          forKey: key.rawValue
+      switch value {
+      case let .some(value):
+        #if DEBUG
+        let typeOfValue: Any.Type = type(of: value)
+        assert(
+          supportedTypes.contains(ObjectIdentifier(typeOfValue)),
+          "Type \(type(of: value)) is not supported by UserDefaults"
         )
+        #endif
+
+        userDefaults
+          .setValue(value, forKey: key.rawValue)
+
+      case .none:
+        userDefaults
+          .removeObject(forKey: key.rawValue)
+      }
     }
 
     return Self(
@@ -87,21 +91,15 @@ extension StoredProperties {
 
 private let supportedTypes: Set<ObjectIdentifier> = [
   ObjectIdentifier(Data.self),
-  ObjectIdentifier(Data?.self),
   ObjectIdentifier(String.self),
-  ObjectIdentifier(String?.self),
   ObjectIdentifier(Int.self),
-  ObjectIdentifier(Int?.self),
   ObjectIdentifier(Bool.self),
-  ObjectIdentifier(Bool?.self),
   ObjectIdentifier(Array<Int>.self),
-  ObjectIdentifier(Array<Int>?.self),
   ObjectIdentifier(Array<String>.self),
-  ObjectIdentifier(Array<String>?.self),
+  ObjectIdentifier(Set<Int>.self),
+  ObjectIdentifier(Set<String>.self),
   ObjectIdentifier(Dictionary<String, Int>.self),
-  ObjectIdentifier(Dictionary<String, Int>?.self),
   ObjectIdentifier(Dictionary<String, String>.self),
-  ObjectIdentifier(Dictionary<String, String>?.self),
 ]
 #endif
 

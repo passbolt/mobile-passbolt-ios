@@ -42,6 +42,7 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
 
   internal var components: UIComponentFactory
   private let controller: Controller
+  private var setupSubscriptionCancellables: Cancellables = .init()
 
   internal init(
     using controller: Controller,
@@ -95,6 +96,11 @@ internal final class MainTabsViewController: TabsViewController, UIComponent {
       .apply(on: self.tabBar)
     setupSubscriptions()
   }
+
+  internal func activate() {
+    self.setupSubscriptionCancellables = .init()
+    self.subscribeToInitialModalPresentation()
+  }
 }
 
 extension MainTabsViewController: UITabBarControllerDelegate {
@@ -130,5 +136,35 @@ extension MainTabsViewController {
         self.selectedIndex = state.rawValue
       }
       .store(in: cancellables)
+  }
+
+  fileprivate func subscribeToInitialModalPresentation() {
+    controller
+      .initialModalPresentation()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] destination in
+        MainActor.execute {
+          switch destination {
+          case .biometricsInfo:
+            await self?.present(
+              PlainNavigationViewController<BiometricsInfoViewController>.self
+            )
+
+          case .biometricsSetup:
+            await self?.present(
+              PlainNavigationViewController<BiometricsSetupViewController>.self
+            )
+
+          case .autofillSetup:
+            await self?.present(
+              PlainNavigationViewController<ExtensionSetupViewController>.self
+            )
+
+          case .none:
+            break
+          }
+        }
+      }
+      .store(in: setupSubscriptionCancellables)
   }
 }

@@ -23,6 +23,7 @@
 
 import Accounts
 import UIComponents
+import Session
 
 internal struct BiometricsInfoController {
 
@@ -50,6 +51,8 @@ extension BiometricsInfoController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    let currentAccount: Account = try await features.instance(of: Session.self).currentAccount()
+    let accountInitialSetup: AccountInitialSetup = try await features.instance(context: currentAccount)
     let autoFill: AutoFill = try await features.instance()
     let linkOpener: LinkOpener = try await features.instance()
     let biometry: Biometry = try await features.instance()
@@ -64,6 +67,7 @@ extension BiometricsInfoController: UIController {
     }
 
     func setupBiometrics() {
+      accountInitialSetup.completeSetup(.biometrics)
       setupBiometricsCancellable =
         linkOpener
         .openSystemSettings()
@@ -93,6 +97,7 @@ extension BiometricsInfoController: UIController {
     }
 
     func skipSetup() {
+      accountInitialSetup.completeSetup(.biometrics)
       autoFill
         .extensionEnabledStatePublisher()
         .first()

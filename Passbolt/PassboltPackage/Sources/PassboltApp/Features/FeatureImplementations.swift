@@ -35,8 +35,9 @@ extension FeatureFactory {
 
   @MainActor public func usePassboltFeatures() {
     self.useOSDiagnostics()
-    self.useLiveDisplay()
     self.useOSFeatures()
+
+    self.useLiveDisplay()
 
     self.usePassboltCommonStaticFeatures()
     self.usePassboltCommonLoadableFeatures()

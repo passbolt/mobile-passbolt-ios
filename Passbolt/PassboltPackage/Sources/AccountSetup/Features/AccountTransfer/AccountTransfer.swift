@@ -354,7 +354,7 @@ extension AccountTransfer: LegacyFeature {
       }
       return cancellables.executeAsyncWithPublisher { [weak features] in
         do {
-          _ =
+          let account: Account =
             try await accounts
             .transferAccount(
               configuration.domain,
@@ -367,6 +367,19 @@ extension AccountTransfer: LegacyFeature {
               account.armoredKey,
               passphrase
             )
+
+          do {
+            try await features?.instance(
+              of: AccountInitialSetup.self,
+              context: account
+            )
+            .requestSetup()
+          }
+          catch {
+            diagnostics.log(error: error)
+            diagnostics.log(diagnostic: "...failed to prepare account initial setup...")
+          }
+
           diagnostics.log(diagnostic: "...account transfer succeeded!")
           transferState.send(completion: .finished)
           try await features?.unload(Self.self)

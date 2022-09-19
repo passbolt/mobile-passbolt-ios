@@ -21,16 +21,15 @@
 // @since         v1.0
 //
 
-import Features
+extension Collection
+where Element: Hashable {
 
-extension FeatureFactory {
-
-  public func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsDataStore()
-    self.usePassboltAccountInitialSetup()
+  public func asSet() -> Set<Element> {
+    if case let setCollection as Set<Element> = self {
+      return setCollection
+    }
+    else {
+      return Set(self)
+    }
   }
 }

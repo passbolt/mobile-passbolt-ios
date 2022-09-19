@@ -64,10 +64,7 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       .continueSetupPresentationPublisher()
       .sink { [weak self] in
         self?.cancellables.executeOnMainActor {
-          await self?.replaceWindowRoot(
-            with: SplashScreenViewController.self,
-            in: .none
-          )
+          await self?.dismiss(PlainNavigationViewController<Self>.self)
         }
       }
   }

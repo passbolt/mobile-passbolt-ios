@@ -47,6 +47,11 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
       context: Account.valid,
       with: preferencesUpdates.updatesSequence
     )
+		features.patch(
+			\AccountInitialSetup.completeSetup,
+			context: Account.valid,
+			 with: always(Void())
+		)
   }
 
   override func mainActorTearDown() {

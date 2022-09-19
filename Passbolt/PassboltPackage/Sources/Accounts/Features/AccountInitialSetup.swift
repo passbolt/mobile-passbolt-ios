@@ -23,14 +23,44 @@
 
 import Features
 
-extension FeatureFactory {
+// MARK: Interface
 
-  public func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsDataStore()
-    self.usePassboltAccountInitialSetup()
+public struct AccountInitialSetup {
+
+  public var requestSetup: @Sendable () -> Void
+  public var unfinishedSetupElements: @Sendable () async -> Set<SetupElement>
+  public var completeSetup: @Sendable (SetupElement) -> Void
+
+  public init(
+    requestSetup: @escaping @Sendable () -> Void,
+    unfinishedSetupElements: @escaping @Sendable () async -> Set<SetupElement>,
+    completeSetup: @escaping @Sendable (SetupElement) -> Void
+  ) {
+    self.requestSetup = requestSetup
+    self.unfinishedSetupElements = unfinishedSetupElements
+    self.completeSetup = completeSetup
   }
+}
+
+extension AccountInitialSetup {
+
+  public enum SetupElement: String, Hashable {
+    case biometrics
+    case autofill
+  }
+}
+
+extension AccountInitialSetup: LoadableFeature {
+
+  public typealias Context = Account
+
+  #if DEBUG
+  public nonisolated static var placeholder: Self {
+    .init(
+      requestSetup: unimplemented(),
+      unfinishedSetupElements: unimplemented(),
+      completeSetup: unimplemented()
+    )
+  }
+  #endif
 }

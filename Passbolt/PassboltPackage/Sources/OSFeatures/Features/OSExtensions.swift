@@ -22,15 +22,53 @@
 //
 
 import Features
+import AuthenticationServices
+
+
+// MARK: - Interface
+
+public struct OSExtensions {
+
+  public var autofillExtensionEnabled: @Sendable () async -> Bool
+}
+
+extension OSExtensions: StaticFeature {
+
+  #if DEBUG
+  nonisolated public static var placeholder: Self {
+    Self(
+      autofillExtensionEnabled: unimplemented()
+    )
+  }
+  #endif
+}
+
+// MARK: - Implementation
+
+extension OSExtensions {
+
+  fileprivate static var live: Self {
+
+
+    @Sendable func autofillExtensionEnabled() async -> Bool {
+      await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+        ASCredentialIdentityStore.shared.getState { state in
+          continuation.resume(returning: state.isEnabled)
+        }
+      }
+    }
+
+    return Self(
+      autofillExtensionEnabled: autofillExtensionEnabled
+    )
+  }
+}
 
 extension FeatureFactory {
 
-  public func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsDataStore()
-    self.usePassboltAccountInitialSetup()
+  internal func useOSExtensions() {
+    self.use(
+      OSExtensions.live
+    )
   }
 }

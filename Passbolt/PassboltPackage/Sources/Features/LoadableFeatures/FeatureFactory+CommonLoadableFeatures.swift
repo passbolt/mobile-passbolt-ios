@@ -27,5 +27,7 @@ extension FeatureFactory {
     self.usePassboltStoredProperty(Bool.self)
     self.usePassboltStoredProperty(Int.self)
     self.usePassboltStoredProperty(String.self)
+    self.usePassboltStoredProperty(Array<String>.self)
+    self.usePassboltStoredProperty(Set<String>.self)
   }
 }

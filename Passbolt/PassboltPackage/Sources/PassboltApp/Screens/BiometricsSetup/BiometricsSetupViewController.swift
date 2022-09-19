@@ -115,10 +115,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
           case .extensionSetup:
             await self?.push(ExtensionSetupViewController.self)
           case .finish:
-            await self?.replaceWindowRoot(
-              with: SplashScreenViewController.self,
-              in: .none
-            )
+            await self?.dismiss(PlainNavigationViewController<Self>.self)
           }
         }
       }
