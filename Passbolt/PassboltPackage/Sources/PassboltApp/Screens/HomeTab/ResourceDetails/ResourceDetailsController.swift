@@ -115,6 +115,11 @@ extension ResourceDetailsController: UIController {
       currentDetailsSubject
         .filterMapOptional()
         .removeDuplicates()
+        .handleEvents(receiveCompletion: { completion in
+          guard case let .failure(error) = completion
+          else { return }
+          diagnostics.log(error: error)
+        })
         .eraseToAnyPublisher()
     }
 

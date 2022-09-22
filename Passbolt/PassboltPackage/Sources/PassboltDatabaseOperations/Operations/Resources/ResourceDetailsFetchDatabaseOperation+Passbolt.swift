@@ -71,6 +71,25 @@ extension ResourceDetailsFetchDatabaseOperation {
           arguments: input
         )
 
+      let selectResourceTagsStatement: SQLiteStatement =
+        .statement(
+          """
+          SELECT
+            resourceTags.id AS id,
+            resourceTags.slug AS slug,
+            resourceTags.shared AS shared
+          FROM
+            resourceTags
+          JOIN
+            resourcesTags
+          ON
+            resourceTags.id == resourcesTags.resourceTagID
+          WHERE
+            resourcesTags.resourceID == ?;
+          """,
+          arguments: input
+        )
+
       let record: ResourceDetailsDSV? =
         try connection.fetchFirst(
           using: .statement(
@@ -161,6 +180,30 @@ extension ResourceDetailsFetchDatabaseOperation {
             )
           }
 
+          let tags: Array<ResourceTagDSV> = try connection.fetch(
+            using: selectResourceTagsStatement
+          ) { dataRow in
+            guard
+              let id: ResourceTag.ID = dataRow.id.flatMap(ResourceTag.ID.init(rawValue:)),
+              let slug: ResourceTag.Slug = dataRow.slug.flatMap(ResourceTag.Slug.init(rawValue:)),
+              let shared: Bool = dataRow.shared
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: ResourceTagDSV.self)
+                )
+            }
+
+            return ResourceTagDSV(
+              id: id,
+              slug: slug,
+              shared: shared
+            )
+          }
+
           return ResourceDetailsDSV(
             id: id,
             permissionType: permissionType,
@@ -171,7 +214,8 @@ extension ResourceDetailsFetchDatabaseOperation {
             fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields),
             permissions: OrderedSet(
               usersPermissions + userGroupsPermissions
-            )
+            ),
+            tags: tags
           )
         }
 

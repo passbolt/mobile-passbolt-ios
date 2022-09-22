@@ -73,6 +73,7 @@
 "resource.details.copied" = "%@ copied!";
 "resource.details.value" = "Value";
 "resource.detail.section.shared" = "Shared with";
+"resource.detail.section.tags" = "Tags";
 
 "server.key.fingerprint.changed.title" = "Sorry, the server key has changed.";
 "server.key.fingerprint.changed.description" = "For security reasons please check with your administrator that this is a change that they initiated. The new fingerprint:";
