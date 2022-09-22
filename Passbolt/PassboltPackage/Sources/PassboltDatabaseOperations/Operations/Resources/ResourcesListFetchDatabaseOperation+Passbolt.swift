@@ -52,28 +52,22 @@ extension ResourcesListFetchDatabaseOperation {
           statement = """
               WITH RECURSIVE
                 flattenedResourceFolders(
-                  id,
-                  parentFolderID
+                  id
                 )
               AS
                 (
                   SELECT
-                    resourceFolders.id,
-                    resourceFolders.parentFolderID
-                  FROM
-                    resourceFolders
-                  WHERE
-                    resourceFolders.parentFolderID IS ?
+                    ? AS id
 
                   UNION
 
                   SELECT
-                    resourceFolders.id,
-                    resourceFolders.parentFolderID
+                    resourceFolders.id AS id
                   FROM
-                    resourceFolders,
+                    resourceFolders
+                  JOIN
                     flattenedResourceFolders
-                  WHERE
+                  ON
                     resourceFolders.parentFolderID IS flattenedResourceFolders.id
                 )
               SELECT DISTINCT
@@ -83,17 +77,15 @@ extension ResourcesListFetchDatabaseOperation {
                 resources.username AS username,
                 resources.url AS url
               FROM
-                resources,
+                resources
+              JOIN
                 flattenedResourceFolders
+              ON
+                resources.parentFolderID IS flattenedResourceFolders.id
               WHERE
-                (
-                  resources.parentFolderID IS ?
-                OR
-                  resources.parentFolderID IS flattenedResourceFolders.id
-                )
+                1 -- equivalent of true, used to simplify dynamic query building
             """
           statement.appendArguments(
-            foldersFilter.folderID,
             foldersFilter.folderID
           )
         }
