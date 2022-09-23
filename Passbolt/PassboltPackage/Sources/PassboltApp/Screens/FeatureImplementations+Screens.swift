@@ -27,5 +27,6 @@ extension FeatureFactory {
 
   internal func useLiveScreenControllers() {
     self.useLiveDefaultPresentationModeSettingsController()
+    self.useLiveResourceDetailsTagsListController()
   }
 }

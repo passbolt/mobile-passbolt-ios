@@ -39,10 +39,8 @@ internal struct ResourceDetailsTagsSectionView: ComponentView {
   }
 
   internal var body: some View {
-    AsyncButton(
-      action: {
-        await self.controller.showResourceTagsList()
-      },
+    Button(
+      action: self.controller.showResourceTagsList,
       label: {
         HStack(spacing: 0) {
           VStack(alignment: .leading, spacing: 8) {
@@ -70,6 +68,7 @@ internal struct ResourceDetailsTagsSectionView: ComponentView {
               trailing: 0
             )
         }
+        .padding(bottom: 8)
       }
     )
     .foregroundColor(Color.passboltPrimaryText)

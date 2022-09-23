@@ -21,34 +21,51 @@
 // @since         v1.0
 //
 
+import CommonModels
 import SwiftUI
 
-public struct TextStyle: ViewModifier {
+public struct ResourceTagsListView: View {
 
-  fileprivate let font: Font
-  fileprivate let color: Color?
+  private let tags: Array<ResourceTagListItemDSV>
+  private let contentEmpty: Bool
+  private let refreshAction: () async -> Void
+  private let createAction: (() -> Void)?
+  private let tagTapAction: (ResourceTag.ID) -> Void
 
-  public func body(
-    content: Content
-  ) -> some View {
-    content
-      .font(self.font)
-      .foregroundColor(self.color)
+  public init(
+    tags: Array<ResourceTagListItemDSV>,
+    refreshAction: @escaping () async -> Void,
+    createAction: (() -> Void)?,
+    tagTapAction: @escaping (ResourceTag.ID) -> Void
+  ) {
+    self.tags = tags
+    self.contentEmpty = tags.isEmpty
+    self.refreshAction = refreshAction
+    self.createAction = createAction
+    self.tagTapAction = tagTapAction
   }
-}
 
-extension View {
+  public var body: some View {
+    List {
+      if let createAction: () -> Void = self.createAction {
+        ResourceListAddView(action: createAction)
+      }  // else no create row
 
-  public func text(
-    font: Font,
-    color: Color? = .none
-  ) -> some View {
-    ModifiedContent(
-      content: self,
-      modifier: TextStyle(
-        font: font,
-        color: color
-      )
-    )
+      if self.contentEmpty {
+        // empty
+        EmptyListView()
+      }
+      else {
+        ResourceTagsListSectionView(
+          tags: self.tags,
+          tapAction: self.tagTapAction
+        )
+      }
+    }
+    .refreshable {
+      await self.refreshAction()
+    }
+    .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, 20)
   }
 }

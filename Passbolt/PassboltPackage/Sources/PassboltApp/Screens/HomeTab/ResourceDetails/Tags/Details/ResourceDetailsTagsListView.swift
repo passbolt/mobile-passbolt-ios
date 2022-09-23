@@ -21,53 +21,50 @@
 // @since         v1.0
 //
 
-import CommonModels
-import SwiftUI
+import Display
 
-public struct ResourceTagsListView: View {
+internal struct ResourceDetailsTagsListView: ControlledView {
 
-  @State var id: IID = .init()
-  private let tags: Array<ResourceTagListItemDSV>
-  private let contentEmpty: Bool
-  private let refreshAction: () async -> Void
-  private let createAction: (() -> Void)?
-  private let tagTapAction: (ResourceTag.ID) -> Void
+  private let controller: ResourceDetailsTagsListController
 
-  public init(
-    tags: Array<ResourceTagListItemDSV>,
-    refreshAction: @escaping () async -> Void,
-    createAction: (() -> Void)?,
-    tagTapAction: @escaping (ResourceTag.ID) -> Void
+  internal init(
+    controller: ResourceDetailsTagsListController
   ) {
-    self.tags = tags
-    self.contentEmpty = tags.isEmpty
-    self.refreshAction = refreshAction
-    self.createAction = createAction
-    self.tagTapAction = tagTapAction
+    self.controller = controller
   }
 
-  public var body: some View {
-    List {
-      if let createAction: () -> Void = self.createAction {
-        ResourceListAddView(action: createAction)
-      }  // else no create row
+  internal var body: some View {
+    WithViewState(self.controller) { (state: ViewState) in
+      ScreenView(
+        title: .raw(.init()),
+        contentView: {
+          self.contentView(in: state)
+        }
+      )
+    }
+  }
 
-      if self.contentEmpty {
-        // empty
-        EmptyListView()
-      }
-      else {
-        ResourceTagsListSectionView(
-          tags: self.tags,
-          tapAction: self.tagTapAction
+  @ViewBuilder private func contentView(
+    in state: ViewState
+  ) -> some View {
+    VStack(spacing: 0) {
+      LetterIconView(text: state.resourceName)
+        .padding(top: 16)
+      Text(state.resourceName)
+        .text(
+          font: .inter(
+            ofSize: 24,
+            weight: .semibold
+          )
         )
-      }
+        .padding(8)
+
+      ResourceDetailsTagListView(
+        tags: state.tags,
+        createAction: .none,
+        tagTapAction: .none,
+        tagMenuAction: .none
+      )
     }
-    .refreshable {
-      await self.refreshAction()
-    }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
-    .id(self.id)
   }
 }

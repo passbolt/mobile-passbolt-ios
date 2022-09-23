@@ -25,11 +25,12 @@ import Accounts
 import Resources
 import UIComponents
 import Users
+import Display
 
 internal struct ResourceDetailsTagsSectionController {
 
   internal var viewState: ObservableValue<ViewState>
-  internal var showResourceTagsList: @MainActor () async -> Void
+  internal var showResourceTagsList: () -> Void
 }
 
 extension ResourceDetailsTagsSectionController: ComponentController {
@@ -43,6 +44,9 @@ extension ResourceDetailsTagsSectionController: ComponentController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    unowned let features: FeatureFactory = features
+    let asyncExecutor: AsyncExecutor = features.instance()
+    let navigation: DisplayNavigation = try await features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: context)
     
     let viewState: ObservableValue<ViewState> = .init(
@@ -55,12 +59,21 @@ extension ResourceDetailsTagsSectionController: ComponentController {
       )
     )
 
-    @MainActor func showResourceTagsList() async {
-      #warning("TODO: [MOB-555] navigate to tag details")
-      await navigation.push(
-        ResourcePermissionListView.self,
-        in: context
-      )
+    nonisolated func showResourceTagsList() {
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigation
+            .push(
+              ResourceDetailsTagsListView.self,
+              controller: features.instance(context: context)
+            )
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Failed to navigate to ResourceDetailsTagsListView")
+        }
+      }
     }
 
     return Self(
