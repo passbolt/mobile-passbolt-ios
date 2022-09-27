@@ -2,20 +2,18 @@
   "configurations" : [
     {
       "id" : "699CD6E7-0F53-4549-867D-3182A42A92D9",
-      "name" : "Default",
+      "name" : "UnitTests",
       "options" : {
         "environmentVariableEntries" : [
-          {
-            "key" : "NO_LINT",
-            "value" : "1"
-          }
-        ]
+
+        ],
+        "mainThreadCheckerEnabled" : false,
+        "uiTestingScreenshotsLifetime" : "keepNever"
       }
     }
   ],
   "defaultOptions" : {
     "testExecutionOrdering" : "random",
-    "testRepetitionMode" : "retryOnFailure",
     "testTimeoutsEnabled" : true
   },
   "testTargets" : [
