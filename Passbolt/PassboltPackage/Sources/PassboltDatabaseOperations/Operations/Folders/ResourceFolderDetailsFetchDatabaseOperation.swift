@@ -104,6 +104,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceFolderDetailsDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           let usersPermissions: Array<PermissionDSV> = try connection.fetch(

@@ -63,6 +63,8 @@ extension ImageNameConstant {
   public static var filter: Self { "Filter" }
   public static var list: Self { "List" }
   public static var star: Self { "Star" }
+  public static var starFilled: Self { "StarFilled" }
+  public static var starCrossed: Self { "StarCrossed" }
   public static var share: Self { "Share" }
   public static var clock: Self { "Clock" }
   public static var folder: Self { "Folder" }

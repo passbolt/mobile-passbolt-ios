@@ -26,7 +26,7 @@ import Session
 
 // MARK: - Implementation
 
-extension UserResourcePermissionTypeFetchDatabaseOperation {
+extension ResourceSetFavoriteDatabaseOperation {
 
   @MainActor fileprivate static func load(
     features: FeatureFactory
@@ -36,53 +36,36 @@ extension UserResourcePermissionTypeFetchDatabaseOperation {
     let sessionDatabase: SessionDatabase = try await features.instance()
 
     nonisolated func execute(
-      _ input: (userID: User.ID, resourceID: Resource.ID),
+      _ input: ResourceSetFavoriteDatabaseOperationDSO,
       connection: SQLiteConnection
-    ) throws -> PermissionTypeDSV? {
-      let statement: SQLiteStatement =
-        .statement(
+    ) throws {
+      // cleanup existing types as preparation for update
+      try connection.execute(
+        .init(
           """
-          SELECT
-            usersResources.permissionType AS permissionType
-          FROM
-            usersResources
+          UPDATE
+            resources
+          SET
+            favoriteID = ?1
           WHERE
-            usersResources.userID == ?1
-          AND
-            usersResources.resourceID == ?2
-          ;
+            id = ?2;
           """,
-          arguments: input.userID,
-          input.resourceID
+          arguments: [input.favoriteID?.rawValue, input.resourceID.rawValue]
         )
-
-      return
-        try connection
-        .fetchFirst(using: statement) { dataRow -> PermissionTypeDSV in
-          guard
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: PermissionTypeDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return permissionType
-        }
+      )
     }
 
     nonisolated func executeAsync(
-      _ input: (userID: User.ID, resourceID: Resource.ID)
-    ) async throws -> PermissionTypeDSV? {
-      try await execute(
-        input,
-        connection: sessionDatabase.connection()
-      )
+      _ input: ResourceSetFavoriteDatabaseOperationDSO
+    ) async throws {
+      try await sessionDatabase
+        .connection()
+        .withTransaction { connection in
+          try execute(
+            input,
+            connection: connection
+          )
+        }
     }
 
     return Self(
@@ -93,11 +76,11 @@ extension UserResourcePermissionTypeFetchDatabaseOperation {
 
 extension FeatureFactory {
 
-  internal func usePassboltUserResourcePermissionTypeFetchDatabaseOperation() {
+  internal func usePassboltResourceSetFavoriteDatabaseOperation() {
     self.use(
       .disposable(
-        UserResourcePermissionTypeFetchDatabaseOperation.self,
-        load: UserResourcePermissionTypeFetchDatabaseOperation
+        ResourceSetFavoriteDatabaseOperation.self,
+        load: ResourceSetFavoriteDatabaseOperation
           .load(features:)
       )
     )

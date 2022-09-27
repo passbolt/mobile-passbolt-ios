@@ -62,7 +62,7 @@ extension ResourceDetailsController: UIController {
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
-    await cancellables.addCleanup(
+    cancellables.addCleanup(
       features.pushScope(.resourceDetails)
     )
     let diagnostics: Diagnostics = features.instance()
@@ -104,6 +104,7 @@ extension ResourceDetailsController: UIController {
           else { return }
 
           currentDetailsSubject.send(completion: .failure(error))
+          diagnostics.log(error: error)
         },
         receiveValue: { resourceDetails in
           currentDetailsSubject.send(resourceDetails)

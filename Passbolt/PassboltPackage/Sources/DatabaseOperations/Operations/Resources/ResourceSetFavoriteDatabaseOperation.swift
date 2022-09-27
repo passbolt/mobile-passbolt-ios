@@ -21,25 +21,22 @@
 // @since         v1.0
 //
 
-import Database
+import CommonModels
 
-extension SQLiteMigration: CaseIterable {
+public typealias ResourceSetFavoriteDatabaseOperation = DatabaseOperation<ResourceSetFavoriteDatabaseOperationDSO, Void>
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-    ]
+public struct ResourceSetFavoriteDatabaseOperationDSO {
+
+  public var resourceID: Resource.ID
+  public var favoriteID: Resource.FavoriteID?
+
+  public init(
+    resourceID: Resource.ID,
+    favoriteID: Resource.FavoriteID?
+  ) {
+    self.resourceID = resourceID
+    self.favoriteID = favoriteID
   }
 }
+
+extension ResourceSetFavoriteDatabaseOperationDSO: DSO {}

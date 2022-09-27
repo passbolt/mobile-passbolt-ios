@@ -34,7 +34,7 @@ public struct ResourceDTO {
   public var url: String?
   public var username: String?
   public var description: String?
-  public var favorite: Bool
+  public var favoriteID: Resource.FavoriteID?
   public var permissionType: PermissionTypeDTO
   public var tags: Set<ResourceTagDTO>
   public var permissions: OrderedSet<PermissionDTO>
@@ -48,7 +48,7 @@ public struct ResourceDTO {
     url: String?,
     username: String?,
     description: String?,
-    favorite: Bool,
+    favoriteID: Resource.FavoriteID?,
     permissionType: PermissionTypeDTO,
     tags: Set<ResourceTagDTO>,
     permissions: OrderedSet<PermissionDTO>,
@@ -61,7 +61,7 @@ public struct ResourceDTO {
     self.url = url
     self.username = username
     self.description = description
-    self.favorite = favorite
+    self.favoriteID = favoriteID
     self.permissionType = permissionType
     self.tags = tags
     self.permissions = permissions
@@ -132,14 +132,14 @@ extension ResourceDTO: Decodable {
         forKey: .description
       )
     do {
-      let _ = try container.nestedContainer(
+      let favoriteConteiner = try container.nestedContainer(
         keyedBy: FavoriteCodingKeys.self,
         forKey: .favorite
       )
-      self.favorite = true
+      self.favoriteID = try favoriteConteiner.decode(Resource.FavoriteID.self, forKey: .id)
     }
     catch {
-      self.favorite = false
+      self.favoriteID = .none
     }
     let permissionContainer =
       try container
@@ -196,7 +196,10 @@ extension ResourceDTO: Decodable {
     case type = "type"
   }
 
-  private enum FavoriteCodingKeys: CodingKey {}
+  private enum FavoriteCodingKeys: String, CodingKey {
+
+    case id = "id"
+  }
 }
 
 #if DEBUG
@@ -215,7 +218,7 @@ extension ResourceDTO: RandomlyGenerated {
         url:
         username:
         description:
-        favorite:
+        favoriteID:
         permissionType:
         tags:
         permissions:
@@ -239,7 +242,7 @@ extension ResourceDTO: RandomlyGenerated {
       Generator<String>
         .randomLongText(using: randomnessGenerator)
         .optional(using: randomnessGenerator),
-      Bool
+      Resource.FavoriteID
         .randomGenerator(using: randomnessGenerator),
       PermissionTypeDTO
         .randomGenerator(using: randomnessGenerator),

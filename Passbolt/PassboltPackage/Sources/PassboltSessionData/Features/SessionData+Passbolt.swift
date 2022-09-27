@@ -167,9 +167,17 @@ extension SessionData {
       }
     }
 
+    @Sendable func withLocalUpdate(
+      _ execute: @escaping @Sendable () async throws -> Void
+    ) async throws {
+      try await execute()
+      updatesSequenceSource.sendUpdate()
+    }
+
     return Self(
       updatesSequence: updatesSequenceSource.updatesSequence,
-      refreshIfNeeded: refreshIfNeeded
+      refreshIfNeeded: refreshIfNeeded,
+      withLocalUpdate: withLocalUpdate(_:)
     )
   }
 }

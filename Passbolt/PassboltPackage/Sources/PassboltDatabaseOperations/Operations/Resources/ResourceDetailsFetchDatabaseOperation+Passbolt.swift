@@ -97,6 +97,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             SELECT
               id,
               name,
+              favoriteID,
               permissionType,
               url,
               username,
@@ -125,6 +126,7 @@ extension ResourceDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceTypeDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           let usersPermissions: Array<PermissionDSV> = try connection.fetch(
@@ -212,6 +214,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             username: dataRow.username,
             description: dataRow.description,
             fields: ResourceFieldDSV.decodeArrayFrom(rawString: rawFields),
+            favoriteID: dataRow.favoriteID.flatMap(Resource.FavoriteID.init(rawValue:)),
             permissions: OrderedSet(
               usersPermissions + userGroupsPermissions
             ),

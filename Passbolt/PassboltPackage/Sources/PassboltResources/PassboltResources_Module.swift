@@ -22,3 +22,4 @@
 //
 
 @_exported import Resources
+@_exported import SessionData

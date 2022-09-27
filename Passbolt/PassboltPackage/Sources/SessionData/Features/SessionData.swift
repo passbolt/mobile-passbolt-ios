@@ -28,13 +28,16 @@ public struct SessionData {
 
   public var updatesSequence: UpdatesSequence
   public var refreshIfNeeded: @Sendable () async throws -> Void
+  public var withLocalUpdate: @Sendable (@escaping @Sendable () async throws -> Void) async throws -> Void
 
   public init(
     updatesSequence: UpdatesSequence,
-    refreshIfNeeded: @escaping @Sendable () async throws -> Void
+    refreshIfNeeded: @escaping @Sendable () async throws -> Void,
+    withLocalUpdate: @escaping @Sendable (@escaping @Sendable () async throws -> Void) async throws -> Void
   ) {
     self.updatesSequence = updatesSequence
     self.refreshIfNeeded = refreshIfNeeded
+    self.withLocalUpdate = withLocalUpdate
   }
 }
 
@@ -44,7 +47,8 @@ extension SessionData: LoadableContextlessFeature {
   nonisolated public static var placeholder: Self {
     .init(
       updatesSequence: .placeholder,
-      refreshIfNeeded: unimplemented()
+      refreshIfNeeded: unimplemented(),
+      withLocalUpdate: unimplemented()
     )
   }
   #endif

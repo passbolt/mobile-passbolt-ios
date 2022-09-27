@@ -564,6 +564,7 @@ private let detailsViewResource: ResourceDetailsDSV = .init(
     .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
     .init(name: .description, valueType: .string, required: true, encrypted: false, maxLength: nil),
   ],
+  favoriteID: .none,
   permissions: [],
   tags: []
 )
@@ -581,6 +582,7 @@ private let encryptedDescriptionResourceDetails: ResourceDetailsDSV = .init(
     .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
     .init(name: .description, valueType: .string, required: true, encrypted: true, maxLength: nil),
   ],
+  favoriteID: .none,
   permissions: [],
   tags: []
 )

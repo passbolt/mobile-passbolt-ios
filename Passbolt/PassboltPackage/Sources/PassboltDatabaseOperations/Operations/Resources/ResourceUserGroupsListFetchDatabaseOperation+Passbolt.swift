@@ -112,6 +112,7 @@ extension ResourceUserGroupsListFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceUserGroupListItemDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return ResourceUserGroupListItemDSV(

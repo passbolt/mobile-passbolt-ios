@@ -111,6 +111,24 @@ internal final class ResourceMenuView: PlainView {
           .text(displayable: .localized(key: "resource.menu.item.copy.description"))
         }
 
+      case .toggleFavorite(true):
+        mut(item.imageView) {
+          .image(named: .starCrossed, from: .uiCommons)
+        }
+
+        mut(item.titleLabel) {
+          .text(displayable: .localized(key: "resource.menu.item.remove.favorite"))
+        }
+
+      case .toggleFavorite(false):
+        mut(item.imageView) {
+          .image(named: .star, from: .uiCommons)
+        }
+
+        mut(item.titleLabel) {
+          .text(displayable: .localized(key: "resource.menu.item.add.favorite"))
+        }
+
       case .share:
         mut(item.imageView) {
           .image(named: .share, from: .uiCommons)

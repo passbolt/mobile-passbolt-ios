@@ -90,6 +90,7 @@ extension UserGroupDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: UserGroupDetailsDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement

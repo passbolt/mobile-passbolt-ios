@@ -183,7 +183,7 @@ extension ResourcesListFetchDatabaseOperation {
       }
 
       if input.favoriteOnly {
-        statement.append("AND resources.favorite != 0 ")
+        statement.append("AND resources.favorite IS NOT NULL ")
       }
       else {
         /* NOP */
@@ -338,6 +338,7 @@ extension ResourcesListFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceListItemDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return ResourceListItemDSV(

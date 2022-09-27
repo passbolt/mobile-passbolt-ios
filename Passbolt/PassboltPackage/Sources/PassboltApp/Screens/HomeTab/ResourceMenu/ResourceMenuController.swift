@@ -25,6 +25,8 @@ import Accounts
 import CommonModels
 import Resources
 import UIComponents
+import NetworkOperations
+import SessionData
 
 internal struct ResourceMenuController {
 
@@ -35,12 +37,14 @@ internal struct ResourceMenuController {
 
 extension ResourceMenuController {
 
-  internal enum Action: CaseIterable {
+  internal enum Action: Equatable {
+
     case openURL
     case copyURL
     case copyUsername
     case copyPassword
     case copyDescription
+    case toggleFavorite(_ favorite: Bool)
     case share
     case edit
     case delete
@@ -69,9 +73,11 @@ extension ResourceMenuController: UIController {
     with features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
+    let diagnostics: Diagnostics = features.instance()
     let linkOpener: LinkOpener = try await features.instance()
     let resources: Resources = try await features.instance()
     let pasteboard: Pasteboard = try await features.instance()
+    let resourceFavorites: ResourceFavorites = try await features.instance(context: context.resourceID)
 
     let currentDetailsSubject: CurrentValueSubject<ResourceDetailsDSV?, Error> = .init(
       nil
@@ -84,6 +90,7 @@ extension ResourceMenuController: UIController {
           guard case let .failure(error) = completion
           else { return }
           currentDetailsSubject.send(completion: .failure(error))
+          diagnostics.log(error: error)
         },
         receiveValue: { resourceDetails in
           currentDetailsSubject.send(resourceDetails)
@@ -97,61 +104,69 @@ extension ResourceMenuController: UIController {
           guard let resourceDetails = resourceDetails
           else { return nil }
 
-          return Action
-            .allCases
-            .filter({ action in
-              switch action {
-              case .openURL, .copyURL:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .uri = field.name {
-                    return true
-                  }
-                  else {
-                    return false
-                  }
-                })
+          var availableActions: Array<Action> = .init()
 
-              case .copyPassword:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .password = field.name {
-                    return true
-                  }
-                  else {
-                    return false
-                  }
-                })
-
-              case .copyUsername:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .username = field.name {
-                    return true
-                  }
-                  else {
-                    return false
-                  }
-                })
-
-              case .copyDescription:
-                return resourceDetails.fields.contains(where: { field in
-                  if case .description = field.name {
-                    return true
-                  }
-                  else {
-                    return false
-                  }
-                })
-
-              case .share:
-                return resourceDetails.permissionType.canShare
-
-              case .edit:
-                return resourceDetails.permissionType.canEdit
-
-              case .delete:
-                return resourceDetails.permissionType.canEdit
-              }
+          if resourceDetails.fields.contains(where: { field in
+            if case .uri = field.name {
+              return true
             }
-            )
+            else {
+              return false
+            }
+          })
+          {
+            availableActions.append(.openURL)
+            availableActions.append(.copyURL)
+          } // else skip
+
+          if resourceDetails.fields.contains(where: { field in
+            if case .username = field.name {
+              return true
+            }
+            else {
+              return false
+            }
+          })
+          {
+            availableActions.append(.copyUsername)
+          } // else skip
+
+          if resourceDetails.fields.contains(where: { field in
+            if case .password = field.name {
+              return true
+            }
+            else {
+              return false
+            }
+          })
+          {
+            availableActions.append(.copyPassword)
+          } // else skip
+
+          if resourceDetails.fields.contains(where: { field in
+            if case .description = field.name {
+              return true
+            }
+            else {
+              return false
+            }
+          })
+          {
+            availableActions.append(.copyDescription)
+          } // else skip
+
+          availableActions.append(.toggleFavorite(resourceDetails.favoriteID != .none))
+
+          if resourceDetails.permissionType.canShare {
+            availableActions.append(.share)
+          } // else skip
+
+          if resourceDetails.permissionType.canEdit {
+            availableActions.append(.edit)
+            availableActions.append(.delete)
+          } // else skip
+
+          return availableActions
         }
         .replaceError(with: [])
         .eraseToAnyPublisher()
@@ -476,6 +491,22 @@ extension ResourceMenuController: UIController {
         .eraseToAnyPublisher()
     }
 
+    func toggleFavoriteAction() -> AnyPublisher<Void, Error> {
+      return Future<Void, Error> { promise in
+        Task {
+          do {
+            try await resourceFavorites.toggleFavorite()
+            promise(.success(Void()))
+          }
+          catch {
+            diagnostics.log(error: error)
+            promise(.failure(error))
+          }
+        }
+      }
+      .eraseToAnyPublisher()
+    }
+
     func shareAction() -> AnyPublisher<Void, Error> {
       currentDetailsSubject
         .first()
@@ -566,6 +597,8 @@ extension ResourceMenuController: UIController {
         return copyUsernameAction()
       case .copyDescription:
         return copyDescriptionAction()
+      case .toggleFavorite:
+        return toggleFavoriteAction()
       case .share:
         return shareAction()
       case .edit:

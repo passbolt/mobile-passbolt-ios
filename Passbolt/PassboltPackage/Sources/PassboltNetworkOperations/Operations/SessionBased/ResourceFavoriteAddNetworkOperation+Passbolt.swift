@@ -21,81 +21,60 @@
 // @since         v1.0
 //
 
-import DatabaseOperations
-import Session
+import NetworkOperations
 
-// MARK: - Implementation
+// MARK: Implementation
 
-extension UserGroupMembersFetchDatabaseOperation {
+extension ResourceFavoriteAddNetworkOperation {
 
   @MainActor fileprivate static func load(
     features: FeatureFactory
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
 
-    let sessionDatabase: SessionDatabase = try await features.instance()
+    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
 
-    nonisolated func execute(
-      _ input: UserGroup.ID,
-      connection: SQLiteConnection
-    ) throws -> Array<User.ID> {
-      let statement: SQLiteStatement =
-        .statement(
-          """
-          SELECT
-            usersGroups.userID AS id
-          FROM
-            usersGroups
-          WHERE
-            usersGroups.userGroupID == ?1
-          ;
-          """,
-          arguments: input
+    let responseDecoder: NetworkResponseDecoder<Input, CommonNetworkResponse<Output>> = .bodyAsJSON()
+    @Sendable nonisolated func decodeResponse(
+      _ input: Input,
+      _ response: HTTPResponse
+    ) throws -> Output {
+      try responseDecoder
+        .decode(
+          input,
+          response
         )
-
-      return
-        try connection
-        .fetch(using: statement) { dataRow -> User.ID in
-          guard
-            let id: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:))
-          else {
-            throw
-              DatabaseIssue
-              .error(
-                underlyingError:
-                  DatabaseDataInvalid
-                  .error(for: ResourceUserGroupListItemDSV.self)
-              )
-              .recording(dataRow, for: "dataRow")
-          }
-
-          return id
-        }
+        .body
     }
 
-    nonisolated func executeAsync(
-      _ input: UserGroup.ID
-    ) async throws -> Array<User.ID> {
-      try await execute(
+    @SessionActor @Sendable func execute(
+      _ input: Input
+    ) async throws -> Output {
+      try await decodeResponse(
         input,
-        connection: sessionDatabase.connection()
+        sessionRequestExecutor
+          .execute(
+            .combined(
+              .pathSuffix("/favorites/resource/\(input.resourceID.rawValue).json"),
+              .method(.post)
+            )
+          )
       )
     }
 
     return Self(
-      execute: executeAsync(_:)
+      execute: execute(_:)
     )
   }
 }
 
 extension FeatureFactory {
 
-  internal func usePassboltUserGroupMembersFetchDatabaseOperation() {
+  internal func usePassboltResourceFavoriteAddNetworkOperation() {
     self.use(
       .disposable(
-        UserGroupMembersFetchDatabaseOperation.self,
-        load: UserGroupMembersFetchDatabaseOperation
-          .load(features:)
+        ResourceFavoriteAddNetworkOperation.self,
+        load: ResourceFavoriteAddNetworkOperation.load(features:)
       )
     )
   }

@@ -48,5 +48,7 @@ extension FeatureFactory {
     self.usePassboltUserDetailsFetchNetworkOperation()
     self.usePassboltUsersFetchNetworkOperation()
     self.usePassboltYubiKeyAuthorizationNetworkOperation()
+    self.usePassboltResourceFavoriteDeleteNetworkOperation()
+    self.usePassboltResourceFavoriteAddNetworkOperation()
   }
 }

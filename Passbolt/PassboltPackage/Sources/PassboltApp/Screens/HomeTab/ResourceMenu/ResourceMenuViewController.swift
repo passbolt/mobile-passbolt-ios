@@ -98,6 +98,9 @@ internal final class ResourceMenuViewController: PlainViewController, UIComponen
               case .share, .edit, .delete:
                 break  // Actions handled elsewhere
 
+              case .toggleFavorite:
+                await self?.dismiss(ResourceMenuViewController.self)
+
               case .openURL:
                 await self?.dismiss(ResourceMenuViewController.self)
 

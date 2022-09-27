@@ -68,6 +68,7 @@ extension ResourceTagDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceTagListItemDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return ResourceTagDSV(

@@ -64,6 +64,7 @@ extension ResourceTypesFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceTypeDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return ResourceTypeDSV(

@@ -76,6 +76,7 @@ extension UserDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceUserGroupListItemDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return UserDetailsDSV(

@@ -34,6 +34,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
     copyFieldNameTapSubject.eraseToAnyPublisher()
   }
 
+  private let favoriteStarView: ImageView = .init()
   private let iconView: LetterIconLegacyView = .init()
   private let titleLabel: Label = .init()
   private let toggleEncryptedFieldTapSubject: PassthroughSubject<ResourceFieldNameDSV, Never> = .init()
@@ -90,6 +91,18 @@ internal final class ResourceDetailsView: ScrolledStackView {
         .appendSpace(of: 32)
       )
     }
+
+    mut(favoriteStarView) {
+      .combined(
+        .image(named: .starFilled, from: .uiCommons),
+        .tintColor(.passboltSecondaryOrange),
+        .widthAnchor(.equalTo, constant: 32),
+        .heightAnchor(.equalTo, constant: 32),
+        .subview(of: self),
+        .centerXAnchor(.equalTo, iconView.centerXAnchor, constant: 30),
+        .centerYAnchor(.equalTo, iconView.centerYAnchor, constant: -30)
+      )
+    }
   }
 
   internal func update(with config: ResourceDetailsController.ResourceDetailsWithConfig) {
@@ -99,6 +112,7 @@ internal final class ResourceDetailsView: ScrolledStackView {
 
     let resourceDetails: ResourceDetailsDSV = config.resourceDetails
 
+    favoriteStarView.isHidden = resourceDetails.favoriteID == .none
     iconView.update(from: resourceDetails.name)
     titleLabel.text = resourceDetails.name
 

@@ -216,6 +216,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceFolderListItemDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return ResourceFolderListItemDSV(

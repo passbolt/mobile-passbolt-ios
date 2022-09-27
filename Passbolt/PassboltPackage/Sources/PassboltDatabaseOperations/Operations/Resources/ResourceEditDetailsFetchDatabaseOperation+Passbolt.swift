@@ -79,6 +79,7 @@ extension ResourceEditDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceEditDetailsDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           return ResourceEditDetailsDSV(

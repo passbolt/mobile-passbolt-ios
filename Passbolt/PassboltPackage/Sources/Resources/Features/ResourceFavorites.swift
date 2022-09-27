@@ -21,25 +21,32 @@
 // @since         v1.0
 //
 
-import Database
+import CommonModels
+import Features
 
-extension SQLiteMigration: CaseIterable {
+// MARK: - Interface
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-    ]
+public struct ResourceFavorites {
+
+  public var toggleFavorite: @Sendable () async throws -> Void
+
+  public init(
+    toggleFavorite: @escaping @Sendable () async throws -> Void
+  ) {
+    self.toggleFavorite = toggleFavorite
   }
+}
+
+extension ResourceFavorites: LoadableFeature {
+
+  public typealias Context = Resource.ID
+
+  #if DEBUG
+
+  public static var placeholder: Self {
+    Self(
+      toggleFavorite: unimplemented()
+    )
+  }
+  #endif
 }

@@ -32,5 +32,6 @@ extension FeatureFactory {
     self.usePassboltResourceFolders()
     self.usePassboltResources()
     self.usePassboltResourceTags()
+    self.usePassboltResourceFavorites()
   }
 }

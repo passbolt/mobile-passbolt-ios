@@ -22,3 +22,4 @@
 //
 
 @_exported import Users
+@_exported import SessionData

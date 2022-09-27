@@ -66,7 +66,7 @@ extension ResourcesStoreDatabaseOperation {
                 typeID,
                 description,
                 parentFolderID,
-                favorite,
+                favoriteID,
                 permissionType,
                 modified
               )
@@ -110,7 +110,7 @@ extension ResourcesStoreDatabaseOperation {
                   id == ?7
                 LIMIT 1
               ),
-              favorite=?8,
+              favoriteID=?8,
               permissionType=?9,
               modified=?10
             ;
@@ -122,7 +122,7 @@ extension ResourcesStoreDatabaseOperation {
             resource.typeID,
             resource.description,
             resource.parentFolderID,
-            resource.favorite,
+            resource.favoriteID,
             resource.permissionType.rawValue,
             resource.modified
           )

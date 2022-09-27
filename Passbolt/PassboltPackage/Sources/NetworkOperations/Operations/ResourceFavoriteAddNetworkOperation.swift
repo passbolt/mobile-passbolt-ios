@@ -21,25 +21,36 @@
 // @since         v1.0
 //
 
-import Database
+import Features
 
-extension SQLiteMigration: CaseIterable {
+// MARK: - Interface
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-    ]
+public typealias ResourceFavoriteAddNetworkOperation =
+  NetworkOperation<ResourceFavoriteAddNetworkOperationVariable, ResourceFavoriteAddNetworkOperationResult>
+
+public struct ResourceFavoriteAddNetworkOperationVariable {
+
+  public var resourceID: Resource.ID
+
+  public init(
+    resourceID: Resource.ID
+  ) {
+    self.resourceID = resourceID
+  }
+}
+
+public struct ResourceFavoriteAddNetworkOperationResult: Decodable {
+
+  public var favoriteID: Resource.FavoriteID
+
+  public init(
+    favoriteID: Resource.FavoriteID
+  ) {
+    self.favoriteID = favoriteID
+  }
+
+  public enum CodingKeys: String, CodingKey {
+
+    case favoriteID = "id"
   }
 }

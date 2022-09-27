@@ -448,6 +448,8 @@ private func withVerifiedStatusCode(
         .error(
           validationViolations: validationViolations
         )
+        .recording(httpRequest, for: "request")
+        .recording(httpResponse, for: "response")
     }
     else {
       throw

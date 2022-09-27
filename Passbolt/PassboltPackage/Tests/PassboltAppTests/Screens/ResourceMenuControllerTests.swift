@@ -64,6 +64,10 @@ final class ResourceMenuControllerTests: MainActorTestCase {
           .eraseToAnyPublisher()
       )
     )
+    features.usePlaceholder(
+      for: ResourceFavorites.self,
+      context: detailsViewResource.id
+    )
   }
 
   func test_resourceDetailsPublisher_publishes_initially() async throws {
@@ -111,7 +115,7 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, ResourceMenuController.Action.allCases)
+    XCTAssertEqual(result, [.openURL, .copyURL, .copyUsername, .copyPassword, .copyDescription,  .toggleFavorite(false), .share, .edit, .delete])
   }
 
   func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() async throws {
@@ -365,6 +369,7 @@ private let detailsViewResource: ResourceDetailsDSV = .init(
     .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
     .init(name: .description, valueType: .string, required: true, encrypted: false, maxLength: nil),
   ],
+  favoriteID: .none,
   permissions: [],
   tags: []
 )
@@ -382,6 +387,7 @@ private let detailsViewResourceWithoutDescription: ResourceDetailsDSV = .init(
     .init(name: .uri, valueType: .string, required: true, encrypted: false, maxLength: nil),
     .init(name: .description, valueType: .string, required: true, encrypted: true, maxLength: nil),
   ],
+  favoriteID: .none,
   permissions: [],
   tags: []
 )

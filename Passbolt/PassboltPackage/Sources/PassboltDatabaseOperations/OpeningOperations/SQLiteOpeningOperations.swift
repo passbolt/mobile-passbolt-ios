@@ -73,6 +73,7 @@ internal enum SQLiteOpeningOperations {
       SELECT
         resources.id AS id,
         resources.name AS name,
+        resources.favoriteID AS favoriteID,
         resources.permissionType AS permissionType,
         resources.url AS url,
         resources.username AS username,

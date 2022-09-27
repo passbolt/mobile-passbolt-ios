@@ -96,6 +96,7 @@ extension ResourceUserGroupPermissionsDetailsFetchDatabaseOperation {
                   DatabaseDataInvalid
                   .error(for: ResourceUserGroupListItemDSV.self)
               )
+              .recording(dataRow, for: "dataRow")
           }
 
           var groupMembersSelectStatement: SQLiteStatement = membersSelectStatement

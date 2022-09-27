@@ -224,6 +224,8 @@
 "resource.menu.item.copy.password" = "Copy password";
 "resource.menu.item.copy.username" = "Copy username";
 "resource.menu.item.copy.description" = "Copy description";
+"resource.menu.item.add.favorite" = "Add to favorite";
+"resource.menu.item.remove.favorite" = "Remove from favorite";
 "resource.menu.item.share" = "Share password";
 "resource.menu.item.edit" = "Edit password";
 "resource.menu.item.delete.password" = "Delete password";

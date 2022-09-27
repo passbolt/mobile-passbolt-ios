@@ -28,6 +28,9 @@ public enum Resource {}
 extension Resource {
 
   public typealias ID = Tagged<String, Self>
+
+  public enum Favorite {}
+  public typealias FavoriteID = Tagged<String, Favorite>
 }
 
 extension Resource.ID {
@@ -48,6 +51,25 @@ extension Resource.ID {
 
 // cannot conform to RandomlyGenerated
 extension Resource.ID {
+
+  public static func randomGenerator(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Generator<Self> {
+    UUID
+      .randomGenerator(using: randomnessGenerator)
+      .map(\.uuidString)
+      .map(Self.init(rawValue:))
+  }
+
+  public static func random(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Self {
+    Self.randomGenerator(using: randomnessGenerator).next()
+  }
+}
+
+// cannot conform to RandomlyGenerated
+extension Resource.FavoriteID {
 
   public static func randomGenerator(
     using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource

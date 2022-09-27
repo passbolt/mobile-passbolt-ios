@@ -32,6 +32,7 @@ public struct ResourceDetailsDSV {
   public var username: String?
   public var description: String?
   public var fields: Array<ResourceFieldDSV>
+  public var favoriteID: Resource.FavoriteID?
   public var permissions: OrderedSet<PermissionDSV>
   public var tags: Array<ResourceTagDSV>
 
@@ -43,6 +44,7 @@ public struct ResourceDetailsDSV {
     username: String?,
     description: String?,
     fields: Array<ResourceFieldDSV>,
+    favoriteID: Resource.FavoriteID?,
     permissions: OrderedSet<PermissionDSV>,
     tags: Array<ResourceTagDSV>
   ) {
@@ -53,6 +55,7 @@ public struct ResourceDetailsDSV {
     self.username = username
     self.description = description
     self.fields = fields
+    self.favoriteID = favoriteID
     self.permissions = permissions
     self.tags = tags
   }
@@ -68,7 +71,8 @@ extension ResourceDetailsDSV: RandomlyGenerated {
     using randomnessGenerator: RandomnessGenerator
   ) -> Generator<Self> {
     zip(
-      with: ResourceDetailsDSV.init(id:permissionType:name:url:username:description:fields:permissions:tags:),
+
+        with: ResourceDetailsDSV.init(id:permissionType:name:url:username:description:fields:favoriteID:permissions:tags:),
       Resource.ID
         .randomGenerator(using: randomnessGenerator),
       PermissionTypeDSV
@@ -89,6 +93,8 @@ extension ResourceDetailsDSV: RandomlyGenerated {
         .array(withCountIn: 1..<3, using: randomnessGenerator)
         // name field is required to be always present
         .appending(ResourceFieldDTO(name: .name, valueType: .string, required: true, encrypted: false, maxLength: 0)),
+      Resource.FavoriteID
+        .randomGenerator(using: randomnessGenerator),
       PermissionDSV
         .randomGenerator(using: randomnessGenerator)
         .array(withCountIn: 0..<3, using: randomnessGenerator)

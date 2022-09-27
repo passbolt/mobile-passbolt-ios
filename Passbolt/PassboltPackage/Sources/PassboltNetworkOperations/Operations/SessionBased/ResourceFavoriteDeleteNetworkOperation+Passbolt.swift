@@ -21,25 +21,55 @@
 // @since         v1.0
 //
 
-import Database
+import NetworkOperations
 
-extension SQLiteMigration: CaseIterable {
+// MARK: Implementation
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-    ]
+extension ResourceFavoriteDeleteNetworkOperation {
+
+  @MainActor fileprivate static func load(
+    features: FeatureFactory
+  ) async throws -> Self {
+    unowned let features: FeatureFactory = features
+
+    let sessionRequestExecutor: SessionNetworkRequestExecutor = try await features.instance()
+
+    @Sendable nonisolated func decodeResponse(
+      _ input: Input,
+      _ response: HTTPResponse
+    ) throws -> Output {
+      Void()
+    }
+
+    @SessionActor @Sendable func execute(
+      _ input: Input
+    ) async throws -> Output {
+      try await decodeResponse(
+        input,
+        sessionRequestExecutor
+          .execute(
+            .combined(
+              .pathSuffix("/favorites/\(input.favoriteID.rawValue).json"),
+              .method(.delete)
+            )
+          )
+      )
+    }
+
+    return Self(
+      execute: execute(_:)
+    )
+  }
+}
+
+extension FeatureFactory {
+
+  internal func usePassboltResourceFavoriteDeleteNetworkOperation() {
+    self.use(
+      .disposable(
+        ResourceFavoriteDeleteNetworkOperation.self,
+        load: ResourceFavoriteDeleteNetworkOperation.load(features:)
+      )
+    )
   }
 }
