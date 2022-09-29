@@ -305,7 +305,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \AccountTransferUpdateNetworkOperation.execute,
-      with: { input in
+      with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
@@ -334,7 +334,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \AccountTransferUpdateNetworkOperation.execute,
-      with: { input in
+      with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
@@ -720,7 +720,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \AccountTransferUpdateNetworkOperation.execute,
-      with: { input in
+      with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }
@@ -866,7 +866,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \AccountTransferUpdateNetworkOperation.execute,
-      with: { input in
+      with: { (input) async throws in
         uncheckedSendableResult.variable = input
         return accountTransferUpdateResponse
       }

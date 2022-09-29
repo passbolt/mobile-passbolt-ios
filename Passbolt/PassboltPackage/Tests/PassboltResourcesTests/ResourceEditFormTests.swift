@@ -723,7 +723,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceEditNetworkOperation.execute,
-      with: { variable in
+      with: { (variable) async throws in
         uncheckedSendableResult.variable = variable.resourceID
         return .init(
           resourceID: variable.resourceID

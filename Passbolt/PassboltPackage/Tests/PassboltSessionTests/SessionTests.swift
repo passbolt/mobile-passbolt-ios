@@ -100,7 +100,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_performsUsingRequestedAccount() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-      with: { account, _ in
+      with: { (account, _) async throws in
         self.result = account
       }
     )
@@ -119,7 +119,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_performsUsingSessionAuthorizationAuthorize() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-      with: { _, authorize in
+      with: { (_, authorize) async throws in
         try await authorize()
       }
     )
@@ -142,7 +142,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorize_fails_whenSessionAuthorizationAuthorizeFails() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-      with: { _, authorize in
+      with: { (_, authorize) async throws in
         try await authorize()
       }
     )
@@ -182,7 +182,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_performsUsingRequestedAccount() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-      with: { account, _ in
+       with: { (account: Account, _) async throws in
         self.result = account
       }
     )
@@ -201,7 +201,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_performsUsingSessionMFAAuthorizationAuthorizeMFA() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-      with: { _, authorize in
+      with: { (_, authorize) async throws in
         try await authorize()
       }
     )
@@ -224,7 +224,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_fails_whenSessionMFAAuthorizationAuthorizeMFAFails() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-      with: { _, authorize in
+      with: { (_, authorize) async throws in
         try await authorize()
       }
     )

@@ -217,7 +217,7 @@ final class TOTPControllerTests: MainActorTestCase {
     )
     features.patch(
       \Session.authorizeMFA,
-      with: { _ in
+      with: { (_) async throws in
         uncheckedSendableResult.variable = Void()
       }
     )
@@ -237,7 +237,7 @@ final class TOTPControllerTests: MainActorTestCase {
     )
     features.patch(
       \Session.authorizeMFA,
-      with: { _ in
+      with: { (_) async throws in
         uncheckedSendableResult.variable = Void()
       }
     )
@@ -265,7 +265,7 @@ final class TOTPControllerTests: MainActorTestCase {
     )
     features.patch(
       \Session.authorizeMFA,
-      with: { _ in
+      with: { (_) async throws in
         uncheckedSendableResult.variable = Void()
       }
     )
@@ -290,7 +290,7 @@ final class TOTPControllerTests: MainActorTestCase {
     )
     features.patch(
       \Session.authorizeMFA,
-      with: { _ in
+      with: { (_) async throws in
         uncheckedSendableResult.variable = Void()
       }
     )

@@ -341,7 +341,7 @@ final class ResourceEditControllerTests: MainActorTestCase {
     )
     features.patch(
       \SessionData.refreshIfNeeded,
-      with: {
+      with: { () async throws in
         uncheckedSendableResult.variable = Void()
       }
     )

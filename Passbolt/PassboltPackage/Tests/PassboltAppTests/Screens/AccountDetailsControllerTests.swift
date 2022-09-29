@@ -73,7 +73,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     features.patch(
       \AccountDetails.avatarImage,
       context: Account.valid,
-      with: {
+      with: { () async throws in
         uncheckedSendableResult.variable = Void()
         return .init()
       }

@@ -91,7 +91,9 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     )
     patch(
       \SessionData.refreshIfNeeded,
-      with: { uncheckedSendableResult.variable = Void() }
+      with: { () async throws in
+        uncheckedSendableResult.variable = Void()
+      }
     )
 
     let _: Resources = try await testedInstance()
@@ -128,8 +130,8 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     )
     patch(
       \ResourcesListFetchDatabaseOperation.execute,
-      with: {
-        uncheckedSendableResult.variable = $0
+      with: { (input) async throws in
+        uncheckedSendableResult.variable = input
         return .testResources
       }
     )
@@ -200,7 +202,9 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     )
     patch(
       \SessionData.refreshIfNeeded,
-      with: { uncheckedSendableResult.variable = Void() }
+      with: { () async throws in
+        uncheckedSendableResult.variable = Void()
+      }
     )
     patch(
       \ResourceDeleteNetworkOperation.execute,

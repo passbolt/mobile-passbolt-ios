@@ -185,7 +185,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     features.patch(
       \AccountPreferences.storePassphrase,
       context: Account.valid,
-      with: { store in
+      with: { (store) async throws in
         uncheckedSendableResult.variable = store
       }
     )

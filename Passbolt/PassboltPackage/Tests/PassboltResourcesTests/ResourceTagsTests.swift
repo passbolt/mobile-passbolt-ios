@@ -59,8 +59,8 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
     )
     patch(
       \ResourceTagsListFetchDatabaseOperation.execute,
-      with: {
-        uncheckedSendableResult.variable = $0
+      with: { (input) async throws in
+        uncheckedSendableResult.variable = input
         return []
       }
     )

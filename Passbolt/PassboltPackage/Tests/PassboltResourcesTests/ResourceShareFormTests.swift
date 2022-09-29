@@ -462,7 +462,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \ResourceDetails.secret,
       context: resource.id,
-      with: {
+      with: { () async throws in
         uncheckedSendableResult.variable = Void()
         throw MockIssue.error()
       }

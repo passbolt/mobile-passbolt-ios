@@ -149,7 +149,7 @@ final class WindowTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: {
+      with: { () async throws in
         if let currentAccount = uncheckedSendableCurrentAccount.variable {
           return currentAccount
         }
@@ -187,7 +187,7 @@ final class WindowTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: {
+      with: { () async throws in
         if let currentAccount = uncheckedSendableCurrentAccount.variable {
           return currentAccount
         }
@@ -236,7 +236,7 @@ final class WindowTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: {
+      with: { () async throws in
         if let currentAccount = uncheckedSendableCurrentAccount.variable {
           return currentAccount
         }
