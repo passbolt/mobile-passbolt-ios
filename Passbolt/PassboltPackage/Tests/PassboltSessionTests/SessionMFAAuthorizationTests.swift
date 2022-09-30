@@ -33,15 +33,250 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
   }
 
   override func prepare() throws {
-
+    use(SessionState.placeholder)
+    use(AccountsDataStore.placeholder)
+    use(TOTPAuthorizationNetworkOperation.placeholder)
+    use(YubiKeyAuthorizationNetworkOperation.placeholder)
+    patch(
+      environment: \.yubiKey,
+      with: .placeholder
+    )
   }
 
-  func test_() {
-    XCTExpectFailure("Not completed yet")
-    return XCTFail("TODO: Implement missing unit tests")
+  func test_authorizeMFA_totp_throws_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: false))
+    }
+  }
 
-    withTestedInstance { (testedInstance: SessionMFAAuthorization) in
+  func test_authorizeMFA_totp_throws_whenAuthorizationRequestThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \TOTPAuthorizationNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: false))
+    }
+  }
 
+  func test_authorizeMFA_totp_succeeds_whenAuthorizationSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \TOTPAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.setMFAToken,
+      with: always(self.executed())
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: false))
+    }
+  }
+
+  func test_authorizeMFA_totp_throws_whenStoringTokenThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \TOTPAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.setMFAToken,
+      with: always(Void())
+    )
+    patch(
+      \AccountsDataStore.storeAccountMFAToken,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: true))
+    }
+  }
+
+  func test_authorizeMFA_totp_succeeds_whenStoringTokenSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \TOTPAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.setMFAToken,
+      with: always(Void())
+    )
+    patch(
+      \AccountsDataStore.storeAccountMFAToken,
+      with: always(Void())
+    )
+    withTestedInstanceNotThrows { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: true))
+    }
+  }
+
+  func test_authorizeMFA_yubikey_throws_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+    }
+  }
+
+  func test_authorizeMFA_yubikey_throws_whenReadingNFCThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      environment: \.yubiKey.readNFC,
+      with: always(
+        Fail(error: MockIssue.error())
+          .eraseToAnyPublisher()
+      )
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+    }
+  }
+
+  func test_authorizeMFA_yubikey_throws_whenAuthorizationRequestThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      environment: \.yubiKey.readNFC,
+      with: always(
+        Just("otp")
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \YubiKeyAuthorizationNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+    }
+  }
+
+  func test_authorizeMFA_yubikey_savesToken_whenAuthorizationSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      environment: \.yubiKey.readNFC,
+      with: always(
+        Just("otp")
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \YubiKeyAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.setMFAToken,
+      with: always(self.executed())
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+    }
+  }
+
+  func test_authorizeMFA_yubikey_throws_whenStoringTokenThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      environment: \.yubiKey.readNFC,
+      with: always(
+        Just("otp")
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \YubiKeyAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.setMFAToken,
+      with: always(Void())
+    )
+    patch(
+      \AccountsDataStore.storeAccountMFAToken,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: true))
+    }
+  }
+
+  func test_authorizeMFA_yubikey_succeeds_whenStoringTokenSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      environment: \.yubiKey.readNFC,
+      with: always(
+        Just("otp")
+          .eraseErrorType()
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \YubiKeyAuthorizationNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.setMFAToken,
+      with: always(Void())
+    )
+    patch(
+      \AccountsDataStore.storeAccountMFAToken,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: true))
     }
   }
 }

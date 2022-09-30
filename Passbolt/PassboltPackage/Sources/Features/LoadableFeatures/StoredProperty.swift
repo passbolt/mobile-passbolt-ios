@@ -120,7 +120,8 @@ extension FeatureFactory {
     self.use(
       .lazyLoaded(
         StoredProperty<Property>.self,
-        load: { (features: FeatureFactory, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
+        load: {
+          (features: FeatureFactory, context: StoredProperty.Context, cancellables: Cancellables) -> StoredProperty in
           try await StoredProperty<Property>.load(
             features: features,
             context: context,

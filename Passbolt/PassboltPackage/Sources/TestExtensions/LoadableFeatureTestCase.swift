@@ -203,6 +203,17 @@ extension LoadableFeatureTestCase {
     return try result.get()
   }
 
+  @Sendable public nonisolated func executed<Value>(
+    using value: Value
+  ) {
+    self.executed()
+    self.variables.set(
+      \.executedUsing,
+      of: Value.self,
+      to: value
+    )
+  }
+
   public final func use<MockFeature>(
     _ instance: MockFeature,
     context: MockFeature.Context
@@ -421,6 +432,58 @@ extension LoadableFeatureTestCase {
     }
   }
 
+  public func withTestedInstanceExecuted<Value, Parameter>(
+    using parameter: Parameter,
+    timeout: TimeInterval = 0.3,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Value
+  ) where Feature.Context == ContextlessFeatureContext, Parameter: Equatable {
+    withTestedInstanceExecuted(
+      using: parameter,
+      context: ContextlessFeatureContext.instance,
+      timeout: timeout,
+      file: file,
+      line: line,
+      test: test
+    )
+  }
+
+  public func withTestedInstanceExecuted<Value, Parameter>(
+    using expectedParameter: Parameter,
+    context: Feature.Context,
+    timeout: TimeInterval = 0.3,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Value
+  ) where Parameter: Equatable {
+    self.asyncTestExecuted(
+      count: 1,
+      timeout: timeout,
+      file: file,
+      line: line
+    ) { (executed: @escaping @Sendable () -> Void) in
+      assert(
+        !self.variables.contains(\.executed, of: (@Sendable () -> Void).self),
+        "Cannot execute concurrently"
+      )
+      self.executed = executed
+      _ = try await test(
+        self.testedInstance(context: context)
+      )
+      let parameter: Parameter = await self.variable(\.executedUsing)
+      XCTAssertEqual(
+        parameter,
+        expectedParameter,
+        "Execution parameter \(parameter as Any) does not match expected (\(expectedParameter)).",
+        file: file,
+        line: line
+      )
+      self.variables.clear(\.executed)
+      self.variables.clear(\.executedUsing)
+    }
+  }
+
   public func withTestedInstanceExecuted<Value>(
     count: UInt = 1,
     timeout: TimeInterval = 0.3,
@@ -567,6 +630,84 @@ extension LoadableFeatureTestCase {
   ) where Value: Equatable {
     self.asyncTestReturnsEqual(
       expectedResult,
+      timeout: timeout,
+      file: file,
+      line: line
+    ) {
+      assert(
+        !self.variables.contains(\.result, of: (@Sendable () -> Void).self),
+        "Cannot execute concurrently or set result before test"
+      )
+      _ = try await test(
+        self.testedInstance(context: context)
+      )
+      defer { self.variables.clear(\.result) }
+      return self.result
+    }
+  }
+
+  public func withTestedInstanceResultNone(
+    timeout: TimeInterval = 0.3,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Any
+  ) where Feature.Context == ContextlessFeatureContext {
+    withTestedInstanceResultNone(
+      context: ContextlessFeatureContext.instance,
+      timeout: timeout,
+      file: file,
+      line: line,
+      test: test
+    )
+  }
+
+  public func withTestedInstanceResultNone(
+    context: Feature.Context,
+    timeout: TimeInterval = 0.3,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Any
+  ) {
+    self.asyncTestReturnsNone(
+      timeout: timeout,
+      file: file,
+      line: line
+    ) {
+      assert(
+        !self.variables.contains(\.result, of: (@Sendable () -> Void).self),
+        "Cannot execute concurrently or set result before test"
+      )
+      _ = try await test(
+        self.testedInstance(context: context)
+      )
+      defer { self.variables.clear(\.result) }
+      return self.result
+    }
+  }
+
+  public func withTestedInstanceResultSome(
+    timeout: TimeInterval = 0.3,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Any
+  ) where Feature.Context == ContextlessFeatureContext {
+    withTestedInstanceResultSome(
+      context: ContextlessFeatureContext.instance,
+      timeout: timeout,
+      file: file,
+      line: line,
+      test: test
+    )
+  }
+
+  public func withTestedInstanceResultSome(
+    context: Feature.Context,
+    timeout: TimeInterval = 0.3,
+    file: StaticString = #file,
+    line: UInt = #line,
+    test: @escaping @Sendable (Feature) async throws -> Any
+  ) {
+    self.asyncTestReturnsSome(
       timeout: timeout,
       file: file,
       line: line

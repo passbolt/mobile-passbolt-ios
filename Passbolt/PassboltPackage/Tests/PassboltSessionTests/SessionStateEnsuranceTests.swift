@@ -33,15 +33,231 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
   }
 
   override func prepare() throws {
-
+    use(SessionAuthorization.placeholder)
   }
 
-  func test_() {
-    XCTExpectFailure("Not completed yet")
-    return XCTFail("TODO: Implement missing unit tests")
+  func test_passphrase_throws_withInvalidAuthorizationState() {
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    withTestedInstanceThrows(
+      InternalInconsistency.self
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.passphrase(.valid)
+    }
+  }
 
-    withTestedInstance { (testedInstance: SessionStateEnsurance) in
+  func test_passphrase_throws_whenWaitingForAuthorizationThrows() {
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.passphrase(.valid)
+    }
+  }
 
+  func test_passphrase_returnsPassphrase_whenAvailable() {
+    patch(
+      \SessionState.passphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    withTestedInstanceReturnsEqual(
+      "passphrase" as Passphrase
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.passphrase(.valid)
+    }
+  }
+
+  func test_passphrase_returnsPassphrase_afterSuccessfulWaitingForAuthorization() {
+    self.currentPassphrase = Optional<Passphrase>.none
+    patch(
+      \SessionState.passphrase,
+      with: always(self.currentPassphrase)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: { (_) async throws in
+        self.currentPassphrase = "passphrase" as Passphrase
+      }
+    )
+    withTestedInstanceReturnsEqual(
+      "passphrase" as Passphrase
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.passphrase(.valid)
+    }
+  }
+
+  func test_accessToken_throws_withInvalidAuthorizationState() {
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.validAccessToken,
+      with: always(.none)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    withTestedInstanceThrows(
+      InternalInconsistency.self
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
+    }
+  }
+
+  func test_accessToken_throws_whenWaitingForAuthorizationThrows() {
+    patch(
+      \SessionState.validAccessToken,
+      with: always(.none)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
+    }
+  }
+
+  func test_accessToken_returnsToken_whenAvailable() {
+    patch(
+      \SessionState.validAccessToken,
+      with: always(.valid)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    withTestedInstanceReturnsEqual(
+      SessionAccessToken.valid
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
+    }
+  }
+
+  func test_accessToken_returnsToken_afterSuccessfulWaitingForAuthorization() {
+    self.currentToken = Optional<SessionAccessToken>.none
+    patch(
+      \SessionState.validAccessToken,
+      with: always(self.currentToken)
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: { (_) async throws in
+        self.currentToken = SessionAccessToken.valid
+      }
+    )
+    withTestedInstanceReturnsEqual(
+      SessionAccessToken.valid
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
+    }
+  }
+
+  func test_accessToken_returnsToken_afterSuccessfulRefresh() {
+    self.currentToken = Optional<SessionAccessToken>.none
+    patch(
+      \SessionState.validAccessToken,
+      with: always(self.currentToken)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \SessionAuthorization.refreshTokens,
+      with: { (_, _) async throws in
+        self.currentToken = SessionAccessToken.valid
+      }
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    patch(
+      \SessionAuthorizationState.performAuthorization,
+      with: { (_, authorization) async throws in
+        try await authorization()
+      }
+    )
+    withTestedInstanceReturnsEqual(
+      SessionAccessToken.valid
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
+    }
+  }
+
+  func test_accessToken_throws_whenRefreshingTokenFails() {
+    patch(
+      \SessionState.validAccessToken,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \SessionAuthorization.refreshTokens,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    patch(
+      \SessionAuthorizationState.performAuthorization,
+      with: { (_, authorization) async throws in
+        try await authorization()
+      }
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
+    }
+  }
+
+  func test_accessToken_throws_whenAuthorizationFails() {
+    patch(
+      \SessionState.validAccessToken,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    patch(
+      \SessionAuthorizationState.performAuthorization,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionStateEnsurance) in
+      try await testedInstance.accessToken(.valid)
     }
   }
 }

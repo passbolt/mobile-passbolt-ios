@@ -32,12 +32,12 @@ public struct Unavailable: TheError {
   ) -> Self {
     Self(
       context: .context(
-          .message(
-            message,
-            file: file,
-            line: line
-          )
-        ),
+        .message(
+          message,
+          file: file,
+          line: line
+        )
+      ),
       displayableMessage: .localized("generic.error")
     )
   }

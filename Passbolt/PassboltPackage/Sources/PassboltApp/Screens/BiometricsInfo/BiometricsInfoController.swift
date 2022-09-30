@@ -22,8 +22,8 @@
 //
 
 import Accounts
-import UIComponents
 import Session
+import UIComponents
 
 internal struct BiometricsInfoController {
 

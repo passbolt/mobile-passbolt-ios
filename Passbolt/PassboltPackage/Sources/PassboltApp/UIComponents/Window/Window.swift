@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import UIComponents
 import SharedUIComponents
+import UIComponents
 
 @MainActor
 internal final class Window {
@@ -53,7 +53,7 @@ internal final class Window {
         .forEach { @MainActor [weak self] disposition in
           guard let self = self else { return }
           switch disposition {
-            // Use last state for same session after authorization.
+          // Use last state for same session after authorization.
           case let .useCachedScreenState(account):
             if let cachedScreen: AnyUIComponent = self.screenStateCache {
               self.screenStateCache = nil
@@ -72,11 +72,11 @@ internal final class Window {
               )
             }
 
-            // Go to initial screen state (through Splash)
-            // which will be one of:
-            // - welcome (no accounts)
-            // - home (for authorized)
-            // - account selection (for unauthorized)
+          // Go to initial screen state (through Splash)
+          // which will be one of:
+          // - welcome (no accounts)
+          // - home (for authorized)
+          // - account selection (for unauthorized)
           case let .useInitialScreenState(account):
             self.screenStateCache = nil
 
@@ -90,7 +90,7 @@ internal final class Window {
                 )
             )
 
-            // Prompt user with authorization screen if it is not already displayed.
+          // Prompt user with authorization screen if it is not already displayed.
           case let .requestPassphrase(account, message):
             guard
               !self.isSplashScreenDisplayed,
@@ -118,7 +118,7 @@ internal final class Window {
                 )
             )
 
-            // Prompt user with mfa screen if it is not already displayed.
+          // Prompt user with mfa screen if it is not already displayed.
           case let .requestMFA(_, providers):
             guard
               !self.isSplashScreenDisplayed,
@@ -126,7 +126,7 @@ internal final class Window {
             else { return }
 
             if let authorizationNavigation = self.window.rootViewController
-                as? AuthorizationNavigationViewController
+              as? AuthorizationNavigationViewController
             {
               if providers.isEmpty {
                 try await self.replaceRoot(
@@ -211,10 +211,10 @@ extension Window {
     else { return false }
     return navigation.viewControllers.contains { (vc: UIViewController) -> Bool in
       vc is TransferSignInViewController
-      || vc is TransferInfoScreenViewController
-      || vc is BiometricsInfoViewController
-      || vc is BiometricsSetupViewController
-      || vc is ExtensionSetupViewController
+        || vc is TransferInfoScreenViewController
+        || vc is BiometricsInfoViewController
+        || vc is BiometricsSetupViewController
+        || vc is ExtensionSetupViewController
     }
   }
 
@@ -225,19 +225,19 @@ extension Window {
     return navigation.viewControllers
       .contains { (vc: UIViewController) -> Bool in
         vc is TransferSignInViewController
-        || vc is AuthorizationViewController
+          || vc is AuthorizationViewController
       }
       && !navigation.viewControllers
-      .contains {  (vc: UIViewController) -> Bool in
-        vc is MFARootViewController
-      }
+        .contains { (vc: UIViewController) -> Bool in
+          vc is MFARootViewController
+        }
   }
 
   private var isMFAPromptDisplayed: Bool {
     window.rootViewController is PlainNavigationViewController<MFARootViewController>
-    || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers.contains(where: {
-      $0 is MFARootViewController
-    }) ?? false
+      || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers.contains(where: {
+        $0 is MFARootViewController
+      }) ?? false
   }
 }
 

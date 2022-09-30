@@ -38,14 +38,14 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   override func mainActorSetUp() {
     autoFill = .placeholder
     linkOpener = .placeholder
-		features.patch(
-			\Session.currentAccount,
-			 with: always(.valid)
-		)
-		features.usePlaceholder(
-			for: AccountInitialSetup.self,
-			context: Account.valid
-		)
+    features.patch(
+      \Session.currentAccount,
+      with: always(.valid)
+    )
+    features.usePlaceholder(
+      for: AccountInitialSetup.self,
+      context: Account.valid
+    )
   }
 
   override func mainActorTearDown() {
@@ -69,11 +69,11 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
   func test_continueSetupPresentationPublisher_publish_afterSkip() async throws {
     features.use(autoFill)
     features.use(linkOpener)
-		features.patch(
-			\AccountInitialSetup.completeSetup,
-			context: Account.valid,
-			with: always(Void())
-		)
+    features.patch(
+      \AccountInitialSetup.completeSetup,
+      context: Account.valid,
+      with: always(Void())
+    )
 
     let controller: ExtensionSetupController = try await testController()
 

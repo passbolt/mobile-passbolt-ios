@@ -21,9 +21,9 @@
 // @since         v1.0
 //
 
-import UIComponents
 import Accounts
 import Session
+import UIComponents
 
 internal struct ExtensionSetupController {
 

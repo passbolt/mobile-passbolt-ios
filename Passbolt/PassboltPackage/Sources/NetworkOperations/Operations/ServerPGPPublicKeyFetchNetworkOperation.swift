@@ -43,6 +43,12 @@ public struct ServerPGPPublicKeyFetchNetworkOperationResult: Decodable {
 
   public var keyData: String
 
+  public init(
+    keyData: String
+  ) {
+    self.keyData = keyData
+  }
+
   private enum CodingKeys: String, CodingKey {
     case keyData = "keydata"
   }

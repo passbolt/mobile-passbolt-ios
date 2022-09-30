@@ -21,6 +21,6 @@
 // @since         v1.0
 //
 
-@_exported import OrderedCollections
 @_exported import Combine
 @_exported import Localization
+@_exported import OrderedCollections

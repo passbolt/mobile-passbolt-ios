@@ -182,7 +182,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_authorizeMFA_performsUsingRequestedAccount() {
     patch(
       \SessionAuthorizationState.performAuthorization,
-       with: { (account: Account, _) async throws in
+      with: { (account: Account, _) async throws in
         self.result = account
       }
     )

@@ -52,7 +52,7 @@ extension SessionLocking {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     await features.assertScope(identifier: account)
-
+    let asyncExecutor: AsyncExecutor = features.instance()
     let environmentBridge: EnvironmentLegacyBridge = features.instance()
     let appLifeCycle: AppLifeCycle = environmentBridge.environment.appLifeCycle
     let sesionState: SessionState = try await features.instance()
@@ -67,15 +67,22 @@ extension SessionLocking {
             break  // NOP
 
           case .didEnterBackground:
-            Task { @SessionActor in
+            asyncExecutor.schedule { @SessionActor in
               sesionState.setPassphrase(.none)
             }
 
           case .willEnterForeground:
-            Task(priority: .high) { @SessionActor in
-              // ignore errors
-              try sesionAuthorizationState
-                .requestAuthorization(.passphrase(account))
+            asyncExecutor.schedule { @SessionActor in
+              do {
+                try sesionAuthorizationState
+                  .requestAuthorization(.passphrase(account))
+              }
+              catch {
+                // ignore errors
+                error
+                  .asTheError()
+                  .asAssertionFailure()
+              }
             }
           }
         }

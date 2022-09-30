@@ -39,15 +39,6 @@ final class SettingsScreenTests: MainActorTestCase {
   var preferencesUpdates: UpdatesSequenceSource!
 
   override func mainActorSetUp() {
-    //    updates = .init()
-    //    features.patch(
-    //      \SessionData.updatesSequence,
-    //       with: updates.updatesSequence
-    //    )
-    //    features.patch(
-    //      \SessionData.refreshIfNeeded,
-    //      with: always(Void())
-    //    )
     features.usePlaceholder(for: DisplayNavigation.self)
     features.usePlaceholder(for: AutoFill.self)
     features.usePlaceholder(for: Biometry.self)
@@ -93,7 +84,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.unconfigured)
+        CurrentValueSubject(.unconfigured)
           .eraseToAnyPublisher()
       )
     )
@@ -124,7 +115,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.configuredFaceID)
+        CurrentValueSubject(.configuredFaceID)
           .eraseToAnyPublisher()
       )
     )
@@ -151,7 +142,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.configuredFaceID)
+        CurrentValueSubject(.configuredFaceID)
           .eraseToAnyPublisher()
       )
     )
@@ -183,7 +174,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.configuredTouchID)
+        CurrentValueSubject(.configuredTouchID)
           .eraseToAnyPublisher()
       )
     )
@@ -210,7 +201,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.configuredTouchID)
+        CurrentValueSubject(.configuredTouchID)
           .eraseToAnyPublisher()
       )
     )
@@ -240,7 +231,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.configuredFaceID)
+        CurrentValueSubject(.configuredFaceID)
           .eraseToAnyPublisher()
       )
     )
@@ -273,7 +264,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.configuredFaceID)
+        CurrentValueSubject(.configuredFaceID)
           .eraseToAnyPublisher()
       )
     )
@@ -301,7 +292,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.unconfigured)
+        CurrentValueSubject(.unconfigured)
           .eraseToAnyPublisher()
       )
     )
@@ -338,7 +329,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.unconfigured)
+        CurrentValueSubject(.unconfigured)
           .eraseToAnyPublisher()
       )
     )
@@ -372,7 +363,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.unconfigured)
+        CurrentValueSubject(.unconfigured)
           .eraseToAnyPublisher()
       )
     )
@@ -408,7 +399,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.unconfigured)
+        CurrentValueSubject(.unconfigured)
           .eraseToAnyPublisher()
       )
     )
@@ -440,7 +431,7 @@ final class SettingsScreenTests: MainActorTestCase {
     features.patch(
       \Biometry.biometricsStatePublisher,
       with: always(
-        Just(.unconfigured)
+        CurrentValueSubject(.unconfigured)
           .eraseToAnyPublisher()
       )
     )

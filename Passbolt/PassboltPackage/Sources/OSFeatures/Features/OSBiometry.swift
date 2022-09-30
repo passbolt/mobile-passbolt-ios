@@ -45,14 +45,14 @@ extension OSBiometry {
 
 extension OSBiometry: StaticFeature {
 
-#if DEBUG
+  #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
       availability: unimplemented(),
       requestPermission: unimplemented()
     )
   }
-#endif
+  #endif
 }
 
 // MARK: - Implementation
@@ -104,9 +104,10 @@ extension OSBiometry {
       guard !isInExtensionContext
       else {
         throw
-        SystemFeatureUnavailable
+          SystemFeatureUnavailable
           .error(
-            underlyingError: Unavailable
+            underlyingError:
+              Unavailable
               .error("Cannot request permission in app extension.")
           )
       }
@@ -125,32 +126,34 @@ extension OSBiometry {
       {
         throw
           SystemFeaturePermissionNotGranted
-            .error("Biometrics permission not granted")
-            .recording(laError, for: "underlyingError")
+          .error("Biometrics permission not granted")
+          .recording(laError, for: "underlyingError")
       }
       else {
-         try await Task { @MainActor in
-           try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-             laContext.evaluatePolicy(
+        try await Task { @MainActor in
+          try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            laContext.evaluatePolicy(
               .deviceOwnerAuthenticationWithBiometrics,
-              localizedReason: DisplayableString
+              localizedReason:
+                DisplayableString
                 .localized("biometrics.usage.reason")
                 .string()
-             ) { (granted: Bool, error: Error?) in
-               if error == nil && granted {
-                 continuation.resume(returning: Void())
-               }
-               else {
-                 continuation.resume(
-                  throwing: SystemFeaturePermissionNotGranted
+            ) { (granted: Bool, error: Error?) in
+              if error == nil && granted {
+                continuation.resume(returning: Void())
+              }
+              else {
+                continuation.resume(
+                  throwing:
+                    SystemFeaturePermissionNotGranted
                     .error("Biometrics permission not granted")
                     .recording(error as Any, for: "underlyingError")
-                 )
-               }
-             }
-           }
-         }
-         .value
+                )
+              }
+            }
+          }
+        }
+        .value
       }
     }
 

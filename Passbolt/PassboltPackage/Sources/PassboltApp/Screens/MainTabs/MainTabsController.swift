@@ -23,9 +23,9 @@
 
 import Accounts
 import Features
-import UIComponents
-import Session
 import OSFeatures
+import Session
+import UIComponents
 
 internal struct MainTabsController {
 
@@ -82,26 +82,27 @@ extension MainTabsController: UIController {
     func initialModalPresentation() -> AnyPublisher<ModalPresentation?, Never> {
       Future<ModalPresentation?, Never> { promise in
         Task {
-        let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> = await accountInitialSetup.unfinishedSetupElements()
+          let unfinishedSetupElements: Set<AccountInitialSetup.SetupElement> =
+            await accountInitialSetup.unfinishedSetupElements()
 
-        if unfinishedSetupElements.contains(.biometrics) {
-          switch osBiometry.availability() {
-          case .unconfigured:
-            promise(.success(.biometricsInfo))
+          if unfinishedSetupElements.contains(.biometrics) {
+            switch osBiometry.availability() {
+            case .unconfigured:
+              promise(.success(.biometricsInfo))
 
-          case .faceID, .touchID:
-            promise(.success(.biometricsSetup))
+            case .faceID, .touchID:
+              promise(.success(.biometricsSetup))
 
-          case .unavailable:
+            case .unavailable:
+              promise(.success(.none))
+            }
+          }
+          else if unfinishedSetupElements.contains(.autofill) {
+            promise(.success(.autofillSetup))
+          }
+          else {
             promise(.success(.none))
           }
-        }
-        else if unfinishedSetupElements.contains(.autofill) {
-          promise(.success(.autofillSetup))
-        }
-        else {
-          promise(.success(.none))
-        }
         }
       }
       .eraseToAnyPublisher()

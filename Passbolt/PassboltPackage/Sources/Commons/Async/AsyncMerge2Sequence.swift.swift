@@ -3,21 +3,25 @@
 // as a dependency (requires swift 5.7)
 
 /// Creates an asynchronous sequence of elements from two underlying asynchronous sequences
-public func merge<Base1: AsyncSequence, Base2: AsyncSequence>(_ base1: Base1, _ base2: Base2) -> AsyncMerge2Sequence<Base1, Base2>
+public func merge<Base1: AsyncSequence, Base2: AsyncSequence>(_ base1: Base1, _ base2: Base2) -> AsyncMerge2Sequence<
+  Base1, Base2
+>
 where
   Base1.Element == Base2.Element,
   Base1: Sendable, Base2: Sendable,
   Base1.Element: Sendable,
-  Base1.AsyncIterator: Sendable, Base2.AsyncIterator: Sendable {
+  Base1.AsyncIterator: Sendable, Base2.AsyncIterator: Sendable
+{
   return AsyncMerge2Sequence(base1, base2)
 }
 
-struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable where Base1.AsyncIterator: Sendable, Base2.AsyncIterator: Sendable, Base1.Element: Sendable, Base2.Element: Sendable {
+struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable
+where Base1.AsyncIterator: Sendable, Base2.AsyncIterator: Sendable, Base1.Element: Sendable, Base2.Element: Sendable {
   typealias Element1 = Base1.Element
   typealias Element2 = Base2.Element
 
-  let iter1TerminatesOnNil : Bool
-  let iter2terminatesOnNil : Bool
+  let iter1TerminatesOnNil: Bool
+  let iter2terminatesOnNil: Bool
 
   enum Partial: @unchecked Sendable {
     case first(Result<Element1?, Error>, Base1.AsyncIterator)
@@ -31,14 +35,22 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
 
   var state: (PartialIteration<Base1.AsyncIterator, Partial>, PartialIteration<Base2.AsyncIterator, Partial>)
 
-  init(_ iterator1: Base1.AsyncIterator, terminatesOnNil iter1TerminatesOnNil: Bool = false, _ iterator2: Base2.AsyncIterator, terminatesOnNil iter2terminatesOnNil: Bool = false) {
+  init(
+    _ iterator1: Base1.AsyncIterator,
+    terminatesOnNil iter1TerminatesOnNil: Bool = false,
+    _ iterator2: Base2.AsyncIterator,
+    terminatesOnNil iter2terminatesOnNil: Bool = false
+  ) {
     self.iter1TerminatesOnNil = iter1TerminatesOnNil
     self.iter2terminatesOnNil = iter2terminatesOnNil
     state = (.idle(iterator1), .idle(iterator2))
   }
 
-  mutating func apply(_ task1: Task<Merge2StateMachine<Base1, Base2>.Partial, Never>?, _ task2: Task<Merge2StateMachine<Base1, Base2>.Partial, Never>?) async rethrows -> Either? {
-    switch await Task.select([task1, task2].compactMap ({ $0 })).value {
+  mutating func apply(
+    _ task1: Task<Merge2StateMachine<Base1, Base2>.Partial, Never>?,
+    _ task2: Task<Merge2StateMachine<Base1, Base2>.Partial, Never>?
+  ) async rethrows -> Either? {
+    switch await Task.select([task1, task2].compactMap({ $0 })).value {
     case .first(let result, let iterator):
       do {
         guard let value = try state.0.resolve(result, iterator) else {
@@ -49,7 +61,8 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
           return try await next()
         }
         return .first(value)
-      } catch {
+      }
+      catch {
         state.1.cancel()
         throw error
       }
@@ -63,7 +76,8 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
           return try await next()
         }
         return .second(value)
-      } catch {
+      }
+      catch {
         state.0.cancel()
         throw error
       }
@@ -76,7 +90,8 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
       do {
         let value = try await iter.next()
         return .first(.success(value), iter)
-      } catch {
+      }
+      catch {
         return .first(.failure(error), iter)
       }
     }
@@ -88,7 +103,8 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
       do {
         let value = try await iter.next()
         return .second(.success(value), iter)
-      } catch {
+      }
+      catch {
         return .second(.failure(error), iter)
       }
     }
@@ -120,11 +136,13 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
         if let value = try await iterator1.next() {
           state = (.idle(iterator1), .terminal)
           return .first(value)
-        } else {
+        }
+        else {
           state = (.terminal, .terminal)
           return nil
         }
-      } catch {
+      }
+      catch {
         state = (.terminal, .terminal)
         throw error
       }
@@ -133,11 +151,13 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
         if let value = try await iterator2.next() {
           state = (.terminal, .idle(iterator2))
           return .second(value)
-        } else {
+        }
+        else {
           state = (.terminal, .terminal)
           return nil
         }
-      } catch {
+      }
+      catch {
         state = (.terminal, .terminal)
         throw error
       }
@@ -154,12 +174,12 @@ struct Merge2StateMachine<Base1: AsyncSequence, Base2: AsyncSequence>: Sendable 
 }
 
 extension Merge2StateMachine.Either where Base1.Element == Base2.Element {
-  var value : Base1.Element {
+  var value: Base1.Element {
     switch self {
-      case .first(let val):
-        return val
-      case .second(let val):
-        return val
+    case .first(let val):
+      return val
+    case .second(let val):
+      return val
     }
   }
 }
@@ -174,7 +194,8 @@ where
   Base1.Element == Base2.Element,
   Base1: Sendable, Base2: Sendable,
   Base1.Element: Sendable,
-  Base1.AsyncIterator: Sendable, Base2.AsyncIterator: Sendable {
+  Base1.AsyncIterator: Sendable, Base2.AsyncIterator: Sendable
+{
   public typealias Element = Base1.Element
   /// An iterator for `AsyncMerge2Sequence`
   public struct Iterator: AsyncIteratorProtocol, Sendable {
@@ -214,7 +235,8 @@ enum PartialIteration<Iterator: AsyncIteratorProtocol, Partial: Sendable>: Custo
     }
   }
 
-  mutating func resolve(_ result: Result<Iterator.Element?, Error>, _ iterator: Iterator) rethrows -> Iterator.Element? {
+  mutating func resolve(_ result: Result<Iterator.Element?, Error>, _ iterator: Iterator) rethrows -> Iterator.Element?
+  {
     do {
       guard let value = try result._rethrowGet() else {
         self = .terminal
@@ -222,7 +244,8 @@ enum PartialIteration<Iterator: AsyncIteratorProtocol, Partial: Sendable>: Custo
       }
       self = .idle(iterator)
       return value
-    } catch {
+    }
+    catch {
       self = .terminal
       throw error
     }
@@ -247,7 +270,8 @@ struct TaskSelectState<Success: Sendable, Failure: Error>: Sendable {
       tasks.append(task)
       self.tasks = tasks
       return nil
-    } else {
+    }
+    else {
       return task
     }
   }
@@ -323,7 +347,7 @@ extension _ErrorMechanism {
   }
 }
 
-extension Result: _ErrorMechanism { }
+extension Result: _ErrorMechanism {}
 
 #if canImport(Darwin)
 @_implementationOnly import Darwin
@@ -334,13 +358,13 @@ extension Result: _ErrorMechanism { }
 #endif
 
 internal struct Lock {
-#if canImport(Darwin)
+  #if canImport(Darwin)
   typealias Primitive = os_unfair_lock
-#elseif canImport(Glibc)
+  #elseif canImport(Glibc)
   typealias Primitive = pthread_mutex_t
-#elseif canImport(WinSDK)
+  #elseif canImport(WinSDK)
   typealias Primitive = SRWLOCK
-#endif
+  #endif
 
   typealias PlatformLock = UnsafeMutablePointer<Primitive>
   let platformLock: PlatformLock
@@ -350,40 +374,40 @@ internal struct Lock {
   }
 
   fileprivate static func initialize(_ platformLock: PlatformLock) {
-#if canImport(Darwin)
+    #if canImport(Darwin)
     platformLock.initialize(to: os_unfair_lock())
-#elseif canImport(Glibc)
+    #elseif canImport(Glibc)
     pthread_mutex_init(platformLock, nil)
-#elseif canImport(WinSDK)
+    #elseif canImport(WinSDK)
     InitializeSRWLock(platformLock)
-#endif
+    #endif
   }
 
   fileprivate static func deinitialize(_ platformLock: PlatformLock) {
-#if canImport(Glibc)
+    #if canImport(Glibc)
     pthread_mutex_destroy(platformLock)
-#endif
+    #endif
     platformLock.deinitialize(count: 1)
   }
 
   fileprivate static func lock(_ platformLock: PlatformLock) {
-#if canImport(Darwin)
+    #if canImport(Darwin)
     os_unfair_lock_lock(platformLock)
-#elseif canImport(Glibc)
+    #elseif canImport(Glibc)
     pthread_mutex_lock(platformLock)
-#elseif canImport(WinSDK)
+    #elseif canImport(WinSDK)
     AcquireSRWLockExclusive(platformLock)
-#endif
+    #endif
   }
 
   fileprivate static func unlock(_ platformLock: PlatformLock) {
-#if canImport(Darwin)
+    #if canImport(Darwin)
     os_unfair_lock_unlock(platformLock)
-#elseif canImport(Glibc)
+    #elseif canImport(Glibc)
     pthread_mutex_unlock(platformLock)
-#elseif canImport(WinSDK)
+    #elseif canImport(WinSDK)
     ReleaseSRWLockExclusive(platformLock)
-#endif
+    #endif
   }
 
   static func allocate() -> Lock {
@@ -430,4 +454,4 @@ struct ManagedCriticalState<State> {
   }
 }
 
-extension ManagedCriticalState: @unchecked Sendable where State: Sendable { }
+extension ManagedCriticalState: @unchecked Sendable where State: Sendable {}

@@ -226,8 +226,8 @@ extension SessionAuthorizationState {
               .error(account: request.account)
           }
 
-          if // check conditions only for MFA
-            case .passphrase = request,
+          if  // check conditions only for MFA
+          case .passphrase = request,
             case .none = sessionState.passphrase(),
             case .mfa = state.get(\.pendingAuthorization)
           {
@@ -239,7 +239,7 @@ extension SessionAuthorizationState {
           }
         }
         else {
-          // wait for ongoing authorization to finish
+          // wait for ongoing authorization to finish ignoring the error
           await ongoingAuthorization.task
             .waitForCompletion()
         }
@@ -428,13 +428,16 @@ extension SessionAuthorizationState {
       _ account: Account,
       _ authorization: @escaping @Sendable () async throws -> Void
     ) async throws {
+      guard case .none = Self.authorizationIID
+      else { throw CancellationError() }
+
       let authorizationIID: IID = .init()
 
       try await Self.$authorizationIID
         .withValue(authorizationIID) {
           if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
             if ongoingAuthorization.account == account {
-              // wait for ongoing completion and continue
+              // wait for ongoing completion ignoring error and continue
               await ongoingAuthorization.task.waitForCompletion()
             }
             else {

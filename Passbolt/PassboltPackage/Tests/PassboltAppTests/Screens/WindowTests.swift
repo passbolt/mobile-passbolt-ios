@@ -69,7 +69,8 @@ final class WindowTests: MainActorTestCase {
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
-    result = await controller
+    result =
+      await controller
       .screenStateDispositionSequence()
       .first()
 
@@ -90,7 +91,8 @@ final class WindowTests: MainActorTestCase {
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
-    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> = controller
+    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> =
+      controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
     result = await iterator.next()
@@ -119,7 +121,8 @@ final class WindowTests: MainActorTestCase {
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
-    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> = controller
+    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> =
+      controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
     result = await iterator.next()
@@ -137,7 +140,6 @@ final class WindowTests: MainActorTestCase {
     XCTAssertEqual(account, Account.valid)
     XCTAssertEqual(providers, [])
   }
-
 
   func test_screenStateDispositionSequence_returnsUseInitialScreenState_whenAccountSessionStateChangesToAuthorized()
     async throws
@@ -162,7 +164,8 @@ final class WindowTests: MainActorTestCase {
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
-    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> = controller
+    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> =
+      controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
     result = await iterator.next()
@@ -205,7 +208,8 @@ final class WindowTests: MainActorTestCase {
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
-    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> = controller
+    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> =
+      controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
     result = await iterator.next()
@@ -254,7 +258,8 @@ final class WindowTests: MainActorTestCase {
     let controller: WindowController = try await testController()
     var result: WindowController.ScreenStateDisposition?
 
-    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> = controller
+    let iterator: AnyAsyncIterator<WindowController.ScreenStateDisposition> =
+      controller
       .screenStateDispositionSequence().makeAsyncIterator()
 
     result = await iterator.next()

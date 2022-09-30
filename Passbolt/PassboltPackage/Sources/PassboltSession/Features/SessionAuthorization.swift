@@ -61,7 +61,7 @@ extension SessionAuthorization {
     let sessionAuthorizationState: SessionAuthorizationState = try await features.instance()
     let sessionNetworkAuthorization: SessionNetworkAuthorization = try await features.instance()
     let accountsData: AccountsDataStore = try await features.instance()
-    let pgp: PGP = try features.instance(of: EnvironmentLegacyBridge.self).environment.pgp
+    let pgp: PGP = features.instance(of: EnvironmentLegacyBridge.self).environment.pgp
     let osTime: OSTime = features.instance()
 
     @Sendable nonisolated func validatedAuthorizationData(
@@ -144,9 +144,10 @@ extension SessionAuthorization {
       sessionState.refreshToken()
     }
 
-    @SessionActor @Sendable func currentMFAToken() throws -> SessionMFAToken? {
-      // TODO: FIXME!
-      if case let .mfa(account, mfaProviders) = sessionAuthorizationState.pendingAuthorization() {
+    @SessionActor @Sendable func currentMFAToken(
+      for account: Account
+    ) throws -> SessionMFAToken? {
+      if case .mfa(account, let mfaProviders) = sessionAuthorizationState.pendingAuthorization() {
         throw
           SessionMFAAuthorizationRequired
           .error(
@@ -154,8 +155,11 @@ extension SessionAuthorization {
             mfaProviders: mfaProviders
           )
       }
-      else {
+      else if sessionState.account() == account {
         return sessionState.mfaToken()
+      }
+      else {
+        return storedMFAToken(for: account)
       }
     }
 
@@ -268,7 +272,7 @@ extension SessionAuthorization {
           // get mfa token earlier to ensure
           // mfa authorization was not requested
           // and to avoid refresh token clearing
-          let mfaToken: SessionMFAToken? = try currentMFAToken()
+          let mfaToken: SessionMFAToken? = try currentMFAToken(for: authorizationData.account)
 
           // check current token expiration
           if isCurrentAccessTokenValid() {
@@ -418,7 +422,7 @@ extension SessionAuthorization {
         // getting mfa token earlier to ensure
         // mfa authorization was not requested
         // and to avoid refresh token clear
-        let mfaToken: SessionMFAToken? = try currentMFAToken()
+        let mfaToken: SessionMFAToken? = try currentMFAToken(for: authorizationData.account)
 
         if let refreshToken: SessionRefreshToken = currentRefreshToken() {
           do {

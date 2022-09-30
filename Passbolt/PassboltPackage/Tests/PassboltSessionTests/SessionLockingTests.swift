@@ -32,16 +32,80 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
     FeatureFactory.usePassboltSessionLocking
   }
 
-  override func prepare() throws {
+  var executionMockControl: AsyncExecutor.MockExecutionControl!
 
+  override func prepare() throws {
+    self.executionMockControl = .init()
+    use(AsyncExecutor.mock(executionMockControl))
+    use(SessionAuthorizationState.placeholder)
+    use(SessionState.placeholder)
   }
 
-  func test_() {
-    XCTExpectFailure("Not completed yet")
-    return XCTFail("TODO: Implement missing unit tests")
+  override func cleanup() throws {
+    self.executionMockControl = .none
+  }
 
-    withTestedInstance(context: Account.valid) { (testedInstance: SessionLocking) in
+  func test_ensureAutolock_doesNotAffectAnythingByItsOwn() {
+    patch(
+      environment: \.appLifeCycle.lifeCyclePublisher,
+      with: always(
+        Empty<AppLifeCycle.Transition, Never>()
+          .eraseToAnyPublisher()
+      )
+    )
 
+    withTestedInstance(
+      context: Account.valid
+    ) { (testedInstance: SessionLocking) in
+      testedInstance.ensureAutolock()
+    }
+  }
+
+  func test_ensureAutolock_clearsPassphrase_whenEnteringBackground() {
+    patch(
+      environment: \.appLifeCycle.lifeCyclePublisher,
+      with: always(
+        CurrentValueSubject(AppLifeCycle.Transition.didEnterBackground)
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \SessionState.setPassphrase,
+      with: { (passphrase: Passphrase?) in
+        self.executed(using: passphrase)
+      }
+    )
+    withTestedInstanceExecuted(
+      using: Optional<Passphrase>.none,
+      context: Account.valid
+    ) { (testedInstance: SessionLocking) in
+      try await self.executionMockControl.execute {
+        testedInstance.ensureAutolock()
+      }
+    }
+  }
+
+  func test_ensureAutolock_clearsPassphrase_whenEnteringForeground() {
+    patch(
+      environment: \.appLifeCycle.lifeCyclePublisher,
+      with: always(
+        CurrentValueSubject(AppLifeCycle.Transition.willEnterForeground)
+          .eraseToAnyPublisher()
+      )
+    )
+    patch(
+      \SessionAuthorizationState.requestAuthorization,
+      with: { (request: SessionAuthorizationRequest) in
+        self.executed(using: request)
+      }
+    )
+    withTestedInstanceExecuted(
+      using: SessionAuthorizationRequest.passphrase(.valid),
+      context: Account.valid
+    ) { (testedInstance: SessionLocking) in
+      try await self.executionMockControl.execute {
+        testedInstance.ensureAutolock()
+      }
     }
   }
 }

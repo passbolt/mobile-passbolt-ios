@@ -225,10 +225,31 @@ extension AsyncExecutor {
       }
     )
 
+    public init() {}
+
     @Sendable public func executeNext() async {
       if let next: @Sendable () async -> Void = self.nextTask() {
         await next()
       }  // else NOP
+    }
+
+    @Sendable public func execute<Returned>(
+      _ task: () async throws -> Returned
+    ) async throws -> Returned {
+      precondition(self.executionQueue.access(\.isEmpty))
+      async let returned: Returned = task()
+      async let result: Void = Task {
+        while !Task.isCancelled {
+          switch self.nextTask() {
+          case .none:
+            await Task.yield()
+
+          case let .some(task):
+            return await task()
+          }
+        }
+      }.value
+      return try await (returned, result).0
     }
 
     @Sendable public func executeAll() async {

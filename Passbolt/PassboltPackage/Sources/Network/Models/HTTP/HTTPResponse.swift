@@ -56,6 +56,8 @@ extension HTTPResponse: CustomStringConvertible {
   }
 }
 
+extension HTTPResponse: Equatable {}
+
 extension HTTPResponse: CustomDebugStringConvertible {
 
   public var debugDescription: String {

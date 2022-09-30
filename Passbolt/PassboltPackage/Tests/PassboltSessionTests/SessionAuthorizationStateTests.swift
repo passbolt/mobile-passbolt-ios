@@ -33,15 +33,319 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   }
 
   override func prepare() throws {
-
+    use(SessionState.placeholder)
   }
 
-  func test_() {
-    XCTExpectFailure("Not completed yet")
-    return XCTFail("TODO: Implement missing unit tests")
+  func test_pendingAuthorization_returnsNone_withoutAuthorizationRequest() {
+    withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
+      await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_pendingAuthorization_returnsNone_duringAuthorizationWithoutAuthorizationRequestAndSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceResultNone { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.performAuthorization(.valid) {
+        self.result = await testedInstance.pendingAuthorization()
+      }
+    }
+  }
+
+  func test_pendingAuthorization_returnsNone_afterAuthorizationWithoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.performAuthorization(.valid) {}
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_pendingAuthorization_returnsPassphraseRequest_afterRequestingPassphraseAuthorization() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+
+    withTestedInstanceReturnsEqual(
+      SessionAuthorizationRequest.passphrase(.valid)
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_pendingAuthorization_returnsMFARequest_afterRequestingMFAAuthorization() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+
+    withTestedInstanceReturnsEqual(
+      SessionAuthorizationRequest.mfa(.valid, providers: .init())
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func
+    test_pendingAuthorization_returnsPassphraseRequest_afterRequestingMFAAuthorizationWhenPassphraseWasAlreadyRequested()
+  {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+
+    withTestedInstanceReturnsEqual(
+      SessionAuthorizationRequest.passphrase(.valid)
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func
+    test_pendingAuthorization_returnsPassphraseRequest_afterRequestingPassphraseAuthorizationWhenMFAWasAlreadyRequested()
+  {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+
+    withTestedInstanceReturnsEqual(
+      SessionAuthorizationRequest.passphrase(.valid)
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
+      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_pendingAuthorization_returnsNone_afterRequestingPassphraseAuthorizationWithoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+
+    withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
+      try? await testedInstance.requestAuthorization(.passphrase(.valid))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_requestAuthorization_throwsSessionClosed_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.passphrase(.valid))
+    }
+  }
+
+  func test_requestAuthorization_throwsSessionClosed_withDifferentSession() {
+    patch(
+      \SessionState.account,
+      with: always(.validAlternative)
+    )
+
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.passphrase(.valid))
+    }
+  }
+
+  func test_requestAuthorization_setsPendingAuthorization_withTheSameSession() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+
+    withTestedInstanceReturnsEqual(
+      SessionAuthorizationRequest.passphrase(.valid)
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
+      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_cancelAuthorization_cancels_ongoingAuthorization() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceThrows(
+      CancellationError.self
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.performAuthorization(.valid) {
+        await testedInstance.cancelAuthorization()
+        try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+      }
+    }
+  }
+
+  func test_performAuthorization_throws_onRecursion() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceThrows(
+      CancellationError.self
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.performAuthorization(.valid) {
+        try await testedInstance.performAuthorization(.valid) {
+        }
+      }
+    }
+  }
+
+  func test_waitForAuthorizationIfNeeded_throwsSessionClosed_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.valid))
+    }
+  }
+
+  func test_waitForAuthorizationIfNeeded_throwsSessionClosed_withDifferentSession() {
+    patch(
+      \SessionState.account,
+      with: always(.validAlternative)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.valid))
+    }
+  }
+
+  func test_waitForAuthorizationIfNeeded_doesNothing_whenRequestingPassphraseAndPassphraseIsAvailable() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+
+    withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.valid))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_waitForAuthorizationIfNeeded_doesNothing_whenRequestingMFAAndMFAIsAvailable() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always("token")
+    )
+
+    withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
+      try await testedInstance.waitForAuthorizationIfNeeded(.mfa(.valid, providers: .init()))
+      return await testedInstance.pendingAuthorization()
+    }
+  }
+
+  func test_waitForAuthorizationIfNeeded_doesNotHang_duringAuthorization() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.passphrase,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
 
     withTestedInstance { (testedInstance: SessionAuthorizationState) in
-
+      try await testedInstance.performAuthorization(.valid) {
+        try await testedInstance.waitForAuthorizationIfNeeded(.mfa(.valid, providers: .init()))
+      }
     }
   }
 }

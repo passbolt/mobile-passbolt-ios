@@ -33,15 +33,129 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
   }
 
   override func prepare() throws {
-
+    use(SessionState.placeholder)
+    use(SessionStateEnsurance.placeholder)
+    use(SessionAuthorizationState.placeholder)
+    use(NetworkRequestExecutor.placeholder)
   }
 
-  func test_() {
-    XCTExpectFailure("Not completed yet")
-    return XCTFail("TODO: Implement missing unit tests")
+  func test_execute_throws_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    withTestedInstanceThrows(
+      SessionMissing.self
+    ) { (testedInstance: SessionNetworkRequestExecutor) in
+      try await testedInstance.execute(.none)
+    }
+  }
 
-    withTestedInstance { (testedInstance: SessionNetworkRequestExecutor) in
+  func test_execute_throws_whenEnsuringAccessTokenThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.accessToken,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionNetworkRequestExecutor) in
+      try await testedInstance.execute(.none)
+    }
+  }
 
+  func test_execute_executesRequest_withValidSession() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.accessToken,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+    patch(
+      \NetworkRequestExecutor.execute,
+      with: always(
+        self.executed(
+          returning: .init(
+            url: .test,
+            statusCode: 200,
+            headers: [:],
+            body: .empty
+          )
+        )
+      )
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionNetworkRequestExecutor) in
+      // ignore error
+      try? await testedInstance.execute(.none)
+    }
+  }
+
+  func test_execute_throws_whenRequestExecutionThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.accessToken,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+    patch(
+      \NetworkRequestExecutor.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionNetworkRequestExecutor) in
+      try await testedInstance.execute(.none)
+    }
+  }
+
+  func test_execute_returnsResponse_whenRequestSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.accessToken,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+    patch(
+      \NetworkRequestExecutor.execute,
+      with: always(
+        .init(
+          url: .test,
+          statusCode: 200,
+          headers: [:],
+          body: .empty
+        )
+      )
+    )
+    withTestedInstanceReturnsEqual(
+      HTTPResponse(
+        url: .test,
+        statusCode: 200,
+        headers: [:],
+        body: .empty
+      )
+    ) { (testedInstance: SessionNetworkRequestExecutor) in
+      try await testedInstance.execute(.none)
     }
   }
 }

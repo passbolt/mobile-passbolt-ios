@@ -35,7 +35,9 @@ extension AccountInitialSetup {
     let accountPreferences: AccountPreferences = try await features.instance(context: context)
 
     #warning("TODO: refine with account related storage")
-    let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try await features.instance(context: "unfinishedSetup-\(context.localID)")
+    let unfinishedSetupElementsProperty: StoredProperty<Array<String>> = try await features.instance(
+      context: "unfinishedSetup-\(context.localID)"
+    )
 
     let osExtensions: OSExtensions = features.instance()
     let osBiometry: OSBiometry = features.instance()
@@ -45,26 +47,27 @@ extension AccountInitialSetup {
         .set(
           to: [
             SetupElement.biometrics,
-            .autofill
+            .autofill,
           ]
           .map(\.rawValue)
         )
     }
 
     @Sendable func unfinishedSetupElements() async -> Set<SetupElement> {
-      var unfinishedElements: Set<SetupElement> = unfinishedSetupElementsProperty
+      var unfinishedElements: Set<SetupElement> =
+        unfinishedSetupElementsProperty
         .get(withDefault: [])
         .compactMap(SetupElement.init(rawValue:))
         .asSet()
 
       if await osExtensions.autofillExtensionEnabled() {
         unfinishedElements.remove(.autofill)
-        
-      } // else continue
+
+      }  // else continue
 
       if osBiometry.availability() == .unavailable || accountPreferences.isPassphraseStored() {
         unfinishedElements.remove(.biometrics)
-      } // else continue
+      }  // else continue
 
       if unfinishedElements.isEmpty {
         unfinishedSetupElementsProperty
@@ -81,7 +84,8 @@ extension AccountInitialSetup {
     @Sendable func completeSetup(
       of element: SetupElement
     ) {
-      var unfinishedElements: Set<SetupElement> = unfinishedSetupElementsProperty
+      var unfinishedElements: Set<SetupElement> =
+        unfinishedSetupElementsProperty
         .get(withDefault: [])
         .compactMap(SetupElement.init(rawValue:))
         .asSet()
@@ -117,4 +121,3 @@ extension FeatureFactory {
     )
   }
 }
-

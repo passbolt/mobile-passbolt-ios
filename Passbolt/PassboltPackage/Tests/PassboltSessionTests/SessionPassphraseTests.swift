@@ -33,15 +33,115 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   }
 
   override func prepare() throws {
-
+    use(AccountsDataStore.placeholder)
+    use(SessionStateEnsurance.placeholder)
   }
 
-  func test_() {
-    XCTExpectFailure("Not completed yet")
-    return XCTFail("TODO: Implement missing unit tests")
+  func test_storeWithBiometry_throws_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \SessionStateEnsurance.passphrase,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      SessionMissing.self,
+      context: Account.valid
+    ) { (testedInstance: SessionPassphrase) in
+      try await testedInstance.storeWithBiometry(true)
+    }
+  }
 
-    withTestedInstance(context: Account.valid) { (testedInstance: SessionPassphrase) in
+  func test_storeWithBiometry_throws_whenEnsuringPassphraseThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.passphrase,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self,
+      context: Account.valid
+    ) { (testedInstance: SessionPassphrase) in
+      try await testedInstance.storeWithBiometry(true)
+    }
+  }
 
+  func test_storeWithBiometry_throws_whenStoringPassphraseThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.passphrase,
+      with: always("Passphrase")
+    )
+    patch(
+      \AccountsDataStore.storeAccountPassphrase,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self,
+      context: Account.valid
+    ) { (testedInstance: SessionPassphrase) in
+      try await testedInstance.storeWithBiometry(true)
+    }
+  }
+
+  func test_storeWithBiometry_succeeds_whenStoringPassphraseSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \SessionStateEnsurance.passphrase,
+      with: always("Passphrase")
+    )
+    patch(
+      \AccountsDataStore.storeAccountPassphrase,
+      with: always(Void())
+    )
+    withTestedInstanceNotThrows(
+      context: Account.valid
+    ) { (testedInstance: SessionPassphrase) in
+      try await testedInstance.storeWithBiometry(true)
+    }
+  }
+
+  func test_storeWithBiometry_succeeds_whenRemovingPassphraseSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \AccountsDataStore.deleteAccountPassphrase,
+      with: always(Void())
+    )
+    withTestedInstanceNotThrows(
+      context: Account.valid
+    ) { (testedInstance: SessionPassphrase) in
+      try await testedInstance.storeWithBiometry(false)
+    }
+  }
+
+  func test_storeWithBiometry_throws_whenRemovingPassphraseThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.valid)
+    )
+    patch(
+      \AccountsDataStore.deleteAccountPassphrase,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self,
+      context: Account.valid
+    ) { (testedInstance: SessionPassphrase) in
+      try await testedInstance.storeWithBiometry(false)
     }
   }
 }

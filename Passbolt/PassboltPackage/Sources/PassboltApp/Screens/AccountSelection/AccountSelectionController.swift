@@ -104,7 +104,7 @@ extension AccountSelectionController: UIController {
               else {
                 return listItems
               }
-          }
+            }
         }
         .switchToLatest()
         .eraseToAnyPublisher()

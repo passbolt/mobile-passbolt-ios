@@ -21,9 +21,8 @@
 // @since         v1.0
 //
 
-import Features
 import AuthenticationServices
-
+import Features
 
 // MARK: - Interface
 
@@ -48,7 +47,6 @@ extension OSExtensions: StaticFeature {
 extension OSExtensions {
 
   fileprivate static var live: Self {
-
 
     @Sendable func autofillExtensionEnabled() async -> Bool {
       await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
