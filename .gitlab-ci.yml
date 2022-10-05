@@ -3,6 +3,7 @@ stages:
   - test
   - qa_build_validation
   - qa_build
+  - release_build
 
 lint:
   stage: static_analysis
@@ -11,7 +12,7 @@ lint:
   artifacts:
     paths:
       - lint-report
-    expire_in: 1 week
+    expire_in: 1 day
   only:
     - merge_request
   tags:
@@ -27,7 +28,7 @@ unit_tests:
       - test.log
       - TestResults.xcresult
       - test-coverage-report.txt
-    expire_in: 1 week
+    expire_in: 1 day
   only:
     - merge_request
   tags:
@@ -41,7 +42,7 @@ qa_build_validation:
     when: always
     paths:
       - validation.log
-    expire_in: 1 week
+    expire_in: 1 day
   only:
     - merge_request
   tags:
@@ -56,9 +57,23 @@ qa_build_upload:
     paths: 
     - upload.log
     - Passbolt.ipa
-    expire_in: 1 week
+    expire_in: 1 day
   only:
     - develop
+  tags:
+    - ios
+
+release_build_upload:
+  stage: release_build
+  script:
+    make release_build_publish | tee -a upload.log
+  artifacts:
+    when: always
+    paths: 
+    - upload.log
+    - Passbolt.ipa
+    expire_in: 1 month
+  only:
     - /^release.*$/
   tags:
     - ios

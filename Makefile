@@ -17,6 +17,12 @@ else
 	MARKETING_VERSION := $(git describe --tags --abbrev=0)
 endif
 
+ifdef APP_RELEASE_VERSION
+	MARKETING_RELEASE_VERSION := $(APP_RELEASE_VERSION)
+else
+	MARKETING_RELEASE_VERSION := $(git describe --tags --abbrev=0)
+endif
+
 # use gitlab pipeline id for the app build
 # or fallback to the current date 
 ifdef CI_PIPELINE_IID
@@ -27,7 +33,7 @@ endif
 
 TEST_PLATFORM = iOS Simulator,name=iPhone 13
 
-.PHONY: clean_artifacts clean_build clean test version_setup qa_build qa_build_validation qa_build_publish lint format prepare_licenses
+.PHONY: clean_artifacts clean_build clean test qa_version_setup qa_build qa_build_validation qa_build_publish release_version_setup release_build release_build_publish lint format prepare_licenses
 
 clean_artifacts:
 	rm -rf *.ipa
@@ -45,11 +51,11 @@ test: clean_build
 	xcodebuild -project $(PROJECT_PATH) -scheme Passbolt -destination platform="$(TEST_PLATFORM)" -resultBundlePath TestResults.xcresult -derivedDataPath $(DERIVED_DATA) test -enableCodeCoverage YES || exit -1
 	xcrun xccov view --report TestResults.xcresult --only-targets > test-coverage-report.txt
 
-version_setup:
+qa_version_setup:
 	cd Passbolt; agvtool new-version -all $(BUILD_NUMBER)
 	cd Passbolt; agvtool new-marketing-version $(MARKETING_VERSION)
 
-qa_build: clean_build version_setup	
+qa_build: clean_build qa_version_setup	
 	xcodebuild archive -project $(PROJECT_PATH) -scheme Passbolt -configuration Release -archivePath $(ARCHIVE_PATH) -derivedDataPath $(DERIVED_DATA)
 	xcodebuild -exportArchive -archivePath $(ARCHIVE_PATH) -exportPath $(IPA_PATH) -exportOptionsPlist  $(EXPORT_OPTIONS)
 
@@ -60,6 +66,19 @@ qa_build_publish: qa_build
 	xcrun altool --upload-app -f $(IPA_PATH)/Passbolt.ipa -u $(ASC_USER) --apiKey $(ASC_KEY) --apiIssuer $(ASC_KEY_ISSUER) --type ios
 	echo "Uploaded build: $(BUILD)"
 
+release_version_setup:
+	cd Passbolt; agvtool new-version -all $(BUILD_NUMBER)
+	cd Passbolt; agvtool new-marketing-version $(MARKETING_RELEASE_VERSION)
+
+release_build: clean_build release_version_setup	
+	xcodebuild archive -project $(PROJECT_PATH) -scheme Passbolt -configuration Release -archivePath $(ARCHIVE_PATH) -derivedDataPath $(DERIVED_DATA)
+	xcodebuild -exportArchive -archivePath $(ARCHIVE_PATH) -exportPath $(IPA_PATH) -exportOptionsPlist  $(EXPORT_OPTIONS)
+	
+	
+release_build_publish: release_build
+	xcrun altool --upload-app -f $(IPA_PATH)/Passbolt.ipa -u $(ASC_USER) --apiKey $(ASC_KEY) --apiIssuer $(ASC_KEY_ISSUER) --type ios
+	echo "Uploaded release build: $(BUILD)"
+	
 lint:
 	swift run --configuration release --package-path Tools/formatter --build-path ~/tmp/passbolt -- swift-format lint --configuration ./Tools/code-format.json --parallel --recursive ./Passbolt/PassboltPackage/Package.swift ./Passbolt/PassboltPackage/Sources ./Passbolt/PassboltPackage/Tests 2> lint-report
 
