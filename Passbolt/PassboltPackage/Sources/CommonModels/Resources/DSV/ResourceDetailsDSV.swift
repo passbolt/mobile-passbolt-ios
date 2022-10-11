@@ -63,6 +63,13 @@ public struct ResourceDetailsDSV {
 
 extension ResourceDetailsDSV: DSV {}
 
+extension ResourceDetailsDSV {
+
+  public var favorite: Bool {
+    self.favoriteID != .none
+  }
+}
+
 #if DEBUG
 
 extension ResourceDetailsDSV: RandomlyGenerated {

@@ -38,6 +38,7 @@ extension ResourceDetailsTagsListController {
   internal struct ViewState: Hashable {
 
     internal var resourceName: String
+    internal var resourceFavorite: Bool
     internal var tags: Array<ResourceTagDSV>
   }
 
@@ -84,6 +85,7 @@ extension ResourceDetailsTagsListController {
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         resourceName: resourceDetails.name,
+        resourceFavorite: resourceDetails.favorite,
         tags: resourceDetails.tags
       )
     )

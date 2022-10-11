@@ -48,8 +48,21 @@ internal struct ResourceDetailsTagsListView: ControlledView {
     in state: ViewState
   ) -> some View {
     VStack(spacing: 0) {
-      LetterIconView(text: state.resourceName)
-        .padding(top: 16)
+      ZStack(alignment: .topTrailing) {
+        LetterIconView(text: state.resourceName)
+          .padding(top: 16)
+        if state.resourceFavorite {
+          Image(named: .starFilled)
+            .foregroundColor(.passboltSecondaryOrange)
+            .frame(
+              width: 32,
+              height: 32
+            )
+            .alignmentGuide(.trailing) { dim in
+              dim[HorizontalAlignment.center]
+            }
+        } // else nothing
+      }
       Text(state.resourceName)
         .text(
           font: .inter(
