@@ -23,9 +23,7 @@
 
 import UIComponents  // LegacyBridge only
 
-// MARK: DisplayNodeView
-
-extension AnyUIComponent {
+extension ComponentNavigation {
 
   @available(*, deprecated, message: "Please switch to `NavigationTree`")
   @MainActor public func push<DisplayComponent>(
@@ -96,6 +94,24 @@ extension AnyUIComponent {
     await self.dismiss(
       SheetViewController<DisplayViewBridge<DisplayComponent>>.self,
       animated: animated
+    )
+  }
+
+  @available(*, deprecated, message: "Please switch to `NavigationTree`")
+  @MainActor public func presentInfoSnackbar(
+    _ displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) {
+    self.present(
+      snackbar: Mutation<UICommons.PlainView>
+        .snackBarMessage(
+          displayable,
+          with: arguments,
+          backgroundColor: .primaryText,
+          textColor: .primaryTextAlternative
+        )
+        .instantiate(),
+      presentationMode: .global
     )
   }
 }

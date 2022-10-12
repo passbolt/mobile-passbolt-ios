@@ -100,7 +100,7 @@ extension AuthorizationController: UIController {
       accountDetails
         .updates
         .map {
-          try await accountDetails.avatarImage()
+          try? await accountDetails.avatarImage()
         }
         .asPublisher()
     }

@@ -102,13 +102,13 @@ extension DefaultPresentationModeSettingsController {
         useLastUsedHomePresentationAsDefault.set(to: true)
       }
       Task {
-        await navigation.pop(if: DefaultPresentationModeSettingsView.self)
+        await navigation.pop(DefaultPresentationModeSettingsView.self)
       }
     }
 
     nonisolated func navigateBack() {
       Task {
-        await navigation.pop(if: DefaultPresentationModeSettingsView.self)
+        await navigation.pop(DefaultPresentationModeSettingsView.self)
       }
     }
 

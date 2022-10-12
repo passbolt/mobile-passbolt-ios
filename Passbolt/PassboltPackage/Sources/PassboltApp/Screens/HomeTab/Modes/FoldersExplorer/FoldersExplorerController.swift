@@ -27,6 +27,7 @@ import Session
 import SessionData
 import SharedUIComponents
 import UIComponents
+import Display
 
 @MainActor
 internal struct FoldersExplorerController {
@@ -34,7 +35,7 @@ internal struct FoldersExplorerController {
   internal let viewState: ObservableValue<ViewState>
   internal var refreshIfNeeded: @MainActor () async -> Void
   internal var presentFolderContent: @MainActor (ResourceFolderListItemDSV) -> Void
-  internal var presentResourceCreationFrom: @MainActor (ResourceFolder.ID?) -> Void
+  internal var presentAddNew: @MainActor (ResourceFolder.ID?) -> Void
   internal var presentResourceDetails: @MainActor (Resource.ID) -> Void
   internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
   internal var presentHomePresentationMenu: @MainActor () -> Void
@@ -156,10 +157,27 @@ extension FoldersExplorerController: ComponentController {
       }
     }
 
-    @MainActor func presentResourceCreationFrom(
+    @MainActor func presentAddNew(
       folderID: ResourceFolder.ID?
     ) {
-      presentResourceEditingForm(for: .new(in: folderID, url: .none))
+      #warning("MOB-616 check if can create folder?")
+      cancellables.executeOnMainActor {
+        do {
+          try await navigation.presentSheet(
+            ResourcesListCreateMenuView.self,
+            controller: features
+              .instance(
+                of: ResourcesListCreateMenuController.self,
+                context: .init(
+                  enclosingFolderID: folderID
+                )
+              )
+          )
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
+      }
     }
 
     @MainActor func presentResourceShareForm(
@@ -288,7 +306,7 @@ extension FoldersExplorerController: ComponentController {
       viewState: viewState,
       refreshIfNeeded: refreshIfNeeded,
       presentFolderContent: presentFolderContent(_:),
-      presentResourceCreationFrom: presentResourceCreationFrom,
+      presentAddNew: presentAddNew,
       presentResourceDetails: presentResourceDetails(_:),
       presentResourceMenu: presentResourceMenu(_:),
       presentHomePresentationMenu: presentHomePresentationMenu,

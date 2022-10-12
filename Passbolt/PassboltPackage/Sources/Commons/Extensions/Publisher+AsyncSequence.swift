@@ -39,74 +39,115 @@ extension Publisher where Failure == Never {
 
 extension AsyncSequence {
 
-  public func asPublisher() -> AnyPublisher<Element, Never> {
-    let subject: PassthroughSubject<Element, Never> = .init()
-    let iterationTask: CriticalState<Task<Void, Never>?> = .init(.none)
+  // file:line captured only for diagnostics
+  public func asPublisher(
+    file: StaticString = #file,
+    line: UInt = #line
+  ) -> AnyPublisher<Element, Never> {
+    SequencePublisher(
+      sequence: self,
+      file: file,
+      line: line
+    )
+    .autoconnect()
+    .eraseToAnyPublisher()
+  }
+}
 
-    return
-      subject
-      .handleEvents(
-        receiveSubscription: { [weak subject] _ in
-          iterationTask.access { task in
-            guard task == .none else { return }
-            task = .detached { [weak subject] in
-              do {
-                for try await element in self {
-                  subject?.send(element)
-                }
-              }
-              catch {
-                // NOP
-              }
-              subject?.send(completion: .finished)
-            }
-          }
-        },
-        receiveCancel: { [weak subject] in
-          withExtendedLifetime(subject) {
-            iterationTask
-              .get(\.self)?
-              .cancel()
-          }
+private struct SequencePublisher<PublishedSequence>: ConnectablePublisher
+where PublishedSequence: AsyncSequence {
+
+  fileprivate typealias Output = PublishedSequence.Element
+  fileprivate typealias Failure = Never
+
+  private let subject: PassthroughSubject<Output, Failure> = .init()
+  private let sequence: PublishedSequence
+  private let file: StaticString
+  private let line: UInt
+
+  fileprivate init(
+    sequence: PublishedSequence,
+    file: StaticString,
+    line: UInt
+  ) {
+    self.sequence = sequence
+    self.file = file
+    self.line = line
+  }
+
+  public func receive<S>(
+    subscriber: S
+  ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
+    self.subject
+      .receive(subscriber: subscriber)
+  }
+
+  public func connect() -> Cancellable {
+    let task: Task<Void, Never> = .init {
+      do {
+        for try await element: Output in self.sequence where !Task.isCancelled {
+          self.subject.send(element)
         }
-      )
-      .share()
-      .eraseToAnyPublisher()
+        self.subject.send(completion: .finished)
+      }
+      catch {
+        unreachable(
+          "Cannot throw using nonthrowing publisher, please switch to throwing counterpart",
+          file: self.file,
+          line: self.line
+        )
+      }
+    }
+
+    return AnyCancellable(task.cancel)
   }
 }
 
 extension AsyncSequence {
 
+  // file:line captured only for diagnostics
   public func asThrowingPublisher() -> AnyPublisher<Element, Error> {
-    let subject: PassthroughSubject<Element, Error> = .init()
-    let iterationTask: CriticalState<Task<Void, Error>?> = .init(.none)
+    ThrowingSequencePublisher(sequence: self)
+    .autoconnect()
+    .eraseToAnyPublisher()
+  }
+}
 
-    return
-      subject
-      .handleEvents(
-        receiveSubscription: { [weak subject] _ in
-          iterationTask.access { task in
-            guard task == .none else { return }
-            task = .detached { [weak subject] in
-              do {
-                for try await element in self {
-                  subject?.send(element)
-                }
-                subject?.send(completion: .finished)
-              }
-              catch {
-                subject?.send(completion: .failure(error))
-              }
-            }
-          }
-        },
-        receiveCancel: {
-          iterationTask
-            .get(\.self)?
-            .cancel()
+private struct ThrowingSequencePublisher<PublishedSequence>: ConnectablePublisher
+where PublishedSequence: AsyncSequence {
+
+  fileprivate typealias Output = PublishedSequence.Element
+  fileprivate typealias Failure = Error
+
+  private let subject: PassthroughSubject<Output, Failure> = .init()
+  private let sequence: PublishedSequence
+
+  fileprivate init(
+    sequence: PublishedSequence
+  ) {
+    self.sequence = sequence
+  }
+
+  public func receive<S>(
+    subscriber: S
+  ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
+    self.subject
+      .receive(subscriber: subscriber)
+  }
+
+  public func connect() -> Cancellable {
+    let task: Task<Void, Never> = .init {
+      do {
+        for try await element: Output in self.sequence where !Task.isCancelled {
+          self.subject.send(element)
         }
-      )
-      .share()
-      .eraseToAnyPublisher()
+        self.subject.send(completion: .finished)
+      }
+      catch {
+        self.subject.send(completion: .failure(error))
+      }
+    }
+
+    return AnyCancellable(task.cancel)
   }
 }

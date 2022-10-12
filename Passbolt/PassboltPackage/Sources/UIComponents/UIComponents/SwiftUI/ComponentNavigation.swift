@@ -360,4 +360,20 @@ extension ComponentNavigation {
       animated: animated
     )
   }
+
+  @MainActor public func present(
+    snackbar: UIView,
+    presentationMode: SnackbarPresentationMode = .local,
+    hideAfter hideDelay: TimeInterval = 3,  // zero is not going to hide automatically
+    replaceCurrent: Bool = true,  // presentation will be ignored if set to false and other is presented
+    animated: Bool = true
+  ) {
+    self.sourceComponent?.present(
+      snackbar: snackbar,
+      presentationMode: presentationMode,
+      hideAfter: hideDelay,
+      replaceCurrent: replaceCurrent,
+      animated: animated
+    )
+  }
 }

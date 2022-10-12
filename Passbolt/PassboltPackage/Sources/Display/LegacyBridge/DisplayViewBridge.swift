@@ -28,6 +28,8 @@ import UIComponents
 internal final class DisplayViewBridge<HostedView>: UIHostingController<HostedView>, UIComponent
 where HostedView: ControlledView {
 
+  internal typealias ContentView = UIView
+
   @MainActor internal struct Controller: UIController {
 
     fileprivate let hostedController: HostedView.Controller
@@ -72,7 +74,7 @@ where HostedView: ControlledView {
   }
 
   internal var contentView: ContentView {
-    unreachable(#function)
+    self.view
   }
 
   internal override var childForStatusBarStyle: UIViewController? {

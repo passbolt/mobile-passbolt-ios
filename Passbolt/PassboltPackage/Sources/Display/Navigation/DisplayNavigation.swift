@@ -42,6 +42,30 @@ extension DisplayNavigation: LoadableContextlessFeature {
 
 extension DisplayNavigation {
 
+  @MainActor public func push<PushedLegacyComponent>(
+    legacy type: PushedLegacyComponent.Type
+  ) async where PushedLegacyComponent: UIComponent, PushedLegacyComponent.Controller.Context == Void {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .push(
+        PushedLegacyComponent.self,
+        animated: true
+      )
+  }
+
+  @MainActor public func push<PushedLegacyComponent>(
+    legacy type: PushedLegacyComponent.Type,
+    context: PushedLegacyComponent.Controller.Context
+  ) async where PushedLegacyComponent: UIComponent {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .push(
+        PushedLegacyComponent.self,
+        in: context,
+        animated: true
+      )
+  }
+
   @MainActor public func push<PushedView>(
     _ type: PushedView.Type,
     controller: PushedView.Controller
@@ -56,13 +80,62 @@ extension DisplayNavigation {
   }
 
   @MainActor public func pop<PushedView>(
-    if type: PushedView.Type
+    _ type: PushedView.Type
   ) async where PushedView: ControlledView {
     await self.legacyBridge
       .bridgeComponent()?
       .pop(
         if: DisplayViewBridge<PushedView>.self,
         animated: true
+      )
+  }
+
+  @MainActor public func dismiss<PushedView>(
+    _ type: PushedView.Type
+  ) async where PushedView: ControlledView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .dismiss(
+        DisplayViewBridge<PushedView>.self,
+        animated: true
+      )
+  }
+
+  @MainActor public func presentLegacySheet<DisplayComponent>(
+    _ type: DisplayComponent.Type,
+    controller: DisplayComponent.Controller,
+    animated: Bool = true
+  ) async where DisplayComponent: ControlledView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentSheet(
+        DisplayViewBridge<DisplayComponent>.self,
+        in: controller,
+        animated: animated
+      )
+  }
+
+  @MainActor public func dismissLegacySheet<DisplayComponent>(
+    _ type: DisplayComponent.Type,
+    animated: Bool = true
+  ) async where DisplayComponent: ControlledView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .dismiss(
+        SheetViewController<DisplayViewBridge<DisplayComponent>>.self,
+        animated: animated
+      )
+  }
+
+  @MainActor public func presentInfoSnackbar(
+    _ displayable: DisplayableString,
+    with arguments: Array<CVarArg> = .init()
+  ) async {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .presentInfoSnackbar(
+        displayable,
+        with: arguments
       )
   }
 }

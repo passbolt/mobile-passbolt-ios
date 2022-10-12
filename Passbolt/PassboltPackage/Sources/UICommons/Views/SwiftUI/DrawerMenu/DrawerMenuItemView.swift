@@ -50,7 +50,7 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
     action: @escaping () -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder leftIcon: @escaping () -> LeftIconView,
-    isSelected: Bool
+    isSelected: Bool = false
   ) where RightIconView == EmptyView {
     self.action = action
     self.title = title

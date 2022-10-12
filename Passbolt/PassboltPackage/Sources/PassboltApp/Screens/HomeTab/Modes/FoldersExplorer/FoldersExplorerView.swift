@@ -137,7 +137,7 @@ internal struct FoldersExplorerView: ComponentView {
       content: {
         if self.state.canCreateResources {
           ResourceListAddView {
-            self.controller.presentResourceCreationFrom(self.state.folderID)
+            self.controller.presentAddNew(self.state.folderID)
           }
         }  // else { /* NOP */ }
 
