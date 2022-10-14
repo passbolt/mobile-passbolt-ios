@@ -23,12 +23,12 @@
 
 import Display
 
-internal struct ResourceDetailsTagsListView: ControlledView {
+internal struct ResourceFolderEditView: ControlledView {
 
-  private let controller: ResourceDetailsTagsListController
+  private let controller: ResourceFolderEditController
 
   internal init(
-    controller: ResourceDetailsTagsListController
+    controller: ResourceFolderEditController
   ) {
     self.controller = controller
   }
@@ -36,48 +36,59 @@ internal struct ResourceDetailsTagsListView: ControlledView {
   internal var body: some View {
     WithViewState(self.controller) { (state: ViewState) in
       ScreenView(
-        title: .raw(.init()),
+        title: .localized(
+          key: "folder.edit.form.create.title"
+        ),
+        loading: state.loading,
+        snackBarMessage: self.controller.binding(to: \.snackBarMessage),
         contentView: {
-          self.contentView(in: state)
+          self.contentView(using: state)
         }
       )
     }
   }
 
-  @ViewBuilder private func contentView(
-    in state: ViewState
+  @ViewBuilder @MainActor private func contentView(
+    using state: ViewState
   ) -> some View {
-    VStack(spacing: 0) {
-      ZStack(alignment: .topTrailing) {
-        LetterIconView(text: state.resourceName)
-          .padding(top: 16)
-        if state.resourceFavorite {
-          Image(named: .starFilled)
-            .foregroundColor(.passboltSecondaryOrange)
-            .frame(
-              width: 32,
-              height: 32
-            )
-            .alignmentGuide(.trailing) { dim in
-              dim[HorizontalAlignment.center]
-            }
-        }  // else nothing
-      }
-      Text(state.resourceName)
-        .text(
-          font: .inter(
-            ofSize: 24,
-            weight: .semibold
-          )
+    VStack(spacing: 16) {
+      FormTextFieldView(
+        title: .localized(
+          key: "form.field.name.title"
+        ),
+        mandatory: true,
+        text: .init(
+          get: { state.folderName },
+          set: { (newValue: Validated<String>) in
+            self.controller
+              .perform(
+                \.setFolderName,
+                with: newValue.value
+              )
+          }
+        ),
+        prompt: .localized(
+          key: "folder.edit.form.name.field.placeholder"
         )
-        .padding(8)
+      )
 
-      ResourceDetailsTagListView(
-        tags: state.tags,
-        createAction: .none,
-        tagTapAction: .none,
-        tagMenuAction: .none
+      FolderLocationView(
+        locationElements: state.folderLocation
+      )
+
+      PermissionAvatarsView(
+        items: state.folderPermissionItems
+      )
+
+      Spacer()
+
+      PrimaryButton(
+        title: .localized(
+          key: "form.button.save.title"
+        ),
+        action: self.controller.action(\.saveChanges)
       )
     }
+    .padding(16)
   }
 }

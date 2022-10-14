@@ -42,10 +42,12 @@ where Value: Equatable {
   private let stateSource: StateBinding<Value>
 
   public init(
-    stateSource: StateBinding<Value>
+    stateSource: StateBinding<Value>,
+    cleanup: @escaping () -> Void = {}
   ) {
     self.stateSource = stateSource
     self.cancellables = .init()
+    self.cancellables.addCleanup(cleanup)
     stateSource
       .receive(on: RunLoop.main)
       .sink { [weak self] _ in
@@ -55,11 +57,13 @@ where Value: Equatable {
   }
 
   public convenience init(
-    initial: Value
+    initial: Value,
+    cleanup: @escaping () async -> Void = {}
   ) {
     self.init(
       stateSource: .variable(initial: initial)
     )
+    self.cancellables.addCleanup(cleanup)
   }
 
   public var wrappedValue: Value {

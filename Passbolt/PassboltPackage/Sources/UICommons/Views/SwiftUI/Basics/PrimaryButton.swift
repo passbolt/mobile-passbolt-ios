@@ -25,17 +25,16 @@ import AegithalosCocoa
 import Commons
 import SwiftUI
 
-@MainActor
 public struct PrimaryButton: View {
 
   private let icon: Image?
   private let title: DisplayableString
-  private let action: @MainActor () -> Void
+  private let action: () -> Void
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
-    action: @escaping @MainActor () -> Void
+    action: @escaping () -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
@@ -44,10 +43,8 @@ public struct PrimaryButton: View {
 
   public var body: some View {
     Button(
-      action: {  // this should be always MainActor
-        MainActor.execute(priority: .userInitiated) {
-          self.action()
-        }
+      action: {
+        self.action()
       },
       label: {
         if let icon: Image = self.icon {

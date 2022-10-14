@@ -53,6 +53,23 @@ public struct InvalidValue: TheError {
   public var validationRule: StaticString
 }
 
+extension InvalidValue: Hashable {
+
+  public static func == (
+    _ lhs: InvalidValue,
+    _ rhs: InvalidValue
+  ) -> Bool {
+    lhs.validationRule == rhs.validationRule
+      && lhs.displayableMessage == rhs.displayableMessage
+  }
+
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(self.validationRule)
+  }
+}
+
 extension InvalidValue {
 
   public static func alwaysInvalid<Value>(
@@ -112,6 +129,24 @@ extension InvalidValue {
   public static func tooLong<Value>(
     message: StaticString = "InvalidValue-tooLong",
     validationRule: StaticString = "maximumLength",
+    value: Value,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      message,
+      validationRule: validationRule,
+      value: value,
+      displayable: displayable,
+      file: file,
+      line: line
+    )
+  }
+
+  public static func notContains<Value>(
+    message: StaticString = "InvalidValue-notContains",
+    validationRule: StaticString = "contains",
     value: Value,
     displayable: DisplayableString,
     file: StaticString = #fileID,

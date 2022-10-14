@@ -25,7 +25,7 @@ import Commons
 
 public protocol LoadableFeature: AnyFeature {
 
-  associatedtype Context: LoadableFeatureContext
+  associatedtype Context: LoadableFeatureContext = ContextlessFeatureContext
 
   #if DEBUG
   // placeholder implementation for mocking and testing, unavailable in release

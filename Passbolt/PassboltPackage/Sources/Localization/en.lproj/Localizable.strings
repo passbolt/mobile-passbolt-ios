@@ -322,6 +322,22 @@ Contact your administrator for more information.";
 "mfa.required.title" = "MFA is required";
 "autofill.extension.mfa.required.description" = "Please use the Passbolt app to finalise your authentication.";
 
+"folder.edit.form.create.title" = "Create folder";
+"folder.edit.form.name.field.placeholder" = "Untitled folder";
+
+// Common UI
+
+"folder.root.name" = "root";
+
+"folder.location.title" = "Location";
+"permissions.avatars.view.title" = "Permissions";
+
+// Forms common
+
+"form.field.name.title" = "Name";
+
+"form.button.save.title" = "Save";
+
 // Errors
 
 "generic.error" = "Something went wrong!";
@@ -422,3 +438,11 @@ Contact your administrator for more information.";
 "error.account.duplicate" = "Duplicate account.";
 "error.server.pgp.fingerprint.invalid" = "Server PGP fingeprint invalid.";
 "error.session.authorization.failed" = "Session authorization failed.";
+
+"error.validation.folder.name.empty" = "Folder name cannot be empty.";
+"error.validation.folder.name.too.long" = "Folder name cannot have more than 256 characters.";
+
+"error.validation.permissions.empty" = "There have to be at least one permission.";
+"error.validation.permissions.owner.required" = "There have to be at least one owner.";
+
+"error.validation.form.invalid" = "Form is not valid.";

@@ -58,10 +58,10 @@ extension ResourceFolder.ID {
       .map(Self.init(rawValue:))
   }
 
-	public static func random(
-		using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-	) -> Self {
-		Self.randomGenerator(using: randomnessGenerator).next()
-	}
+  public static func random(
+    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
+  ) -> Self {
+    Self.randomGenerator(using: randomnessGenerator).next()
+  }
 }
 #endif

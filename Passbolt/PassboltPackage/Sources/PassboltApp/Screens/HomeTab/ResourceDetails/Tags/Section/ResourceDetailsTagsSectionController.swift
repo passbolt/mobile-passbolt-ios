@@ -22,10 +22,10 @@
 //
 
 import Accounts
+import Display
 import Resources
 import UIComponents
 import Users
-import Display
 
 internal struct ResourceDetailsTagsSectionController {
 
@@ -45,10 +45,11 @@ extension ResourceDetailsTagsSectionController: ComponentController {
     cancellables: Cancellables
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
-    let asyncExecutor: AsyncExecutor = features.instance()
+    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
+      .detach()
     let navigation: DisplayNavigation = try await features.instance()
     let resourceDetails: ResourceDetails = try await features.instance(context: context)
-    
+
     let viewState: ObservableValue<ViewState> = .init(
       initial: .init(
         tags:

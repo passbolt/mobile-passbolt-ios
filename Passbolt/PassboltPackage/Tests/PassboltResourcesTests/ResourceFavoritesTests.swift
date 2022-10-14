@@ -35,9 +35,9 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   override func prepare() throws {
     patch(
       \SessionData.withLocalUpdate,
-       with: { (update) async throws in
-         try await update()
-       }
+      with: { (update) async throws in
+        try await update()
+      }
     )
     use(ResourceSetFavoriteDatabaseOperation.placeholder)
     use(ResourceFavoriteAddNetworkOperation.placeholder)
@@ -49,12 +49,12 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(
@@ -70,16 +70,16 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-       with: always(.init(favoriteID: .random()))
+      with: always(.init(favoriteID: .random()))
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(
@@ -95,12 +95,12 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .random()
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(
@@ -116,16 +116,16 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .random()
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
-       with: alwaysThrow(MockIssue.error())
+      with: alwaysThrow(MockIssue.error())
     )
 
     withTestedInstanceThrows(
@@ -141,18 +141,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .random()
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
-       with: { (variable: ResourceFavoriteDeleteNetworkOperationVariable) async throws in
-         self.executed(using: variable.favoriteID)
-       }
+      with: { (variable: ResourceFavoriteDeleteNetworkOperationVariable) async throws in
+        self.executed(using: variable.favoriteID)
+      }
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
-       with: always(Void())
+      with: always(Void())
     )
 
     withTestedInstanceExecuted(
@@ -168,18 +168,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .random()
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
-       with: always(Void())
+      with: always(Void())
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
-       with: { (variable) async throws in
-         self.executed(using: variable.favoriteID)
-       }
+      with: { (variable) async throws in
+        self.executed(using: variable.favoriteID)
+      }
     )
 
     withTestedInstanceExecuted(
@@ -195,18 +195,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-       with: always(
-         self.executed(returning: .init(favoriteID: .random()))
-       )
+      with: always(
+        self.executed(returning: .init(favoriteID: .random()))
+      )
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
-       with: always(Void())
+      with: always(Void())
     )
 
     withTestedInstanceExecuted(
@@ -222,18 +222,18 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
-       context: resourceDetails.id,
-       with: always(resourceDetails)
+      context: resourceDetails.id,
+      with: always(resourceDetails)
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-       with: always(.init(favoriteID: expectedFavoriteID))
+      with: always(.init(favoriteID: expectedFavoriteID))
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
-       with: { (variable) async throws in
-         self.executed(using: variable.favoriteID)
-       }
+      with: { (variable) async throws in
+        self.executed(using: variable.favoriteID)
+      }
     )
 
     withTestedInstanceExecuted(
@@ -244,4 +244,3 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     }
   }
 }
-

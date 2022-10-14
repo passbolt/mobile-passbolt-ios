@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import SwiftUI
 import CommonModels
+import SwiftUI
 
 public struct CompactTagsView: View {
 
@@ -41,7 +41,8 @@ public struct CompactTagsView: View {
           maxWidth: .infinity,
           alignment: .leading
         )
-    } else {
+    }
+    else {
       self.contentViewLegacy()
         .frame(
           maxWidth: .infinity,
@@ -67,7 +68,7 @@ public struct CompactTagsView: View {
       case 1:
         self.tagView(self.tags[0])
 
-      case _: // > 1
+      case _:  // > 1
         self.tagView(self.tags[0])
         self.tagView("+\(self.tags.count - 1)")
       }

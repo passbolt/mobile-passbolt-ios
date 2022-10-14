@@ -48,7 +48,8 @@ extension ResourceEditForm {
     let resourceCreateNetworkOperation: ResourceCreateNetworkOperation = try await features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try await features.instance()
     let session: Session = try await features.instance()
-    let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation = try await features.instance()
+    let resourceFolderPermissionsFetchDatabaseOperation: ResourceFolderPermissionsFetchDatabaseOperation =
+      try await features.instance()
 
     let resourceIDSubject: CurrentValueSubject<Resource.ID?, Never> = .init(nil)
     let resourceParentFolderIDSubject: CurrentValueSubject<ResourceFolder.ID?, Never> = .init(nil)
@@ -429,7 +430,11 @@ extension ResourceEditForm {
         else {
           let account: Account = try await session.currentAccount()
 
-          guard let ownEncryptedMessage: EncryptedMessage = try await usersPGPMessages.encryptMessageForUsers([account.userID], encodedSecret)
+          guard
+            let ownEncryptedMessage: EncryptedMessage = try await usersPGPMessages.encryptMessageForUsers(
+              [account.userID],
+              encodedSecret
+            )
             .first
           else {
             throw
@@ -452,17 +457,18 @@ extension ResourceEditForm {
 
           if let folderID: ResourceFolder.ID = parentFolderID {
             let encryptedSecrets: OrderedSet<EncryptedMessage> =
-            try await usersPGPMessages
+              try await usersPGPMessages
               .encryptMessageForResourceFolderUsers(folderID, encodedSecret)
               .filter { encryptedMessage in
                 encryptedMessage.recipient != account.userID
               }
-							.asOrderedSet()
+              .asOrderedSet()
 
-            let folderPermissions: Array<ResourceFolderPermissionDSV> = try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
+            let folderPermissions: Array<ResourceFolderPermissionDSV> =
+              try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
               .filter { permission in
                 switch permission {
-                case .user(account.userID, _):
+                case .user(account.userID, _, _):
                   return false
 
                 case _:
@@ -478,19 +484,19 @@ extension ResourceEditForm {
                     folderPermissions
                       .map { folderPermission -> NewPermissionDTO in
                         switch folderPermission {
-                        case let .user(id, permissionType):
+                        case let .user(id, permissionType, _):
                           return .userToFolder(
-                              userID: id,
-                              folderID: folderID,
-                              type: permissionType
-                            )
+                            userID: id,
+                            folderID: folderID,
+                            type: permissionType
+                          )
 
-                        case let .userGroup(id, permissionType):
+                        case let .userGroup(id, permissionType, _):
                           return .userGroupToFolder(
-                              userGroupID: id,
-                              folderID: folderID,
-                              type: permissionType
-                            )
+                            userGroupID: id,
+                            folderID: folderID,
+                            type: permissionType
+                          )
                         }
                       }
                   ),
@@ -500,7 +506,7 @@ extension ResourceEditForm {
                 )
               )
             )
-          } // else continue without sharing
+          }  // else continue without sharing
 
           return newResourceID
         }

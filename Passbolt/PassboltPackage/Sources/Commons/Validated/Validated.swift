@@ -25,7 +25,7 @@ import Localization
 
 public struct Validated<Value> {
 
-  public let value: Value
+  public var value: Value
   public private(set) var errors: Array<InvalidValue>
 
   public init(
@@ -127,3 +127,9 @@ extension Validated {
     )
   }
 }
+
+extension Validated: Equatable
+where Value: Equatable {}
+
+extension Validated: Hashable
+where Value: Hashable {}

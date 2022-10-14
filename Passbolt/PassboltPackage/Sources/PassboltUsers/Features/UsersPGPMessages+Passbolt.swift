@@ -34,7 +34,8 @@ extension UsersPGPMessages {
     let sessionCryptography: SessionCryptography = try await features.instance()
     let usersPublicKeysFetchDatabaseOperation: UsersPublicKeysFetchDatabaseOperation = try await features.instance()
     let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try await features.instance()
-    let resourceFolderUsersIDFetchDatabaseOperation: ResourceFolderUsersIDFetchDatabaseOperation = try await features.instance()
+    let resourceFolderUsersIDFetchDatabaseOperation: ResourceFolderUsersIDFetchDatabaseOperation =
+      try await features.instance()
 
     @Sendable nonisolated func encryptMessageForUsers(
       _ users: OrderedSet<User.ID>,

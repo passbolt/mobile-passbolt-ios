@@ -108,3 +108,15 @@ extension UpdatableValue: AsyncSequence {
       .asAnyAsyncIterator()
   }
 }
+
+extension UpdatableValue {
+  #if DEBUG
+
+  public static var placeholder: Self {
+    .init(
+      updatesSequence: .placeholder,
+      update: unimplemented()
+    )
+  }
+  #endif
+}

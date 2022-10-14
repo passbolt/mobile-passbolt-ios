@@ -21,26 +21,18 @@
 // @since         v1.0
 //
 
-import CommonModels
+import TestExtensions
 
-public struct ResourceFolderDetails {
+@testable import PassboltResources
 
-  public var folderID: ResourceFolder.ID
-  public var name: String
-  public var shared: Bool
-  public var permissionType: PermissionType
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
+final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderEditForm> {
 
-  public init(
-    folderID: ResourceFolder.ID,
-    name: String,
-    shared: Bool,
-    permissionType: PermissionType
-  ) {
-    self.folderID = folderID
-    self.name = name
-    self.shared = shared
-    self.permissionType = permissionType
+  override class var testedImplementationRegister: (FeatureFactory) -> @MainActor () -> Void {
+    FeatureFactory.usePassboltResourceFolderEditForm
   }
-}
 
-extension ResourceFolderDetails: Hashable {}
+  override func prepare() throws {
+  }
+
+}

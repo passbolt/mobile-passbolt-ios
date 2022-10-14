@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct AnyDisplayController: ContextlessDisplayController {
+public struct AnyDisplayController: ViewController {
 
   @IID public var id
   @Stateless public var viewState

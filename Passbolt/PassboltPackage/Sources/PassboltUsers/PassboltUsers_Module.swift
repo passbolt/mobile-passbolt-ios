@@ -21,5 +21,5 @@
 // @since         v1.0
 //
 
-@_exported import Users
 @_exported import SessionData
+@_exported import Users

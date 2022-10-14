@@ -47,10 +47,29 @@ extension AsyncExecutor {
   @discardableResult
   public func schedule(
     _ behavior: OngoingExecutionBehavior = .unmanaged,
-    identifier: ExecutionIdentifier = .contextual(),
+    identifier: ExecutionIdentifier,
     _ task: @escaping @Sendable () async -> Void
   ) -> Execution {
     self.execute(identifier, behavior, task)
+  }
+
+  @discardableResult
+  public func schedule(
+    _ behavior: OngoingExecutionBehavior = .unmanaged,
+    function: StaticString = #function,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    _ task: @escaping @Sendable () async -> Void
+  ) -> Execution {
+    self.execute(
+      .contextual(
+        function: function,
+        file: file,
+        line: line
+      ),
+      behavior,
+      task
+    )
   }
 
   public func detach() -> Self {
@@ -166,9 +185,9 @@ extension AsyncExecutor {
     private let identifier: AnyHashable
 
     public static func contextual(
-      function: StaticString = #function,
-      file: StaticString = #fileID,
-      line: UInt = #line
+      function: StaticString,
+      file: StaticString,
+      line: UInt
     ) -> Self {
       .init(
         identifier: "\(file):\(function):\(line)"

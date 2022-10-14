@@ -40,7 +40,7 @@ extension ResourcesListCreateMenuController: ViewController {
     internal var enclosingFolderID: ResourceFolder.ID?
   }
 
-  internal struct  ViewState: Hashable {}
+  internal struct ViewState: Hashable {}
 
   internal struct ViewActions: ViewControllerActions {
 
@@ -77,18 +77,20 @@ extension ResourcesListCreateMenuController {
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
-    let asyncExecutor: AsyncExecutor = features.instance()
+    let diagnostics: Diagnostics = features.instance()
+    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
+      .detach()
     let navigation: DisplayNavigation = try await features.instance()
 
     nonisolated func close() {
-      asyncExecutor.schedule { @MainActor in
+      asyncExecutor.schedule(.reuse) { @MainActor in
         await navigation
           .dismissLegacySheet(ResourcesListCreateMenuView.self)
       }
     }
 
     nonisolated func createResource() {
-      asyncExecutor.schedule { @MainActor in
+      asyncExecutor.schedule(.reuse) { @MainActor in
         await navigation
           .dismissLegacySheet(ResourcesListCreateMenuView.self)
         await navigation
@@ -111,10 +113,22 @@ extension ResourcesListCreateMenuController {
     }
 
     nonisolated func createFolder() {
-      asyncExecutor.schedule { @MainActor in
+      asyncExecutor.schedule(.reuse) { @MainActor in
         await navigation
           .dismissLegacySheet(ResourcesListCreateMenuView.self)
-        #warning("MOB-616: add folder creation screen")
+        do {
+          try await navigation.push(
+            ResourceFolderEditView.self,
+            controller: features.instance(
+              context: .create(
+                containingFolderID: context.enclosingFolderID
+              )
+            )
+          )
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
       }
     }
 

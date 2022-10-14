@@ -21,15 +21,40 @@
 // @since         v1.0
 //
 
-import Features
+public final class UpdatableValueSource<Value>: Sendable
+where Value: Sendable {
 
-extension FeatureFactory {
+  public let updatableValue: UpdatableValue<Value>
+  private let updatesSequenceSource: UpdatesSequenceSource
+  private let currentValue: CriticalState<Value>
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
+  public init(
+    initial: Value
+  ) {
+    let updatesSequenceSource: UpdatesSequenceSource = .init()
+    let currentValue: CriticalState<Value> = .init(initial)
+    self.updatesSequenceSource = updatesSequenceSource
+    self.currentValue = currentValue
+    self.updatableValue = .init(
+      updatesSequence: updatesSequenceSource.updatesSequence,
+      update: { currentValue.get(\.self) }
+    )
+  }
 
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
+  deinit {
+    self.endUpdates()
+  }
+
+  @Sendable public func update<Returned>(
+    _ update: (inout Value) -> Returned
+  ) -> Returned {
+    self.currentValue.access { (value: inout Value) in
+      defer { self.updatesSequenceSource.sendUpdate() }
+      return update(&value)
+    }
+  }
+
+  internal func endUpdates() {
+    self.updatesSequenceSource.updatesSequence.endSequence()
   }
 }

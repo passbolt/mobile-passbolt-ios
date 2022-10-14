@@ -26,16 +26,43 @@ import Commons
 public enum ResourceFolderPermissionDSV {
 
   case user(
-    User.ID,
-    type: PermissionTypeDSV
+    id: User.ID,
+    type: PermissionTypeDSV,
+    permissionID: Permission.ID?  // none is local, not synchronized permission
   )
   case userGroup(
-    UserGroup.ID,
-    type: PermissionTypeDSV
+    id: UserGroup.ID,
+    type: PermissionTypeDSV,
+    permissionID: Permission.ID?  // none is local, not synchronized permission
   )
 }
 
 extension ResourceFolderPermissionDSV: DSV {}
+
+extension ResourceFolderPermissionDSV: Hashable {}
+
+extension ResourceFolderPermissionDSV {
+
+  public var permissionID: Permission.ID? {
+    switch self {
+    case let .user(_, _, permissionID):
+      return permissionID
+
+    case let .userGroup(_, _, permissionID):
+      return permissionID
+    }
+  }
+
+  public var type: PermissionType {
+    switch self {
+    case let .user(_, type, _):
+      return type
+
+    case let .userGroup(_, type, _):
+      return type
+    }
+  }
+}
 
 #if DEBUG
 
@@ -47,17 +74,21 @@ extension ResourceFolderPermissionDSV: RandomlyGenerated {
     Generator<ResourceFolderPermissionDSV>
       .any(
         of: zip(
-          with: ResourceFolderPermissionDSV.user(_:type:),
+          with: ResourceFolderPermissionDSV.user(id:type:permissionID:),
           User.ID
             .randomGenerator(using: randomnessGenerator),
           PermissionTypeDTO
+            .randomGenerator(using: randomnessGenerator),
+          Permission.ID
             .randomGenerator(using: randomnessGenerator)
         ),
         zip(
-          with: ResourceFolderPermissionDSV.userGroup(_:type:),
+          with: ResourceFolderPermissionDSV.userGroup(id:type:permissionID:),
           UserGroup.ID
             .randomGenerator(using: randomnessGenerator),
           PermissionTypeDTO
+            .randomGenerator(using: randomnessGenerator),
+          Permission.ID
             .randomGenerator(using: randomnessGenerator)
         ),
         using: randomnessGenerator

@@ -23,32 +23,26 @@
 
 import SwiftUI
 
-public struct TextStyle: ViewModifier {
-
-  fileprivate let font: Font
-  fileprivate let color: Color?
-
-  public func body(
-    content: Content
-  ) -> some View {
-    content
-      .font(self.font)
-      .foregroundColor(self.color)
-  }
-}
-
 extension View {
 
   public func text(
     font: Font,
     color: Color? = .none
   ) -> some View {
-    ModifiedContent(
-      content: self,
-      modifier: TextStyle(
-        font: font,
-        color: color
-      )
-    )
+    self
+      .font(font)
+      .foregroundColor(color)
+  }
+}
+
+extension Text {
+
+  public func text(
+    font: Font,
+    color: Color? = .none
+  ) -> Text {
+    self
+      .font(font)
+      .foregroundColor(color)
   }
 }

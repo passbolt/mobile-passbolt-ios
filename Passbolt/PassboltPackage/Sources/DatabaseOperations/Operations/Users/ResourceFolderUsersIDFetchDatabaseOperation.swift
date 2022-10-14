@@ -24,4 +24,3 @@
 import CommonModels
 
 public typealias ResourceFolderUsersIDFetchDatabaseOperation = DatabaseOperation<ResourceFolder.ID, Array<User.ID>>
-

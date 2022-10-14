@@ -34,7 +34,7 @@ internal struct AutofillRootNavigationNodeController {
   public var viewActions: ViewActions
 }
 
-extension AutofillRootNavigationNodeController: ContextlessViewNodeController {
+extension AutofillRootNavigationNodeController: ViewNodeController {
 
   internal struct ViewActions: ViewControllerActions {
 

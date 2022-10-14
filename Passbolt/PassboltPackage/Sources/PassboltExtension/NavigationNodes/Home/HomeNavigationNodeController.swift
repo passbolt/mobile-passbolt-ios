@@ -36,7 +36,7 @@ internal struct HomeNavigationNodeController {
   internal var viewActions: ViewActions
 }
 
-extension HomeNavigationNodeController: ContextlessViewNodeController {
+extension HomeNavigationNodeController: ViewNodeController {
 
   internal struct ViewState: Hashable {
 

@@ -21,15 +21,32 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Features
 
-extension FeatureFactory {
+// MARK: - Interface
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
+public struct ResourceFolderDetails {
 
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
+  public var details: UpdatableValue<ResourceFolderDetailsDSV>
+
+  public init(
+    details: UpdatableValue<ResourceFolderDetailsDSV>
+  ) {
+    self.details = details
   }
+}
+
+extension ResourceFolderDetails: LoadableFeature {
+
+  public typealias Context = ResourceFolder.ID
+
+  #if DEBUG
+
+  public static var placeholder: Self {
+    Self(
+      details: .placeholder
+    )
+  }
+  #endif
 }

@@ -23,8 +23,8 @@
 
 import Accounts
 import Display
-import Session
 import Resources
+import Session
 
 internal struct ResourceDetailsTagsListController {
 
@@ -44,12 +44,11 @@ extension ResourceDetailsTagsListController {
 
   internal struct ViewActions: ViewControllerActions {
 
-#if DEBUG
+    #if DEBUG
     internal static var placeholder: Self {
-      .init(
-      )
+      .init()
     }
-#endif
+    #endif
   }
 }
 
@@ -75,8 +74,7 @@ extension ResourceDetailsTagsListController {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     let navigation: DisplayNavigation = try await features.instance()
-    let resourceDetails: ResourceDetailsDSV
-    = try await features.instance(
+    let resourceDetails: ResourceDetailsDSV = try await features.instance(
       of: ResourceDetails.self,
       context: context
     )
@@ -92,8 +90,7 @@ extension ResourceDetailsTagsListController {
 
     return Self(
       viewState: viewState,
-      viewActions: .init(
-      )
+      viewActions: .init()
     )
   }
 }

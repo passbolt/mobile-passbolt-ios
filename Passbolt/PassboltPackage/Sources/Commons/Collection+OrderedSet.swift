@@ -26,7 +26,7 @@ import OrderedCollections
 extension Collection
 where Element: Hashable {
 
-	public func asOrderedSet() -> OrderedSet<Element> {
-		OrderedSet(self)
-	}
+  public func asOrderedSet() -> OrderedSet<Element> {
+    OrderedSet(self)
+  }
 }

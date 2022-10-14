@@ -52,7 +52,8 @@ extension SessionLocking {
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
     await features.assertScope(identifier: account)
-    let asyncExecutor: AsyncExecutor = features.instance()
+    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self)
+      .detach()
     let environmentBridge: EnvironmentLegacyBridge = features.instance()
     let appLifeCycle: AppLifeCycle = environmentBridge.environment.appLifeCycle
     let sesionState: SessionState = try await features.instance()
@@ -62,17 +63,15 @@ extension SessionLocking {
       appLifeCycle
         .lifeCyclePublisher()
         .sink { transition in
-          switch transition {
-          case .didBecomeActive, .willResignActive, .willTerminate:
-            break  // NOP
+          asyncExecutor.schedule(.replace) { @SessionActor in
+            switch transition {
+            case .didBecomeActive, .willResignActive, .willTerminate:
+              break  // NOP
 
-          case .didEnterBackground:
-            asyncExecutor.schedule { @SessionActor in
+            case .didEnterBackground:
               sesionState.setPassphrase(.none)
-            }
 
-          case .willEnterForeground:
-            asyncExecutor.schedule { @SessionActor in
+            case .willEnterForeground:
               do {
                 try sesionAuthorizationState
                   .requestAuthorization(.passphrase(account))

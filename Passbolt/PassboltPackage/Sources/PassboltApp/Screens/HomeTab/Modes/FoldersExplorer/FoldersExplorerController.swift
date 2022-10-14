@@ -22,12 +22,12 @@
 //
 
 import Accounts
+import Display
 import Resources
 import Session
 import SessionData
 import SharedUIComponents
 import UIComponents
-import Display
 
 @MainActor
 internal struct FoldersExplorerController {
@@ -165,7 +165,8 @@ extension FoldersExplorerController: ComponentController {
         do {
           try await navigation.presentSheet(
             ResourcesListCreateMenuView.self,
-            controller: features
+            controller:
+              features
               .instance(
                 of: ResourcesListCreateMenuController.self,
                 context: .init(

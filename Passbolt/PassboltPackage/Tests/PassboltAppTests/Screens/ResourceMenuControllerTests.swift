@@ -115,7 +115,13 @@ final class ResourceMenuControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result, [.openURL, .copyURL, .copyUsername, .copyPassword, .copyDescription,  .toggleFavorite(false), .share, .edit, .delete])
+    XCTAssertEqual(
+      result,
+      [
+        .openURL, .copyURL, .copyUsername, .copyPassword, .copyDescription, .toggleFavorite(false), .share, .edit,
+        .delete,
+      ]
+    )
   }
 
   func test_performAction_copiesSecretToPasteboard_forCopyPasswordAction() async throws {

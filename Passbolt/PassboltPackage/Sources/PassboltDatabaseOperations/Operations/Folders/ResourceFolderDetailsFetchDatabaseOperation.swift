@@ -107,7 +107,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
               .recording(dataRow, for: "dataRow")
           }
 
-          let usersPermissions: Array<PermissionDSV> = try connection.fetch(
+          let usersPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
             using: selectFolderUsersPermissionsStatement
           ) {
             dataRow in
@@ -126,15 +126,14 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
                 )
             }
 
-            return .userToFolder(
-              id: permissionID,
-              userID: userID,
-              folderID: folderID,
-              type: permissionType
+            return .user(
+              id: userID,
+              type: permissionType,
+              permissionID: permissionID
             )
           }
 
-          let userGroupsPermissions: Array<PermissionDSV> = try connection.fetch(
+          let userGroupsPermissions: Array<ResourceFolderPermissionDSV> = try connection.fetch(
             using: selectFolderUserGroupsPermissionsStatement
           ) { dataRow in
             guard
@@ -152,11 +151,10 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
                 )
             }
 
-            return .userGroupToFolder(
-              id: permissionID,
-              userGroupID: userGroupID,
-              folderID: folderID,
-              type: permissionType
+            return .userGroup(
+              id: userGroupID,
+              type: permissionType,
+              permissionID: permissionID
             )
           }
 

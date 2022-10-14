@@ -96,4 +96,28 @@ extension Validator where Value: Collection {
       }
     }
   }
+
+  public static func contains(
+    where predicate: @escaping (Value.Element) -> Bool,
+    displayable: DisplayableString,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self { value in
+      if value.contains(where: predicate) {
+        return .valid(value)
+      }
+      else {
+        return .invalid(
+          value,
+          errors: .notContains(
+            value: value,
+            displayable: displayable,
+            file: file,
+            line: line
+          )
+        )
+      }
+    }
+  }
 }

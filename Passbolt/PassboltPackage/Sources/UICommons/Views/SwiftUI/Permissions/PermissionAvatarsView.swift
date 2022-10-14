@@ -21,15 +21,68 @@
 // @since         v1.0
 //
 
-import Features
+import Commons
+import SwiftUI
 
-extension FeatureFactory {
+public struct PermissionAvatarsView: View {
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
+  private let items: Array<OverlappingAvatarStackView.Item>
 
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
+  public init(
+    items: Array<OverlappingAvatarStackView.Item>
+  ) {
+    self.items = items
+  }
+
+  public var body: some View {
+    VStack(spacing: 8) {
+      Text(
+        displayable: .localized(
+          key: "permissions.avatars.view.title"
+        )
+      )
+      .text(
+        font: .inter(
+          ofSize: 12,
+          weight: .medium
+        ),
+        color: Color.passboltPrimaryText
+      )
+      .multilineTextAlignment(.leading)
+      .lineLimit(1)
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
+
+      OverlappingAvatarStackView(self.items)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: 40,
+          alignment: .leading
+        )
+    }
   }
 }
+
+#if DEBUG
+
+internal struct PermissionAvatarsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      PermissionAvatarsView(
+        items: (0...3)
+          .map { _ in .random() }
+      )
+
+      PermissionAvatarsView(
+        items: (0...20)
+          .map { _ in .random() }
+      )
+    }
+    .padding(8)
+  }
+}
+
+#endif

@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public struct EmptyViewController: ContextlessViewNodeController {
+public struct EmptyViewController: ViewNodeController {
 
   @IID public var id
   @NavigationNodeID public var nodeID

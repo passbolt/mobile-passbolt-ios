@@ -79,7 +79,18 @@ extension ResourceDetailsDSV: RandomlyGenerated {
   ) -> Generator<Self> {
     zip(
 
-        with: ResourceDetailsDSV.init(id:permissionType:name:url:username:description:fields:favoriteID:permissions:tags:),
+      with: ResourceDetailsDSV.init(
+        id:
+        permissionType:
+        name:
+        url:
+        username:
+        description:
+        fields:
+        favoriteID:
+        permissions:
+        tags:
+      ),
       Resource.ID
         .randomGenerator(using: randomnessGenerator),
       PermissionTypeDSV

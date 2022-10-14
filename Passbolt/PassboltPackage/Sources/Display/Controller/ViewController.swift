@@ -26,16 +26,29 @@ import UIComponents
 
 public protocol ViewController: Hashable, LoadableFeature {
 
-  associatedtype ViewState: Hashable
-  associatedtype ViewActions: ViewControllerActions
+  associatedtype ViewState: Hashable = Stateless
+  associatedtype ViewActions: ViewControllerActions = Actionless
 
   var id: IID { get }
   var viewState: ViewStateBinding<ViewState> { get }
   var viewActions: ViewActions { get }
 }
 
-public protocol ContextlessDisplayController: ViewController
-where Context == ContextlessFeatureContext {}
+extension ViewController
+where ViewState == Stateless {
+
+  public var viewState: ViewStateBinding<Never> {
+    Stateless().wrappedValue
+  }
+}
+
+extension ViewController
+where ViewActions == Actionless {
+
+  public var viewActions: ViewActions {
+    Actionless()
+  }
+}
 
 extension ViewController /* Hashable */ {
 

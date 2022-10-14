@@ -108,8 +108,8 @@ extension AsyncSequence {
   // file:line captured only for diagnostics
   public func asThrowingPublisher() -> AnyPublisher<Element, Error> {
     ThrowingSequencePublisher(sequence: self)
-    .autoconnect()
-    .eraseToAnyPublisher()
+      .autoconnect()
+      .eraseToAnyPublisher()
   }
 }
 

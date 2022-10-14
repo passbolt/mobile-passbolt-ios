@@ -33,5 +33,7 @@ extension FeatureFactory {
     self.usePassboltResources()
     self.usePassboltResourceTags()
     self.usePassboltResourceFavorites()
+    self.usePassboltResourceFolderDetails()
+    self.usePassboltResourceFolderEditForm()
   }
 }

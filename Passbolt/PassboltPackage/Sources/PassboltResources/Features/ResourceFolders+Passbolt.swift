@@ -33,22 +33,19 @@ extension ResourceFolders {
     features: FeatureFactory,
     cancellables: Cancellables
   ) async throws -> Self {
-    let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
-      try await features.instance()
     let resourceFoldersListFetchDatabaseOperation: ResourceFoldersListFetchDatabaseOperation =
       try await features.instance()
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try await features.instance()
 
     @Sendable nonisolated func details(
       _ folderID: ResourceFolder.ID
-    ) async throws -> ResourceFolderDetails {
-      let folder: ResourceFolderDetailsDSV = try await resourceFolderDetailsFetchDatabaseOperation(folderID)
-      return .init(
-        folderID: folder.id,
-        name: folder.name,
-        shared: folder.shared,
-        permissionType: folder.permissionType
+    ) async throws -> ResourceFolderDetailsDSV {
+      try await features.instance(
+        of: ResourceFolderDetails.self,
+        context: folderID
       )
+      .details
+      .value
     }
 
     @Sendable nonisolated func filteredFolderContent(

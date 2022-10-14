@@ -43,8 +43,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
         .statement(
           """
           SELECT
-            usersResourceFolders.userID AS id,
+            usersResourceFolders.userID AS userID,
             usersResourceFolders.permissionType AS permissionType
+            usersResourceFolders.id AS permissionID
           FROM
             usersResourceFolders
           WHERE
@@ -57,8 +58,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
         .statement(
           """
           SELECT
-            userGroupsResourceFolders.userGroupID AS id,
-            userGroupsResourceFolders.permissionType AS permissionType
+            userGroupsResourceFolders.userGroupID AS userGroupID,
+            userGroupsResourceFolders.permissionType AS permissionType,
+            userGroupsResourceFolders.permissionID AS permissionID
           FROM
             userGroupsResourceFolders
           WHERE
@@ -71,8 +73,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
         try connection
         .fetch(using: usersPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
           guard
-            let userID: User.ID = dataRow.id.flatMap(User.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
           else {
             throw
               DatabaseIssue
@@ -84,8 +87,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
           }
 
           return .user(
-            userID,
-            type: permissionType
+            id: userID,
+            type: permissionType,
+            permissionID: permissionID
           )
         }
 
@@ -93,8 +97,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
         try connection
         .fetch(using: userGroupsPermissionsStatement) { dataRow -> ResourceFolderPermissionDSV in
           guard
-            let userGroupID: UserGroup.ID = dataRow.id.flatMap(UserGroup.ID.init(rawValue:)),
-            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:))
+            let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
+            let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
+            let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
           else {
             throw
               DatabaseIssue
@@ -106,8 +111,9 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
           }
 
           return .userGroup(
-            userGroupID,
-            type: permissionType
+            id: userGroupID,
+            type: permissionType,
+            permissionID: permissionID
           )
         }
 
@@ -141,4 +147,3 @@ extension FeatureFactory {
     )
   }
 }
-

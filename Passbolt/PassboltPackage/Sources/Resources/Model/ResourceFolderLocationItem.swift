@@ -21,15 +21,10 @@
 // @since         v1.0
 //
 
-import Features
+import CommonModels
 
-extension FeatureFactory {
+public struct ResourceFolderLocationItem {
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
-
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
-  }
+  public var folderID: ResourceFolder.ID
+  public var folderName: String
 }

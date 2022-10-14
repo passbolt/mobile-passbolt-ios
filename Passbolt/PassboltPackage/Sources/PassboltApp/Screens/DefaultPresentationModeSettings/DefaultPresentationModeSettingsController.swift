@@ -54,7 +54,7 @@ extension DefaultPresentationModeSettingsController {
   }
 }
 
-extension DefaultPresentationModeSettingsController: ContextlessDisplayController {
+extension DefaultPresentationModeSettingsController: ViewController {
 
   #if DEBUG
   nonisolated static var placeholder: Self {

@@ -27,6 +27,3 @@ public protocol ViewNodeController: ViewController {
 
   var nodeID: NavigationNodeID { get }
 }
-
-public protocol ContextlessViewNodeController: ViewNodeController
-where Context == ContextlessFeatureContext {}

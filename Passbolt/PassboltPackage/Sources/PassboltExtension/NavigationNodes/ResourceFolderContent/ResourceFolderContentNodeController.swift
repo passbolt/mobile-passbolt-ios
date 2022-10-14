@@ -45,7 +45,7 @@ extension ResourceFolderContentNodeController: ViewNodeController {
     internal let identifier: AnyHashable = IID()
 
     // none means root
-    internal var folderDetails: ResourceFolderDetails?
+    internal var folderDetails: ResourceFolderDetailsDSV?
     internal var searchPrompt: DisplayableString = .localized(key: "resources.search.placeholder")
   }
 
@@ -128,7 +128,7 @@ extension ResourceFolderContentNodeController {
             ResourceFoldersFilter(
               sorting: .nameAlphabetically,
               text: text,
-              folderID: context.folderDetails?.folderID,
+              folderID: context.folderDetails?.id,
               flattenContent: !text.isEmpty,
               permissions: []
             )
@@ -137,7 +137,7 @@ extension ResourceFolderContentNodeController {
           requestedServiceIdentifiers.matches(resource)
         },
         createFolder: .none,
-        createResource: context.folderDetails?.permissionType != .read // root or owned / write
+        createResource: context.folderDetails?.permissionType != .read  // root or owned / write
           ? .none
           : createResource,
         selectFolder: selectFolder(_:),
@@ -156,7 +156,7 @@ extension ResourceFolderContentNodeController {
             ResourceEditViewController.self,
             context: (
               editing: .new(
-                in: context.folderDetails?.folderID,
+                in: context.folderDetails?.id,
                 url: requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
               ),
               completion: { resourceID in
@@ -208,7 +208,7 @@ extension ResourceFolderContentNodeController {
     ) {
       asyncExecutor.schedule(.replace) {
         do {
-          let folderDetails: ResourceFolderDetails = try await resourceFolders.details(resourceFolderID)
+          let folderDetails: ResourceFolderDetailsDSV = try await resourceFolders.details(resourceFolderID)
 
           let nodeController: ResourceFolderContentNodeController =
             try await features

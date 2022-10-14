@@ -23,10 +23,10 @@
 
 import Accounts
 import CommonModels
-import Resources
-import UIComponents
 import NetworkOperations
+import Resources
 import SessionData
+import UIComponents
 
 internal struct ResourceMenuController {
 
@@ -113,11 +113,10 @@ extension ResourceMenuController: UIController {
             else {
               return false
             }
-          })
-          {
+          }) {
             availableActions.append(.openURL)
             availableActions.append(.copyURL)
-          } // else skip
+          }  // else skip
 
           if resourceDetails.fields.contains(where: { field in
             if case .username = field.name {
@@ -126,10 +125,9 @@ extension ResourceMenuController: UIController {
             else {
               return false
             }
-          })
-          {
+          }) {
             availableActions.append(.copyUsername)
-          } // else skip
+          }  // else skip
 
           if resourceDetails.fields.contains(where: { field in
             if case .password = field.name {
@@ -138,10 +136,9 @@ extension ResourceMenuController: UIController {
             else {
               return false
             }
-          })
-          {
+          }) {
             availableActions.append(.copyPassword)
-          } // else skip
+          }  // else skip
 
           if resourceDetails.fields.contains(where: { field in
             if case .description = field.name {
@@ -150,21 +147,20 @@ extension ResourceMenuController: UIController {
             else {
               return false
             }
-          })
-          {
+          }) {
             availableActions.append(.copyDescription)
-          } // else skip
+          }  // else skip
 
           availableActions.append(.toggleFavorite(resourceDetails.favoriteID != .none))
 
           if resourceDetails.permissionType.canShare {
             availableActions.append(.share)
-          } // else skip
+          }  // else skip
 
           if resourceDetails.permissionType.canEdit {
             availableActions.append(.edit)
             availableActions.append(.delete)
-          } // else skip
+          }  // else skip
 
           return availableActions
         }

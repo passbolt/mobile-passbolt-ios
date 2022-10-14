@@ -30,7 +30,7 @@ public struct ResourceFolderDetailsDSV {
   public var permissionType: PermissionTypeDSV
   public var shared: Bool
   public var parentFolderID: ResourceFolder.ID?
-  public var permissions: OrderedSet<PermissionDSV>
+  public var permissions: OrderedSet<ResourceFolderPermissionDSV>
 
   public init(
     id: ResourceFolder.ID,
@@ -38,7 +38,7 @@ public struct ResourceFolderDetailsDSV {
     permissionType: PermissionTypeDSV,
     shared: Bool,
     parentFolderID: ResourceFolder.ID?,
-    permissions: OrderedSet<PermissionDSV>
+    permissions: OrderedSet<ResourceFolderPermissionDSV>
   ) {
     self.id = id
     self.name = name
@@ -50,6 +50,7 @@ public struct ResourceFolderDetailsDSV {
 }
 
 extension ResourceFolderDetailsDSV: DSV {}
+extension ResourceFolderDetailsDSV: Hashable {}
 
 #if DEBUG
 
@@ -71,7 +72,7 @@ extension ResourceFolderDetailsDSV: RandomlyGenerated {
       ResourceFolder.ID
         .randomGenerator(using: randomnessGenerator)
         .optional(using: randomnessGenerator),
-      PermissionDSV
+      ResourceFolderPermissionDSV
         .randomGenerator(using: randomnessGenerator)
         .array(withCount: 0)
         .map { OrderedSet($0) }

@@ -21,15 +21,51 @@
 // @since         v1.0
 //
 
-import Features
+import DatabaseOperations
+import NetworkOperations
+import Resources
+import SessionData
+
+// MARK: - Implementation
+
+extension ResourceFolderDetails {
+
+  @MainActor fileprivate static func load(
+    features: FeatureFactory,
+    context resourceFolderID: Context,
+    cancellables: Cancellables
+  ) async throws -> Self {
+    let sessionData: SessionData = try await features.instance()
+    let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
+      try await features.instance()
+
+    @Sendable nonisolated func fetchResourceFolderDetails() async throws -> ResourceFolderDetailsDSV {
+      try await resourceFolderDetailsFetchDatabaseOperation(
+        resourceFolderID
+      )
+    }
+
+    let currentDetails: UpdatableValue<ResourceFolderDetailsDSV> = .init(
+      updatesSequence:
+        sessionData
+        .updatesSequence,
+      update: fetchResourceFolderDetails
+    )
+
+    return Self(
+      details: currentDetails
+    )
+  }
+}
 
 extension FeatureFactory {
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
-
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
+  internal func usePassboltResourceFolderDetails() {
+    self.use(
+      .lazyLoaded(
+        ResourceFolderDetails.self,
+        load: ResourceFolderDetails.load(features:context:cancellables:)
+      )
+    )
   }
 }
