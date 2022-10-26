@@ -21,19 +21,60 @@
 // @since         v1.0
 //
 
-import Features
+import Display
 
-extension FeatureFactory {
+internal struct ResourceLocationDetailsView: ControlledView {
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
+  private let controller: ResourceLocationDetailsController
 
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
-    self.usePassboltResourceFolderMenuController()
-    self.usePassboltResourceFolderDetailsController()
-    self.usePassboltResourceFolderLocationDetailsController()
-    self.usePassboltResourceLocationDetailsController()
+  internal init(
+    controller: ResourceLocationDetailsController
+  ) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    WithViewState(self.controller) { (state: ViewState) in
+      ScreenView(
+        title: "",
+        contentView: {
+          self.contentView(using: state)
+        }
+      )
+    }
+  }
+
+  @ViewBuilder @MainActor private func contentView(
+    using state: ViewState
+  ) -> some View {
+    VStack(spacing: 0) {
+      LetterIconView(text: state.resourceName)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: 60,
+          alignment: .center
+        )
+        .padding(bottom: 8)
+
+      Text(state.resourceName)
+        .font(
+          .inter(
+            ofSize: 24,
+            weight: .semibold
+          )
+        )
+        .foregroundColor(.passboltPrimaryText)
+        .multilineTextAlignment(.center)
+        .frame(
+          maxWidth: .infinity,
+          alignment: .center
+        )
+        .padding(bottom: 32)
+
+      ScrollView {
+        FolderLocationTreeView(location: state.resourceLocation)
+      }
+    }
+    .padding(16)
   }
 }

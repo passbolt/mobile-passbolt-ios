@@ -28,10 +28,10 @@ import Features
 
 public struct ResourceFolderDetails {
 
-  public var details: UpdatableValue<ResourceFolderDetailsDSV>
+  public var details: @Sendable () async throws -> ResourceFolderDetailsDSV
 
   public init(
-    details: UpdatableValue<ResourceFolderDetailsDSV>
+    details: @escaping @Sendable () async throws -> ResourceFolderDetailsDSV
   ) {
     self.details = details
   }
@@ -45,7 +45,7 @@ extension ResourceFolderDetails: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      details: .placeholder
+      details: unimplemented()
     )
   }
   #endif

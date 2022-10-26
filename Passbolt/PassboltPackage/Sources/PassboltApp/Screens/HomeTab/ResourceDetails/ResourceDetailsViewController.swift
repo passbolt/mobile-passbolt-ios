@@ -90,6 +90,15 @@ internal final class ResourceDetailsViewController: PlainViewController, UICompo
       } receiveValue: { [weak self] resourceDetailsWithConfig in
         self?.contentView.update(with: resourceDetailsWithConfig)
         MainActor.execute {
+          await self?.removeAllChildren(ResourceDetailsLocationSectionView.self)
+
+          await self?.addChild(
+            ResourceDetailsLocationSectionView.self,
+            in: resourceDetailsWithConfig.resourceDetails.id
+          ) { parent, child in
+            parent.insertLocationSection(view: child)
+          }
+
           await self?.removeAllChildren(ResourceDetailsTagsSectionView.self)
 
           await self?.addChild(

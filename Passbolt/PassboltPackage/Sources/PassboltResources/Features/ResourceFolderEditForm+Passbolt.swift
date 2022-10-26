@@ -106,7 +106,7 @@ extension ResourceFolderEditForm {
       let enclosingFolderDetails: ResourceFolderDetailsDSV = try await features.instance(
         of: ResourceFolderDetails.self,
         context: enclosingFolderID
-      ).details.value
+      ).details()
 
       initialFormState = .init(
         name: .valid(""),
@@ -153,7 +153,7 @@ extension ResourceFolderEditForm {
       let folderDetails: ResourceFolderDetailsDSV = try await features.instance(
         of: ResourceFolderDetails.self,
         context: folderID
-      ).details.value
+      ).details()
 
       initialFormState = .init(
         name: .valid(folderDetails.name),

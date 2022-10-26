@@ -27,11 +27,13 @@ extension ResourceFolderLocationItemDSV {
 
   public static var mock_1: Self = .init(
     folderID: .mock_1,
-    folderName: "mock_1"
+    folderName: "mock_1",
+    folderShared: false
   )
 
   public static var mock_2: Self = .init(
     folderID: .mock_2,
-    folderName: "mock_2"
+    folderName: "mock_2",
+    folderShared: true
   )
 }

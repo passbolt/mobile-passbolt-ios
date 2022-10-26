@@ -66,7 +66,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
     patch(
       \ResourceFolderDetails.details,
       context: containingFolderID,
-      with: .always(
+      with: always(
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
@@ -112,7 +112,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
     patch(
       \ResourceFolderDetails.details,
       context: containingFolderID,
-      with: .always(
+      with: always(
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
@@ -168,7 +168,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
     patch(
       \ResourceFolderDetails.details,
       context: containingFolderID,
-      with: .always(
+      with: always(
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
@@ -224,7 +224,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
     patch(
       \ResourceFolderDetails.details,
       context: containingFolderID,
-      with: .always(
+      with: always(
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",
@@ -380,7 +380,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
     patch(
       \ResourceFolderDetails.details,
       context: containingFolderID,
-      with: .always(
+      with: always(
         ResourceFolderDetailsDSV(
           id: containingFolderID,
           name: "folder",

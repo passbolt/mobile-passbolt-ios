@@ -5,7 +5,7 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 // Public License (AGPL) as published by the Free Software Foundation version 3.
 //
-// The name "Passbolt" is a registered trademark ceof Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
 // license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
 // agreement with Passbolt SA.
 //
@@ -23,6 +23,7 @@
 
 import Display
 import Resources
+import SessionData
 import Users
 
 // MARK: - Interface
@@ -85,6 +86,7 @@ extension ResourceFolderDetailsController {
 
     let diagnostics: Diagnostics = await features.instance()
     let asyncExecutor: AsyncExecutor = await features.instance(of: AsyncExecutor.self).detach()
+    let sessionData: SessionData = try await features.instance()
     let navigation: DisplayNavigation = try await features.instance()
     let users: Users = try await features.instance()
     let folderDetails: ResourceFolderDetails = try await features.instance(context: context)
@@ -142,21 +144,37 @@ extension ResourceFolderDetailsController {
     )
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
-      for await details: ResourceFolderDetailsDSV in folderDetails.details {
+      for await _ in sessionData.updatesSequence {
         if let viewState: ViewStateBinding<ViewState> = viewState {
-          update(
-            viewState: &viewState.wrappedValue,
-            using: details
-          )
-        }
-        else {
-          diagnostics.log(diagnostic: "Resource folder details updates ended.")
-        }
+          do {
+            update(
+              viewState: &viewState.wrappedValue,
+              using: try await folderDetails.details()
+            )
+          }
+          catch {
+            diagnostics.log(error: error)
+          }
+        }  // break
       }
+      diagnostics.log(diagnostic: "Resource folder details updates ended.")
     }
 
     func openLocationDetails() {
-      // TODO: MOB-611
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigation
+            .push(
+              ResourceFolderLocationDetailsView.self,
+              controller:
+                features
+                .instance(context: context)
+            )
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
+      }
     }
 
     func openPermissionDetails() {

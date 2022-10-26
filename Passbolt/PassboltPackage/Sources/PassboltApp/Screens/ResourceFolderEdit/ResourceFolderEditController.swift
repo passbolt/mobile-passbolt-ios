@@ -5,7 +5,7 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 // Public License (AGPL) as published by the Free Software Foundation version 3.
 //
-// The name "Passbolt" is a registered trademark ceof Passbolt SA, and Passbolt SA hereby declines to grant a trademark
+// The name "Passbolt" is a registered trademark of Passbolt SA, and Passbolt SA hereby declines to grant a trademark
 // license to "Passbolt" pursuant to the GNU Affero General Public License version 3 Section 7(e), without a separate
 // agreement with Passbolt SA.
 //

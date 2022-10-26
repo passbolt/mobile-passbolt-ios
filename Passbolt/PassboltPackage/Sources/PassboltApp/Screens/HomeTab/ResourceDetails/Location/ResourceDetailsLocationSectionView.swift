@@ -21,19 +21,53 @@
 // @since         v1.0
 //
 
-import Features
+import SwiftUI
+import UICommons
+import UIComponents
 
-extension FeatureFactory {
+internal struct ResourceDetailsLocationSectionView: ComponentView {
 
-  internal func useLiveScreenControllers() {
-    self.useLiveDefaultPresentationModeSettingsController()
-    self.useLiveResourceDetailsTagsListController()
+  @ObservedObject private var state: ObservableValue<ViewState>
+  private let controller: ResourceDetailsLocationSectionController
 
-    self.usePassboltResourcesListCreateMenuController()
-    self.usePassboltResourceFolderEditController()
-    self.usePassboltResourceFolderMenuController()
-    self.usePassboltResourceFolderDetailsController()
-    self.usePassboltResourceFolderLocationDetailsController()
-    self.usePassboltResourceLocationDetailsController()
+  internal init(
+    state: ObservableValue<ViewState>,
+    controller: ResourceDetailsLocationSectionController
+  ) {
+    self.state = state
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    Button(
+      action: self.controller.showResourceLocationDetails,
+      label: {
+        HStack(spacing: 0) {
+          FolderLocationView(locationElements: state.location)
+
+          Image(named: .chevronRight)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .frame(height: 16)
+            .padding(
+              top: 12,
+              leading: 4,
+              bottom: 12,
+              trailing: 0
+            )
+        }
+        .padding(bottom: 8)
+      }
+    )
+    .foregroundColor(Color.passboltPrimaryText)
+    .frame(maxWidth: .infinity)
+  }
+}
+
+extension ResourceDetailsLocationSectionView {
+
+  internal struct ViewState: Hashable {
+
+    internal var location: Array<String>
   }
 }

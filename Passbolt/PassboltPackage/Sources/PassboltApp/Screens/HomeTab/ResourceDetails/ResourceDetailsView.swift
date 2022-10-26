@@ -333,6 +333,14 @@ internal final class ResourceDetailsView: ScrolledStackView {
     self.append(view)
     self.appendFiller(tag: Self.formFillerTag)
   }
+
+  internal func insertLocationSection(
+    view: UIView
+  ) {
+    removeAllArrangedSubviews(withTag: Self.formFillerTag)
+    self.append(view)
+    self.appendFiller(tag: Self.formFillerTag)
+  }
 }
 
 internal final class ResourceDetailsItemView: PlainButton {

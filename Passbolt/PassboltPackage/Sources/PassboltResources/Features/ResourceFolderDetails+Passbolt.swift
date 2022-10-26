@@ -52,8 +52,12 @@ extension ResourceFolderDetails {
       update: fetchResourceFolderDetails
     )
 
+    @Sendable nonisolated func details() async throws -> ResourceFolderDetailsDSV {
+      try await currentDetails.value
+    }
+
     return Self(
-      details: currentDetails
+      details: details
     )
   }
 }

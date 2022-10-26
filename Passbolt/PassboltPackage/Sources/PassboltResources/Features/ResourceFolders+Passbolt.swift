@@ -44,8 +44,7 @@ extension ResourceFolders {
         of: ResourceFolderDetails.self,
         context: folderID
       )
-      .details
-      .value
+      .details()
     }
 
     @Sendable nonisolated func filteredFolderContent(

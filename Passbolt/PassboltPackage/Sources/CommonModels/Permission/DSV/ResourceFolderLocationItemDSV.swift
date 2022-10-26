@@ -25,13 +25,16 @@ public struct ResourceFolderLocationItemDSV {
 
   public var folderID: ResourceFolder.ID
   public var folderName: String
+  public var folderShared: Bool
 
   public init(
     folderID: ResourceFolder.ID,
-    folderName: String
+    folderName: String,
+    folderShared: Bool
   ) {
     self.folderID = folderID
     self.folderName = folderName
+    self.folderShared = folderShared
   }
 }
 

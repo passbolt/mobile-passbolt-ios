@@ -63,6 +63,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             location(
               id,
               name,
+              shared,
               parentID
             )
           AS
@@ -70,6 +71,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             SELECT
               resourceFolders.id AS id,
               resourceFolders.name AS name,
+              resourceFolders.shared AS shared,
               resourceFolders.parentFolderID AS parentID
             FROM
               resourceFolders
@@ -81,6 +83,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             SELECT
               resourceFolders.id AS id,
               resourceFolders.name AS name,
+              resourceFolders.shared AS shared,
               resourceFolders.parentFolderID AS parentID
             FROM
               resourceFolders,
@@ -90,6 +93,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           )
           SELECT
             location.id,
+            location.shared,
             location.name AS name
           FROM
             location;
@@ -195,16 +199,20 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
               permissionID: permissionID
             )
           }
+
           let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:))
 
           let location: Array<ResourceFolderLocationItemDSV>
           if let parentFolderID: ResourceFolder.ID = parentFolderID {
             location = try connection.fetch(
-              using: selectResourceFolderLocationStatement.appendingArgument(parentFolderID)
+              using:
+                selectResourceFolderLocationStatement
+                .appendingArgument(parentFolderID)
             ) { dataRow in
               guard
                 let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-                let name: String = dataRow.name
+                let name: String = dataRow.name,
+                let shared: Bool = dataRow.shared
               else {
                 throw
                   DatabaseIssue
@@ -217,9 +225,11 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
 
               return ResourceFolderLocationItemDSV(
                 folderID: id,
-                folderName: name
+                folderName: name,
+                folderShared: shared
               )
             }
+            .reversed()
           }
           else {
             location = .init()

@@ -46,6 +46,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             location(
               id,
               name,
+              shared,
               parentID
             )
           AS
@@ -53,6 +54,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             SELECT
               resourceFolders.id AS id,
               resourceFolders.name AS name,
+              resourceFolders.shared AS shared,
               resourceFolders.parentFolderID AS parentID
             FROM
               resourceFolders
@@ -68,6 +70,7 @@ extension ResourceDetailsFetchDatabaseOperation {
             SELECT
               resourceFolders.id AS id,
               resourceFolders.name AS name,
+              resourceFolders.shared AS shared,
               resourceFolders.parentFolderID AS parentID
             FROM
               resourceFolders,
@@ -77,7 +80,8 @@ extension ResourceDetailsFetchDatabaseOperation {
           )
           SELECT
             location.id,
-            location.name AS name
+            location.name AS name,
+            location.shared AS shared
           FROM
             location;
           """,
@@ -256,7 +260,8 @@ extension ResourceDetailsFetchDatabaseOperation {
           ) { dataRow in
             guard
               let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-              let name: String = dataRow.name
+              let name: String = dataRow.name,
+              let shared: Bool = dataRow.shared
             else {
               throw
                 DatabaseIssue
@@ -269,9 +274,11 @@ extension ResourceDetailsFetchDatabaseOperation {
 
             return ResourceFolderLocationItemDSV(
               folderID: id,
-              folderName: name
+              folderName: name,
+              folderShared: shared
             )
           }
+          .reversed()
 
           return ResourceDetailsDSV(
             id: id,
