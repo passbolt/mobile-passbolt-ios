@@ -60,7 +60,7 @@ final class UsersTests: LoadableFeatureTestCase<Users> {
   }
 
   func test_userDetails_returnsDetails_fromDetailsFeature() async throws {
-    let expectedResult: UserDetailsDSV = .random()
+    let expectedResult: UserDetailsDSV = .mock_1
     patch(
       \UserDetails.details,
       context: "userID",

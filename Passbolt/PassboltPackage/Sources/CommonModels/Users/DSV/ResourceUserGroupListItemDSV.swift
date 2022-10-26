@@ -41,23 +41,3 @@ public struct ResourceUserGroupListItemDSV {
 }
 
 extension ResourceUserGroupListItemDSV: DSV {}
-
-#if DEBUG
-
-extension ResourceUserGroupListItemDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceUserGroupListItemDSV.init(id:name:contentCount:),
-      UserGroup.ID
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomUserGroupName(using: randomnessGenerator),
-      Int
-        .randomGenerator(min: 0, max: 10, using: randomnessGenerator)
-    )
-  }
-}
-#endif

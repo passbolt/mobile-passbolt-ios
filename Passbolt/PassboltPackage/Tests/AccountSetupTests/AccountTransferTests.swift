@@ -133,11 +133,14 @@ final class AccountTransferTests: TestCase {
     try? await processPart(qrCodePart5, using: accountTransfer)
     try? await processPart(qrCodePart6, using: accountTransfer)
 
+    result =
+      try await accountTransfer
+      .progressPublisher().asAsyncValue()
     if case .scanningFinished = result {
       /* expected */
     }
     else {
-      XCTFail("Invalid initial account transfer progress")
+      XCTFail("Invalid account transfer result")
     }
   }
 
@@ -835,7 +838,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \Accounts.storedAccounts,
-      with: always([validAccount])
+      with: always([transferedAccount])
     )
     let accountTransfer: AccountTransfer = try await testedInstance()
     var result: Error?
@@ -873,7 +876,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \Accounts.storedAccounts,
-      with: always([validAccount])
+      with: always([transferedAccount])
     )
 
     let accountTransfer: AccountTransfer = try await testedInstance()
@@ -894,7 +897,7 @@ final class AccountTransferTests: TestCase {
     )
     await features.patch(
       \Accounts.storedAccounts,
-      with: always([validAccount])
+      with: always([transferedAccount])
     )
 
     let accountTransfer: AccountTransfer = try await testedInstance()
@@ -935,7 +938,7 @@ extension AccountTransferTests {
 
 private let accountTransferUpdateResponse: AccountTransferUpdateNetworkOperationResult = .init(
   user: .init(
-    username: "username",
+    username: "transferedAccount",
     profile: .init(
       firstName: "firstName",
       lastName: "lastName",
@@ -946,7 +949,7 @@ private let accountTransferUpdateResponse: AccountTransferUpdateNetworkOperation
   )
 )
 
-private let validAccount: Account = .init(
+private let transferedAccount: Account = .init(
   localID: .init(rawValue: UUID.test.uuidString),
   domain: "https://localhost:8443",
   userID: "f848277c-5398-58f8-a82a-72397af2d450",

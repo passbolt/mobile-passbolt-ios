@@ -109,6 +109,10 @@ let package = Package(
     ),
     // MARK: - Tests
     .library(
+      name: "MockData",
+      targets: ["MockData"]
+    ),
+    .library(
       name: "TestExtensions",
       targets: ["TestExtensions"]
     ),
@@ -628,6 +632,16 @@ let package = Package(
     ),
     // MARK: - Tests
     .target(
+      name: "MockData",
+      dependencies: [
+        // Base
+        "Commons",
+        "CommonModels",
+        // Modules
+        "Accounts",
+      ]
+    ),
+    .target(
       name: "TestExtensions",
       dependencies: [
         // Legacy
@@ -647,6 +661,8 @@ let package = Package(
         "Users",
         "DatabaseOperations",
         "NetworkOperations",
+        // Test
+        "MockData",
       ]
     ),
     .testTarget(

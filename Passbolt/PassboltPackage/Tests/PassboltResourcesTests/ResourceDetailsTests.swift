@@ -49,7 +49,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
     )
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(.random())
+      with: always(.mock_1)
     )
     use(ResourceSecretFetchNetworkOperation.placeholder)
   }
@@ -59,14 +59,14 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
   }
 
   func test_details_providesCachedDetails() async throws {
-    let expectedResult: ResourceDetailsDSV = .random()
+    let expectedResult: ResourceDetailsDSV = .mock_1
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
       with: always(expectedResult)
     )
 
     let feature: ResourceDetails = try await self.testedInstance(
-      context: .random()
+      context: .mock_1
     )
 
     await XCTAssertValue(
@@ -77,9 +77,9 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
   }
 
   func test_details_providesUpdatedDetails_whenUpdatesSequenceGeneratesValue() async throws {
-    let expectedResult: ResourceDetailsDSV = .random()
+    let expectedResult: ResourceDetailsDSV = .mock_1
     var results: Array<ResourceDetailsDSV> = [
-      .random(),
+      .mock_1,
       expectedResult,
     ]
     let nextResult: () -> ResourceDetailsDSV = {
@@ -91,7 +91,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
     )
 
     let feature: ResourceDetails = try await self.testedInstance(
-      context: .random()
+      context: .mock_1
     )
 
     _ = try await feature.details()
@@ -118,7 +118,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
     )
 
     let feature: ResourceDetails = try await self.testedInstance(
-      context: .random()
+      context: .mock_1
     )
 
     await XCTAssertError(
@@ -135,7 +135,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
     )
 
     let feature: ResourceDetails = try await self.testedInstance(
-      context: .random()
+      context: .mock_1
     )
 
     await XCTAssertError(
@@ -160,7 +160,7 @@ final class ResourceDetailsTests: LoadableFeatureTestCase<ResourceDetails> {
     )
 
     let feature: ResourceDetails = try await self.testedInstance(
-      context: .random()
+      context: .mock_1
     )
 
     await XCTAssertValue(

@@ -45,7 +45,7 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenAddingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
@@ -66,7 +66,7 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_throws_whenDatabaseUpdateThrows_whenAddingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
@@ -75,7 +75,7 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
-      with: always(.init(favoriteID: .random()))
+      with: always(.init(favoriteID: .mock_1))
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
@@ -91,8 +91,8 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenRemovingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
-    resourceDetails.favoriteID = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
+    resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
       context: resourceDetails.id,
@@ -112,8 +112,8 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_throws_whenDatabaseUpdateThrows_whenRemovingFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
-    resourceDetails.favoriteID = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
+    resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
       context: resourceDetails.id,
@@ -137,8 +137,8 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_removesFavorite_whenCurrentDetailsHaveFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
-    resourceDetails.favoriteID = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
+    resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
       context: resourceDetails.id,
@@ -164,8 +164,8 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_removesFavoriteFromDatabase_whenCurrentDetailsHaveNoFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
-    resourceDetails.favoriteID = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
+    resourceDetails.favoriteID = .mock_1
     patch(
       \ResourceDetails.details,
       context: resourceDetails.id,
@@ -191,7 +191,7 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_addsFavorite_whenCurrentDetailsHaveNoFavorite() {
-    var resourceDetails: ResourceDetailsDSV = .random()
+    var resourceDetails: ResourceDetailsDSV = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,
@@ -201,7 +201,7 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
       with: always(
-        self.executed(returning: .init(favoriteID: .random()))
+        self.executed(returning: .init(favoriteID: .mock_1))
       )
     )
     patch(
@@ -217,8 +217,8 @@ final class ResourceFavoritesTests: LoadableFeatureTestCase<ResourceFavorites> {
   }
 
   func test_toggleFavorite_addsFavoriteToDatabase_whenCurrentDetailsHaveNoFavorite() {
-    let expectedFavoriteID: Resource.FavoriteID = .random()
-    var resourceDetails: ResourceDetailsDSV = .random()
+    let expectedFavoriteID: Resource.FavoriteID = .mock_1
+    var resourceDetails: ResourceDetailsDSV = .mock_1
     resourceDetails.favoriteID = .none
     patch(
       \ResourceDetails.details,

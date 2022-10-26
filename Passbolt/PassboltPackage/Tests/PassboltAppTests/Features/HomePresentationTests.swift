@@ -35,11 +35,11 @@ final class HomePresentationTests: TestCase {
   func test_currentPresentationModePublisher_publishesDefault_initially() async throws {
     await features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     await features.patch(
       \AccountPreferences.defaultHomePresentation,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: .variable(initial: HomePresentationMode.ownedResourcesList)
     )
     await features.patch(

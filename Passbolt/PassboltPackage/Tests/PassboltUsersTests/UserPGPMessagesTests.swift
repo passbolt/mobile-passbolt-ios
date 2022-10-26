@@ -62,7 +62,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
   func test_encryptMessageForUser_fails_whenUserPublicKeysFetchFails() async throws {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-      with: always([.random()])
+      with: always([.mock_1])
     )
     patch(
       \UsersPublicKeysFetchDatabaseOperation.execute,
@@ -75,14 +75,14 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForUsers([.random()], "message")
+        .encryptMessageForUsers([.mock_1], "message")
     }
   }
 
   func test_encryptMessageForUser_fails_whenUserPublicKeysFetchDoesNotContainAllUsers() async throws {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-      with: always([.random()])
+      with: always([.mock_1])
     )
     patch(
       \UsersPublicKeysFetchDatabaseOperation.execute,
@@ -95,12 +95,12 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: UserPublicKeyMissing.self
     ) {
       try await feature
-        .encryptMessageForUsers([.random()], "message")
+        .encryptMessageForUsers([.mock_1], "message")
     }
   }
 
   func test_encryptMessageForUser_fails_whenEncryptAndSignMessageFails() async throws {
-    let userID: User.ID = .random()
+    let userID: User.ID = .mock_1
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([userID])
@@ -122,12 +122,12 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForUsers([.random()], "message")
+        .encryptMessageForUsers([.mock_1], "message")
     }
   }
 
   func test_encryptMessageForUser_succeeds_whenAllOperationsSucceed() async throws {
-    let userID: User.ID = .random()
+    let userID: User.ID = .mock_1
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([userID])
@@ -170,14 +170,14 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForResourceUsers(.random(), "message")
+        .encryptMessageForResourceUsers(.mock_1, "message")
     }
   }
 
   func test_encryptMessageForResourceUsers_fails_whenUserKeysFetchFails() async throws {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
-      with: always([.random()])
+      with: always([.mock_1])
     )
     patch(
       \UsersPublicKeysFetchDatabaseOperation.execute,
@@ -190,12 +190,12 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForResourceUsers(.random(), "message")
+        .encryptMessageForResourceUsers(.mock_1, "message")
     }
   }
 
   func test_encryptMessageForResourceUsers_fails_whenEncryptAndSignMessageFails() async throws {
-    let userID: User.ID = .random()
+    let userID: User.ID = .mock_1
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([userID])
@@ -217,12 +217,12 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForResourceUsers(.random(), "message")
+        .encryptMessageForResourceUsers(.mock_1, "message")
     }
   }
 
   func test_encryptMessageForResourceUsers_succeeds_whenAllOperationsSucceed() async throws {
-    let userID: User.ID = .random()
+    let userID: User.ID = .mock_1
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
       with: always([userID])
@@ -249,7 +249,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       ]
     ) {
       try await feature
-        .encryptMessageForResourceUsers(.random(), "message")
+        .encryptMessageForResourceUsers(.mock_1, "message")
     }
   }
 
@@ -265,14 +265,14 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForResourceFolderUsers(.random(), "message")
+        .encryptMessageForResourceFolderUsers(.mock_1, "message")
     }
   }
 
   func test_encryptMessageForResourceFolderUsers_fails_whenUserKeysFetchFails() async throws {
     patch(
       \ResourceFolderUsersIDFetchDatabaseOperation.execute,
-      with: always([.random()])
+      with: always([.mock_1])
     )
     patch(
       \UsersPublicKeysFetchDatabaseOperation.execute,
@@ -285,12 +285,12 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForResourceFolderUsers(.random(), "message")
+        .encryptMessageForResourceFolderUsers(.mock_1, "message")
     }
   }
 
   func test_encryptMessageForResourceFolderUsers_fails_whenEncryptAndSignMessageFails() async throws {
-    let userID: User.ID = .random()
+    let userID: User.ID = .mock_1
     patch(
       \ResourceFolderUsersIDFetchDatabaseOperation.execute,
       with: always([userID])
@@ -312,12 +312,12 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       matches: MockIssue.self
     ) {
       try await feature
-        .encryptMessageForResourceFolderUsers(.random(), "message")
+        .encryptMessageForResourceFolderUsers(.mock_1, "message")
     }
   }
 
   func test_encryptMessageForResourceFolderUsers_succeeds_whenAllOperationsSucceed() async throws {
-    let userID: User.ID = .random()
+    let userID: User.ID = .mock_1
     patch(
       \ResourceFolderUsersIDFetchDatabaseOperation.execute,
       with: always([userID])
@@ -344,7 +344,7 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
       ]
     ) {
       try await feature
-        .encryptMessageForResourceFolderUsers(.random(), "message")
+        .encryptMessageForResourceFolderUsers(.mock_1, "message")
     }
   }
 }

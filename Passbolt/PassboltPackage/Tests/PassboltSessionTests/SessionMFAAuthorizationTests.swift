@@ -51,14 +51,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: false))
+      try await testedInstance.authorizeMFA(.totp(.mock_ada, "totp", rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_totp_throws_whenAuthorizationRequestThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \TOTPAuthorizationNetworkOperation.execute,
@@ -67,14 +67,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: false))
+      try await testedInstance.authorizeMFA(.totp(.mock_ada, "totp", rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_totp_succeeds_whenAuthorizationSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \TOTPAuthorizationNetworkOperation.execute,
@@ -85,14 +85,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(self.executed())
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: false))
+      try await testedInstance.authorizeMFA(.totp(.mock_ada, "totp", rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_totp_throws_whenStoringTokenThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \TOTPAuthorizationNetworkOperation.execute,
@@ -109,14 +109,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: true))
+      try await testedInstance.authorizeMFA(.totp(.mock_ada, "totp", rememberDevice: true))
     }
   }
 
   func test_authorizeMFA_totp_succeeds_whenStoringTokenSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \TOTPAuthorizationNetworkOperation.execute,
@@ -131,7 +131,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(Void())
     )
     withTestedInstanceNotThrows { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.totp(.valid, "totp", rememberDevice: true))
+      try await testedInstance.authorizeMFA(.totp(.mock_ada, "totp", rememberDevice: true))
     }
   }
 
@@ -143,14 +143,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_yubikey_throws_whenReadingNFCThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       environment: \.yubiKey.readNFC,
@@ -162,14 +162,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_yubikey_throws_whenAuthorizationRequestThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       environment: \.yubiKey.readNFC,
@@ -186,14 +186,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_yubikey_savesToken_whenAuthorizationSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       environment: \.yubiKey.readNFC,
@@ -212,14 +212,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(self.executed())
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: false))
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: false))
     }
   }
 
   func test_authorizeMFA_yubikey_throws_whenStoringTokenThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       environment: \.yubiKey.readNFC,
@@ -244,14 +244,14 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: true))
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: true))
     }
   }
 
   func test_authorizeMFA_yubikey_succeeds_whenStoringTokenSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       environment: \.yubiKey.readNFC,
@@ -276,7 +276,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionMFAAuthorization) in
-      try await testedInstance.authorizeMFA(.yubiKey(.valid, rememberDevice: true))
+      try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: true))
     }
   }
 }

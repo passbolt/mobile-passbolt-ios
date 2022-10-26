@@ -44,7 +44,7 @@ final class WindowTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \Session.pendingAuthorization,
@@ -97,14 +97,14 @@ final class WindowTests: MainActorTestCase {
 
     result = await iterator.next()
 
-    pendingAuthorization = .passphrase(Account.valid)
+    pendingAuthorization = .passphrase(Account.mock_ada)
     updates.sendUpdate()
 
     result = await iterator.next()
 
     guard case let .requestPassphrase(account, message) = result
     else { return XCTFail() }
-    XCTAssertEqual(account, Account.valid)
+    XCTAssertEqual(account, Account.mock_ada)
     XCTAssertNil(message)
   }
 
@@ -128,7 +128,7 @@ final class WindowTests: MainActorTestCase {
     result = await iterator.next()
 
     pendingAuthorization = .mfa(
-      Account.valid,
+      Account.mock_ada,
       providers: []
     )
     updates.sendUpdate()
@@ -137,7 +137,7 @@ final class WindowTests: MainActorTestCase {
 
     guard case let .requestMFA(account, providers) = result
     else { return XCTFail() }
-    XCTAssertEqual(account, Account.valid)
+    XCTAssertEqual(account, Account.mock_ada)
     XCTAssertEqual(providers, [])
   }
 
@@ -170,7 +170,7 @@ final class WindowTests: MainActorTestCase {
 
     result = await iterator.next()
 
-    currentAccount = Account.valid
+    currentAccount = Account.mock_ada
     updates.sendUpdate()
 
     result = await iterator.next()
@@ -183,7 +183,7 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andPendingAuthorizationHadSameAccountPassphraseRequest()
     async throws
   {
-    var currentAccount: Account? = Account.valid
+    var currentAccount: Account? = Account.mock_ada
     let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
       get: { currentAccount },
       set: { currentAccount = $0 }
@@ -214,12 +214,12 @@ final class WindowTests: MainActorTestCase {
 
     result = await iterator.next()
 
-    pendingAuthorization = .passphrase(Account.valid)
+    pendingAuthorization = .passphrase(Account.mock_ada)
     updates.sendUpdate()
 
     result = await iterator.next()
 
-    currentAccount = Account.valid
+    currentAccount = Account.mock_ada
     pendingAuthorization = .none
     updates.sendUpdate()
 
@@ -233,7 +233,7 @@ final class WindowTests: MainActorTestCase {
     test_screenStateDispositionSequence_returnsUseCachedScreenState_whenAccountSessionStateChangesToAuthorized_andPendingAuthorizationHadSameAccountMFARequest()
     async throws
   {
-    var currentAccount: Account? = Account.valid
+    var currentAccount: Account? = Account.mock_ada
     let uncheckedSendableCurrentAccount: UncheckedSendable<Account?> = .init(
       get: { currentAccount },
       set: { currentAccount = $0 }
@@ -265,14 +265,14 @@ final class WindowTests: MainActorTestCase {
     result = await iterator.next()
 
     pendingAuthorization = .mfa(
-      Account.valid,
+      Account.mock_ada,
       providers: []
     )
     updates.sendUpdate()
 
     result = await iterator.next()
 
-    currentAccount = Account.valid
+    currentAccount = Account.mock_ada
     pendingAuthorization = .none
     updates.sendUpdate()
 

@@ -59,23 +59,3 @@ extension ResourceFieldDTO: Decodable {
 }
 
 extension ResourceFieldDTO: Hashable {}
-
-#if DEBUG
-
-extension ResourceFieldDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceFieldDTO.init(name:valueType:required:encrypted:maxLength:),
-      ResourceFieldNameDTO.randomGenerator(using: randomnessGenerator),
-      ResourceFieldValueTypeDTO.randomGenerator(using: randomnessGenerator),
-      Bool.randomGenerator(using: randomnessGenerator),
-      Bool.randomGenerator(using: randomnessGenerator),
-      Int.randomGenerator(min: 128, max: 4096, using: randomnessGenerator)
-        .optional(using: randomnessGenerator)
-    )
-  }
-}
-#endif

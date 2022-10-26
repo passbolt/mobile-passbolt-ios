@@ -50,4 +50,5 @@ public struct Account {
 }
 
 extension Account: Hashable {}
+
 extension Account: Codable {}

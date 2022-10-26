@@ -52,20 +52,3 @@ extension ResourceTagDTO: Decodable {
 }
 
 extension ResourceTagDTO: Hashable {}
-
-#if DEBUG
-
-extension ResourceTagDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceTagDTO.init(id:slug:shared:),
-      ResourceTag.ID.randomGenerator(using: randomnessGenerator),
-      ResourceTag.Slug.randomGenerator(using: randomnessGenerator),
-      Bool.randomGenerator(using: randomnessGenerator)
-    )
-  }
-}
-#endif

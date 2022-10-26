@@ -43,29 +43,29 @@ final class AuthorizationScreenTests: MainActorTestCase {
     features.usePlaceholder(for: Biometry.self)
     features.patch(
       \AccountDetails.profile,
-      context: accountWithProfile.account,
-      with: always(accountWithProfile)
+      context: .mock_ada,
+      with: always(.mock_ada)
     )
     features.patch(
       \AccountDetails.updateProfile,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: always(Void())
     )
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: detailsUpdates.updatesSequence
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: preferencesUpdates.updatesSequence
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: always(true)
     )
   }
@@ -78,11 +78,11 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_presentForgotPassphraseAlertPublisher_publishesTrue_whenPresentForgotPassphraseAlertCalled() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     var result: Bool!
 
@@ -101,11 +101,11 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_validatedPassphrasePublisher_publishesValidatedPassphrase_whenUpdatePassphraseCalled() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     var result: Validated<String>!
 
@@ -124,7 +124,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_signIn_succeeds_whenAuthorizationSucceeds() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -132,7 +132,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: Bool? =
       try? await controller
@@ -145,7 +145,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_signIn_fails_whenAuthorizationFails() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -153,7 +153,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     var result: Error?
     do {
@@ -173,7 +173,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_biometricSignIn_succeeds_whenAuthorizationSucceeds() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -181,7 +181,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: Bool? =
       try? await controller
@@ -194,7 +194,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_biometricSignIn_fails_whenAuthorizationFails() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -202,7 +202,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     var result: Error?
     do {
@@ -223,7 +223,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     let testData: Data = .init([0x01, 0x02])
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -231,12 +231,12 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: always(testData)
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: Data? =
       try? await controller
@@ -249,7 +249,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_avatarPublisher_publishesNil_whenNetworkRequestFails() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -257,12 +257,12 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: Data? =
       try? await controller
@@ -275,7 +275,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_biometricStatePublisher_publishesUnavailable_whenBiometricsIsUnavailable() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -290,7 +290,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
       try? await controller
@@ -304,7 +304,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -312,7 +312,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: always(false)
     )
     features.patch(
@@ -324,7 +324,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
       try? await controller
@@ -337,7 +337,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_biometricStatePublisher_publishesFaceID_whenAvailableBiometricsIsFaceIDAndAccountUsesIt() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -352,7 +352,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
       try? await controller
@@ -365,7 +365,7 @@ final class AuthorizationScreenTests: MainActorTestCase {
   func test_biometricStatePublisher_publishesTouchID_whenAvailableBiometricsIsTouchIDAndAccountUsesIt() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([accountWithProfile.account])
+      with: always([.mock_ada])
     )
     features.patch(
       \Session.authorize,
@@ -380,12 +380,12 @@ final class AuthorizationScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: accountWithProfile.account,
+      context: .mock_ada,
       with: always(true)
     )
 
     let controller: AuthorizationController = try await testController(
-      context: accountWithProfile.account
+      context: .mock_ada
     )
     let result: AuthorizationController.BiometricsState? =
       try? await controller
@@ -395,15 +395,3 @@ final class AuthorizationScreenTests: MainActorTestCase {
     XCTAssertEqual(result, .touchID)
   }
 }
-
-private let accountWithProfile: AccountWithProfile = .init(
-  localID: "localID",
-  userID: "userID",
-  domain: "passbolt.com",
-  label: "passbolt",
-  username: "username",
-  firstName: "Adam",
-  lastName: "Smith",
-  avatarImageURL: "",
-  fingerprint: "FINGERPRINT"
-)

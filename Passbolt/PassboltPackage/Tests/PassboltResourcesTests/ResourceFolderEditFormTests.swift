@@ -33,6 +33,390 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
   }
 
   override func prepare() throws {
+    patch(
+      \Session.currentAccount,
+      with: always(.mock_ada)
+    )
+    use(SessionData.placeholder)
+    use(ResourceFolderCreateNetworkOperation.placeholder)
+    use(ResourceFolderShareNetworkOperation.placeholder)
   }
 
+  func test_formState_isDefault_initiallyWhenCreatingInRoot() {
+    withTestedInstanceReturnsEqual(
+      ResourceFolderEditFormState(
+        name: .valid(""),
+        location: .valid(.init()),
+        permissions: .valid([
+          .user(
+            id: .mock_ada,
+            type: .owner,
+            permissionID: .none
+          )
+        ])
+      ),
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      try await tested.formState.value
+    }
+  }
+
+  func test_formState_isDefault_initiallyWhenCreatingInFolder() {
+    let containingFolderID: ResourceFolder.ID = .mock_1
+    patch(
+      \ResourceFolderDetails.details,
+      context: containingFolderID,
+      with: .always(
+        ResourceFolderDetailsDSV(
+          id: containingFolderID,
+          name: "folder",
+          permissionType: .owner,
+          shared: false,
+          parentFolderID: .none,
+          location: .init(),
+          permissions: [
+            .user(
+              id: .mock_ada,
+              type: .owner,
+              permissionID: .mock_1
+            )
+          ]
+        )
+      )
+    )
+    withTestedInstanceReturnsEqual(
+      ResourceFolderEditFormState(
+        name: .valid(""),
+        location: .valid([
+          ResourceFolderLocationItem(
+            folderID: containingFolderID,
+            folderName: "folder"
+          )
+        ]),
+        permissions: .valid([
+          .user(
+            id: .mock_ada,
+            type: .owner,
+            permissionID: .none
+          )
+        ])
+      ),
+      context: .create(containingFolderID: containingFolderID)
+    ) { (tested: ResourceFolderEditForm) in
+      try await tested.formState.value
+    }
+  }
+
+  func test_formState_isDefault_initiallyWhenCreatingInSharedFolder() {
+    let containingFolderID: ResourceFolder.ID = .mock_1
+    patch(
+      \ResourceFolderDetails.details,
+      context: containingFolderID,
+      with: .always(
+        ResourceFolderDetailsDSV(
+          id: containingFolderID,
+          name: "folder",
+          permissionType: .owner,
+          shared: true,
+          parentFolderID: .none,
+          location: .init(),
+          permissions: [
+            .user(
+              id: .mock_ada,
+              type: .owner,
+              permissionID: .mock_1
+            ),
+            .user(
+              id: .mock_frances,
+              type: .read,
+              permissionID: .mock_2
+            ),
+          ]
+        )
+      )
+    )
+    withTestedInstanceReturnsEqual(
+      ResourceFolderEditFormState(
+        name: .valid(""),
+        location: .valid([
+          ResourceFolderLocationItem(
+            folderID: containingFolderID,
+            folderName: "folder"
+          )
+        ]),
+        permissions: .valid([
+          .user(
+            id: .mock_ada,
+            type: .owner,
+            permissionID: .none
+          ),
+          .user(
+            id: .mock_frances,
+            type: .read,
+            permissionID: .none
+          ),
+        ])
+      ),
+      context: .create(containingFolderID: containingFolderID)
+    ) { (tested: ResourceFolderEditForm) in
+      try await tested.formState.value
+    }
+  }
+
+  func test_formState_isDefault_initiallyWhenCreatingInSharedFolderWithLowerExplicitPermission() {
+    let containingFolderID: ResourceFolder.ID = .mock_1
+    patch(
+      \ResourceFolderDetails.details,
+      context: containingFolderID,
+      with: .always(
+        ResourceFolderDetailsDSV(
+          id: containingFolderID,
+          name: "folder",
+          permissionType: .owner,
+          shared: true,
+          parentFolderID: .none,
+          location: .init(),
+          permissions: [
+            .user(
+              id: .mock_ada,
+              type: .write,
+              permissionID: .mock_1
+            ),
+            .user(
+              id: .mock_frances,
+              type: .read,
+              permissionID: .mock_2
+            ),
+          ]
+        )
+      )
+    )
+    withTestedInstanceReturnsEqual(
+      ResourceFolderEditFormState(
+        name: .valid(""),
+        location: .valid([
+          ResourceFolderLocationItem(
+            folderID: containingFolderID,
+            folderName: "folder"
+          )
+        ]),
+        permissions: .valid([
+          .user(
+            id: .mock_ada,
+            type: .write,
+            permissionID: .none
+          ),
+          .user(
+            id: .mock_frances,
+            type: .read,
+            permissionID: .none
+          ),
+        ])
+      ),
+      context: .create(containingFolderID: containingFolderID)
+    ) { (tested: ResourceFolderEditForm) in
+      try await tested.formState.value
+    }
+  }
+
+  func test_formState_isDefault_initiallyWhenCreatingInSharedFolderWithoutExplicitPermission() {
+    let containingFolderID: ResourceFolder.ID = .mock_1
+    patch(
+      \ResourceFolderDetails.details,
+      context: containingFolderID,
+      with: .always(
+        ResourceFolderDetailsDSV(
+          id: containingFolderID,
+          name: "folder",
+          permissionType: .owner,
+          shared: true,
+          parentFolderID: .none,
+          location: .init(),
+          permissions: [
+            .userGroup(
+              id: .mock_1,
+              type: .owner,
+              permissionID: .mock_1
+            ),
+            .user(
+              id: .mock_frances,
+              type: .read,
+              permissionID: .mock_2
+            ),
+          ]
+        )
+      )
+    )
+    withTestedInstanceReturnsEqual(
+      ResourceFolderEditFormState(
+        name: .valid(""),
+        location: .valid([
+          ResourceFolderLocationItem(
+            folderID: containingFolderID,
+            folderName: "folder"
+          )
+        ]),
+        permissions: .valid([
+          .userGroup(
+            id: .mock_1,
+            type: .owner,
+            permissionID: .none
+          ),
+          .user(
+            id: .mock_frances,
+            type: .read,
+            permissionID: .none
+          ),
+        ])
+      ),
+      context: .create(containingFolderID: containingFolderID)
+    ) { (tested: ResourceFolderEditForm) in
+      try await tested.formState.value
+    }
+  }
+
+  func test_setFolderName_updatesFormState() {
+    withTestedInstanceReturnsEqual(
+      "updated",
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName("updated")
+      return try await tested.formState.value.name.value
+    }
+  }
+
+  func test_setFolderName_makesValidValueIfValidationPasses() {
+    withTestedInstanceReturnsEqual(
+      Validated<String>.valid("valid"),
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName("valid")
+      return try await tested.formState.value.name
+    }
+  }
+
+  func test_setFolderName_makesInvalidValueIfEmpty() {
+    withTestedInstanceReturnsEqual(
+      Validated<String>
+        .invalid(
+          "",
+          errors: .empty(
+            value: "",
+            displayable: .localized(
+              key: "error.validation.folder.name.empty"
+            )
+          )
+        ),
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName("")
+      return try await tested.formState.value.name
+    }
+  }
+
+  func test_setFolderName_makesInvalidValueIfTooLong() {
+    let name: String = .init(repeating: "a", count: 257)
+    withTestedInstanceReturnsEqual(
+      Validated<String>
+        .invalid(
+          name,
+          errors: .tooLong(
+            value: "",
+            displayable: .localized(
+              key: "error.validation.folder.name.too.long"
+            )
+          )
+        ),
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName(name)
+      return try await tested.formState.value.name
+    }
+  }
+
+  func test_sendForm_throws_whenFormIsInvalid() {
+    withTestedInstanceThrows(
+      InvalidForm.self,
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      try await tested.sendForm()
+    }
+  }
+
+  func test_sendForm_throws_whenCreateRequestThrows() {
+    patch(
+      \ResourceFolderCreateNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self,
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName("valid")
+      try await tested.sendForm()
+    }
+  }
+
+  func test_sendForm_throws_whenSessionDataRefreshThrows() {
+    patch(
+      \ResourceFolderCreateNetworkOperation.execute,
+       with: always(.init(resourceFolderID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self,
+      context: .create(containingFolderID: .none)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName("valid")
+      try await tested.sendForm()
+    }
+  }
+
+  func test_sendForm_throws_whenShareRequestThrowsForSharedFolder() {
+    let containingFolderID: ResourceFolder.ID = .mock_1
+    patch(
+      \ResourceFolderDetails.details,
+      context: containingFolderID,
+      with: .always(
+        ResourceFolderDetailsDSV(
+          id: containingFolderID,
+          name: "folder",
+          permissionType: .owner,
+          shared: true,
+          parentFolderID: .none,
+          location: .init(),
+          permissions: [
+            .user(
+              id: .mock_ada,
+              type: .owner,
+              permissionID: .mock_1
+            ),
+            .user(
+              id: .mock_frances,
+              type: .read,
+              permissionID: .mock_2
+            ),
+          ]
+        )
+      )
+    )
+    patch(
+      \ResourceFolderCreateNetworkOperation.execute,
+      with: always(.init(resourceFolderID: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \ResourceFolderShareNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self,
+      context: .create(containingFolderID: containingFolderID)
+    ) { (tested: ResourceFolderEditForm) in
+      tested.setFolderName("valid")
+      try await tested.sendForm()
+    }
+  }
 }

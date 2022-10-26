@@ -44,14 +44,14 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() async throws {
     patch(
       \AccountsDataStore.loadAccounts,
-      with: always([.valid])
+      with: always([.mock_ada])
     )
 
     let accounts: Accounts = try await testedInstance()
 
     let result: Array<Account> = accounts.storedAccounts()
 
-    XCTAssertEqual(result, [Account.valid])
+    XCTAssertEqual(result, [Account.mock_ada])
   }
 
   func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() async throws {
@@ -68,7 +68,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     )
     patch(
       \AccountsDataStore.loadAccounts,
-      with: always([.valid])
+      with: always([.mock_ada])
     )
 
     let accounts: Accounts = try await testedInstance()
@@ -79,6 +79,17 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   }
 
   func test_storeTransferedAccount_storesDataInAccountsDataStore() async throws {
+    let expectedResult: AccountWithProfile = .init(
+      localID: .init(rawValue: UUID.test.uuidString),
+      userID: .init(rawValue: UUID.test.uuidString),
+      domain: AccountWithProfile.mock_ada.domain,
+      label: AccountWithProfile.mock_ada.label,
+      username: AccountWithProfile.mock_ada.username,
+      firstName: AccountWithProfile.mock_ada.firstName,
+      lastName: AccountWithProfile.mock_ada.lastName,
+      avatarImageURL: AccountWithProfile.mock_ada.avatarImageURL,
+      fingerprint: AccountWithProfile.mock_ada.fingerprint
+    )
     var result: (account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)?
     let uncheckedSendableResult:
       UncheckedSendable<(account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)?> = .init(
@@ -113,19 +124,19 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     _ =
       try await accounts
       .transferAccount(
-        AccountWithProfile.valid.domain,
-        AccountWithProfile.valid.userID,
-        AccountWithProfile.valid.username,
-        AccountWithProfile.valid.firstName,
-        AccountWithProfile.valid.lastName,
-        AccountWithProfile.valid.avatarImageURL,
-        AccountWithProfile.valid.fingerprint,
+        expectedResult.domain,
+        expectedResult.userID,
+        expectedResult.username,
+        expectedResult.firstName,
+        expectedResult.lastName,
+        expectedResult.avatarImageURL,
+        expectedResult.fingerprint,
         validPrivateKey,
         validPassphrase
       )
 
-    XCTAssertEqual(result?.account, Account.valid)
-    XCTAssertEqual(result?.details, AccountWithProfile.valid.profile)
+    XCTAssertEqual(result?.account, expectedResult.account)
+    XCTAssertEqual(result?.details, expectedResult.profile)
     XCTAssertEqual(result?.armoredKey, validPrivateKey)
   }
 
@@ -136,7 +147,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     )
     patch(
       \AccountsDataStore.loadAccounts,
-      with: always([.valid])
+      with: always([.mock_ada])
     )
     patch(
       environment: \.uuidGenerator.uuid,
@@ -154,13 +165,13 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       _ =
         try await accounts
         .transferAccount(
-          AccountWithProfile.valid.domain,
-          AccountWithProfile.valid.userID,
-          AccountWithProfile.valid.username,
-          AccountWithProfile.valid.firstName,
-          AccountWithProfile.valid.lastName,
-          AccountWithProfile.valid.avatarImageURL,
-          AccountWithProfile.valid.fingerprint,
+          AccountWithProfile.mock_ada.domain,
+          AccountWithProfile.mock_ada.userID,
+          AccountWithProfile.mock_ada.username,
+          AccountWithProfile.mock_ada.firstName,
+          AccountWithProfile.mock_ada.lastName,
+          AccountWithProfile.mock_ada.avatarImageURL,
+          AccountWithProfile.mock_ada.fingerprint,
           validPrivateKey,
           validPassphrase
         )
@@ -189,13 +200,13 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       _ =
         try await accounts
         .transferAccount(
-          AccountWithProfile.valid.domain,
-          AccountWithProfile.valid.userID,
-          AccountWithProfile.valid.username,
-          AccountWithProfile.valid.firstName,
-          AccountWithProfile.valid.lastName,
-          AccountWithProfile.valid.avatarImageURL,
-          AccountWithProfile.valid.fingerprint,
+          AccountWithProfile.mock_ada.domain,
+          AccountWithProfile.mock_ada.userID,
+          AccountWithProfile.mock_ada.username,
+          AccountWithProfile.mock_ada.firstName,
+          AccountWithProfile.mock_ada.lastName,
+          AccountWithProfile.mock_ada.avatarImageURL,
+          AccountWithProfile.mock_ada.fingerprint,
           validPrivateKey,
           validPassphrase
         )
@@ -221,14 +232,14 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     )
     patch(
       \AccountsDataStore.loadAccounts,
-      with: always([.valid])
+      with: always([.mock_ada])
     )
 
     let accounts: Accounts = try await testedInstance()
 
-    _ = try? await accounts.removeAccount(Account.valid)
+    _ = try? await accounts.removeAccount(Account.mock_ada)
 
-    XCTAssertEqual(result, Account.valid.localID)
+    XCTAssertEqual(result, Account.mock_ada.localID)
   }
 }
 

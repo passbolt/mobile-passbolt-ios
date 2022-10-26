@@ -72,18 +72,3 @@ extension UserProfileAvatarDTO: Decodable {
     case medium = "medium"
   }
 }
-
-#if DEBUG
-
-extension UserProfileAvatarDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    Generator<String>
-      .randomURL(using: randomnessGenerator)
-      .map(URLString.init(rawValue:))
-      .map(UserProfileAvatarDTO.init(urlString:))
-  }
-}
-#endif

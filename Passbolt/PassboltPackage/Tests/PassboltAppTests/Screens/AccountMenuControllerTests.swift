@@ -49,26 +49,26 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: always(validAccount)
+      with: always(.mock_ada)
     )
     features.patch(
       \AccountDetails.profile,
-      context: validAccount,
-      with: always(validAccountWithProfile)
+      context: .mock_ada,
+      with: always(.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: validAccount,
+      context: .mock_ada,
       with: always(.init())
     )
     features.patch(
       \AccountDetails.profile,
-      context: validAccountAlt,
-      with: always(validAccountWithProfileAlt)
+      context: .mock_frances,
+      with: always(.mock_frances)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: validAccountAlt,
+      context: .mock_frances,
       with: always(.init())
     )
   }
@@ -80,25 +80,25 @@ final class AccountMenuControllerTests: MainActorTestCase {
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
-    XCTAssertEqual(controller.currentAccountWithProfile, validAccountWithProfile)
+    XCTAssertEqual(controller.currentAccountWithProfile, .mock_ada)
   }
 
   func test_accountsListPublisher_publishesAccountListWithoutCurrentAccount() async throws {
     features.patch(
       \Accounts.storedAccounts,
       with: always(
-        [validAccount, validAccountAlt]
+        [.mock_ada, .mock_frances]
       )
     )
 
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -120,11 +120,11 @@ final class AccountMenuControllerTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result?.map { $0.accountWithProfile }, [validAccountWithProfileAlt])
+    XCTAssertEqual(result?.map { $0.accountWithProfile }, [.mock_frances])
   }
 
   func test_accountsListPublisher_publishesUpdatedAccountListAterUpdatingAccounts() async throws {
-    var storedAccounts: Array<Account> = [validAccount]
+    var storedAccounts: Array<Account> = [.mock_ada]
     features.patch(
       \Accounts.storedAccounts,
       with: always(storedAccounts)
@@ -132,12 +132,12 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
 
-    storedAccounts = [validAccount, validAccountAlt]
+    storedAccounts = [.mock_ada, .mock_frances]
     accountUpdates.sendUpdate()
 
     // temporary wait for detached tasks
@@ -154,13 +154,13 @@ final class AccountMenuControllerTests: MainActorTestCase {
         .accountsListPublisher()
         .asAsyncValue()
 
-    XCTAssertEqual(result?.map { $0.accountWithProfile }, [validAccountWithProfileAlt])
+    XCTAssertEqual(result?.map { $0.accountWithProfile }, [.mock_frances])
   }
 
   func test_accountDetailsPresentationPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -179,7 +179,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   func test_accountDetailsPresentationPublisher_publishesCurrentAccountAfterCallingPresent() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -194,13 +194,13 @@ final class AccountMenuControllerTests: MainActorTestCase {
 
     controller.presentAccountDetails()
 
-    XCTAssertEqual(result, validAccountWithProfile)
+    XCTAssertEqual(result, .mock_ada)
   }
 
   func test_accountSwitchPresentationPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -219,7 +219,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   func test_accountSwitchPresentationPublisher_publishesSelectedAccountAfterCallingPresent() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -232,15 +232,15 @@ final class AccountMenuControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    controller.presentAccountSwitch(validAccountAlt)
+    controller.presentAccountSwitch(.mock_frances)
 
-    XCTAssertEqual(result, validAccountAlt)
+    XCTAssertEqual(result, .mock_frances)
   }
 
   func test_dismissPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -259,7 +259,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   func test_manageAccountsPresentationPublisher_doesNotPublishInitially() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -278,7 +278,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
   func test_manageAccountsPresentationPublisher_publishesAfterCallingPresent() async throws {
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -310,7 +310,7 @@ final class AccountMenuControllerTests: MainActorTestCase {
     )
     let controller: AccountMenuController = try await testController(
       context: (
-        accountWithProfile: validAccountWithProfile,
+        accountWithProfile: .mock_ada,
         navigation: ComponentNavigation.ignored(with: Void())
       )
     )
@@ -345,45 +345,3 @@ private final class TestComponent: UIViewController, AnyUIComponent {
     unimplemented()
   }
 }
-
-private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  domain: "passbolt.com",
-  userID: .init(rawValue: UUID.test.uuidString),
-  fingerprint: "fingerprint"
-)
-
-private let validAccountProfile: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.test.uuidString),
-  label: "firstName lastName",
-  username: "username",
-  firstName: "firstName",
-  lastName: "lastName",
-  avatarImageURL: "avatarImagePath"
-)
-
-private let validAccountWithProfile: AccountWithProfile = .init(
-  account: validAccount,
-  profile: validAccountProfile
-)
-
-private let validAccountAlt: Account = .init(
-  localID: .init(rawValue: UUID.testAlt.uuidString),
-  domain: "passbolt.com",
-  userID: .init(rawValue: UUID.testAlt.uuidString),
-  fingerprint: "fingerprint"
-)
-
-private let validAccountProfileAlt: AccountProfile = .init(
-  accountID: .init(rawValue: UUID.testAlt.uuidString),
-  label: "firstName lastName",
-  username: "username",
-  firstName: "firstName",
-  lastName: "lastName",
-  avatarImageURL: "avatarImagePath"
-)
-
-private let validAccountWithProfileAlt: AccountWithProfile = .init(
-  account: validAccountAlt,
-  profile: validAccountProfileAlt
-)

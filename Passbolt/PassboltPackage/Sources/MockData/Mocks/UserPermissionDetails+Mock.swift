@@ -21,18 +21,17 @@
 // @since         v1.0
 //
 
-public protocol RandomlyGenerated {
+import CommonModels
 
-  static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self>
-}
+extension UserPermissionDetailsDSV {
 
-extension RandomlyGenerated {
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Self {
-    Self.randomGenerator(using: randomnessGenerator).next()
-  }
+  public static let mock_1: Self = .init(
+    id: .mock_1,
+    username: "mock_1",
+    firstName: "mock",
+    lastName: "1",
+    fingerprint: "MOCK_1",
+    avatarImageURL: .mock_apple,
+    permissionType: .owner
+  )
 }

@@ -46,32 +46,32 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \Accounts.storedAccounts,
       with: always([
-        Account.valid, Account.validAlternative,
+        Account.mock_ada, Account.mock_frances,
       ])
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.valid,
-      with: always(AccountWithProfile.valid)
+      context: Account.mock_ada,
+      with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(.init())
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.validAlternative,
-      with: always(AccountWithProfile.validAlternative)
+      context: Account.mock_frances,
+      with: always(AccountWithProfile.mock_frances)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.validAlternative,
+      context: Account.mock_frances,
       with: always(.init())
     )
   }
@@ -83,12 +83,12 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   func test_accountsPublisher_publishesItemsWithImage_inSelectionMode() async throws {
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(.init())
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.validAlternative,
+      context: Account.mock_frances,
       with: always(.init())
     )
 
@@ -118,8 +118,8 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
-    XCTAssertTrue(accounts.contains(Account.valid))
-    XCTAssertTrue(accounts.contains(Account.validAlternative))
+    XCTAssertTrue(accounts.contains(Account.mock_ada))
+    XCTAssertTrue(accounts.contains(Account.mock_frances))
     XCTAssertTrue(result.contains(.addAccount(.default)))
     XCTAssertNotNil(imageData)
   }
@@ -127,12 +127,12 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   func test_accountsPublisher_publishesItemsWithoutImage_inSelectionMode() async throws {
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.validAlternative,
+      context: Account.mock_frances,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -168,8 +168,8 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
-    XCTAssertTrue(accounts.contains(Account.valid))
-    XCTAssertTrue(accounts.contains(Account.validAlternative))
+    XCTAssertTrue(accounts.contains(Account.mock_ada))
+    XCTAssertTrue(accounts.contains(Account.mock_frances))
     XCTAssertTrue(result.contains(.addAccount(.default)))
     XCTAssertNil(imageData)
   }
@@ -197,8 +197,8 @@ final class AccountSelectionScreenTests: MainActorTestCase {
       return cellItem.account
     }
 
-    XCTAssertTrue(accounts.contains(Account.valid))
-    XCTAssertTrue(accounts.contains(Account.validAlternative))
+    XCTAssertTrue(accounts.contains(Account.mock_ada))
+    XCTAssertTrue(accounts.contains(Account.mock_frances))
     XCTAssertFalse(result.contains(.addAccount(.default)))
   }
 
@@ -221,7 +221,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
   }
 
   func test_removeStoredAccount_Succeeds() async throws {
-    var storedAccounts: Array<Account> = [Account.valid, Account.validAlternative]
+    var storedAccounts: Array<Account> = [Account.mock_ada, Account.mock_frances]
     let uncheckedSendableStoredAccounts: UncheckedSendable<Array<Account>> = .init(
       get: { storedAccounts },
       set: { storedAccounts = $0 }
@@ -241,7 +241,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
     let removeResult: Void? =
       try? await controller
-      .removeAccount(Account.valid)
+      .removeAccount(Account.mock_ada)
       .asAsyncValue()
 
     let result: Array<AccountSelectionListItem> =
@@ -257,13 +257,13 @@ final class AccountSelectionScreenTests: MainActorTestCase {
     }
 
     XCTAssertNotNil(removeResult)
-    XCTAssertFalse(accounts.contains(Account.valid))
-    XCTAssertTrue(accounts.contains(Account.validAlternative))
+    XCTAssertFalse(accounts.contains(Account.mock_ada))
+    XCTAssertTrue(accounts.contains(Account.mock_frances))
     XCTAssertTrue(result.contains(.addAccount(.default)))
   }
 
   func test_removeStoredAccount_updatesAccountsList() async throws {
-    var storedAccounts: Array<Account> = [Account.valid, Account.validAlternative]
+    var storedAccounts: Array<Account> = [Account.mock_ada, Account.mock_frances]
     let uncheckedSendableStoredAccounts: UncheckedSendable<Array<Account>> = .init(
       get: { storedAccounts },
       set: { storedAccounts = $0 }
@@ -283,7 +283,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
 
     _ =
       try? await controller
-      .removeAccount(Account.valid)
+      .removeAccount(Account.mock_ada)
       .asAsyncValue()
 
     let result: Array<AccountSelectionListItem> =
@@ -297,7 +297,7 @@ final class AccountSelectionScreenTests: MainActorTestCase {
         else { return nil }
         return accountItem.account
       },
-      [Account.validAlternative]
+      [Account.mock_frances]
     )
   }
 

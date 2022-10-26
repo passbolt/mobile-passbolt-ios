@@ -68,7 +68,7 @@ internal struct UserGroupListRowView_Previews: PreviewProvider {
   internal static var previews: some View {
     UserGroupListRowView(
       model: .init(
-        id: .random(),
+        id: "row_1",
         name: "Admins"
       ),
       contentAction: {},

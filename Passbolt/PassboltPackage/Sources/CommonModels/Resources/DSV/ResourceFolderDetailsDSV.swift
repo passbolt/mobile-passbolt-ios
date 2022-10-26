@@ -30,6 +30,7 @@ public struct ResourceFolderDetailsDSV {
   public var permissionType: PermissionTypeDSV
   public var shared: Bool
   public var parentFolderID: ResourceFolder.ID?
+  public var location: Array<ResourceFolderLocationItemDSV>
   public var permissions: OrderedSet<ResourceFolderPermissionDSV>
 
   public init(
@@ -38,45 +39,20 @@ public struct ResourceFolderDetailsDSV {
     permissionType: PermissionTypeDSV,
     shared: Bool,
     parentFolderID: ResourceFolder.ID?,
+    location: Array<ResourceFolderLocationItemDSV>,
     permissions: OrderedSet<ResourceFolderPermissionDSV>
   ) {
+    assert(location.last?.folderID == parentFolderID)
     self.id = id
     self.name = name
     self.permissionType = permissionType
     self.shared = shared
     self.parentFolderID = parentFolderID
+    self.location = location
     self.permissions = permissions
   }
 }
 
 extension ResourceFolderDetailsDSV: DSV {}
+
 extension ResourceFolderDetailsDSV: Hashable {}
-
-#if DEBUG
-
-extension ResourceFolderDetailsDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceFolderDetailsDSV.init(id:name:permissionType:shared:parentFolderID:permissions:),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomFolderName(using: randomnessGenerator),
-      PermissionTypeDSV
-        .randomGenerator(using: randomnessGenerator),
-      Bool
-        .randomGenerator(using: randomnessGenerator),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      ResourceFolderPermissionDSV
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCount: 0)
-        .map { OrderedSet($0) }
-    )
-  }
-}
-#endif

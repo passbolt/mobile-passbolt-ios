@@ -57,7 +57,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       with: always(self.account)
     )
 
-    self.account = Account.valid
+    self.account = Account.mock_ada
     withTestedInstanceReturnsEqual(self.account) { (testedInstance: Session) in
       try await testedInstance.currentAccount()
     }
@@ -74,7 +74,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       await testedInstance.pendingAuthorization()
     }
 
-    self.pendingAuthorization = SessionAuthorizationRequest.passphrase(Account.valid)
+    self.pendingAuthorization = SessionAuthorizationRequest.passphrase(Account.mock_ada)
     withTestedInstanceReturnsEqual(self.pendingAuthorization) { (testedInstance: Session) in
       return await testedInstance.pendingAuthorization()
     }
@@ -89,7 +89,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     withTestedInstanceExecuted { (testedInstance: Session) in
       try await testedInstance.authorize(
         .adHoc(
-          Account.valid,
+          Account.mock_ada,
           "passphrase",
           "armoredPGPKey"
         )
@@ -105,10 +105,10 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       }
     )
 
-    withTestedInstanceResultEqual(Account.valid) { (testedInstance: Session) in
+    withTestedInstanceResultEqual(Account.mock_ada) { (testedInstance: Session) in
       try await testedInstance.authorize(
         .adHoc(
-          Account.valid,
+          Account.mock_ada,
           "passphrase",
           "armoredPGPKey"
         )
@@ -131,7 +131,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     withTestedInstanceExecuted { (testedInstance: Session) in
       try await testedInstance.authorize(
         .adHoc(
-          Account.valid,
+          Account.mock_ada,
           "passphrase",
           "armoredPGPKey"
         )
@@ -154,7 +154,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     withTestedInstanceThrows(MockIssue.self) { (testedInstance: Session) in
       try await testedInstance.authorize(
         .adHoc(
-          Account.valid,
+          Account.mock_ada,
           "passphrase",
           "armoredPGPKey"
         )
@@ -171,7 +171,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     withTestedInstanceExecuted { (testedInstance: Session) in
       try await testedInstance.authorizeMFA(
         .totp(
-          Account.valid,
+          Account.mock_ada,
           "totp",
           rememberDevice: false
         )
@@ -187,10 +187,10 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       }
     )
 
-    withTestedInstanceResultEqual(Account.valid) { (testedInstance: Session) in
+    withTestedInstanceResultEqual(Account.mock_ada) { (testedInstance: Session) in
       try await testedInstance.authorizeMFA(
         .totp(
-          Account.valid,
+          Account.mock_ada,
           "totp",
           rememberDevice: false
         )
@@ -213,7 +213,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     withTestedInstanceExecuted { (testedInstance: Session) in
       try await testedInstance.authorizeMFA(
         .totp(
-          Account.valid,
+          Account.mock_ada,
           "totp",
           rememberDevice: false
         )
@@ -236,7 +236,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     withTestedInstanceThrows(MockIssue.self) { (testedInstance: Session) in
       try await testedInstance.authorizeMFA(
         .totp(
-          Account.valid,
+          Account.mock_ada,
           "totp",
           rememberDevice: false
         )
@@ -252,19 +252,19 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
 
     self.account = Optional<Account>.none
     withTestedInstance { (testedInstance: Session) in
-      await testedInstance.close(Account.valid)
+      await testedInstance.close(Account.mock_ada)
     }
 
-    self.account = Account.validAlternative
+    self.account = Account.mock_frances
     withTestedInstance { (testedInstance: Session) in
-      await testedInstance.close(Account.valid)
+      await testedInstance.close(Account.mock_ada)
     }
   }
 
   func test_close_cancelsOngoingAuthorization_whenClosingSession() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionState.refreshToken,
@@ -287,7 +287,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_close_invalidatesTokens_whenRefreshTokenAvailable() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionState.refreshToken,
@@ -320,7 +320,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
   func test_close_clearsCurrentAccount_whenClosingSession() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionState.refreshToken,

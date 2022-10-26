@@ -67,28 +67,3 @@ extension UserPermissionDetailsDSV {
     )
   }
 }
-
-#if DEBUG
-
-extension UserPermissionDetailsDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserPermissionDetailsDSV.init(id:username:firstName:lastName:fingerprint:avatarImageURL:permissionType:),
-      User.ID.randomGenerator(using: randomnessGenerator),
-      Generator<String>.randomEmail(using: randomnessGenerator),
-      Generator<String>.randomFirstName(using: randomnessGenerator),
-      Generator<String>.randomLastName(using: randomnessGenerator),
-      Generator<String>
-        .randomKeyFingerprint(using: randomnessGenerator)
-        .map(Fingerprint.init(rawValue:)),
-      Generator<String>.randomURL(using: randomnessGenerator)
-        .map(URLString.init(rawValue:)),
-      PermissionTypeDSV
-        .randomGenerator(using: randomnessGenerator)
-    )
-  }
-}
-#endif

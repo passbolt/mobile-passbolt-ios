@@ -40,11 +40,11 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     linkOpener = .placeholder
     features.patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     features.usePlaceholder(
       for: AccountInitialSetup.self,
-      context: Account.valid
+      context: Account.mock_ada
     )
   }
 
@@ -71,7 +71,7 @@ final class ExtensionSetupScreenTests: MainActorTestCase {
     features.use(linkOpener)
     features.patch(
       \AccountInitialSetup.completeSetup,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(Void())
     )
 

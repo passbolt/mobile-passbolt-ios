@@ -55,7 +55,7 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
     )
 
     withTestedInstance(
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionLocking) in
       testedInstance.ensureAutolock()
     }
@@ -77,7 +77,7 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
     )
     withTestedInstanceExecuted(
       using: Optional<Passphrase>.none,
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionLocking) in
       try await self.executionMockControl.execute {
         testedInstance.ensureAutolock()
@@ -100,8 +100,8 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
       }
     )
     withTestedInstanceExecuted(
-      using: SessionAuthorizationRequest.passphrase(.valid),
-      context: Account.valid
+      using: SessionAuthorizationRequest.passphrase(.mock_ada),
+      context: Account.mock_ada
     ) { (testedInstance: SessionLocking) in
       try await self.executionMockControl.execute {
         testedInstance.ensureAutolock()

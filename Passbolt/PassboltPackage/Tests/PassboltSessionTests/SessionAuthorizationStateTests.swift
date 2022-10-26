@@ -57,7 +57,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     )
 
     withTestedInstanceResultNone { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.performAuthorization(.valid) {
+      try await testedInstance.performAuthorization(.mock_ada) {
         self.result = await testedInstance.pendingAuthorization()
       }
     }
@@ -78,7 +78,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     )
 
     withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.performAuthorization(.valid) {}
+      try await testedInstance.performAuthorization(.mock_ada) {}
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -86,13 +86,13 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   func test_pendingAuthorization_returnsPassphraseRequest_afterRequestingPassphraseAuthorization() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
 
     withTestedInstanceReturnsEqual(
-      SessionAuthorizationRequest.passphrase(.valid)
+      SessionAuthorizationRequest.passphrase(.mock_ada)
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      try await testedInstance.requestAuthorization(.passphrase(.mock_ada))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -100,13 +100,13 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   func test_pendingAuthorization_returnsMFARequest_afterRequestingMFAAuthorization() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
 
     withTestedInstanceReturnsEqual(
-      SessionAuthorizationRequest.mfa(.valid, providers: .init())
+      SessionAuthorizationRequest.mfa(.mock_ada, providers: .init())
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
+      try await testedInstance.requestAuthorization(.mfa(.mock_ada, providers: .init()))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -116,14 +116,14 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
 
     withTestedInstanceReturnsEqual(
-      SessionAuthorizationRequest.passphrase(.valid)
+      SessionAuthorizationRequest.passphrase(.mock_ada)
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.passphrase(.valid))
-      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
+      try await testedInstance.requestAuthorization(.passphrase(.mock_ada))
+      try await testedInstance.requestAuthorization(.mfa(.mock_ada, providers: .init()))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -133,14 +133,14 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
 
     withTestedInstanceReturnsEqual(
-      SessionAuthorizationRequest.passphrase(.valid)
+      SessionAuthorizationRequest.passphrase(.mock_ada)
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
-      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      try await testedInstance.requestAuthorization(.mfa(.mock_ada, providers: .init()))
+      try await testedInstance.requestAuthorization(.passphrase(.mock_ada))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -152,7 +152,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     )
 
     withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
-      try? await testedInstance.requestAuthorization(.passphrase(.valid))
+      try? await testedInstance.requestAuthorization(.passphrase(.mock_ada))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -166,34 +166,34 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      try await testedInstance.requestAuthorization(.passphrase(.mock_ada))
     }
   }
 
   func test_requestAuthorization_throwsSessionClosed_withDifferentSession() {
     patch(
       \SessionState.account,
-      with: always(.validAlternative)
+      with: always(.mock_frances)
     )
 
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      try await testedInstance.requestAuthorization(.passphrase(.mock_ada))
     }
   }
 
   func test_requestAuthorization_setsPendingAuthorization_withTheSameSession() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
 
     withTestedInstanceReturnsEqual(
-      SessionAuthorizationRequest.passphrase(.valid)
+      SessionAuthorizationRequest.passphrase(.mock_ada)
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.requestAuthorization(.mfa(.valid, providers: .init()))
-      try await testedInstance.requestAuthorization(.passphrase(.valid))
+      try await testedInstance.requestAuthorization(.mfa(.mock_ada, providers: .init()))
+      try await testedInstance.requestAuthorization(.passphrase(.mock_ada))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -215,7 +215,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     withTestedInstanceThrows(
       CancellationError.self
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.performAuthorization(.valid) {
+      try await testedInstance.performAuthorization(.mock_ada) {
         await testedInstance.cancelAuthorization()
         try await Task.sleep(nanoseconds: NSEC_PER_SEC)
       }
@@ -239,8 +239,8 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     withTestedInstanceThrows(
       CancellationError.self
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.performAuthorization(.valid) {
-        try await testedInstance.performAuthorization(.valid) {
+      try await testedInstance.performAuthorization(.mock_ada) {
+        try await testedInstance.performAuthorization(.mock_ada) {
         }
       }
     }
@@ -263,14 +263,14 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.valid))
+      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.mock_ada))
     }
   }
 
   func test_waitForAuthorizationIfNeeded_throwsSessionClosed_withDifferentSession() {
     patch(
       \SessionState.account,
-      with: always(.validAlternative)
+      with: always(.mock_frances)
     )
     patch(
       \SessionState.passphrase,
@@ -284,14 +284,14 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.valid))
+      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.mock_ada))
     }
   }
 
   func test_waitForAuthorizationIfNeeded_doesNothing_whenRequestingPassphraseAndPassphraseIsAvailable() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionState.passphrase,
@@ -303,7 +303,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     )
 
     withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.valid))
+      try await testedInstance.waitForAuthorizationIfNeeded(.passphrase(.mock_ada))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -311,7 +311,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   func test_waitForAuthorizationIfNeeded_doesNothing_whenRequestingMFAAndMFAIsAvailable() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionState.passphrase,
@@ -323,7 +323,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     )
 
     withTestedInstanceReturnsNone { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.waitForAuthorizationIfNeeded(.mfa(.valid, providers: .init()))
+      try await testedInstance.waitForAuthorizationIfNeeded(.mfa(.mock_ada, providers: .init()))
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -331,7 +331,7 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
   func test_waitForAuthorizationIfNeeded_doesNotHang_duringAuthorization() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionState.passphrase,
@@ -343,8 +343,8 @@ final class SessionAuthorizationStateTests: LoadableFeatureTestCase<SessionAutho
     )
 
     withTestedInstance { (testedInstance: SessionAuthorizationState) in
-      try await testedInstance.performAuthorization(.valid) {
-        try await testedInstance.waitForAuthorizationIfNeeded(.mfa(.valid, providers: .init()))
+      try await testedInstance.performAuthorization(.mock_ada) {
+        try await testedInstance.waitForAuthorizationIfNeeded(.mfa(.mock_ada, providers: .init()))
       }
     }
   }

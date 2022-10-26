@@ -48,7 +48,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       SessionMissing.self,
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -57,7 +57,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   func test_storeWithBiometry_throws_whenEnsuringPassphraseThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -65,7 +65,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       MockIssue.self,
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -74,7 +74,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   func test_storeWithBiometry_throws_whenStoringPassphraseThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -86,7 +86,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       MockIssue.self,
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -95,7 +95,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   func test_storeWithBiometry_succeeds_whenStoringPassphraseSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -106,7 +106,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always(Void())
     )
     withTestedInstanceNotThrows(
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(true)
     }
@@ -115,14 +115,14 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   func test_storeWithBiometry_succeeds_whenRemovingPassphraseSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.deleteAccountPassphrase,
       with: always(Void())
     )
     withTestedInstanceNotThrows(
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }
@@ -131,7 +131,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
   func test_storeWithBiometry_throws_whenRemovingPassphraseThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.deleteAccountPassphrase,
@@ -139,7 +139,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
     )
     withTestedInstanceThrows(
       MockIssue.self,
-      context: Account.valid
+      context: Account.mock_ada
     ) { (testedInstance: SessionPassphrase) in
       try await testedInstance.storeWithBiometry(false)
     }

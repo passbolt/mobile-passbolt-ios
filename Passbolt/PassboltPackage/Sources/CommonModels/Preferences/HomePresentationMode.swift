@@ -34,4 +34,5 @@ public enum HomePresentationMode: String {
 }
 
 extension HomePresentationMode: Hashable {}
+
 extension HomePresentationMode: Codable {}

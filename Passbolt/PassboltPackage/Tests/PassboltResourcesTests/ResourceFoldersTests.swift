@@ -96,7 +96,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
   }
 
   func test_filteredFolderContent_producesContent_whenDatabaseFetchingSucceeds() async throws {
-    let folders: Array<ResourceFolderListItemDSV> = .random(count: 1)
+    let folders: Array<ResourceFolderListItemDSV> = [.mock_1]
 
     let resources: Array<ResourceListItemDSV> = .testResources
 
@@ -133,7 +133,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
   }
 
   func test_filteredFolderContent_producesContentWithRequestedFolderID_whenDatabaseFetchingSucceeds() async throws {
-    let folders: Array<ResourceFolderListItemDSV> = .random(count: 1)
+    let folders: Array<ResourceFolderListItemDSV> = [.mock_1]
 
     let resources: Array<ResourceListItemDSV> = .testResources
 
@@ -170,7 +170,7 @@ final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
   }
 
   func test_filteredFolderContent_producesNewContent_whenFiltersChange() async throws {
-    let folders: Array<ResourceFolderListItemDSV> = .random(count: 1)
+    let folders: Array<ResourceFolderListItemDSV> = [.mock_1]
 
     let resources: Array<ResourceListItemDSV> = .testResources
 

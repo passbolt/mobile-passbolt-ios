@@ -37,7 +37,7 @@ final class TOTPControllerTests: MainActorTestCase {
   override func mainActorSetUp() {
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.usePlaceholder(for: Pasteboard.self)
   }

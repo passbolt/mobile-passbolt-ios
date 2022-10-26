@@ -59,16 +59,16 @@ final class ResourceUserGroupsExplorerControllerTests: MainActorTestCase {
     features.usePlaceholder(for: HomePresentation.self)
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.valid,
-      with: always(AccountWithProfile.valid)
+      context: Account.mock_ada,
+      with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(.init())
     )
   }

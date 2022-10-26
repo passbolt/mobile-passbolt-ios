@@ -44,21 +44,3 @@ public struct UserDSO {
 }
 
 extension UserDSO: DSO {}
-
-#if DEBUG
-
-extension UserDSO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserDSO.init(id:username:profile:gpgKey:),
-      User.ID.randomGenerator(using: randomnessGenerator),
-      Generator<String>.randomEmail(using: randomnessGenerator),
-      UserProfileDTO.randomGenerator(using: randomnessGenerator),
-      UserGPGKeyDTO.randomGenerator(using: randomnessGenerator)
-    )
-  }
-}
-#endif

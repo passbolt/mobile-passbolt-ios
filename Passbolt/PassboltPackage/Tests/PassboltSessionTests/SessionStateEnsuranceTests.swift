@@ -48,7 +48,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceThrows(
       InternalInconsistency.self
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.passphrase(.valid)
+      try await testedInstance.passphrase(.mock_ada)
     }
   }
 
@@ -64,7 +64,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.passphrase(.valid)
+      try await testedInstance.passphrase(.mock_ada)
     }
   }
 
@@ -80,7 +80,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceReturnsEqual(
       "passphrase" as Passphrase
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.passphrase(.valid)
+      try await testedInstance.passphrase(.mock_ada)
     }
   }
 
@@ -99,7 +99,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceReturnsEqual(
       "passphrase" as Passphrase
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.passphrase(.valid)
+      try await testedInstance.passphrase(.mock_ada)
     }
   }
 
@@ -119,7 +119,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceThrows(
       InternalInconsistency.self
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 
@@ -135,7 +135,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 
@@ -151,7 +151,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceReturnsEqual(
       SessionAccessToken.valid
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 
@@ -170,7 +170,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceReturnsEqual(
       SessionAccessToken.valid
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 
@@ -203,7 +203,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceReturnsEqual(
       SessionAccessToken.valid
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 
@@ -233,7 +233,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 
@@ -257,7 +257,7 @@ final class SessionStateEnsuranceTests: LoadableFeatureTestCase<SessionStateEnsu
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionStateEnsurance) in
-      try await testedInstance.accessToken(.valid)
+      try await testedInstance.accessToken(.mock_ada)
     }
   }
 }

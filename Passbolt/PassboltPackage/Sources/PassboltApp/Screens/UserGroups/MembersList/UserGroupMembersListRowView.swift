@@ -58,30 +58,14 @@ internal struct UserGroupMembersListRowView_Previews: PreviewProvider {
     UserGroupMembersListRowView(
       .init(
         userDetails: .init(
-          id: User.ID
-            .randomGenerator()
-            .next(),
-          username: Generator<String>
-            .randomEmail()
-            .next(),
-          firstName: Generator<String>
-            .randomFirstName()
-            .next(),
-          lastName: Generator<String>
-            .randomLastName()
-            .next(),
-          fingerprint:
-            Fingerprint
-            .randomGenerator()
-            .next(),
-          avatarImageURL:
-            URLString
-            .randomGenerator()
-            .next()
+          id: "mock_1",
+          username: "ada@passbolt.com",
+          firstName: "Ada",
+          lastName: "Lovelance",
+          fingerprint: "FINGERPRINT",
+          avatarImageURL: "https://passbolt.com/image/ada.png"
         ),
-        avatarImageData: Generator<Data?>
-          .randomAvatarImage()
-          .next
+        avatarImageData: { .none }
       ),
       action: {}
     )

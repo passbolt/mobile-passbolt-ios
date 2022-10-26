@@ -29,27 +29,3 @@ extension Permission {
 
   public typealias ID = Tagged<String, Self>
 }
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension Permission.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-
-  public static func random(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Self {
-    Self
-      .randomGenerator(using: randomnessGenerator)
-      .next()
-  }
-}
-#endif

@@ -21,62 +21,21 @@
 // @since         v1.0
 //
 
-extension Bool {
+import CommonModels
 
-  public static func randomGenerator(
-    using randomnessGenerator: Commons.RandomnessGenerator
-  ) -> Commons.Generator<Self> {
-    .always(
-      randomnessGenerator.withRNG(Self.random(using:))
+extension EncryptedMessage {
+
+  public static let mock_1: Self = .init(
+    recipient: .mock_1,
+    message: .init(
+      rawValue: "MOCK_1"
     )
-  }
-}
+  )
 
-extension Generator where Value == Bool {
-
-  public func optional<WrappedValue>(
-    _ generator: Generator<WrappedValue>
-  ) -> Generator<Optional<WrappedValue>> {
-    self.flatMap { bool in
-      if bool {
-        return
-          generator
-          .map(Optional.some)
-      }
-      else {
-        return .always(nil)
-      }
-    }
-  }
-}
-
-extension Generator {
-
-  public func optional(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Optional<Value>> {
-    Bool
-      .randomGenerator(using: randomnessGenerator)
-      .optional(self)
-  }
-}
-
-extension Generator {
-
-  public static func either(
-    _ left: Generator<Value>,
-    or right: Generator<Value>,
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Value> {
-    Bool
-      .randomGenerator(using: randomnessGenerator)
-      .flatMap { bool in
-        if bool {
-          return left
-        }
-        else {
-          return right
-        }
-      }
-  }
+  public static let mock_2: Self = .init(
+    recipient: .mock_2,
+    message: .init(
+      rawValue: "MOCK_2"
+    )
+  )
 }

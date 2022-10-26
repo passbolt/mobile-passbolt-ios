@@ -27,4 +27,14 @@ public struct ResourceFolderLocationItem {
 
   public var folderID: ResourceFolder.ID
   public var folderName: String
+
+  public init(
+    folderID: ResourceFolder.ID,
+    folderName: String
+  ) {
+    self.folderID = folderID
+    self.folderName = folderName
+  }
 }
+
+extension ResourceFolderLocationItem: Hashable {}

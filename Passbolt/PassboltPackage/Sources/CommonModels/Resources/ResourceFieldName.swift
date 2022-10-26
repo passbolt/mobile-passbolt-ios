@@ -125,23 +125,3 @@ extension ResourceFieldName: Comparable {
 }
 
 extension ResourceFieldName: Hashable {}
-
-#if DEBUG
-
-extension ResourceFieldName: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    [
-      Self.name,
-      .uri,
-      .username,
-      .password,
-      .description,
-      .undefined(name: "undefined"),
-    ]
-    .randomNonEmptyElementGenerator(using: randomnessGenerator)
-  }
-}
-#endif

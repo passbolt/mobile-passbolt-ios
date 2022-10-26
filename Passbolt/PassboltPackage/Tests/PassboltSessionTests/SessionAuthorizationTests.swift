@@ -53,7 +53,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       PassphraseInvalid.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.adHoc(.valid, "passphrase", "private_key"))
+      try await testedInstance.authorize(.adHoc(.mock_ada, "passphrase", "private_key"))
     }
   }
 
@@ -66,7 +66,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.passphrase(.valid, "passphrase"))
+      try await testedInstance.authorize(.passphrase(.mock_ada, "passphrase"))
     }
   }
 
@@ -83,7 +83,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       PassphraseInvalid.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.passphrase(.valid, "passphrase"))
+      try await testedInstance.authorize(.passphrase(.mock_ada, "passphrase"))
     }
   }
 
@@ -96,7 +96,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -113,7 +113,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -134,7 +134,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       PassphraseInvalid.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -167,7 +167,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       MockIssue.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -230,12 +230,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(Void())
     )
 
     withTestedInstanceNotThrows { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -300,14 +300,14 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(Void())
     )
 
     withTestedInstanceExecuted(
-      using: Account.valid.localID
+      using: Account.mock_ada.localID
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -375,13 +375,13 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(Void())
     )
 
     withTestedInstance { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
-      XCTAssertEqual(account.variable, .valid)
+      try await testedInstance.authorize(.biometrics(.mock_ada))
+      XCTAssertEqual(account.variable, .mock_ada)
       XCTAssertEqual(passphrase.variable, "passphrase")
       XCTAssertEqual(mfaToken.variable, "mfa_token")
       XCTAssertEqual(accessToken.variable, .valid)
@@ -448,12 +448,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -472,7 +472,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -489,7 +489,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.valid, providers: .init()))
+      with: always(.mfa(.mock_ada, providers: .init()))
     )
     patch(
       \AccountsDataStore.deleteAccountMFAToken,
@@ -499,7 +499,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       SessionMFAAuthorizationRequired.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -518,7 +518,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -535,7 +535,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.valid, providers: .init()))
+      with: always(.mfa(.mock_ada, providers: .init()))
     )
     patch(
       \AccountsDataStore.deleteAccountMFAToken,
@@ -543,10 +543,10 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
 
     withTestedInstanceExecuted(
-      using: Account.valid.localID
+      using: Account.mock_ada.localID
     ) { (testedInstance: SessionAuthorization) in
       // ignore error
-      try? await testedInstance.authorize(.biometrics(.valid))
+      try? await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -565,7 +565,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -582,7 +582,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.validAlternative, providers: .init()))
+      with: always(.mfa(.mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -601,7 +601,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     withTestedInstanceNotThrows { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -620,7 +620,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -637,7 +637,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.validAlternative, providers: .init()))
+      with: always(.mfa(.mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -669,7 +669,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
 
     withTestedInstance { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -688,7 +688,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -712,7 +712,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.validAlternative, providers: .init()))
+      with: always(.mfa(.mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -752,12 +752,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(Void())
     )
 
     withTestedInstance { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -776,7 +776,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -793,7 +793,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.validAlternative, providers: .init()))
+      with: always(.mfa(.mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -845,12 +845,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(self.executed())
     )
 
     withTestedInstanceExecuted { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 
@@ -865,7 +865,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.validAlternative)
+      with: always(.mock_frances)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -879,7 +879,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.refreshTokens(.valid, "passphrase")
+      try await testedInstance.refreshTokens(.mock_ada, "passphrase")
     }
   }
 
@@ -894,7 +894,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.validAlternative)
+      with: always(.mock_frances)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -904,7 +904,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       SessionClosed.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.refreshTokens(.valid, "passphrase")
+      try await testedInstance.refreshTokens(.mock_ada, "passphrase")
     }
   }
 
@@ -923,7 +923,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \AccountsDataStore.loadAccountMFAToken,
@@ -949,7 +949,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.validAlternative, providers: .init()))
+      with: always(.mfa(.mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -989,12 +989,12 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(Void())
     )
 
     withTestedInstanceExecuted { (testedInstance: SessionAuthorization) in
-      try await testedInstance.refreshTokens(.valid, "passphrase")
+      try await testedInstance.refreshTokens(.mock_ada, "passphrase")
     }
   }
 
@@ -1057,7 +1057,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     )
     patch(
       \SessionLocking.ensureAutolock,
-      context: .valid,
+      context: .mock_ada,
       with: always(Void())
     )
     patch(
@@ -1068,7 +1068,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     withTestedInstanceThrows(
       SessionMFAAuthorizationRequired.self
     ) { (testedInstance: SessionAuthorization) in
-      try await testedInstance.authorize(.biometrics(.valid))
+      try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
 }

@@ -45,31 +45,31 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always([firstAccount.account, secondAccount.account])
+      with: always([Account.mock_ada, Account.mock_frances])
     )
     features.patch(
       \AccountDetails.profile,
-      context: firstAccount.account,
-      with: always(firstAccount)
+      context: Account.mock_ada,
+      with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: firstAccount.account,
+      context: Account.mock_ada,
       with: always(.init())
     )
     features.patch(
       \AccountDetails.profile,
-      context: secondAccount.account,
-      with: always(secondAccount)
+      context: Account.mock_frances,
+      with: always(AccountWithProfile.mock_frances)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: secondAccount.account,
+      context: Account.mock_frances,
       with: always(.init())
     )
     features.patch(
       \Session.currentAccount,
-      with: always(firstAccount.account)
+      with: always(Account.mock_ada)
     )
     features.use(NavigationTree.placeholder)
     features.use(AutofillExtensionContext.placeholder)
@@ -100,20 +100,20 @@ final class AccountSelectionControllerTests: MainActorTestCase {
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
-    XCTAssertTrue(accounts.contains(firstAccount.account))
-    XCTAssertTrue(accounts.contains(secondAccount.account))
+    XCTAssertTrue(accounts.contains(Account.mock_ada))
+    XCTAssertTrue(accounts.contains(Account.mock_frances))
     XCTAssertNotNil(imageData)
   }
 
   func test_accountsPublisher_publishesItemsWithoutImage() async throws {
     features.patch(
       \AccountDetails.avatarImage,
-      context: firstAccount.account,
+      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: secondAccount.account,
+      context: Account.mock_frances,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -136,8 +136,8 @@ final class AccountSelectionControllerTests: MainActorTestCase {
 
     let accounts: Array<Account> = accountItems.map(\.account)
 
-    XCTAssertTrue(accounts.contains(firstAccount.account))
-    XCTAssertTrue(accounts.contains(secondAccount.account))
+    XCTAssertTrue(accounts.contains(Account.mock_ada))
+    XCTAssertTrue(accounts.contains(Account.mock_frances))
     XCTAssertNil(imageData)
   }
 
@@ -154,27 +154,3 @@ final class AccountSelectionControllerTests: MainActorTestCase {
     XCTAssertTrue(result.isEmpty)
   }
 }
-
-private let firstAccount: AccountWithProfile = .init(
-  localID: "localID",
-  userID: "userID",
-  domain: "passbolt.com",
-  label: "passbolt",
-  username: "username",
-  firstName: "Adam",
-  lastName: "Smith",
-  avatarImageURL: "",
-  fingerprint: "FINGERPRINT"
-)
-
-private let secondAccount: AccountWithProfile = .init(
-  localID: "localID2",
-  userID: "userID2",
-  domain: "passbolt.com",
-  label: "passbolt2",
-  username: "username2",
-  firstName: "John",
-  lastName: "Smith",
-  avatarImageURL: "",
-  fingerprint: "FINGERPRINT2"
-)

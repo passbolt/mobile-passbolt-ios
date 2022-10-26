@@ -33,6 +33,7 @@ public struct ResourceDetailsDSV {
   public var description: String?
   public var fields: Array<ResourceFieldDSV>
   public var favoriteID: Resource.FavoriteID?
+  public var location: Array<ResourceFolderLocationItemDSV>
   public var permissions: OrderedSet<PermissionDSV>
   public var tags: Array<ResourceTagDSV>
 
@@ -45,6 +46,7 @@ public struct ResourceDetailsDSV {
     description: String?,
     fields: Array<ResourceFieldDSV>,
     favoriteID: Resource.FavoriteID?,
+    location: Array<ResourceFolderLocationItemDSV>,
     permissions: OrderedSet<PermissionDSV>,
     tags: Array<ResourceTagDSV>
   ) {
@@ -56,6 +58,7 @@ public struct ResourceDetailsDSV {
     self.description = description
     self.fields = fields
     self.favoriteID = favoriteID
+    self.location = location
     self.permissions = permissions
     self.tags = tags
   }
@@ -69,58 +72,3 @@ extension ResourceDetailsDSV {
     self.favoriteID != .none
   }
 }
-
-#if DEBUG
-
-extension ResourceDetailsDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-
-      with: ResourceDetailsDSV.init(
-        id:
-        permissionType:
-        name:
-        url:
-        username:
-        description:
-        fields:
-        favoriteID:
-        permissions:
-        tags:
-      ),
-      Resource.ID
-        .randomGenerator(using: randomnessGenerator),
-      PermissionTypeDSV
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomResourceName(using: randomnessGenerator),
-      Generator<String>
-        .randomURL(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomEmail(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomLongText(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      ResourceFieldDSV
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCountIn: 1..<3, using: randomnessGenerator)
-        // name field is required to be always present
-        .appending(ResourceFieldDTO(name: .name, valueType: .string, required: true, encrypted: false, maxLength: 0)),
-      Resource.FavoriteID
-        .randomGenerator(using: randomnessGenerator),
-      PermissionDSV
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCountIn: 0..<3, using: randomnessGenerator)
-        .map { OrderedSet($0) },
-      ResourceTagDSV
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCountIn: 0..<3, using: randomnessGenerator)
-    )
-  }
-}
-#endif

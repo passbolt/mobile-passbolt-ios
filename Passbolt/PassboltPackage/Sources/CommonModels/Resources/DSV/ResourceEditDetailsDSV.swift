@@ -53,35 +53,3 @@ public struct ResourceEditDetailsDSV {
 }
 
 extension ResourceEditDetailsDSV: DSV {}
-
-#if DEBUG
-
-extension ResourceEditDetailsDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceEditDetailsDSV.init(id:type:parentFolderID:name:url:username:description:),
-      Resource.ID
-        .randomGenerator(using: randomnessGenerator),
-      ResourceTypeDSV
-        .randomGenerator(using: randomnessGenerator),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomResourceName(using: randomnessGenerator),
-      Generator<String>
-        .randomURL(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomEmail(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomLongText(using: randomnessGenerator)
-        .optional(using: randomnessGenerator)
-    )
-  }
-}
-#endif

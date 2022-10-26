@@ -45,7 +45,7 @@ final class SplashScreenTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \Session.pendingAuthorization,
@@ -66,7 +66,7 @@ final class SplashScreenTests: MainActorTestCase {
     )
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.valid])
+      with: always([Account.mock_ada])
     )
   }
 
@@ -119,14 +119,14 @@ final class SplashScreenTests: MainActorTestCase {
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withAccount_andNotAuthorized() async throws {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.valid])
+      with: always([Account.mock_ada])
     )
     features.patch(
       \Session.currentAccount,
       with: alwaysThrow(SessionMissing.error())
     )
 
-    let controller: SplashScreenController = try await testController(context: Account.valid)
+    let controller: SplashScreenController = try await testController(context: Account.mock_ada)
 
     var result: SplashScreenController.Destination?
 
@@ -139,14 +139,14 @@ final class SplashScreenTests: MainActorTestCase {
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
-    XCTAssertEqual(result, .accountSelection(Account.valid, message: nil))
+    XCTAssertEqual(result, .accountSelection(Account.mock_ada, message: nil))
   }
 
   func test_navigateToAccountSelection_whenStoredAccountsPresent_withoutLastUsedAccount_andNotAuthorized() async throws
   {
     features.patch(
       \Accounts.storedAccounts,
-      with: always([Account.valid])
+      with: always([Account.mock_ada])
     )
     features.patch(
       \Session.currentAccount,
@@ -171,7 +171,7 @@ final class SplashScreenTests: MainActorTestCase {
   func test_navigateToHome_whenAuthorized_andFeatureFlagsDownloadSucceeds() async throws {
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \SessionConfiguration.fetchIfNeeded,
@@ -196,7 +196,7 @@ final class SplashScreenTests: MainActorTestCase {
   func test_navigateToFeatureFlagsFetchError_whenAuthorized_andFeatureFlagsDownloadFails() async throws {
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \SessionConfiguration.fetchIfNeeded,
@@ -221,7 +221,7 @@ final class SplashScreenTests: MainActorTestCase {
   func test_navigationDestinationPublisher_publishesHome_whenRetryFetchConfigurationSucceeds() async throws {
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     let uncheckedSendableIndex: UncheckedSendable<Int> = .init(0)
     features.patch(
@@ -251,7 +251,7 @@ final class SplashScreenTests: MainActorTestCase {
   func test_navigationDestinationPublisher_doesNotPublish_whenRetryFetchConfigurationFails() async throws {
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \SessionConfiguration.fetchIfNeeded,

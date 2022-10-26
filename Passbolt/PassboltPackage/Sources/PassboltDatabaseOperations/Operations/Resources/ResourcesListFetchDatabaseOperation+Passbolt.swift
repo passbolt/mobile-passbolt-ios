@@ -183,7 +183,7 @@ extension ResourcesListFetchDatabaseOperation {
       }
 
       if input.favoriteOnly {
-        statement.append("AND resources.favorite IS NOT NULL ")
+        statement.append("AND resources.favoriteID IS NOT NULL ")
       }
       else {
         /* NOP */

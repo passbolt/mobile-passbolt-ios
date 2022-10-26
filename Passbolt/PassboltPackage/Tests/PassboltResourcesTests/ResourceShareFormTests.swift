@@ -42,7 +42,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   var resource: ResourceDetailsDSV!
 
   override func prepare() throws {
-    self.resource = .random()
+    self.resource = .mock_1
     use(UserGroups.placeholder)
     use(UsersPGPMessages.placeholder)
     use(ResourceShareNetworkOperation.placeholder)
@@ -79,12 +79,12 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_permissionsSequence_providesCurrentPermissionsInitially() async throws {
     let expectedResult: OrderedSet<ResourceShareFormPermission> = [
       .userGroup(
-        .random(),
-        type: .random()
+        .mock_1,
+        type: .owner
       ),
       .user(
-        .random(),
-        type: .random()
+        .mock_1,
+        type: .read
       ),
     ]
     self.resource.permissions = .init(
@@ -93,14 +93,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
           switch permission {
           case let .user(id, type):
             return .userToResource(
-              id: .random(),
+              id: .mock_1,
               userID: id,
               resourceID: resource.id,
               type: type
             )
           case let .userGroup(id, type):
             return .userGroupToResource(
-              id: .random(),
+              id: .mock_1,
               userGroupID: id,
               resourceID: resource.id,
               type: type
@@ -123,30 +123,30 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_permissionsSequence_updatesWhenPermissionsChange() async throws {
     let expectedResult: OrderedSet<ResourceShareFormPermission> = [
       .userGroup(
-        "existing-group",
+        .mock_1,
         type: .read
       ),
       .user(
-        "existing-user",
+        .mock_1,
         type: .write
       ),
       .user(
-        "new-user",
+        .mock_2,
         type: .owner
       ),
     ]
     self.resource.permissions = [
-      .userToResource(
-        id: .random(),
-        userID: "existing-user",
-        resourceID: resource.id,
-        type: .owner
-      ),
       .userGroupToResource(
-        id: .random(),
-        userGroupID: "existing-group",
+        id: .mock_1,
+        userGroupID: .mock_1,
         resourceID: resource.id,
         type: .read
+      ),
+      .userToResource(
+        id: .mock_2,
+        userID: .mock_1,
+        resourceID: resource.id,
+        type: .owner
       ),
     ]
 
@@ -155,13 +155,13 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     let permissionsSequence: AnyAsyncSequence<OrderedSet<ResourceShareFormPermission>> = feature.permissionsSequence()
 
     await feature
-      .setUserPermission("new-user", .owner)
+      .setUserPermission(.mock_2, .owner)
     await feature
-      .setUserPermission("existing-user", .write)
+      .setUserPermission(.mock_1, .write)
     await feature
-      .setUserGroupPermission("new-group", .write)
+      .setUserGroupPermission(.mock_2, .write)
     await feature
-      .deleteUserGroupPermission("new-group")
+      .deleteUserGroupPermission(.mock_2)
 
     await XCTAssertValue(
       equal: expectedResult
@@ -192,13 +192,13 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     ]
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
+        id: .mock_1,
         userID: "existing-user",
         resourceID: resource.id,
         type: .owner
       ),
       .userGroupToResource(
-        id: .random(),
+        id: .mock_1,
         userGroupID: "existing-group",
         resourceID: resource.id,
         type: .read
@@ -245,14 +245,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_fails_withoutOwnerPermission() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .read
       ),
       .userGroupToResource(
-        id: .random(),
-        userGroupID: .random(),
+        id: .mock_1,
+        userGroupID: .mock_1,
         resourceID: self.resource.id,
         type: .write
       ),
@@ -270,8 +270,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_fails_whenFetchingNewGroupMembersFailsWithNewPermissions() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       )
@@ -286,7 +286,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
-      .random(),
+      .mock_1,
       .read
     )
 
@@ -300,8 +300,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_fails_whenAccessingSecretFailsWithNewPermissions() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       )
@@ -309,7 +309,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \UserGroups.groupMembers,
       with: always(
-        [.random(), .random()]
+        [.mock_1, .mock_1]
       )
     )
     patch(
@@ -323,7 +323,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
-      .random(),
+      .mock_1,
       .read
     )
 
@@ -337,8 +337,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_fails_whenEncryptingSecretFailsWithNewPermissions() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       )
@@ -346,7 +346,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \UserGroups.groupMembers,
       with: always(
-        [.random(), .random()]
+        [.mock_1, .mock_1]
       )
     )
     patch(
@@ -369,7 +369,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
-      .random(),
+      .mock_1,
       .read
     )
 
@@ -383,8 +383,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_fails_whenNetworkRequestFails() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       )
@@ -392,7 +392,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \UserGroups.groupMembers,
       with: always(
-        [.random(), .random()]
+        [.mock_1, .mock_1]
       )
     )
     patch(
@@ -408,7 +408,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
       with: always(
-        [.random()]
+        [.mock_1]
       )
     )
     patch(
@@ -419,7 +419,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     let feature: ResourceShareForm = try await self.testedInstance(context: resource.id)
 
     await feature.setUserGroupPermission(
-      .random(),
+      .mock_1,
       .read
     )
 
@@ -433,14 +433,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_doesNotRequestSecret_withoutNewPermissions() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       ),
       .userGroupToResource(
-        id: .random(),
-        userGroupID: .random(),
+        id: .mock_1,
+        userGroupID: .mock_1,
         resourceID: self.resource.id,
         type: .write
       ),
@@ -478,8 +478,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_succeeds_whenAllOperationSucceed() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       )
@@ -487,7 +487,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \UserGroups.groupMembers,
       with: always(
-        [.random(), .random()]
+        [.mock_1, .mock_1]
       )
     )
     patch(
@@ -503,7 +503,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
     patch(
       \UsersPGPMessages.encryptMessageForUsers,
       with: always(
-        [.random()]
+        [.mock_1]
       )
     )
     patch(
@@ -521,8 +521,8 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_sendForm_unloadsFeature_whenSucceeds() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: .random(),
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       )
@@ -555,7 +555,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserPermission_addsNewPermission_whenGivenUserHasNoPermissionYet() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
+        id: .mock_1,
         userID: "existing-user-id",
         resourceID: self.resource.id,
         type: .owner
@@ -591,7 +591,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserPermission_replacesNewPermission_whenGivenUserHasNewPermission() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
+        id: .mock_1,
         userID: "existing-user-id",
         resourceID: self.resource.id,
         type: .owner
@@ -633,14 +633,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserPermission_doesNotChangePermission_whenGivenUserHasPermissionWithSameType() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: "existing-user-id",
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       ),
       .userToResource(
-        id: .random(),
-        userID: "unchanged-user-id",
+        id: .mock_2,
+        userID: .mock_2,
         resourceID: self.resource.id,
         type: .read
       ),
@@ -650,18 +650,18 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
     await feature
       .setUserPermission(
-        "unchanged-user-id",
+        .mock_2,
         .read
       )
 
     await XCTAssertValue(
       equal: [
         .user(
-          "existing-user-id",
+          .mock_1,
           type: .owner
         ),
         .user(
-          "unchanged-user-id",
+          .mock_2,
           type: .read
         ),
       ]
@@ -675,14 +675,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserPermission_updatesPermission_whenGivenUserHasPermissionWithDifferentType() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: "existing-user-id",
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       ),
       .userToResource(
-        id: .random(),
-        userID: "changed-user-id",
+        id: .mock_2,
+        userID: .mock_2,
         resourceID: self.resource.id,
         type: .read
       ),
@@ -692,18 +692,18 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
     await feature
       .setUserPermission(
-        "changed-user-id",
+        .mock_2,
         .write
       )
 
     await XCTAssertValue(
       equal: [
         .user(
-          "existing-user-id",
+          .mock_1,
           type: .owner
         ),
         .user(
-          "changed-user-id",
+          .mock_2,
           type: .write
         ),
       ]
@@ -717,7 +717,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_deleteUserPermission_removesPermission_whenGivenUserHasNewPermission() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
+        id: .mock_1,
         userID: "existing-user-id",
         resourceID: self.resource.id,
         type: .owner
@@ -754,14 +754,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_deleteUserPermission_removesPermission_whenGivenUserHasPermission() async throws {
     self.resource.permissions = [
       .userToResource(
-        id: .random(),
-        userID: "existing-user-id",
+        id: .mock_1,
+        userID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       ),
       .userToResource(
-        id: .random(),
-        userID: "deleted-user-id",
+        id: .mock_2,
+        userID: .mock_2,
         resourceID: self.resource.id,
         type: .read
       ),
@@ -771,13 +771,13 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
     await feature
       .deleteUserPermission(
-        "deleted-user-id"
+        .mock_2
       )
 
     await XCTAssertValue(
       equal: [
         .user(
-          "existing-user-id",
+          .mock_1,
           type: .owner
         )
       ]
@@ -791,7 +791,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserGroupPermission_addsNewPermission_whenGivenUserGroupHasNoPermissionYet() async throws {
     self.resource.permissions = [
       .userGroupToResource(
-        id: .random(),
+        id: .mock_1,
         userGroupID: "existing-user-group-id",
         resourceID: self.resource.id,
         type: .owner
@@ -827,7 +827,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserGroupPermission_replacesNewPermission_whenGivenUserGroupHasNewPermission() async throws {
     self.resource.permissions = [
       .userGroupToResource(
-        id: .random(),
+        id: .mock_1,
         userGroupID: "existing-user-group-id",
         resourceID: self.resource.id,
         type: .owner
@@ -869,13 +869,13 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserGroupPermission_doesNotChangePermission_whenGivenUserGroupHasPermissionWithSameType() async throws {
     self.resource.permissions = [
       .userGroupToResource(
-        id: .random(),
+        id: .mock_1,
         userGroupID: "existing-user-group-id",
         resourceID: self.resource.id,
         type: .owner
       ),
       .userGroupToResource(
-        id: .random(),
+        id: .mock_1,
         userGroupID: "unchanged-user-group-id",
         resourceID: self.resource.id,
         type: .read
@@ -911,14 +911,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_setUserGroupPermission_updatesPermission_whenGivenUserGroupHasPermissionWithDifferentType() async throws {
     self.resource.permissions = [
       .userGroupToResource(
-        id: .random(),
-        userGroupID: "existing-user-group-id",
+        id: .mock_1,
+        userGroupID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       ),
       .userGroupToResource(
-        id: .random(),
-        userGroupID: "changed-user-group-id",
+        id: .mock_2,
+        userGroupID: .mock_2,
         resourceID: self.resource.id,
         type: .read
       ),
@@ -928,18 +928,18 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
     await feature
       .setUserGroupPermission(
-        "changed-user-group-id",
+        .mock_2,
         .write
       )
 
     await XCTAssertValue(
       equal: [
         .userGroup(
-          "existing-user-group-id",
+          .mock_1,
           type: .owner
         ),
         .userGroup(
-          "changed-user-group-id",
+          .mock_2,
           type: .write
         ),
       ]
@@ -953,7 +953,7 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_deleteUserGroupPermission_removesPermission_whenGivenUserGroupHasNewPermission() async throws {
     self.resource.permissions = [
       .userGroupToResource(
-        id: .random(),
+        id: .mock_1,
         userGroupID: "existing-user-group-id",
         resourceID: self.resource.id,
         type: .owner
@@ -990,14 +990,14 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
   func test_deleteUserGroupPermission_removesPermission_whenGivenUserGroupHasPermission() async throws {
     self.resource.permissions = [
       .userGroupToResource(
-        id: .random(),
-        userGroupID: "existing-user-group-id",
+        id: .mock_1,
+        userGroupID: .mock_1,
         resourceID: self.resource.id,
         type: .owner
       ),
       .userGroupToResource(
-        id: .random(),
-        userGroupID: "deleted-user-group-id",
+        id: .mock_2,
+        userGroupID: .mock_2,
         resourceID: self.resource.id,
         type: .read
       ),
@@ -1007,13 +1007,13 @@ final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
 
     await feature
       .deleteUserGroupPermission(
-        "deleted-user-group-id"
+        .mock_2
       )
 
     await XCTAssertValue(
       equal: [
         .userGroup(
-          "existing-user-group-id",
+          .mock_1,
           type: .owner
         )
       ]

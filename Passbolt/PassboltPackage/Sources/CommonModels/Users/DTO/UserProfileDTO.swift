@@ -51,23 +51,3 @@ extension UserProfileDTO: Decodable {
     case avatar = "avatar"
   }
 }
-
-#if DEBUG
-
-extension UserProfileDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserProfileDTO.init(firstName:lastName:avatar:),
-      Generator<String>
-        .randomFirstName(using: randomnessGenerator),
-      Generator<String>
-        .randomLastName(using: randomnessGenerator),
-      UserProfileAvatarDTO
-        .randomGenerator(using: randomnessGenerator)
-    )
-  }
-}
-#endif

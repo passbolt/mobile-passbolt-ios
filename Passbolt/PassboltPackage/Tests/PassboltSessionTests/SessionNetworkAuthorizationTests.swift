@@ -72,7 +72,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -104,7 +104,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -144,7 +144,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -184,7 +184,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -223,7 +223,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       // ignore error
       try? await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -267,7 +267,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -315,7 +315,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -372,7 +372,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -429,7 +429,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -499,7 +499,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -573,7 +573,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -645,7 +645,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     withTestedInstance { (testedInstance: SessionNetworkAuthorization) in
       let result = try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -719,7 +719,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     withTestedInstance { (testedInstance: SessionNetworkAuthorization) in
       let result = try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -792,7 +792,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     withTestedInstance { (testedInstance: SessionNetworkAuthorization) in
       let result = try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -846,7 +846,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.createSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -865,7 +865,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.refreshSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -888,7 +888,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     withTestedInstance { (testedInstance: SessionNetworkAuthorization) in
       let result = try await testedInstance.refreshSessionTokens(
         (
-          account: .valid,
+          account: .mock_ada,
           passphrase: "passphrase",
           privateKey: "private_key"
         ),
@@ -909,7 +909,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       MockIssue.self
     ) { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.invalidateSessionTokens(
-        .valid,
+        .mock_ada,
         "refresh_token"
       )
     }
@@ -922,7 +922,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
     )
     withTestedInstanceNotThrows { (testedInstance: SessionNetworkAuthorization) in
       try await testedInstance.invalidateSessionTokens(
-        .valid,
+        .mock_ada,
         "refresh_token"
       )
     }

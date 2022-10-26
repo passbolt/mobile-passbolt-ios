@@ -21,8 +21,10 @@
 // @since         v1.0
 //
 
+import NetworkOperations
 import Resources
 import Session
+import SessionData
 
 // MARK: - Implementation
 
@@ -33,6 +35,10 @@ extension ResourceFolderEditForm {
     context: Context,
     cancellables: Cancellables
   ) async throws -> Self {
+    let currentUserID: User.ID = try await features.instance(of: Session.self).currentAccount().userID
+    let sessionData: SessionData = try await features.instance()
+    let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try await features.instance()
+    let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try await features.instance()
 
     let nameValidator: Validator<String> = zip(
       .nonEmpty(
@@ -64,18 +70,18 @@ extension ResourceFolderEditForm {
 
     @Sendable func validate(
       form: inout ResourceFolderEditFormState
-    ) -> Bool {
+    ) -> ResourceFolderEditFormState {
       form.name = nameValidator.validate(form.name.value)
       form.permissions = permissionsValidator.validate(form.permissions.value)
 
-      return form.isValid
+      return form
     }
 
     let initialFormState: ResourceFolderEditFormState
     switch context {
     case .create(.none):
       let currentUserID: User.ID =
-        try await features
+      try await features
         .instance(
           of: Session.self
         )
@@ -104,9 +110,42 @@ extension ResourceFolderEditForm {
 
       initialFormState = .init(
         name: .valid(""),
-        location: .valid(.init()),
+        location: .valid(
+          enclosingFolderDetails.location
+            .map { (item: ResourceFolderLocationItemDSV) -> ResourceFolderLocationItem in
+              ResourceFolderLocationItem(
+                folderID: item.folderID,
+                folderName: item.folderName
+              )
+            }
+          + [
+            ResourceFolderLocationItem(
+              folderID: enclosingFolderDetails.id,
+              folderName: enclosingFolderDetails.name
+            )
+          ]
+        ),
         permissions: .valid(
-          enclosingFolderDetails.permissions
+          enclosingFolderDetails
+            .permissions
+            .map { (permission: ResourceFolderPermissionDSV) -> ResourceFolderPermissionDSV in
+              switch permission {
+              case let .user(id, type, _):
+                return .user(
+                  id: id,
+                  type: type,
+                  permissionID: .none
+                )
+
+              case let .userGroup(id, type, _):
+                return .userGroup(
+                  id: id,
+                  type: type,
+                  permissionID: .none
+                )
+              }
+            }
+            .asOrderedSet()
         )
       )
 
@@ -118,7 +157,15 @@ extension ResourceFolderEditForm {
 
       initialFormState = .init(
         name: .valid(folderDetails.name),
-        location: .valid(.init()),
+        location: .valid(
+          folderDetails.location
+            .map { (item: ResourceFolderLocationItemDSV) -> ResourceFolderLocationItem in
+              ResourceFolderLocationItem(
+                folderID: item.folderID,
+                folderName: item.folderName
+              )
+            }
+        ),
         permissions: .valid(
           folderDetails.permissions
         )
@@ -138,8 +185,9 @@ extension ResourceFolderEditForm {
     }
 
     @Sendable func sendForm() async throws {
-      let formValid: Bool = formState.update(validate(form:))
-      guard formValid
+      let formState: ResourceFolderEditFormState = formState.update(validate(form:))
+
+      guard formState.isValid
       else {
         throw InvalidForm.error(
           displayable: .localized(
@@ -147,10 +195,96 @@ extension ResourceFolderEditForm {
           )
         )
       }
-      #warning("TODO: MOB-615")
-      throw
+
+      switch context {
+      case let .create(containingFolderID):
+        let createdFolderResult: ResourceFolderCreateNetworkOperationResult =
+        try await resourceFolderCreateNetworkOperation
+          .execute(
+            .init(
+              name: formState.name.value,
+              parentFolderID: containingFolderID
+            )
+          )
+
+        let newPermissions: OrderedSet<NewPermissionDTO> = formState.permissions.value
+          .compactMap { (permission: ResourceFolderPermissionDSV) -> NewPermissionDTO? in
+            switch permission {
+            case let .user(id, type, _):
+              guard id != currentUserID
+              else { return .none }
+              return .userToFolder(
+                userID: id,
+                folderID: createdFolderResult.resourceFolderID,
+                type: type
+              )
+            case let .userGroup(id, type, _):
+              return .userGroupToFolder(
+                userGroupID: id,
+                folderID: createdFolderResult.resourceFolderID,
+                type: type
+              )
+            }
+          }
+          .asOrderedSet()
+
+        let updatedPermissions: OrderedSet<PermissionDTO> = formState.permissions.value
+          .compactMap { (permission: ResourceFolderPermissionDSV) -> PermissionDTO? in
+            if case .user(currentUserID, let type, _) = permission, type != .owner {
+              return .userToFolder(
+                id: createdFolderResult.ownerPermissionID,
+                userID: currentUserID,
+                folderID: createdFolderResult.resourceFolderID,
+                type: type
+              )
+            } else {
+              return .none
+            }
+          }
+          .asOrderedSet()
+
+        let deletedPermissions: OrderedSet<PermissionDTO>
+        if !formState.permissions.value.contains(where: { (permission: ResourceFolderPermissionDSV) -> Bool in
+          if case .user(currentUserID, _, _) = permission {
+            return true
+          }
+          else {
+            return false
+          }
+        }) {
+          deletedPermissions = [
+            .userToFolder(
+              id: createdFolderResult.ownerPermissionID,
+              userID: currentUserID,
+              folderID: createdFolderResult.resourceFolderID,
+              type: .owner
+            )
+          ]
+        }
+        else {
+          deletedPermissions = .init()
+        }
+        // if shared or different permission
+        if !newPermissions.isEmpty || !updatedPermissions.isEmpty || !deletedPermissions.isEmpty {
+          try await resourceFolderShareNetworkOperation.execute(
+            .init(
+              resourceFolderID: createdFolderResult.resourceFolderID,
+              body: .init(
+                newPermissions: newPermissions,
+                updatedPermissions: updatedPermissions,
+                deletedPermissions: deletedPermissions
+              )
+            )
+          )
+        }  // else private owned
+
+      case .modify:
+        throw
         Unimplemented
-        .error()
+          .error()
+      }
+
+      try await sessionData.refreshIfNeeded()
     }
 
     return Self(

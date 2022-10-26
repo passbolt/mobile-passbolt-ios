@@ -57,17 +57,3 @@ extension UserReferenceDTO: Decodable {
     case id = "id"
   }
 }
-
-#if DEBUG
-
-extension UserReferenceDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    User.ID
-      .randomGenerator(using: randomnessGenerator)
-      .map(Self.init(id:))
-  }
-}
-#endif

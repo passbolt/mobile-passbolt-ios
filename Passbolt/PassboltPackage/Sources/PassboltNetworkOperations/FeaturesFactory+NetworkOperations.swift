@@ -50,5 +50,7 @@ extension FeatureFactory {
     self.usePassboltYubiKeyAuthorizationNetworkOperation()
     self.usePassboltResourceFavoriteDeleteNetworkOperation()
     self.usePassboltResourceFavoriteAddNetworkOperation()
+    self.usePassboltResourceFolderCreateNetworkOperation()
+    self.usePassboltResourceFolderShareNetworkOperation()
   }
 }

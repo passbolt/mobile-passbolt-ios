@@ -38,23 +38,3 @@ public struct UserPublicKeyDSV {
 }
 
 extension UserPublicKeyDSV: DSV {}
-
-#if DEBUG
-
-extension UserPublicKeyDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserPublicKeyDSV
-        .init(userID:publicKey:),
-      User.ID
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomArmoredPGPPublicKey(using: randomnessGenerator)
-        .map(ArmoredPGPPublicKey.init(rawValue:))
-    )
-  }
-}
-#endif

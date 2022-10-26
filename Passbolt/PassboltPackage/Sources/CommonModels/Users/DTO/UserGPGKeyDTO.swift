@@ -47,23 +47,3 @@ extension UserGPGKeyDTO: Decodable {
     case fingerprint = "fingerprint"
   }
 }
-
-#if DEBUG
-
-extension UserGPGKeyDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserGPGKeyDTO.init(armoredKey:fingerprint:),
-      Generator<String>
-        .randomArmoredPGPPublicKey(using: randomnessGenerator)
-        .map(ArmoredPGPPublicKey.init(rawValue:)),
-      Generator<String>
-        .randomKeyFingerprint(using: randomnessGenerator)
-        .map(Fingerprint.init(rawValue:))
-    )
-  }
-}
-#endif

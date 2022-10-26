@@ -73,12 +73,12 @@ final class FoldersExplorerControllerTests: MainActorTestCase {
     features
       .patch(
         \Session.currentAccount,
-        with: always(Account.valid)
+        with: always(Account.mock_ada)
       )
     features
       .patch(
         \AccountDetails.avatarImage,
-        context: Account.valid,
+        context: Account.mock_ada,
         with: always(.init())
       )
   }

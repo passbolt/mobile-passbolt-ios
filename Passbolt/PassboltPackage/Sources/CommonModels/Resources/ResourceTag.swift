@@ -44,35 +44,3 @@ extension ResourceTag.ID {
       .isValid
   }
 }
-
-#if DEBUG
-
-// cannot conform to RandomlyGenerated
-extension ResourceTag.ID {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    UUID
-      .randomGenerator(using: randomnessGenerator)
-      .map(\.uuidString)
-      .map(Self.init(rawValue:))
-  }
-}
-
-// cannot conform to RandomlyGenerated
-extension ResourceTag.Slug {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator = .sharedDebugRandomSource
-  ) -> Generator<Self> {
-    [
-      "tagSlug"
-    ]
-    .randomNonEmptyElementGenerator(
-      using: randomnessGenerator
-    )
-    .map(Self.init(rawValue:))
-  }
-}
-#endif

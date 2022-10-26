@@ -217,9 +217,7 @@ internal struct SearchView_Previews: PreviewProvider {
       ),
       rightAccessory: {
         UserAvatarView(
-          imageData: Generator<Data?>
-            .randomAvatarImage()
-            .next()
+          imageData: .none
         )
         .padding(4)
       }

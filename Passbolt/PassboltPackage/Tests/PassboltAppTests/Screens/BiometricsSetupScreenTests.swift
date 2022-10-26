@@ -40,16 +40,16 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     preferencesUpdates = .init()
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \AccountPreferences.updates,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: preferencesUpdates.updatesSequence
     )
     features.patch(
       \AccountInitialSetup.completeSetup,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(Void())
     )
   }
@@ -123,7 +123,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   func test_destinationPresentationPublisher_publishesFinish_WhenSetupSucceed_andExtensionIsEnabled() async throws {
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(Void())
     )
     features.patch(
@@ -152,7 +152,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   {
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(Void())
     )
     features.patch(
@@ -184,7 +184,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
     )
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: { (store) async throws in
         uncheckedSendableResult.variable = store
       }
@@ -209,7 +209,7 @@ final class BiometricsSetupScreenTests: MainActorTestCase {
   func test_setupBiometrics_fails_whenBiometricsEnableFails() async throws {
     features.patch(
       \AccountPreferences.storePassphrase,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
     features.patch(

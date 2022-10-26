@@ -47,18 +47,3 @@ extension ResourceFieldValueType: RawRepresentable {
 }
 
 extension ResourceFieldValueType: Hashable {}
-
-#if DEBUG
-
-extension ResourceFieldValueType: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    [
-      Self.string
-    ]
-    .randomNonEmptyElementGenerator(using: randomnessGenerator)
-  }
-}
-#endif

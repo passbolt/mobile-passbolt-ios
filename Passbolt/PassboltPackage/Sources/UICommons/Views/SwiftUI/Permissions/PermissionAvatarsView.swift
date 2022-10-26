@@ -72,13 +72,17 @@ internal struct PermissionAvatarsView_Previews: PreviewProvider {
   internal static var previews: some View {
     VStack(spacing: 8) {
       PermissionAvatarsView(
-        items: (0...3)
-          .map { _ in .random() }
+        items: [
+          .user("mock_1", avatarImage: { .none }),
+          .userGroup("mock_1"),
+          .user("mock_2", avatarImage: { .none }),
+        ]
       )
 
       PermissionAvatarsView(
-        items: (0...20)
-          .map { _ in .random() }
+        items: (0..<20).map { idx in
+          .userGroup("mock_\(idx)")
+        }
       )
     }
     .padding(8)

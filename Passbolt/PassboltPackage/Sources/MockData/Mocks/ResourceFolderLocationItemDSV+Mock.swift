@@ -23,29 +23,15 @@
 
 import CommonModels
 
-extension AccountWithProfile {
+extension ResourceFolderLocationItemDSV {
 
-  public static let valid: Self = .init(
-    localID: .init(rawValue: UUID.test.uuidString),
-    userID: .init(rawValue: UUID.test.uuidString),
-    domain: "https://passbolt.dev",
-    label: "firstName lastName",
-    username: "username",
-    firstName: "firstName",
-    lastName: "lastName",
-    avatarImageURL: "avatarImagePath",
-    fingerprint: "FINGERPRINT"
+  public static var mock_1: Self = .init(
+    folderID: .mock_1,
+    folderName: "mock_1"
   )
 
-  public static let validAlternative: Self = .init(
-    localID: .init(rawValue: UUID.testAlt.uuidString),
-    userID: .init(rawValue: UUID.testAlt.uuidString),
-    domain: "https://alt.passbolt.dev",
-    label: "firstNameAlt lastNameAlt",
-    username: "usernameAlt",
-    firstName: "firstNameAlt",
-    lastName: "lastNameAlt",
-    avatarImageURL: "avatarImagePathAlt",
-    fingerprint: "FINGERPRINT_ALT"
+  public static var mock_2: Self = .init(
+    folderID: .mock_2,
+    folderName: "mock_2"
   )
 }

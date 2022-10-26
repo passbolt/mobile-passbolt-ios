@@ -43,7 +43,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_decryptMessage_returnsDecryptedAndVerifiedMessage_whenAllOperationsSucceed_withPublicKey() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -66,7 +66,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_decryptMessage_returnsDecryptedMessage_whenAllOperationsSucceed_withoutPublicKey() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -89,7 +89,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_decryptMessage_fails_whenDecryptFails() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -112,7 +112,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_decryptMessage_fails_whenLoadingPrivateKeyFails() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -131,7 +131,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_decryptMessage_fails_whenAccessingPassphraseFails() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -157,7 +157,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_encryptAndSignMessage_returnsEncryptedMessage_whenAllOperationsSucceed() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -180,7 +180,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_encryptAndSignMessage_fails_whenEncryptAndSignFails() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -208,7 +208,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_encryptAndSignMessage_fails_whenLoadingPrivateKeyFails() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -227,7 +227,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
   func test_encryptAndSignMessage_fails_whenAccessingPassphraseFails() {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,

@@ -21,17 +21,20 @@
 // @since         v1.0
 //
 
-extension Int {
+import CommonModels
 
-  public static func randomGenerator(
-    min: Int = .min,
-    max: Int = .max,
-    using randomnessGenerator: Commons.RandomnessGenerator
-  ) -> Commons.Generator<Self> {
-    .always(
-      randomnessGenerator.withRNG { rng in
-        Self.random(in: min...max, using: &rng)
-      }
-    )
-  }
+extension Resource.ID {
+
+  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+
+  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
+
+  public static let mock_3: Self = .init(rawValue: UUID().uuidString)
+}
+
+extension Resource.FavoriteID {
+
+  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
+
+  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
 }

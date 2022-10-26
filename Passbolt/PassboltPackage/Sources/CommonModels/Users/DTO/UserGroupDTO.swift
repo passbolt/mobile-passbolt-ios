@@ -65,26 +65,3 @@ extension UserGroupDTO: Decodable {
     case userReferences = "users"
   }
 }
-
-#if DEBUG
-
-extension UserGroupDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserGroupDTO.init(id:name:userReferences:),
-      UserGroup.ID.randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomUserGroupName(using: randomnessGenerator),
-      UserReferenceDTO
-        .randomGenerator(using: randomnessGenerator)
-        .array(
-          withCountIn: (0..<10),
-          using: randomnessGenerator
-        )
-    )
-  }
-}
-#endif

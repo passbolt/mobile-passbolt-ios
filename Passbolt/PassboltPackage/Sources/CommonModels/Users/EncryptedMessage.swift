@@ -36,23 +36,3 @@ public struct EncryptedMessage {
     self.message = message
   }
 }
-
-#if DEBUG
-
-extension EncryptedMessage: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: EncryptedMessage
-        .init(recipient:message:),
-      User.ID
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomArmoredPGPMessage(using: randomnessGenerator)
-        .map(ArmoredPGPMessage.init(rawValue:))
-    )
-  }
-}
-#endif

@@ -54,30 +54,3 @@ public struct ResourceFolderListItemDSV {
 extension ResourceFolderListItemDSV: DSV {}
 
 extension ResourceFolderListItemDSV: Hashable {}
-
-#if DEBUG
-
-extension ResourceFolderListItemDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceFolderListItemDSV.init(id:name:permissionType:shared:parentFolderID:contentCount:),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomFolderName(using: randomnessGenerator),
-      PermissionTypeDSV
-        .randomGenerator(using: randomnessGenerator),
-      Bool
-        .randomGenerator(using: randomnessGenerator),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Int
-        .randomGenerator(min: 0, max: 10, using: randomnessGenerator)
-    )
-  }
-}
-#endif

@@ -110,38 +110,23 @@ extension SelectionListView.Item: Identifiable {}
 
 #if DEBUG
 
-extension SelectionListView.Item: RandomlyGenerated
-where ItemID == AnyHashable {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: Self.init(id:iconName:title:),
-      UUID
-        .randomGenerator(using: randomnessGenerator)
-        .map { $0 as AnyHashable },
-      [
-        ImageNameConstant.permissionReadIcon,
-        .permissionReadIcon,
-        .permissionOwnIcon,
-      ]
-      .randomNonEmptyElementGenerator(using: randomnessGenerator),
-      UUID
-        .randomGenerator(using: randomnessGenerator)
-        .map(\.uuidString)
-        .map(DisplayableString.raw)
-    )
-  }
-}
-
 internal struct SelectionListView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     let allItems: Array<SelectionListView<AnyHashable>.Item> =
-      .random(
-        countIn: 5..<7
-      )
+      [
+        .init(
+          id: UUID(),
+          iconName: .permissionReadIcon,
+          title: "Read"
+        ),
+        .init(
+          id: UUID(),
+          iconName: .permissionOwnIcon,
+          title: "Own"
+        ),
+      ]
+
     SelectionListView(
       items: allItems,
       selectedItems: [allItems.randomElement()!.id],

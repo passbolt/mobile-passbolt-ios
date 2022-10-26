@@ -50,26 +50,3 @@ public struct UserDetailsDSV {
 }
 
 extension UserDetailsDSV: DSV {}
-
-#if DEBUG
-
-extension UserDetailsDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserDetailsDSV.init(id:username:firstName:lastName:fingerprint:avatarImageURL:),
-      User.ID.randomGenerator(using: randomnessGenerator),
-      Generator<String>.randomEmail(using: randomnessGenerator),
-      Generator<String>.randomFirstName(using: randomnessGenerator),
-      Generator<String>.randomLastName(using: randomnessGenerator),
-      Generator<String>
-        .randomKeyFingerprint(using: randomnessGenerator)
-        .map(Fingerprint.init(rawValue:)),
-      Generator<String>.randomURL(using: randomnessGenerator)
-        .map(URLString.init(rawValue:))
-    )
-  }
-}
-#endif

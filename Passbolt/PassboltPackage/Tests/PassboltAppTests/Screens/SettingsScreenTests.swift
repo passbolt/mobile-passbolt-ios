@@ -49,27 +49,27 @@ final class SettingsScreenTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.valid,
-      with: always(AccountWithProfile.valid)
+      context: Account.mock_ada,
+      with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(.init())
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: preferencesUpdates.updatesSequence
     )
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(false)
     )
   }
@@ -109,7 +109,7 @@ final class SettingsScreenTests: MainActorTestCase {
   {
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(true)
     )
     features.patch(
@@ -168,7 +168,7 @@ final class SettingsScreenTests: MainActorTestCase {
   {
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(true)
     )
     features.patch(
@@ -225,7 +225,7 @@ final class SettingsScreenTests: MainActorTestCase {
     var enabled: Bool = false
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(enabled)
     )
     features.patch(
@@ -258,7 +258,7 @@ final class SettingsScreenTests: MainActorTestCase {
     var enabled: Bool = true
     features.patch(
       \AccountPreferences.isPassphraseStored,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(enabled)
     )
     features.patch(

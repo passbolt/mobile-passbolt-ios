@@ -95,29 +95,3 @@ extension UserDTO: Decodable {
     case gpgKey = "gpgkey"
   }
 }
-
-#if DEBUG
-
-extension UserDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserDTO.init(id:active:deleted:username:profile:gpgKey:),
-      User.ID
-        .randomGenerator(using: randomnessGenerator),
-      Bool
-        .randomGenerator(using: randomnessGenerator),
-      Bool
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomEmail(using: randomnessGenerator),
-      UserProfileDTO
-        .randomGenerator(using: randomnessGenerator),
-      UserGPGKeyDTO
-        .randomGenerator(using: randomnessGenerator)
-    )
-  }
-}
-#endif

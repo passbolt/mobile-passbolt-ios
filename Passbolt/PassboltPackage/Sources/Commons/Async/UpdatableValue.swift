@@ -118,5 +118,15 @@ extension UpdatableValue {
       update: unimplemented()
     )
   }
+
+  public static func always(
+    _ value: Value
+  ) -> Self {
+    .init(
+      initial: value,
+      updatesSequence: .placeholder,
+      update: { value }
+    )
+  }
   #endif
 }

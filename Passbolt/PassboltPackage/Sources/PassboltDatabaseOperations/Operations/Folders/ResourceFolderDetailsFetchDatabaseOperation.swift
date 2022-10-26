@@ -56,6 +56,47 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           arguments: input
         )
 
+      let selectResourceFolderLocationStatement: SQLiteStatement =
+        .statement(
+          """
+          WITH RECURSIVE
+            location(
+              id,
+              name,
+              parentID
+            )
+          AS
+          (
+            SELECT
+              resourceFolders.id AS id,
+              resourceFolders.name AS name,
+              resourceFolders.parentFolderID AS parentID
+            FROM
+              resourceFolders
+            WHERE
+              resourceFolders.id == ?
+
+            UNION
+
+            SELECT
+              resourceFolders.id AS id,
+              resourceFolders.name AS name,
+              resourceFolders.parentFolderID AS parentID
+            FROM
+              resourceFolders,
+              location
+            WHERE
+              resourceFolders.id == location.parentID
+          )
+          SELECT
+            location.id,
+            location.name AS name
+          FROM
+            location;
+          """,
+          arguments: input
+        )
+
       let selectFolderUsersPermissionsStatement: SQLiteStatement =
         .statement(
           """
@@ -113,7 +154,6 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             dataRow in
             guard
               let userID: User.ID = dataRow.userID.flatMap(User.ID.init(rawValue:)),
-              let folderID: ResourceFolder.ID = dataRow.folderID.flatMap(ResourceFolder.ID.init(rawValue:)),
               let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
               let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
@@ -138,7 +178,6 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           ) { dataRow in
             guard
               let userGroupID: UserGroup.ID = dataRow.userGroupID.flatMap(UserGroup.ID.init(rawValue:)),
-              let folderID: ResourceFolder.ID = dataRow.folderID.flatMap(ResourceFolder.ID.init(rawValue:)),
               let permissionType: PermissionTypeDSV = dataRow.permissionType.flatMap(PermissionTypeDSV.init(rawValue:)),
               let permissionID: Permission.ID = dataRow.permissionID.flatMap(Permission.ID.init(rawValue:))
             else {
@@ -158,12 +197,35 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             )
           }
 
+          let location: Array<ResourceFolderLocationItemDSV> = try connection.fetch(
+            using: selectResourceFolderLocationStatement
+          ) { dataRow in
+            guard
+              let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+              let name: String = dataRow.name
+            else {
+              throw
+                DatabaseIssue
+                .error(
+                  underlyingError:
+                    DatabaseDataInvalid
+                    .error(for: ResourceFolderLocationItemDSV.self)
+                )
+            }
+
+            return ResourceFolderLocationItemDSV(
+              folderID: id,
+              folderName: name
+            )
+          }
+
           return ResourceFolderDetailsDSV(
             id: id,
             name: name,
             permissionType: permissionType,
             shared: shared,
             parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+            location: location,
             permissions: OrderedSet(usersPermissions + userGroupsPermissions)
           )
         }

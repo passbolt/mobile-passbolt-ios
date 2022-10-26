@@ -46,25 +46,3 @@ public struct ResourceTagListItemDSV {
 extension ResourceTagListItemDSV: DSV {}
 
 extension ResourceTagListItemDSV: Hashable {}
-
-#if DEBUG
-
-extension ResourceTagListItemDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceTagListItemDSV.init(id:slug:shared:contentCount:),
-      ResourceTag.ID
-        .randomGenerator(using: randomnessGenerator),
-      ResourceTag.Slug
-        .randomGenerator(using: randomnessGenerator),
-      Bool
-        .randomGenerator(using: randomnessGenerator),
-      Int
-        .randomGenerator(min: 0, max: 10, using: randomnessGenerator)
-    )
-  }
-}
-#endif

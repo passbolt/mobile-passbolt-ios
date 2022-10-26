@@ -41,11 +41,11 @@ final class BiometricsInfoScreenTests: MainActorTestCase {
     )
     features.patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     features.patch(
       \AccountInitialSetup.completeSetup,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(Void())
     )
   }

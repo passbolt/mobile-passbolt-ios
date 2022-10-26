@@ -27,6 +27,7 @@
 @_exported import Database
 @_exported import DatabaseOperations
 @_exported import Foundation
+@_exported import MockData
 @_exported import Network
 @_exported import NetworkOperations
 @_exported import OSFeatures

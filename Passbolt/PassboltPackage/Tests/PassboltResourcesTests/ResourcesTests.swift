@@ -41,7 +41,7 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     updatesSequence = .init()
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,
@@ -220,13 +220,6 @@ final class ResourcesTests: LoadableFeatureTestCase<Resources> {
     XCTAssertNotNil(result)
   }
 }
-
-private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  domain: "https://passbolt.dev",
-  userID: "USER_ID",
-  fingerprint: "FINGERPRINT"
-)
 
 private let testFilter: ResourcesFilter = .init(
   sorting: .nameAlphabetically,

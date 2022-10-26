@@ -375,7 +375,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   func test_sendForm_fails_whenEncryptMessageForUserFails() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
@@ -412,7 +412,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   func test_sendForm_fails_whenCreateResourceRequestFails() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
@@ -460,7 +460,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   func test_sendForm_succeeds_whenAllOperationsSucceed() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
@@ -541,7 +541,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.random())
+      with: always(.mock_default)
     )
 
     let feature: ResourceEditForm = try await testedInstance()
@@ -569,7 +569,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(.random())
+      with: always(.mock_default)
     )
     patch(
       \Resources.loadResourceSecret,
@@ -601,11 +601,11 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   func test_editResource_updatesResourceType_whenLoadingResourceDataSucceeds() async throws {
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([resourceEditDetails.type, defaultResourceType])
+      with: always([ResourceEditDetailsDSV.mock_default.type, defaultResourceType])
     )
     patch(
       \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(resourceEditDetails)
+      with: always(.mock_default)
     )
     patch(
       \Resources.loadResourceSecret,
@@ -627,7 +627,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(resourceEditDetails.id)
+      .editResource(.mock_1)
       .asAsyncValue()
 
     let result: ResourceType.ID? =
@@ -636,7 +636,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       .asAsyncValue()
       .id
 
-    XCTAssertEqual(result, resourceEditDetails.type.id)
+    XCTAssertEqual(result, .mock_1)
   }
 
   func test_editResource_updatesResourceFieldValues_whenLoadingResourceDataSucceeds() async throws {
@@ -646,7 +646,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(resourceEditDetails)
+      with: always(.mock_default)
     )
     patch(
       \Resources.loadResourceSecret,
@@ -668,7 +668,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(resourceEditDetails.id)
+      .editResource(.mock_1)
       .asAsyncValue()
 
     // temporary wait for detached tasks
@@ -680,21 +680,21 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       .asAsyncValue()
       .value
 
-    XCTAssertEqual(result?.stringValue, resourceEditDetails.name)
+    XCTAssertEqual(result?.stringValue, ResourceEditDetailsDSV.mock_default.name)
   }
 
   func test_sendForm_updatesResource_whenEditingResource() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([resourceEditDetails.type, defaultResourceType])
+      with: always([ResourceEditDetailsDSV.mock_default.type, defaultResourceType])
     )
     patch(
       \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(resourceEditDetails)
+      with: always(.mock_default)
     )
     patch(
       \Resources.loadResourceSecret,
@@ -739,7 +739,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(resourceEditDetails.id)
+      .editResource(.mock_1)
       .asAsyncValue()
 
     do {
@@ -758,15 +758,15 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
   func test_sendForm_fails_whenUpdateResourceRequestFails() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([resourceEditDetails.type])
+      with: always([ResourceEditDetailsDSV.mock_default.type])
     )
     patch(
       \ResourceEditDetailsFetchDatabaseOperation.execute,
-      with: always(resourceEditDetails)
+      with: always(.mock_default)
     )
     patch(
       \Resources.loadResourceSecret,
@@ -785,7 +785,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
       \UsersPGPMessages.encryptMessageForResourceUsers,
       with: always([
         .init(
-          recipient: "USER_ID",
+          recipient: .mock_ada,
           message: "encrypted-message"
         )
       ])
@@ -801,7 +801,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
 
     try? await feature
-      .editResource(resourceEditDetails.id)
+      .editResource(.mock_1)
       .asAsyncValue()
 
     var result: Error?
@@ -846,34 +846,4 @@ private let defaultResourceType: ResourceTypeDTO = .init(
     .init(name: .password, valueType: .string, required: true, encrypted: true, maxLength: nil),
     .init(name: .description, valueType: .string, required: false, encrypted: true, maxLength: nil),
   ]
-)
-
-private let validAccount: Account = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  domain: "https://passbolt.dev",
-  userID: "USER_ID",
-  fingerprint: "FINGERPRINT"
-)
-
-private let resourceEditDetails: ResourceEditDetailsDSV = .init(
-  id: "resource-id",
-  type: .init(
-    id: "resource-type-id",
-    slug: .defaultSlug,
-    name: "default",
-    fields: [
-      .init(
-        name: .name,
-        valueType: .string,
-        required: true,
-        encrypted: false,
-        maxLength: .none
-      )
-    ]
-  ),
-  parentFolderID: .none,
-  name: "resource",
-  url: .none,
-  username: .none,
-  description: .none
 )

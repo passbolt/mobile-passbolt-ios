@@ -97,32 +97,3 @@ extension ResourceFolderDTO: Decodable {
 }
 
 extension ResourceFolderDTO: Hashable {}
-
-#if DEBUG
-
-extension ResourceFolderDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceFolderDTO.init(id:name:permissionType:shared:parentFolderID:permissions:),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator),
-      Generator<String>
-        .randomFolderName(using: randomnessGenerator),
-      PermissionTypeDTO
-        .randomGenerator(using: randomnessGenerator),
-      Bool
-        .randomGenerator(using: randomnessGenerator),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      PermissionDTO
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCount: 0)
-        .map { OrderedSet($0) }
-    )
-  }
-}
-#endif

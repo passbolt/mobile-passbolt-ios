@@ -39,23 +39,23 @@ final class HomeSearchControllerTests: MainActorTestCase {
   override func mainActorSetUp() {
     features.patch(
       \Session.currentAccount,
-      with: always(Account.valid)
+      with: always(Account.mock_ada)
     )
     features.usePlaceholder(for: HomePresentation.self)
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: detailsUpdates.updatesSequence
     )
     features.patch(
       \AccountDetails.profile,
-      context: Account.valid,
-      with: always(AccountWithProfile.valid)
+      context: Account.mock_ada,
+      with: always(AccountWithProfile.mock_ada)
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(.init())
     )
   }
@@ -115,7 +115,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
 
     controller.presentAccountMenu()
 
-    XCTAssertEqual(result, AccountWithProfile.valid)
+    XCTAssertEqual(result, AccountWithProfile.mock_ada)
   }
 
   func test_homePresentationMenuPresentationPublisher_doesNotPublish_initially() async throws {
@@ -201,7 +201,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
     let data: Data = .init([65, 66])
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(data)
     )
     let controller: HomeSearchController = try await testController(
@@ -219,7 +219,7 @@ final class HomeSearchControllerTests: MainActorTestCase {
   func test_avatarImagePublisher_fails_whenMediaDownloadFails() async throws {
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
 

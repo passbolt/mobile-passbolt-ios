@@ -23,19 +23,15 @@
 
 import CommonModels
 
-extension Account {
+extension URLString {
 
-  public static let valid: Self = .init(
-    localID: .init(rawValue: UUID.test.uuidString),
-    domain: "https://passbolt.dev",
-    userID: .init(rawValue: UUID.test.uuidString),
-    fingerprint: "FINGERPRINT"
-  )
+  public static let mock_passbolt: Self = .init(rawValue: "https://passbolt.com")
 
-  public static let validAlternative: Self = .init(
-    localID: .init(rawValue: UUID.testAlt.uuidString),
-    domain: "https://alt.passbolt.dev",
-    userID: .init(rawValue: UUID.testAlt.uuidString),
-    fingerprint: "FINGERPRINT_ALT"
-  )
+  public static let mock_passbolt_alt: Self = .init(rawValue: "https://passbolt.alt")
+
+  public static let mock_apple: Self = .init(rawValue: "https://apple.com")
+
+  public static let mock_avatar_ada: Self = .init(rawValue: "https://passbolt.com/image/ada.png")
+
+  public static let mock_avatar_frances: Self = .init(rawValue: "https://passbolt.com/image/frances.png")
 }

@@ -21,41 +21,13 @@
 // @since         v1.0
 //
 
-import struct Foundation.UUID
+import CommonModels
 
-#if DEBUG
+extension UserGroup.ID {
 
-extension UUID: RandomlyGenerated {
+  public static let mock_1: Self = .init(rawValue: UUID().uuidString)
 
-  // WARNING: this is not a proper UUID generation algorithm,
-  // it is meant to be used as a placeholder or for generating mocks
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: { (lower: UInt64, upper: UInt64) in
-        var bytes: Array<UInt8> = .init()
-        bytes.reserveCapacity(16)
+  public static let mock_2: Self = .init(rawValue: UUID().uuidString)
 
-        withUnsafeBytes(of: lower.bigEndian) { lowerBytes in
-          bytes.append(contentsOf: lowerBytes)
-        }
-        withUnsafeBytes(of: upper.bigEndian) { upperBytes in
-          bytes.append(contentsOf: upperBytes)
-        }
-
-        return UUID(
-          uuid: (
-            bytes[0], bytes[1], bytes[2], bytes[3],
-            bytes[4], bytes[5], bytes[6], bytes[7],
-            bytes[8], bytes[9], bytes[10], bytes[11],
-            bytes[12], bytes[13], bytes[14], bytes[15]
-          )
-        )
-      },
-      randomnessGenerator.map(\.rawValue),
-      randomnessGenerator.map(\.rawValue)
-    )
-  }
+  public static let mock_3: Self = .init(rawValue: UUID().uuidString)
 }
-#endif

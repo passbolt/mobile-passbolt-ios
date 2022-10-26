@@ -63,36 +63,3 @@ extension ResourceFolderPermissionDSV {
     }
   }
 }
-
-#if DEBUG
-
-extension ResourceFolderPermissionDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    Generator<ResourceFolderPermissionDSV>
-      .any(
-        of: zip(
-          with: ResourceFolderPermissionDSV.user(id:type:permissionID:),
-          User.ID
-            .randomGenerator(using: randomnessGenerator),
-          PermissionTypeDTO
-            .randomGenerator(using: randomnessGenerator),
-          Permission.ID
-            .randomGenerator(using: randomnessGenerator)
-        ),
-        zip(
-          with: ResourceFolderPermissionDSV.userGroup(id:type:permissionID:),
-          UserGroup.ID
-            .randomGenerator(using: randomnessGenerator),
-          PermissionTypeDTO
-            .randomGenerator(using: randomnessGenerator),
-          Permission.ID
-            .randomGenerator(using: randomnessGenerator)
-        ),
-        using: randomnessGenerator
-      )
-  }
-}
-#endif

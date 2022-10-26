@@ -44,7 +44,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_returnsSome_withActiveSessionWithPassphrase() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -63,7 +63,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_throws_whenOpeningConnectionFails() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -82,7 +82,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
   func test_connection_throws_withoutPassphrase() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.passphrase,
@@ -124,7 +124,7 @@ final class SessionDatabaseTests: LoadableFeatureTestCase<SessionDatabase> {
       with: always(.placeholder)
     )
 
-    self.account = Account.valid
+    self.account = Account.mock_ada
     withTestedInstanceReturnsSome { (testedInstance: SessionDatabase) in
       try await testedInstance.connection()
     }

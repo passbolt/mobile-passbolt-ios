@@ -55,7 +55,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_filteredUserGroups_producesEmptyList_whenDatabaseFetchingFail() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \ResourceUserGroupsListFetchDatabaseOperation.execute,
@@ -79,9 +79,15 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_filteredUserGroups_producesNonEmptyList_whenDatabaseFetchingSucceeds() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
-    let expectedResult: Array<ResourceUserGroupListItemDSV> = .random(countIn: 1..<5)
+    let expectedResult: Array<ResourceUserGroupListItemDSV> = [
+      .init(
+        id: .mock_1,
+        name: "mock_1",
+        contentCount: 1
+      )
+    ]
     patch(
       \ResourceUserGroupsListFetchDatabaseOperation.execute,
       with: always(expectedResult)
@@ -104,7 +110,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   func test_filteredUserGroups_producesUpdatedList_whenFiltersChange() async throws {
     patch(
       \Session.currentAccount,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     var expectedResult: Array<ResourceUserGroupListItemDSV> = []
     let filtersSequence: AsyncVariable<String> = .init(initial: "filter")
@@ -179,7 +185,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
   }
 
   func test_groupMembers_returnsList_whenDetailsAccessSucceeds() async throws {
-    let expectedResult: OrderedSet<UserDetailsDSV> = [.random()]
+    let expectedResult: OrderedSet<UserDetailsDSV> = [.mock_1]
     patch(
       \UserGroupDetails.details,
       context: "groupID",

@@ -55,25 +55,3 @@ extension UserGroupPermissionDetailsDSV {
     )
   }
 }
-
-#if DEBUG
-
-extension UserGroupPermissionDetailsDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: UserGroupPermissionDetailsDSV.init(id:name:permissionType:members:),
-      UserGroup.ID.randomGenerator(using: randomnessGenerator),
-      Generator<String>.randomUserGroupName(using: randomnessGenerator),
-      PermissionTypeDSV
-        .randomGenerator(using: randomnessGenerator),
-      UserDetailsDSV
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCountIn: 0..<10, using: randomnessGenerator)
-        .map(OrderedSet.init)
-    )
-  }
-}
-#endif

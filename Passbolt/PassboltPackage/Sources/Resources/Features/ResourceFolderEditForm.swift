@@ -66,6 +66,8 @@ public struct ResourceFolderEditFormState {
   }
 }
 
+extension ResourceFolderEditFormState: Hashable {}
+
 extension ResourceFolderEditForm: LoadableFeature {
 
   public enum Context: LoadableFeatureContext, Hashable {

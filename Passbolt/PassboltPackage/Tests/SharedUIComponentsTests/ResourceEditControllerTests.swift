@@ -442,4 +442,31 @@ final class ResourceEditControllerTests: MainActorTestCase {
   }
 }
 
-private let defaultResourceType: ResourceTypeDTO = .random()
+private let defaultResourceType: ResourceTypeDTO = .init(
+  id: .mock_1,
+  slug: .mock_1,
+  name: "Mock_1",
+  fields: [
+    .init(
+      name: .name,
+      valueType: .string,
+      required: true,
+      encrypted: false,
+      maxLength: 64
+    ),
+    .init(
+      name: .password,
+      valueType: .string,
+      required: true,
+      encrypted: true,
+      maxLength: .none
+    ),
+    .init(
+      name: .description,
+      valueType: .string,
+      required: false,
+      encrypted: false,
+      maxLength: .none
+    ),
+  ]
+)

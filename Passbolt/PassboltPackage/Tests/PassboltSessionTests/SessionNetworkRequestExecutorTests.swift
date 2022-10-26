@@ -54,7 +54,7 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
   func test_execute_throws_whenEnsuringAccessTokenThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.accessToken,
@@ -70,7 +70,7 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
   func test_execute_executesRequest_withValidSession() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.accessToken,
@@ -102,7 +102,7 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
   func test_execute_throws_whenRequestExecutionThrows() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.accessToken,
@@ -126,7 +126,7 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
   func test_execute_returnsResponse_whenRequestSucceeds() {
     patch(
       \SessionState.account,
-      with: always(.valid)
+      with: always(.mock_ada)
     )
     patch(
       \SessionStateEnsurance.accessToken,

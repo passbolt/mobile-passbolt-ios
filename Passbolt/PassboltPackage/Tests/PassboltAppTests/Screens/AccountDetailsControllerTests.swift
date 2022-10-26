@@ -39,28 +39,28 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     detailsUpdates = .init()
     features.patch(
       \AccountDetails.updates,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: detailsUpdates.updatesSequence
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: always(.init())
     )
     preferencesUpdates = .init()
     features.patch(
       \AccountPreferences.updates,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: preferencesUpdates.updatesSequence
     )
   }
 
   func test_currentAccountWithProfile_isEqualToProvidedInContext() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
-    XCTAssertEqual(controller.currentAccountWithProfile, AccountWithProfile.valid)
+    XCTAssertEqual(controller.currentAccountWithProfile, AccountWithProfile.mock_ada)
   }
 
   func test_currentAcountAvatarImagePublisher_usesAccountDetailsToRequestImage() async throws {
@@ -72,7 +72,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     )
     features.patch(
       \AccountDetails.avatarImage,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: { () async throws in
         uncheckedSendableResult.variable = Void()
         return .init()
@@ -80,7 +80,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     )
 
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     try await controller
@@ -92,7 +92,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_validatedAccountLabelPublisher_publishesInitialAccountLabel() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     var result: Validated<String>?
@@ -103,12 +103,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       }
       .store(in: cancellables)
 
-    XCTAssertEqual(result?.value, AccountWithProfile.valid.label)
+    XCTAssertEqual(result?.value, AccountWithProfile.mock_ada.label)
   }
 
   func test_validatedAccountLabelPublisher_publishesValidValueWhenLabelIsValid() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     var result: Validated<String>?
@@ -126,7 +126,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_validatedAccountLabelPublisher_publishesInvalidValueWhenLabelIsTooLong() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     var result: Validated<String>?
@@ -144,7 +144,7 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
   func test_updateCurrentAccountLabel_updatesLabel() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     var result: Validated<String>?
@@ -157,12 +157,12 @@ final class AccountDetailsControllerTests: MainActorTestCase {
 
     controller.updateCurrentAccountLabel("updated")
 
-    XCTAssertNotEqual(result?.value, AccountWithProfile.valid.label)
+    XCTAssertNotEqual(result?.value, AccountWithProfile.mock_ada.label)
   }
 
   func test_saveChanges_fails_whenLabelValidationFails() async throws {
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     controller
@@ -190,14 +190,14 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     )
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: { label in
         uncheckedSendableResult.variable = label
       }
     )
 
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     controller.updateCurrentAccountLabel("")
@@ -206,18 +206,18 @@ final class AccountDetailsControllerTests: MainActorTestCase {
       .saveChanges()
       .asAsyncValue()
 
-    XCTAssertEqual(result, "\(AccountWithProfile.valid.firstName) \(AccountWithProfile.valid.lastName)")
+    XCTAssertEqual(result, "\(AccountWithProfile.mock_ada.firstName) \(AccountWithProfile.mock_ada.lastName)")
   }
 
   func test_saveChanges_fails_whenLabelSaveFails() async throws {
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: alwaysThrow(MockIssue.error())
     )
 
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     var result: Error?
@@ -242,20 +242,20 @@ final class AccountDetailsControllerTests: MainActorTestCase {
     )
     features.patch(
       \AccountPreferences.setLocalAccountLabel,
-      context: Account.valid,
+      context: Account.mock_ada,
       with: { label in
         uncheckedSendableResult.variable = label
       }
     )
 
     let controller: AccountDetailsController = try await testController(
-      context: AccountWithProfile.valid
+      context: AccountWithProfile.mock_ada
     )
 
     try await controller
       .saveChanges()
       .asAsyncValue()
 
-    XCTAssertEqual(result, AccountWithProfile.valid.label)
+    XCTAssertEqual(result, AccountWithProfile.mock_ada.label)
   }
 }

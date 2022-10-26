@@ -35,11 +35,11 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   func test_backNavigationPresentationPublisher_doesNotPublish_initially() async throws {
     features.patch(
       \AccountDetails.profile,
-      context: accountWithProfile.account,
-      with: always(accountWithProfile)
+      context: .mock_ada,
+      with: always(.mock_ada)
     )
 
-    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: .mock_ada)
 
     var result: Void?
     controller
@@ -55,11 +55,11 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   func test_backNavigationPresentationPublisher_publishes_whenNavigatingBack() async throws {
     features.patch(
       \AccountDetails.profile,
-      context: accountWithProfile.account,
-      with: always(accountWithProfile)
+      context: .mock_ada,
+      with: always(.mock_ada)
     )
 
-    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: .mock_ada)
 
     var result: Void?
     controller
@@ -77,28 +77,16 @@ final class AccountNotFoundScreenTests: MainActorTestCase {
   func test_accountWithProfile_loadsAccountWithProfile_fromAccountSettings() async throws {
     features.patch(
       \AccountDetails.profile,
-      context: accountWithProfile.account,
-      with: always(accountWithProfile)
+      context: .mock_ada,
+      with: always(.mock_ada)
     )
 
-    let controller: AccountNotFoundController = try await testController(context: accountWithProfile.account)
+    let controller: AccountNotFoundController = try await testController(context: .mock_ada)
 
     let result: AccountWithProfile =
       controller
       .accountWithProfile()
 
-    XCTAssertEqual(result, accountWithProfile)
+    XCTAssertEqual(result, .mock_ada)
   }
 }
-
-private let accountWithProfile: AccountWithProfile = .init(
-  localID: .init(rawValue: UUID.test.uuidString),
-  userID: "userID",
-  domain: "passbolt.com",
-  label: "passbolt",
-  username: "username",
-  firstName: "Adam",
-  lastName: "Smith",
-  avatarImageURL: "",
-  fingerprint: "FINGERPRINT"
-)

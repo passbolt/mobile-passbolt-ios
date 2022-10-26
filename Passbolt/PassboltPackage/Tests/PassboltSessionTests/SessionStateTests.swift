@@ -48,15 +48,15 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
   }
 
   func test_setAccount_setsAccount() {
-    withTestedInstanceReturnsEqual(Account.valid) { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+    withTestedInstanceReturnsEqual(Account.mock_ada) { (testedInstance: SessionState) in
+      await testedInstance.setAccount(.mock_ada)
       return await testedInstance.account()
     }
   }
 
   func test_setAccount_clearsAllData_whenSettingNone() {
     withTestedInstance { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+      await testedInstance.setAccount(.mock_ada)
       await testedInstance.setPassphrase("passphrase")
       await testedInstance.setAccessToken(.valid)
       await testedInstance.setRefreshToken("refreshToken")
@@ -83,14 +83,14 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
 
   func test_setAccount_clearsAllButAccount_whenSettingDifferentAccount() {
     withTestedInstance { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+      await testedInstance.setAccount(.mock_ada)
       await testedInstance.setPassphrase("passphrase")
       await testedInstance.setAccessToken(.valid)
       await testedInstance.setRefreshToken("refreshToken")
       await testedInstance.setMFAToken("mfaToken")
-      await testedInstance.setAccount(.validAlternative)
+      await testedInstance.setAccount(.mock_frances)
 
-      await XCTAssertValue(equal: .validAlternative) {
+      await XCTAssertValue(equal: .mock_frances) {
         await testedInstance.account()
       }
       await XCTAssertValue(equal: .none) {
@@ -110,7 +110,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
 
   func test_passphrase_returnsSome_whenNotExpired() {
     withTestedInstanceReturnsEqual("passphrase" as Passphrase) { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+      await testedInstance.setAccount(.mock_ada)
       await testedInstance.setPassphrase("passphrase")
       return await testedInstance.passphrase()
     }
@@ -118,7 +118,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
 
   func test_passphrase_returnsNone_whenExpired() {
     withTestedInstanceReturnsNone { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+      await testedInstance.setAccount(.mock_ada)
       await testedInstance.setPassphrase("passphrase")
       self.timestamp = (5 * 60 * 60) as Timestamp
       return await testedInstance.passphrase()
@@ -127,7 +127,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
 
   func test_accessToken_returnsSome_whenValid() {
     withTestedInstanceReturnsEqual(JWT.valid) { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+      await testedInstance.setAccount(.mock_ada)
       await testedInstance.setAccessToken(.valid)
       return await testedInstance.validAccessToken()
     }
@@ -135,7 +135,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
 
   func test_accessToken_returnsNone_whenExpired() {
     withTestedInstanceReturnsNone { (testedInstance: SessionState) in
-      await testedInstance.setAccount(.valid)
+      await testedInstance.setAccount(.mock_ada)
       await testedInstance.setAccessToken(.valid)
       self.timestamp = 2_000_000_000 as Timestamp
       return await testedInstance.validAccessToken()

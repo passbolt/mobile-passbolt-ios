@@ -72,17 +72,3 @@ extension PermissionType {
 }
 
 extension PermissionType: RawRepresentable {}
-
-#if DEBUG
-
-extension PermissionTypeDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    PermissionTypeDTO
-      .allCases
-      .randomNonEmptyElementGenerator(using: randomnessGenerator)
-  }
-}
-#endif

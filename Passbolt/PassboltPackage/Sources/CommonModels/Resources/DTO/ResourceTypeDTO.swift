@@ -106,33 +106,6 @@ extension ResourceTypeDTO: Decodable {
 
 extension ResourceTypeDTO: Hashable {}
 
-#if DEBUG
-
-extension ResourceTypeDTO: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceTypeDTO.init(id:slug:name:fields:),
-      ResourceType.ID
-        .randomGenerator(using: randomnessGenerator),
-      ResourceType.Slug
-        .randomGenerator(using: randomnessGenerator),
-      [
-        ResourceType.Slug.defaultSlug.rawValue
-      ]
-      .randomNonEmptyElementGenerator(
-        using: randomnessGenerator
-      ),
-      ResourceFieldDTO
-        .randomGenerator(using: randomnessGenerator)
-        .array(withCount: 3)
-    )
-  }
-}
-#endif
-
 private struct TypeDefinition {
 
   public var fields: Array<Field>

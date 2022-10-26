@@ -44,8 +44,8 @@ extension ResourceFolderPermissionsFetchDatabaseOperation {
           """
           SELECT
             usersResourceFolders.userID AS userID,
-            usersResourceFolders.permissionType AS permissionType
-            usersResourceFolders.id AS permissionID
+            usersResourceFolders.permissionType AS permissionType,
+            usersResourceFolders.permissionID AS permissionID
           FROM
             usersResourceFolders
           WHERE

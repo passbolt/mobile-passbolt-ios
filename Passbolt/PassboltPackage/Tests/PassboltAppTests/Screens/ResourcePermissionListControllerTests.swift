@@ -39,7 +39,7 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
   var resourceID: Resource.ID!
 
   override func mainActorSetUp() {
-    resourceID = Resource.ID.random()
+    resourceID = Resource.ID.mock_1
     features.usePlaceholder(for: Users.self)
   }
 
@@ -51,15 +51,15 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
     features.patch(
       \ResourceDetails.details,
       context: resourceID,
-      with: always(.random())
+      with: always(.mock_1)
     )
     features.patch(
       \ResourceUserPermissionsDetailsFetchDatabaseOperation.execute,
-      with: always(.random(countIn: 1..<6))
+      with: always([UserPermissionDetailsDSV.mock_1])
     )
     features.patch(
       \ResourceUserGroupPermissionsDetailsFetchDatabaseOperation.execute,
-      with: always(.random(countIn: 1..<6))
+      with: always([UserGroupPermissionDetailsDSV.mock_1])
     )
 
     let controller: ResourcePermissionListController = try await testController(
@@ -76,7 +76,7 @@ final class ResourcePermissionListControllerTests: MainActorTestCase {
     features.patch(
       \ResourceDetails.details,
       context: resourceID,
-      with: always(.random())
+      with: always(.mock_1)
     )
     features.patch(
       \ResourceUserPermissionsDetailsFetchDatabaseOperation.execute,

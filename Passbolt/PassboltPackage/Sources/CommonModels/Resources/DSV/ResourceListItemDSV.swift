@@ -49,30 +49,3 @@ public struct ResourceListItemDSV {
 extension ResourceListItemDSV: DSV {}
 
 extension ResourceListItemDSV: Hashable {}
-
-#if DEBUG
-
-extension ResourceListItemDSV: RandomlyGenerated {
-
-  public static func randomGenerator(
-    using randomnessGenerator: RandomnessGenerator
-  ) -> Generator<Self> {
-    zip(
-      with: ResourceListItemDSV.init(id:parentFolderID:name:username:url:),
-      Resource.ID
-        .randomGenerator(using: randomnessGenerator),
-      ResourceFolder.ID
-        .randomGenerator(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomResourceName(using: randomnessGenerator),
-      Generator<String>
-        .randomEmail(using: randomnessGenerator)
-        .optional(using: randomnessGenerator),
-      Generator<String>
-        .randomURL(using: randomnessGenerator)
-        .optional(using: randomnessGenerator)
-    )
-  }
-}
-#endif
