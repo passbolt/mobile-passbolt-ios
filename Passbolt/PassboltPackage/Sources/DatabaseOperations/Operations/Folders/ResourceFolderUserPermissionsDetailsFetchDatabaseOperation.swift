@@ -21,22 +21,8 @@
 // @since         v1.0
 //
 
-// https://github.com/apple/swift/blob/main/stdlib/public/runtime/WeakReference.h#L53
-// read only access to weak var should be thread safe
-@propertyWrapper
-public final class Weak<Value: AnyObject & Sendable>: @unchecked Sendable {
+import CommonModels
 
-  typealias WrappedValue = Value?
-
-  // never mutate this variable
-  private weak var store: Value?
-  public var wrappedValue: Value? {
-    self.store
-  }
-
-  public init(
-    wrappedValue: Value?
-  ) {
-    self.store = wrappedValue
-  }
-}
+public typealias ResourceFolderUserPermissionsDetailsFetchDatabaseOperation = DatabaseOperation<
+  ResourceFolder.ID, Array<UserPermissionDetailsDSV>
+>

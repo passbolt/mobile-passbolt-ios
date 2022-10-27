@@ -47,6 +47,17 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
       ResourceFolderEditForm.placeholder,
       context: .create(containingFolderID: .none)
     )
+    patch(
+      \ResourceFolderEditForm.formState,
+      context: .create(containingFolderID: .none),
+      with: always(
+        .init(
+          name: .valid("name"),
+          location: .valid(.init()),
+          permissions: .valid(.init())
+        )
+      )
+    )
   }
 
   override func cleanup() throws {
@@ -101,18 +112,23 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
   }
 
   func test_viewState_updates_whenFormUpdates() {
-    let formState: UpdatableValueSource<ResourceFolderEditFormState> = .init(
-      initial: .init(
-        name: .valid("initial"),
-        location: .valid(.init()),
-        permissions: .valid(.init())
-      )
+    let updatesSource: UpdatesSequenceSource = .init()
+    patch(
+      \ResourceFolderEditForm.formUpdates,
+      context: .create(containingFolderID: .none),
+      with: updatesSource.updatesSequence
+    )
+    self.formState = ResourceFolderEditFormState(
+      name: .valid("initial"),
+      location: .valid(.init()),
+      permissions: .valid(.init())
     )
     patch(
       \ResourceFolderEditForm.formState,
       context: .create(containingFolderID: .none),
-      with: formState.updatableValue
+      with: always(self.formState)
     )
+
     withTestedInstance(
       context: .create(containingFolderID: .none),
       test: { (tested: ResourceFolderEditController) in
@@ -122,16 +138,19 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
         let initialFolderName: Validated<String> = tested.viewState.folderName
 
-        formState.update { state in
-          state.name = .valid("edited")
-        }
+        self.formState = ResourceFolderEditFormState(
+          name: .valid("edited"),
+          location: .valid(.init()),
+          permissions: .valid(.init())
+        )
+        updatesSource.sendUpdate()
 
         // wait for detached task to execute
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
 
         let updatedFolderName: Validated<String> = tested.viewState.folderName
 
-        formState.endUpdates()
+        updatesSource.endUpdates()
 
         XCTAssertNotEqual(
           initialFolderName,

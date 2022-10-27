@@ -32,7 +32,7 @@ public protocol ComponentView: View {
 
   static func legacyNavigaitionBarButtonBridge(
     using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge?
+  ) -> LegacyNavigationBarButtonBridge?
 
   init(
     state: ObservableValue<ViewState>,
@@ -44,7 +44,7 @@ extension ComponentView {
 
   public static func legacyNavigaitionBarButtonBridge(
     using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge? {
+  ) -> LegacyNavigationBarButtonBridge? {
     .none
   }
 }

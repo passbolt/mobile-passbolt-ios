@@ -66,6 +66,19 @@ extension DisplayNavigation {
       )
   }
 
+  @MainActor public func push<PushedLegacyComponent>(
+    legacy type: PushedLegacyComponent.Type,
+    context: PushedLegacyComponent.Controller.NavigationContext
+  ) async where PushedLegacyComponent: ComponentView {
+    await self.legacyBridge
+      .bridgeComponent()?
+      .push(
+        PushedLegacyComponent.self,
+        in: context,
+        animated: true
+      )
+  }
+
   @MainActor public func push<PushedView>(
     _ type: PushedView.Type,
     controller: PushedView.Controller

@@ -23,6 +23,7 @@
 
 import Combine
 
+@available(*, deprecated, message: "Please switch to `AsyncExecutor`")
 extension MainActor {
 
   public static func execute<Success>(

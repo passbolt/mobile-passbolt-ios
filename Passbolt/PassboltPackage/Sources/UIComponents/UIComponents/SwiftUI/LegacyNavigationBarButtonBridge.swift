@@ -21,44 +21,19 @@
 // @since         v1.0
 //
 
-import class Foundation.DispatchQueue
-import class Foundation.DispatchSource
-import protocol Foundation.DispatchSourceTimer
-import struct Foundation.DispatchTime
-import typealias Foundation.DispatchTimeInterval
-import class Foundation.Timer
+import Aegithalos
 
-public final class DispatchedTimer {
+@available(*, deprecated)
+public struct LegacyNavigationBarButtonBridge {
 
-  internal let timer: DispatchSourceTimer
-  internal let queue: DispatchQueue
+  public var icon: ImageNameConstant
+  public var action: () -> Void
 
   public init(
-    interval: DispatchTimeInterval,
-    repeating: DispatchTimeInterval = .never,
-    leeway: DispatchTimeInterval = .milliseconds(0),
-    queue: DispatchQueue = .main,
-    handler: @escaping () -> Void
+    icon: ImageNameConstant,
+    action: @escaping () -> Void
   ) {
-    self.queue = queue
-    self.timer = DispatchSource.makeTimerSource(queue: queue)
-
-    timer.setEventHandler(handler: handler)
-
-    timer.schedule(
-      deadline: .now().advanced(by: interval),
-      repeating: repeating,
-      leeway: leeway
-    )
-
-    timer.resume()
-  }
-
-  deinit {
-    timer.cancel()
-  }
-
-  public func cancel() {
-    timer.cancel()
+    self.icon = icon
+    self.action = action
   }
 }

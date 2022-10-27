@@ -36,4 +36,8 @@ public final class UpdatesSequenceSource: Sendable {
   @Sendable public func sendUpdate() {
     self.updatesSequence.sendUpdate()
   }
+
+  @Sendable public func endUpdates() {
+    self.updatesSequence.endSequence()
+  }
 }

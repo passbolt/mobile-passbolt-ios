@@ -178,7 +178,20 @@ extension ResourceFolderDetailsController {
     }
 
     func openPermissionDetails() {
-      // TODO: MOB-611
+      asyncExecutor.schedule(.reuse) {
+        do {
+          try await navigation
+            .push(
+              ResourceFolderPermissionListView.self,
+              controller:
+                features
+                .instance(context: context)
+            )
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
+      }
     }
 
     return .init(

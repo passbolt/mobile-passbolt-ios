@@ -40,43 +40,6 @@ extension ResourceFolderEditForm {
     let resourceFolderCreateNetworkOperation: ResourceFolderCreateNetworkOperation = try await features.instance()
     let resourceFolderShareNetworkOperation: ResourceFolderShareNetworkOperation = try await features.instance()
 
-    let nameValidator: Validator<String> = zip(
-      .nonEmpty(
-        displayable: .localized(
-          key: "error.validation.folder.name.empty"
-        )
-      ),
-      .maxLength(
-        256,
-        displayable: .localized(
-          key: "error.validation.folder.name.too.long"
-        )
-      )
-    )
-
-    let permissionsValidator: Validator<OrderedSet<ResourceFolderPermissionDSV>> = zip(
-      .nonEmpty(
-        displayable: .localized(
-          key: "error.validation.permissions.empty"
-        )
-      ),
-      .contains(
-        where: { $0.type == .owner },
-        displayable: .localized(
-          key: "error.validation.permissions.owner.required"
-        )
-      )
-    )
-
-    @Sendable func validate(
-      form: inout ResourceFolderEditFormState
-    ) -> ResourceFolderEditFormState {
-      form.name = nameValidator.validate(form.name.value)
-      form.permissions = permissionsValidator.validate(form.permissions.value)
-
-      return form
-    }
-
     let initialFormState: ResourceFolderEditFormState
     switch context {
     case .create(.none):
@@ -172,20 +135,63 @@ extension ResourceFolderEditForm {
       )
     }
 
-    let formState: UpdatableValueSource<ResourceFolderEditFormState> = .init(
-      initial: initialFormState
+    let formUpdates: UpdatesSequenceSource = .init()
+    let formState: CriticalState<ResourceFolderEditFormState> = .init(
+      initialFormState
     )
+
+    let nameValidator: Validator<String> = zip(
+      .nonEmpty(
+        displayable: .localized(
+          key: "error.validation.folder.name.empty"
+        )
+      ),
+      .maxLength(
+        256,
+        displayable: .localized(
+          key: "error.validation.folder.name.too.long"
+        )
+      )
+    )
+
+    let permissionsValidator: Validator<OrderedSet<ResourceFolderPermissionDSV>> = zip(
+      .nonEmpty(
+        displayable: .localized(
+          key: "error.validation.permissions.empty"
+        )
+      ),
+      .contains(
+        where: { $0.type == .owner },
+        displayable: .localized(
+          key: "error.validation.permissions.owner.required"
+        )
+      )
+    )
+
+    @Sendable func validate(
+      form: inout ResourceFolderEditFormState
+    ) -> ResourceFolderEditFormState {
+      form.name = nameValidator.validate(form.name.value)
+      form.permissions = permissionsValidator.validate(form.permissions.value)
+      formUpdates.sendUpdate()
+      return form
+    }
+
+    @Sendable func accessFormState() -> ResourceFolderEditFormState {
+      formState.get(\.self)
+    }
 
     @Sendable func setFolderName(
       _ folderName: String
     ) {
-      formState.update { (state: inout ResourceFolderEditFormState) in
+      formState.access { (state: inout ResourceFolderEditFormState) in
         state.name = nameValidator.validate(folderName)
       }
+      formUpdates.sendUpdate()
     }
 
     @Sendable func sendForm() async throws {
-      let formState: ResourceFolderEditFormState = formState.update(validate(form:))
+      let formState: ResourceFolderEditFormState = formState.access(validate(form:))
 
       guard formState.isValid
       else {
@@ -289,7 +295,8 @@ extension ResourceFolderEditForm {
     }
 
     return Self(
-      formState: formState.updatableValue,
+      formUpdates: formUpdates.updatesSequence,
+      formState: accessFormState,
       setFolderName: setFolderName(_:),
       sendForm: sendForm
     )

@@ -28,15 +28,18 @@ import Features
 
 public struct ResourceFolderEditForm {
 
-  public var formState: UpdatableValue<ResourceFolderEditFormState>
+  public var formUpdates: UpdatesSequence
+  public var formState: @Sendable () -> ResourceFolderEditFormState
   public var setFolderName: @Sendable (String) -> Void
   public var sendForm: @Sendable () async throws -> Void
 
   public init(
-    formState: UpdatableValue<ResourceFolderEditFormState>,
+    formUpdates: UpdatesSequence,
+    formState: @escaping @Sendable () -> ResourceFolderEditFormState,
     setFolderName: @escaping @Sendable (String) -> Void,
     sendForm: @escaping @Sendable () async throws -> Void
   ) {
+    self.formUpdates = formUpdates
     self.formState = formState
     self.setFolderName = setFolderName
     self.sendForm = sendForm
@@ -80,7 +83,8 @@ extension ResourceFolderEditForm: LoadableFeature {
 
   public static var placeholder: Self {
     Self(
-      formState: .placeholder,
+      formUpdates: .placeholder,
+      formState: unimplemented(),
       setFolderName: unimplemented(),
       sendForm: unimplemented()
     )

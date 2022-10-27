@@ -24,13 +24,13 @@
 import CommonModels
 import UICommons
 
-internal struct ResourcePermissionListRowView: View {
+internal struct PermissionListRowView: View {
 
-  private let item: ResourcePermissionListRowItem
+  private let item: PermissionListRowItem
   private let action: @MainActor () -> Void
 
   internal init(
-    _ item: ResourcePermissionListRowItem,
+    _ item: PermissionListRowItem,
     action: @escaping @MainActor () -> Void
   ) {
     self.item = item
@@ -75,10 +75,10 @@ internal struct ResourcePermissionListRowView: View {
 
 #if DEBUG
 
-internal struct ResourcePermissionListRowView_Previews: PreviewProvider {
+internal struct PermissionListRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourcePermissionListRowView(
+    PermissionListRowView(
       .userGroup(
         details: .init(
           id: "UserGroup.ID",

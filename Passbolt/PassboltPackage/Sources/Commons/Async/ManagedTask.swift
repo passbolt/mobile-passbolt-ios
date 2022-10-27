@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+@available(*, deprecated, message: "Please switch to `AsyncExecutor`")
 public final actor ManagedTask<Success> {
 
   private var currentTask: Task<Success, Error>? = .none

@@ -21,40 +21,46 @@
 // @since         v1.0
 //
 
-public final class UpdatableValueSource<Value>: Sendable
-where Value: Sendable {
+import CommonModels
 
-  public let updatableValue: UpdatableValue<Value>
-  private let updatesSequenceSource: UpdatesSequenceSource
-  private let currentValue: CriticalState<Value>
+import struct Foundation.Data
 
-  public init(
-    initial: Value
-  ) {
-    let updatesSequenceSource: UpdatesSequenceSource = .init()
-    let currentValue: CriticalState<Value> = .init(initial)
-    self.updatesSequenceSource = updatesSequenceSource
-    self.currentValue = currentValue
-    self.updatableValue = .init(
-      updatesSequence: updatesSequenceSource.updatesSequence,
-      update: { currentValue.get(\.self) }
-    )
-  }
+internal enum PermissionListRowItem {
 
-  deinit {
-    self.endUpdates()
-  }
+  case user(
+    details: UserPermissionDetailsDSV,
+    imageData: () async -> Data?
+  )
+  case userGroup(
+    details: UserGroupPermissionDetailsDSV
+  )
+}
 
-  @Sendable public func update<Returned>(
-    _ update: (inout Value) -> Returned
-  ) -> Returned {
-    self.currentValue.access { (value: inout Value) in
-      defer { self.updatesSequenceSource.sendUpdate() }
-      return update(&value)
+extension PermissionListRowItem: Hashable {
+
+  internal static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    switch (lhs, rhs) {
+    case let (.user(lDetails, _), .user(rDetails, _)):
+      return lDetails == rDetails
+
+    case let (.userGroup(lDetails), .userGroup(rDetails)):
+      return lDetails == rDetails
+
+    case _:
+      return false
     }
   }
 
-  internal func endUpdates() {
-    self.updatesSequenceSource.updatesSequence.endSequence()
+  internal func hash(into hasher: inout Hasher) {
+    switch self {
+    case let .user(details, _):
+      hasher.combine(details)
+
+    case let .userGroup(details):
+      hasher.combine(details)
+    }
   }
 }

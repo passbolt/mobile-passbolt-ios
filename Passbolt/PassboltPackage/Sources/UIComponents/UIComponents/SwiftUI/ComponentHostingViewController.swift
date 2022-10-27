@@ -94,7 +94,7 @@ where HostedView: ComponentView {
         )
       )
 
-      if let legacyButton: LegacyNavigaitionBarButtonBridge = HostedView.legacyNavigaitionBarButtonBridge(
+      if let legacyButton: LegacyNavigationBarButtonBridge = HostedView.legacyNavigaitionBarButtonBridge(
         using: controller
       ) {
         self.navigationItem.rightBarButtonItem = Mutation<UIBarButtonItem>

@@ -72,13 +72,13 @@ extension ResourcePermissionListController: ComponentController {
     let viewState: ObservableValue<ViewState>
 
     do {
-      let resourceUserGroupPermissionsDetails: Array<ResourcePermissionListRowItem> =
+      let userGroupPermissionsDetails: Array<PermissionListRowItem> =
         try await resourceUserGroupPermissionsDetailsFetch(context)
         .map { details in
           .userGroup(details: details)
         }
 
-      let resourceUserPermissionsDetails: Array<ResourcePermissionListRowItem> =
+      let userPermissionsDetails: Array<PermissionListRowItem> =
         try await resourceUserPermissionsDetailsFetch(context)
         .map { details in
           .user(
@@ -89,7 +89,7 @@ extension ResourcePermissionListController: ComponentController {
 
       viewState = .init(
         initial: .init(
-          permissionListItems: resourceUserGroupPermissionsDetails + resourceUserPermissionsDetails,
+          permissionListItems: userGroupPermissionsDetails + userPermissionsDetails,
           editable: try await resourceDetails.details().permissionType.canShare
         )
       )

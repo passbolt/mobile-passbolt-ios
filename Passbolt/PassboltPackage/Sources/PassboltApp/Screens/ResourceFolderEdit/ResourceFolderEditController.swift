@@ -128,22 +128,27 @@ extension ResourceFolderEditController {
         }
     }
 
+    var initialState: ViewState = .init(
+      folderName: .valid(""),
+      folderLocation: .init(),
+      folderPermissionItems: .init(),
+      loading: false
+    )
+    update(
+      viewState: &initialState,
+      using: resourceFolderEditForm.formState()
+    )
     let viewState: ViewStateBinding<ViewState> = .init(
-      initial: .init(
-        folderName: .valid(""),
-        folderLocation: .init(),
-        folderPermissionItems: .init(),
-        loading: false
-      ),
+      initial: initialState,
       cleanup: popFeaturesScope
     )
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
-      for await formState: ResourceFolderEditFormState in resourceFolderEditForm.formState {
+      for await _ in resourceFolderEditForm.formUpdates {
         if let viewState: ViewStateBinding<ViewState> = viewState {
           update(
             viewState: &viewState.wrappedValue,
-            using: formState
+            using: resourceFolderEditForm.formState()
           )
         }
         else {

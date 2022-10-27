@@ -57,7 +57,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
-      try await tested.formState.value
+      tested.formState()
     }
   }
 
@@ -103,7 +103,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      try await tested.formState.value
+      tested.formState()
     }
   }
 
@@ -159,7 +159,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      try await tested.formState.value
+      tested.formState()
     }
   }
 
@@ -215,7 +215,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      try await tested.formState.value
+      tested.formState()
     }
   }
 
@@ -271,7 +271,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       ),
       context: .create(containingFolderID: containingFolderID)
     ) { (tested: ResourceFolderEditForm) in
-      try await tested.formState.value
+      tested.formState()
     }
   }
 
@@ -281,7 +281,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
       tested.setFolderName("updated")
-      return try await tested.formState.value.name.value
+      return tested.formState().name.value
     }
   }
 
@@ -291,7 +291,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
       tested.setFolderName("valid")
-      return try await tested.formState.value.name
+      return tested.formState().name
     }
   }
 
@@ -310,7 +310,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
       tested.setFolderName("")
-      return try await tested.formState.value.name
+      return tested.formState().name
     }
   }
 
@@ -330,7 +330,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
       context: .create(containingFolderID: .none)
     ) { (tested: ResourceFolderEditForm) in
       tested.setFolderName(name)
-      return try await tested.formState.value.name
+      return try await tested.formState().name
     }
   }
 

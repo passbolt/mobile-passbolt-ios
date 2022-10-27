@@ -83,15 +83,38 @@ public struct ResourceCreateNetworkOperationVariable: Encodable {
 public struct ResourceCreateNetworkOperationResult: Decodable {
 
   public var resourceID: Resource.ID
+  public var ownerPermissionID: Permission.ID
 
   public init(
-    resourceID: Resource.ID
+    resourceID: Resource.ID,
+    ownerPermissionID: Permission.ID
   ) {
     self.resourceID = resourceID
+    self.ownerPermissionID = ownerPermissionID
+  }
+
+  public init(
+    from decoder: Decoder
+  ) throws {
+    let container: KeyedDecodingContainer<ResourceCreateNetworkOperationResult.CodingKeys> =
+      try decoder.container(keyedBy: CodingKeys.self)
+
+    self.resourceID = try container.decode(Resource.ID.self, forKey: .resourceID)
+
+    let permissionContainer: KeyedDecodingContainer<ResourceCreateNetworkOperationResult.PermissionCodingKeys> =
+      try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
+
+    self.ownerPermissionID = try permissionContainer.decode(Permission.ID.self, forKey: .permissionID)
   }
 
   public enum CodingKeys: String, CodingKey {
 
     case resourceID = "id"
+    case permission = "permission"
+  }
+
+  public enum PermissionCodingKeys: String, CodingKey {
+
+    case permissionID = "id"
   }
 }

@@ -84,25 +84,26 @@ internal struct ResourceFolderDetailsView: ControlledView {
         )
         Spacer()
 
-        Button(
-          action: {
-            // TODO: MOB-611
-          },
-          label: {
-            Image(named: .editAlt)
-              .frame(
-                minWidth: 40,
-                minHeight: 40,
-                maxHeight: 52,
-                alignment: .trailing
-              )
-              .padding(
-                top: 12,
-                bottom: 12,
-                trailing: 0
-              )
-          }
-        )
+        // Editing not available yet
+        //        Button(
+        //          action: {
+        //
+        //          },
+        //          label: {
+        //            Image(named: .editAlt)
+        //              .frame(
+        //                minWidth: 40,
+        //                minHeight: 40,
+        //                maxHeight: 52,
+        //                alignment: .trailing
+        //              )
+        //              .padding(
+        //                top: 12,
+        //                bottom: 12,
+        //                trailing: 0
+        //              )
+        //          }
+        //        )
       }
       .frame(height: 36)
       .padding(bottom: 24)

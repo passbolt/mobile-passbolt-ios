@@ -23,6 +23,7 @@
 
 extension AsyncSequence {
 
+  @available(*, deprecated)
   public func forLatest(
     execute operation: @Sendable @escaping (Element) async -> Void
   ) async throws {

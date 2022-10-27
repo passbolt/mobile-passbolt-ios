@@ -479,7 +479,7 @@ final class ResourcesEditFormTests: LoadableFeatureTestCase<ResourceEditForm> {
     )
     patch(
       \ResourceCreateNetworkOperation.execute,
-      with: always(.init(resourceID: "resource-id"))
+      with: always(.init(resourceID: "resource-id", ownerPermissionID: "permission-id"))
     )
 
     let feature: ResourceEditForm = try await testedInstance()

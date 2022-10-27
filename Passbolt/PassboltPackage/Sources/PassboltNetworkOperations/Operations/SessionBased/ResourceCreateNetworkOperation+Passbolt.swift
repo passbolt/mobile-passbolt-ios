@@ -56,6 +56,7 @@ extension ResourceCreateNetworkOperation {
           .execute(
             .combined(
               .pathSuffix("/resources.json"),
+              .queryItem("contain[permission]", value: "1"),
               .method(.post),
               .jsonBody(from: input)
             )

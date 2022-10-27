@@ -29,7 +29,7 @@ internal struct FoldersExplorerView: ComponentView {
 
   public static func legacyNavigaitionBarButtonBridge(
     using controller: FoldersExplorerController
-  ) -> LegacyNavigaitionBarButtonBridge? {
+  ) -> LegacyNavigationBarButtonBridge? {
     if case .some = controller.viewState.value.folderID {
       return .init(
         icon: .more,

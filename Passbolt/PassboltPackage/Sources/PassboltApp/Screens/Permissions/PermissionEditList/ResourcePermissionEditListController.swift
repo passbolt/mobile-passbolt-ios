@@ -66,7 +66,7 @@ extension ResourcePermissionEditListController: ComponentController {
       try await resourceShareForm
         .permissionsSequence()
         .forEach { (permissions: OrderedSet<ResourceShareFormPermission>) in
-          var listItems: Array<ResourcePermissionListRowItem> = .init()
+          var listItems: Array<PermissionListRowItem> = .init()
           listItems.reserveCapacity(permissions.count)
 
           for permission: ResourceShareFormPermission in permissions {

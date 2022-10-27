@@ -36,6 +36,10 @@ public final class CriticalState<State> {
     _ initial: State,
     cleanup: @escaping @Sendable (State) -> Void = { _ in }
   ) {
+    assert(
+      !(State.self is AnyObject),
+      "Only value types are allowed."
+    )
     self.statePtr = .allocate(capacity: 1)
     self.statePtr.initialize(to: initial)
     self.lockPtr = .allocate(capacity: 1)

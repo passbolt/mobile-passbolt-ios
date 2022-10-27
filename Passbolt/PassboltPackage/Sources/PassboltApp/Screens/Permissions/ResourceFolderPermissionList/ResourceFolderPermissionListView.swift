@@ -21,20 +21,16 @@
 // @since         v1.0
 //
 
-import SwiftUI
 import UICommons
-import UIComponents
+import Display
 
-internal struct ResourcePermissionListView: ComponentView {
+internal struct ResourceFolderPermissionListView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  private let controller: ResourceFolderPermissionListController
 
   internal init(
-    state: ObservableValue<ViewState>,
-    controller: ResourcePermissionListController
+    controller: ResourceFolderPermissionListController
   ) {
-    self.state = state
     self.controller = controller
   }
 
@@ -43,7 +39,7 @@ internal struct ResourcePermissionListView: ComponentView {
       title: .localized(
         key: "resource.permission.list.title"
       ),
-      snackBarMessage: self.$state.snackBarMessage
+      snackBarMessage: self.controller.binding(to: \.snackBarMessage)
     ) {
       self.contentView
     }
@@ -51,52 +47,39 @@ internal struct ResourcePermissionListView: ComponentView {
 
   @ViewBuilder private var contentView: some View {
     VStack(spacing: 0) {
-      List(
-        content: {
-          ForEach(
-            self.state.permissionListItems,
-            id: \ResourcePermissionListRowItem.self
-          ) { item in
-            ResourcePermissionListRowView(
-              item,
-              action: {
-                switch item {
-                case let .user(details, _):
-                  self.controller.showUserPermissionDetails(details)
+      WithViewState(self.controller) { viewState in
+        List(
+          content: {
+            ForEach(
+              viewState.permissionListItems,
+              id: \PermissionListRowItem.self
+            ) { item in
+              PermissionListRowView(
+                item,
+                action: {
+                  switch item {
+                  case let .user(details, _):
+                    self.controller
+                      .perform(
+                        \.showUserPermissionDetails,
+                         with: details
+                      )
 
-                case let .userGroup(details):
-                  self.controller.showUserGroupPermissionDetails(details)
+                  case let .userGroup(details):
+                    self.controller
+                      .perform(
+                        \.showUserGroupPermissionDetails,
+                         with: details
+                      )
+                  }
                 }
-              }
-            )
-          }
-        }
-      )
-      .listStyle(.plain)
-      .environment(\.defaultMinListRowHeight, 20)
-
-      if self.state.editable {
-        PrimaryButton(
-          title: .localized(
-            key: "resource.permission.list.edit.button.title"
-          ),
-          action: {
-            self.controller
-              .editPermissions()
+              )
+            }
           }
         )
-        .padding(16)
-      }  // else NOP
+        .listStyle(.plain)
+        .environment(\.defaultMinListRowHeight, 20)
+      }
     }
-  }
-}
-
-extension ResourcePermissionListView {
-
-  internal struct ViewState: Hashable {
-
-    internal var permissionListItems: Array<ResourcePermissionListRowItem>
-    internal var editable: Bool
-    internal var snackBarMessage: SnackBarMessage? = .none
   }
 }

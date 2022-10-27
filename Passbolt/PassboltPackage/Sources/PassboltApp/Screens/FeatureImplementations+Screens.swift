@@ -35,5 +35,6 @@ extension FeatureFactory {
     self.usePassboltResourceFolderDetailsController()
     self.usePassboltResourceFolderLocationDetailsController()
     self.usePassboltResourceLocationDetailsController()
+    self.usePassboltResourceFolderPermissionListController()
   }
 }

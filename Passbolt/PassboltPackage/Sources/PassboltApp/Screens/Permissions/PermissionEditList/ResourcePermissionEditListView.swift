@@ -70,9 +70,9 @@ internal struct ResourcePermissionEditListView: ComponentView {
               .buttonStyle(.plain)
             ForEach(
               self.state.permissionListItems,
-              id: \ResourcePermissionListRowItem.self
+              id: \PermissionListRowItem.self
             ) { item in
-              ResourcePermissionListRowView(
+              PermissionListRowView(
                 item,
                 action: {
                   switch item {
@@ -140,7 +140,7 @@ extension ResourcePermissionEditListView {
 
   internal struct ViewState: Hashable {
 
-    internal var permissionListItems: Array<ResourcePermissionListRowItem>
+    internal var permissionListItems: Array<PermissionListRowItem>
     internal var loading: Bool = false
     internal var snackBarMessage: SnackBarMessage? = .none
   }

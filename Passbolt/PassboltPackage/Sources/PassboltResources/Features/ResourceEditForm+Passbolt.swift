@@ -442,7 +442,7 @@ extension ResourceEditForm {
               .error()
           }
 
-          let newResourceID: Resource.ID = try await resourceCreateNetworkOperation(
+          let createdResourceResult = try await resourceCreateNetworkOperation(
             .init(
               resourceTypeID: resourceTypeID,
               parentFolderID: parentFolderID,
@@ -453,7 +453,6 @@ extension ResourceEditForm {
               secrets: [ownEncryptedMessage]
             )
           )
-          .resourceID
 
           if let folderID: ResourceFolder.ID = parentFolderID {
             let encryptedSecrets: OrderedSet<EncryptedMessage> =
@@ -476,39 +475,79 @@ extension ResourceEditForm {
                 }
               }
 
+            let newPermissions: OrderedSet<NewPermissionDTO> = folderPermissions
+              .compactMap { (permission: ResourceFolderPermissionDSV) -> NewPermissionDTO? in
+                switch permission {
+                case let .user(id, type, _):
+                  guard id != account.userID
+                  else { return .none }
+                  return .userToResource(
+                    userID: id,
+                    resourceID: createdResourceResult.resourceID,
+                    type: type
+                  )
+                case let .userGroup(id, type, _):
+                  return .userGroupToResource(
+                    userGroupID: id,
+                    resourceID: createdResourceResult.resourceID,
+                    type: type
+                  )
+                }
+              }
+              .asOrderedSet()
+
+            let updatedPermissions: OrderedSet<PermissionDTO> = folderPermissions
+              .compactMap { (permission: ResourceFolderPermissionDSV) -> PermissionDTO? in
+                if case .user(account.userID, let type, _) = permission, type != .owner {
+                  return .userToResource(
+                    id: createdResourceResult.ownerPermissionID,
+                    userID: account.userID,
+                    resourceID: createdResourceResult.resourceID,
+                    type: type
+                  )
+                }
+                else {
+                  return .none
+                }
+              }
+              .asOrderedSet()
+
+            let deletedPermissions: OrderedSet<PermissionDTO>
+            if !folderPermissions.contains(where: { (permission: ResourceFolderPermissionDSV) -> Bool in
+              if case .user(account.userID, _, _) = permission {
+                return true
+              }
+              else {
+                return false
+              }
+            }) {
+              deletedPermissions = [
+                .userToResource(
+                  id: createdResourceResult.ownerPermissionID,
+                  userID: account.userID,
+                  resourceID: createdResourceResult.resourceID,
+                  type: .owner
+                )
+              ]
+            }
+            else {
+              deletedPermissions = .init()
+            }
+
             try await resourceShareNetworkOperation(
               .init(
-                resourceID: newResourceID,
+                resourceID: createdResourceResult.resourceID,
                 body: .init(
-                  newPermissions: OrderedSet(
-                    folderPermissions
-                      .map { folderPermission -> NewPermissionDTO in
-                        switch folderPermission {
-                        case let .user(id, permissionType, _):
-                          return .userToFolder(
-                            userID: id,
-                            folderID: folderID,
-                            type: permissionType
-                          )
-
-                        case let .userGroup(id, permissionType, _):
-                          return .userGroupToFolder(
-                            userGroupID: id,
-                            folderID: folderID,
-                            type: permissionType
-                          )
-                        }
-                      }
-                  ),
-                  updatedPermissions: .init(),
-                  deletedPermissions: .init(),
+                  newPermissions: newPermissions,
+                  updatedPermissions: updatedPermissions,
+                  deletedPermissions: deletedPermissions,
                   newSecrets: encryptedSecrets
                 )
               )
             )
           }  // else continue without sharing
 
-          return newResourceID
+          return createdResourceResult.resourceID
         }
       }
       .eraseToAnyPublisher()
