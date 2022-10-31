@@ -115,7 +115,7 @@ internal final class BiometricsSetupViewController: PlainViewController, UICompo
           case .extensionSetup:
             await self?.push(ExtensionSetupViewController.self)
           case .finish:
-            await self?.dismiss(PlainNavigationViewController<Self>.self)
+            await self?.dismiss(Self.self)
           }
         }
       }

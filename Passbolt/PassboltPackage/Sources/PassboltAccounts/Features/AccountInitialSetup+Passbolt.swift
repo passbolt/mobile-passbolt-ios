@@ -62,7 +62,6 @@ extension AccountInitialSetup {
 
       if await osExtensions.autofillExtensionEnabled() {
         unfinishedElements.remove(.autofill)
-
       }  // else continue
 
       if osBiometry.availability() == .unavailable || accountPreferences.isPassphraseStored() {

@@ -44,7 +44,6 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
   internal let components: UIComponentFactory
 
   private let controller: Controller
-  private var continueSetupPresentationSubscriptionCancellable: AnyCancellable?
 
   internal init(
     using controller: Controller,
@@ -56,21 +55,6 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
     super.init(
       cancellables: cancellables
     )
-  }
-
-  func activate() {
-    continueSetupPresentationSubscriptionCancellable =
-      controller
-      .continueSetupPresentationPublisher()
-      .sink { [weak self] in
-        self?.cancellables.executeOnMainActor {
-          await self?.dismiss(PlainNavigationViewController<Self>.self)
-        }
-      }
-  }
-
-  func deactivate() {
-    continueSetupPresentationSubscriptionCancellable = nil
   }
 
   internal func setupView() {
@@ -112,5 +96,14 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
         self?.controller.skipSetup()
       }
       .store(in: cancellables)
+
+    controller
+    .continueSetupPresentationPublisher()
+    .sink { [weak self] in
+      self?.cancellables.executeOnMainActor {
+        await self?.dismiss(Self.self)
+      }
+    }
+    .store(in: cancellables)
   }
 }
