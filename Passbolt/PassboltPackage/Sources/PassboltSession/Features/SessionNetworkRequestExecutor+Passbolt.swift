@@ -106,9 +106,9 @@ extension SessionNetworkRequestExecutor {
           )
       }
       catch is HTTPUnauthorized {
-        sessionState.setAccessToken(.none)
-        try sessionAuthorizationState
-          .requestAuthorization(.passphrase(account))
+        sessionState.accessTokenInvalidate()
+        try sessionState
+          .authorizationRequested(.passphrase(account))
 
         return try await retry(
           requestMutation,
@@ -119,9 +119,9 @@ extension SessionNetworkRequestExecutor {
         guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: jsonDecoder)
         else { throw forbidden }
 
-        sessionState.setMFAToken(.none)
-        try sessionAuthorizationState
-          .requestAuthorization(
+        sessionState.mfaTokenInvalidate()
+        try sessionState
+          .authorizationRequested(
             .mfa(
               account,
               providers: mfaResponse.body.mfaProviders
@@ -162,9 +162,9 @@ extension SessionNetworkRequestExecutor {
           guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: redirectResponse, using: jsonDecoder)
           else { throw redirect }
 
-          sessionState.setMFAToken(.none)
-          try sessionAuthorizationState
-            .requestAuthorization(
+          sessionState.mfaTokenInvalidate()
+          try sessionState
+            .authorizationRequested(
               .mfa(
                 account,
                 providers: mfaResponse.body.mfaProviders
@@ -176,10 +176,10 @@ extension SessionNetworkRequestExecutor {
             for: account
           )
         }
-        catch let _ as HTTPUnauthorized {
-          sessionState.setAccessToken(.none)
-          try sessionAuthorizationState
-            .requestAuthorization(.passphrase(account))
+        catch _ as HTTPUnauthorized {
+          sessionState.accessTokenInvalidate()
+          try sessionState
+            .authorizationRequested(.passphrase(account))
 
           return try await retry(
             requestMutation,
@@ -190,9 +190,9 @@ extension SessionNetworkRequestExecutor {
           guard let mfaResponse: MFARequiredResponse = decodeMFARequired(from: forbidden.response, using: jsonDecoder)
           else { throw forbidden }
 
-          sessionState.setMFAToken(.none)
-          try sessionAuthorizationState
-            .requestAuthorization(
+          sessionState.mfaTokenInvalidate()
+          try sessionState
+            .authorizationRequested(
               .mfa(
                 account,
                 providers: mfaResponse.body.mfaProviders

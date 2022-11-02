@@ -33,10 +33,10 @@ public struct Session {
   public var updatesSequence: UpdatesSequence
   /// Check if there is any pending
   /// authorization request.
-  public var pendingAuthorization: @SessionActor @Sendable () -> SessionAuthorizationRequest?
+  public var pendingAuthorization: @SessionActor () -> SessionAuthorizationRequest?
   /// Get the current session account if any.
   /// Throws if there is no active session.
-  public var currentAccount: @SessionActor @Sendable () async throws -> Account
+  public var currentAccount: @SessionActor () async throws -> Account
   /// Create new session using provided method.
   /// Closes current session if used account is different.
   /// Successful authorization should change
@@ -45,22 +45,22 @@ public struct Session {
   /// Throws if provided method or data is invalid.
   /// Throws when MFA is required after successful
   /// authorization.
-  public var authorize: @SessionActor @Sendable (SessionAuthorizationMethod) async throws -> Void
+  public var authorize: @SessionActor (SessionAuthorizationMethod) async throws -> Void
   /// Creates MFA token to be used for current session.
   /// Throws if there is no session or MFA was not required.
   /// Throws if provided method or data is invalid.
-  public var authorizeMFA: @SessionActor @Sendable (SessionMFAAuthorizationMethod) async throws -> Void
+  public var authorizeMFA: @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void
   /// Close session for given account if any
   /// or current session if any otherwise.
-  public var close: @SessionActor @Sendable (_ account: Account?) async -> Void
+  public var close: @SessionActor (_ account: Account?) async -> Void
 
   public init(
     updatesSequence: UpdatesSequence,
-    pendingAuthorization: @escaping @SessionActor @Sendable () -> SessionAuthorizationRequest?,
-    currentAccount: @escaping @SessionActor @Sendable () async throws -> Account,
-    authorize: @escaping @SessionActor @Sendable (SessionAuthorizationMethod) async throws -> Void,
-    authorizeMFA: @escaping @SessionActor @Sendable (SessionMFAAuthorizationMethod) async throws -> Void,
-    close: @escaping @SessionActor @Sendable (_ account: Account?) async -> Void
+    pendingAuthorization: @escaping @SessionActor () -> SessionAuthorizationRequest?,
+    currentAccount: @escaping @SessionActor () async throws -> Account,
+    authorize: @escaping @SessionActor (SessionAuthorizationMethod) async throws -> Void,
+    authorizeMFA: @escaping @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void,
+    close: @escaping @SessionActor (_ account: Account?) async -> Void
   ) {
     self.updatesSequence = updatesSequence
     self.pendingAuthorization = pendingAuthorization

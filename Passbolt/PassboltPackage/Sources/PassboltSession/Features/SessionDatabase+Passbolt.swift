@@ -63,7 +63,7 @@ extension SessionDatabase {
       }
     }
 
-    @SessionActor @Sendable func openDatabaseConnectionIfAble() async -> SQLiteConnection? {
+    @SessionActor func openDatabaseConnectionIfAble() async -> SQLiteConnection? {
       guard let account: Account = sessionState.account()
       else { return .none }
 

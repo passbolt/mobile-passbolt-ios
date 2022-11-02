@@ -66,51 +66,50 @@ extension WindowController: UIController {
     else {
       initialAccount = .none
     }
-    let lastDisposition: CriticalState<ScreenStateDisposition> = .init(
-      .useInitialScreenState(for: initialAccount)
-    )
+    let lastDisposition: CriticalState<ScreenStateDisposition?> = .init(.useInitialScreenState(for: initialAccount))
 
     func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
-      merge(
-        AnyAsyncSequence([lastDisposition.get(\.self)]),
-        session
-          .updatesSequence
-          .dropFirst()  // we have predefined initial state
-          .compactMap { () -> ScreenStateDisposition? in
-            async let currentAccount: Account? = session.currentAccount()
-            async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
+      session
+        .updatesSequence
+        .map { () -> ScreenStateDisposition in
+          async let currentAccount: Account? = session.currentAccount()
+          async let currentAuthorizationRequest: SessionAuthorizationRequest? = session.pendingAuthorization()
 
-            switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get(\.self)) {
+          switch (try? await currentAccount, await currentAuthorizationRequest, lastDisposition.get(\.self)) {
 
-            case  // fully authorized after prompting
+          case  // fully authorized after prompting
             let (.some(account), .none, .requestPassphrase),
-              let (.some(account), .none, .requestMFA):
-              return .useCachedScreenState(for: account)
+            let (.some(account), .none, .requestMFA):
+            return .useCachedScreenState(for: account)
 
-            case  // fully authorized initially
+          case  // fully authorized initially
             let (.some(account), .none, .useCachedScreenState),
-              let (.some(account), .none, .useInitialScreenState):
-              return .useInitialScreenState(for: account)
+            let (.some(account), .none, .useInitialScreenState),
+            let (.some(account), .none, .none):
+            return .useInitialScreenState(for: account)
 
-            case  // passphrase required
-            let (_, .passphrase(account), _):
-              return .requestPassphrase(account, message: .none)
+          case  // passphrase required
+            let (.some, .passphrase(account), _):
+            return .requestPassphrase(account, message: .none)
 
-            case  // mfa required
-            let (_, .mfa(account, providers), _):
-              return .requestMFA(account, providers: providers)
+          case  // mfa required
+            let (.some, .mfa(account, providers), _):
+            return .requestMFA(account, providers: providers)
 
-            case  // signed out
-            (.none, .none, _):
-              return .useInitialScreenState(for: .none)
-            }
+          case // initial with some account
+            (.none, .none, .useInitialScreenState(.some(let account))):
+             return .useInitialScreenState(for: account)
+
+          case  // signed out
+            (.none, _, _):
+            return .useInitialScreenState(for: .none)
           }
-      )
-      .map { (disposition: ScreenStateDisposition) -> ScreenStateDisposition in
-        lastDisposition.set(\.self, disposition)
-        return disposition
-      }
-      .asAnyAsyncSequence()
+        }
+        .map { (disposition: ScreenStateDisposition) -> ScreenStateDisposition in
+          lastDisposition.set(\.self, disposition)
+          return disposition
+        }
+        .asAnyAsyncSequence()
     }
 
     return Self(

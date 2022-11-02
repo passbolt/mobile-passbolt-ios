@@ -41,13 +41,21 @@ extension Session {
     let sessionMFAAuthorization: SessionMFAAuthorization = try await features.instance()
     let sessionNetworkAuthorization: SessionNetworkAuthorization = try await features.instance()
 
-    let updatesSequenceSource: UpdatesSequenceSource = sessionState.updatesSequenceSource
+    @SessionActor func pendingAuthorization() -> SessionAuthorizationRequest? {
+      switch sessionState.pendingAuthorization() {
+      case .none:
+        return .none
 
-    @SessionActor @Sendable func pendingAuthorization() -> SessionAuthorizationRequest? {
-      sessionAuthorizationState.pendingAuthorization()
+      case .passphrase(let account), .passphraseWithMFA(let account, _):
+        // passphrase + mfa makes priority for passphrase
+        return .passphrase(account)
+
+      case .mfa(let account, let providers):
+        return .mfa(account, providers: providers)
+      }
     }
 
-    @SessionActor @Sendable func currentAccount() async throws -> Account {
+    @SessionActor func currentAccount() async throws -> Account {
       if let account: Account = sessionState.account() {
         return account
       }
@@ -58,7 +66,7 @@ extension Session {
       }
     }
 
-    @SessionActor @Sendable func authorize(
+    @SessionActor func authorize(
       _ method: SessionAuthorizationMethod
     ) async throws {
       try await sessionAuthorizationState
@@ -71,7 +79,7 @@ extension Session {
         )
     }
 
-    @SessionActor @Sendable func authorizeMFA(
+    @SessionActor func authorizeMFA(
       _ method: SessionMFAAuthorizationMethod
     ) async throws {
       try await sessionAuthorizationState
@@ -84,7 +92,7 @@ extension Session {
         )
     }
 
-    @SessionActor @Sendable func close(
+    @SessionActor func close(
       _ account: Account?
     ) async {
       guard  // we have to have some account to close session
@@ -109,17 +117,15 @@ extension Session {
           }
         }
       }  // else NOP
-      // changing account clears all related data
-      sessionState.setAccount(.none)
-      // send an update of session state change
-      sessionState.updatesSequenceSource.sendUpdate()
+      // clear all session data
+      sessionState.closedSession()
       // clear features scope
       // executed last to postpone any corutine suspend
       await features.clearScope()
     }
 
     return Self(
-      updatesSequence: updatesSequenceSource.updatesSequence,
+      updatesSequence: sessionState.updatesSequence,
       pendingAuthorization: pendingAuthorization,
       currentAccount: currentAccount,
       authorize: authorize(_:),

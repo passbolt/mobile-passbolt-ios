@@ -29,7 +29,7 @@ import Session
 
 internal struct SessionMFAAuthorization {
 
-  internal var authorizeMFA: @SessionActor @Sendable (SessionMFAAuthorizationMethod) async throws -> Void
+  internal var authorizeMFA: @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void
 }
 
 extension SessionMFAAuthorization: LoadableContextlessFeature {
@@ -59,7 +59,7 @@ extension SessionMFAAuthorization {
     let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try await features.instance()
     let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try await features.instance()
 
-    @SessionActor @Sendable func authorizeMFAWithYubiKey(
+    @SessionActor func authorizeMFAWithYubiKey(
       saveLocally: Bool
     ) async throws -> SessionMFAToken {
       let otp: String =
@@ -75,7 +75,7 @@ extension SessionMFAAuthorization {
       .mfaToken
     }
 
-    @SessionActor @Sendable func authorizeMFAWithTOTP(
+    @SessionActor func authorizeMFAWithTOTP(
       _ totp: String,
       saveLocally: Bool
     ) async throws -> SessionMFAToken {
@@ -88,12 +88,15 @@ extension SessionMFAAuthorization {
       .mfaToken
     }
 
-    @SessionActor @Sendable func useMFAToken(
+    @SessionActor func useMFAToken(
       _ mfaToken: SessionMFAToken,
       account: Account,
       saveLocally: Bool
     ) throws {
-      sessionState.setMFAToken(mfaToken)
+      try sessionState.mfaProvided(
+        account,
+        mfaToken
+      )
       if saveLocally {
         try accountsData
           .storeAccountMFAToken(
@@ -103,7 +106,7 @@ extension SessionMFAAuthorization {
       }  // else NOP
     }
 
-    @SessionActor @Sendable func authorizeMFA(
+    @SessionActor func authorizeMFA(
       _ method: SessionMFAAuthorizationMethod
     ) async throws {
       diagnostics.log(diagnostic: "Starting MFA authorization...")

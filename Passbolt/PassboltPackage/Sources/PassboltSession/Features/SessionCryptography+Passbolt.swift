@@ -39,7 +39,7 @@ extension SessionCryptography {
     let sessionStateEnsurance: SessionStateEnsurance = try await features.instance()
     let pgp: PGP = try await features.instance(of: EnvironmentLegacyBridge.self).environment.pgp
 
-    @SessionActor @Sendable func decryptMessage(
+    @SessionActor func decryptMessage(
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey?
     ) async throws -> String {
@@ -68,7 +68,7 @@ extension SessionCryptography {
       }
     }
 
-    @SessionActor @Sendable func encryptAndSignMessage(
+    @SessionActor func encryptAndSignMessage(
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage {

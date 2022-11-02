@@ -438,7 +438,7 @@ public func XCTAssertNoError<Value>(
   _ expression: () async throws -> Value
 ) async {
   do {
-    let value: Value = try await expression()
+    let _: Value = try await expression()
   }
   catch {
     XCTFail(

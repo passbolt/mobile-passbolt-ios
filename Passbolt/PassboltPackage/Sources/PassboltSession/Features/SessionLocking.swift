@@ -57,7 +57,6 @@ extension SessionLocking {
     let environmentBridge: EnvironmentLegacyBridge = features.instance()
     let appLifeCycle: AppLifeCycle = environmentBridge.environment.appLifeCycle
     let sesionState: SessionState = try await features.instance()
-    let sesionAuthorizationState: SessionAuthorizationState = try await features.instance()
 
     let observationStart: Once = .init {
       appLifeCycle
@@ -69,12 +68,12 @@ extension SessionLocking {
               break  // NOP
 
             case .didEnterBackground:
-              sesionState.setPassphrase(.none)
+              sesionState.passphraseWipe()
 
             case .willEnterForeground:
               do {
-                try sesionAuthorizationState
-                  .requestAuthorization(.passphrase(account))
+                try sesionState
+                  .authorizationRequested(.passphrase(account))
               }
               catch {
                 // ignore errors

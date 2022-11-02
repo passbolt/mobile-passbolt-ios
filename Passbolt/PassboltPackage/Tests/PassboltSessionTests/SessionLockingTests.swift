@@ -70,13 +70,10 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
       )
     )
     patch(
-      \SessionState.setPassphrase,
-      with: { (passphrase: Passphrase?) in
-        self.executed(using: passphrase)
-      }
+      \SessionState.passphraseWipe,
+       with: always(self.executed())
     )
     withTestedInstanceExecuted(
-      using: Optional<Passphrase>.none,
       context: Account.mock_ada
     ) { (testedInstance: SessionLocking) in
       try await self.executionMockControl.execute {
@@ -94,7 +91,7 @@ final class SessionLockingTests: LoadableFeatureTestCase<SessionLocking> {
       )
     )
     patch(
-      \SessionAuthorizationState.requestAuthorization,
+      \SessionState.authorizationRequested,
       with: { (request: SessionAuthorizationRequest) in
         self.executed(using: request)
       }

@@ -47,10 +47,10 @@ internal final class Window {
     self.cancellables = cancellables
     self.window.rootViewController = rootViewController
 
-    cancellables.executeAsync { @MainActor in
-      try await lazyController()
-        .screenStateDispositionSequence()
-        .forEach { @MainActor [weak self] disposition in
+    cancellables.executeAsync { @MainActor [weak self] in
+      let controller: WindowController = await lazyController()
+      for await disposition in controller
+        .screenStateDispositionSequence() {
           guard let self = self else { return }
           switch disposition {
           // Use last state for same session after authorization.
@@ -144,6 +144,25 @@ internal final class Window {
                   )
               }
             }
+            else if let welcomeNavigation = self.window.rootViewController
+                      as? WelcomeNavigationViewController
+                    {
+                      if providers.isEmpty {
+                        try await self.replaceRoot(
+                          with: self.components
+                            .instance(
+                              of: PlainNavigationViewController<UnsupportedMFAViewController>.self
+                            )
+                        )
+                      }
+                      else {
+                        await welcomeNavigation
+                          .push(
+                            MFARootViewController.self,
+                            in: providers
+                          )
+                      }
+                    }
             else {
               assert(
                 self.screenStateCache == nil,

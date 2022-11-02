@@ -33,7 +33,7 @@ public struct SessionCryptography {
   /// Waits for session authorization if needed.
   /// Throws if there is no session.
   public var decryptMessage:
-    @SessionActor @Sendable (
+    @SessionActor (
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey?
     ) async throws -> String
@@ -42,17 +42,17 @@ public struct SessionCryptography {
   /// Waits for session authorization if needed.
   /// Throws if there is no session.
   public var encryptAndSignMessage:
-    @SessionActor @Sendable (
+    @SessionActor (
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage
 
   public init(
-    decryptMessage: @escaping @SessionActor @Sendable (
+    decryptMessage: @escaping @SessionActor (
       _ encryptedMessage: ArmoredPGPMessage,
       _ publicKey: ArmoredPGPPublicKey?
     ) async throws -> String,
-    encryptAndSignMessage: @escaping @SessionActor @Sendable (
+    encryptAndSignMessage: @escaping @SessionActor (
       _ plainMessage: String,
       _ publicKey: ArmoredPGPPublicKey
     ) async throws -> ArmoredPGPMessage

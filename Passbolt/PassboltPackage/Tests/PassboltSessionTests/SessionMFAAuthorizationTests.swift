@@ -81,7 +81,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.init(mfaToken: "token"))
     )
     patch(
-      \SessionState.setMFAToken,
+      \SessionState.mfaProvided,
       with: always(self.executed())
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
@@ -99,7 +99,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.init(mfaToken: "token"))
     )
     patch(
-      \SessionState.setMFAToken,
+      \SessionState.mfaProvided,
       with: always(Void())
     )
     patch(
@@ -123,7 +123,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.init(mfaToken: "token"))
     )
     patch(
-      \SessionState.setMFAToken,
+      \SessionState.mfaProvided,
       with: always(Void())
     )
     patch(
@@ -208,7 +208,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.init(mfaToken: "token"))
     )
     patch(
-      \SessionState.setMFAToken,
+      \SessionState.mfaProvided,
       with: always(self.executed())
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
@@ -234,7 +234,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.init(mfaToken: "token"))
     )
     patch(
-      \SessionState.setMFAToken,
+      \SessionState.mfaProvided,
       with: always(Void())
     )
     patch(
@@ -266,7 +266,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(.init(mfaToken: "token"))
     )
     patch(
-      \SessionState.setMFAToken,
+      \SessionState.mfaProvided,
       with: always(Void())
     )
     patch(

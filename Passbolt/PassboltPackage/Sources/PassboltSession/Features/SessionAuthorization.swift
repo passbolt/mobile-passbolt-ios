@@ -31,8 +31,8 @@ import Session
 
 internal struct SessionAuthorization {
 
-  internal var authorize: @SessionActor @Sendable (SessionAuthorizationMethod) async throws -> Void
-  internal var refreshTokens: @SessionActor @Sendable (Account, Passphrase) async throws -> Void
+  internal var authorize: @SessionActor (SessionAuthorizationMethod) async throws -> Void
+  internal var refreshTokens: @SessionActor (Account, Passphrase) async throws -> Void
 }
 
 extension SessionAuthorization: LoadableContextlessFeature {
@@ -129,7 +129,7 @@ extension SessionAuthorization {
       }
     }
 
-    @SessionActor @Sendable func isCurrentAccessTokenValid() -> Bool {
+    @SessionActor func isCurrentAccessTokenValid() -> Bool {
       // expiration time is checked on the SessionState side
       // but using greater leeway to refresh session more
       // eagerly when already performing authorization
@@ -138,16 +138,16 @@ extension SessionAuthorization {
         ?? true)
     }
 
-    @SessionActor @Sendable func currentRefreshToken() -> SessionRefreshToken? {
+    @SessionActor func currentRefreshToken() -> SessionRefreshToken? {
       // refresh token is cleared on the SessionState side
       // right after accessing it, it can't be reused
       sessionState.refreshToken()
     }
 
-    @SessionActor @Sendable func currentMFAToken(
+    @SessionActor func currentMFAToken(
       for account: Account
     ) throws -> SessionMFAToken? {
-      if case .mfa(account, let mfaProviders) = sessionAuthorizationState.pendingAuthorization() {
+      if case .mfa(account, let mfaProviders) = sessionState.pendingAuthorization() {
         throw
           SessionMFAAuthorizationRequired
           .error(
@@ -163,7 +163,7 @@ extension SessionAuthorization {
       }
     }
 
-    @SessionActor @Sendable func storedMFAToken(
+    @SessionActor func storedMFAToken(
       for account: Account
     ) -> SessionMFAToken? {
       try? accountsData
@@ -171,7 +171,7 @@ extension SessionAuthorization {
         .map(SessionMFAToken.init(rawValue:))
     }
 
-    @SessionActor @Sendable func createSessionTokens(
+    @SessionActor func createSessionTokens(
       _ authorizationData: AuthorizationData,
       mfaToken: SessionMFAToken?
     ) async throws -> (tokens: SessionTokens, requiredMFAProviders: Array<SessionMFAProvider>) {
@@ -199,22 +199,22 @@ extension SessionAuthorization {
       account: Account,
       passphrase: Passphrase,
       sessionTokens: SessionTokens,
-      mfaToken: SessionMFAToken?
+      mfaToken: SessionMFAToken?,
+      mfaRequiredWithProviders mfaProviders: Array<SessionMFAProvider>
     ) async {
       await features
         .ensureScope(identifier: account)
       accountsData
         .storeLastUsedAccount(account.localID)
-      sessionState
-        .setAccount(account)
-      sessionState
-        .setPassphrase(passphrase)
-      sessionState
-        .setAccessToken(sessionTokens.accessToken)
-      sessionState
-        .setRefreshToken(sessionTokens.refreshToken)
-      sessionState
-        .setMFAToken(mfaToken)
+      sessionState.createdSession(
+        account,
+        passphrase,
+        sessionTokens.accessToken,
+        sessionTokens.refreshToken,
+        mfaToken,
+        mfaProviders
+      )
+
       do {
         try await features
           .instance(of: SessionLocking.self, context: account)
@@ -227,15 +227,14 @@ extension SessionAuthorization {
           .asTheError()
           .asAssertionFailure()
       }
-      sessionState.updatesSequenceSource.sendUpdate()
     }
 
-    @SessionActor @Sendable func handleRefresh(
+    @SessionActor func handleRefresh(
       account: Account,
       passphrase: Passphrase?,
       sessionTokens: SessionTokens,
       mfaToken: SessionMFAToken?
-    ) async {
+    ) throws {
       guard account == sessionState.account()
       else {
         InternalInconsistency
@@ -244,17 +243,14 @@ extension SessionAuthorization {
           .asFatalError()
       }
 
-      if let passphrase: Passphrase = passphrase {
-        // extend passphrase cache expire time
-        sessionState
-          .setPassphrase(passphrase)
-      }  // else NOP
-      sessionState
-        .setAccessToken(sessionTokens.accessToken)
-      sessionState
-        .setRefreshToken(sessionTokens.refreshToken)
-      sessionState
-        .setMFAToken(mfaToken)
+      try sessionState
+        .refreshedSession(
+          account,
+          passphrase,
+          sessionTokens.accessToken,
+          sessionTokens.refreshToken,
+          mfaToken
+        )
     }
 
     @SessionActor @Sendable func authorize(
@@ -279,8 +275,11 @@ extension SessionAuthorization {
             diagnostics
               .log(diagnostic: "...reusing access token...")
             // extend passphrase cache expire time
-            sessionState
-              .setPassphrase(authorizationData.passphrase)
+            try sessionState
+              .passphraseProvided(
+                authorizationData.account,
+                authorizationData.passphrase
+              )
             diagnostics
               .log(diagnostic: "...authorization succeeded!")
             return  // nothing more to do...
@@ -296,7 +295,7 @@ extension SessionAuthorization {
                 mfaToken: mfaToken
               )
 
-              await handleRefresh(
+              try handleRefresh(
                 account: authorizationData.account,
                 passphrase: authorizationData.passphrase,
                 sessionTokens: sessionTokens,
@@ -330,7 +329,8 @@ extension SessionAuthorization {
             sessionTokens: sessionTokens,
             mfaToken: requiredMFAProviders.isEmpty
               ? mfaToken
-              : .none
+              : .none,
+            mfaRequiredWithProviders: requiredMFAProviders
           )
 
           if requiredMFAProviders.isEmpty {
@@ -369,7 +369,8 @@ extension SessionAuthorization {
             sessionTokens: sessionTokens,
             mfaToken: requiredMFAProviders.isEmpty
               ? mfaToken
-              : .none
+              : .none,
+            mfaRequiredWithProviders: requiredMFAProviders
           )
 
           if requiredMFAProviders.isEmpty {
@@ -432,7 +433,7 @@ extension SessionAuthorization {
               mfaToken: mfaToken
             )
 
-            await handleRefresh(
+            try handleRefresh(
               account: authorizationData.account,
               passphrase: authorizationData.passphrase,
               sessionTokens: sessionTokens,
@@ -461,7 +462,8 @@ extension SessionAuthorization {
           sessionTokens: sessionTokens,
           mfaToken: requiredMFAProviders.isEmpty
             ? mfaToken
-            : .none
+            : .none,
+          mfaRequiredWithProviders: requiredMFAProviders
         )
 
         if requiredMFAProviders.isEmpty {
@@ -484,7 +486,7 @@ extension SessionAuthorization {
         // ignoring error
         try? accountsData
           .deleteAccountMFAToken(error.account.localID)
-        sessionState.setMFAToken(.none)
+        sessionState.mfaTokenInvalidate()
         throw error
       }
       catch {

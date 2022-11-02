@@ -209,23 +209,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(
@@ -279,23 +263,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       }
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(
@@ -349,29 +317,21 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     let account: UncheckedSendable<Account?> = .init(.none)
-    patch(
-      \SessionState.setAccount,
-      with: { account.variable = $0 }
-    )
     let passphrase: UncheckedSendable<Passphrase?> = .init(.none)
-    patch(
-      \SessionState.setPassphrase,
-      with: { passphrase.variable = $0 }
-    )
-    let mfaToken: UncheckedSendable<SessionMFAToken?> = .init(.none)
-    patch(
-      \SessionState.setMFAToken,
-      with: { mfaToken.variable = $0 }
-    )
     let accessToken: UncheckedSendable<SessionAccessToken?> = .init(.none)
-    patch(
-      \SessionState.setAccessToken,
-      with: { accessToken.variable = $0 }
-    )
     let refreshToken: UncheckedSendable<SessionRefreshToken?> = .init(.none)
+    let mfaToken: UncheckedSendable<SessionMFAToken?> = .init(.none)
+    let mfaProviders: UncheckedSendable<Array<SessionMFAProvider>?> = .init(.none)
     patch(
-      \SessionState.setRefreshToken,
-      with: { refreshToken.variable = $0 }
+      \SessionState.createdSession,
+       with: { (acc: Account, pass: Passphrase, accToken: SessionAccessToken, refToken: SessionRefreshToken, mfa: SessionMFAToken?, providers: Array<SessionMFAProvider>) in
+         account.variable = acc
+         passphrase.variable = pass
+         accessToken.variable = accToken
+         refreshToken.variable = refToken
+         mfaToken.variable = mfa
+         mfaProviders.variable = providers
+       }
     )
     patch(
       \SessionLocking.ensureAutolock,
@@ -386,6 +346,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       XCTAssertEqual(mfaToken.variable, "mfa_token")
       XCTAssertEqual(accessToken.variable, .valid)
       XCTAssertEqual(refreshToken.variable, "refresh_token")
+      XCTAssertEqual(mfaProviders.variable, [])
     }
   }
 
@@ -427,23 +388,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(
@@ -488,8 +433,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_ada, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_ada, providers: .init()))
     )
     patch(
       \AccountsDataStore.deleteAccountMFAToken,
@@ -534,8 +479,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_ada, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_ada, providers: .init()))
     )
     patch(
       \AccountsDataStore.deleteAccountMFAToken,
@@ -581,8 +526,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_frances, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -597,7 +542,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(0)
     )
     patch(
-      \SessionState.setPassphrase,
+      \SessionState.passphraseProvided,
       with: always(Void())
     )
     withTestedInstanceNotThrows { (testedInstance: SessionAuthorization) in
@@ -636,8 +581,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_frances, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -652,19 +597,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("refresh_token")
     )
     patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.refreshedSession,
       with: always(Void())
     )
 
@@ -711,8 +644,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_frances, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -731,23 +664,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(
@@ -792,8 +709,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_frances, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -824,23 +741,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(
@@ -948,8 +849,8 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(.mfa(.mock_frances, providers: .init()))
+      \SessionState.pendingAuthorization,
+       with: always(.mfa(for: .mock_frances, providers: .init()))
     )
     patch(
       \SessionState.mfaToken,
@@ -968,23 +869,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(
@@ -1036,23 +921,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \SessionState.setAccount,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setPassphrase,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setMFAToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setAccessToken,
-      with: always(Void())
-    )
-    patch(
-      \SessionState.setRefreshToken,
+      \SessionState.createdSession,
       with: always(Void())
     )
     patch(

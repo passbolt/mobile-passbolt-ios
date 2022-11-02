@@ -63,19 +63,20 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
     }
   }
 
-  func test_pendingAuthorization_returnsValueFromSessionAuthorizationState() {
+  func test_pendingAuthorization_returnsValueFromSessionState() {
+    self.pendingAuthorization = Optional<SessionState.PendingAuthorization>.none
+
     patch(
-      \SessionAuthorizationState.pendingAuthorization,
-      with: always(self.pendingAuthorization)
+      \SessionState.pendingAuthorization,
+       with: always(self.pendingAuthorization)
     )
 
-    self.pendingAuthorization = Optional<SessionAuthorizationRequest>.none
     withTestedInstanceReturnsNone { (testedInstance: Session) in
       await testedInstance.pendingAuthorization()
     }
 
-    self.pendingAuthorization = SessionAuthorizationRequest.passphrase(Account.mock_ada)
-    withTestedInstanceReturnsEqual(self.pendingAuthorization) { (testedInstance: Session) in
+    self.pendingAuthorization = SessionState.PendingAuthorization.passphrase(for: Account.mock_ada)
+    withTestedInstanceReturnsEqual(SessionAuthorizationRequest.passphrase(Account.mock_ada)) { (testedInstance: Session) in
       return await testedInstance.pendingAuthorization()
     }
   }
@@ -271,7 +272,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       with: always(.none)
     )
     patch(
-      \SessionState.setAccount,
+      \SessionState.closedSession,
       with: always(Void())
     )
     patch(
@@ -294,7 +295,7 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
       with: always(self.refreshToken)
     )
     patch(
-      \SessionState.setAccount,
+      \SessionState.closedSession,
       with: always(Void())
     )
     patch(
@@ -313,31 +314,6 @@ final class SessionTests: LoadableFeatureTestCase<Session> {
 
     self.refreshToken = "SessionRefreshToken" as SessionRefreshToken
     withTestedInstanceExecuted { (testedInstance: Session) in
-      await testedInstance.close(.none)
-    }
-  }
-
-  func test_close_clearsCurrentAccount_whenClosingSession() {
-    patch(
-      \SessionState.account,
-      with: always(.mock_ada)
-    )
-    patch(
-      \SessionState.refreshToken,
-      with: always(.none)
-    )
-    patch(
-      \SessionState.setAccount,
-      with: { account in
-        self.result = account
-      }
-    )
-    patch(
-      \SessionAuthorizationState.cancelAuthorization,
-      with: always(Void())
-    )
-
-    withTestedInstanceResultEqual(Optional<Account>.none) { (testedInstance: Session) in
       await testedInstance.close(.none)
     }
   }

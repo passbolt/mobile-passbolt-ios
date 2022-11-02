@@ -30,24 +30,13 @@ import Session
 /// In-memory storage for current session authorization state.
 /// For internal use only.
 internal struct SessionAuthorizationState {
-  /// Current pending authorization if any.
-  internal var pendingAuthorization: @SessionActor @Sendable () -> SessionAuthorizationRequest?
-  /// Request new authorization. It has no effect
-  /// if there is already the same authorization requested.
-  /// Passphrase request has priority over
-  /// mfa request and will replace it
-  /// for the same account.
-  /// Requesting authorization for different
-  /// account than currently pending is threated
-  /// as an error.
-  internal var requestAuthorization: @SessionActor @Sendable (SessionAuthorizationRequest) throws -> Void
   /// Request new authorization if needed and
   /// wait for completion of pending authorization.
   /// Returns immediately if authorization
   /// is not required.
   /// Throws if there is no matching session or
   /// authorization becomes canceled or fails.
-  internal var waitForAuthorizationIfNeeded: @SessionActor @Sendable (SessionAuthorizationRequest) async throws -> Void
+  internal var waitForAuthorizationIfNeeded: @SessionActor (SessionAuthorizationRequest) async throws -> Void
   /// Execute task that is treated as authorization.
   /// If it succeeds any pending authorization
   /// will be treated as succeeded or will fail
@@ -60,14 +49,14 @@ internal struct SessionAuthorizationState {
   /// pending authorization for different account
   /// it will first cancel pending authorization.
   internal var performAuthorization:
-    @SessionActor @Sendable (
+    @SessionActor (
       _ account: Account,
       _ authorization: @escaping @Sendable () async throws -> Void
     ) async throws -> Void
   /// Cancel any ongoing or pending authorization.
   /// This method is not an equivalent of closing session,
   /// use Session.close for proper session closing.
-  internal var cancelAuthorization: @SessionActor @Sendable () -> Void
+  internal var cancelAuthorization: @SessionActor () -> Void
 }
 
 extension SessionAuthorizationState: LoadableContextlessFeature {
@@ -75,8 +64,6 @@ extension SessionAuthorizationState: LoadableContextlessFeature {
   #if DEBUG
   nonisolated static var placeholder: Self {
     Self(
-      pendingAuthorization: unimplemented(),
-      requestAuthorization: unimplemented(),
       waitForAuthorizationIfNeeded: unimplemented(),
       performAuthorization: unimplemented(),
       cancelAuthorization: unimplemented()
@@ -99,13 +86,6 @@ extension SessionAuthorizationState {
 
     let sessionState: SessionState = try await features.instance()
 
-    enum PendingAuthorization {
-
-      case passphrase(Account)
-      case mfa(Account, Array<SessionMFAProvider>)
-      case passphraseAndMFA(Account, Array<SessionMFAProvider>)
-    }
-
     struct OngoingAuthorization {
 
       let iid: IID
@@ -113,106 +93,16 @@ extension SessionAuthorizationState {
       let task: Task<Void, Error>
     }
 
-    struct State {
-
-      var pendingAuthorization: PendingAuthorization?
-      var ongoingAuthorization: OngoingAuthorization?
-    }
-
-    let state: CriticalState<State> = .init(
-      .init(
-        pendingAuthorization: .none,
-        ongoingAuthorization: .none
-      )
-    )
+    // always access using SessionActor
+    var ongoingAuthorization: OngoingAuthorization? = .none
 
     let passphraseAuthorizationAwaiterGroup: AwaiterGroup<Void> = .init()
     let mfaAuthorizationAwaiterGroup: AwaiterGroup<Void> = .init()
 
-    @SessionActor @Sendable func pendingAuthorization() -> SessionAuthorizationRequest? {
-      switch state.get(\.pendingAuthorization) {
-      case .none:
-        return .none
-
-      case let .passphrase(account),
-        let .passphraseAndMFA(account, _):
-        return .passphrase(account)
-
-      case let .mfa(account, mfaProviders):
-        return .mfa(account, providers: mfaProviders)
-      }
-    }
-
-    @SessionActor @Sendable func requestAuthorization(
-      _ request: SessionAuthorizationRequest
-    ) throws {
-      guard request.account == sessionState.account()
-      else {
-        throw
-          SessionClosed
-          .error(account: request.account)
-      }
-
-      switch state.get(\.pendingAuthorization) {
-      // new request when there is none
-      case .none:
-        switch request {
-        case let .passphrase(account):
-          state.set(
-            \.pendingAuthorization,
-            .passphrase(account)
-          )
-
-        case let .mfa(account, mfaProviders):
-          state.set(
-            \.pendingAuthorization,
-            .mfa(account, mfaProviders)
-          )
-        }
-        sessionState.updatesSequenceSource.sendUpdate()
-
-      // alerady requested passphrase and MFA
-      case .passphraseAndMFA:
-        return  // NOP - ignore
-
-      // alerady requested passphrase
-      case .passphrase:
-        switch request {
-        // passphrase already requested
-        case .passphrase:
-          return  // NOP - ignore
-
-        // promote to passphrase and mfa request
-        case let .mfa(account, mfaProviders):
-          state.set(
-            \.pendingAuthorization,
-            .passphraseAndMFA(account, mfaProviders)
-          )
-          sessionState.updatesSequenceSource.sendUpdate()
-        }
-
-      // alerady requested mfa
-      case let .mfa(_, mfaProviders):
-        switch request {
-        // promote to passphrase and mfa request
-        case let .passphrase(account):
-          state.set(
-            \.pendingAuthorization,
-            .passphraseAndMFA(account, mfaProviders)
-          )
-          sessionState.updatesSequenceSource.sendUpdate()
-
-        // mfa already requested
-        case .mfa:
-          return  // NOP - ignore
-        }
-      }
-    }
-
-    @SessionActor @Sendable func waitForAuthorizationIfNeeded(
+    @SessionActor func waitForAuthorizationIfNeeded(
       _ request: SessionAuthorizationRequest
     ) async throws {
-      if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
+      if let ongoingAuthorization: OngoingAuthorization = ongoingAuthorization {
         // MFA authorization requires a valid session token
         // which forces it to go through this function.
         // In order to prevent infinite waiting we are skipping
@@ -227,12 +117,12 @@ extension SessionAuthorizationState {
           }
 
           if  // check conditions only for MFA
-          case .passphrase = request,
+            case .passphrase = request,
             case .none = sessionState.passphrase(),
-            case .mfa = state.get(\.pendingAuthorization)
+            case .mfa = sessionState.pendingAuthorization()
           {
             // request authorization if passphrase missing
-            try requestAuthorization(request)
+            try sessionState.authorizationRequested(request)
           }
           else {
             return  // no need to request or wait
@@ -252,14 +142,14 @@ extension SessionAuthorizationState {
           .error(account: request.account)
       }
 
-      switch state.get(\.pendingAuthorization) {
+      switch sessionState.pendingAuthorization() {
       // no pending request
       case .none:
         switch request {
         case .passphrase:
           if case .none = sessionState.passphrase() {
             // request authorization if passphrase missing
-            try requestAuthorization(request)
+            try sessionState.authorizationRequested(request)
             // wait for authorization
             try await passphraseAuthorizationAwaiterGroup.awaiter()
           }
@@ -270,7 +160,7 @@ extension SessionAuthorizationState {
         case .mfa:
           if case .none = sessionState.mfaToken() {
             // request authorization if mfa token missing
-            try requestAuthorization(request)
+            try sessionState.authorizationRequested(request)
             // wait for authorization
             try await mfaAuthorizationAwaiterGroup.awaiter()
           }
@@ -280,7 +170,7 @@ extension SessionAuthorizationState {
         }
 
       // already requested passphrase and mfa
-      case .passphraseAndMFA:
+      case .passphraseWithMFA:
         switch request {
         case .passphrase:
           // wait for authorization
@@ -299,7 +189,7 @@ extension SessionAuthorizationState {
         case .mfa:
           if case .none = sessionState.mfaToken() {
             // request authorization if mfa token missing
-            try requestAuthorization(request)
+            try sessionState.authorizationRequested(request)
             // wait for authorization
             try await mfaAuthorizationAwaiterGroup.awaiter()
           }
@@ -314,7 +204,7 @@ extension SessionAuthorizationState {
         case .passphrase:
           if case .none = sessionState.passphrase() {
             // request authorization if passphrase missing
-            try requestAuthorization(request)
+            try sessionState.authorizationRequested(request)
             // wait for authorization
             try await passphraseAuthorizationAwaiterGroup.awaiter()
           }
@@ -329,102 +219,56 @@ extension SessionAuthorizationState {
       }
     }
 
-    @SessionActor @Sendable func updatePendingRequest() {
-      guard let currentAccount: Account = sessionState.account()
-      else {
-        if case .some = state.get(\.pendingAuthorization) {
-          state.set(\.pendingAuthorization, .none)
-          sessionState.updatesSequenceSource.sendUpdate()
-        }  // else NOP
-        passphraseAuthorizationAwaiterGroup.cancelAll()
-        mfaAuthorizationAwaiterGroup.cancelAll()
-        return  // nothing more to do...
-      }
-
-      switch state.get(\.pendingAuthorization) {
-      case .none:
-        if case .some = sessionState.passphrase() {
-          passphraseAuthorizationAwaiterGroup.resumeAll()
-        }
-        else {
-          passphraseAuthorizationAwaiterGroup.cancelAll()
-        }
-        if case .some = sessionState.mfaToken() {
-          mfaAuthorizationAwaiterGroup.resumeAll()
-        }
-        else {
-          mfaAuthorizationAwaiterGroup.cancelAll()
-        }
-
-      case .passphrase(currentAccount):
-        if case .some = sessionState.passphrase() {
-          state.set(\.pendingAuthorization, .none)
-          sessionState.updatesSequenceSource.sendUpdate()
-          passphraseAuthorizationAwaiterGroup.resumeAll()
-        }  // else NOP
-
-      case .passphraseAndMFA(currentAccount, let mfaProviders):
-        if case .some = sessionState.passphrase() {
-          if sessionState.mfaToken() != .none {
-            state.set(\.pendingAuthorization, .none)
-            sessionState.updatesSequenceSource.sendUpdate()
-            passphraseAuthorizationAwaiterGroup.resumeAll()
-            mfaAuthorizationAwaiterGroup.resumeAll()
-          }
-          else {
-            state.set(\.pendingAuthorization, .mfa(currentAccount, mfaProviders))
-            sessionState.updatesSequenceSource.sendUpdate()
-            passphraseAuthorizationAwaiterGroup.resumeAll()
-          }
-        }  // else NOP
-
-      case .mfa(currentAccount, _):
-        if case .some = sessionState.mfaToken() {
-          state.set(\.pendingAuthorization, .none)
-          sessionState.updatesSequenceSource.sendUpdate()
-          mfaAuthorizationAwaiterGroup.resumeAll()
-        }  // else NOP
-
-      // all requests for non current accout
-      case _:
-        state.set(\.pendingAuthorization, .none)
-        sessionState.updatesSequenceSource.sendUpdate()
-        passphraseAuthorizationAwaiterGroup.cancelAll()
-        mfaAuthorizationAwaiterGroup.cancelAll()
-      }
-    }
-
-    @SessionActor @Sendable func completeAuthorization(
+    @SessionActor func completeAuthorization(
       for account: Account,
       withError error: Error? = .none
     ) {
       switch error {
-      case .none:
-        state.set(\.ongoingAuthorization, .none)
-        updatePendingRequest()
-
-      case let mfaRequired as SessionMFAAuthorizationRequired:
-        state.set(\.ongoingAuthorization, .none)
-        // ignore error, account should always match
-        try? requestAuthorization(
-          .mfa(
-            mfaRequired.account,
-            providers: mfaRequired.mfaProviders
-          )
-        )
-        updatePendingRequest()
-
       case is CancellationError, is Cancelled:
         // don't clear ongoing authorization on cancel
-        // there can be another authorization
-        break
+        // there can be another authorization ongoing
+        return // nothing more to do, make sure no updates apply
 
-      case .some:
-        state.set(\.ongoingAuthorization, .none)
+      case let mfaRequired as SessionMFAAuthorizationRequired:
+        do {
+          try sessionState.authorizationRequested(
+            .mfa(
+              mfaRequired.account,
+              providers: mfaRequired.mfaProviders
+            )
+          )
+        }
+        catch {
+          // ignore error, account should always match
+          error
+            .asTheError()
+            .asAssertionFailure()
+        }
+        break // continue execution
+
+      case .some, .none:
+        break // continue execution
+      }
+
+      ongoingAuthorization = .none
+
+      switch sessionState.pendingAuthorization() {
+      case .none: // nothing pending -> resume all
+        mfaAuthorizationAwaiterGroup.resumeAll()
+        passphraseAuthorizationAwaiterGroup.resumeAll()
+
+      case .passphrase: // mfa not pending -> resume mfa
+        mfaAuthorizationAwaiterGroup.resumeAll()
+
+      case .mfa: // passphrase not pending -> resume passphrase
+        passphraseAuthorizationAwaiterGroup.resumeAll()
+
+      case .passphraseWithMFA: // all pending -> resume none
+          break // NOP - ignore
       }
     }
 
-    @SessionActor @Sendable func performAuthorization(
+    @SessionActor func performAuthorization(
       _ account: Account,
       _ authorization: @escaping @Sendable () async throws -> Void
     ) async throws {
@@ -435,58 +279,50 @@ extension SessionAuthorizationState {
 
       try await Self.$authorizationIID
         .withValue(authorizationIID) {
-          if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
-            if ongoingAuthorization.account == account {
+          if let currentAuthorization: OngoingAuthorization = ongoingAuthorization {
+            if currentAuthorization.account == account {
               // wait for ongoing completion ignoring error and continue
-              await ongoingAuthorization.task.waitForCompletion()
+              await currentAuthorization.task.waitForCompletion()
             }
             else {
               // cancel ongoing and continue
-              ongoingAuthorization.task.cancel()
+              currentAuthorization.task.cancel()
             }
           }  // else NOP
 
           let authorizationTask: Task<Void, Error> = .init { @SessionActor in
-            do {
               try Task.checkCancellation()
               try await authorization()
-              completeAuthorization(for: account)
-            }
-            catch {
-              completeAuthorization(
-                for: account,
-                withError: error
-              )
-              throw error
-            }
           }
-          state.set(
-            \.ongoingAuthorization,
-            .init(
-              iid: authorizationIID,
-              account: account,
-              task: authorizationTask
-            )
+
+          ongoingAuthorization = .init(
+            iid: authorizationIID,
+            account: account,
+            task: authorizationTask
           )
 
-          try await authorizationTask.value
+          do {
+            try await authorizationTask.value
+            completeAuthorization(for: account)
+          }
+          catch {
+            completeAuthorization(
+              for: account,
+              withError: error
+            )
+            throw error
+          }
         }
     }
 
-    @SessionActor @Sendable func cancelAuthorization() {
+    @SessionActor func cancelAuthorization() {
       // current account is not changing here
       // updates sequence is not sending updates here
       // this method is not an equivalent of closing session
       // use Session.close for proper closing session
-      if let ongoingAuthorization: OngoingAuthorization = state.get(\.ongoingAuthorization) {
-        ongoingAuthorization.task.cancel()
-        state.set(\.ongoingAuthorization, .none)
-      }  // else NOP
-
-      state.set(\.pendingAuthorization, .none)
-      if case .some = state.get(\.pendingAuthorization) {
-        state.set(\.pendingAuthorization, .none)
-        sessionState.updatesSequenceSource.sendUpdate()
+      if let currentAuthorization: OngoingAuthorization = ongoingAuthorization {
+        currentAuthorization.task.cancel()
+        ongoingAuthorization = .none
       }  // else NOP
 
       passphraseAuthorizationAwaiterGroup.cancelAll()
@@ -494,8 +330,6 @@ extension SessionAuthorizationState {
     }
 
     return Self(
-      pendingAuthorization: pendingAuthorization,
-      requestAuthorization: requestAuthorization(_:),
       waitForAuthorizationIfNeeded: waitForAuthorizationIfNeeded(_:),
       performAuthorization: performAuthorization(_:_:),
       cancelAuthorization: cancelAuthorization
