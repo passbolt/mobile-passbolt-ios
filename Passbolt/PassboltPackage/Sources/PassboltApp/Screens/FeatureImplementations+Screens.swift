@@ -31,5 +31,7 @@ extension FeatureFactory {
 
     self.usePassboltResourcesListCreateMenuController()
     self.usePassboltResourceFolderEditController()
+    self.usePassboltResourceFolderMenuController()
+    self.usePassboltResourceFolderDetailsController()
   }
 }

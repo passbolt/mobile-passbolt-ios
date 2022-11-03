@@ -360,7 +360,7 @@ final class ResourceFolderEditFormTests: LoadableFeatureTestCase<ResourceFolderE
   func test_sendForm_throws_whenSessionDataRefreshThrows() {
     patch(
       \ResourceFolderCreateNetworkOperation.execute,
-       with: always(.init(resourceFolderID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resourceFolderID: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \SessionData.refreshIfNeeded,

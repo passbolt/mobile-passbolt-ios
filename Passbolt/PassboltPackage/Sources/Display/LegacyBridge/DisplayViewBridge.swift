@@ -60,7 +60,7 @@ where HostedView: ControlledView {
     return instance
   }
 
-  @IID internal nonisolated var id
+  @IID internal var id
   // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals, NoLeadingUnderscores
   private var _components: UIComponentFactory!
   // swift-format-ignore: NeverUseImplicitlyUnwrappedOptionals, NoLeadingUnderscores

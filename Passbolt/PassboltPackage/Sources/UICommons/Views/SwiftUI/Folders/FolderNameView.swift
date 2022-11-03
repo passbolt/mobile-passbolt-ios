@@ -21,30 +21,71 @@
 // @since         v1.0
 //
 
-import UICommons
+import Commons
+import SwiftUI
 
-@available(*, deprecated, message: "Please switch to `ControlledView`")
-@MainActor
-public protocol ComponentView: View {
+public struct FolderNameView: View {
 
-  associatedtype ViewState: Hashable
-  associatedtype Controller: ComponentController where Controller.ControlledView == Self
+  private let name: String
 
-  static func legacyNavigaitionBarButtonBridge(
-    using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge?
+  public init(
+    name: String
+  ) {
+    self.name = name
+  }
 
-  init(
-    state: ObservableValue<ViewState>,
-    controller: Controller
-  )
-}
+  public var body: some View {
+    VStack(spacing: 8) {
+      Text(
+        displayable: .localized(
+          key: "folder.name.title"
+        )
+      )
+      .text(
+        font: .inter(
+          ofSize: 12,
+          weight: .medium
+        ),
+        color: Color.passboltPrimaryText
+      )
+      .multilineTextAlignment(.leading)
+      .lineLimit(1)
+      .frame(
+        maxWidth: .infinity,
+        alignment: .leading
+      )
 
-extension ComponentView {
-
-  public static func legacyNavigaitionBarButtonBridge(
-    using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge? {
-    .none
+      Text(self.name)
+        .text(
+          font: .inter(
+            ofSize: 12,
+            weight: .regular
+          ),
+          color: Color.passboltSecondaryText
+        )
+        .truncationMode(.middle)
+        .multilineTextAlignment(.leading)
+        .lineLimit(1)
+        .frame(
+          maxWidth: .infinity,
+          alignment: .leading
+        )
+    }
   }
 }
+
+#if DEBUG
+
+internal struct FolderNameView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      FolderNameView(
+        name: "root"
+      )
+    }
+    .padding(8)
+  }
+}
+
+#endif

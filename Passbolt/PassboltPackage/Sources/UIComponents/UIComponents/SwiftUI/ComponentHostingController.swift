@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+@available(*, deprecated)
 @MainActor
 public struct ComponentHostingController<Context>: UIController {
 

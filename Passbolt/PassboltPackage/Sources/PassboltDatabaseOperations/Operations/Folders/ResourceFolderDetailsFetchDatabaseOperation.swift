@@ -93,8 +93,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             location.name AS name
           FROM
             location;
-          """,
-          arguments: input
+          """
         )
 
       let selectFolderUsersPermissionsStatement: SQLiteStatement =
@@ -196,27 +195,34 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
               permissionID: permissionID
             )
           }
+          let parentFolderID: ResourceFolder.ID? = dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:))
 
-          let location: Array<ResourceFolderLocationItemDSV> = try connection.fetch(
-            using: selectResourceFolderLocationStatement
-          ) { dataRow in
-            guard
-              let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
-              let name: String = dataRow.name
-            else {
-              throw
-                DatabaseIssue
-                .error(
-                  underlyingError:
-                    DatabaseDataInvalid
-                    .error(for: ResourceFolderLocationItemDSV.self)
-                )
+          let location: Array<ResourceFolderLocationItemDSV>
+          if let parentFolderID: ResourceFolder.ID = parentFolderID {
+            location = try connection.fetch(
+              using: selectResourceFolderLocationStatement.appendingArgument(parentFolderID)
+            ) { dataRow in
+              guard
+                let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
+                let name: String = dataRow.name
+              else {
+                throw
+                  DatabaseIssue
+                  .error(
+                    underlyingError:
+                      DatabaseDataInvalid
+                      .error(for: ResourceFolderLocationItemDSV.self)
+                  )
+              }
+
+              return ResourceFolderLocationItemDSV(
+                folderID: id,
+                folderName: name
+              )
             }
-
-            return ResourceFolderLocationItemDSV(
-              folderID: id,
-              folderName: name
-            )
+          }
+          else {
+            location = .init()
           }
 
           return ResourceFolderDetailsDSV(
@@ -224,7 +230,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
             name: name,
             permissionType: permissionType,
             shared: shared,
-            parentFolderID: dataRow.parentFolderID.flatMap(ResourceFolder.ID.init(rawValue:)),
+            parentFolderID: parentFolderID,
             location: location,
             permissions: OrderedSet(usersPermissions + userGroupsPermissions)
           )

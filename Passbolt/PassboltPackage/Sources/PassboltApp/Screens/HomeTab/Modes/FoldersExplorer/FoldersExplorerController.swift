@@ -40,6 +40,7 @@ internal struct FoldersExplorerController {
   internal var presentResourceMenu: @MainActor (Resource.ID) -> Void
   internal var presentHomePresentationMenu: @MainActor () -> Void
   internal var presentAccountMenu: @MainActor () -> Void
+  internal var presentResourceFolderMenu: () -> Void
 }
 
 extension FoldersExplorerController: ComponentController {
@@ -303,6 +304,30 @@ extension FoldersExplorerController: ComponentController {
       }
     }
 
+    nonisolated func presentResourceFolderMenu() {
+      cancellables.executeOnMainActor {
+        guard let folderItem: ResourceFolderListItemDSV = context
+        else { return assertionFailure("Can't show folder menu for root") }
+        do {
+          try await navigation.presentSheet(
+            ResourceFolderMenuView.self,
+            controller:
+              features
+              .instance(
+                of: ResourceFolderMenuController.self,
+                context: .init(
+                  folderID: folderItem.id,
+                  folderName: folderItem.name
+                )
+              )
+          )
+        }
+        catch {
+          diagnostics.log(error: error)
+        }
+      }
+    }
+
     return Self(
       viewState: viewState,
       refreshIfNeeded: refreshIfNeeded,
@@ -311,7 +336,8 @@ extension FoldersExplorerController: ComponentController {
       presentResourceDetails: presentResourceDetails(_:),
       presentResourceMenu: presentResourceMenu(_:),
       presentHomePresentationMenu: presentHomePresentationMenu,
-      presentAccountMenu: presentAccountMenu
+      presentAccountMenu: presentAccountMenu,
+      presentResourceFolderMenu: presentResourceFolderMenu
     )
   }
 }

@@ -27,6 +27,20 @@ import UIComponents
 @MainActor
 internal struct FoldersExplorerView: ComponentView {
 
+  public static func legacyNavigaitionBarButtonBridge(
+    using controller: FoldersExplorerController
+  ) -> LegacyNavigaitionBarButtonBridge? {
+    if case .some = controller.viewState.value.folderID {
+      return .init(
+        icon: .more,
+        action: controller.presentResourceFolderMenu
+      )
+    }
+    else {
+      return .none
+    }
+  }
+
   @ObservedObject private var state: ObservableValue<ViewState>
   private let controller: FoldersExplorerController
 
@@ -81,9 +95,9 @@ internal struct FoldersExplorerView: ComponentView {
       .aspectRatio(1, contentMode: .fit)
       .frame(width: 24)
       .padding(trailing: 16)
+
       Text(displayable: self.state.title)
         .font(.inter(ofSize: 16, weight: .semibold))
-
     }
     .foregroundColor(.passboltPrimaryText)
     .frame(height: 40)

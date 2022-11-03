@@ -23,6 +23,7 @@
 
 import UICommons
 
+@available(*, deprecated)
 @MainActor
 public struct ComponentNavigation<Context> {
 

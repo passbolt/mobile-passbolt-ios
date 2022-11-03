@@ -23,6 +23,7 @@
 
 import UICommons
 
+@available(*, deprecated)
 @MainActor
 public final class ComponentHostingViewController<HostedView>: UIViewController, SwiftUIComponent
 where HostedView: ComponentView {
@@ -92,6 +93,19 @@ where HostedView: ComponentView {
           controller: controller
         )
       )
+
+      if let legacyButton: LegacyNavigaitionBarButtonBridge = HostedView.legacyNavigaitionBarButtonBridge(
+        using: controller
+      ) {
+        self.navigationItem.rightBarButtonItem = Mutation<UIBarButtonItem>
+          .combined(
+            .style(.done),
+            .image(named: legacyButton.icon, from: .uiCommons),
+            .action(legacyButton.action)
+          )
+          .instantiate()
+      }  // else no button
+
       self.addChild(hostingController)
       mut(hostingController.view) {
         .combined(

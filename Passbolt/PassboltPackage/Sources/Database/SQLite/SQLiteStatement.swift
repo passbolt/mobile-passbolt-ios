@@ -123,6 +123,14 @@ extension SQLiteStatement {
     self.arguments.append(argument)
   }
 
+  public func appendingArgument(
+    _ argument: SQLiteValueConvertible
+  ) -> Self {
+    var copy: Self = self
+    copy.appendArgument(argument)
+    return copy
+  }
+
   public mutating func appendArgument(
     _ value: Bool
   ) {

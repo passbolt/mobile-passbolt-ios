@@ -27,36 +27,36 @@ import Users
 
 // MARK: - Interface
 
-internal struct ResourceFolderEditController {
+internal struct ResourceFolderDetailsController {
 
   @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
   internal var viewActions: ViewActions
 }
 
-extension ResourceFolderEditController: ViewController {
+extension ResourceFolderDetailsController: ViewController {
 
-  internal typealias Context = ResourceFolderEditForm.Context
+  internal typealias Context = ResourceFolder.ID
 
   internal struct ViewState: Hashable {
 
-    internal var folderName: Validated<String>
+    internal var folderName: String
     internal var folderLocation: Array<String>
     internal var folderPermissionItems: Array<OverlappingAvatarStackView.Item>
-    internal var loading: Bool
+    internal var folderShared: Bool
     internal var snackBarMessage: SnackBarMessage?
   }
 
   internal struct ViewActions: ViewControllerActions {
 
-    internal var setFolderName: (String) -> Void
-    internal var saveChanges: () -> Void
+    internal var openLocationDetails: () -> Void
+    internal var openPermissionDetails: () -> Void
 
     #if DEBUG
     static var placeholder: Self {
       .init(
-        setFolderName: unimplemented(),
-        saveChanges: unimplemented()
+        openLocationDetails: unimplemented(),
+        openPermissionDetails: unimplemented()
       )
     }
     #endif
@@ -74,22 +74,22 @@ extension ResourceFolderEditController: ViewController {
 
 // MARK: - Implementation
 
-extension ResourceFolderEditController {
+extension ResourceFolderDetailsController {
 
-  @MainActor fileprivate static func load(
+  fileprivate static func load(
     features: FeatureFactory,
     context: Context
   ) async throws -> Self {
     unowned let features: FeatureFactory = features
-    let popFeaturesScope: () async -> Void = features.pushScope(.resourceFolderEdit)
+    let popFeaturesScope: () async -> Void = await features.pushScope(.resourceFolderDetails)
 
-    let diagnostics: Diagnostics = features.instance()
-    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
+    let diagnostics: Diagnostics = await features.instance()
+    let asyncExecutor: AsyncExecutor = await features.instance(of: AsyncExecutor.self).detach()
     let navigation: DisplayNavigation = try await features.instance()
     let users: Users = try await features.instance()
-    let resourceFolderEditForm: ResourceFolderEditForm = try await features.instance(context: context)
+    let folderDetails: ResourceFolderDetails = try await features.instance(context: context)
 
-    @Sendable nonisolated func userAvatarImage(
+    @Sendable func userAvatarImage(
       for userID: User.ID
     ) -> () async -> Data? {
       {
@@ -103,15 +103,14 @@ extension ResourceFolderEditController {
       }
     }
 
-    @Sendable nonisolated func update(
+    @Sendable func update(
       viewState: inout ViewState,
-      using formState: ResourceFolderEditFormState
+      using details: ResourceFolderDetailsDSV
     ) {
-      viewState.folderName = formState.name
-      viewState.folderLocation = formState.location.value.map(\.folderName)
-      viewState.folderPermissionItems = formState
+      viewState.folderName = details.name
+      viewState.folderLocation = details.location.map(\.folderName)
+      viewState.folderPermissionItems = details
         .permissions
-        .value
         .map { (permission: ResourceFolderPermissionDSV) -> OverlappingAvatarStackView.Item in
           switch permission {
           case let .user(id: userID, type: _, permissionID: _):
@@ -126,57 +125,49 @@ extension ResourceFolderEditController {
             )
           }
         }
+      viewState.folderShared = details.shared
     }
 
     let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
-        folderName: .valid(""),
+        folderName: "",
         folderLocation: .init(),
         folderPermissionItems: .init(),
-        loading: false
+        folderShared: false
       ),
-      cleanup: popFeaturesScope
+      cleanup: {
+        await popFeaturesScope()
+        asyncExecutor.clearTasks()
+      }
     )
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
-      for await formState: ResourceFolderEditFormState in resourceFolderEditForm.formState {
+      for await details: ResourceFolderDetailsDSV in folderDetails.details {
         if let viewState: ViewStateBinding<ViewState> = viewState {
           update(
             viewState: &viewState.wrappedValue,
-            using: formState
+            using: details
           )
         }
         else {
-          diagnostics.log(diagnostic: "Resource folder edit form updates ended.")
+          diagnostics.log(diagnostic: "Resource folder details updates ended.")
         }
       }
     }
 
-    nonisolated func setFolderName(
-      _ folderName: String
-    ) {
-      resourceFolderEditForm.setFolderName(folderName)
+    func openLocationDetails() {
+      // TODO: MOB-611
     }
 
-    nonisolated func saveChanges() {
-      asyncExecutor.schedule(.reuse) {
-        defer { viewState.loading = false }
-        viewState.loading = true
-        do {
-          try await resourceFolderEditForm.sendForm()
-          await navigation.pop(ResourceFolderEditView.self)
-        }
-        catch {
-          viewState.snackBarMessage = .error(error)
-        }
-      }
+    func openPermissionDetails() {
+      // TODO: MOB-611
     }
 
     return .init(
       viewState: viewState,
       viewActions: .init(
-        setFolderName: setFolderName(_:),
-        saveChanges: saveChanges
+        openLocationDetails: openLocationDetails,
+        openPermissionDetails: openPermissionDetails
       )
     )
   }
@@ -184,11 +175,11 @@ extension ResourceFolderEditController {
 
 extension FeatureFactory {
 
-  @MainActor public func usePassboltResourceFolderEditController() {
+  @MainActor public func usePassboltResourceFolderDetailsController() {
     self.use(
       .disposable(
-        ResourceFolderEditController.self,
-        load: ResourceFolderEditController.load(features:context:)
+        ResourceFolderDetailsController.self,
+        load: ResourceFolderDetailsController.load(features:context:)
       )
     )
   }
@@ -196,7 +187,7 @@ extension FeatureFactory {
 
 extension FeaturesScope {
 
-  internal static var resourceFolderEdit: Self {
+  internal static var resourceFolderDetails: Self {
     .init(identifier: #function)
   }
 }

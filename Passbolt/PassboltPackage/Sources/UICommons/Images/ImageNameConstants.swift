@@ -46,6 +46,7 @@ extension ImageNameConstant {
   public static var more: Self { "More" }
   public static var close: Self { "Close" }
   public static var search: Self { "Search" }
+  public static var zoom: Self { "Zoom" }
   public static var copy: Self { "Copy" }
   public static var open: Self { "Open" }
   public static var link: Self { "Link" }
@@ -58,6 +59,7 @@ extension ImageNameConstant {
   public static var user: Self { "User" }
   public static var dice: Self { "Dice" }
   public static var edit: Self { "Edit" }
+  public static var editAlt: Self { "EditAlt" }
   public static var bug: Self { "Bug" }
   public static var camera: Self { "Camera" }
   public static var filter: Self { "Filter" }

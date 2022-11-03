@@ -21,30 +21,19 @@
 // @since         v1.0
 //
 
-import UICommons
+import Aegithalos
 
-@available(*, deprecated, message: "Please switch to `ControlledView`")
-@MainActor
-public protocol ComponentView: View {
+@available(*, deprecated)
+public struct LegacyNavigaitionBarButtonBridge {
 
-  associatedtype ViewState: Hashable
-  associatedtype Controller: ComponentController where Controller.ControlledView == Self
+  public var icon: ImageNameConstant
+  public var action: () -> Void
 
-  static func legacyNavigaitionBarButtonBridge(
-    using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge?
-
-  init(
-    state: ObservableValue<ViewState>,
-    controller: Controller
-  )
-}
-
-extension ComponentView {
-
-  public static func legacyNavigaitionBarButtonBridge(
-    using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge? {
-    .none
+  public init(
+    icon: ImageNameConstant,
+    action: @escaping () -> Void
+  ) {
+    self.icon = icon
+    self.action = action
   }
 }

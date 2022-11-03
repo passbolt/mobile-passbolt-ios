@@ -21,30 +21,47 @@
 // @since         v1.0
 //
 
-import UICommons
+import Display
 
-@available(*, deprecated, message: "Please switch to `ControlledView`")
-@MainActor
-public protocol ComponentView: View {
+internal struct ResourceFolderMenuView: ControlledView {
 
-  associatedtype ViewState: Hashable
-  associatedtype Controller: ComponentController where Controller.ControlledView == Self
+  private let controller: ResourceFolderMenuController
 
-  static func legacyNavigaitionBarButtonBridge(
-    using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge?
+  internal init(
+    controller: ResourceFolderMenuController
+  ) {
+    self.controller = controller
+  }
 
-  init(
-    state: ObservableValue<ViewState>,
-    controller: Controller
-  )
-}
-
-extension ComponentView {
-
-  public static func legacyNavigaitionBarButtonBridge(
-    using controller: Controller
-  ) -> LegacyNavigaitionBarButtonBridge? {
-    .none
+  internal var body: some View {
+    WithViewState(self.controller) { (state: ViewState) in
+      DrawerMenu(
+        closeTap: {
+          self.controller.perform(\.close)
+        },
+        title: {
+          Text(state.folderName)
+        },
+        content: {
+          VStack(spacing: 0) {
+            DrawerMenuItemView(
+              action: {
+                self.controller.perform(\.openDetails)
+              },
+              title: {
+                Text(
+                  displayable: .localized(
+                    key: "resource.folder.menu.open.details.label"
+                  )
+                )
+              },
+              leftIcon: {
+                Image(named: .zoom)
+              }
+            )
+          }
+        }
+      )
+    }
   }
 }

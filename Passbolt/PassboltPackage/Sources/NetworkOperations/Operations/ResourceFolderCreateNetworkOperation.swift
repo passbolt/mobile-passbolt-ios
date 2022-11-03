@@ -64,11 +64,13 @@ public struct ResourceFolderCreateNetworkOperationResult: Decodable {
   public init(
     from decoder: Decoder
   ) throws {
-    let container: KeyedDecodingContainer<ResourceFolderCreateNetworkOperationResult.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+    let container: KeyedDecodingContainer<ResourceFolderCreateNetworkOperationResult.CodingKeys> =
+      try decoder.container(keyedBy: CodingKeys.self)
 
     self.resourceFolderID = try container.decode(ResourceFolder.ID.self, forKey: .resourceFolderID)
 
-    let permissionContainer: KeyedDecodingContainer<ResourceFolderCreateNetworkOperationResult.PermissionCodingKeys> = try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
+    let permissionContainer: KeyedDecodingContainer<ResourceFolderCreateNetworkOperationResult.PermissionCodingKeys> =
+      try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
 
     self.ownerPermissionID = try permissionContainer.decode(Permission.ID.self, forKey: .permissionID)
   }

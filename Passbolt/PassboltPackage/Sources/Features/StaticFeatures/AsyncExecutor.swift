@@ -25,9 +25,11 @@ import Commons
 
 public struct AsyncExecutor {
 
+  public let clearTasks: @Sendable () -> Void
   private let execute:
     @Sendable (ExecutionIdentifier, OngoingExecutionBehavior, @escaping @Sendable () async -> Void) -> Execution
   private let detached: @Sendable () -> Self
+
 }
 
 extension AsyncExecutor: StaticFeature {
@@ -35,6 +37,7 @@ extension AsyncExecutor: StaticFeature {
   #if DEBUG
   public nonisolated static var placeholder: AsyncExecutor {
     .init(
+      clearTasks: unimplemented(),
       execute: unimplemented(),
       detached: unimplemented()
     )
@@ -161,6 +164,13 @@ extension AsyncExecutor {
     }
 
     return .init(
+      clearTasks: {
+        schedulerState.access { state in
+          state.values.forEach { item in
+            item.cancel()
+          }
+        }
+      },
       execute: execute(_:behavior:task:),
       detached: { .executor(executeTask) }
     )

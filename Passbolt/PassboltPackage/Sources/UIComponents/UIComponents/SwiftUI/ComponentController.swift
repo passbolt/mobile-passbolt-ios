@@ -23,6 +23,7 @@
 
 import UICommons
 
+@available(*, deprecated, message: "Please switch to `ViewController`")
 @MainActor
 public protocol ComponentController: UIController
 where Context == ComponentNavigation<NavigationContext>, ControlledView: ComponentView {

@@ -81,7 +81,7 @@ extension ResourceFolderEditForm {
     switch context {
     case .create(.none):
       let currentUserID: User.ID =
-      try await features
+        try await features
         .instance(
           of: Session.self
         )
@@ -118,12 +118,12 @@ extension ResourceFolderEditForm {
                 folderName: item.folderName
               )
             }
-          + [
-            ResourceFolderLocationItem(
-              folderID: enclosingFolderDetails.id,
-              folderName: enclosingFolderDetails.name
-            )
-          ]
+            + [
+              ResourceFolderLocationItem(
+                folderID: enclosingFolderDetails.id,
+                folderName: enclosingFolderDetails.name
+              )
+            ]
         ),
         permissions: .valid(
           enclosingFolderDetails
@@ -199,7 +199,7 @@ extension ResourceFolderEditForm {
       switch context {
       case let .create(containingFolderID):
         let createdFolderResult: ResourceFolderCreateNetworkOperationResult =
-        try await resourceFolderCreateNetworkOperation
+          try await resourceFolderCreateNetworkOperation
           .execute(
             .init(
               name: formState.name.value,
@@ -237,7 +237,8 @@ extension ResourceFolderEditForm {
                 folderID: createdFolderResult.resourceFolderID,
                 type: type
               )
-            } else {
+            }
+            else {
               return .none
             }
           }
@@ -280,7 +281,7 @@ extension ResourceFolderEditForm {
 
       case .modify:
         throw
-        Unimplemented
+          Unimplemented
           .error()
       }
 
