@@ -182,6 +182,8 @@
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS</string>
+			<key>License</key>
+			<string>Apache-2.0</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>

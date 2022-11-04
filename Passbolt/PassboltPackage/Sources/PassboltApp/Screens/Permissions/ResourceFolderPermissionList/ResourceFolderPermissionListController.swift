@@ -23,10 +23,10 @@
 
 import Accounts
 import DatabaseOperations
+import Display
 import Resources
 import UIComponents
 import Users
-import Display
 
 internal struct ResourceFolderPermissionListController {
 
@@ -51,25 +51,25 @@ extension ResourceFolderPermissionListController: ViewController {
     internal var showUserGroupPermissionDetails: (UserGroupPermissionDetailsDSV) -> Void
     internal var navigateBack: () -> Void
 
-#if DEBUG
-  static var placeholder: Self {
-    .init(
-      showUserPermissionDetails: unimplemented(),
-      showUserGroupPermissionDetails: unimplemented(),
-      navigateBack: unimplemented()
-    )
-  }
-#endif
+    #if DEBUG
+    static var placeholder: Self {
+      .init(
+        showUserPermissionDetails: unimplemented(),
+        showUserGroupPermissionDetails: unimplemented(),
+        navigateBack: unimplemented()
+      )
+    }
+    #endif
   }
 
-#if DEBUG
+  #if DEBUG
   static var placeholder: Self {
     .init(
       viewState: .placeholder,
       viewActions: .placeholder
     )
   }
-#endif
+  #endif
 }
 
 extension ResourceFolderPermissionListController {
@@ -85,8 +85,9 @@ extension ResourceFolderPermissionListController {
     let resourceFolderDetails: ResourceFolderDetails = try await features.instance(context: context)
     let resourceFolderUserPermissionsDetailsFetch: ResourceFolderUserPermissionsDetailsFetchDatabaseOperation =
       try await features.instance()
-    let resourceFolderUserGroupPermissionsDetailsFetch: ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation =
-      try await features.instance()
+    let resourceFolderUserGroupPermissionsDetailsFetch:
+      ResourceFolderUserGroupPermissionsDetailsFetchDatabaseOperation =
+        try await features.instance()
 
     func userAvatarImageFetch(
       _ userID: User.ID
@@ -137,7 +138,7 @@ extension ResourceFolderPermissionListController {
         }
       )
       diagnostics.log(error: error)
-      await navigation.pop( ResourceFolderPermissionListView.self)
+      await navigation.pop(ResourceFolderPermissionListView.self)
     }
 
     nonisolated func showUserPermissionDetails(
@@ -164,7 +165,7 @@ extension ResourceFolderPermissionListController {
 
     nonisolated func navigateBack() {
       asyncExecutor.schedule(.reuse) {
-        await navigation.pop( ResourceFolderPermissionListView.self)
+        await navigation.pop(ResourceFolderPermissionListView.self)
       }
     }
 

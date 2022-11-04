@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import UICommons
 import Display
+import UICommons
 
 internal struct ResourceFolderPermissionListView: ControlledView {
 
@@ -62,14 +62,14 @@ internal struct ResourceFolderPermissionListView: ControlledView {
                     self.controller
                       .perform(
                         \.showUserPermissionDetails,
-                         with: details
+                        with: details
                       )
 
                   case let .userGroup(details):
                     self.controller
                       .perform(
                         \.showUserGroupPermissionDetails,
-                         with: details
+                        with: details
                       )
                   }
                 }

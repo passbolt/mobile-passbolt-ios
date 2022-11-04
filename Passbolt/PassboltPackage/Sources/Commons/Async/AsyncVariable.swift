@@ -23,7 +23,11 @@
 
 import Combine
 
-@available(*, deprecated, message: "Please switch to `UpdatableValue` and/or `CriticalState` with `UpdatesSequence` if needed.")
+@available(
+  *,
+  deprecated,
+  message: "Please switch to `UpdatableValue` and/or `CriticalState` with `UpdatesSequence` if needed."
+)
 public struct AsyncVariable<Value>: Sendable {
 
   internal typealias Generation = UInt64

@@ -90,13 +90,10 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: SettingsController.BiometricsState!
-
-    controller.biometricsPublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
+    var result: SettingsController.BiometricsState? =
+    try? await controller
+      .biometricsPublisher()
+      .asAsyncValue()
 
     // temporary wait for detached tasks
     try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
@@ -121,16 +118,10 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: SettingsController.BiometricsState!
-
-    controller.biometricsPublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    var result: SettingsController.BiometricsState? =
+    try? await controller
+      .biometricsPublisher()
+      .asAsyncValue()
 
     XCTAssertEqual(result, SettingsController.BiometricsState.faceID(enabled: true))
   }
@@ -148,16 +139,10 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: SettingsController.BiometricsState!
-
-    controller.biometricsPublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    var result: SettingsController.BiometricsState? =
+    try? await controller
+      .biometricsPublisher()
+      .asAsyncValue()
 
     XCTAssertEqual(result, SettingsController.BiometricsState.faceID(enabled: false))
   }
@@ -180,16 +165,11 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: SettingsController.BiometricsState!
 
-    controller.biometricsPublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    var result: SettingsController.BiometricsState? =
+    try? await controller
+      .biometricsPublisher()
+      .asAsyncValue()
 
     XCTAssertEqual(result, SettingsController.BiometricsState.touchID(enabled: true))
   }
@@ -207,16 +187,10 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: SettingsController.BiometricsState!
-
-    controller.biometricsPublisher()
-      .sink { state in
-        result = state
-      }
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+    var result: SettingsController.BiometricsState? =
+    try? await controller
+      .biometricsPublisher()
+      .asAsyncValue()
 
     XCTAssertEqual(result, SettingsController.BiometricsState.touchID(enabled: false))
   }
@@ -270,7 +244,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Void!
+    var result: Void?
 
     controller.biometricsDisableAlertPresentationPublisher()
       .sink { value in
@@ -314,7 +288,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.openTerms()
       .sink { value in
@@ -384,7 +358,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.openPrivacyPolicy()
       .sink { value in
@@ -416,7 +390,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.openPrivacyPolicy()
       .sink { value in
@@ -437,7 +411,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Void!
+    var result: Void?
 
     controller.signOutAlertPresentationPublisher()
       .sink { value in
@@ -460,7 +434,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.autoFillEnabledPublisher()
       .sink { enabled in
@@ -481,7 +455,7 @@ final class SettingsScreenTests: MainActorTestCase {
     )
 
     let controller: SettingsController = try await testController()
-    var result: Bool!
+    var result: Bool?
 
     controller.autoFillEnabledPublisher()
       .sink { enabled in

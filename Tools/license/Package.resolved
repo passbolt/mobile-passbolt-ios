@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/ishkawa/APIKit.git",
         "state": {
           "branch": null,
-          "revision": "c8f5320d84c4c34c0fd965da3c7957819a1ccdd4",
-          "version": "5.2.0"
+          "revision": "b839e53b870104798035b279d2a6168b0a2227b1",
+          "version": "5.4.0"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/Kitura/HeliumLogger.git",
         "state": {
           "branch": null,
-          "revision": "55fd2f0b70793017acee853c53cfcf8da0bd8d8d",
-          "version": "1.9.200"
+          "revision": "fc2a71597ae974da5282d751bcc11965964bccce",
+          "version": "2.0.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/mono0926/LicensePlist.git",
         "state": {
           "branch": null,
-          "revision": "22d5de3a45008f5c366bea25e5279e49d3a3f3fd",
-          "version": "3.14.4"
+          "revision": "c48b28902a7a7b1c8fb10cdd84ead9ad0304c202",
+          "version": "3.23.4"
         }
       },
       {
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/Kitura/LoggerAPI.git",
         "state": {
           "branch": null,
-          "revision": "e82d34eab3f0b05391082b11ea07d3b70d2f65bb",
-          "version": "1.9.200"
+          "revision": "4e6b45e850ffa275e8e26a24c6454fd709d5b6ac",
+          "version": "2.0.0"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
         "state": {
           "branch": null,
-          "revision": "d2930e8fcf9c33162b9fcc1d522bc975e2d4179b",
-          "version": "1.0.1"
+          "revision": "9f39744e025c7d377987f30b03770805dcb0bcd1",
+          "version": "1.1.4"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/Kitura/swift-html-entities.git",
         "state": {
           "branch": null,
-          "revision": "2b14531d0c36dbb7c1c45a4d38db9c2e7898a307",
-          "version": "3.0.200"
+          "revision": "d8ca73197f59ce260c71bd6d7f6eb8bbdccf508b",
+          "version": "4.0.1"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
-          "version": "1.4.2"
+          "revision": "6fe203dc33195667ce1759bf0182975e4653ba1c",
+          "version": "1.4.4"
         }
       },
       {

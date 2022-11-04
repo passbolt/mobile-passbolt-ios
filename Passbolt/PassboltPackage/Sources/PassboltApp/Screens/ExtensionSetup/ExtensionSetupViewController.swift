@@ -98,12 +98,12 @@ internal final class ExtensionSetupViewController: PlainViewController, UICompon
       .store(in: cancellables)
 
     controller
-    .continueSetupPresentationPublisher()
-    .sink { [weak self] in
-      self?.cancellables.executeOnMainActor {
-        await self?.dismiss(Self.self)
+      .continueSetupPresentationPublisher()
+      .sink { [weak self] in
+        self?.cancellables.executeOnMainActor {
+          await self?.dismiss(Self.self)
+        }
       }
-    }
-    .store(in: cancellables)
+      .store(in: cancellables)
   }
 }

@@ -475,7 +475,8 @@ extension ResourceEditForm {
                 }
               }
 
-            let newPermissions: OrderedSet<NewPermissionDTO> = folderPermissions
+            let newPermissions: OrderedSet<NewPermissionDTO> =
+              folderPermissions
               .compactMap { (permission: ResourceFolderPermissionDSV) -> NewPermissionDTO? in
                 switch permission {
                 case let .user(id, type, _):
@@ -496,7 +497,8 @@ extension ResourceEditForm {
               }
               .asOrderedSet()
 
-            let updatedPermissions: OrderedSet<PermissionDTO> = folderPermissions
+            let updatedPermissions: OrderedSet<PermissionDTO> =
+              folderPermissions
               .compactMap { (permission: ResourceFolderPermissionDSV) -> PermissionDTO? in
                 if case .user(account.userID, let type, _) = permission, type != .owner {
                   return .userToResource(

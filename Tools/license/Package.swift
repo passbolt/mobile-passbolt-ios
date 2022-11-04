@@ -8,7 +8,7 @@ let package = Package(
   dependencies: [
     .package(
       name: "LicensePlist",
-      url: "https://github.com/mono0926/LicensePlist.git", .upToNextMajor(from: "3.14.4")
+      url: "https://github.com/mono0926/LicensePlist.git", .upToNextMajor(from: "3.23.4")
     ),
   ],
   targets: [

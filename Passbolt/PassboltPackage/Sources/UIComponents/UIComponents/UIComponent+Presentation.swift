@@ -284,7 +284,9 @@ extension AnyUIComponent {
   ) async where Component: UIComponent {
     var current: UIViewController = self
     repeat {
-      if current is Component || (current as? UINavigationController)?.viewControllers.contains(where: { $0 is Component }) ?? false {
+      if current is Component
+        || (current as? UINavigationController)?.viewControllers.contains(where: { $0 is Component }) ?? false
+      {
         return await withCheckedContinuation { continuation in
           current
             .presentingViewController?
