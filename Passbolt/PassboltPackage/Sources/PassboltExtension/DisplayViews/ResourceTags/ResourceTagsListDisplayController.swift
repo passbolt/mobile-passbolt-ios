@@ -110,7 +110,7 @@ extension ResourceTagsListDisplayController {
       do {
         try await sessionData
           .updatesSequence
-          .forLatest {
+          .forEach {
             updateDisplayedResourceTags(context.filter.get())
           }
       }

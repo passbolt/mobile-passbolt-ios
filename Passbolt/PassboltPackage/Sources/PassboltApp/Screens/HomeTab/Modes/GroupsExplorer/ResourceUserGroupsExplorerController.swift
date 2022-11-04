@@ -90,7 +90,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
         try await resources
           .filteredResourcesListPublisher(filterSequence.asPublisher())
           .asAnyAsyncSequence()
-          .forLatest { resourcesList in
+          .forEach { resourcesList in
             await viewState.withValue { state in
               state.resources = resourcesList
             }
@@ -116,7 +116,7 @@ extension ResourceUserGroupsExplorerController: ComponentController {
 
         try await userGroups
           .filteredResourceUserGroupList(filterSequence)
-          .forLatest { groupsList in
+          .forEach { groupsList in
             await viewState.withValue { state in
               state.groups = groupsList
             }

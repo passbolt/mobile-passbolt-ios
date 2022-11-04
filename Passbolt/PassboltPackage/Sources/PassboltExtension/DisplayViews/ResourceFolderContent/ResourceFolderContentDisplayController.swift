@@ -139,7 +139,7 @@ extension ResourceFolderContentDisplayController {
       do {
         try await sessionData
           .updatesSequence
-          .forLatest {
+          .forEach {
             updateDisplayedItems(
               context.filter.get()
             )

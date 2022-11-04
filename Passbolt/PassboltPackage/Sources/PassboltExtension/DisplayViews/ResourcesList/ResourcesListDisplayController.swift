@@ -119,7 +119,7 @@ extension ResourcesListDisplayController {
       do {
         try await sessionData
           .updatesSequence
-          .forLatest {
+          .forEach {
             updateDisplayedResources(context.filter.get())
           }
       }

@@ -94,7 +94,7 @@ extension FoldersExplorerController: ComponentController {
     // refresh the list based on filters data
     cancellables.executeOnMainActor {
       do {
-        try await AsyncCombineLatestSequence(
+        try await combineLatest(
           sessionData.updatesSequence,
           viewState.asAnyAsyncSequence()
         )
@@ -111,7 +111,7 @@ extension FoldersExplorerController: ComponentController {
           try await folders
             .filteredFolderContent(filter)
         }
-        .forLatest { content in
+        .forEach { content in
           await viewState.withValue { state in
             state.directFolders = content
               .subfolders

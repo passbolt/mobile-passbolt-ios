@@ -24,3 +24,4 @@
 @_exported import Combine
 @_exported import Localization
 @_exported import OrderedCollections
+@_exported import AsyncAlgorithms

@@ -127,6 +127,10 @@ let package = Package(
       url: "https://github.com/apple/swift-collections.git",
       .upToNextMajor(from: "1.0.0")
     ),
+    .package(
+      url: "https://github.com/apple/swift-async-algorithms.git",
+      .upToNextMinor(from: "0.0.3")
+    ),
   ],
   targets: [
     // MARK: - Legacy
@@ -294,6 +298,10 @@ let package = Package(
         .product(
           name: "OrderedCollections",
           package: "swift-collections"
+        ),
+        .product(
+          name: "AsyncAlgorithms",
+          package: "swift-async-algorithms"
         ),
       ]
     ),

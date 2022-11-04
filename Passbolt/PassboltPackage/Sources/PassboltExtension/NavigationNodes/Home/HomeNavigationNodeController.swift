@@ -93,7 +93,7 @@ extension HomeNavigationNodeController {
           try await homePresentation
             .currentMode
             .asAnyAsyncSequence()
-            .forLatest { (mode: HomePresentationMode) in
+            .forEach { (mode: HomePresentationMode) in
               await state.set(
                 \.contentController,
                 to: contentRoot(for: mode)

@@ -89,7 +89,7 @@ extension TagsExplorerController: ComponentController {
         try await resources
           .filteredResourcesListPublisher(filterSequence.asPublisher())
           .asAnyAsyncSequence()
-          .forLatest { resourcesList in
+          .forEach { resourcesList in
             await viewState.withValue { state in
               state.resources = resourcesList
             }
@@ -106,7 +106,7 @@ extension TagsExplorerController: ComponentController {
 
       // refresh the list based on filters data
       cancellables.executeOnMainActor {
-        try await AsyncCombineLatestSequence(
+        try await combineLatest(
           viewState
             .asAnyAsyncSequence()
             .map(\.searchText)
@@ -117,7 +117,7 @@ extension TagsExplorerController: ComponentController {
           try await resourceTags
             .filteredTagsList(filter)
         }
-        .forLatest { tagsList in
+        .forEach { tagsList in
           await viewState.withValue { state in
             state.tags = tagsList
           }

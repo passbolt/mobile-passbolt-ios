@@ -111,7 +111,7 @@ extension ResourceUserGroupsListDisplayController {
       do {
         try await sessionData
           .updatesSequence
-          .forLatest {
+          .forEach {
             updateDisplayedUserGroups(context.filter.get())
           }
       }

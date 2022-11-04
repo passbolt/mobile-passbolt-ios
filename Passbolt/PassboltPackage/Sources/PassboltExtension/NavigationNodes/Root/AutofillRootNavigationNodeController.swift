@@ -116,7 +116,7 @@ extension AutofillRootNavigationNodeController {
         do {
           try await session.updatesSequence
             .dropFirst()
-            .forLatest { @SessionActor in
+            .forEach { @SessionActor in
               do {
                 let currentAccount: Account? =
                   try? await session
