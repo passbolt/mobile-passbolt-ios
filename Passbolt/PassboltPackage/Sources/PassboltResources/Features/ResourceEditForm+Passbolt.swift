@@ -465,15 +465,6 @@ extension ResourceEditForm {
 
             let folderPermissions: Array<ResourceFolderPermissionDSV> =
               try await resourceFolderPermissionsFetchDatabaseOperation(folderID)
-              .filter { permission in
-                switch permission {
-                case .user(account.userID, _, _):
-                  return false
-
-                case _:
-                  return true
-                }
-              }
 
             let newPermissions: OrderedSet<NewPermissionDTO> =
               folderPermissions
