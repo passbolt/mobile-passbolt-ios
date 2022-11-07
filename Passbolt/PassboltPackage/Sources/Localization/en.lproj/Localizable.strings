@@ -329,11 +329,12 @@ Contact your administrator for more information.";
 
 // Common UI
 
-"folder.root.name" = "root";
+"folder.root.name" = "Root";
 
 "folder.name.title" = "Name";
 "folder.location.title" = "Location";
 "permissions.avatars.view.title" = "Permissions";
+"shared.avatars.view.title" = "Shared with";
 
 // Forms common
 

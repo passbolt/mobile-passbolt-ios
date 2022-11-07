@@ -77,6 +77,7 @@ internal struct ResourceFolderEditView: ControlledView {
       )
 
       PermissionAvatarsView(
+        title: .localized(key: "shared.avatars.view.title"),
         items: state.folderPermissionItems
       )
 

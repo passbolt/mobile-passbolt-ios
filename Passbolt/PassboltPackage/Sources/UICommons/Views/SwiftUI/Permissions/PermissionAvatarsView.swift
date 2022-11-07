@@ -26,21 +26,20 @@ import SwiftUI
 
 public struct PermissionAvatarsView: View {
 
+  private let title: DisplayableString
   private let items: Array<OverlappingAvatarStackView.Item>
 
   public init(
+    title: DisplayableString = .localized(key: "permissions.avatars.view.title"),
     items: Array<OverlappingAvatarStackView.Item>
   ) {
+    self.title = title
     self.items = items
   }
 
   public var body: some View {
     VStack(spacing: 8) {
-      Text(
-        displayable: .localized(
-          key: "permissions.avatars.view.title"
-        )
-      )
+      Text(displayable: self.title)
       .text(
         font: .inter(
           ofSize: 12,

@@ -53,11 +53,11 @@ public struct FormTextFieldView: View {
       let title: String = self.title.string()
 
       if !title.isEmpty {
-        Text(
-          self.mandatory
-            ? "\(title)*"
-            : title
-        )
+        Group {
+          Text(title)
+          + Text(self.mandatory ? " *" : "")
+            .foregroundColor(Color.passboltSecondaryRed)
+        }
         .text(
           font: .inter(
             ofSize: 12,
