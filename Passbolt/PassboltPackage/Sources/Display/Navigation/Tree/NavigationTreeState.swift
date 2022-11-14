@@ -42,14 +42,12 @@ extension NavigationTreeState {
     controller: ViewNode.Controller
   ) -> NavigationNodeID
   where ViewNode: ControlledViewNode {
-    let newNode: AnyViewNode = .init(
-      erasing: ViewNode.self,
-      with: controller
+    self.root = .just(
+      id: controller.nodeID,
+      view: ViewNode(controller: controller)
     )
 
-    self.root = .just(newNode)
-
-    return newNode.nodeID
+    return controller.nodeID
   }
 
   @discardableResult
@@ -58,14 +56,15 @@ extension NavigationTreeState {
     controller: ViewNode.Controller
   ) -> NavigationNodeID
   where ViewNode: ControlledViewNode {
-    let newNode: AnyViewNode = .init(
-      erasing: ViewNode.self,
-      with: controller
+    self.root = .stack(
+      .element(
+        id: controller.nodeID,
+        view: ViewNode(controller: controller),
+        next: .none
+      )
     )
 
-    self.root = .stack(.element(newNode, next: .none))
-
-    return newNode.nodeID
+    return controller.nodeID
   }
 
   @discardableResult
@@ -74,14 +73,13 @@ extension NavigationTreeState {
     controller: ViewNode.Controller
   ) -> NavigationNodeID
   where ViewNode: ControlledViewNode {
-    let newNode: AnyViewNode = .init(
-      erasing: ViewNode.self,
-      with: controller
-    )
+    self.root = self.root
+      .pushing(
+        ViewNode(controller: controller),
+        withID: controller.nodeID
+      )
 
-    self.root = self.root.pushing(newNode)
-
-    return newNode.nodeID
+    return controller.nodeID
   }
 
   @discardableResult
@@ -91,14 +89,14 @@ extension NavigationTreeState {
     controller: ViewNode.Controller
   ) -> NavigationNodeID
   where ViewNode: ControlledViewNode {
-    let newNode: AnyViewNode = .init(
-      erasing: ViewNode.self,
-      with: controller
-    )
+    self.root = self.root
+      .presenting(
+        ViewNode(controller: controller),
+        withID: controller.nodeID,
+        presentation
+      )
 
-    self.root = self.root.presenting(newNode, presentation)
-
-    return newNode.nodeID
+    return controller.nodeID
   }
 
   @discardableResult
@@ -108,14 +106,14 @@ extension NavigationTreeState {
     controller: ViewNode.Controller
   ) -> NavigationNodeID
   where ViewNode: ControlledViewNode {
-    let newNode: AnyViewNode = .init(
-      erasing: ViewNode.self,
-      with: controller
-    )
+    self.root = self.root
+      .presenting(
+        pushed: ViewNode(controller: controller),
+        withID: controller.nodeID,
+        presentation
+      )
 
-    self.root = self.root.presenting(pushed: newNode, presentation)
-
-    return newNode.nodeID
+    return controller.nodeID
   }
 
   public mutating func dismiss(

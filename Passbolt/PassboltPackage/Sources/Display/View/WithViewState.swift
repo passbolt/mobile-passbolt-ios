@@ -28,15 +28,12 @@ where State: Hashable, ContentView: View {
 
   @StateObject private var viewState: ViewStateBinding<State>
   private let content: (State) -> ContentView
-  private let activate: @Sendable () async -> Void
 
   internal init(
     _ viewState: ViewStateBinding<State>,
-    activate: @escaping @Sendable () async -> Void = { /* NOP */  },
     @ViewBuilder content: @escaping (State) -> ContentView
   ) {
     self._viewState = .init(wrappedValue: viewState)
-    self.activate = activate
     self.content = content
   }
 
@@ -45,12 +42,10 @@ where State: Hashable, ContentView: View {
     @ViewBuilder content: @escaping (State) -> ContentView
   ) where Controller: ViewController, Controller.ViewState == State {
     self._viewState = .init(wrappedValue: controller.viewState)
-    self.activate = controller.actionAsync(\.activate)
     self.content = content
   }
 
   public var body: some View {
     self.content(self.viewState.wrappedValue)
-      .task(self.activate)
   }
 }

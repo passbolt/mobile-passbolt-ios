@@ -24,11 +24,23 @@
 @propertyWrapper
 public struct Stateless {
 
-  public var wrappedValue: ViewStateBinding<Never> {
-    fatalError("ViewState is unavailable for stateless views/controllers")
-  }
+  public var wrappedValue: ViewStateBinding<Never> = .init()
 
   public init() {}
 }
 
-extension Stateless: Hashable {}
+extension Stateless: Hashable {
+
+  public static func == (
+    _ lhs: Self,
+    _ rhs: Self
+  ) -> Bool {
+    lhs.wrappedValue === rhs.wrappedValue
+  }
+
+  public func hash(
+    into hasher: inout Hasher
+  ) {
+    hasher.combine(ObjectIdentifier(self.wrappedValue))
+  }
+}

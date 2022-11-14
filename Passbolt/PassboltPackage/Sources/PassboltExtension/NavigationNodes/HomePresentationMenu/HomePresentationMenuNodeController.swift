@@ -27,40 +27,26 @@ import Display
 
 internal struct HomePresentationMenuNodeController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var selectMode: (HomePresentationMode) -> Void
+  internal var dismissView: () -> Void
 }
 
 extension HomePresentationMenuNodeController: ViewNodeController {
 
   internal struct ViewState: Hashable {
 
-    @StateBinding internal var currentMode: HomePresentationMode
+    internal var currentMode: HomePresentationMode
     internal var availableModes: OrderedSet<HomePresentationMode>
-  }
-
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var selectMode: (HomePresentationMode) -> Void
-    internal var dismissView: () -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        selectMode: { _ in unimplemented() },
-        dismissView: { unimplemented() }
-      )
-    }
-    #endif
   }
 
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      selectMode: { _ in unimplemented() },
+      dismissView: { unimplemented() }
     )
   }
   #endif
@@ -74,40 +60,45 @@ extension HomePresentationMenuNodeController {
     features: FeatureFactory
   ) async throws -> Self {
     let nodeID: NavigationNodeID = .init()
+    let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
     let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try await features.instance()
 
-    let state: StateBinding<ViewState> =
-      .variable(
-        initial: .init(
-          currentMode: homePresentation.currentMode,
-          availableModes: homePresentation.availableModes()
-        )
-      )
-    state.bind(\.$currentMode)
-
     let viewState: ViewStateBinding<ViewState> = .init(
-      stateSource: state
+      initial: .init(
+        currentMode: homePresentation.currentMode.wrappedValue,
+        availableModes: homePresentation.availableModes()
+      )
     )
+    viewState.cancellables.addCleanup( asyncExecutor.clearTasks)
+
+    homePresentation
+      .currentMode
+      .sink { (mode: HomePresentationMode) in
+        viewState.currentMode = mode
+      }
+      .store(in: viewState.cancellables)
 
     nonisolated func selectMode(
       _ mode: HomePresentationMode
     ) {
       homePresentation.currentMode.set(to: mode)
-      navigationTree.dismiss(nodeID)
+      asyncExecutor.schedule(.reuse) {
+       await navigationTree.dismiss(nodeID)
+      }
     }
 
     nonisolated func dismissView() {
-      navigationTree.dismiss(nodeID)
+      asyncExecutor.schedule(.reuse) {
+        await navigationTree.dismiss(nodeID)
+      }
     }
 
     return .init(
       nodeID: nodeID,
       viewState: viewState,
-      viewActions: .init(
-        selectMode: selectMode(_:),
-        dismissView: dismissView
-      )
+      selectMode: selectMode(_:),
+      dismissView: dismissView
     )
   }
 }

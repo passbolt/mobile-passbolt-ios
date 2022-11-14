@@ -30,10 +30,9 @@ import Users
 
 internal struct ResourceFolderContentNodeController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var closeExtension: () -> Void
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceFolderContentDisplayController
 }
@@ -56,24 +55,11 @@ extension ResourceFolderContentNodeController: ViewNodeController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var closeExtension: () -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        closeExtension: { unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder,
+      closeExtension: { unimplemented() },
       searchController: .placeholder,
       contentController: .placeholder
     )
@@ -100,7 +86,7 @@ extension ResourceFolderContentNodeController {
       context.folderDetails.map { .raw($0.name) }
       ?? .localized("home.presentation.mode.folders.explorer.title")
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         folderName: folderName,
         folderShared: context.folderDetails?.shared ?? false,
@@ -108,13 +94,13 @@ extension ResourceFolderContentNodeController {
       )
     )
 
-    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
-
     let searchController: ResourceSearchDisplayController = try await features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
-          state.set(\.snackBarMessage, to: message)
+          viewState.mutate { viewState in
+            viewState.snackBarMessage = message
+          }
         }
       )
     )
@@ -124,7 +110,7 @@ extension ResourceFolderContentNodeController {
         folderName: folderName,
         filter: searchController
           .searchText
-          .convert { (text: String) -> ResourceFoldersFilter in
+          .map { (text: String) -> ResourceFoldersFilter in
             ResourceFoldersFilter(
               sorting: .nameAlphabetically,
               text: text,
@@ -144,7 +130,9 @@ extension ResourceFolderContentNodeController {
         selectResource: selectResource(_:),
         openResourceMenu: .none,
         showMessage: { (message: SnackBarMessage?) in
-          state.set(\.snackBarMessage, to: message)
+          viewState.mutate { viewState in
+            viewState.snackBarMessage = message
+          }
         }
       )
     )
@@ -198,7 +186,9 @@ extension ResourceFolderContentNodeController {
               "Failed to handle resource selection."
             )
           )
-          state.set(\.snackBarMessage, to: .error(error))
+          await viewState.mutate { viewState in
+            viewState.snackBarMessage = .error(error)
+          }
         }
       }
     }
@@ -216,7 +206,7 @@ extension ResourceFolderContentNodeController {
               of: ResourceFolderContentNodeController.self,
               context: .init(folderDetails: folderDetails)
             )
-          navigationTree
+          await navigationTree
             .push(
               ResourceFolderContentNodeView.self,
               controller: nodeController
@@ -229,7 +219,9 @@ extension ResourceFolderContentNodeController {
               "Failed to handle resource folder selection."
             )
           )
-          state.set(\.snackBarMessage, to: .error(error))
+          await viewState.mutate { viewState in
+            viewState.snackBarMessage = .error(error)
+          }
         }
       }
     }
@@ -242,9 +234,7 @@ extension ResourceFolderContentNodeController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        closeExtension: closeExtension
-      ),
+      closeExtension: closeExtension,
       searchController: searchController,
       contentController: contentController
     )

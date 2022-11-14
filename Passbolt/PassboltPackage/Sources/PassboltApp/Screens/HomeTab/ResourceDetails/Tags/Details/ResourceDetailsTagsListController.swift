@@ -28,9 +28,7 @@ import Session
 
 internal struct ResourceDetailsTagsListController {
 
-  @IID var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
 }
 
 extension ResourceDetailsTagsListController {
@@ -41,15 +39,6 @@ extension ResourceDetailsTagsListController {
     internal var resourceFavorite: Bool
     internal var tags: Array<ResourceTagDSV>
   }
-
-  internal struct ViewActions: ViewControllerActions {
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init()
-    }
-    #endif
-  }
 }
 
 extension ResourceDetailsTagsListController: ViewController {
@@ -59,8 +48,7 @@ extension ResourceDetailsTagsListController: ViewController {
   #if DEBUG
   nonisolated internal static var placeholder: Self {
     .init(
-      viewState: .placeholder,
-      viewActions: .placeholder
+      viewState: .placeholder
     )
   }
   #endif
@@ -89,8 +77,7 @@ extension ResourceDetailsTagsListController {
     )
 
     return Self(
-      viewState: viewState,
-      viewActions: .init()
+      viewState: viewState
     )
   }
 }

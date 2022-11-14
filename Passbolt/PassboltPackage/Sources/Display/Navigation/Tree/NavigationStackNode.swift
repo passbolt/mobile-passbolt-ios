@@ -24,7 +24,8 @@
 internal indirect enum NavigationStackNode {
 
   case element(
-    AnyViewNode,
+    id: NavigationNodeID,
+    view: any View,
     next: NavigationStackNode?
   )
 }
@@ -55,14 +56,14 @@ extension NavigationStackNode {
 
   internal var nodeID: NavigationNodeID {
     switch self {
-    case let .element(nodeView, _):
-      return nodeView.nodeID
+    case let .element(id, _, _):
+      return id
     }
   }
 
-  internal var nodeView: AnyViewNode {
+  internal var nodeView: any View {
     switch self {
-    case let .element(nodeView, _):
+    case let .element(_, nodeView, _):
       return nodeView
     }
   }
@@ -70,15 +71,16 @@ extension NavigationStackNode {
   internal var next: NavigationStackNode? {
     get {
       switch self {
-      case let .element(_, next):
+      case let .element(_, _, next):
         return next
       }
     }
     set {
       switch self {
-      case let .element(nodeView, _):
+      case let .element(id, nodeView, _):
         self = .element(
-          nodeView,
+          id: id,
+          view: nodeView,
           next: newValue
         )
       }
@@ -88,23 +90,25 @@ extension NavigationStackNode {
   internal var last: NavigationStackNode {
     get {
       switch self {
-      case let .element(_, next):
+      case let .element(_, _, next):
         return next?.last ?? self
       }
     }
     set {
       switch self {
-      case let .element(nodeView, .some(next)):
+      case let .element(id, nodeView, .some(next)):
         var next: NavigationStackNode = next
         next.last = newValue
         self = .element(
-          nodeView,
+          id: id,
+          view: nodeView,
           next: next
         )
 
-      case let .element(nodeView, .none):
+      case let .element(id, nodeView, .none):
         self = .element(
-          nodeView,
+          id: id,
+          view: nodeView,
           next: newValue
         )
       }
@@ -112,11 +116,13 @@ extension NavigationStackNode {
   }
 
   internal func appending(
-    _ nodeView: AnyViewNode
+    _ view: any View,
+    withID id: NavigationNodeID
   ) -> Self {
     var copy: Self = self
     copy.last = .element(
-      nodeView,
+      id: id,
+      view: view,
       next: .none
     )
     return copy
@@ -128,7 +134,11 @@ extension NavigationStackNode {
     guard self.nodeID != nodeID
     else { return .none }
 
-    var stackPrefix: NavigationStackNode = .element(self.nodeView, next: .none)
+    var stackPrefix: NavigationStackNode = .element(
+      id: self.nodeID,
+      view: self.nodeView,
+      next: .none
+    )
 
     var currentNode: NavigationStackNode = self
     while let nextNode: NavigationStackNode = currentNode.next {
@@ -136,7 +146,11 @@ extension NavigationStackNode {
         return stackPrefix
       }
       else {
-        stackPrefix.last = .element(nextNode.nodeView, next: .none)
+        stackPrefix.last = .element(
+          id: nextNode.nodeID,
+          view: nextNode.nodeView,
+          next: .none
+        )
         currentNode = nextNode
       }
     }
@@ -147,12 +161,20 @@ extension NavigationStackNode {
   internal func prefix(
     including nodeID: NavigationNodeID
   ) -> NavigationStackNode {
-    var stackPrefix: NavigationStackNode = .element(self.nodeView, next: .none)
+    var stackPrefix: NavigationStackNode = .element(
+      id: self.nodeID,
+      view: self.nodeView,
+      next: .none
+    )
 
     var currentNode: NavigationStackNode = self
     while currentNode.nodeID != nodeID {
       if let nextNode: NavigationStackNode = currentNode.next {
-        stackPrefix.last = .element(nextNode.nodeView, next: .none)
+        stackPrefix.last = .element(
+          id: nextNode.nodeID,
+          view: nextNode.nodeView,
+          next: .none
+        )
         currentNode = nextNode
       }
       else {

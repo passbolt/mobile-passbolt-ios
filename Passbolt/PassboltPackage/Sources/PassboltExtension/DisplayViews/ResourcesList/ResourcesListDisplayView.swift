@@ -38,11 +38,12 @@ internal struct ResourcesListDisplayView: ControlledView {
       ResourcesListView(
         suggestedResources: state.suggested,
         resources: state.resources,
-        refreshAction: self.controller.actionAsync(\.refresh),
-        createAction: self.controller.actionOptional(\.createResource),
-        resourceTapAction: self.controller.action(\.selectResource),
-        resourceMenuAction: self.controller.actionOptional(\.openResourceMenu)
+        refreshAction: self.controller.refresh,
+        createAction: self.controller.createResource,
+        resourceTapAction: self.controller.selectResource,
+        resourceMenuAction: self.controller.openResourceMenu
       )
     }
+    .task(self.controller.activate)
   }
 }

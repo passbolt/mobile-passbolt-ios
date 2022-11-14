@@ -29,9 +29,9 @@ import Users
 
 internal struct ResourceFolderEditController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var setFolderName: (String) -> Void
+  internal var saveChanges: () -> Void
 }
 
 extension ResourceFolderEditController: ViewController {
@@ -47,26 +47,12 @@ extension ResourceFolderEditController: ViewController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var setFolderName: (String) -> Void
-    internal var saveChanges: () -> Void
-
-    #if DEBUG
-    static var placeholder: Self {
-      .init(
-        setFolderName: unimplemented(),
-        saveChanges: unimplemented()
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      setFolderName: unimplemented(),
+      saveChanges: unimplemented()
     )
   }
   #endif
@@ -139,17 +125,21 @@ extension ResourceFolderEditController {
       using: resourceFolderEditForm.formState()
     )
     let viewState: ViewStateBinding<ViewState> = .init(
-      initial: initialState,
-      cleanup: popFeaturesScope
+      initial: initialState
     )
+    viewState.cancellables.addCleanup {
+      Task { await popFeaturesScope() }
+    }
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
       for await _ in resourceFolderEditForm.formUpdates {
         if let viewState: ViewStateBinding<ViewState> = viewState {
-          update(
-            viewState: &viewState.wrappedValue,
-            using: resourceFolderEditForm.formState()
-          )
+          await viewState.mutate { viewState in
+            update(
+              viewState: &viewState,
+              using: resourceFolderEditForm.formState()
+            )
+          }
         }
         else {
           diagnostics.log(diagnostic: "Resource folder edit form updates ended.")
@@ -165,24 +155,29 @@ extension ResourceFolderEditController {
 
     nonisolated func saveChanges() {
       asyncExecutor.schedule(.reuse) {
-        defer { viewState.loading = false }
-        viewState.loading = true
+        await viewState.mutate { viewState in
+          viewState.loading = true
+        }
         do {
           try await resourceFolderEditForm.sendForm()
           await navigation.pop(ResourceFolderEditView.self)
+          await viewState.mutate { viewState in
+            viewState.loading = false
+          }
         }
         catch {
-          viewState.snackBarMessage = .error(error)
+          await viewState.mutate { viewState in
+            viewState.loading = false
+            viewState.snackBarMessage = .error(error)
+          }
         }
       }
     }
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        setFolderName: setFolderName(_:),
-        saveChanges: saveChanges
-      )
+      setFolderName: setFolderName(_:),
+      saveChanges: saveChanges
     )
   }
 }

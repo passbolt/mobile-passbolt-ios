@@ -73,7 +73,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
     withTestedInstanceExecuted(
       context: .create(containingFolderID: .none),
       test: { (tested: ResourceFolderEditController) in
-        tested.perform(\.setFolderName, with: "folder name")
+        tested.setFolderName("folder name")
         await self.executionMockControl.executeAll()
       }
     )
@@ -88,7 +88,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
     withTestedInstanceExecuted(
       context: .create(containingFolderID: .none),
       test: { (tested: ResourceFolderEditController) in
-        tested.perform(\.saveChanges)
+        tested.saveChanges()
         await self.executionMockControl.executeAll()
       }
     )
@@ -104,9 +104,9 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
       SnackBarMessage.error(MockIssue.error()),
       context: .create(containingFolderID: .none),
       test: { (tested: ResourceFolderEditController) in
-        tested.perform(\.saveChanges)
+        tested.saveChanges()
         await self.executionMockControl.executeAll()
-        return tested.viewState.snackBarMessage
+        return await tested.viewState.snackBarMessage
       }
     )
   }
@@ -136,7 +136,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
 
         // wait for detached task to execute
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-        let initialFolderName: Validated<String> = tested.viewState.folderName
+        let initialFolderName: Validated<String> = await tested.viewState.folderName
 
         self.formState = ResourceFolderEditFormState(
           name: .valid("edited"),
@@ -148,7 +148,7 @@ final class ResourceFolderEditControllerTests: LoadableFeatureTestCase<ResourceF
         // wait for detached task to execute
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
 
-        let updatedFolderName: Validated<String> = tested.viewState.folderName
+        let updatedFolderName: Validated<String> = await tested.viewState.folderName
 
         updatesSource.endUpdates()
 

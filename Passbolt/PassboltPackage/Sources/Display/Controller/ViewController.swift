@@ -27,26 +27,14 @@ import UIComponents
 public protocol ViewController: Hashable, LoadableFeature {
 
   associatedtype ViewState: Hashable = Stateless
-  associatedtype ViewActions: ViewControllerActions = Actionless
 
-  var id: IID { get }
   var viewState: ViewStateBinding<ViewState> { get }
-  var viewActions: ViewActions { get }
 }
 
-extension ViewController
-where ViewState == Stateless {
+extension ViewController {
 
-  public var viewState: ViewStateBinding<Never> {
-    Stateless().wrappedValue
-  }
-}
-
-extension ViewController
-where ViewActions == Actionless {
-
-  public var viewActions: ViewActions {
-    Actionless()
+  public var id: ObjectIdentifier {
+    ObjectIdentifier(self.viewState)
   }
 }
 
@@ -59,6 +47,19 @@ extension ViewController /* Hashable */ {
     lhs.id == rhs.id
   }
 
+  public func equal (
+    to other: any ViewController
+  ) -> Bool {
+    func equal<LHS: ViewController>(
+      _ lhs: LHS,
+      _ rhs: any ViewController
+    ) -> Bool {
+      lhs.id == (rhs as? LHS)?.id
+    }
+
+    return equal(self, other)
+  }
+
   public func hash(
     into hasher: inout Hasher
   ) {
@@ -68,69 +69,142 @@ extension ViewController /* Hashable */ {
 
 extension ViewController {
 
-  public func binding<Value>(
+  @MainActor public func binding<Value>(
     to keyPath: WritableKeyPath<ViewState, Value>
   ) -> Binding<Value> {
     self.viewState.binding(to: keyPath)
   }
+}
 
-  public func action(
-    _ actionKeyPath: KeyPath<ViewActions, () -> Void>
-  ) -> () -> Void {
-    self.viewActions[keyPath: actionKeyPath]
+public enum Controlled {
+
+  @ViewBuilder public static func by<ControlledViewA, DefaultView>(
+    _ controller: any ViewController,
+    view: ControlledViewA.Type,
+    @ViewBuilder orDefault defaultView: () -> DefaultView
+  ) -> some View
+  where ControlledViewA: ControlledView, DefaultView: View {
+    switch controller {
+    case let controller as ControlledViewA.Controller:
+      ControlledViewA(controller: controller)
+        .id(controller.id)
+
+    case _:
+      defaultView()
+    }
   }
 
-  public func actionOptional(
-    _ actionKeyPath: KeyPath<ViewActions, (() -> Void)?>
-  ) -> (() -> Void)? {
-    self.viewActions[keyPath: actionKeyPath]
+  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, DefaultView>(
+    _ controller: any ViewController,
+    view: ControlledViewA.Type,
+    or _: ControlledViewB.Type,
+    @ViewBuilder orDefault defaultView: () -> DefaultView
+  ) -> some View
+  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, DefaultView: View {
+    switch controller {
+    case let controller as ControlledViewA.Controller:
+      ControlledViewA(controller: controller)
+        .id(controller.id)
+
+    case let controller as ControlledViewB.Controller:
+      ControlledViewB(controller: controller)
+        .id(controller.id)
+
+    case _:
+      defaultView()
+    }
   }
 
-  public func actionAsync(
-    _ actionKeyPath: KeyPath<ViewActions, @Sendable () async -> Void>
-  ) -> @Sendable () async -> Void {
-    self.viewActions[keyPath: actionKeyPath]
+  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, DefaultView>(
+    _ controller: any ViewController,
+    view: ControlledViewA.Type,
+    or _: ControlledViewB.Type,
+    or _: ControlledViewC.Type,
+    @ViewBuilder orDefault defaultView: () -> DefaultView
+  ) -> some View
+  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, DefaultView: View {
+    switch controller {
+    case let controller as ControlledViewA.Controller:
+      ControlledViewA(controller: controller)
+        .id(controller.id)
+
+    case let controller as ControlledViewB.Controller:
+      ControlledViewB(controller: controller)
+        .id(controller.id)
+
+    case let controller as ControlledViewC.Controller:
+      ControlledViewC(controller: controller)
+        .id(controller.id)
+
+    case _:
+      defaultView()
+    }
   }
 
-  public func action<A1>(
-    _ actionKeyPath: KeyPath<ViewActions, (A1) -> Void>
-  ) -> (A1) -> Void {
-    self.viewActions[keyPath: actionKeyPath]
+  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, ControlledViewD, DefaultView>(
+    _ controller: any ViewController,
+    view: ControlledViewA.Type,
+    or _: ControlledViewB.Type,
+    or _: ControlledViewC.Type,
+    or _: ControlledViewD.Type,
+    @ViewBuilder orDefault defaultView: () -> DefaultView
+  ) -> some View
+  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, ControlledViewD: ControlledView,  DefaultView: View {
+    switch controller {
+    case let controller as ControlledViewA.Controller:
+      ControlledViewA(controller: controller)
+        .id(controller.id)
+
+    case let controller as ControlledViewB.Controller:
+      ControlledViewB(controller: controller)
+        .id(controller.id)
+
+    case let controller as ControlledViewC.Controller:
+      ControlledViewC(controller: controller)
+        .id(controller.id)
+
+    case let controller as ControlledViewD.Controller:
+      ControlledViewD(controller: controller)
+        .id(controller.id)
+
+    case _:
+      defaultView()
+    }
   }
 
-  public func actionOptional<A1>(
-    _ actionKeyPath: KeyPath<ViewActions, ((A1) -> Void)?>
-  ) -> ((A1) -> Void)? {
-    self.viewActions[keyPath: actionKeyPath]
-  }
+  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, ControlledViewD, ControlledViewE, DefaultView>(
+    _ controller: any ViewController,
+    view: ControlledViewA.Type,
+    or _: ControlledViewB.Type,
+    or _: ControlledViewC.Type,
+    or _: ControlledViewD.Type,
+    or _: ControlledViewE.Type,
+    @ViewBuilder orDefault defaultView: () -> DefaultView
+  ) -> some View
+  where ControlledViewA: ControlledView, ControlledViewB: ControlledView, ControlledViewC: ControlledView, ControlledViewD: ControlledView, ControlledViewE: ControlledView, DefaultView: View {
+    switch controller {
+    case let controller as ControlledViewA.Controller:
+      ControlledViewA(controller: controller)
+        .id(controller.id)
 
-  public func perform(
-    _ actionKeyPath: KeyPath<ViewActions, () -> Void>
-  ) {
-    self.viewActions[keyPath: actionKeyPath]()
-  }
+    case let controller as ControlledViewB.Controller:
+      ControlledViewB(controller: controller)
+        .id(controller.id)
 
-  public func perform<A1>(
-    _ actionKeyPath: KeyPath<ViewActions, (A1) -> Void>,
-    with arg1: A1
-  ) {
-    self.viewActions[keyPath: actionKeyPath](arg1)
-  }
+    case let controller as ControlledViewC.Controller:
+      ControlledViewC(controller: controller)
+        .id(controller.id)
 
-  public func perform<A1, A2>(
-    _ actionKeyPath: KeyPath<ViewActions, (A1, A2) -> Void>,
-    with arg1: A1,
-    _ arg2: A2
-  ) {
-    self.viewActions[keyPath: actionKeyPath](arg1, arg2)
-  }
+    case let controller as ControlledViewD.Controller:
+      ControlledViewD(controller: controller)
+        .id(controller.id)
 
-  public func perform<A1, A2, A3>(
-    _ actionKeyPath: KeyPath<ViewActions, (A1, A2, A3) -> Void>,
-    with arg1: A1,
-    _ arg2: A2,
-    _ arg3: A3
-  ) {
-    self.viewActions[keyPath: actionKeyPath](arg1, arg2, arg3)
+    case let controller as ControlledViewE.Controller:
+      ControlledViewE(controller: controller)
+        .id(controller.id)
+
+    case _:
+      defaultView()
+    }
   }
 }

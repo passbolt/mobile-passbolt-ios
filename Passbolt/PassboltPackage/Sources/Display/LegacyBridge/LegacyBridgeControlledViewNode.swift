@@ -21,31 +21,66 @@
 // @since         v1.0
 //
 
-import Display
-import SharedUIComponents
+import UIKit
 
-internal struct AutofillRootNavigationNodeView: ControlledViewNode {
+internal struct LegacyBridgeControlledViewNode<Component>: ControlledViewNode
+where Component: UIComponent {
 
-  internal typealias Controller = AutofillRootNavigationNodeController
+  internal struct Controller: ViewNodeController {
 
-  private let controller: Controller
+    @NavigationNodeID public var nodeID
+    @Stateless internal var viewState
+
+    internal init() {
+      unimplemented()
+    }
+
+    #if DEBUG
+    internal static var placeholder: Self {
+      unimplemented()
+    }
+    #endif
+  }
+
+  private let legacyBridge: LegacyNavigationNodeBridgeView<Component>
+
+  internal init(
+    for legacyBridge: LegacyNavigationNodeBridgeView<Component>
+  ) {
+    self.legacyBridge = legacyBridge
+  }
 
   internal init(
     controller: Controller
   ) {
-    self.controller = controller
+    unimplemented()
   }
 
   internal var body: some View {
-    ZStack {
-      Image(named: .passboltLogo)
+    legacyBridge
+    .navigationViewStyle(.stack)
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationTitle(legacyBridge.title)
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text(legacyBridge.title)
+          .font(
+            .inter(
+              ofSize: 16,
+              weight: .semibold
+            )
+          )
+          .foregroundColor(.passboltPrimaryText)
+          .frame(
+            maxWidth: .infinity,
+            alignment: .center
+          )
+      }
+      ToolbarItem(placement: .navigationBarTrailing) {
+        legacyBridge.trailingBarButton
+          .frame(maxWidth: 60, alignment: .trailing)
+      }
     }
-    .ignoresSafeArea()
-    .frame(
-      maxWidth: .infinity,
-      maxHeight: .infinity
-    )
     .backgroundColor(.passboltBackground)
-    .task(self.controller.activate)
   }
 }

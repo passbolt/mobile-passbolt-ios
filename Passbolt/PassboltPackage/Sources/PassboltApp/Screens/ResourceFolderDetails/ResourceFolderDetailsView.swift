@@ -109,7 +109,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
       .padding(bottom: 24)
 
       Button(
-        action: self.controller.action(\.openLocationDetails),
+        action: self.controller.openLocationDetails,
         label: {
           HStack {
             FolderLocationView(
@@ -133,7 +133,7 @@ internal struct ResourceFolderDetailsView: ControlledView {
       .padding(bottom: 24)
 
       Button(
-        action: self.controller.action(\.openPermissionDetails),
+        action: self.controller.openPermissionDetails,
         label: {
           HStack {
             PermissionAvatarsView(

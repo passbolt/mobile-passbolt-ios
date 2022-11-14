@@ -23,23 +23,32 @@
 
 import SwiftUI
 
+extension View {
+
+  public func erased() -> AnyView {
+    AnyView(erasing: self)
+  }
+}
+
 internal struct NavigationTreeAnchorView: View {
 
   internal let node: NavigationTreeNode
-  internal let dismissNode: @Sendable (NavigationNodeID) -> Void
+  @Environment(\.navigationTreeDismiss) private var dismissNode
 
   @ViewBuilder internal var nodeView: some View {
     switch node {
-    case let .just(nodeView), let .overlay(_, covering: .just(nodeView)):
+    case let .just(id, nodeView), let .overlay(_, covering: .just(id, nodeView)):
       nodeView
+        .erased()
+        .id(id)
+
 
     case let .stack(stackNode), let .overlay(_, covering: .stack(stackNode)):
       if #available(iOS 16.0, *) {
         #warning("TODO: use NavigationStack")
         NavigationView {
           NavigationStackAnchorView(
-            node: stackNode,
-            dismissNode: self.dismissNode
+            node: stackNode
           )
         }
         .navigationViewStyle(.stack)
@@ -47,8 +56,7 @@ internal struct NavigationTreeAnchorView: View {
       else {
         NavigationView {
           NavigationStackAnchorView(
-            node: stackNode,
-            dismissNode: self.dismissNode
+            node: stackNode
           )
         }
         .navigationViewStyle(.stack)
@@ -59,8 +67,7 @@ internal struct NavigationTreeAnchorView: View {
         node: .overlay(
           .sheet(overlayNode),
           covering: coveredNode
-        ),
-        dismissNode: self.dismissNode
+        )
       )
 
     case let .overlay(_, covering: .overlay(.overFullScreen(overlayNode), covering: coveredNode)):
@@ -68,8 +75,7 @@ internal struct NavigationTreeAnchorView: View {
         node: .overlay(
           .overFullScreen(overlayNode),
           covering: coveredNode
-        ),
-        dismissNode: self.dismissNode
+        )
       )
     }
   }
@@ -93,19 +99,12 @@ internal struct NavigationTreeAnchorView: View {
           set: { _ in
             guard let overlayNodeID: NavigationNodeID = overlay?.nodeID
             else { return }
-            self.dismissNode(overlayNodeID)
+            self.dismissNode?(overlayNodeID)
           }
         ),
         content: { (overlayNode: NavigationTreeNode) in
           NavigationTreeAnchorView(
-            node: overlayNode,
-            dismissNode: self.dismissNode
-          )
-          .environment(
-            \.navigationTreeDismiss,
-            {
-              self.dismissNode(overlayNode.id)
-            }
+            node: overlayNode
           )
         }
       )
@@ -115,19 +114,12 @@ internal struct NavigationTreeAnchorView: View {
           set: { _ in
             guard let overlayNodeID: NavigationNodeID = overlay?.nodeID
             else { return }
-            self.dismissNode(overlayNodeID)
+            self.dismissNode?(overlayNodeID)
           }
         ),
         content: { (overlayNode: NavigationTreeNode) in
           NavigationTreeAnchorView(
-            node: overlayNode,
-            dismissNode: self.dismissNode
-          )
-          .environment(
-            \.navigationTreeDismiss,
-            {
-              self.dismissNode(overlayNode.id)
-            }
+            node: overlayNode
           )
         }
       )
@@ -138,7 +130,7 @@ internal struct NavigationStackAnchorView: View {
 
   internal let node: NavigationStackNode
   internal var nextNode: NavigationStackNode? { self.node.next }
-  internal let dismissNode: @Sendable (NavigationNodeID) -> Void
+  @Environment(\.navigationTreeDismiss) private var dismissNode
 
   internal var body: some View {
     ZStack {
@@ -149,27 +141,24 @@ internal struct NavigationStackAnchorView: View {
             assert(!active)
             guard let nodeID: NavigationNodeID = self.nextNode?.nodeID
             else { return }
-            dismissNode(nodeID)
+            self.dismissNode?(nodeID)
           }
         ),
         destination: {
           if let nextNode: NavigationStackNode = nextNode {
             NavigationStackAnchorView(
-              node: nextNode,
-              dismissNode: self.dismissNode
-            )
-            .environment(
-              \.navigationTreeBack,
-              {
-                self.dismissNode(nextNode.nodeID)
-              }
+              node: nextNode
             )
           }  // else no destination
         },
         label: EmptyView.init
       )
       .isDetailLink(false)
-      self.node.nodeView
+
+      self.node
+        .nodeView
+        .erased()
+        .id(self.node.nodeID)
     }
   }
 }

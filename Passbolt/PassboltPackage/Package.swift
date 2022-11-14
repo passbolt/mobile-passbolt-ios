@@ -208,6 +208,7 @@ let package = Package(
         "Resources",
         "UIComponents",
         "Display",
+        "Session",
       ]
     ),
     .testTarget(

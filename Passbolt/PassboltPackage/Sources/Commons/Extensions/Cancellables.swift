@@ -47,6 +47,19 @@ public struct Cancellables {
 
   public init() {}
 
+  @Sendable public func cleanup() {
+    let state: State = self.state
+      .access { (state: inout State) in
+        defer {
+          state.cancellations = .init()
+          state.cleanups = .init()
+        }
+        return state
+    }
+    state.cancellations.forEach { $0() }
+    state.cleanups.forEach { $0() }
+  }
+
   public func addCleanup(
     _ cleanup: @escaping () async throws -> Void
   ) {

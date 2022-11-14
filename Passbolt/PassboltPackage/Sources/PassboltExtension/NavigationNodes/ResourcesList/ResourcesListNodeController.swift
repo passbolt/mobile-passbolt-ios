@@ -30,10 +30,9 @@ import Users
 
 internal struct ResourcesListNodeController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var closeExtension: () -> Void
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourcesListDisplayController
 }
@@ -57,24 +56,11 @@ extension ResourcesListNodeController: ViewNodeController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var closeExtension: () -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        closeExtension: { unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder,
+      closeExtension: { unimplemented() },
       searchController: .placeholder,
       contentController: .placeholder
     )
@@ -96,7 +82,7 @@ extension ResourcesListNodeController {
     let requestedServiceIdentifiers: Array<AutofillExtensionContext.ServiceIdentifier> =
       autofillContext.requestedServiceIdentifiers()
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
@@ -104,23 +90,22 @@ extension ResourcesListNodeController {
       )
     )
 
-    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
-
     let searchController: ResourceSearchDisplayController = try await features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
-          state.set(\.snackBarMessage, to: message)
+          viewState.mutate { viewState in
+            viewState.snackBarMessage = message
+          }
         }
       )
     )
 
     let contentController: ResourcesListDisplayController = try await features.instance(
       context: .init(
-        filter:
-          searchController
+        filter: searchController
           .searchText
-          .convert { (text: String) -> ResourcesFilter in
+          .map { (text: String) -> ResourcesFilter in
             var filter: ResourcesFilter = context.baseFilter
             filter.text = text
             return filter
@@ -132,7 +117,9 @@ extension ResourcesListNodeController {
         selectResource: selectResource(_:),
         openResourceMenu: .none,
         showMessage: { (message: SnackBarMessage?) in
-          state.set(\.snackBarMessage, to: message)
+          viewState.mutate { viewState in
+            viewState.snackBarMessage = message
+          }
         }
       )
     )
@@ -183,7 +170,9 @@ extension ResourcesListNodeController {
               "Failed to handle resource selection."
             )
           )
-          state.set(\.snackBarMessage, to: .error(error))
+          await viewState.mutate { viewState in
+            viewState.snackBarMessage = .error(error)
+          }
         }
       }
     }
@@ -196,9 +185,7 @@ extension ResourcesListNodeController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        closeExtension: closeExtension
-      ),
+      closeExtension: closeExtension,
       searchController: searchController,
       contentController: contentController
     )

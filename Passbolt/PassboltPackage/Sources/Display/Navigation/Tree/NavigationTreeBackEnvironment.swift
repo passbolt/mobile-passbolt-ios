@@ -29,7 +29,7 @@ private struct NavigationTreeBackEnvironmentKey: EnvironmentKey {
   static let defaultValue: NavigationTreeBack? = .none
 }
 
-public typealias NavigationTreeBack = @Sendable () -> Void
+public typealias NavigationTreeBack = @MainActor (NavigationNodeID) -> Void
 
 extension EnvironmentValues {
 

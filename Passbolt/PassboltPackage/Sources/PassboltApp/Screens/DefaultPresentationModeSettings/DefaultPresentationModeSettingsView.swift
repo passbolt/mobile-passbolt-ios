@@ -52,7 +52,7 @@ internal struct DefaultPresentationModeSettingsView: ControlledView {
                   .padding(4)
               },
               contentAction: {
-                self.controller.perform(\.selectMode, with: .none)
+                self.controller.selectMode(.none)
               },
               rightAccessory: {
                 Image(
@@ -78,7 +78,7 @@ internal struct DefaultPresentationModeSettingsView: ControlledView {
                     .padding(4)
                 },
                 contentAction: {
-                  self.controller.perform(\.selectMode, with: mode)
+                  self.controller.selectMode(mode)
                 },
                 rightAccessory: {
                   Image(

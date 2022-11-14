@@ -25,14 +25,26 @@ import SwiftUI
 
 public struct LoaderViewNode: ControlledViewNode {
 
-  public static func instance() -> Self {
+  public struct Controller: ViewNodeController {
+
+    @NavigationNodeID public var nodeID
+    @Stateless public var viewState
+
+    #if DEBUG
+    public static var placeholder: Self {
+      .init()
+    }
+    #endif
+  }
+
+  public static func instance () -> Self {
     .init(controller: .init())
   }
 
-  private let controller: EmptyViewController
+  private let controller: Controller
 
   public init(
-    controller: EmptyViewController
+    controller: Controller
   ) {
     self.controller = controller
   }

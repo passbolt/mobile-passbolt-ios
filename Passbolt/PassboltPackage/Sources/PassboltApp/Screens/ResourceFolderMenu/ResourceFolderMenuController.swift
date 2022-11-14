@@ -28,9 +28,9 @@ import SharedUIComponents
 
 internal struct ResourceFolderMenuController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var openDetails: () -> Void
+  internal var close: () -> Void
 }
 
 extension ResourceFolderMenuController: ViewController {
@@ -46,26 +46,12 @@ extension ResourceFolderMenuController: ViewController {
     internal var folderName: String
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var openDetails: () -> Void
-    internal var close: () -> Void
-
-    #if DEBUG
-    static var placeholder: Self {
-      .init(
-        openDetails: unimplemented(),
-        close: unimplemented()
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      openDetails: unimplemented(),
+      close: unimplemented()
     )
   }
   #endif
@@ -118,10 +104,8 @@ extension ResourceFolderMenuController {
           folderName: context.folderName
         )
       ),
-      viewActions: .init(
-        openDetails: openDetails,
-        close: close
-      )
+      openDetails: openDetails,
+      close: close
     )
   }
 }

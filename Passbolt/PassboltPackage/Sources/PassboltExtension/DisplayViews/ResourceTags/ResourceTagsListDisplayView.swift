@@ -37,10 +37,11 @@ internal struct ResourceTagsListDisplayView: ControlledView {
     WithViewState(self.controller) { state in
       ResourceTagsListView(
         tags: state.resourceTags,
-        refreshAction: self.controller.actionAsync(\.refresh),
+        refreshAction: self.controller.refresh,
         createAction: .none,
-        tagTapAction: self.controller.action(\.selectTag)
+        tagTapAction: self.controller.selectTag
       )
     }
+    .task(self.controller.activate)
   }
 }

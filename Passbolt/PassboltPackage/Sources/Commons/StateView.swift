@@ -32,7 +32,7 @@ where Value: Equatable {
   private let read: @Sendable () -> Value
   private let updatesPublisher: AnyPublisher<Value, Never>
 
-  internal init(
+  public init(
     read: @escaping @Sendable () -> Value,
     updatesPublisher: AnyPublisher<Value, Never>
   ) {

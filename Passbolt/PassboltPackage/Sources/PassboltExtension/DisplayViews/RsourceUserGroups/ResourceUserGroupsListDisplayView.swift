@@ -37,10 +37,11 @@ internal struct ResourceUserGroupsListDisplayView: ControlledView {
     WithViewState(self.controller) { state in
       ResourceUserGroupsListView(
         userGroups: state.userGroups,
-        refreshAction: self.controller.actionAsync(\.refresh),
+        refreshAction: self.controller.refresh,
         createAction: .none,
-        groupTapAction: self.controller.action(\.selectGroup)
+        groupTapAction: self.controller.selectGroup
       )
     }
+    .task(self.controller.activate)
   }
 }

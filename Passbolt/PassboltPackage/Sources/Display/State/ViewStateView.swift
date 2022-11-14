@@ -21,17 +21,18 @@
 // @since         v1.0
 //
 
-import Commons
+import SwiftUI
 
-@MainActor @propertyWrapper @dynamicMemberLookup
-public final class ViewStateBinding<Value>: ObservableObject
+@MainActor
+public final class ViewStateView<Value>: ObservableObject
 where Value: Hashable {
 
-  #if DEBUG
+#if DEBUG
   public nonisolated static var placeholder: Self {
     .init(
       read: unimplemented(),
-      write: unimplemented()
+      objectWillChange: .init(),
+      objectDidChange: .init()
     )
   }
 
@@ -40,55 +41,52 @@ where Value: Hashable {
   ) -> Self {
     .init(
       read: { value },
-      write: { _ in }
+      objectWillChange: .init(),
+      objectDidChange: .init()
     )
   }
-  #endif
+#endif
 
-  public nonisolated let objectDidChange: ObservableObjectPublisher
   public nonisolated let cancellables: Cancellables
+  public nonisolated let objectWillChange: ObservableObjectPublisher
+  public nonisolated let objectDidChange: ObservableObjectPublisher
   private let read: @MainActor () -> Value
-  private let write: @MainActor (Value) -> Void
 
-  public nonisolated convenience init(
-    initial: Value
+  public nonisolated convenience init<BindingValue>(
+    from binding: ViewStateBinding<BindingValue>,
+    at keyPath: KeyPath<BindingValue, Value>
   ) {
-    var value: Value = initial
     self.init(
-      read: { value },
-      write: { (newValue: Value) in
-        value = newValue
-      }
+      read: { binding[dynamicMember: keyPath] },
+      objectWillChange: binding.objectWillChange,
+      objectDidChange: binding.objectDidChange
+    )
+  }
+
+  public nonisolated convenience init<ViewValue>(
+    from view: ViewStateView<ViewValue>,
+    at keyPath: KeyPath<ViewValue, Value>
+  ) {
+    self.init(
+      read: { view[dynamicMember: keyPath] },
+      objectWillChange: view.objectWillChange,
+      objectDidChange: view.objectDidChange
     )
   }
 
   private nonisolated init(
     read: @escaping @MainActor () -> Value,
-    write: @escaping @MainActor (Value) -> Void
+    objectWillChange: ObservableObjectPublisher,
+    objectDidChange: ObservableObjectPublisher
   ) {
     self.read = read
-    self.write = write
-    self.objectDidChange = .init()
+    self.objectWillChange = objectWillChange
+    self.objectDidChange = objectDidChange
     self.cancellables = .init()
   }
 
   public var wrappedValue: Value {
-    get { self.read() }
-    set {
-      guard self.read() != newValue else { return }
-      self.objectWillChange.send()
-      self.write(newValue)
-      self.objectDidChange.send()
-    }
-  }
-
-  public var projectedValue: Binding<Value> {
-    .init(
-      get: { self.wrappedValue },
-      set: { (newValue: Value) in
-        self.wrappedValue = newValue
-      }
-    )
+    self.read()
   }
 
   public subscript<Property>(
@@ -98,24 +96,13 @@ where Value: Hashable {
       self.wrappedValue[keyPath: keyPath]
     }
   }
-
-  public subscript<Property>(
-    dynamicMember keyPath: WritableKeyPath<Value, Property>
-  ) -> Property {
-    get {
-      self.wrappedValue[keyPath: keyPath]
-    }
-    set {
-      self.wrappedValue[keyPath: keyPath] = newValue
-    }
-  }
 }
 
-extension ViewStateBinding: Hashable {
+extension ViewStateView: Hashable {
 
   public nonisolated static func == (
-    _ lhs: ViewStateBinding,
-    _ rhs: ViewStateBinding
+    _ lhs: ViewStateView,
+    _ rhs: ViewStateView
   ) -> Bool {
     lhs === rhs
   }
@@ -127,42 +114,21 @@ extension ViewStateBinding: Hashable {
   }
 }
 
-extension ViewStateBinding {
-
-  public func mutate<Property>(
-    _ access: (inout Value) throws -> Property
-  ) rethrows -> Property {
-    var copy: Value = self.wrappedValue
-    defer { self.wrappedValue = copy }
-    return try access(&copy)
-  }
-
-  @MainActor public func binding<Binded>(
-    to keyPath: WritableKeyPath<Value, Binded>
-  ) -> Binding<Binded> {
-    .init(
-      get: { self.wrappedValue[keyPath: keyPath] },
-      set: { (newValue: Binded) in
-        self.wrappedValue[keyPath: keyPath] = newValue
-      }
-    )
-  }
-}
-
-extension ViewStateBinding
+extension ViewStateView
 where Value == Never {
 
-  public nonisolated convenience init() {
+  public nonisolated convenience init(
+    cleanup: @escaping @Sendable () -> Void = {}
+  ) {
     self.init(
       read: { unreachable("Cannot read from Never") },
-      write: { (_: Value) in
-        unreachable("Cannot write to Never")
-      }
+      objectWillChange: .init(),
+      objectDidChange: .init()
     )
   }
 }
 
-extension ViewStateBinding {
+extension ViewStateView {
 
   public nonisolated func view<State>(
     at keyPath: KeyPath<Value, State>
@@ -172,17 +138,24 @@ extension ViewStateBinding {
       at: keyPath
     )
   }
-}
 
-extension ViewStateBinding {
+  public nonisolated func map<Mapped>(
+    _ mapping: @escaping @Sendable (Value) -> Mapped
+  ) -> ViewStateView<Mapped> {
+    .init(
+      read: { mapping(self.wrappedValue) },
+      objectWillChange: self.objectWillChange,
+      objectDidChange: self.objectDidChange
+    )
+  }
 
   public nonisolated func valuesPublisher() -> some Combine.Publisher<Value, Never> {
     self.objectDidChange
       .compactMap { [weak self] in
         self
       }
-      .asyncMap { (binding: ViewStateBinding) in
-        await binding.wrappedValue
+      .asyncMap { (view: ViewStateView) in
+        await view.wrappedValue
       }
   }
 }

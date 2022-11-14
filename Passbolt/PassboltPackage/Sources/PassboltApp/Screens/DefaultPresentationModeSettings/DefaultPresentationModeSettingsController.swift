@@ -27,9 +27,9 @@ import Session
 
 internal struct DefaultPresentationModeSettingsController {
 
-  @IID var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var selectMode: (HomePresentationMode?) -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension DefaultPresentationModeSettingsController {
@@ -39,19 +39,6 @@ extension DefaultPresentationModeSettingsController {
     internal var selectedMode: HomePresentationMode?
     internal var availableModes: OrderedSet<HomePresentationMode>
   }
-
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var selectMode: (HomePresentationMode?) -> Void
-    internal var navigateBack: () -> Void
-
-    internal static var placeholder: Self {
-      .init(
-        selectMode: { _ in unimplemented() },
-        navigateBack: { unimplemented() }
-      )
-    }
-  }
 }
 
 extension DefaultPresentationModeSettingsController: ViewController {
@@ -60,7 +47,8 @@ extension DefaultPresentationModeSettingsController: ViewController {
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      selectMode: { _ in unimplemented() },
+      navigateBack: { unimplemented() }
     )
   }
   #endif
@@ -93,15 +81,17 @@ extension DefaultPresentationModeSettingsController {
     nonisolated func selectMode(
       _ mode: HomePresentationMode?
     ) {
-      viewState.selectedMode = mode
-      if let mode: HomePresentationMode = mode {
-        useLastUsedHomePresentationAsDefault.set(to: false)
-        defaultHomePresentation.set(to: mode)
-      }
-      else {
-        useLastUsedHomePresentationAsDefault.set(to: true)
-      }
       Task {
+        await viewState.mutate { viewState in
+          viewState.selectedMode = mode
+        }
+        if let mode: HomePresentationMode = mode {
+          useLastUsedHomePresentationAsDefault.set(to: false)
+          defaultHomePresentation.set(to: mode)
+        }
+        else {
+          useLastUsedHomePresentationAsDefault.set(to: true)
+        }
         await navigation.pop(DefaultPresentationModeSettingsView.self)
       }
     }
@@ -114,10 +104,8 @@ extension DefaultPresentationModeSettingsController {
 
     return Self(
       viewState: viewState,
-      viewActions: .init(
-        selectMode: selectMode(_:),
-        navigateBack: navigateBack
-      )
+      selectMode: selectMode(_:),
+      navigateBack: navigateBack
     )
   }
 }

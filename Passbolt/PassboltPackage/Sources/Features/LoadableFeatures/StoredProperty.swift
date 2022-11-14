@@ -95,8 +95,7 @@ extension StoredProperty {
     return Self(
       binding: .fromSource(
         read: fetch,
-        write: store(_:),
-        removeDuplicates: removeDuplicates
+        write: store(_:)
       )
     )
   }

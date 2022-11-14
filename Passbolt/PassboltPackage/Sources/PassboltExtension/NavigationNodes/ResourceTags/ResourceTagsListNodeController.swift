@@ -30,10 +30,9 @@ import Users
 
 internal struct ResourceTagsListNodeController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var closeExtension: () -> Void
   internal var searchController: ResourceSearchDisplayController
   internal var contentController: ResourceTagsListDisplayController
 }
@@ -56,24 +55,11 @@ extension ResourceTagsListNodeController: ViewNodeController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var closeExtension: () -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        closeExtension: { unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder,
+      closeExtension: { unimplemented() },
       searchController: .placeholder,
       contentController: .placeholder
     )
@@ -93,7 +79,7 @@ extension ResourceTagsListNodeController {
     let autofillContext: AutofillExtensionContext = features.instance()
     let resourceTags: ResourceTags = try await features.instance()
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         title: context.title,
         titleIconName: context.titleIconName,
@@ -101,13 +87,13 @@ extension ResourceTagsListNodeController {
       )
     )
 
-    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
-
     let searchController: ResourceSearchDisplayController = try await features.instance(
       context: .init(
         searchPrompt: context.searchPrompt,
         showMessage: { (message: SnackBarMessage?) in
-          state.set(\.snackBarMessage, to: message)
+          viewState.mutate { viewState in
+            viewState.snackBarMessage = message
+          }
         }
       )
     )
@@ -117,7 +103,9 @@ extension ResourceTagsListNodeController {
         filter: searchController.searchText,
         selectTag: selectResourceTag(_:),
         showMessage: { (message: SnackBarMessage?) in
-          state.set(\.snackBarMessage, to: message)
+          viewState.mutate { viewState in
+            viewState.snackBarMessage = message
+          }
         }
       )
     )
@@ -142,7 +130,7 @@ extension ResourceTagsListNodeController {
                 )
               )
             )
-          navigationTree
+          await navigationTree
             .push(
               ResourcesListNodeView.self,
               controller: nodeController
@@ -155,7 +143,9 @@ extension ResourceTagsListNodeController {
               "Failed to handle resource tag selection."
             )
           )
-          state.set(\.snackBarMessage, to: .error(error))
+          await viewState.mutate { viewState in
+            viewState.snackBarMessage = .error(error)
+          }
         }
       }
     }
@@ -168,9 +158,7 @@ extension ResourceTagsListNodeController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        closeExtension: closeExtension
-      ),
+      closeExtension: closeExtension,
       searchController: searchController,
       contentController: contentController
     )

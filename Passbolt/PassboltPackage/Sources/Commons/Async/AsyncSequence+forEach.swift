@@ -29,10 +29,10 @@ extension AsyncSequence {
     try await withThrowingTaskGroup(of: Void.self) { (taskGroup: inout ThrowingTaskGroup<Void, Error>) in
       var iterator: Self.AsyncIterator = self.makeAsyncIterator()
 
-      try Task.checkCancellation()
+      guard !Task.isCancelled else { return }
 
       while let nextElement: Element = try await iterator.next() {
-        try Task.checkCancellation()
+        guard !Task.isCancelled else { return }
         taskGroup.addTask {
           try await operation(nextElement)
         }

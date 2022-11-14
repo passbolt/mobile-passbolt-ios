@@ -26,7 +26,10 @@ import UIComponents
 
 internal indirect enum NavigationTreeNode {
 
-  case just(AnyViewNode)
+  case just(
+    id: NavigationNodeID,
+    view: any View
+  )
   case stack(NavigationStackNode)
   case overlay(
     NavigationTreeOverlay,
@@ -42,8 +45,8 @@ extension NavigationTreeNode: Identifiable {
 
   internal var nodeID: NavigationNodeID {
     switch self {
-    case let .just(nodeView):
-      return nodeView.nodeID
+    case let .just(id, _):
+      return id
 
     case let .stack(stackNode):
       return stackNode.nodeID
@@ -61,8 +64,8 @@ extension NavigationTreeNode: Hashable {
     _ rhs: NavigationTreeNode
   ) -> Bool {
     switch (lhs, rhs) {
-    case let (.just(lNodeView), .just(rNodeView)):
-      return lNodeView.nodeID == rNodeView.nodeID
+    case let (.just(lNodeID, _), .just(rNodeID, _)):
+      return lNodeID == rNodeID
 
     case let (.stack(lStackNode), .stack(rStackNode)):
       return lStackNode == rStackNode
@@ -80,8 +83,8 @@ extension NavigationTreeNode: Hashable {
     into hasher: inout Hasher
   ) {
     switch self {
-    case let .just(nodeView):
-      hasher.combine(nodeView.nodeID)
+    case let .just(id, _):
+      hasher.combine(id)
 
     case let .stack(stackNode):
       hasher.combine(stackNode)
@@ -97,32 +100,53 @@ extension NavigationTreeNode {
 
   @discardableResult
   internal func pushing(
-    _ nodeView: AnyViewNode
+    _ nodeView: any View,
+    withID id: NavigationNodeID
   ) -> NavigationTreeNode {
     switch self {
-    case let .just(currentNodeView):
+    case let .just(currentNodeID, currentNodeView):
       return .stack(
         .element(
-          currentNodeView,
+          id: currentNodeID,
+          view: currentNodeView,
           next: .element(
-            nodeView,
+            id: id,
+            view: nodeView,
             next: .none
           )
         )
       )
 
     case let .stack(stackNode):
-      return .stack(stackNode.appending(nodeView))
+      return .stack(
+        stackNode
+          .appending(
+            nodeView,
+            withID: id
+          )
+      )
 
     case let .overlay(.sheet(overlayTree), coveredTree):
       return .overlay(
-        .sheet(overlayTree.pushing(nodeView)),
+        .sheet(
+          overlayTree
+            .pushing(
+              nodeView,
+              withID: id
+            )
+        ),
         covering: coveredTree
       )
 
     case let .overlay(.overFullScreen(overlayTree), coveredTree):
       return .overlay(
-        .overFullScreen(overlayTree.pushing(nodeView)),
+        .overFullScreen(
+          overlayTree
+            .pushing(
+              nodeView,
+              withID: id
+            )
+        ),
         covering: coveredTree
       )
     }
@@ -130,18 +154,29 @@ extension NavigationTreeNode {
 
   @discardableResult
   internal func presenting(
-    _ nodeView: AnyViewNode,
+    _ nodeView: any View,
+    withID id: NavigationNodeID,
     _ presentation: NavigationTreeOverlayPresentation
   ) -> NavigationTreeNode {
     switch presentation {
     case .sheet:
       return .overlay(
-        .sheet(.just(nodeView)),
+        .sheet(
+          .just(
+            id: id,
+            view: nodeView
+          )
+        ),
         covering: self
       )
     case .overFullScreen:
       return .overlay(
-        .overFullScreen(.just(nodeView)),
+        .overFullScreen(
+          .just(
+            id: id,
+            view: nodeView
+          )
+        ),
         covering: self
       )
     }
@@ -149,18 +184,35 @@ extension NavigationTreeNode {
 
   @discardableResult
   internal func presenting(
-    pushed nodeView: AnyViewNode,
+    pushed nodeView: any View,
+    withID id: NavigationNodeID,
     _ presentation: NavigationTreeOverlayPresentation
   ) -> NavigationTreeNode {
     switch presentation {
     case .sheet:
       return .overlay(
-        .sheet(.stack(.element(nodeView, next: .none))),
+        .sheet(
+          .stack(
+            .element(
+              id: id,
+              view: nodeView,
+              next: .none
+            )
+          )
+        ),
         covering: self
       )
     case .overFullScreen:
       return .overlay(
-        .overFullScreen(.stack(.element(nodeView, next: .none))),
+        .overFullScreen(
+          .stack(
+            .element(
+              id: id,
+              view: nodeView,
+              next: .none
+            )
+          )
+        ),
         covering: self
       )
     }
@@ -170,8 +222,8 @@ extension NavigationTreeNode {
     _ nodeID: NavigationNodeID
   ) -> Self? {
     switch self {
-    case let .just(nodeView):
-      if nodeView.nodeID == nodeID {
+    case let .just(id, _):
+      if id == nodeID {
         return .none
       }
       else {
@@ -256,8 +308,8 @@ extension NavigationTreeNode {
     _ nodeID: NavigationNodeID
   ) -> Bool {
     switch self {
-    case let .just(node):
-      return node.nodeID == nodeID
+    case let .just(id, _):
+      return id == nodeID
 
     case let .stack(stackNode):
       return stackNode.contains(nodeID)

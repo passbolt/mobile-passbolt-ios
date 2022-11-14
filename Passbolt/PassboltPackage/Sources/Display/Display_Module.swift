@@ -21,20 +21,15 @@
 // @since         v1.0
 //
 
-import SwiftUI
+@_exported import Commons
+@_exported import Features
+@_exported import SwiftUI
+@_exported import UIComponents  // LegacyBridge only
 
-// module placement required by dependency tree
-private struct NavigationTreeDismissEnvironmentKey: EnvironmentKey {
+extension FeatureFactory {
 
-  static let defaultValue: NavigationTreeDismiss? = .none
-}
-
-public typealias NavigationTreeDismiss = @Sendable () -> Void
-
-extension EnvironmentValues {
-
-  public var navigationTreeDismiss: NavigationTreeDismiss? {
-    get { self[NavigationTreeDismissEnvironmentKey.self] }
-    set { self[NavigationTreeDismissEnvironmentKey.self] = newValue }
+  public func useLiveDisplay() {
+    self.useLiveLegacyNavigationBridge()
+    self.useLiveDisplayNavigation()
   }
 }

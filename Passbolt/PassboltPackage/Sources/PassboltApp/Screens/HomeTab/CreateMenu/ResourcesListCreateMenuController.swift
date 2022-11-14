@@ -28,9 +28,10 @@ import SharedUIComponents
 
 internal struct ResourcesListCreateMenuController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var createResource: () -> Void
+  internal var createFolder: () -> Void
+  internal var close: () -> Void
 }
 
 extension ResourcesListCreateMenuController: ViewController {
@@ -42,28 +43,13 @@ extension ResourcesListCreateMenuController: ViewController {
 
   internal struct ViewState: Hashable {}
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var createResource: () -> Void
-    internal var createFolder: () -> Void
-    internal var close: () -> Void
-
-    #if DEBUG
-    static var placeholder: Self {
-      .init(
-        createResource: unimplemented(),
-        createFolder: unimplemented(),
-        close: unimplemented()
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      createResource: unimplemented(),
+      createFolder: unimplemented(),
+      close: unimplemented()
     )
   }
   #endif
@@ -134,11 +120,9 @@ extension ResourcesListCreateMenuController {
 
     return .init(
       viewState: .init(initial: .init()),
-      viewActions: .init(
-        createResource: createResource,
-        createFolder: createFolder,
-        close: close
-      )
+      createResource: createResource,
+      createFolder: createFolder,
+      close: close
     )
   }
 }

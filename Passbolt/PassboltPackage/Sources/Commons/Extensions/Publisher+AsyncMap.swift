@@ -56,4 +56,18 @@ extension Publisher where Failure == Never {
       }
     }
   }
+
+  public func asyncCompactMap<NewOutput>(
+    _ transform: @escaping (Output) async -> NewOutput?
+  ) -> Publishers.FlatMap<Future<NewOutput, Never>, Self> {
+    self.flatMap { output in
+      Future<NewOutput, Never> { promise in
+        Task {
+          guard let transformed: NewOutput = await transform(output)
+          else { return }
+          promise(.success(transformed))
+        }
+      }
+    }
+  }
 }

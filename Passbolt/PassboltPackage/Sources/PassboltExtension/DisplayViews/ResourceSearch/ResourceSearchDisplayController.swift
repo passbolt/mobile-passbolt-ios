@@ -30,11 +30,12 @@ import Users
 
 internal struct ResourceSearchDisplayController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
-  internal var searchText: StateView<String>
+  internal var activate: @Sendable () async -> Void
+  internal var showPresentationMenu: () -> Void
+  internal var signOut: () -> Void
+  internal var searchText: ViewStateView<String>
 }
 
 extension ResourceSearchDisplayController: ViewNodeController {
@@ -54,28 +55,13 @@ extension ResourceSearchDisplayController: ViewNodeController {
     internal var searchText: String
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var activate: @Sendable () async -> Void
-    internal var showPresentationMenu: () -> Void
-    internal var signOut: () -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        activate: { unimplemented() },
-        showPresentationMenu: { unimplemented() },
-        signOut: { unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder,
+      activate: { unimplemented() },
+      showPresentationMenu: { unimplemented() },
+      signOut: { unimplemented() },
       searchText: .placeholder
     )
   }
@@ -95,7 +81,7 @@ extension ResourceSearchDisplayController {
     let currentAccount: Account = try await session.currentAccount()
     let accountDetails: AccountDetails = try await features.instance(context: currentAccount)
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         searchPrompt: context.searchPrompt,
         accountAvatar: .none,
@@ -103,13 +89,11 @@ extension ResourceSearchDisplayController {
       )
     )
 
-    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
-
     @Sendable nonisolated func activate() async {
       asyncExecutor.schedule(.reuse) {
         do {
           let avatar: Data? = try await accountDetails.avatarImage()
-          state.mutate { state in
+          await viewState.mutate { state in
             state.accountAvatar = avatar
           }
         }
@@ -153,12 +137,10 @@ extension ResourceSearchDisplayController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        activate: activate,
-        showPresentationMenu: showPresentationMenu,
-        signOut: signOut
-      ),
-      searchText: state.scopeView(\.searchText)
+      activate: activate,
+      showPresentationMenu: showPresentationMenu,
+      signOut: signOut,
+      searchText: viewState.view(at: \.searchText)
     )
   }
 }

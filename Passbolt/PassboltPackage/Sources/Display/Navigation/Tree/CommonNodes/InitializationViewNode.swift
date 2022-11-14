@@ -25,15 +25,22 @@ import SwiftUI
 
 public struct InitializationViewNode: ControlledViewNode {
 
-  internal static var erasedInstance: AnyViewNode = .init(
-    erasing: Self.self,
-    with: .init()
-  )
+  public struct Controller: ViewNodeController {
 
-  private let controller: EmptyViewController
+    @NavigationNodeID public var nodeID
+    @Stateless public var viewState
+
+    #if DEBUG
+    public static var placeholder: Self {
+      .init()
+    }
+    #endif
+  }
+
+  private let controller: Controller
 
   public init(
-    controller: EmptyViewController
+    controller: Controller
   ) {
     self.controller = controller
   }

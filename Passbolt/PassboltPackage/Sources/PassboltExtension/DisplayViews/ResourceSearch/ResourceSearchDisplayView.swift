@@ -39,9 +39,10 @@ internal struct ResourceSearchDisplayView: ControlledViewNode {
     WithViewState(self.controller) { state in
       self.bodyView(with: state)
     }
+    .task(self.controller.activate)
   }
 
-  @ViewBuilder private func bodyView(
+  @MainActor @ViewBuilder private func bodyView(
     with state: ViewState
   ) -> some View {
     SearchView(
@@ -51,13 +52,13 @@ internal struct ResourceSearchDisplayView: ControlledViewNode {
         .binding(to: \.searchText),
       leftAccessory: {
         Button(
-          action: self.controller.action(\.showPresentationMenu),
+          action: self.controller.showPresentationMenu,
           label: { ImageWithPadding(4, named: .filter) }
         )
       },
       rightAccessory: {
         Button(
-          action: self.controller.action(\.signOut),
+          action: self.controller.signOut,
           label: {
             UserAvatarView(imageData: state.accountAvatar)
               .padding(

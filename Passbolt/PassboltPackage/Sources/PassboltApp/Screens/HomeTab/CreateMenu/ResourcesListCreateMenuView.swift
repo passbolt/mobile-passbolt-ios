@@ -37,7 +37,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
     WithViewState(self.controller) { (state: ViewState) in
       DrawerMenu(
         closeTap: {
-          self.controller.perform(\.close)
+          self.controller.close()
         },
         title: {
           Text(
@@ -50,7 +50,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
           VStack(spacing: 0) {
             DrawerMenuItemView(
               action: {
-                self.controller.perform(\.createResource)
+                self.controller.createResource()
               },
               title: {
                 Text(
@@ -66,7 +66,7 @@ internal struct ResourcesListCreateMenuView: ControlledView {
 
             DrawerMenuItemView(
               action: {
-                self.controller.perform(\.createFolder)
+                self.controller.createFolder()
               },
               title: {
                 Text(

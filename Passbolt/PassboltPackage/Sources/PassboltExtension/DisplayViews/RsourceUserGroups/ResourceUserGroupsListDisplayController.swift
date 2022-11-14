@@ -30,9 +30,10 @@ import Users
 
 internal struct ResourceUserGroupsListDisplayController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var activate: @Sendable () async -> Void
+  internal var refresh: @Sendable () async -> Void
+  internal var selectGroup: (UserGroup.ID) -> Void
 }
 
 extension ResourceUserGroupsListDisplayController: ViewController {
@@ -41,7 +42,7 @@ extension ResourceUserGroupsListDisplayController: ViewController {
     // feature is disposable, we don't care about ID
     internal let identifier: AnyHashable = IID()
 
-    internal var filter: StateView<UserGroupsFilter>
+    internal var filter: ViewStateView<UserGroupsFilter>
     internal var selectGroup: (UserGroup.ID) -> Void
     internal var showMessage: (SnackBarMessage?) -> Void
   }
@@ -51,28 +52,13 @@ extension ResourceUserGroupsListDisplayController: ViewController {
     internal var userGroups: Array<ResourceUserGroupListItemDSV>
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var activate: @Sendable () async -> Void
-    internal var refresh: @Sendable () async -> Void
-    internal var selectGroup: (UserGroup.ID) -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        activate: { unimplemented() },
-        refresh: { unimplemented() },
-        selectGroup: { _ in unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      activate: { unimplemented() },
+      refresh: { unimplemented() },
+      selectGroup: { _ in unimplemented() }
     )
   }
   #endif
@@ -91,39 +77,26 @@ extension ResourceUserGroupsListDisplayController {
     let sessionData: SessionData = try await features.instance()
     let userGroups: UserGroups = try await features.instance()
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         userGroups: .init()
       )
     )
-    let viewState: ViewStateBinding<ViewState> = .init(
-      stateSource: state
-    )
 
     context
       .filter
+      .valuesPublisher()
       .sink { (filter: UserGroupsFilter) in
         updateDisplayedUserGroups(filter)
       }
       .store(in: viewState.cancellables)
 
     @Sendable nonisolated func activate() async {
-      do {
-        try await sessionData
-          .updatesSequence
-          .forEach {
-            updateDisplayedUserGroups(context.filter.get())
-          }
-      }
-      catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "Resource user groups list updates broken!"
-          )
-        )
-        context.showMessage(.error(error))
-      }
+      await sessionData
+        .updatesSequence
+        .forEach {
+          await updateDisplayedUserGroups(context.filter.wrappedValue)
+        }
     }
 
     @Sendable nonisolated func refresh() async {
@@ -153,7 +126,9 @@ extension ResourceUserGroupsListDisplayController {
 
           try Task.checkCancellation()
 
-          viewState.userGroups = filteredUserGroups
+          await viewState.mutate { viewState in
+            viewState.userGroups = filteredUserGroups
+          }
         }
         catch {
           diagnostics.log(
@@ -169,11 +144,9 @@ extension ResourceUserGroupsListDisplayController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        activate: activate,
-        refresh: refresh,
-        selectGroup: context.selectGroup
-      )
+      activate: activate,
+      refresh: refresh,
+      selectGroup: context.selectGroup
     )
   }
 }

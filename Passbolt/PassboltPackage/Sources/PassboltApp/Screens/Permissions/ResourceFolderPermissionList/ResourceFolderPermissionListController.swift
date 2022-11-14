@@ -30,9 +30,10 @@ import Users
 
 internal struct ResourceFolderPermissionListController {
 
-  @IID var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var showUserPermissionDetails: (UserPermissionDetailsDSV) -> Void
+  internal var showUserGroupPermissionDetails: (UserGroupPermissionDetailsDSV) -> Void
+  internal var navigateBack: () -> Void
 }
 
 extension ResourceFolderPermissionListController: ViewController {
@@ -45,28 +46,13 @@ extension ResourceFolderPermissionListController: ViewController {
     internal var snackBarMessage: SnackBarMessage? = .none
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var showUserPermissionDetails: (UserPermissionDetailsDSV) -> Void
-    internal var showUserGroupPermissionDetails: (UserGroupPermissionDetailsDSV) -> Void
-    internal var navigateBack: () -> Void
-
-    #if DEBUG
-    static var placeholder: Self {
-      .init(
-        showUserPermissionDetails: unimplemented(),
-        showUserGroupPermissionDetails: unimplemented(),
-        navigateBack: unimplemented()
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      showUserPermissionDetails: unimplemented(),
+      showUserGroupPermissionDetails: unimplemented(),
+      navigateBack: unimplemented()
     )
   }
   #endif
@@ -132,13 +118,13 @@ extension ResourceFolderPermissionListController {
         initial: .init(
           permissionListItems: [],
           snackBarMessage: .error(error)
-        ),
-        cleanup: {
-          asyncExecutor.clearTasks()
-        }
+        )
       )
       diagnostics.log(error: error)
       await navigation.pop(ResourceFolderPermissionListView.self)
+    }
+    viewState.cancellables.addCleanup {
+      asyncExecutor.clearTasks()
     }
 
     nonisolated func showUserPermissionDetails(
@@ -171,11 +157,9 @@ extension ResourceFolderPermissionListController {
 
     return Self(
       viewState: viewState,
-      viewActions: .init(
-        showUserPermissionDetails: showUserPermissionDetails(_:),
-        showUserGroupPermissionDetails: showUserGroupPermissionDetails(_:),
-        navigateBack: navigateBack
-      )
+      showUserPermissionDetails: showUserPermissionDetails(_:),
+      showUserGroupPermissionDetails: showUserGroupPermissionDetails(_:),
+      navigateBack: navigateBack
     )
   }
 }

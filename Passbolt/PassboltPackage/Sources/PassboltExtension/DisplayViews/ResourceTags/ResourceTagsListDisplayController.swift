@@ -29,9 +29,10 @@ import SessionData
 
 internal struct ResourceTagsListDisplayController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var activate: @Sendable () async -> Void
+  internal var refresh: @Sendable () async -> Void
+  internal var selectTag: (ResourceTag.ID) -> Void
 }
 
 extension ResourceTagsListDisplayController: ViewController {
@@ -40,7 +41,7 @@ extension ResourceTagsListDisplayController: ViewController {
     // feature is disposable, we don't care about ID
     internal let identifier: AnyHashable = IID()
 
-    internal var filter: StateView<String>
+    internal var filter: ViewStateView<String>
     internal var selectTag: (ResourceTag.ID) -> Void
     internal var showMessage: (SnackBarMessage?) -> Void
   }
@@ -50,28 +51,13 @@ extension ResourceTagsListDisplayController: ViewController {
     internal var resourceTags: Array<ResourceTagListItemDSV>
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var activate: @Sendable () async -> Void
-    internal var refresh: @Sendable () async -> Void
-    internal var selectTag: (ResourceTag.ID) -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        activate: { unimplemented() },
-        refresh: { unimplemented() },
-        selectTag: { _ in unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      activate: { unimplemented() },
+      refresh: { unimplemented() },
+      selectTag: { _ in unimplemented() }
     )
   }
   #endif
@@ -90,39 +76,26 @@ extension ResourceTagsListDisplayController {
     let sessionData: SessionData = try await features.instance()
     let resourceTags: ResourceTags = try await features.instance()
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         resourceTags: .init()
       )
     )
-    let viewState: ViewStateBinding<ViewState> = .init(
-      stateSource: state
-    )
 
     context
       .filter
+      .valuesPublisher()
       .sink { (filter: String) in
         updateDisplayedResourceTags(filter)
       }
       .store(in: viewState.cancellables)
 
     @Sendable nonisolated func activate() async {
-      do {
-        try await sessionData
-          .updatesSequence
-          .forEach {
-            updateDisplayedResourceTags(context.filter.get())
-          }
-      }
-      catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "Resource tags list updates broken!"
-          )
-        )
-        context.showMessage(.error(error))
-      }
+      await sessionData
+        .updatesSequence
+        .forEach {
+          await updateDisplayedResourceTags(context.filter.wrappedValue)
+        }
     }
 
     @Sendable nonisolated func refresh() async {
@@ -152,7 +125,9 @@ extension ResourceTagsListDisplayController {
 
           try Task.checkCancellation()
 
-          viewState.resourceTags = filteredResourceTags
+          await viewState.mutate { viewState in
+            viewState.resourceTags = filteredResourceTags
+          }
         }
         catch {
           diagnostics.log(
@@ -168,11 +143,9 @@ extension ResourceTagsListDisplayController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        activate: activate,
-        refresh: refresh,
-        selectTag: context.selectTag
-      )
+      activate: activate,
+      refresh: refresh,
+      selectTag: context.selectTag
     )
   }
 }

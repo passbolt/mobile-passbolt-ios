@@ -30,37 +30,36 @@ import Users
 
 internal struct HomeNavigationNodeController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var activate: @Sendable () async -> Void
 }
 
 extension HomeNavigationNodeController: ViewNodeController {
 
   internal struct ViewState: Hashable {
 
-    internal var contentController: AnyDisplayController
-  }
+    internal var contentController: any ViewController
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var activate: @Sendable () async -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        activate: { unimplemented() }
-      )
+    public static func == (
+      _ lhs: ViewState,
+      _ rhs: ViewState
+    ) -> Bool {
+      lhs.contentController.equal(to: rhs.contentController)
     }
-    #endif
+
+    internal func hash(
+      into hasher: inout Hasher
+    ) {
+      hasher.combine(self.contentController)
+    }
   }
 
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      activate: unimplemented()
     )
   }
   #endif
@@ -72,12 +71,11 @@ extension HomeNavigationNodeController {
     features: FeatureFactory
   ) async throws -> Self {
     let nodeID: NavigationNodeID = .init()
-    let diagnostics: Diagnostics = features.instance()
     let asyncExecutor: AsyncExecutor = features.instance(of: AsyncExecutor.self).detach()
     let navigationTree: NavigationTree = features.instance()
     let homePresentation: HomePresentation = try await features.instance()
 
-    let state: StateBinding<ViewState> = await .variable(
+    let viewState: ViewStateBinding<ViewState> = await .init(
       initial: .init(
         contentController: contentRoot(
           for: homePresentation.currentMode.get()
@@ -85,148 +83,122 @@ extension HomeNavigationNodeController {
       )
     )
 
-    let viewState: ViewStateBinding<ViewState> = .init(stateSource: state)
-
     @Sendable nonisolated func activate() async {
       asyncExecutor.schedule(.reuse) {
-				await homePresentation
-					.currentMode
-					.asAnyAsyncSequence()
-					.forEach { (mode: HomePresentationMode) in
-						await state.set(
-							\.contentController,
-							 to: contentRoot(for: mode)
-						)
-						navigationTree.dismiss(upTo: nodeID)
-					}
+        await homePresentation
+          .currentMode
+          .asAnyAsyncSequence()
+          .forEach { (mode: HomePresentationMode) in
+            let contentController = await contentRoot(for: mode)
+            await viewState.mutate { viewState in
+              viewState.contentController = contentController
+            }
+            await navigationTree.dismiss(upTo: nodeID)
+          }
       }
     }
 
     @Sendable nonisolated func contentRoot(
       for mode: HomePresentationMode
-    ) async -> AnyDisplayController {
+    ) async -> any ViewController {
       do {
         switch mode {
         case .plainResourcesList:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourcesListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName,
-                  baseFilter: .init(
-                    sorting: .nameAlphabetically
-                  )
+          return try await features
+            .instance(
+              of: ResourcesListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName,
+                baseFilter: .init(
+                  sorting: .nameAlphabetically
                 )
               )
-          )
+            )
 
         case .modifiedResourcesList:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourcesListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName,
-                  baseFilter: .init(
-                    sorting: .modifiedRecently
-                  )
+          return try await features
+            .instance(
+              of: ResourcesListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName,
+                baseFilter: .init(
+                  sorting: .modifiedRecently
                 )
               )
-          )
+            )
 
         case .favoriteResourcesList:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourcesListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName,
-                  baseFilter: .init(
-                    sorting: .nameAlphabetically,
-                    favoriteOnly: true
-                  )
+          return try await features
+            .instance(
+              of: ResourcesListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName,
+                baseFilter: .init(
+                  sorting: .nameAlphabetically,
+                  favoriteOnly: true
                 )
               )
-          )
+            )
 
         case .sharedResourcesList:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourcesListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName,
-                  baseFilter: .init(
-                    sorting: .nameAlphabetically,
-                    permissions: [.read, .write]
-                  )
+          return try await features
+            .instance(
+              of: ResourcesListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName,
+                baseFilter: .init(
+                  sorting: .nameAlphabetically,
+                  permissions: [.read, .write]
                 )
               )
-          )
+            )
 
         case .ownedResourcesList:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourcesListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName,
-                  baseFilter: .init(
-                    sorting: .nameAlphabetically,
-                    permissions: [.owner]
-                  )
+          return try await features
+            .instance(
+              of: ResourcesListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName,
+                baseFilter: .init(
+                  sorting: .nameAlphabetically,
+                  permissions: [.owner]
                 )
               )
-          )
+            )
 
         case .tagsExplorer:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourceTagsListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName
-                )
+          return try await features
+            .instance(
+              of: ResourceTagsListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName
               )
-          )
+            )
 
         case .resourceUserGroupsExplorer:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourceUserGroupsListNodeController.self,
-                context: .init(
-                  title: mode.title,
-                  titleIconName: mode.iconName
-                )
+          return try await features
+            .instance(
+              of: ResourceUserGroupsListNodeController.self,
+              context: .init(
+                title: mode.title,
+                titleIconName: mode.iconName
               )
-          )
+            )
 
         case .foldersExplorer:
-          return try await AnyDisplayController(
-            erasing:
-              features
-              .instance(
-                of: ResourceFolderContentNodeController.self,
-                context: .init(
-                  folderDetails: .none
-                )
+          return try await features
+            .instance(
+              of: ResourceFolderContentNodeController.self,
+              context: .init(
+                folderDetails: .none
               )
-          )
+            )
         }
       }
       catch {
@@ -239,9 +211,7 @@ extension HomeNavigationNodeController {
     return .init(
       nodeID: nodeID,
       viewState: viewState,
-      viewActions: .init(
-        activate: activate
-      )
+      activate: activate
     )
   }
 }

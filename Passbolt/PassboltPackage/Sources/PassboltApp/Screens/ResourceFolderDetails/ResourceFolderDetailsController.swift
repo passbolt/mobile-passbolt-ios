@@ -30,9 +30,9 @@ import Users
 
 internal struct ResourceFolderDetailsController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var openLocationDetails: () -> Void
+  internal var openPermissionDetails: () -> Void
 }
 
 extension ResourceFolderDetailsController: ViewController {
@@ -48,26 +48,12 @@ extension ResourceFolderDetailsController: ViewController {
     internal var snackBarMessage: SnackBarMessage?
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var openLocationDetails: () -> Void
-    internal var openPermissionDetails: () -> Void
-
-    #if DEBUG
-    static var placeholder: Self {
-      .init(
-        openLocationDetails: unimplemented(),
-        openPermissionDetails: unimplemented()
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      openLocationDetails: unimplemented(),
+      openPermissionDetails: unimplemented()
     )
   }
   #endif
@@ -136,21 +122,24 @@ extension ResourceFolderDetailsController {
         folderLocation: .init(),
         folderPermissionItems: .init(),
         folderShared: false
-      ),
-      cleanup: {
-        await popFeaturesScope()
-        asyncExecutor.clearTasks()
-      }
+      )
     )
+    viewState.cancellables.addCleanup {
+      Task { await popFeaturesScope() }
+      asyncExecutor.clearTasks()
+    }
 
     asyncExecutor.schedule(.reuse) { [weak viewState] in
       for await _ in sessionData.updatesSequence {
         if let viewState: ViewStateBinding<ViewState> = viewState {
           do {
-            update(
-              viewState: &viewState.wrappedValue,
-              using: try await folderDetails.details()
-            )
+            let details: ResourceFolderDetailsDSV = try await folderDetails.details()
+            await viewState.mutate { viewState in
+              update(
+                viewState: &viewState,
+                using: details
+              )
+            }
           }
           catch {
             diagnostics.log(error: error)
@@ -196,10 +185,8 @@ extension ResourceFolderDetailsController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        openLocationDetails: openLocationDetails,
-        openPermissionDetails: openPermissionDetails
-      )
+      openLocationDetails: openLocationDetails,
+      openPermissionDetails: openPermissionDetails
     )
   }
 }

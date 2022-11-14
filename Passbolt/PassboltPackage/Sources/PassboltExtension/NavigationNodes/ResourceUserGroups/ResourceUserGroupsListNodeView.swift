@@ -39,7 +39,7 @@ internal struct ResourceUserGroupsListNodeView: ControlledViewNode {
     }
   }
 
-  @ViewBuilder private func bodyView(
+  @MainActor @ViewBuilder private func bodyView(
     with state: ViewState
   ) -> some View {
     ScreenView(
@@ -52,7 +52,7 @@ internal struct ResourceUserGroupsListNodeView: ControlledViewNode {
       titleLeadingItem: EmptyView.init,
       titleTrailingItem: {
         Button(
-          action: self.controller.action(\.closeExtension),
+          action: self.controller.closeExtension,
           label: { Image(named: .close) }
         )
       },

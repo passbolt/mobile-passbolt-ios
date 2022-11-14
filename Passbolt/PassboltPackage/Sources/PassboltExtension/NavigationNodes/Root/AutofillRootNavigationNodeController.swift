@@ -28,31 +28,17 @@ import SharedUIComponents
 
 internal struct AutofillRootNavigationNodeController {
 
-  @IID internal var id
   @NavigationNodeID public var nodeID
   @Stateless public var viewState
-  public var viewActions: ViewActions
+  internal var activate: @Sendable () async -> Void
 }
 
 extension AutofillRootNavigationNodeController: ViewNodeController {
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var activate: @Sendable () async -> Void
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        activate: { unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
-      viewActions: .placeholder
+      activate: unimplemented()
     )
   }
   #endif
@@ -133,7 +119,7 @@ extension AutofillRootNavigationNodeController {
                     account == currentAccount
                   {
                     authorizationPromptRecoveryTreeState.set(\.self, .none)
-                    navigationTree.set(treeState: tree)
+                    await navigationTree.set(treeState: tree)
                   }
                   else {
                     try await navigationTree.replaceRoot(
@@ -143,7 +129,7 @@ extension AutofillRootNavigationNodeController {
                   }
 
                 case let (.some(account), .passphrase):
-                  authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
+                  await authorizationPromptRecoveryTreeState.set(\.self, (account, navigationTree.treeState))
                   await navigationTree
                     .replaceRoot(
                       pushing: AccountSelectionViewController.self,
@@ -205,9 +191,7 @@ extension AutofillRootNavigationNodeController {
     }
 
     return .init(
-      viewActions: .init(
-        activate: activate
-      )
+      activate: activate
     )
   }
 }

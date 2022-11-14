@@ -21,19 +21,20 @@
 // @since         v1.0
 //
 
-public protocol ViewControllerActions {
+import SwiftUI
 
-  // executed on view appear
-  var activate: @Sendable () async -> Void { get }
+// module placement required by dependency tree
+private struct NavigationTreeDismissEnvironmentKey: EnvironmentKey {
 
-  #if DEBUG
-  static var placeholder: Self { get }
-  #endif
+  static let defaultValue: NavigationTreeDismiss? = .none
 }
 
-extension ViewControllerActions {
+public typealias NavigationTreeDismiss = @MainActor (NavigationNodeID) -> Void
 
-  public var activate: @Sendable () async -> Void {
-    { /* NOP */  }
+extension EnvironmentValues {
+
+  public var navigationTreeDismiss: NavigationTreeDismiss? {
+    get { self[NavigationTreeDismissEnvironmentKey.self] }
+    set { self[NavigationTreeDismissEnvironmentKey.self] = newValue }
   }
 }

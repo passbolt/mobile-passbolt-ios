@@ -37,19 +37,20 @@ internal struct HomeNavigationNodeView: ControlledViewNode {
     WithViewState(self.controller) { state in
       self.bodyView(with: state)
     }
+    .task(self.controller.activate)
   }
 
   @ViewBuilder private func bodyView(
     with state: ViewState
   ) -> some View {
-    state
-      .contentController
-      .controlling(
-        ResourcesListNodeView.self,
+    Controlled
+      .by(
+        state.contentController,
+        view: ResourcesListNodeView.self,
         or: ResourceFolderContentNodeView.self,
         or: ResourceTagsListNodeView.self,
         or: ResourceUserGroupsListNodeView.self,
-        default: LoaderViewNode.instance
+        orDefault: LoaderViewNode.instance
       )
   }
 }

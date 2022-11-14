@@ -43,7 +43,7 @@ internal struct HomePresentationMenuNodeView: ControlledViewNode {
     with state: ViewState
   ) -> some View {
     DrawerMenu(
-      closeTap: self.controller.action(\.dismissView),
+      closeTap: self.controller.dismissView,
       title: {
         Text(
           displayable: .localized(
@@ -65,7 +65,7 @@ internal struct HomePresentationMenuNodeView: ControlledViewNode {
             }  // else { /* NOP */ }
             DrawerMenuItemView(
               action: {
-                self.controller.perform(\.selectMode, with: mode)
+                self.controller.selectMode(mode)
               },
               title: {
                 Text(displayable: mode.title)

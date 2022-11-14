@@ -43,12 +43,13 @@ internal struct ResourceFolderContentDisplayView: ControlledView {
         suggestedResources: state.suggestedResources,
         directResources: state.directResources,
         nestedResources: state.nestedResources,
-        refreshAction: self.controller.actionAsync(\.refresh),
-        createAction: self.controller.actionOptional(\.create),
-        folderTapAction: self.controller.action(\.selectFolder),
-        resourceTapAction: self.controller.action(\.selectResource),
-        resourceMenuAction: self.controller.actionOptional(\.openResourceMenu)
+        refreshAction: self.controller.refresh,
+        createAction: self.controller.create,
+        folderTapAction: self.controller.selectFolder,
+        resourceTapAction: self.controller.selectResource,
+        resourceMenuAction: self.controller.openResourceMenu
       )
     }
+    .task(self.controller.activate)
   }
 }

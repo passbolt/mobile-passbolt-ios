@@ -36,13 +36,10 @@ public struct NavigationTreeRootView: View {
 
   public var body: some View {
     WithViewState(self.navigationTree.state) { (state: NavigationTreeState) in
-      NavigationTreeAnchorView(
-        node: state.root,
-        dismissNode: self.navigationTree
-          .dismiss(_:)
-      )
+      NavigationTreeAnchorView(node: state.root)
     }
     .backgroundColor(.passboltBackground)
     .environment(\.isInNavigationTreeContext, true)
+    .environment(\.navigationTreeDismiss, self.navigationTree.dismiss(_:))
   }
 }

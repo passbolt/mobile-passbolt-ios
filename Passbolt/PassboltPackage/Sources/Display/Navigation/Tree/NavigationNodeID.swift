@@ -22,11 +22,15 @@
 //
 
 @propertyWrapper
-public final class NavigationNodeID {
+public struct NavigationNodeID {
 
   public var wrappedValue: NavigationNodeID { self }
+  private let identifier: ObjectIdentifier
 
-  public init() {}
+  public init() {
+    final class ID {}
+    self.identifier = .init(ID())
+  }
 }
 
 extension NavigationNodeID: Sendable {}
@@ -37,7 +41,7 @@ extension NavigationNodeID: Equatable {
     _ lhs: NavigationNodeID,
     _ rhs: NavigationNodeID
   ) -> Bool {
-    lhs === rhs
+    lhs.identifier == rhs.identifier
   }
 }
 extension NavigationNodeID: Hashable {
@@ -45,6 +49,6 @@ extension NavigationNodeID: Hashable {
   public func hash(
     into hasher: inout Hasher
   ) {
-    hasher.combine(ObjectIdentifier(self))
+    hasher.combine(self.identifier)
   }
 }

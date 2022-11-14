@@ -37,7 +37,7 @@ internal struct ResourceFolderMenuView: ControlledView {
     WithViewState(self.controller) { (state: ViewState) in
       DrawerMenu(
         closeTap: {
-          self.controller.perform(\.close)
+          self.controller.close()
         },
         title: {
           Text(state.folderName)
@@ -46,7 +46,7 @@ internal struct ResourceFolderMenuView: ControlledView {
           VStack(spacing: 0) {
             DrawerMenuItemView(
               action: {
-                self.controller.perform(\.openDetails)
+                self.controller.openDetails()
               },
               title: {
                 Text(

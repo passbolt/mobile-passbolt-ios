@@ -29,7 +29,6 @@ import Users
 
 internal struct ResourceFolderLocationDetailsController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
 }
 

@@ -29,9 +29,13 @@ import SessionData
 
 internal struct ResourceFolderContentDisplayController {
 
-  @IID internal var id
   internal var viewState: ViewStateBinding<ViewState>
-  internal var viewActions: ViewActions
+  internal var activate: @Sendable () async -> Void
+  internal var refresh: @Sendable () async -> Void
+  internal var create: (() -> Void)?
+  internal var selectFolder: (ResourceFolder.ID) -> Void
+  internal var selectResource: (Resource.ID) -> Void
+  internal var openResourceMenu: ((Resource.ID) -> Void)?
 }
 
 extension ResourceFolderContentDisplayController: ViewController {
@@ -41,7 +45,7 @@ extension ResourceFolderContentDisplayController: ViewController {
     internal let identifier: AnyHashable = IID()
 
     internal var folderName: DisplayableString
-    internal var filter: StateView<ResourceFoldersFilter>
+    internal var filter: ViewStateView<ResourceFoldersFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createFolder: (() -> Void)?
     internal var createResource: (() -> Void)?
@@ -54,7 +58,7 @@ extension ResourceFolderContentDisplayController: ViewController {
   internal struct ViewState: Hashable {
 
     internal var folderName: DisplayableString
-    @StateView internal var isSearchResult: Bool
+    internal var isSearchResult: Bool
     internal var directFolders: Array<ResourceFolderListItemDSV>
     internal var nestedFolders: Array<ResourceFolderListItemDSV>
     internal var suggestedResources: Array<ResourceListItemDSV>
@@ -62,34 +66,16 @@ extension ResourceFolderContentDisplayController: ViewController {
     internal var nestedResources: Array<ResourceListItemDSV>
   }
 
-  internal struct ViewActions: ViewControllerActions {
-
-    internal var activate: @Sendable () async -> Void
-    internal var refresh: @Sendable () async -> Void
-    internal var create: (() -> Void)?
-    internal var selectFolder: (ResourceFolder.ID) -> Void
-    internal var selectResource: (Resource.ID) -> Void
-    internal var openResourceMenu: ((Resource.ID) -> Void)?
-
-    #if DEBUG
-    internal static var placeholder: Self {
-      .init(
-        activate: { unimplemented() },
-        refresh: { unimplemented() },
-        create: { unimplemented() },
-        selectFolder: { _ in unimplemented() },
-        selectResource: { _ in unimplemented() },
-        openResourceMenu: { _ in unimplemented() }
-      )
-    }
-    #endif
-  }
-
   #if DEBUG
   nonisolated static var placeholder: Self {
     .init(
       viewState: .placeholder,
-      viewActions: .placeholder
+      activate: { unimplemented() },
+      refresh: { unimplemented() },
+      create: { unimplemented() },
+      selectFolder: { _ in unimplemented() },
+      selectResource: { _ in unimplemented() },
+      openResourceMenu: { _ in unimplemented() }
     )
   }
   #endif
@@ -108,13 +94,10 @@ extension ResourceFolderContentDisplayController {
     let sessionData: SessionData = try await features.instance()
     let resourceFolders: ResourceFolders = try await features.instance()
 
-    let state: StateBinding<ViewState> = .variable(
+    let viewState: ViewStateBinding<ViewState> = .init(
       initial: .init(
         folderName: context.folderName,
-        isSearchResult: context.filter
-          .convert { (filter: ResourceFoldersFilter) in
-            !filter.text.isEmpty
-          },
+        isSearchResult: false,
         directFolders: .init(),
         nestedFolders: .init(),
         suggestedResources: .init(),
@@ -122,38 +105,23 @@ extension ResourceFolderContentDisplayController {
         nestedResources: .init()
       )
     )
-    state.bind(\.$isSearchResult)
-
-    let viewState: ViewStateBinding<ViewState> = .init(
-      stateSource: state
-    )
 
     context
       .filter
+      .valuesPublisher()
       .sink { (filter: ResourceFoldersFilter) in
         updateDisplayedItems(filter)
       }
       .store(in: viewState.cancellables)
 
     @Sendable nonisolated func activate() async {
-      do {
-        try await sessionData
-          .updatesSequence
-          .forEach {
-            updateDisplayedItems(
-              context.filter.get()
-            )
-          }
-      }
-      catch {
-        diagnostics.log(
-          error: error,
-          info: .message(
-            "Resource folder content updates broken!"
-          )
-        )
-        context.showMessage(.error(error))
-      }
+			await sessionData
+				.updatesSequence
+				.forEach {
+					await updateDisplayedItems(
+						context.filter.wrappedValue
+					)
+				}
     }
 
     @Sendable nonisolated func refresh() async {
@@ -183,7 +151,8 @@ extension ResourceFolderContentDisplayController {
 
           try Task.checkCancellation()
 
-          viewState.mutate { (viewState: inout ViewState) in
+          await viewState.mutate { (viewState: inout ViewState) in
+            viewState.isSearchResult = !filter.text.isEmpty
             viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
             viewState.directFolders = filteredResourceFolderContent.subfolders
               .filter { $0.parentFolderID == filter.folderID }
@@ -209,14 +178,12 @@ extension ResourceFolderContentDisplayController {
 
     return .init(
       viewState: viewState,
-      viewActions: .init(
-        activate: activate,
-        refresh: refresh,
-        create: context.createResource,
-        selectFolder: context.selectFolder,
-        selectResource: context.selectResource,
-        openResourceMenu: context.openResourceMenu
-      )
+      activate: activate,
+      refresh: refresh,
+      create: context.createResource,
+      selectFolder: context.selectFolder,
+      selectResource: context.selectResource,
+      openResourceMenu: context.openResourceMenu
     )
   }
 }

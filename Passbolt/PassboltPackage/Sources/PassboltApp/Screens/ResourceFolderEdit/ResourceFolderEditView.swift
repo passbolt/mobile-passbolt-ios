@@ -60,11 +60,7 @@ internal struct ResourceFolderEditView: ControlledView {
         text: .init(
           get: { state.folderName },
           set: { (newValue: Validated<String>) in
-            self.controller
-              .perform(
-                \.setFolderName,
-                with: newValue.value
-              )
+            self.controller.setFolderName(newValue.value)
           }
         ),
         prompt: .localized(
@@ -87,7 +83,7 @@ internal struct ResourceFolderEditView: ControlledView {
         title: .localized(
           key: "form.button.save.title"
         ),
-        action: self.controller.action(\.saveChanges)
+        action: self.controller.saveChanges
       )
     }
     .padding(16)

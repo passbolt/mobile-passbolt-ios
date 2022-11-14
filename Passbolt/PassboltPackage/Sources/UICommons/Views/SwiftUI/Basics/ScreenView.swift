@@ -29,8 +29,6 @@ public struct ScreenView<TitleCenterView, TitleBottomView, TitleLeadingItem, Tit
 where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, TitleTrailingItem: View, ContentView: View {
 
   @Environment(\.isInNavigationTreeContext) var isInNavigationTreeContext: Bool
-  @Environment(\.navigationTreeDismiss) var navigationTreeDismiss: NavigationTreeDismiss?
-  @Environment(\.navigationTreeBack) var navigationTreeBack: NavigationTreeBack?
   private let title: DisplayableString
   private let loading: Bool
   private let snackBarMessage: Binding<SnackBarMessage?>
