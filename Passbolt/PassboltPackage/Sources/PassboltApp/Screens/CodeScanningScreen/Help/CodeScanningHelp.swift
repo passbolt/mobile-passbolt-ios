@@ -32,7 +32,7 @@ internal final class CodeScanningHelpViewController: AlertViewController<CodeSca
         .action(
           .localized(key: .gotIt),
           style: .cancel,
-          accessibilityIdentifier: "button.close",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: {}
         )
       )

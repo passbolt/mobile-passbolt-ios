@@ -33,7 +33,7 @@ internal final class WelcomeScreenNoAccountAlertViewController:
         .message(.localized(key: "welcome.no.account.alert.text")),
         .action(
           .localized(key: .gotIt),
-          accessibilityIdentifier: "alert.button.close",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: controller.dismiss
         )
       )

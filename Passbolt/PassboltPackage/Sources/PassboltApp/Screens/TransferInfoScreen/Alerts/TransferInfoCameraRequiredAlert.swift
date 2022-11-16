@@ -39,7 +39,7 @@ internal final class TransferInfoCameraRequiredAlertViewController:
         ),
         .action(
           .localized(key: .settings),
-          accessibilityIdentifier: "alert.button.dismiss",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: controller.showSettings
         )
       )

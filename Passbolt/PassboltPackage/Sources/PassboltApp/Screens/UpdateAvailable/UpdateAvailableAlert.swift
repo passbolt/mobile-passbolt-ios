@@ -33,6 +33,7 @@ internal final class UpdateAvailableViewController: AlertViewController<UpdateAv
         .action(
           .localized(key: .gotIt),
           style: .cancel,
+          accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in self?.controller.completion() }
         )
       )

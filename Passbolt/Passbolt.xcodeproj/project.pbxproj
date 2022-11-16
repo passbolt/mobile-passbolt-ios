@@ -23,6 +23,9 @@
 
 /* Begin PBXBuildFile section */
 		424C5B7E26319B2F006B7C9F /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424C5B7D26319B2F006B7C9F /* Application.swift */; };
+		425A581F29250FB700C19E05 /* PassboltApplicationLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425A581E29250FB700C19E05 /* PassboltApplicationLaunchTests.swift */; };
+		425A58272925109000C19E05 /* UITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425A58262925109000C19E05 /* UITestCase.swift */; };
+		425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425A5829292550AF00C19E05 /* WelcomeScreenUITests.swift */; };
 		426DDBD6267CA83000EEF4F9 /* ApplicationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */; };
 		DD38F942261746C400A6C627 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F941261746C400A6C627 /* AppDelegate.swift */; };
 		DD38F944261746C400A6C627 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD38F943261746C400A6C627 /* SceneDelegate.swift */; };
@@ -39,6 +42,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		425A582029250FB700C19E05 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD38F936261746C400A6C627 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD38F93D261746C400A6C627;
+			remoteInfo = Passbolt;
+		};
 		DD38F96C26174BB700A6C627 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DD38F936261746C400A6C627 /* Project object */;
@@ -64,6 +74,11 @@
 
 /* Begin PBXFileReference section */
 		424C5B7D26319B2F006B7C9F /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
+		425A581A29250FB700C19E05 /* PassboltUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PassboltUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		425A581E29250FB700C19E05 /* PassboltApplicationLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassboltApplicationLaunchTests.swift; sourceTree = "<group>"; };
+		425A58262925109000C19E05 /* UITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestCase.swift; sourceTree = "<group>"; };
+		425A58282925147700C19E05 /* UITestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = UITestPlan.xctestplan; sourceTree = "<group>"; };
+		425A5829292550AF00C19E05 /* WelcomeScreenUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreenUITests.swift; sourceTree = "<group>"; };
 		426DDBD5267CA83000EEF4F9 /* ApplicationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationExtension.swift; sourceTree = "<group>"; };
 		42F3883128C9DB4100B832CA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DD38F93E261746C400A6C627 /* Passbolt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passbolt.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +100,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		425A581729250FB700C19E05 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD38F93B261746C400A6C627 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -106,13 +128,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		425A581B29250FB700C19E05 /* PassboltUITests */ = {
+			isa = PBXGroup;
+			children = (
+				425A58252925107C00C19E05 /* TestSupport */,
+				425A581E29250FB700C19E05 /* PassboltApplicationLaunchTests.swift */,
+				425A5829292550AF00C19E05 /* WelcomeScreenUITests.swift */,
+			);
+			path = PassboltUITests;
+			sourceTree = "<group>";
+		};
+		425A58252925107C00C19E05 /* TestSupport */ = {
+			isa = PBXGroup;
+			children = (
+				425A58262925109000C19E05 /* UITestCase.swift */,
+			);
+			path = TestSupport;
+			sourceTree = "<group>";
+		};
 		DD38F935261746C400A6C627 = {
 			isa = PBXGroup;
 			children = (
+				425A58282925147700C19E05 /* UITestPlan.xctestplan */,
 				DD87927E262983CF006ECC0A /* TestPlan.xctestplan */,
 				DD3F9EB726244A330027D016 /* PassboltPackage */,
 				DD38F940261746C400A6C627 /* Passbolt */,
 				DD38F96426174BB700A6C627 /* PassboltAutofill */,
+				425A581B29250FB700C19E05 /* PassboltUITests */,
 				DD38F96126174BB700A6C627 /* Frameworks */,
 				DD38F93F261746C400A6C627 /* Products */,
 			);
@@ -123,6 +165,7 @@
 			children = (
 				DD38F93E261746C400A6C627 /* Passbolt.app */,
 				DD38F96026174BB700A6C627 /* PassboltAutofill.appex */,
+				425A581A29250FB700C19E05 /* PassboltUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -165,6 +208,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		425A581929250FB700C19E05 /* PassboltUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 425A582429250FB700C19E05 /* Build configuration list for PBXNativeTarget "PassboltUITests" */;
+			buildPhases = (
+				425A581629250FB700C19E05 /* Sources */,
+				425A581729250FB700C19E05 /* Frameworks */,
+				425A581829250FB700C19E05 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				425A582129250FB700C19E05 /* PBXTargetDependency */,
+			);
+			name = PassboltUITests;
+			productName = PassboltUITests;
+			productReference = 425A581A29250FB700C19E05 /* PassboltUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		DD38F93D261746C400A6C627 /* Passbolt */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DD38F952261746C500A6C627 /* Build configuration list for PBXNativeTarget "Passbolt" */;
@@ -215,11 +276,15 @@
 		DD38F936261746C400A6C627 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1240;
+				LastSwiftUpdateCheck = 1410;
 				LastUpgradeCheck = 1240;
 				TargetAttributes = {
 					4205C5172698448400F2434D = {
 						CreatedOnToolsVersion = 12.5.1;
+					};
+					425A581929250FB700C19E05 = {
+						CreatedOnToolsVersion = 14.1;
+						TestTargetID = DD38F93D261746C400A6C627;
 					};
 					DD38F93D261746C400A6C627 = {
 						CreatedOnToolsVersion = 12.4;
@@ -245,11 +310,19 @@
 				DD38F93D261746C400A6C627 /* Passbolt */,
 				DD38F95F26174BB700A6C627 /* PassboltAutofill */,
 				4205C5172698448400F2434D /* Format&Lint */,
+				425A581929250FB700C19E05 /* PassboltUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		425A581829250FB700C19E05 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD38F93C261746C400A6C627 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -346,6 +419,16 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		425A581629250FB700C19E05 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				425A581F29250FB700C19E05 /* PassboltApplicationLaunchTests.swift in Sources */,
+				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
+				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD38F93A261746C400A6C627 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -368,6 +451,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		425A582129250FB700C19E05 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD38F93D261746C400A6C627 /* Passbolt */;
+			targetProxy = 425A582029250FB700C19E05 /* PBXContainerItemProxy */;
+		};
 		DD38F96D26174BB700A6C627 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DD38F95F26174BB700A6C627 /* PassboltAutofill */;
@@ -403,6 +491,48 @@
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		425A582229250FB700C19E05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.PassboltUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Passbolt;
+			};
+			name = Debug;
+		};
+		425A582329250FB700C19E05 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.passbolt.mobile.PassboltUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Passbolt;
 			};
 			name = Release;
 		};
@@ -638,6 +768,15 @@
 			buildConfigurations = (
 				4205C5192698448400F2434D /* Debug */,
 				4205C51A2698448400F2434D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		425A582429250FB700C19E05 /* Build configuration list for PBXNativeTarget "PassboltUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				425A582229250FB700C19E05 /* Debug */,
+				425A582329250FB700C19E05 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

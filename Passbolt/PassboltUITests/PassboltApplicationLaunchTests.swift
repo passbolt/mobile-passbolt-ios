@@ -21,53 +21,19 @@
 // @since         v1.0
 //
 
-import Accounts
-import Resources
-import UICommons
-import UIComponents
+import XCTest
 
-internal final class ResourceDeleteAlert:
-  AlertViewController<ResourceDeleteAlertController>, UIComponent
-{
+final class PassboltApplicationLaunchTests: UITestCase {
 
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .message(.localized(key: .areYouSure)),
-        .action(
-          .localized(key: .cancel),
-          style: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          .localized(key: .delete),
-          style: .destructive,
-          accessibilityIdentifier: "alert.button.confirm",
-          handler: controller.delete
-        )
-      )
-    }
+  func test_launch_succeeds() throws {
+    self.makeScreenshotAttachment()
   }
-}
 
-internal struct ResourceDeleteAlertController {
-
-  internal var delete: () -> Void
-}
-
-extension ResourceDeleteAlertController: UIController {
-
-  internal typealias Context = () -> Void
-
-  internal static func instance(
-    in context: @escaping Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-
-    return Self(
-      delete: context
-    )
+  func testLaunchPerformance() throws {
+    measure(
+      metrics: [XCTApplicationLaunchMetric(waitUntilResponsive: true)]
+    ) {
+      XCUIApplication().launch()
+    }
   }
 }

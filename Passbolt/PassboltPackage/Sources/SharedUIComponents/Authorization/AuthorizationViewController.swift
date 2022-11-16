@@ -80,7 +80,8 @@ public final class AuthorizationViewController: PlainViewController, UIComponent
               self?.cancellables.executeOnMainActor { [weak self] in
                 await self?.presentSheetMenu(HelpMenuViewController.self, in: [])
               }
-            }
+            },
+            .accessibilityIdentifier("button.help")
           )
           .instantiate()
       )

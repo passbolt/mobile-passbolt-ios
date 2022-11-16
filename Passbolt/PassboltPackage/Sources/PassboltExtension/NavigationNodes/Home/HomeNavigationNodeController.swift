@@ -89,24 +89,16 @@ extension HomeNavigationNodeController {
 
     @Sendable nonisolated func activate() async {
       asyncExecutor.schedule(.reuse) {
-        do {
-          try await homePresentation
-            .currentMode
-            .asAnyAsyncSequence()
-            .forEach { (mode: HomePresentationMode) in
-              await state.set(
-                \.contentController,
-                to: contentRoot(for: mode)
-              )
-              navigationTree.dismiss(upTo: nodeID)
-            }
-        }
-        catch {
-          diagnostics.log(
-            error: error,
-            info: .message("Home navigation mode updates broken.")
-          )
-        }
+				await homePresentation
+					.currentMode
+					.asAnyAsyncSequence()
+					.forEach { (mode: HomePresentationMode) in
+						await state.set(
+							\.contentController,
+							 to: contentRoot(for: mode)
+						)
+						navigationTree.dismiss(upTo: nodeID)
+					}
       }
     }
 

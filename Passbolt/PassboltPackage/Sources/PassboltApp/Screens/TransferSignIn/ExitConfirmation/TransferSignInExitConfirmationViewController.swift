@@ -42,6 +42,7 @@ internal final class TransferSignInExitConfirmationViewController:
         .action(
           .localized(key: "transfer.account.exit.confirmation.confirm.button.title"),
           style: .destructive,
+          accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in
             self?.controller.exit()
           }

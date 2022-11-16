@@ -41,7 +41,7 @@ internal final class CodeScanningExitConfirmationViewController:
         .action(
           .localized(key: "code.scanning.exit.confirmation.confirm.button.title"),
           style: .destructive,
-          accessibilityIdentifier: "alert.button.exit",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in
             self?.controller.exit()
           }

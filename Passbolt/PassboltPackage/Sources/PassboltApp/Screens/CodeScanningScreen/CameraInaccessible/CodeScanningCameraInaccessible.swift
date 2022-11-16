@@ -35,7 +35,7 @@ internal final class CodeScanningCameraInaccessibleViewController:
         .action(
           .localized(key: .gotIt),
           style: .cancel,
-          accessibilityIdentifier: "button.close",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in
             self?.controller.exit()
           }

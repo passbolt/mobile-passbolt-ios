@@ -48,7 +48,7 @@ extension Mutation where Subject: UIAlertController {
     _ displayableString: DisplayableString,
     with arguments: Array<CVarArg> = .init(),
     style: UIAlertAction.Style = .default,
-    accessibilityIdentifier: String? = nil,
+    accessibilityIdentifier: String,
     handler: @escaping () -> Void
   ) -> Self {
     Self { (subject: Subject) in

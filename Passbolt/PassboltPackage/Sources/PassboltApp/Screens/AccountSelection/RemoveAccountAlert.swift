@@ -39,13 +39,13 @@ internal final class RemoveAccountAlertViewController:
         .action(
           .localized(key: .cancel),
           style: .cancel,
-          accessibilityIdentifier: "button.close",
+          accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
           .localized(key: .remove),
           style: .destructive,
-          accessibilityIdentifier: "button.remove",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in self?.controller.removeAccount()
           }
         )

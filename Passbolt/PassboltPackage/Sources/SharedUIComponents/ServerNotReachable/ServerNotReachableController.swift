@@ -52,6 +52,7 @@ public final class ServerNotReachableAlertViewController:
             key: .gotIt
           ),
           style: .default,
+          accessibilityIdentifier: "alert.button.confirm",
           handler: {}
         )
       )

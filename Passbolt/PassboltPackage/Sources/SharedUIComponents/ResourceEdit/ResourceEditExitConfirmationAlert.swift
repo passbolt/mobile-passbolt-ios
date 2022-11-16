@@ -39,6 +39,7 @@ internal final class ResourceEditExitConfirmationAlert:
             key: "resource.edit.exit.confirmation.button.edit.title"
           ),
           style: .cancel,
+          accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
@@ -46,6 +47,7 @@ internal final class ResourceEditExitConfirmationAlert:
             key: "resource.edit.exit.confirmation.button.revert.title"
           ),
           style: .default,
+          accessibilityIdentifier: "alert.button.confirm",
           handler: controller.exit
         )
       )

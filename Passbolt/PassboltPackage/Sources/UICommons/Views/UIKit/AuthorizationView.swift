@@ -86,6 +86,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     mut(biometricButton) {
       .combined(
+        .accessibilityIdentifier("button.signin.biometric"),
         .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .subview(of: biometricButtonContainer),
         .contentMode(.scaleAspectFit),
@@ -107,6 +108,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     let contentScrolledStack: ScrolledStackView = Mutation<ScrolledStackView>
       .combined(
+        .accessibilityIdentifier("scroll.content"),
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),
         .contentInset(.init(top: 0, left: 16, bottom: 0, right: 16)),
@@ -184,6 +186,7 @@ public final class AuthorizationView: KeyboardAwareView {
   private func setupLabels() {
     mut(nameLabel) {
       .combined(
+        .accessibilityIdentifier("label.account.name"),
         .font(.inter(ofSize: 20, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center)
@@ -192,6 +195,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     mut(emailLabel) {
       .combined(
+        .accessibilityIdentifier("label.account.email"),
         .font(.inter(ofSize: 14)),
         .textColor(dynamic: .secondaryText),
         .textAlignment(.center)
@@ -200,6 +204,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     mut(urlLabel) {
       .combined(
+        .accessibilityIdentifier("label.account.url"),
         .font(.inter(ofSize: 12)),
         .textColor(dynamic: .secondaryText),
         .textAlignment(.center)
@@ -207,13 +212,17 @@ public final class AuthorizationView: KeyboardAwareView {
     }
 
     mut(passwordInput) {
-      .isRequired(true)
+      .combined(
+        .accessibilityIdentifier("input.text.passphrase"),
+        .isRequired(true)
+      )
     }
   }
 
   private func setupBottomButtons() {
     mut(signInButton) {
       .combined(
+        .accessibilityIdentifier("button.signin.passphrase"),
         .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .primaryStyle(),
         .text(
@@ -226,6 +235,7 @@ public final class AuthorizationView: KeyboardAwareView {
 
     mut(forgotButton) {
       .combined(
+        .accessibilityIdentifier("button.forgot.passphrase"),
         .action({ [weak self] in self?.endEditing(true) }, replace: false),
         .linkStyle(),
         .text(

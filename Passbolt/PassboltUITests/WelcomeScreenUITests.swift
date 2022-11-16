@@ -21,53 +21,37 @@
 // @since         v1.0
 //
 
-import Accounts
-import Resources
-import UICommons
-import UIComponents
+import XCTest
 
-internal final class ResourceDeleteAlert:
-  AlertViewController<ResourceDeleteAlertController>, UIComponent
-{
+final class WelcomeScreenUITests: UITestCase {
 
-  internal func setup() {
-    mut(self) {
-      .combined(
-        .message(.localized(key: .areYouSure)),
-        .action(
-          .localized(key: .cancel),
-          style: .cancel,
-          accessibilityIdentifier: "alert.button.cancel",
-          handler: {}
-        ),
-        .action(
-          .localized(key: .delete),
-          style: .destructive,
-          accessibilityIdentifier: "alert.button.confirm",
-          handler: controller.delete
-        )
-      )
-    }
+  func testThatAsAMobileUserICanSeeTheWelcomeScreenWhenIOpenTheApplicationAndNoAccountIsSetup() throws {
+    self.assert(
+      "label.title",
+      textMatches: "Welcome!"
+    )
+
+    self.assert(
+      "label.description",
+      textMatches: "You need an existing account to get started. Sign in with your existing account on the desktop browser extension to connect it with the mobile device."
+    )
+
+    self.assertExists(
+      "button.account.transfer"
+    )
+
+    self.assertExists(
+      "button.account.none"
+    )
   }
-}
 
-internal struct ResourceDeleteAlertController {
+  func testThatAsAMobileUserICanSeeAnExplanationWhyICannotCreateAnAccountOnTheMobileApp() throws {
+    self.tap(
+      "button.account.none"
+    )
 
-  internal var delete: () -> Void
-}
-
-extension ResourceDeleteAlertController: UIController {
-
-  internal typealias Context = () -> Void
-
-  internal static func instance(
-    in context: @escaping Context,
-    with features: FeatureFactory,
-    cancellables: Cancellables
-  ) -> Self {
-
-    return Self(
-      delete: context
+    self.assertPresentsString(
+      matching: "It is currently not possible to create an account using the mobile app. First you will need create an account using your desktop browser extension."
     )
   }
 }

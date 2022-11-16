@@ -38,12 +38,13 @@ internal final class SignOutAlertViewController:
         .action(
           .localized(key: .cancel),
           style: .cancel,
+          accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
           .localized(key: .signOut),
           style: .destructive,
-          accessibilityIdentifier: "button.close",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: { [weak self] in
             self?.controller.exit()
           }

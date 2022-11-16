@@ -40,8 +40,7 @@ internal final class WelcomeScreenView: ScrolledStackView {
       contentView: logoImageView,
       mutation: .combined(
         .image(named: .passboltLogo, from: .uiCommons),
-        .contentMode(.scaleAspectFit),
-        .accessibilityIdentifier("welcome.app.logo.imageview")
+        .contentMode(.scaleAspectFit)
       ),
       widthMultiplier: 0.4,
       heightMultiplier: 1
@@ -50,10 +49,10 @@ internal final class WelcomeScreenView: ScrolledStackView {
     let accountsContainer: ContainerView = .init(
       contentView: accountsImageView,
       mutation: .combined(
+        .accessibilityIdentifier("image.account.avatar"),
         .image(named: .accountsSkeleton, from: .uiCommons),
         .contentMode(.scaleAspectFit),
-        .widthAnchor(.equalTo, accountsImageView.heightAnchor),
-        .accessibilityIdentifier("welcome.accounts.imageview")
+        .widthAnchor(.equalTo, accountsImageView.heightAnchor)
       ),
       widthMultiplier: 0.7,
       heightMultiplier: 1
@@ -61,44 +60,45 @@ internal final class WelcomeScreenView: ScrolledStackView {
 
     mut(titleLabel) {
       .combined(
+        .accessibilityIdentifier("label.title"),
         .font(.inter(ofSize: 24, weight: .semibold)),
         .textColor(dynamic: .primaryText),
         .textAlignment(.center),
-        .text(displayable: .localized(key: "welcome.title")),
-        .accessibilityIdentifier("welcome.title.label")
+        .text(displayable: .localized(key: "welcome.title"))
       )
     }
 
     mut(descriptionLabel) {
       .combined(
+        .accessibilityIdentifier("label.description"),
         .font(.inter(ofSize: 14)),
         .lineBreakMode(.byWordWrapping),
         .textAlignment(.center),
         .numberOfLines(0),
         .textColor(dynamic: .secondaryText),
-        .text(displayable: .localized(key: "welcome.description")),
-        .accessibilityIdentifier("welcome.description.label")
+        .text(displayable: .localized(key: "welcome.description"))
       )
     }
 
     mut(accountButton) {
       .combined(
+        .accessibilityIdentifier("button.account.transfer"),
         .primaryStyle(),
-        .text(displayable: .localized(key: "welcome.connect.to.account")),
-        .accessibilityIdentifier("welcome.connect.account.button")
+        .text(displayable: .localized(key: "welcome.connect.to.account"))
       )
     }
 
     mut(noAccountButton) {
       .combined(
+        .accessibilityIdentifier("button.account.none"),
         .linkStyle(),
-        .text(displayable: .localized(key: "welcome.no.account")),
-        .accessibilityIdentifier("welcome.no.account.button")
+        .text(displayable: .localized(key: "welcome.no.account"))
       )
     }
 
     mut(self) {
       .combined(
+        .accessibilityIdentifier("scroll.content"),
         .backgroundColor(dynamic: .background),
         .axis(.vertical),
         .isLayoutMarginsRelativeArrangement(true),

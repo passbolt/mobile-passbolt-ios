@@ -1,0 +1,26 @@
+{
+  "configurations" : [
+    {
+      "id" : "B372FB81-A1F2-4130-8577-2ECEE63C19F9",
+      "name" : "UITests",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "testExecutionOrdering" : "random",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Passbolt.xcodeproj",
+        "identifier" : "425A581929250FB700C19E05",
+        "name" : "PassboltUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

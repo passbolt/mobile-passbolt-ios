@@ -37,12 +37,13 @@ internal final class DisableBiometricsAlertViewController:
         .action(
           .localized(key: .cancel),
           style: .cancel,
+          accessibilityIdentifier: "alert.button.cancel",
           handler: {}
         ),
         .action(
           .localized(key: .disable),
           style: .destructive,
-          accessibilityIdentifier: "button.close",
+          accessibilityIdentifier: "alert.button.confirm",
           handler: controller.disable
         )
       )
