@@ -310,7 +310,7 @@ Contact your administrator for more information.";
 "autofill.extension.account.selection.sign.in.title" = "You are not logged in";
 "autofill.extension.account.selection.sign.in.subtitle" = "Select an account to sign in!";
 
-"autofill.extension.no.accounts.title" =  "No account found!";
+"autofill.extension.no.accounts.title" = "No account found!";
 "autofill.extension.no.accounts.description" = "You need an account to get started. Please open the Passbolt application and follow the setup instructions. Passbolt will be able to autofill credentials afterwards.";
 
 "autofill.extension.resource.list.title" = "Choose password";
@@ -388,8 +388,8 @@ Contact your administrator for more information.";
 "error.server.response.invalid" = "Invalid server response";
 "error.server.response.timeout" = "Server response timeout.";
 "error.server.certificate.invalid" = "Invalid server certificate.";
-"error.http.request.invalid" = "Failed to prepare HTTP request.";
-"error.http.response.invalid" = "Failed to process HTTP response";
+"error.http.request.invalid" = "HTTP request invalid.";
+"error.http.response.invalid" = "HTTP response invalid.";
 "error.network.response.invalid" = "Invalid network response";
 "error.http.response.forbidden" = "HTTP forbidden.";
 "error.http.response.not.found" = "HTTP not found.";
